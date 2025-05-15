@@ -123,4 +123,78 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    // Below are the custom configurations for the application ----------------------------------------------------------------------------------
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Domain Configuration
+    |--------------------------------------------------------------------------
+    |
+    | These values define the custom domains used in the application, such as
+    | for the API, admin panel, and frontend. They are useful when routing
+    | by subdomain or deploying to separate hostnames.
+    |
+    */
+
+    'domains' => [
+        'front' => env('FRONT_DOMAIN', 'kabba.local'),
+        'admin' => env('ADMIN_DOMAIN', 'admin.kabba.local'),
+        'api' => env('API_DOMAIN', 'api.kabba.local'),
+        'api_url' => env('API_DOMAIN_URL', 'http://api.kabba.local'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Date & Time Format Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Defines the formats used across the application for consistency.
+    |
+    */
+    'date' => [
+        'db_date_format' => env('DB_DATE_FORMAT', 'Y-m-d'),
+        'db_date_time_format' => env('DB_DATE_TIME_FORMAT', 'Y-m-d H:i:s'),
+        'date_time_format_without_second' => env('DATE_TIME_FORMAT_WITHOUT_SECOND', 'd/m/Y H:i'),
+        'date_format' => env('DATE_FORMAT', 'd/m/Y'),
+        'fancy_date_time_format' => env('FANCY_DATE_TIME_FORMAT', 'd/m/Y - H:i'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Image and File Settings
+    |--------------------------------------------------------------------------
+    |
+    | Controls settings for media such as images and uploads.
+    |
+    */
+    'webp_quality' => env('WEBP_QUALITY', 70),
+    'max_file_upload_size' => env('MAX_FILE_UPLOAD_SIZE', 10),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pagination Settings
+    |--------------------------------------------------------------------------
+    |
+    | Default records per page for various parts of the application.
+    |
+    */
+    'pagination' => [
+        'admin' => env('APP_RECORDS_PER_PAGE', 20),
+        'front' => env('FRONT_RECORDS_PER_PAGE', 5),
+        'front_search' => env('FRONT_SEARCH_RECORDS_PER_PAGE', 5),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Currency Settings
+    |--------------------------------------------------------------------------
+    |
+    | Default currency formatting for the application.
+    |
+    */
+    'currency' => [
+        'code' => env('CURRENCY_CODE', '₹'),
+        'name' => env('CURRENCY_NAME', 'INR'),
+    ],
+
 ];

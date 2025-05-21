@@ -2,6 +2,8 @@
 
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
@@ -17,16 +19,17 @@
   --breakpoint-2xl: 1536px;
 
   /* Extend/define theme colors using CSS custom properties */
-  --color-theme-50:  #fef7f2;
-  --color-theme-100: #fceee1;
-  --color-theme-200: #f9dfc8;
-  --color-theme-300: #f5c9a2;
-  --color-theme-400: #efa96b;
-  --color-theme-500: #EB9346;
-  --color-theme-600: #bc7638;
-  --color-theme-700: #99602e;
-  --color-theme-800: #6a421f;
-  --color-theme-900: #3b2512;
+    --color-theme-50:  #fef6ec;
+    --color-theme-100: #fde7cb;
+    --color-theme-200: #fbd19e;
+    --color-theme-300: #f9ba70;
+    --color-theme-400: #f6a650;
+    --color-theme-500: #F1963E; /* Primary */
+    --color-theme-600: #d37c2f;
+    --color-theme-700: #af6425;
+    --color-theme-800: #864b1a;
+    --color-theme-900: #5f3411;
+
 
   --text-title-2xl: 72px;
   --text-title-2xl--line-height: 90px;
@@ -177,6 +180,7 @@
 }
 
 /*
+
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
   looks the same as it did with Tailwind CSS v3.
@@ -185,63 +189,63 @@
   color utility to any element that depends on these defaults.
 */
 
-.menu-item {
+@utility menu-item {
   @apply text-theme-sm relative flex items-center gap-3 rounded-lg px-3 py-2 font-medium;
 }
 
-.menu-item-active {
+@utility menu-item-active {
   @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
 }
 
-.menu-item-inactive {
+@utility menu-item-inactive {
   @apply text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
 }
 
-.menu-item-icon-active {
+@utility menu-item-icon-active {
   @apply fill-brand-500 dark:fill-brand-400;
 }
 
-.menu-item-icon-inactive {
+@utility menu-item-icon-inactive {
   @apply fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300;
 }
 
-.menu-item-arrow {
+@utility menu-item-arrow {
   @apply absolute top-1/2 right-2.5 -translate-y-1/2;
 }
 
-.menu-item-arrow-active {
+@utility menu-item-arrow-active {
   @apply stroke-brand-500 dark:stroke-brand-400 rotate-180;
 }
 
-.menu-item-arrow-inactive {
+@utility menu-item-arrow-inactive {
   @apply stroke-gray-500 group-hover:stroke-gray-700 dark:stroke-gray-400 dark:group-hover:stroke-gray-300;
 }
 
-.menu-dropdown-item {
+@utility menu-dropdown-item {
   @apply text-theme-sm relative flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium;
 }
 
-.menu-dropdown-item-active {
+@utility menu-dropdown-item-active {
   @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
 }
 
-.menu-dropdown-item-inactive {
+@utility menu-dropdown-item-inactive {
   @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
 }
 
-.menu-dropdown-badge {
+@utility menu-dropdown-badge {
   @apply text-brand-500 dark:text-brand-400 block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
 }
 
-.menu-dropdown-badge-active {
+@utility menu-dropdown-badge-active {
   @apply bg-brand-100 dark:bg-brand-500/20;
 }
 
-.menu-dropdown-badge-inactive {
+@utility menu-dropdown-badge-inactive {
   @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
 }
 
-.no-scrollbar {
+@utility no-scrollbar {
   /* Chrome, Safari and Opera */
   &::-webkit-scrollbar {
     display: none;
@@ -250,19 +254,18 @@
   scrollbar-width: none; /* Firefox */
 }
 
-.custom-scrollbar::-webkit-scrollbar,
-.fc .fc-view-harness::-webkit-scrollbar {
-  @apply size-1.5;
-}
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    @apply size-1.5;
+  }
 
-.custom-scrollbar::-webkit-scrollbar-track,
-.fc .fc-view-harness::-webkit-scrollbar-track {
-  @apply rounded-full;
-}
+  &::-webkit-scrollbar-track {
+    @apply rounded-full;
+  }
 
-.custom-scrollbar::-webkit-scrollbar-thumb,
-.fc .fc-view-harness::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-gray-200;
+  &::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-200;
+  }
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -286,17 +289,15 @@
   }
 }
 @layer utilities {
-    /* For Remove Date Icon */
-    input[type="date"]::-webkit-inner-spin-button,
-    input[type="time"]::-webkit-inner-spin-button,
-    input[type="date"]::-webkit-calendar-picker-indicator,
-    input[type="time"]::-webkit-calendar-picker-indicator {
-        display: none;
-        -webkit-appearance: none;
-    }
-
+  /* For Remove Date Icon */
+  input[type="date"]::-webkit-inner-spin-button,
+  input[type="time"]::-webkit-inner-spin-button,
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+  }
 }
-
 
 .sidebar:hover {
   width: 290px;
@@ -543,9 +544,8 @@ span.flatpickr-weekday,
 }
 
 .fc .fc-view-harness {
-  @apply max-w-full overflow-x-auto;
+  @apply custom-scrollbar max-w-full overflow-x-auto;
 }
-
 .fc-dayGridMonth-view.fc-view.fc-daygrid {
   @apply min-w-[718px];
 }

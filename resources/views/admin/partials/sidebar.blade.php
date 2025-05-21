@@ -6,12 +6,12 @@
         class="sidebar-header flex items-center gap-2 pt-8 pb-7">
         <a href="index.html">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-                <img class="dark:hidden" src="./images/logo/logo.svg" alt="Logo" />
-                <img class="hidden dark:block w-15"
+                <img class="dark:hidden w-10" src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
+                <img class="hidden dark:block w-10"
                     src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
             </span>
 
-            <img class="logo-icon w-15" :class="sidebarToggle ? 'lg:block' : 'hidden'"
+            <img class="logo-icon w-10" :class="sidebarToggle ? 'lg:block' : 'hidden'"
                 src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
         </a>
     </div>
@@ -20,11 +20,10 @@
     <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         <!-- Sidebar Menu -->
         <nav x-data="{ selected: $persist('Dashboard') }">
-            <!-- Support Group -->
             <div>
                 <h3 class="mb-4 text-xs leading-[20px] text-gray-400 uppercase">
                     <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">
-                        Support
+                        Modules
                     </span>
 
                     <svg :class="sidebarToggle ? 'lg:block hidden' : 'hidden'"
@@ -39,7 +38,7 @@
                 <ul class="mb-6 flex flex-col gap-4">
                     <!-- Menu Item Dashboard -->
                     <li x-data>
-                        <a href="" @click="selected = (selected === 'Dashboard' ? '' : 'Dashboard')"
+                        <a href="{{ route('admin.dashboard.index') }}" @click="selected = (selected === 'Dashboard' ? '' : 'Dashboard')"
                             class="menu-item group flex items-center gap-3"
                             :class="(selected === 'Dashboard' && page === 'Dashboard') ? 'menu-item-active' :
                             'menu-item-inactive'">
@@ -63,6 +62,5 @@
             </div>
         </nav>
         <!-- Sidebar Menu -->
-
     </div>
 </aside>

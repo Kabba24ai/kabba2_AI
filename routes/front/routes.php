@@ -5,6 +5,12 @@ use App\Http\Controllers\Front\Auth\ResetPassword\IndexController as ResetPasswo
 use App\Http\Controllers\Front\Auth\ResetPassword\PostController as ResetPasswordPostController;
 use App\Http\Controllers\Front\Auth\ResetPassword\SuccessController;
 
+
+Route::get('/', function () {
+    return view('admin.auth.login.index');
+});
+
+
 // Static Pages
 Route::view('/privacy-policy', 'front.privacy-policy')->name('front.privacy');
 Route::view('/terms-and-conditions', 'front.terms-and-conditions')->name('front.terms');

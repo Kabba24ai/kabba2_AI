@@ -17,14 +17,6 @@ class IndexController extends Controller
 
         if (Auth::check()) {
             $user = auth()->user();
-
-            if ($user->type == 'Tournament') {
-                return redirect(route('admin.customers.pending'));
-            }
-
-            if ($user->type == 'Report') {
-                return redirect(route('admin.cash-reports.index'));
-            }
             return redirect(route('admin.promotions.index'));
         }
 

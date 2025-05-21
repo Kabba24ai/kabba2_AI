@@ -1,102 +1,145 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
+<!doctype html>
+<html lang="en" >
 
 <head>
-    <!-- Required meta tags -->
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Sign In | {{ config('app.name') }}</title>
 
-    <!-- Favicon icon-->
-    <link rel="shortcut icon" type="image/png" href="{{ asset('assets/default/images/logo.png') }}" />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-
-
-    <!-- Core Css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}" />
-    @vite('resources/css/app.css')
-
-    <title>Tps | Login</title>
+    @vite(['resources/admin/css/app.css', 'resources/admin/js/app.js'])
 </head>
 
-<body class="DEFAULT_THEME ">
-    <main>
-        <!-- Main Content -->
-        <div
-            class="flex flex-col w-full  overflow-hidden relative min-h-screen radial-gradient items-center justify-center g-0 px-4">
+<body x-data="{ 'loaded': true, darkMode: $persist(false) }" x-init="darkMode = JSON.parse(localStorage.getItem('darkMode'));
+$watch('darkMode', value => {
+    localStorage.setItem('darkMode', JSON.stringify(value));
+    console.log('Dark mode changed to:', value);
+})" :class="{ 'dark bg-gray-900': darkMode === true }">
+    {{-- Include preloader --}}
+    @include('admin.partials.preloader')
 
-            <div class="justify-center items-center w-full card lg:flex max-w-md ">
-                <div class=" w-full card-body">
-                    <a href="#" class="">
-                        <img src="{{ asset('assets/default/images/logo.png') }}" alt="" class="mx-auto h-28 object-scale-down" />
-                    </a>
-                    <p class="mt-4 mb-4 text-gray-400 text-sm text-center">Welcome</p>
-
-                    @include('flash::message')
-                    @include('admin.includes.formErrors')
-
-                    <!-- form -->
-                    {{ html()->form()->attributes([
-                            'class' => 'form w-100 module_form',
-                            'id' => 'kt_sign_in_form',
-                            'autocomplete' => 'off',
-                            'data-parsley-validate' => true,
-                        ])->open() }}
-                    <!-- username -->
-                    <div class="mb-4">
-                        <label for="forUsername" class="block text-sm mb-2 text-gray-400">Username</label>
-                        {{ html()->email('email')->attributes([
-                                'class' => 'py-3 px-4 block w-full border-gray-200 rounded-xl text-sm focus:border-theme-600 focus:ring-0 ',
-                                'autocomplete' => 'off',
-                                'autofocus' => true,
-                                'id' => 'email',
-                                'data-parsley-maxlength' => 240,
-                                'maxlength' => 240,
-                                'pattern' => '[^+]*',
-                            ])->required()->placeholder('Enter Email address') }}
+    <div class="relative p-6 bg-white z-1 dark:bg-gray-900 sm:p-0">
+        <div class="relative flex flex-col justify-center w-full h-screen dark:bg-gray-900 sm:p-0 lg:flex-row">
+            {{-- Left Form --}}
+            <div class="relative items-center hidden w-full h-full bg-brand-950 dark:bg-white/5 lg:grid lg:w-1/2">
+                <div class="flex items-center justify-center z-1">
+                    <div class="absolute right-0 top-0 -z-1 w-full max-w-[250px] xl:max-w-[450px]">
+                        <img src="{{ Vite::asset('resources/admin/images/shape/grid-01.svg') }}" alt="grid" />
                     </div>
-                    <!-- password -->
-                    <div class="mb-6">
-                        <label for="forPassword" class="block text-sm  mb-2 text-gray-400">Password</label>
-                        {{ html()->password('password')->attributes([
-                                'class' => 'py-3 px-4 block w-full border-gray-200 rounded-xl text-sm focus:border-theme-600 focus:ring-0',
-                                'autocomplete' => 'off',
-                                'autofocus' => true,
-                            ])->required()->placeholder('Enter Password') }}
+                    <div class="absolute bottom-0 left-0 -z-1 w-full max-w-[250px] rotate-180 xl:max-w-[450px]">
+                        <img src="{{ Vite::asset('resources/admin/images/shape/grid-01.svg') }}" alt="grid" />
                     </div>
-                    <!-- checkbox -->
-                    {{-- <div class="flex justify-between">
-                            <div class="flex">
-                                <input type="checkbox"
-                                    class="shrink-0 mt-0.5 border-gray-200 rounded-[4px] text-blue-600 focus:ring-blue-500 "
-                                    id="hs-default-checkbox" checked>
-                                <label for="hs-default-checkbox" class="text-sm text-gray-500 ms-3">Remeber this
-                                    Device</label>
-                            </div>
-                            <a href="../" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Forgot
-                                Password ?</a>
-                        </div> --}}
-                    <!-- button -->
-                    <div class="grid my-6">
-                        <button type="submit"
-                            class="btn bg-theme-500 py-[10px] text-base text-white font-medium hover:bg-theme-700" >Sign In</button>
+                    <div class="flex flex-col items-center max-w-xs">
+                        <a href="{{ url('/') }}" class="block mb-4">
+                            <img src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}"
+                                alt="Logo" />
+                        </a>
+                        <p class="text-center text-gray-400 dark:text-white/60">
+                            <span class="text-gray-800 dark:text-white/90 font-semibold">Welcome to
+                                {{ config('app.name') }}</span>
+                            <br />
+                            <span class="text-sm">Please sign in to continue</span>
+                        </p>
                     </div>
-                    {{ html()->form()->close() }}
                 </div>
             </div>
-        </div>
 
-        </div>
-        <!--end of project-->
-    </main>
+            {{-- Right Side (Image / Brand) --}}
+            <div class="flex flex-col flex-1 w-full lg:w-1/2">
+                <div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
+                    <div>
+                        <div class="mb-5 sm:mb-8">
+                            <h1
+                                class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
+                                Sign In</h1>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Enter your email and password to sign
+                                in!</p>
+                        </div>
 
-    <script src="{{ asset('assets/libs/jquery/dist/jquery.min.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/parsley.min.js"
-        integrity="sha512-eyHL1atYNycXNXZMDndxrDhNAegH2BDWt1TmkXJPoGf1WLlNYt08CSjkqF5lnCRmdm3IrkHid8s2jOUY4NIZVQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+                        {{-- Login Form --}}
+                        <form method="POST" action="">
+                            @csrf
+                            <div class="space-y-5">
+                                {{-- Email --}}
+                                <div>
+                                    <label for="email"
+                                        class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                        Email<span class="text-error-500">*</span>
+                                    </label>
+                                    <input type="email" name="email" id="email" placeholder="info@gmail.com"
+                                        value="{{ old('email') }}" required autofocus autocomplete="email"
+                                        class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30" />
+                                    @error('email')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Password --}}
+                                <div>
+                                    <label for="password"
+                                        class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                        Password<span class="text-error-500">*</span>
+                                    </label>
+                                    <div x-data="{ showPassword: false }" class="relative">
+                                        <input :type="showPassword ? 'text' : 'password'" name="password" id="password"
+                                            required autocomplete="current-password" placeholder="Enter your password"
+                                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30" />
+                                        {{-- Toggle Button --}}
+                                        <span @click="showPassword = !showPassword"
+                                            class="absolute z-30 text-gray-500 -translate-y-1/2 cursor-pointer right-4 top-1/2 dark:text-gray-400">
+                                            {{-- Icons can be included here --}}
+                                            <!-- Add the visibility toggle icons if needed -->
+                                        </span>
+                                    </div>
+                                    @error('password')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Remember Me & Forgot --}}
+                                {{-- <div class="flex items-center justify-between">
+                                    <label class="flex items-center text-sm font-normal text-gray-700 dark:text-gray-400 cursor-pointer select-none">
+                                    <input type="checkbox" name="remember" class="mr-2">
+                                    Keep me logged in
+                                    </label>
+                                    <a href="" class="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400">Forgot password?</a>
+                                </div> --}}
+
+                                {{-- Sign In Button --}}
+                                <div>
+                                    <button type="submit"
+                                        class="w-full px-4 py-3 text-sm font-medium text-white rounded-lg bg-theme-500 hover:bg-theme-600">
+                                        Sign In
+                                    </button>
+
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Dark mode toggler --}}
+            <div class="fixed z-50 bottom-6 right-6">
+                <button
+                    class="inline-flex items-center justify-center text-white transition-colors rounded-full size-14 bg-brand-500 hover:bg-brand-600"
+                    @click="darkMode = !darkMode">
+                    <svg x-show="darkMode" class="fill-current" width="20" height="20" viewBox="0 0 20 20"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M9.99998 1.5415C10.4142 1.5415 10.75 1.87729 10.75 2.2915V3.5415C10.75 3.95572 10.4142 4.2915 9.99998 4.2915C9.58577 4.2915 9.24998 3.95572 9.24998 3.5415V2.2915C9.24998 1.87729 9.58577 1.5415 9.99998 1.5415ZM10.0009 6.79327C8.22978 6.79327 6.79402 8.22904 6.79402 10.0001C6.79402 11.7712 8.22978 13.207 10.0009 13.207C11.772 13.207 13.2078 11.7712 13.2078 10.0001C13.2078 8.22904 11.772 6.79327 10.0009 6.79327ZM5.29402 10.0001C5.29402 7.40061 7.40135 5.29327 10.0009 5.29327C12.6004 5.29327 14.7078 7.40061 14.7078 10.0001C14.7078 12.5997 12.6004 14.707 10.0009 14.707C7.40135 14.707 5.29402 12.5997 5.29402 10.0001ZM15.9813 5.08035C16.2742 4.78746 16.2742 4.31258 15.9813 4.01969C15.6884 3.7268 15.2135 3.7268 14.9207 4.01969L14.0368 4.90357C13.7439 5.19647 13.7439 5.67134 14.0368 5.96423C14.3297 6.25713 14.8045 6.25713 15.0974 5.96423L15.9813 5.08035ZM18.4577 10.0001C18.4577 10.4143 18.1219 10.7501 17.7077 10.7501H16.4577C16.0435 10.7501 15.7077 10.4143 15.7077 10.0001C15.7077 9.58592 16.0435 9.25013 16.4577 9.25013H17.7077C18.1219 9.25013 18.4577 9.58592 18.4577 10.0001ZM14.9207 15.9806C15.2135 16.2735 15.6884 16.2735 15.9813 15.9806C16.2742 15.6877 16.2742 15.2128 15.9813 14.9199L15.0974 14.036C14.8045 13.7431 14.3297 13.7431 14.0368 14.036C13.7439 14.3289 13.7439 14.8038 14.0368 15.0967L14.9207 15.9806ZM9.99998 15.7088C10.4142 15.7088 10.75 16.0445 10.75 16.4588V17.7088C10.75 18.123 10.4142 18.4588 9.99998 18.4588C9.58577 18.4588 9.24998 18.123 9.24998 17.7088V16.4588C9.24998 16.0445 9.58577 15.7088 9.99998 15.7088ZM5.96356 15.0972C6.25646 14.8043 6.25646 14.3295 5.96356 14.0366C5.67067 13.7437 5.1958 13.7437 4.9029 14.0366L4.01902 14.9204C3.72613 15.2133 3.72613 15.6882 4.01902 15.9811C4.31191 16.274 4.78679 16.274 5.07968 15.9811L5.96356 15.0972ZM4.29224 10.0001C4.29224 10.4143 3.95645 10.7501 3.54224 10.7501H2.29224C1.87802 10.7501 1.54224 10.4143 1.54224 10.0001C1.54224 9.58592 1.87802 9.25013 2.29224 9.25013H3.54224C3.95645 9.25013 4.29224 9.58592 4.29224 10.0001ZM4.9029 5.9637C5.1958 6.25659 5.67067 6.25659 5.96356 5.9637C6.25646 5.6708 6.25646 5.19593 5.96356 4.90303L5.07968 4.01915C4.78679 3.72626 4.31191 3.72626 4.01902 4.01915C3.72613 4.31204 3.72613 4.78692 4.01902 5.07981L4.9029 5.9637Z"
+                            fill="" />
+                    </svg>
+                    <svg x-show="!darkMode" class="fill-current" width="20" height="20" viewBox="0 0 20 20"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M17.4547 11.97L18.1799 12.1611C18.265 11.8383 18.1265 11.4982 17.8401 11.3266C17.5538 11.1551 17.1885 11.1934 16.944 11.4207L17.4547 11.97ZM8.0306 2.5459L8.57989 3.05657C8.80718 2.81209 8.84554 2.44682 8.67398 2.16046C8.50243 1.8741 8.16227 1.73559 7.83948 1.82066L8.0306 2.5459ZM12.9154 13.0035C9.64678 13.0035 6.99707 10.3538 6.99707 7.08524H5.49707C5.49707 11.1823 8.81835 14.5035 12.9154 14.5035V13.0035ZM16.944 11.4207C15.8869 12.4035 14.4721 13.0035 12.9154 13.0035V14.5035C14.8657 14.5035 16.6418 13.7499 17.9654 12.5193L16.944 11.4207ZM16.7295 11.7789C15.9437 14.7607 13.2277 16.9586 10.0003 16.9586V18.4586C13.9257 18.4586 17.2249 15.7853 18.1799 12.1611L16.7295 11.7789ZM10.0003 16.9586C6.15734 16.9586 3.04199 13.8433 3.04199 10.0003H1.54199C1.54199 14.6717 5.32892 18.4586 10.0003 18.4586V16.9586ZM3.04199 10.0003C3.04199 6.77289 5.23988 4.05695 8.22173 3.27114L7.83948 1.82066C4.21532 2.77574 1.54199 6.07486 1.54199 10.0003H3.04199ZM6.99707 7.08524C6.99707 5.52854 7.5971 4.11366 8.57989 3.05657L7.48132 2.03522C6.25073 3.35885 5.49707 5.13487 5.49707 7.08524H6.99707Z"
+                            fill="" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -126,7 +126,7 @@
               id="search-input"
               type="text"
               placeholder="Search or type command..."
-              class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
+              class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-brand-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
             />
 
             <button
@@ -143,7 +143,7 @@
 
     <div
       :class="menuToggle ? 'flex' : 'hidden'"
-      class="w-full items-center justify-between gap-4 px-5 py-4 shadow-theme-md lg:flex lg:justify-end lg:px-0 lg:shadow-none"
+      class="w-full items-center justify-between gap-4 px-5 py-4 shadow-brand-md lg:flex lg:justify-end lg:px-0 lg:shadow-none"
      >
         <div class="flex items-center gap-2 2xsm:gap-3">
             <!-- Dark Mode Toggler -->
@@ -201,7 +201,7 @@
             <!-- Dropdown Start -->
             <div
                 x-show="dropdownOpen"
-                class="absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark sm:w-[361px] lg:right-0"
+                class="absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-brand-lg dark:border-gray-800 dark:bg-gray-dark sm:w-[361px] lg:right-0"
             >
                 <div
                 class="mb-3 flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800"
@@ -255,7 +255,7 @@
 
                     <span class="block">
                         <span
-                        class="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400"
+                        class="mb-1.5 block text-brand-sm text-gray-500 dark:text-gray-400"
                         >
                         <span class="font-medium text-gray-800 dark:text-white/90"
                             >Terry Franci</span
@@ -267,7 +267,7 @@
                         </span>
 
                         <span
-                        class="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400"
+                        class="flex items-center gap-2 text-brand-xs text-gray-500 dark:text-gray-400"
                         >
                         <span>Project</span>
                         <span class="h-1 w-1 rounded-full bg-gray-400"></span>
@@ -297,7 +297,7 @@
 
                     <span class="block">
                         <span
-                        class="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400"
+                        class="mb-1.5 block text-brand-sm text-gray-500 dark:text-gray-400"
                         >
                         <span class="font-medium text-gray-800 dark:text-white/90"
                             >Alena Franci</span
@@ -309,7 +309,7 @@
                         </span>
 
                         <span
-                        class="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400"
+                        class="flex items-center gap-2 text-brand-xs text-gray-500 dark:text-gray-400"
                         >
                         <span>Project</span>
                         <span class="h-1 w-1 rounded-full bg-gray-400"></span>
@@ -339,7 +339,7 @@
 
                     <span class="block">
                         <span
-                        class="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400"
+                        class="mb-1.5 block text-brand-sm text-gray-500 dark:text-gray-400"
                         >
                         <span class="font-medium text-gray-800 dark:text-white/90"
                             >Jocelyn Kenter</span
@@ -351,7 +351,7 @@
                         </span>
 
                         <span
-                        class="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400"
+                        class="flex items-center gap-2 text-brand-xs text-gray-500 dark:text-gray-400"
                         >
                         <span>Project</span>
                         <span class="h-1 w-1 rounded-full bg-gray-400"></span>
@@ -381,7 +381,7 @@
 
                     <span class="block">
                         <span
-                        class="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400"
+                        class="mb-1.5 block text-brand-sm text-gray-500 dark:text-gray-400"
                         >
                         <span class="font-medium text-gray-800 dark:text-white/90"
                             >Brandon Philips</span
@@ -393,7 +393,7 @@
                         </span>
 
                         <span
-                        class="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400"
+                        class="flex items-center gap-2 text-brand-xs text-gray-500 dark:text-gray-400"
                         >
                         <span>Project</span>
                         <span class="h-1 w-1 rounded-full bg-gray-400"></span>
@@ -423,7 +423,7 @@
 
                     <span class="block">
                         <span
-                        class="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400"
+                        class="mb-1.5 block text-brand-sm text-gray-500 dark:text-gray-400"
                         >
                         <span class="font-medium text-gray-800 dark:text-white/90"
                             >Terry Franci</span
@@ -435,7 +435,7 @@
                         </span>
 
                         <span
-                        class="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400"
+                        class="flex items-center gap-2 text-brand-xs text-gray-500 dark:text-gray-400"
                         >
                         <span>Project</span>
                         <span class="h-1 w-1 rounded-full bg-gray-400"></span>
@@ -465,7 +465,7 @@
 
                     <span class="block">
                         <span
-                        class="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400"
+                        class="mb-1.5 block text-brand-sm text-gray-500 dark:text-gray-400"
                         >
                         <span class="font-medium text-gray-800 dark:text-white/90"
                             >Alena Franci</span
@@ -477,7 +477,7 @@
                         </span>
 
                         <span
-                        class="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400"
+                        class="flex items-center gap-2 text-brand-xs text-gray-500 dark:text-gray-400"
                         >
                         <span>Project</span>
                         <span class="h-1 w-1 rounded-full bg-gray-400"></span>
@@ -507,7 +507,7 @@
 
                     <span class="block">
                         <span
-                        class="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400"
+                        class="mb-1.5 block text-brand-sm text-gray-500 dark:text-gray-400"
                         >
                         <span class="font-medium text-gray-800 dark:text-white/90"
                             >Jocelyn Kenter</span
@@ -519,7 +519,7 @@
                         </span>
 
                         <span
-                        class="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400"
+                        class="flex items-center gap-2 text-brand-xs text-gray-500 dark:text-gray-400"
                         >
                         <span>Project</span>
                         <span class="h-1 w-1 rounded-full bg-gray-400"></span>
@@ -549,7 +549,7 @@
 
                     <span class="block">
                         <span
-                        class="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400"
+                        class="mb-1.5 block text-brand-sm text-gray-500 dark:text-gray-400"
                         >
                         <span class="font-medium text-gray-800 dark:text-white/90"
                             >Brandon Philips</span
@@ -561,7 +561,7 @@
                         </span>
 
                         <span
-                        class="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400"
+                        class="flex items-center gap-2 text-brand-xs text-gray-500 dark:text-gray-400"
                         >
                         <span>Project</span>
                         <span class="h-1 w-1 rounded-full bg-gray-400"></span>
@@ -574,7 +574,7 @@
 
                 <a
                 href="#"
-                class="mt-3 flex justify-center rounded-lg border border-gray-300 bg-white p-3 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                class="mt-3 flex justify-center rounded-lg border border-gray-300 bg-white p-3 text-brand-sm font-medium text-gray-700 shadow-brand-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
                 >
                 View All Notification
                 </a>
@@ -599,7 +599,7 @@
             <img src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}" class="w-10" alt="User" />
           </span>
 
-          <span class="mr-1 block text-theme-sm font-medium"> Musharof </span>
+          <span class="mr-1 block text-brand-sm font-medium"> Musharof </span>
 
           <svg
             :class="dropdownOpen && 'rotate-180'"
@@ -623,16 +623,16 @@
         <!-- Dropdown Start -->
         <div
           x-show="dropdownOpen"
-          class="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+          class="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-brand-lg dark:border-gray-800 dark:bg-gray-dark"
         >
           <div>
             <span
-              class="block text-theme-sm font-medium text-gray-700 dark:text-gray-400"
+              class="block text-brand-sm font-medium text-gray-700 dark:text-gray-400"
             >
               Musharof Chowdhury
             </span>
             <span
-              class="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400"
+              class="mt-0.5 block text-brand-xs text-gray-500 dark:text-gray-400"
             >
               randomuser@pimjo.com
             </span>
@@ -644,7 +644,7 @@
             <li>
               <a
                 href="profile.html"
-                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-brand-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
                 <svg
                   class="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
@@ -667,7 +667,7 @@
             <li>
               <a
                 href="chat.html"
-                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-brand-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
                 <svg
                   class="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
@@ -690,7 +690,7 @@
             <li>
               <a
                 href="profile.html"
-                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-brand-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
                 <svg
                   class="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
@@ -712,7 +712,7 @@
             </li>
           </ul>
           <button
-            class="group mt-3 flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+            class="group mt-3 flex items-center gap-3 rounded-lg px-3 py-2 text-brand-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
           >
             <svg
               class="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"

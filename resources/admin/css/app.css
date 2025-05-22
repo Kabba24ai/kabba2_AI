@@ -18,19 +18,6 @@
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
 
-  /* Extend/define theme colors using CSS custom properties */
-    --color-theme-50:  #fef6ec;
-    --color-theme-100: #fde7cb;
-    --color-theme-200: #fbd19e;
-    --color-theme-300: #f9ba70;
-    --color-theme-400: #f6a650;
-    --color-theme-500: #F1963E; /* Primary */
-    --color-theme-600: #d37c2f;
-    --color-theme-700: #af6425;
-    --color-theme-800: #864b1a;
-    --color-theme-900: #5f3411;
-
-
   --text-title-2xl: 72px;
   --text-title-2xl--line-height: 90px;
   --text-title-xl: 60px;
@@ -55,18 +42,20 @@
   --color-white: #ffffff;
   --color-black: #101828;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+/* Extend/define theme colors using CSS custom properties */
+  --color-brand-25: #fff8f2;
+  --color-brand-50: #fff3eb;
+  --color-brand-100: #ffe3cc;
+  --color-brand-200: #ffcb99;
+  --color-brand-300: #ffb066;
+  --color-brand-400: #ff9940;
+  --color-brand-500: #f1963e;
+  --color-brand-600: #d17834;
+  --color-brand-700: #b15f2a;
+  --color-brand-800: #944b21;
+  --color-brand-900: #6e3618;
+  --color-brand-950: #3f1d0b;
+
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;

@@ -48,7 +48,7 @@
                     <div class="mb-4">
                         <label for="forPassword" class="block text-sm  mb-2 text-gray-400">New Password</label>
                         {{ html()->password('password')->attributes([
-                                'class' => 'py-3 px-4 block w-full border-gray-200 rounded-xl text-sm focus:border-theme-600 focus:ring-0',
+                                'class' => 'py-3 px-4 block w-full border-gray-200 rounded-xl text-sm focus:border-brand-600 focus:ring-0',
                                 'autocomplete' => 'off',
                                 'autofocus' => true,
                                 'placeholder' => 'Enter New Password',
@@ -63,7 +63,7 @@
                     <div class="mb-6">
                         <label for="forPassword" class="block text-sm  mb-2 text-gray-400">Confirm Password</label>
                         {{ html()->password('password_confirmation')->attributes([
-                                'class' => 'py-3 px-4 block w-full border-gray-200 rounded-xl text-sm focus:border-theme-600 focus:ring-0',
+                                'class' => 'py-3 px-4 block w-full border-gray-200 rounded-xl text-sm focus:border-brand-600 focus:ring-0',
                                 'autocomplete' => 'off',
                                 'placeholder' => 'Enter Confirm Password',
                                 'required' => true,
@@ -75,7 +75,7 @@
 
                     <div class="grid my-6">
                         <button type="submit"
-                            class="btn bg-theme-500 py-[10px] text-base text-white font-medium hover:bg-theme-700">Submit</button>
+                            class="btn bg-brand-500 py-[10px] text-base text-white font-medium hover:bg-brand-700">Submit</button>
                     </div>
                     {{ html()->form()->close() }}
                 </div>

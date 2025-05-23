@@ -72,7 +72,7 @@ $watch('darkMode', value => {
                         {{-- Login Form --}}
                         {{ html()->form()->attributes([
                             'class' => 'form w-100 module_form',
-                            'id' => 'kt_sign_in_form',
+                            'id' => 'signInForm',
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                         ])->open() }}
@@ -111,6 +111,7 @@ $watch('darkMode', value => {
                                             'class' => 'dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-brand-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30',
                                             'autocomplete' => 'off',
                                             'autofocus' => true,
+                                            'data-parsley-errors-container' => '#password-errors',
                                         ])->required()->placeholder('Enter Password') }}
                                         {{-- Toggle Button --}}
                                         <span @click="showPassword = !showPassword"
@@ -120,6 +121,8 @@ $watch('darkMode', value => {
                                             <x-heroicon-s-eye x-show="!showPassword" class="w-5 h-5" />
                                         </span>
                                     </div>
+                                    {{-- Parsley error messages --}}
+                                    <div id="password-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
                                     @error('password')
                                         <p class="text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -143,7 +146,7 @@ $watch('darkMode', value => {
 
                                 </div>
                             </div>
-                        </form>
+                        {{ html()->form()->close() }}
                     </div>
                 </div>
             </div>

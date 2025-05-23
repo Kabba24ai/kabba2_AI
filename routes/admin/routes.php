@@ -20,10 +20,11 @@ Route::name('admin.')->group(function ($router) {
     // Auth
     require base_path('routes/admin/auth/routes.php');
 
-    // Dashboard
-    require base_path('routes/admin/dashboard/routes.php');
 
     Route::middleware(['auth', 'prevent-back-history'])->group(function ($router) {
         Route::get('logs', [LogViewerController::class, 'index']);
+
+        // Dashboard
+        require base_path('routes/admin/dashboard/routes.php');
     });
 });

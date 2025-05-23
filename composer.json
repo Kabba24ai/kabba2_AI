@@ -7,16 +7,17 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "blade-ui-kit/blade-heroicons": "^2.6",
         "diglactic/laravel-breadcrumbs": "^10.0",
         "laracasts/flash": "^3.2",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.1",
         "laravel/tinker": "^2.10",
-        "mallardduck/blade-lucide-icons": "^1.23",
         "rajchotaliya/load-migrations": "^1.2",
         "rap2hpoutre/fast-excel": "^5.6",
         "saasscaleup/laravel-log-alarm": "^1.0",
         "spatie/laravel-html": "^3.12",
+        "spatie/laravel-permission": "^6.18",
         "stevebauman/purify": "^6.3",
         "yajra/laravel-datatables-oracle": "^12.2"
     },

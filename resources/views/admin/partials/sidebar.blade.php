@@ -46,7 +46,7 @@
                             <span class="w-6 h-6 flex items-center justify-center"
                                 :class="(selected === 'Dashboard' && page === 'Dashboard') ? 'menu-item-icon-active' :
                                 'menu-item-icon-inactive'">
-                                <x-lucide-layout-dashboard class="w-6 h-6" />
+                                <x-heroicon-s-view-columns class="w-6 h-6" />
                             </span>
 
                             {{-- Text --}}

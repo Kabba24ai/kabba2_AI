@@ -168,6 +168,8 @@
   --z-index-999999: 999999;
 }
 
+@import './parsley.css';
+
 /*
 
   The default border color has changed to `currentColor` in Tailwind CSS v4,

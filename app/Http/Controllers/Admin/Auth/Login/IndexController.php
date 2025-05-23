@@ -17,7 +17,7 @@ class IndexController extends Controller
 
         if (Auth::check()) {
             $user = auth()->user();
-            return redirect(route('admin.promotions.index'));
+            return redirect(route('admin.dashboard.index'));
         }
 
         return view('admin.auth.login.index', []);

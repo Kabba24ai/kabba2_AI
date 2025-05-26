@@ -42,19 +42,19 @@
   --color-white: #ffffff;
   --color-black: #101828;
 
-/* Extend/define theme colors using CSS custom properties */
-  --color-brand-25: #fff8f2;
-  --color-brand-50: #fff3eb;
-  --color-brand-100: #ffe3cc;
-  --color-brand-200: #ffcb99;
-  --color-brand-300: #ffb066;
-  --color-brand-400: #ff9940;
-  --color-brand-500: #f1963e;
-  --color-brand-600: #d17834;
-  --color-brand-700: #b15f2a;
-  --color-brand-800: #944b21;
-  --color-brand-900: #6e3618;
-  --color-brand-950: #3f1d0b;
+    /* Extend/define theme colors using CSS custom properties */
+    --color-brand-25:  #f0ffff;
+    --color-brand-50:  #ccffff;
+    --color-brand-100: #a6ffff;
+    --color-brand-200: #80ffff;
+    --color-brand-300: #59ffff;
+    --color-brand-400: #33ffff;
+    --color-brand-500: #00ffff;  /* Base cyan */
+    --color-brand-600: #00cccc;
+    --color-brand-700: #009999;
+    --color-brand-800: #006666;
+    --color-brand-900: #004d4d;
+    --color-brand-950: #003333;
 
 
   --color-blue-light-25: #f5fbff;

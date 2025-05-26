@@ -59,12 +59,13 @@ class MediaHelper
             // Determine the disk to use
             $disk = $media->asset_type === "Secure Asset" ? 'secure_asset' : 'public_asset';
 
-            $filePath = $media->folder_name . self::SEPARATOR . $media->file_name;
-
+            $filePath = $media->getFilePath();
             // Check if the file exists
             if (Storage::disk($disk)->exists($filePath)) {
                 // Delete the file
                 Storage::disk($disk)->delete($filePath);
+
+                $media->delete(); // Delete the media record from the database
                 return true;
             } else {
                 return false;

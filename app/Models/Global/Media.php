@@ -60,6 +60,11 @@ class Media extends Model
         }
     }
 
+    public function getFilePath(): string
+    {
+        return $this->folder_name . '/' . $this->file_name;
+    }
+
     public function downloadMedia($session_id = null)
     {
         if ($this->asset_type == 'Secure Asset') {

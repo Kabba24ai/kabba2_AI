@@ -82,7 +82,7 @@
 
         @if(isset($objProduct) && $objProduct->media)
             <div class="mt-4 flex objProducts-center gap-3">
-                <a data-fancybox href="{{ $objProduct->media->getUrl() }}">
+                <a data-fancybox href="{{ $objProduct->media->getUrl() }}" target="_blank">
                     <img src="{{ $objProduct->media->getUrl() }}" alt="{{ $objProduct->media->name }}"
                          class="w-16 h-16 object-cover rounded-md shadow-sm">
                 </a>

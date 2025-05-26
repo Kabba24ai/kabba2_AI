@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+// Controllers
+use App\Http\Controllers\Admin\ProductManagement\Categories\IndexController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\CreateController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\StoreController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\EditController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\UpdateController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\ReorderController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\UpdateOrderController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\DeleteController;
+
+
+Route::prefix('categories')
+->name('categories.')
+->group(function ($router) {
+
+    Route::get('/', IndexController::class)->name('index');
+
+    // Create
+    Route::get('/create', CreateController::class)->name('create');
+    Route::post('/create', StoreController::class);
+
+    // Edit
+    Route::get('/{unique_id}/edit', EditController::class)->name('edit');
+    Route::put('/{unique_id}/edit', UpdateController::class);
+
+    // Reorder
+    Route::get('/reorder', ReorderController::class)->name('reorder');
+    Route::post('/reorder', UpdateOrderController::class);
+
+    // Delete
+    Route::delete('/{unique_id}', DeleteController::class)->name('delete');
+});

@@ -259,6 +259,7 @@
   }
 }
 
+
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #344054;
 }
@@ -288,7 +289,19 @@
     display: none;
     -webkit-appearance: none;
   }
+
+  label.required::after {
+    content: '*';
+    color: theme('colors.red.500');
+    margin-left: 0.25rem;
+    }
+
 }
+
+.ck-editor__editable {
+    min-height: 250px; /* or any height you prefer */
+}
+
 
 .sidebar:hover {
   width: 290px;

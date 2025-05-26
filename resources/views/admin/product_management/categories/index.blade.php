@@ -28,23 +28,23 @@
                 <thead class="bg-gray-50 dark:bg-gray-900">
                     <tr>
                         <th scope="col"
-                            class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            Unique ID
+                            class="w-12 px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                            ID
                         </th>
                         <th scope="col"
-                            class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                            class="w-64 truncate px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                             Title
                         </th>
                         <th scope="col"
-                            class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                            class="w-48 truncate px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                             Slug
                         </th>
                         <th scope="col"
-                            class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                            class="w-24 px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                             Status
                         </th>
                         <th scope="col"
-                            class="px-6 py-4 text-right font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                            class="w-32 px-6 py-4 text-right font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                             Actions
                         </th>
                     </tr>
@@ -55,7 +55,7 @@
                     @forelse($categories as $category)
                         <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                             <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                {{ $category->unique_id }}
+                                {{ $category->id }}
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-800 dark:text-gray-100">
                                 {{ $category->title }}
@@ -77,7 +77,8 @@
                                     class="text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300 font-medium">
                                     Edit
                                 </a>
-                                <form action="{{ route('admin.product-management.categories.delete', $category->unique_id) }}"
+                                <form
+                                    action="{{ route('admin.product-management.categories.delete', $category->unique_id) }}"
                                     method="POST" class="inline"
                                     onsubmit="return confirm('Are you sure you want to delete this category?');">
                                     @csrf

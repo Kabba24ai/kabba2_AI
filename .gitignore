@@ -24,12 +24,8 @@ yarn-error.log
 # Ignore everything in storage...
 /storage/
 
-# ...except this specific image file
-!storage/app/public/admin/images/logo/rent-n-king-logo-outro.png
 
 # Optional: keep parent directories so git tracks them too
-!storage/app/
-!storage/app/public/
 !storage/app/public/admin/
-!storage/app/public/admin/images/
-!storage/app/public/admin/images/logo/
+
+

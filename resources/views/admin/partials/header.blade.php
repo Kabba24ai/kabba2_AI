@@ -45,7 +45,7 @@
             </button>
             <!-- Application nav menu button -->
 
-            <div class="hidden lg:block">
+            {{-- <div class="hidden lg:block">
                 <form>
                     <div class="relative">
                         <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
@@ -66,25 +66,23 @@
                         </button>
                     </div>
                 </form>
-            </div>
+            </div> --}}
         </div>
 
         <div :class="menuToggle ? 'flex' : 'hidden'"
             class="w-full items-center justify-between gap-4 px-5 py-4 shadow-brand-md lg:flex lg:justify-end lg:px-0 lg:shadow-none">
             <div class="flex items-center gap-2 2xsm:gap-3">
                 <!-- Dark Mode Toggler -->
-                <button @click.prevent="darkMode = !darkMode"
+                {{-- <button @click.prevent="darkMode = !darkMode"
                     class="hover:text-dark-900 relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">
-                    {{-- Light mode icon (Sun) --}}
                     <x-heroicon-s-sun class="w-5 h-5 block dark:hidden" />
 
-                    {{-- Dark mode icon (Moon) --}}
                     <x-heroicon-s-moon class="w-5 h-5 hidden dark:block" />
-                </button>
+                </button> --}}
                 <!-- Dark Mode Toggler -->
 
                 <!-- Notification Menu Area -->
-                <div class="relative" x-data="{ dropdownOpen: false, notifying: true }" @click.outside="dropdownOpen = false">
+                {{-- <div class="relative" x-data="{ dropdownOpen: false, notifying: true }" @click.outside="dropdownOpen = false">
                     <button
                         class="hover:text-dark-900 relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                         @click.prevent="dropdownOpen = ! dropdownOpen; notifying = false">
@@ -360,7 +358,7 @@
                         </a>
                     </div>
                     <!-- Dropdown End -->
-                </div>
+                </div> --}}
                 <!-- Notification Menu Area -->
             </div>
 
@@ -392,7 +390,7 @@
                         </span>
                     </div>
 
-                    <ul class="flex flex-col gap-1 border-b border-gray-200 pb-3 pt-4 dark:border-gray-800">
+                    {{-- <ul class="flex flex-col gap-1 border-b border-gray-200 pb-3 pt-4 dark:border-gray-800">
                         <li>
                             <a href="profile.html"
                                 class="group flex items-center gap-3 rounded-lg px-3 py-2 text-brand-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
@@ -419,7 +417,7 @@
                                 Support
                             </a>
                         </li>
-                    </ul>
+                    </ul> --}}
                     <a href="{{ route('admin.auth.logout') }}"
                         class="group mt-3 flex items-center gap-3 rounded-lg px-3 py-2 text-brand-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
                         <x-heroicon-o-arrow-left-on-rectangle

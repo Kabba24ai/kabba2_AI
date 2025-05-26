@@ -97,7 +97,7 @@
 
     <div>
         <label for="status" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Status <span class="text-red-500">*</span></label>
-        {{ html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], null)
+        {{ html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], isset($objProduct) ? null : 'Active')
             ->class('w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white')
             ->required()
             ->placeholder('Please select')

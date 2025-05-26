@@ -7,13 +7,13 @@
         <a href="index.html">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
                 <img class="dark:hidden w-10"
-                    src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
+                    src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
                 <img class="hidden dark:block w-10"
-                    src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
+                    src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
             </span>
 
             <img class="logo-icon w-10" :class="sidebarToggle ? 'lg:block' : 'hidden'"
-                src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
+                src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
         </a>
     </div>
     <!-- SIDEBAR HEADER -->

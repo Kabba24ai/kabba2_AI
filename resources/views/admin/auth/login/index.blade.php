@@ -24,14 +24,14 @@ $watch('darkMode', value => {
             <div class="relative items-center hidden w-full h-full bg-brand-50 dark:bg-white/5 lg:grid lg:w-1/2">
                 <div class="flex items-center justify-center z-1">
                     <div class="absolute right-0 top-0 -z-1 w-full max-w-[250px] xl:max-w-[450px]">
-                        <img src="{{ Vite::asset('resources/admin/images/shape/grid-01.svg') }}" alt="grid" />
+                        <img src="{{ asset('storage/admin/images/shape/grid-01.svg') }}" alt="grid" />
                     </div>
                     <div class="absolute bottom-0 left-0 -z-1 w-full max-w-[250px] rotate-180 xl:max-w-[450px]">
-                        <img src="{{ Vite::asset('resources/admin/images/shape/grid-01.svg') }}" alt="grid" />
+                        <img src="{{ asset('storage/admin/images/shape/grid-01.svg') }}" alt="grid" />
                     </div>
                     <div class="flex flex-col items-center max-w-xs">
                         <a href="{{ url('/') }}" class="block mb-4">
-                            <img src="{{ Vite::asset('resources/admin/images/logo/rent-n-king-logo-outro.png') }}"
+                            <img src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}"
                                 alt="Logo" />
                         </a>
                         <p class="text-center  dark:text-white/60">

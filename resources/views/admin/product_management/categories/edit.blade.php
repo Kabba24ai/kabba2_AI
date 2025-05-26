@@ -1,11 +1,11 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Create Product Category')
+@section('title', 'Edit Product Category')
 
 @section('content')
     {{-- Page header --}}
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Create Product Category</h2>
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Edit Product Category</h2>
         <a href="{{ route('admin.product-management.categories.index') }}"
             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

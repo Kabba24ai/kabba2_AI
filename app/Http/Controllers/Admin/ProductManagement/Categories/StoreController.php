@@ -42,9 +42,9 @@ class StoreController extends Controller
         $action = $request->input('action');
 
         return match ($action) {
-            'save' => redirect()->route('admin.product_management.categories.edit', ['unique_id' => $objProductCategory->unique_id]),
-            'save_exit' => redirect()->route('admin.product_management.categories.index'),
-            'save_new' => redirect()->route('admin.product_management.categories.create'),
+            'save' => redirect()->route('admin.product-management.categories.edit', ['unique_id' => $objProductCategory->unique_id]),
+            'save_exit' => redirect()->route('admin.product-management.categories.index'),
+            'save_new' => redirect()->route('admin.product-management.categories.create'),
             default => back(), // fallback
         };
     }

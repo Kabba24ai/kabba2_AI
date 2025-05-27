@@ -21,10 +21,15 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $categories = ProductCategory::order()->get();
+
+        $categories = ProductCategory::whereNull('parent_id')->order()->pluck('title', 'id');
+
+        $category_tree = ProductCategory::with('childCategories')->whereNull('parent_id')->get();
 
         return view('admin.product_management.categories.index', [
-            'categories'=>$categories,
+            'categories' => $categories,
+            'category_tree' => $category_tree,
         ]);
+
     }
 }

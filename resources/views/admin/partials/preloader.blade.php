@@ -1,6 +1,6 @@
 <div
   x-show="loaded"
-  x-init="window.addEventListener('DOMContentLoaded', () => {setTimeout(() => loaded = false, 500)})"
+  x-init="window.addEventListener('DOMContentLoaded', () => {setTimeout(() => loaded = false, 200)})"
   class="fixed left-0 top-0 z-999999 flex h-screen w-screen items-center justify-center bg-white dark:bg-black"
 >
   <div

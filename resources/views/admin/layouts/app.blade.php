@@ -38,7 +38,7 @@
     >
 
     <!-- ===== Preloader Start ===== -->
-    {{-- @include('admin.partials.preloader') --}}
+    @include('admin.partials.preloader')
     <!-- ===== Preloader End ===== -->
 
     <!-- ===== Page Wrapper Start ===== -->

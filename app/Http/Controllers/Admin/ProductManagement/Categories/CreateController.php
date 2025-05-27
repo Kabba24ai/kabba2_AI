@@ -18,6 +18,7 @@ class CreateController extends Controller
      */
     public function __invoke(Request $request)
     {
+        return redirect()->route('admin.product-management.categories.index');
 
         $categories = ProductCategory::whereNull('parent_id')->order()->pluck('title', 'id');
 

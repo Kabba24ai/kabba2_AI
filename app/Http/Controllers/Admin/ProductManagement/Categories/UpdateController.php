@@ -24,9 +24,13 @@ class UpdateController extends Controller
 
     public function __invoke($unique_id, UpdateRequest $request)
     {
-        $objProductCategory = ProductCategory::where('unique_id', $unique_id)->firstOrFail();
 
         $validatedData = $request->validated();
+
+        // Normalize is_featured to 'Yes' or 'No'
+        $validatedData['is_featured'] = isset($validatedData['is_featured']) ? 'Yes' : 'No';
+
+        $objProductCategory = ProductCategory::where('unique_id', $unique_id)->firstOrFail();
         $objProductCategory->fill($validatedData);
 
         if ($request->has('media') && !is_null($request->file('media'))) {
@@ -46,7 +50,6 @@ class UpdateController extends Controller
 
         return match ($action) {
             'save' => redirect()->route('admin.product-management.categories.edit', ['unique_id' => $objProductCategory->unique_id]),
-            'save_exit' => redirect()->route('admin.product-management.categories.index'),
             'save_new' => redirect()->route('admin.product-management.categories.create'),
             default => back(), // fallback
         };

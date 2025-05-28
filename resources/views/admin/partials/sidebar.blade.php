@@ -66,7 +66,7 @@
                             'menu-item-active' : 'menu-item-inactive'">
 
                             <!-- Heroicon: Shopping Bag -->
-                            <x-heroicon-o-shopping-bag :class="(selected === 'Ecommerce') || (page === 'productList' || page === 'productCategory') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'" class="w-6 h-6" />
+                            <x-heroicon-m-shopping-cart :class="(selected === 'Ecommerce') || (page === 'productList' || page === 'productCategory') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'" class="w-6 h-6" />
 
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
                                 Ecommerce
@@ -98,12 +98,15 @@
 
                                 <!-- Product Categories -->
                                 <li>
-                                    <a href="{{ route('admin.product-management.categories.index') }}" class="menu-dropdown-item group"
+                                    <a href="{{ route('admin.product-management.categories.create') }}" class="menu-dropdown-item group"
                                         :class="page === 'productCategory' ? 'menu-dropdown-item-active' :
                                             'menu-dropdown-item-inactive'">
 
                                         <!-- Circle Icon -->
-                                        <span class="w-4 h-4 rounded-full border border-gray-400 group-hover:border-brand-500 dark:border-gray-500 dark:group-hover:border-brand-400"></span>
+                                        {{-- <span class="w-4 h-4 rounded-full border border-gray-400 group-hover:border-brand-500 dark:border-gray-500 dark:group-hover:border-brand-400"></span> --}}
+
+                                        <!-- Heroicon: Tag -->
+                                        <x-heroicon-s-inbox-stack class="h-5 w-5"/>
                                         <!-- Label -->
                                         <span >Product Categories</span>
                                     </a>

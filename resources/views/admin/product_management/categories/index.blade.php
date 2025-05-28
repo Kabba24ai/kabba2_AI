@@ -3,7 +3,6 @@
 @section('title', 'Create Product Category')
 
 @section('content')
-    {{-- Page header --}}
     <div class="flex items-center justify-between mb-6">
         <a href="{{ route('admin.product-management.categories.create') }}"
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
@@ -16,59 +15,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Left: Category Hierarchy --}}
         <div class="lg:col-span-1">
-            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
-                <h3 class="text-md font-semibold text-gray-700 dark:text-white mb-4">Category Hierarchy</h3>
-
-                @if ($category_tree->isNotEmpty())
-                    <ul class="space-y-4 text-sm text-gray-700 dark:text-gray-300">
-                        @foreach ($category_tree as $category)
-                            <li>
-                                <div class="flex items-start justify-between">
-                                    <div class="flex flex-col">
-                                        <span class="font-medium">{{ $category->title }}</span>
-                                    </div>
-                                    <div class="flex gap-2 text-gray-500 dark:text-gray-400">
-                                        {{-- View --}}
-                                        <a href="#" target="_blank"
-                                            class="hover:text-brand-600" title="View Front">
-                                            <x-heroicon-s-eye class="w-4 h-4" />
-                                        </a>
-                                        {{-- Edit --}}
-                                        <a href="{{ route('admin.product-management.categories.edit', $category->unique_id) }}"
-                                            class="hover:text-blue-500" title="Edit">
-                                            <x-heroicon-s-pencil-square class="w-4 h-4" />
-                                        </a>
-                                        {{-- Delete --}}
-                                        <form
-                                            action="{{ route('admin.product-management.categories.delete', $category->unique_id) }}"
-                                            method="POST"
-                                            onsubmit="return confirm('Are you sure you want to delete this category?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="hover:text-red-500" title="Delete">
-                                                <x-heroicon-s-trash class="w-4 h-4" />
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-
-                                {{-- Child Categories --}}
-                                @if ($category->childCategories->isNotEmpty())
-                                    <ul class="mt-2 space-y-1 ml-5 border-l pl-3 border-gray-200 dark:border-gray-700">
-                                        @foreach ($category->childCategories as $child)
-                                            <li class="flex items-center justify-between">
-                                                <span>{{ $child->title }}</span>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p class="text-sm text-gray-500 dark:text-gray-400">No categories available at the moment.</p>
-                @endif
-            </div>
+            @include('admin.product_management.categories._hierarchy')
         </div>
 
         {{-- Right: Form --}}

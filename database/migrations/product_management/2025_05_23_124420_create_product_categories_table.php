@@ -20,12 +20,12 @@ return new class extends Migration
             $table->text('short_content')->nullable();
             $table->longText('content')->nullable();
 
-            $table->string('meta_title')->nullable();
-            $table->text('meta_keywords')->nullable();
-            $table->text('meta_description')->nullable();
+            $table->string('seo_title')->nullable();
+            $table->text('seo_description')->nullable();
 
             $table->unsignedBigInteger('media_id')->nullable(); // Foreign key for media
-            $table->enum('status', ['Active', 'Inactive'])->default('Active');
+            $table->enum('status', ['Published', 'Draft', 'Pending'])->default('Pending');
+            $table->enum('is_featured', ['Yes', 'No'])->default('No');
             $table->integer('sort_order')->default(0);
 
             $table->unsignedBigInteger('created_by')->nullable();

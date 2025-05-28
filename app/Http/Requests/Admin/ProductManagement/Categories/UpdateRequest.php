@@ -50,14 +50,14 @@ class UpdateRequest extends FormRequest
             ],
             'short_content' => ['max:1000'],
             'content'=>['nullable'],
-            'meta_title'=>['nullable'],
-            'meta_keywords'=>['nullable'],
-            'meta_description'=>['nullable'],
-            'status' => ['required'],
             'media' => [
                 $this->isMethod('post') ? 'required' : 'nullable',
                 'image', 'mimes:jpeg,jpg,png', 'max:2048'
             ],
+            'status' => ['required', 'in:Published,Draft,Pending'],
+            'is_featured' => ['nullable', 'in:Yes,No'],
+            'seo_title' => ['nullable', 'string', 'max:240'],
+            'seo_description' => ['nullable', 'string', 'max:240'],
         ];
 
         if (!is_null($this->request->get('parent_id')) && $this->request->get('parent_id') > 0) {

@@ -38,7 +38,10 @@ class StoreRequest extends FormRequest
                 $this->isMethod('post') ? 'required' : 'nullable',
                 'image', 'mimes:jpeg,jpg,png', 'max:2048'
             ],
-            'status' => ['required', 'in:Active,Inactive'],
+            'status' => ['required', 'in:Published,Draft,Pending'],
+            'is_featured' => ['nullable', 'in:Yes,No'],
+            'seo_title' => ['nullable', 'string', 'max:240'],
+            'seo_description' => ['nullable', 'string', 'max:240'],
         ];
     }
 

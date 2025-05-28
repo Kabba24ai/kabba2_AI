@@ -27,6 +27,9 @@ class StoreController extends Controller
         // Use validated data
         $validatedData = $request->validated();
 
+        // Normalize is_featured to 'Yes' or 'No'
+        $validatedData['is_featured'] = isset($validatedData['is_featured']) ? 'Yes' : 'No';
+
         $objProductCategory = ProductCategory::create($validatedData);
 
         // If media is uploaded, associate it with the product category
@@ -43,7 +46,6 @@ class StoreController extends Controller
 
         return match ($action) {
             'save' => redirect()->route('admin.product-management.categories.edit', ['unique_id' => $objProductCategory->unique_id]),
-            'save_exit' => redirect()->route('admin.product-management.categories.index'),
             'save_new' => redirect()->route('admin.product-management.categories.create'),
             default => back(), // fallback
         };

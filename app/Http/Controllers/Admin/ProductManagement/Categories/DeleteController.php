@@ -25,6 +25,6 @@ class DeleteController extends Controller
         $objProductCategory->delete();
 
         flash('Product category deleted successfully.')->success();
-        return redirect()->route('admin.product-management.categories.index');
+        return redirect()->route('admin.product-management.categories.create');
     }
 }

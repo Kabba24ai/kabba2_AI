@@ -1,10 +1,10 @@
 {{-- Title & Parent Category --}}
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div>
-        <label for="title" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required ">Title</label>
+        <label for="title" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Title</label>
         {{ html()->text('title')
             ->class([
-                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm  dark:bg-gray-900 dark:text-white',
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white',
                 'border-red-500' => $errors->has('title')
             ])
             ->attributes([
@@ -15,12 +15,15 @@
             ])
             ->required()
         }}
+        @error('title')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
     </div>
 
-    @if(!isset($objProduct) || (isset($objProduct) && $objProduct->childCategories()->count() <= 0))
+    @if(!isset($objProductCategory) || (isset($objProductCategory) && $objProductCategory->childCategories()->count() <= 0))
         <div class="space-y-2">
             <label for="parent_id" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Category</label>
-            {{ html()->select('parent_id', $categories, null)
+            {{ html()->select('parent_id', $categories, isset($categoryId) ? $categoryId : null)
                 ->class([
                     'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
                     'border-red-500' => $errors->has('parent_id')
@@ -31,40 +34,42 @@
                 ])
                 ->placeholder('Select category')
             }}
+            @error('parent_id')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
         </div>
     @endif
 
     <div>
-        <label for="status" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Status </label>
-        {{ html()->select('status', ['Published' => 'Published', 'Draft' => 'Draft', 'Pending' => 'Pending'], isset($objProduct) ? null : 'Active')
-            ->class('w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white')
+        <label for="status" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Status</label>
+        {{ html()->select('status', ['Published' => 'Published', 'Draft' => 'Draft', 'Pending' => 'Pending'], isset($objProductCategory) ? null : 'Published')
+            ->class([
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
+                'border-red-500' => $errors->has('status')
+            ])
             ->required()
             ->placeholder('Please select')
         }}
+        @error('status')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
     </div>
-
 </div>
 
 {{-- Permalink --}}
-<div class="mb-8">
-    <label for="slug" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Permalink</label>
-    <div class="flex rounded-lg shadow-sm">
-        <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-100 text-gray-500 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
-            {{ url('/product-category') }}/
-        </span>
-        {{ html()->text('slug')
-            ->class([
-                'flex-1 min-w-0 rounded-none rounded-r-lg border border-gray-300 px-4 py-2 text-sm dark:bg-gray-900 dark:text-white dark:border-gray-700',
-                'border-red-500' => $errors->has('slug')
-            ])
-            ->attributes([
-                'placeholder' => 'custom-slug-url',
-                'autocomplete' => 'off'
-            ])
-        }}
+@if (isset($objProductCategory))
+    <div class="mb-8">
+        <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Permalink</label>
+        <div class="flex items-center text-sm">
+            <a href="{{ url('/product-category/' . $objProductCategory->slug) }}"
+               class="text-blue-600 hover:underline break-all"
+               target="_blank">
+                {{ url('/product-category/' . $objProductCategory->slug) }}
+            </a>
+        </div>
+        <small class="text-gray-500 dark:text-gray-400">This is the public URL for this category.</small>
     </div>
-    <small class="text-gray-500 dark:text-gray-400">This will be used in the category URL.</small>
-</div>
+@endif
 
 {{-- Add Products Section --}}
 <div class="mb-8">
@@ -91,7 +96,6 @@
     <input type="hidden" name="product_order" id="product-order" value="">
 </div>
 
-
 {{-- Short Content --}}
 <div class="mb-8">
     <label for="short_content" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Short Content</label>
@@ -107,6 +111,9 @@
             'autocomplete' => 'off'
         ])
     }}
+    @error('short_content')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+    @enderror
 </div>
 
 {{-- Content --}}
@@ -119,40 +126,53 @@
             'id' => 'content-editor'
         ])
     }}
+    @error('content')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+    @enderror
 </div>
 
 {{-- Image Upload --}}
 <div class="mb-8">
     <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Image</label>
-    @if(isset($category) && $category->image)
-        <div class="relative w-40 mb-2">
-            <img src="{{ asset('storage/' . $category->image) }}" alt="Selected Image" class="rounded shadow border w-full h-auto">
-            <button type="button" onclick="removeImage()" class="absolute top-0 right-0 bg-white rounded-full p-1 shadow -mt-2 -mr-2">
-                ✕
-            </button>
+
+    {{-- Existing image display --}}
+    @if(isset($objProductCategory) && $objProductCategory->media)
+        <div class="relative w-40 mb-2" id="existing-image-container">
+            <img src="{{ $objProductCategory->media->getUrl() }}" alt="Selected Image" class="rounded shadow border w-full h-auto">
         </div>
         <input type="hidden" name="remove_image" id="remove_image" value="0">
     @endif
 
-    <input type="file" name="image" accept="image/*" class="block text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose image</p>
+    {{-- File input --}}
+    <input type="file" name="media" id="image-input" accept="image/*"
+        class="block text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        @if(!isset($objProductCategory) || (isset($objProductCategory) && !$objProductCategory->media))
+            data-parsley-required="true"
+            data-parsley-required-message="Please upload an image."
+        @endif
+    >
+
+    @error('media')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+    @enderror
+
+    {{-- Preview container --}}
+    <div id="image-preview" class="mt-2 hidden">
+        <img src="" alt="Preview" class="w-40 h-auto rounded border shadow">
+    </div>
 </div>
+
+
 
 <div class="flex items-center space-x-3 mb-6">
     <label for="is_featured" class="flex items-center cursor-pointer relative">
-        {{-- Invisible Checkbox --}}
-        {{ html()->checkbox('is_featured', old('is_featured', $category->is_featured ?? false))
+        {{ html()->checkbox('is_featured', old('is_featured', $objProductCategory->is_featured ?? 'No') === 'Yes')
             ->class('sr-only peer')
             ->id('is_featured')
-            ->value(1) }}
-
-        {{-- Toggle Track --}}
+            ->value('Yes') }}
         <div class="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
-
-        {{-- Toggle Circle --}}
         <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 transform peer-checked:translate-x-5 z-10"></div>
     </label>
-
     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Is featured?</span>
 </div>
 
@@ -163,45 +183,67 @@
         <a href="#" onclick="document.getElementById('seo-fields').classList.toggle('hidden'); return false;" class="text-sm text-blue-600 hover:underline">Edit SEO meta</a>
     </div>
 
-    {{-- Preview --}}
     <div class="text-sm text-gray-800 dark:text-white">
-        <p class="text-blue-600 font-semibold truncate">{{ old('seo_title', $category->seo_title ?? 'Boom Lift Rentals | Cherry Picker Rentals') }}</p>
+        <p class="text-blue-600 font-semibold truncate">{{ old('seo_title', $objProductCategory->seo_title ?? 'Sample Category Title') }}</p>
         <p class="text-green-700 text-xs truncate">
-            {{ url('/product-categories') }}/{{ old('slug', $category->slug ?? 'boom-lifts') }}
+            {{ url('/product-categories') }}/{{ old('slug', $objProductCategory->slug ?? 'Sample Category Slug') }}
         </p>
         <p class="text-gray-700 dark:text-gray-300 mt-1">
-            {{ old('seo_description', $category->seo_description ?? 'Rent high-quality boom lifts for construction, maintenance, and tree care. Safe, reliable, and cost-effective solutions tailored to your elevated work needs.') }}
+            {{ old('seo_description',  $objProductCategory->seo_description ?? 'Product Description') }}
         </p>
     </div>
 
-    {{-- Hidden Edit Fields --}}
     <div id="seo-fields" class="mt-4 space-y-4 hidden">
-        {{-- SEO Title --}}
         <div>
             {{ html()->label('SEO Title', 'seo_title')->class('block text-sm font-medium text-gray-700 dark:text-gray-300') }}
-            {{ html()->text('seo_title', old('seo_title', $category->seo_title ?? ''))
+            {{ html()->text('seo_title', old('seo_title'))
                 ->id('seo_title')
                 ->class('w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white') }}
+            @error('seo_title')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
         </div>
 
-        {{-- SEO Description --}}
         <div>
             {{ html()->label('SEO Description', 'seo_description')->class('block text-sm font-medium text-gray-700 dark:text-gray-300') }}
-            {{ html()->textarea('seo_description', old('seo_description', $category->seo_description ?? ''))
+            {{ html()->textarea('seo_description', old('seo_description'))
                 ->id('seo_description')
                 ->attributes(['rows' => 3])
                 ->class('w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white') }}
+            @error('seo_description')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
         </div>
     </div>
 </div>
 
-@push('scripts')
+@push('js')
 <script>
     function removeImage() {
         document.getElementById('remove_image').value = '1';
-        event.target.closest('div.relative').remove();
+        const existingImage = document.getElementById('existing-image-container');
+        if (existingImage) {
+            existingImage.remove();
+        }
     }
+
+    document.getElementById('image-input').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('image-preview');
+        const img = preview.querySelector('img');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                img.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.classList.add('hidden');
+            img.src = '';
+        }
+    });
 </script>
 @endpush
-
 

@@ -22,19 +22,16 @@ class ProductCategory extends Model
         'slug',
         'short_content',
         'content',
-        'meta_title',
-        'meta_keywords',
-        'meta_description',
+        'seo_title',
+        'seo_description',
         'media_id',
-        'status', // 'Active','Inactive'
+        'status', // Published, Draft, Pending
+        'is_featured', // Yes, No
         'sort_order',
         'created_by',
         'updated_by',
-        'created_at',
-        'updated_at',
     ];
     protected $table = 'product_categories';
-
 
     public function sluggable(): array
     {
@@ -42,7 +39,7 @@ class ProductCategory extends Model
             'slug' => [
                 'source' => 'title',
                 'onUpdate' => true,
-            ]
+            ],
         ];
     }
 
@@ -87,6 +84,11 @@ class ProductCategory extends Model
         parent::boot();
         self::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'PCAT');
+
+            // If seo_title is not set, use title or slug as fallback
+            if (empty($model->seo_title)) {
+                $model->seo_title = $model->title ?? $model->slug;
+            }
 
             // Set created_by and updated_by
             if (auth()->check()) {

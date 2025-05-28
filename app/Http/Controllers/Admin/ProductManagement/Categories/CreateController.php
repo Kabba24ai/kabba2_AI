@@ -16,9 +16,8 @@ class CreateController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(Request $request)
+    public function __invoke(?int $categoryId = null)
     {
-        return redirect()->route('admin.product-management.categories.index');
 
         $categories = ProductCategory::whereNull('parent_id')->order()->pluck('title', 'id');
 
@@ -26,6 +25,7 @@ class CreateController extends Controller
 
         return view('admin.product_management.categories.create', [
             'categories' => $categories,
+            'categoryId' => $categoryId,
             'category_tree' => $category_tree,
         ]);
     }

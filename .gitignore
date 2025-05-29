@@ -21,11 +21,15 @@ yarn-error.log
 /.vscode
 /.zed
 
-# Ignore everything in storage...
-/storage/
+# Ignore everything in storage
+/storage/**
 
-
-# Optional: keep parent directories so git tracks them too
+# Allow specific paths under storage
+!storage/app/
+!storage/app/public/
 !storage/app/public/admin/
+!storage/app/public/admin/**
+
+
 
 

@@ -32,7 +32,7 @@
                     'data-control' => 'select2',
                     'autocomplete' => 'off'
                 ])
-                ->placeholder('Select category')
+                ->placeholder('Select Category')
             }}
             @error('parent_id')
                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -48,7 +48,7 @@
                 'border-red-500' => $errors->has('status')
             ])
             ->required()
-            ->placeholder('Please select')
+            ->placeholder('Please Select')
         }}
         @error('status')
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -97,7 +97,7 @@
 </div>
 
 {{-- Short Content --}}
-<div class="mb-8">
+{{-- <div class="mb-8">
     <label for="short_content" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Short Content</label>
     {{ html()->textarea('short_content')
         ->class([
@@ -114,7 +114,7 @@
     @error('short_content')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
     @enderror
-</div>
+</div> --}}
 
 {{-- Content --}}
 <div class="mb-8">

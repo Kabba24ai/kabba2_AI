@@ -21,9 +21,25 @@
             </span>
 
             <!-- Status -->
-            <span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">
-                Published
+            @php
+                $statuses = [
+                    'published' => ['text' => 'Published', 'bg' => 'bg-green-100', 'textColor' => 'text-green-700'],
+                    'draft' => ['text' => 'Draft', 'bg' => 'bg-blue-100', 'textColor' => 'text-blue-700'],
+                    'pending' => ['text' => 'Pending', 'bg' => 'bg-yellow-100', 'textColor' => 'text-yellow-700'],
+                ];
+
+                $status = strtolower($category->status);
+                $badge = $statuses[$status] ?? [
+                    'text' => ucfirst($status),
+                    'bg' => 'bg-gray-100',
+                    'textColor' => 'text-gray-700',
+                ];
+            @endphp
+
+            <span class="ml-2 text-xs px-2 py-0.5 rounded {{ $badge['bg'] }} {{ $badge['textColor'] }}">
+                {{ $badge['text'] }}
             </span>
+
         </div>
 
         <!-- Action Icons -->

@@ -26,12 +26,12 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {{-- Left: Category Hierarchy --}}
 
-        <div class="lg:col-span-2">
+        <div class="lg:col-span-3">
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
-                <div class="px-6 py-6">
+                <div class="px-4 py-4">
                     <!-- Product Form -->
                     {{ html()->form()->attributes([
                             'autocomplete' => 'off',

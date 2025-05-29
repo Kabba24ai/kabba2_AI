@@ -3,10 +3,12 @@ import Alpine from 'alpinejs';
 import persist from "@alpinejs/persist";
 import 'parsleyjs';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import Sortable from 'sortablejs';
 
 // Make Alpine globally available
 Alpine.plugin(persist);
 window.Alpine = Alpine;
+window.Sortable = Sortable;
 
 // Start Alpine.js
 Alpine.start();
@@ -32,5 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
         });
     });
+
 });
 

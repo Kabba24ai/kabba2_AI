@@ -6,8 +6,8 @@
         class="sidebar-header flex items-center gap-2 pt-8 pb-7">
         <a href="index.html">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-                <img class="dark:hidden w-10"
-                    src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
+                <img class="dark:hidden w-10" src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}"
+                    alt="Logo" />
                 <img class="hidden dark:block w-10"
                     src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
             </span>
@@ -36,93 +36,76 @@
                     </svg>
                 </h3>
 
+                @php
+                    $ecommerceActive = Route::is([
+                        'admin.product-management.products.*',
+                        'admin.product-management.categories.*',
+                    ]);
+
+                @endphp
+
                 <ul class="mb-6 flex flex-col gap-4">
-                    <!-- Menu Item Dashboard -->
-                    <li x-data>
+                    <!-- Dashboard -->
+                    <li>
                         <a href="{{ route('admin.dashboard.index') }}"
-                            @click="selected = (selected === 'Dashboard' ? '' : 'Dashboard')"
-                            class="menu-item group flex items-center gap-3"
-                            :class="(selected === 'Dashboard' && page === 'Dashboard') ? 'menu-item-active' :
-                            'menu-item-inactive'">
-                            {{-- Icon container --}}
-                            <span class="w-6 h-6 flex items-center justify-center"
-                                :class="(selected === 'Dashboard' && page === 'Dashboard') ? 'menu-item-icon-active' :
-                                'menu-item-icon-inactive'">
+                            class="menu-item group flex items-center gap-3
+                {{ Route::is('admin.dashboard.index') ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <span
+                                class="w-6 h-6 flex items-center justify-center
+                {{ Route::is('admin.dashboard.index') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
                                 <x-heroicon-o-squares-2x2 class="w-7 h-7" />
                             </span>
-
-                            {{-- Text --}}
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
-                                Dashboard
-                            </span>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Dashboard</span>
                         </a>
                     </li>
 
-                    <!-- Menu Item: Ecommerce -->
-                    <li>
-                        <a href="#" @click.prevent="selected = (selected === 'Ecommerce' ? '' : 'Ecommerce')"
-                            class="menu-item group"
-                            :class="(selected === 'Ecommerce') || (page === 'productList' || page === 'productCategory') ?
-                            'menu-item-active' : 'menu-item-inactive'">
-
-                            <!-- Heroicon: Shopping Bag -->
-                            <x-heroicon-m-shopping-cart :class="(selected === 'Ecommerce') || (page === 'productList' || page === 'productCategory') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'" class="w-6 h-6" />
-
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
-                                Ecommerce
-                            </span>
-
-                            <!-- Heroicon: Chevron Down -->
+                    <!-- Ecommerce -->
+                    <li x-data="{ open: {{ $ecommerceActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $ecommerceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-m-shopping-cart
+                                class="w-6 h-6 {{ $ecommerceActive ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Ecommerce</span>
                             <span class="menu-item-arrow"
-                                :class="[(selected === 'Ecommerce') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive',
-                                    sidebarToggle ? 'lg:hidden' : ''
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
                                 ]">
-                                <x-heroicon-o-chevron-down class="w-5 h-5" />
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
                             </span>
+
                         </a>
 
-                        <!-- Dropdown Menu Start -->
-                        <div class="translate transform overflow-hidden"
-                            :class="(selected === 'Ecommerce') ? 'block' : 'hidden'">
-                            <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'"
-                                class="menu-dropdown mt-2 flex flex-col gap-1 pl-9">
-
-                                {{-- <!-- Product List -->
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
-                                    <a href="product-list.html" class="menu-dropdown-item group"
-                                        :class="page === 'productList' ? 'menu-dropdown-item-active' :
-                                            'menu-dropdown-item-inactive'">
-                                        Product List
-                                    </a>
-                                </li> --}}
-
-                                <!-- Product Categories -->
-                                <li>
-                                    <a href="{{ route('admin.product-management.categories.create') }}" class="menu-dropdown-item group"
-                                        :class="page === 'productCategory' ? 'menu-dropdown-item-active' :
-                                            'menu-dropdown-item-inactive'">
-
-                                        <!-- Circle Icon -->
-                                        {{-- <span class="w-4 h-4 rounded-full border border-gray-400 group-hover:border-brand-500 dark:border-gray-500 dark:group-hover:border-brand-400"></span> --}}
-
-                                        <!-- Heroicon: Tag -->
-                                        <x-heroicon-s-inbox-stack class="h-5 w-5"/>
-                                        <!-- Label -->
-                                        <span >Product Categories</span>
+                                    <a href="{{ route('admin.product-management.products.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.product-management.products.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-c-circle-stack class="h-5 w-5" /> Products
                                     </a>
                                 </li>
-
-
+                                <li>
+                                    <a href="{{ route('admin.product-management.categories.create') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.product-management.categories.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-s-inbox-stack class="h-5 w-5" /> Product Categories
+                                    </a>
+                                </li>
                             </ul>
                         </div>
-                        <!-- Dropdown Menu End -->
                     </li>
-
-
                 </ul>
             </div>
-
-
         </nav>
         <!-- Sidebar Menu -->
     </div>

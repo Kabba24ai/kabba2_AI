@@ -21,7 +21,9 @@ $watch('darkMode', value => {
     <div class="relative p-6 bg-white z-1 dark:bg-gray-900 sm:p-0">
         <div class="relative flex flex-col justify-center w-full h-screen dark:bg-gray-900 sm:p-0 lg:flex-row">
             {{-- Left Form --}}
-            <div class="relative items-center hidden w-full h-full bg-brand-50 dark:bg-white/5 lg:grid lg:w-1/2">
+            <div class="relative items-center hidden w-full h-full bg-brand-50 dark:bg-white/5 lg:grid lg:w-1/2"
+            style="background: url('{{ asset('storage/admin/images/logo/development360-logo.jpg') }}') center center / cover no-repeat;"
+            >
                 <div class="flex items-center justify-center z-1">
                     <div class="absolute right-0 top-0 -z-1 w-full max-w-[250px] xl:max-w-[450px]">
                         <img src="{{ asset('storage/admin/images/shape/grid-01.svg') }}" alt="grid" />
@@ -29,9 +31,9 @@ $watch('darkMode', value => {
                     <div class="absolute bottom-0 left-0 -z-1 w-full max-w-[250px] rotate-180 xl:max-w-[450px]">
                         <img src="{{ asset('storage/admin/images/shape/grid-01.svg') }}" alt="grid" />
                     </div>
-                    <div class="flex flex-col items-center max-w-xs">
+                    {{-- <div class="flex flex-col items-center max-w-xs">
                         <a href="{{ url('/') }}" class="block mb-4">
-                            <img src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}"
+                            <img src="{{ asset('storage/admin/images/logo/development360-logo.jpg') }}"
                                 alt="Logo" />
                         </a>
                         <p class="text-center  dark:text-white/60">
@@ -53,7 +55,7 @@ $watch('darkMode', value => {
                                 ])->random() }}
                             </span>
                         </p>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 

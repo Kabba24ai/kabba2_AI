@@ -164,7 +164,7 @@
 
 
 
-<div class="flex items-center space-x-3 mb-6">
+{{-- <div class="flex items-center space-x-3 mb-6">
     <label for="is_featured" class="flex items-center cursor-pointer relative">
         {{ html()->checkbox('is_featured', old('is_featured', $objProductCategory->is_featured ?? 'No') === 'Yes')
             ->class('sr-only peer')
@@ -174,7 +174,7 @@
         <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 transform peer-checked:translate-x-5 z-10"></div>
     </label>
     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Is featured?</span>
-</div>
+</div> --}}
 
 {{-- SEO Meta Section --}}
 <div class="border border-gray-200 rounded-md p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 mb-6">

@@ -1,4 +1,28 @@
-<div x-data="$store.optionsStore" class="space-y-6">
+<!-- Options Section -->
+<div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-6 space-y-4">
+    <h3 class="text-sm font-semibold text-gray-800 dark:text-white border-b pb-2 mb-4">Options</h3>
+
+    <!-- Search Input -->
+    <div class="mb-4">
+        <input type="text"
+               placeholder="Search Options..."
+               class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white"
+        />
+    </div>
+
+    <!-- Info Placeholder -->
+    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md p-6 text-center">
+        <p class="text-gray-700 dark:text-gray-200 font-medium">
+            Options section will be populated from separate Options Library
+        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            This will show rental options with 4 price inputs for different durations
+        </p>
+    </div>
+</div>
+
+
+{{-- <div x-data="$store.optionsStore" class="space-y-6">
     <template x-for="(group, groupIndex) in optionGroups" :key="groupIndex">
         <div class="border rounded-lg bg-white dark:bg-gray-800 shadow-sm">
             <!-- Header -->
@@ -185,4 +209,4 @@
             Alpine.store('optionsStore', productOptions());
         });
     </script>
-@endpush
+@endpush --}}

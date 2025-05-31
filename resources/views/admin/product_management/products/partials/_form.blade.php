@@ -13,7 +13,7 @@
             ])->attributes([
                 'maxlength' => 240,
                 'data-parsley-maxlength' => 240,
-                'placeholder' => 'Enter product name',
+                'placeholder' => 'Enter Product Name',
                 'autocomplete' => 'off',
                 'id' => 'name',
             ])->required() !!}
@@ -67,14 +67,14 @@
     <label for="short_content" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Short
         Content</label>
     {{ html()->textarea('short_content')->class([
-            'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
+            'ckeditor w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
             'border-red-500' => $errors->has('short_content'),
         ])->attributes([
             'rows' => 3,
             'maxlength' => 1000,
             'data-parsley-maxlength' => 1000,
             'autocomplete' => 'off',
-            'placeholder' => 'Enter short description of the product',
+            'placeholder' => 'Enter Short Description Of The Product',
         ]) }}
     @error('short_content')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -89,6 +89,7 @@
         )->attributes([
             'autocomplete' => 'off',
             'id' => 'content-editor',
+            'placeholder' => 'Enter Description Of The Product',
         ]) }}
     @error('content')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -96,65 +97,94 @@
 </div>
 
 
-<!-- Media Upload -->
-<div x-data="imagePreviewHandler()" class="space-y-3">
-    <label for="images" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
-        Product Images
-    </label>
+<div x-data="multiImageUpload()" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Product Images -->
+    <div class="border border-dashed border-gray-300 dark:border-gray-600 rounded-md p-4 bg-white dark:bg-gray-800">
+        <label class="block font-medium text-sm text-gray-700 dark:text-gray-300 mb-1">
+            Images <span class="text-xs font-normal text-gray-500">(Optimum Image Size: 650 × 650 pixels)</span>
+        </label>
+        <div class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md h-40 flex flex-col justify-center items-center cursor-pointer hover:border-blue-500"
+            @click="$refs.imageInput.click()">
+            <x-heroicon-o-photo class="w-6 h-6 text-gray-400" />
+            <span class="text-sm text-blue-600 mt-1">Add Images</span>
+        </div>
+        <input type="file" accept="image/*" multiple class="hidden" x-ref="imageInput"
+            @change="handleMainImages($event)">
 
-    {!! html()->file('images[]')->attributes([
-            'id' => 'images',
-            'multiple' => true,
-            'accept' => 'image/*',
-            'x-ref' => 'fileInput',
-            '@change' => 'previewImages($event)',
-            'class' =>
-                'block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 file:font-semibold hover:file:bg-blue-100 dark:file:bg-gray-800 dark:file:text-white dark:hover:file:bg-gray-700',
-        ]) !!}
+        <!-- Main Images Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-3" x-show="mainImages.length">
+            <template x-for="(image, index) in mainImages" :key="index">
+                <div class="relative border rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+                    <img :src="image"
+                        class="w-full aspect-[650/650] object-cover rounded-t-lg border-b border-gray-200 dark:border-gray-700" />
 
-    <!-- Image Previews -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" x-show="images.length">
-        <template x-for="(image, index) in images" :key="index">
-            <div class="relative">
-                <img :src="image"
-                    class="w-full h-32 object-cover rounded border border-gray-300 dark:border-gray-700" />
-                <button type="button" @click="removeImage(index)"
-                    class="absolute top-1 right-1 bg-red-600 hover:bg-red-700 rounded-full p-1 text-white shadow-md focus:outline-none focus:ring-2 focus:ring-red-500">
-                    <x-heroicon-o-x-mark class="w-4 h-4" />
-                </button>
-            </div>
-        </template>
+                    <button type="button" @click="removeMainImage(index)"
+                        class="absolute top-1 right-1 bg-red-600 hover:bg-red-700 rounded-full p-1 text-white shadow-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                    </button>
+                </div>
+            </template>
+        </div>
     </div>
 
-    @error('images')
-        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-    @enderror
+    <!-- Mouse Over Image -->
+    <div class="border border-dashed border-gray-300 dark:border-gray-600 rounded-md p-4 bg-white dark:bg-gray-800">
+        <label class="block font-medium text-sm text-gray-700 dark:text-gray-300 mb-1">
+            Mouse Over Image
+        </label>
+        <div class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md h-40 flex flex-col justify-center items-center cursor-pointer hover:border-blue-500"
+            @click="$refs.hoverImageInput.click()">
+            <x-heroicon-o-photo class="w-6 h-6 text-gray-400" />
+            <span class="text-sm text-blue-600 mt-1">Add Image</span>
+        </div>
+        <input type="file" accept="image/*" class="hidden" x-ref="hoverImageInput"
+            @change="handleHoverImage($event)">
+
+        <!-- Hover Image Preview -->
+        <template x-if="hoverImage">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-3">
+                <div class="relative border rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+                    <img :src="hoverImage"
+                        class="w-full aspect-[650/650] object-cover rounded-t-lg border-b border-gray-200 dark:border-gray-700" />
+
+                    <button type="button" @click="hoverImage = null"
+                        class="absolute top-1 right-1 bg-red-600 hover:bg-red-700 rounded-full p-1 text-white shadow-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+        </template>
+
+
+    </div>
 </div>
+
 
 {{-- First Row: SKU + Barcode (equal width) --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
     {{-- SKU --}}
     <div>
         <label for="sku" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">SKU</label>
-        {!! html()->text('sku')
-            ->attributes([
+        {!! html()->text('sku')->attributes([
                 'placeholder' => 'Enter SKU',
                 'autocomplete' => 'off',
                 'id' => 'sku',
-            ])
-            ->class('w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white') !!}
+            ])->class(
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white',
+            ) !!}
     </div>
 
     {{-- Barcode --}}
     <div>
-        <label for="barcode" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Barcode (ISBN, UPC, GTIN, etc.)</label>
-        {!! html()->text('barcode')
-            ->attributes([
-                'placeholder' => 'Enter barcode',
+        <label for="barcode" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Barcode (ISBN,
+            UPC, GTIN, etc.)</label>
+        {!! html()->text('barcode')->attributes([
+                'placeholder' => 'Enter Barcode',
                 'autocomplete' => 'off',
                 'id' => 'barcode',
-            ])
-            ->class('w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white') !!}
+            ])->class(
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white',
+            ) !!}
     </div>
 </div>
 
@@ -164,44 +194,49 @@
     <div class="lg:col-span-4">
         <label for="price" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Price</label>
         <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400 text-sm">$</span>
-            {!! html()->text('price')
-                ->attributes([
+            <span
+                class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400 text-sm">$</span>
+            {!! html()->text('price')->attributes([
                     'placeholder' => '0',
                     'autocomplete' => 'off',
                     'id' => 'price',
-                ])
-                ->class('pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white') !!}
+                ])->class(
+                    'pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white',
+                ) !!}
         </div>
     </div>
 
     {{-- Sale Price --}}
     <div class="lg:col-span-4">
-        <label for="sale_price" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Sale Price</label>
+        <label for="sale_price" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Sale
+            Price</label>
         <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400 text-sm">$</span>
-            {!! html()->text('sale_price')
-                ->attributes([
+            <span
+                class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400 text-sm">$</span>
+            {!! html()->text('sale_price')->attributes([
                     'placeholder' => '0',
                     'autocomplete' => 'off',
                     'id' => 'sale_price',
-                ])
-                ->class('pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white') !!}
+                ])->class(
+                    'pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white',
+                ) !!}
         </div>
     </div>
 
     {{-- Product Cost --}}
     <div class="lg:col-span-4">
-        <label for="product_cost" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Product Cost</label>
+        <label for="product_cost" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Product
+            Cost</label>
         <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400 text-sm">$</span>
-            {!! html()->text('product_cost')
-                ->attributes([
+            <span
+                class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400 text-sm">$</span>
+            {!! html()->text('product_cost')->attributes([
                     'placeholder' => '0',
                     'autocomplete' => 'off',
                     'id' => 'product_cost',
-                ])
-                ->class('pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white') !!}
+                ])->class(
+                    'pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 border-gray-300 dark:bg-gray-900 dark:text-white',
+                ) !!}
         </div>
     </div>
 </div>
@@ -212,13 +247,65 @@
 @includeIf('admin.product_management.products.partials._options', ['options' => $options ?? []])
 
 <div x-data="relatedProducts()">
-    @include('admin.product_management.products.partials._related_products', ['relatedProducts' => $relatedProducts ?? []])
+    @include('admin.product_management.products.partials._related_products', [
+        'relatedProducts' => $relatedProducts ?? [],
+    ])
 </div>
 
-<div x-data="{ type: '{{ old('type', 'rental') }}', showTermSelect: false }"
-     x-init="$watch('type', value => { if (value !== 'rental') showTermSelect = false })">
+<div x-data="{ type: '{{ old('type', 'rental') }}', showTermSelect: false }" x-init="$watch('type', value => { if (value !== 'rental') showTermSelect = false })">
     @include('admin.product_management.products.partials._terms_checklist')
 </div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Categories Column -->
+    <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
+        <h4 class="text-sm font-semibold text-gray-800 dark:text-white mb-3">Categories</h4>
+        <div class="max-h-64 overflow-y-auto pr-1 space-y-3">
+            @foreach ($categories as $category)
+                @php
+                    $checkboxId = "category_{$category->id}";
+                    $isChecked = in_array($category->id, old('categories', []));
+                @endphp
+
+                <div x-data="{ checked: {{ $isChecked ? 'true' : 'false' }} }">
+                    <label for="{{ $checkboxId }}"
+                        class="flex items-center text-sm font-medium text-gray-700 cursor-pointer select-none dark:text-gray-400">
+                        <div class="relative">
+                            {!! html()->checkbox('categories[]', $isChecked)->value($category->id)->id($checkboxId)->class('sr-only')->attribute('@change', 'checked = !checked') !!}
+
+                            <div :class="checked ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
+                                class="mr-2 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] transition-colors duration-150">
+                                <span :class="checked ? '' : 'opacity-0'">
+                                    <x-heroicon-o-check class="w-3.5 h-3.5 text-white" />
+                                </span>
+                            </div>
+                        </div>
+                        {{ $category->title }}
+                    </label>
+                </div>
+            @endforeach
+        </div>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            Products must be in at least one category to appear on the website
+        </p>
+    </div>
+
+    <!-- Sales Funnels Column -->
+    <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
+        <h4 class="text-sm font-semibold text-gray-800 dark:text-white mb-3">Sales Funnels</h4>
+        <div class="space-y-3">
+            @foreach ($funnels as $funnel)
+                <div class="flex items-center space-x-2 text-sm">
+                    {!! html()->checkbox('funnels[]', in_array($funnel->id, old('funnels', [])))->value($funnel->id)->id("funnel_{$funnel->id}") !!}
+                    <label for="funnel_{{ $funnel->id }}" class="text-gray-700 dark:text-gray-300">
+                        {{ $funnel->name }}
+                    </label>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
 
 {{-- SEO Meta Section --}}
 <div class="border border-gray-200 rounded-md p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 mb-6">
@@ -239,7 +326,7 @@
         </p>
     </div>
 
-    <div id="seo-fields" class="mt-4 space-y-4 hidden">
+    <div id="seo-fields" class="mt-4 space-y-4 ">
         <div>
             {{ html()->label('SEO Title', 'seo_title')->class('block text-sm font-medium text-gray-700 dark:text-gray-300') }}
             {{ html()->text('seo_title', old('seo_title'))->id('seo_title')->class(
@@ -265,36 +352,34 @@
 
 @push('js')
     <script>
-        function imagePreviewHandler() {
+        function multiImageUpload() {
             return {
-                images: [],
-                previewImages(event) {
-                    this.images = []
-                    const files = event.target.files
-                    if (!files) return
+                mainImages: [],
+                hoverImage: null,
+
+                handleMainImages(event) {
+                    this.mainImages = [];
+                    const files = event.target.files;
+                    if (!files) return;
 
                     for (let i = 0; i < files.length; i++) {
-                        const reader = new FileReader()
-                        reader.onload = e => this.images.push(e.target.result)
-                        reader.readAsDataURL(files[i])
+                        const reader = new FileReader();
+                        reader.onload = e => this.mainImages.push(e.target.result);
+                        reader.readAsDataURL(files[i]);
                     }
                 },
-                removeImage(index) {
-                    this.images.splice(index, 1)
-                    // Optional: remove file from input (not fully supported across browsers)
-                    const dt = new DataTransfer()
-                    const input = this.$refs.fileInput
-                    const files = input.files
 
-                    for (let i = 0; i < files.length; i++) {
-                        if (i !== index) {
-                            dt.items.add(files[i])
-                        }
-                    }
-                    input.files = dt.files
-                    this.previewImages({
-                        target: input
-                    })
+                removeMainImage(index) {
+                    this.mainImages.splice(index, 1);
+                },
+
+                handleHoverImage(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = e => this.hoverImage = e.target.result;
+                    reader.readAsDataURL(file);
                 }
             }
         }

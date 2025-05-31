@@ -133,7 +133,9 @@
 
 {{-- Image Upload --}}
 <div class="mb-8">
-    <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Image</label>
+    <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">
+        Images <span class="text-xs font-normal text-gray-500">(Optimum Image Size: 450 × 450 pixels)</span>
+    </label>
 
     {{-- Existing image display --}}
     @if(isset($objProductCategory) && $objProductCategory->media)

@@ -24,41 +24,51 @@
     </div>
 
     <!-- Inline Radio Buttons -->
-    <div x-data="{ selectedType: '{{ old('type', 'rental') }}' }">
+    <div x-data x-init="$store.productForm.selectedType = '{{ old('type', 'rental') }}'">
+        <!-- Product Type -->
         <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">
             Product Type
         </label>
 
-        <div class="flex flex-wrap items-center gap-4">
-            @foreach (['rental' => 'Rental Configuration', 'retail' => 'Retail Configuration'] as $value => $label)
-                <label
-                    :class="selectedType === '{{ $value }}'
-                        ?
-                        'text-gray-700 dark:text-gray-200' :
-                        'text-gray-500 dark:text-gray-400'"
-                    class="relative inline-flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                    {!! html()->radio('type', false, $value)->id($value)->attributes([
-                            'x-model' => 'selectedType',
-                            'class' => 'sr-only',
-                        ]) !!}
+        <div class="flex flex-wrap items-center gap-4 mb-6">
+            <!-- Rental Configuration -->
+            <label
+                :class="$store.productForm.selectedType === 'rental' ?
+                    'text-gray-700 dark:text-gray-200' :
+                    'text-gray-500 dark:text-gray-400'"
+                class="relative inline-flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                <input type="radio" name="type" value="rental" x-model="$store.productForm.selectedType"
+                    id="rental" class="sr-only">
+                <span
+                    :class="$store.productForm.selectedType === 'rental' ?
+                        'border-brand-500 bg-brand-500' :
+                        'bg-transparent border-gray-300 dark:border-gray-700'"
+                    class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px]">
+                    <span :class="$store.productForm.selectedType === 'rental' ? 'block' : 'hidden'"
+                        class="w-2 h-2 bg-white rounded-full"></span>
+                </span>
+                Rental Configuration
+            </label>
 
-                    <span
-                        :class="selectedType === '{{ $value }}'
-                            ?
-                            'border-brand-500 bg-brand-500' :
-                            'bg-transparent border-gray-300 dark:border-gray-700'"
-                        class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px]">
-                        <span :class="selectedType === '{{ $value }}' ? 'block' : 'hidden'"
-                            class="w-2 h-2 bg-white rounded-full"></span>
-                    </span>
-                    {{ $label }}
-                </label>
-            @endforeach
+            <!-- Retail Configuration -->
+            <label
+                :class="$store.productForm.selectedType === 'retail' ?
+                    'text-gray-700 dark:text-gray-200' :
+                    'text-gray-500 dark:text-gray-400'"
+                class="relative inline-flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                <input type="radio" name="type" value="retail" x-model="$store.productForm.selectedType"
+                    id="retail" class="sr-only">
+                <span
+                    :class="$store.productForm.selectedType === 'retail' ?
+                        'border-brand-500 bg-brand-500' :
+                        'bg-transparent border-gray-300 dark:border-gray-700'"
+                    class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px]">
+                    <span :class="$store.productForm.selectedType === 'retail' ? 'block' : 'hidden'"
+                        class="w-2 h-2 bg-white rounded-full"></span>
+                </span>
+                Retail Configuration
+            </label>
         </div>
-
-        @error('type')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
     </div>
 </div>
 
@@ -241,7 +251,9 @@
     </div>
 </div>
 
-@include('admin.product_management.products.partials._rental_delivery_settings')
+<div x-data x-show="$store.productForm.selectedType === 'rental'" x-cloak>
+    @include('admin.product_management.products.partials._rental_delivery_settings')
+</div>
 
 <!-- Product Options Placeholder -->
 @includeIf('admin.product_management.products.partials._options', ['options' => $options ?? []])
@@ -273,7 +285,8 @@
                         <div class="relative">
                             {!! html()->checkbox('categories[]', $isChecked)->value($category->id)->id($checkboxId)->class('sr-only')->attribute('@change', 'checked = !checked') !!}
 
-                            <div :class="checked ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
+                            <div :class="checked ? 'border-blue-500 bg-blue-500' :
+                                'bg-transparent border-gray-300 dark:border-gray-700'"
                                 class="mr-2 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] transition-colors duration-150">
                                 <span :class="checked ? '' : 'opacity-0'">
                                     <x-heroicon-o-check class="w-3.5 h-3.5 text-white" />
@@ -383,5 +396,30 @@
                 }
             }
         }
+
+        document.addEventListener('alpine:init', () => {
+            // Alpine store for shared state
+            Alpine.store('productForm', {
+                selectedType: '{{ old('type', 'rental') }}'
+            });
+
+            // Watch and reset rental inputs when switching away
+            Alpine.effect(() => {
+                if (Alpine.store('productForm').selectedType !== 'rental') {
+                    const rentalSection = document.querySelector(
+                        '[x-show="$store.productForm.selectedType === \'rental\'"]');
+
+                    if (rentalSection) {
+                        rentalSection.querySelectorAll('input, select, textarea').forEach(el => {
+                            if (['checkbox', 'radio'].includes(el.type)) {
+                                el.checked = false;
+                            } else {
+                                el.value = '';
+                            }
+                        });
+                    }
+                }
+            });
+        });
     </script>
 @endpush

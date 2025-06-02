@@ -40,6 +40,7 @@
                     $ecommerceActive = Route::is([
                         'admin.product-management.products.*',
                         'admin.product-management.categories.*',
+                        'admin.product-management.options.*',
                     ]);
 
                 @endphp
@@ -48,11 +49,9 @@
                     <!-- Dashboard -->
                     <li>
                         <a href="{{ route('admin.dashboard.index') }}"
-                            class="menu-item group flex items-center gap-3
-                {{ Route::is('admin.dashboard.index') ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            class="menu-item group flex items-center gap-3 {{ Route::is('admin.dashboard.index') ? 'menu-item-active' : 'menu-item-inactive' }}">
                             <span
-                                class="w-6 h-6 flex items-center justify-center
-                {{ Route::is('admin.dashboard.index') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
+                                class="w-6 h-6 flex items-center justify-center {{ Route::is('admin.dashboard.index') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
                                 <x-heroicon-o-squares-2x2 class="w-7 h-7" />
                             </span>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Dashboard</span>
@@ -92,6 +91,13 @@
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.product-management.products.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-c-circle-stack class="h-5 w-5" /> Products
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.product-management.options.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.product-management.options.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-s-cube class="h-5 w-5" /> Product Options
                                     </a>
                                 </li>
                                 <li>

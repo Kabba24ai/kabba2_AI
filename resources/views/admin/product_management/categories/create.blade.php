@@ -4,12 +4,12 @@
 
 @section('content')
     <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Create Product Category</h3>
+
         <a href="{{ route('admin.product-management.categories.create') }}"
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 gap-1">
             <x-heroicon-m-arrow-path class="w-4 h-4" /> Reload
         </a>
-
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Create Product Category</h3>
     </div>
 
     {{-- Flash --}}

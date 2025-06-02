@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\ProductManagement\Products;
+namespace App\Http\Controllers\Admin\ProductManagement\Options;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -33,10 +33,8 @@ class IndexController extends Controller
         // Create paginator
         $products = new LengthAwarePaginator($currentItems, $items->count(), $perPage, $currentPage, ['path' => request()->url(), 'query' => request()->query()]);
 
-        $categories = Collection::make([]);
-        return view('admin.product_management.products.index', [
+        return view('admin.product_management.options.index', [
             'products' => $products,
-            'categories' => $categories,
         ]);
     }
 }

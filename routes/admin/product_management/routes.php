@@ -20,6 +20,9 @@ Route::prefix('product-management')
     // Categories
     require base_path('routes/admin/product_management/categories/routes.php');
 
+    // Options
+    require base_path('routes/admin/product_management/options/routes.php');
+
     // Products
     require base_path('routes/admin/product_management/products/routes.php');
 });

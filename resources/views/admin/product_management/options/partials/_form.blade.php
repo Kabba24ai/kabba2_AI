@@ -106,7 +106,7 @@
                             <td class="px-3 py-2 w-60">
                                 <input type="text" :name="`options[${index}][label]`" x-model="option.label"
                                     class="w-full rounded-md border px-2 py-1 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                    placeholder="Option name" />
+                                    placeholder="Option Name" />
                             </td>
                             <td class="px-3 py-2">
                                 <input type="number" :name="`options[${index}][daily]`" value="0"
@@ -188,7 +188,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comment Text</label>
                 <textarea x-model="options[currentCommentIndex].comment"
                     class="w-full rounded-md border px-3 py-2 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    rows="3" placeholder="Enter comment text..."></textarea>
+                    rows="3" placeholder="Enter Comment Text..."></textarea>
                 <p class="text-xs text-gray-500 mt-1">Leave blank to disable the pop-up confirmation for this option.
                 </p>
             </div>

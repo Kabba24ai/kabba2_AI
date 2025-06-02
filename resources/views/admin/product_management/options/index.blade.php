@@ -30,8 +30,8 @@
                 <tbody class="bg-white dark:bg-gray-950">
                     <tr>
                         <td colspan="6" class="text-center px-6 py-10 text-gray-500 dark:text-gray-400">
-                            No rental options lists found.
-                            <a href="#" class="text-brand-600 hover:underline dark:text-brand-400">Create your first one</a>
+                            No Rental Options Lists Found.
+                            <a href="#" class="text-brand-600 hover:underline dark:text-brand-400">Create Your First One</a>
                         </td>
                     </tr>
                 </tbody>

@@ -1,10 +1,10 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Create New Rental Options')
+@section('title', 'Edit New Rental Options')
 
 @section('content')
     <div class="mb-6 flex items-center justify-between">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Create New Rental Options</h3>
+        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Edit New Rental Options</h3>
         <a href="{{ route('admin.product-management.options.index') }}"
             class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition">
             <x-heroicon-o-arrow-left class="w-4 h-4 mr-2" />
@@ -17,7 +17,11 @@
         {{-- Flash + Error --}}
         @include('flash::message')
         @include('admin.partials.formErrors')
-        {{ html()->form('POST', route('admin.product-management.options.create'))->attribute('autocomplete', 'off')->open() }}
+        {{ html()->modelForm($objProductOption, 'PUT')->attributes([
+                            'autocomplete' => 'off',
+                            'data-parsley-validate' => true,
+                            'class' => 'space-y-8',
+                        ])->acceptsFiles()->open() }}
         @include('admin.product_management.options.partials._form')
 
         <div class="mt-6 flex justify-end gap-4">

@@ -19,17 +19,26 @@
         @enderror
     </div>
 
+    @php
+        $selectedType = old('type', $objProductOption->type ?? 'Rental');
+    @endphp
+
     {{-- Type --}}
     <div>
-        {{ html()->label('Type', 'type')->class('block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required') }}
-        {{ html()->select('type', ['Rental' => 'Rental', 'Retail' => 'Retail'], old('type'))->id('type')->class([
-                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white',
-                'border-red-500' => $errors->has('type'),
-            ])->required()->placeholder('Select Type') }}
+        <label for="type"
+            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Type</label>
+        <select name="type" id="type" x-model="$store.form.selectedType"
+            class="w-full rounded-lg border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white @error('type') border-red-500 @enderror"
+            required>
+            <option value="">Select Type</option>
+            <option value="Rental" {{ $selectedType === 'Rental' ? 'selected' : '' }}>Rental</option>
+            <option value="Retail" {{ $selectedType === 'Retail' ? 'selected' : '' }}>Retail</option>
+        </select>
         @error('type')
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
+
 
     {{-- Status --}}
     <div>
@@ -62,7 +71,7 @@
 </div>
 
 {{-- Options Table --}}
-<div x-data="optionsList()" x-cloak>
+<div x-data="optionsList()" x-init="init()" x-cloak>
     <!-- Options Table -->
     <div class="border border-gray-200 dark:border-gray-800 rounded-md overflow-x-auto">
         <div class="p-4">
@@ -77,10 +86,17 @@
                         <th class="whitespace-normal px-3 py-2">#</th>
                         <th class="whitespace-normal px-3 py-2">Drag</th>
                         <th class="whitespace-normal px-3 py-2">Label</th>
-                        <th class="whitespace-normal px-3 py-2">Daily</th>
-                        <th class="whitespace-normal px-3 py-2">W/E Spcl.</th>
-                        <th class="whitespace-normal px-3 py-2">Weekly</th>
-                        <th class="whitespace-normal px-3 py-2">Monthly</th>
+
+                        <!-- Pricing columns -->
+                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Rental'">Daily</th>
+                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Rental'">W/E Spcl.</th>
+                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Rental'">Weekly</th>
+                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Rental'">Monthly</th>
+
+                        <!-- Retail: show 1 column + 3 blanks for alignment -->
+                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Retail'" class="w-10"
+                            colspan="4">Retail Price</th>
+
                         <th class="whitespace-normal px-3 py-2">Charged Per Order</th>
                         <th class="whitespace-normal px-3 py-2">Value</th>
                         <th class="whitespace-normal px-3 py-2">Comment</th>
@@ -108,22 +124,40 @@
                                     class="w-full rounded-md border px-2 py-1 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                     placeholder="Option Name" />
                             </td>
-                            <td class="px-3 py-2">
-                                <input type="number" :name="`options[${index}][daily]`" value="0"
-                                    class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                            </td>
-                            <td class="px-3 py-2">
-                                <input type="number" :name="`options[${index}][weekend]`" value="0"
-                                    class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                            </td>
-                            <td class="px-3 py-2">
-                                <input type="number" :name="`options[${index}][weekly]`" value="0"
-                                    class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                            </td>
-                            <td class="px-3 py-2">
-                                <input type="number" :name="`options[${index}][monthly]`" value="0"
-                                    class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                            </td>
+                            <template x-if="$store.form.selectedType === 'Rental'">
+                                <td class="px-3 py-2"><input type="number" :name="`options[${index}][daily]`"
+                                        x-model="option.daily"
+                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
+                                </td>
+                            </template>
+                            <template x-if="$store.form.selectedType === 'Rental'">
+                                <td class="px-3 py-2"><input type="number" :name="`options[${index}][weekend]`"
+                                        x-model="option.weekend"
+                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
+                                </td>
+                            </template>
+                            <template x-if="$store.form.selectedType === 'Rental'">
+                                <td class="px-3 py-2"><input type="number" :name="`options[${index}][weekly]`"
+                                        x-model="option.weekly"
+                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
+                                </td>
+                            </template>
+                            <template x-if="$store.form.selectedType === 'Rental'">
+                                <td class="px-3 py-2"><input type="number" :name="`options[${index}][monthly]`"
+                                        x-model="option.monthly"
+                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
+                                </td>
+                            </template>
+
+                            <!-- Retail Price Field -->
+                            <template x-if="$store.form.selectedType === 'Retail'">
+                                <td colspan="4" class="px-3 py-2">
+                                    <input type="number" :name="`options[${index}][retail_price]`"
+                                        x-model="option.retail_price"
+                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
+                                </td>
+                            </template>
+
                             <td class="px-3 py-2 w-40">
                                 <select :name="`options[${index}][charged]`"
                                     class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800">
@@ -156,7 +190,8 @@
                                 <input type="hidden" :name="`options[${index}][decline_label]`"
                                     :value="option.decline_label">
                             </td>
-                            <td class="px-3 py-2 text-center text-red-600 cursor-pointer" @click="removeOption(index)">✕
+                            <td class="px-3 py-2 text-center text-red-600 cursor-pointer"
+                                @click="removeOption(index)">✕
                             </td>
                         </tr>
                     </template>
@@ -259,23 +294,26 @@
     </div>
 </div>
 
+@php
+    $formOptions = old('options', $objProductOption->items ?? []);
+@endphp
+
 @push('js')
     <script>
         function optionsList() {
             return {
-                options: [],
+                options: @json($formOptions),
                 showCommentModal: false,
                 currentCommentIndex: null,
+                selectedType: '{{ old('type', 'Rental') }}',
 
                 init() {
-                    // Ensure 4 default rows
-                    if (this.options.length === 0) {
+                    if (!this.options.length) {
                         for (let i = 0; i < 4; i++) {
                             this.addOption();
                         }
                     }
 
-                    // Enable sortable
                     new Sortable(this.$refs.sortableBody, {
                         handle: '.cursor-move',
                         animation: 150,
@@ -290,6 +328,12 @@
                     this.options.push({
                         key: Date.now() + Math.random(),
                         label: '',
+                        daily: 0,
+                        weekend: 0,
+                        weekly: 0,
+                        monthly: 0,
+                        retail_price: 0,
+                        value: 'Blank',
                         comment: '',
                         decline_label: "No Thanks, I'll Take The Risk",
                         accept_label: "Keep Safety Harness"
@@ -313,5 +357,11 @@
                 }
             };
         }
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('form', {
+                selectedType: @json($selectedType )
+            });
+        });
     </script>
 @endpush

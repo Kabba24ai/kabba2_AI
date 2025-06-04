@@ -5,10 +5,10 @@ use Illuminate\Support\Facades\Route;
 // Controllers
 use App\Http\Controllers\Admin\ProductManagement\Options\IndexController;
 use App\Http\Controllers\Admin\ProductManagement\Options\CreateController;
-// use App\Http\Controllers\Admin\ProductManagement\Options\StoreController;
-// use App\Http\Controllers\Admin\ProductManagement\Options\EditController;
-// use App\Http\Controllers\Admin\ProductManagement\Options\UpdateController;
-// use App\Http\Controllers\Admin\ProductManagement\Options\DeleteController;
+use App\Http\Controllers\Admin\ProductManagement\Options\StoreController;
+use App\Http\Controllers\Admin\ProductManagement\Options\EditController;
+use App\Http\Controllers\Admin\ProductManagement\Options\UpdateController;
+use App\Http\Controllers\Admin\ProductManagement\Options\DeleteController;
 
 
 Route::prefix('options')
@@ -19,12 +19,12 @@ Route::prefix('options')
 
     // Create
     Route::get('/create', CreateController::class)->name('create');
-    Route::post('/create', IndexController::class);
+    Route::post('/create', StoreController::class);
 
     // Edit
-    Route::get('/{unique_id}/edit', IndexController::class)->name('edit');
-    Route::put('/{unique_id}/edit', IndexController::class);
+    Route::get('/{unique_id}/edit', EditController::class)->name('edit');
+    Route::put('/{unique_id}/edit', UpdateController::class);
 
     // Delete
-    Route::delete('/{unique_id}', IndexController::class)->name('delete');
+    Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 });

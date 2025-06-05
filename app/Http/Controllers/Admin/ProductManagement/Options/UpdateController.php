@@ -34,11 +34,19 @@ class UpdateController extends Controller
 
         // Sync or re-save options (you may want to delete/recreate or update existing related rows)
         DB::transaction(function () use ($productOption, $validated) {
-            // Remove old options (or update if you track them separately)
-            $productOption->items()->delete();
+            $submittedOptions = collect($validated['options']);
 
-            foreach ($validated['options'] as $option) {
-                $productOption->items()->create([
+            // Get all existing item IDs from DB
+            $existingItems = $productOption->items()->get()->keyBy('id');
+
+            // Keep track of processed IDs
+            $submittedIds = [];
+
+            foreach ($submittedOptions as $option) {
+                $id = $option['id'] ?? null;
+
+                // Prepare attributes
+                $attributes = [
                     'label' => $option['label'],
                     'daily' => $option['daily'] ?? null,
                     'weekend' => $option['weekend'] ?? null,
@@ -50,8 +58,25 @@ class UpdateController extends Controller
                     'comment' => $option['comment'] ?? null,
                     'accept_label' => $option['accept_label'] ?? null,
                     'decline_label' => $option['decline_label'] ?? null,
-                ]);
+                    'sort_order' => $option['sort_order'] ?? 0,
+                ];
+
+                if ($id && $existingItems->has($id)) {
+                    // Update existing
+                    $existingItems[$id]->update($attributes);
+                    $submittedIds[] = $id;
+                } else {
+                    // Create new
+                    $productOption->items()->create($attributes);
+                }
             }
+
+            // Only delete old items that were not submitted
+            $productOption
+                ->items()
+                ->whereIn('id', $existingItems->keys()) // only from originally loaded items
+                ->whereNotIn('id', $submittedIds)
+                ->delete();
         });
 
         flash('Product Option updated successfully.')->success();
@@ -61,7 +86,7 @@ class UpdateController extends Controller
         return match ($action) {
             'save' => redirect()->route('admin.product-management.options.edit', ['unique_id' => $productOption->unique_id]),
             'save_new' => redirect()->route('admin.product-management.options.create'),
-            default => back(),
+            default => redirect()->route('admin.product-management.options.index'),
         };
     }
 }

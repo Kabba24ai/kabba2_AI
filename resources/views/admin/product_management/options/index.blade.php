@@ -12,9 +12,9 @@
         </a>
     </div>
 
+    @include('flash::message')
     {{-- Main Container --}}
     <div class="flex flex-col lg:flex-row gap-6">
-        @include('flash::message')
 
         {{-- Table Card --}}
         <div class="flex-1 overflow-x-auto rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">

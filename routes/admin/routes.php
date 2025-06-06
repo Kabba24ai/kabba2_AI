@@ -29,5 +29,8 @@ Route::name('admin.')->group(function ($router) {
 
         // Product Management
         require base_path('routes/admin/product_management/routes.php');
+
+        // Order Management
+        require base_path('routes/admin/order_management/routes.php');
     });
 });

@@ -279,4 +279,3 @@
 
 @push('js')
 @endpush
-@endpush

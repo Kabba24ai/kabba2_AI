@@ -1,0 +1,190 @@
+<!-- Basic Info -->
+<div class="grid grid-cols-3 gap-6">
+    <!-- Title Input -->
+    <div>
+        <label for="title" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
+            Title
+        </label>
+
+        {!! html()->text('title', old('title', $terms->title ?? null))->class([
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                'border-gray-300' => !$errors->has('title'),
+                'border-red-500' => $errors->has('title'),
+            ])->attributes([
+                'maxlength' => 240,
+                'data-parsley-maxlength' => 240,
+                'placeholder' => 'Enter Title',
+                'autocomplete' => 'off',
+                'id' => 'title',
+            ])->required() !!}
+
+        @error('title')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <div>
+        <label for="status" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Status</label>
+        {{ html()->select('status', ['Published' => 'Published', 'Draft' => 'Draft', 'Pending' => 'Pending'], old('status', $terms->status ?? 'Published'))
+            ->class([
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
+                'border-red-500' => $errors->has('status')
+            ])
+            ->required()
+            ->placeholder('Please Select')
+        }}
+        @error('status')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+    
+    <!-- Inline Radio Buttons -->
+    <div x-data x-init="$store.termForm.selectedType = '{{ old('is_global', $terms->is_global ?? 'No') }}'">
+        <!-- Term Type -->
+        <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">
+            Is Global?
+        </label>
+
+        <div class="flex flex-wrap items-center gap-4 mb-6">
+            <!-- Is Global No Configuration -->
+            <label
+                :class="$store.termForm.selectedType === 'No' ?
+                    'text-gray-700 dark:text-gray-200' :
+                    'text-gray-500 dark:text-gray-400'"
+                class="relative inline-flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                <input type="radio" name="is_global" value="No" x-model="$store.termForm.selectedType"
+                    id="no" class="sr-only" disabled="disabled">
+                <span
+                    :class="$store.termForm.selectedType === 'No' ?
+                        'border-brand-500 bg-brand-500' :
+                        'bg-transparent border-gray-300 dark:border-gray-700'"
+                    class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px]">
+                    <span :class="$store.termForm.selectedType === 'No' ? 'block' : 'hidden'"
+                        class="w-2 h-2 bg-white rounded-full"></span>
+                </span>
+                No
+            </label>
+
+            <!-- Is global Yes Configuration -->
+            <label
+                :class="$store.termForm.selectedType === 'Yes' ?
+                    'text-gray-700 dark:text-gray-200' :
+                    'text-gray-500 dark:text-gray-400'"
+                class="relative inline-flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                <input type="radio" name="type" value="Yes" x-model="$store.termForm.selectedType"
+                    id="yes" class="sr-only" disabled="disabled">
+                <span
+                    :class="$store.termForm.selectedType === 'Yes' ?
+                        'border-brand-500 bg-brand-500' :
+                        'bg-transparent border-gray-300 dark:border-gray-700'"
+                    class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px]">
+                    <span :class="$store.termForm.selectedType === 'Yes' ? 'block' : 'hidden'"
+                        class="w-2 h-2 bg-white rounded-full"></span>
+                </span>
+                Yes
+            </label>
+        </div>
+    </div>
+</div>
+
+{{-- Content --}}
+<div class="mb-8">
+    <label for="content" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Description</label>
+    {{ html()->textarea('content', $terms->content ?? null)->class(
+            'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
+        )->attributes([
+            'autocomplete' => 'off',
+            'id' => 'content-editor',
+            'placeholder' => 'Enter Description Of The Terms',
+        ]) }}
+    @error('content')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+    @enderror
+</div>
+
+{{-- Signature --}}
+<div class="mb-8">
+    <label for="signature_block" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Signature Block</label>
+    {{ html()->textarea('signature_block', $terms->signature_block ?? null)->class(
+            'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
+        )->attributes([
+            'autocomplete' => 'off',
+            'id' => 'signature_block-editor',
+            'placeholder' => 'Enter Description Of The Terms',
+        ]) }}
+    @error('signature_block')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+    @enderror
+</div>
+
+{{-- SEO Meta Section --}}
+<div class="border border-gray-200 rounded-md p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 mb-6">
+    <div class="flex justify-between items-center mb-2">
+        <span class="font-medium text-sm text-gray-700 dark:text-gray-300">Search Engine Optimize</span>
+        <a href="#" onclick="document.getElementById('seo-fields').classList.toggle('hidden'); return false;"
+            class="text-sm text-blue-600 hover:underline">Edit SEO meta</a>
+    </div>
+
+    <div class="text-sm text-gray-800 dark:text-white">
+        <p class="text-blue-600 font-semibold truncate">
+            {{ old('seo_title', $terms->seo_title ?? 'Sample Term Title') }}</p>
+        <p class="text-green-700 text-xs truncate">
+            {{ url('/term-type') }}/{{ old('slug', $terms->slug ?? 'Sample Term Type') }}
+        </p>
+        <p class="text-gray-700 dark:text-gray-300 mt-1">
+            {{ old('seo_description', $terms->seo_description ?? 'Terms Description') }}
+        </p>
+    </div>
+
+    <div id="seo-fields" class="mt-4 space-y-4 ">
+        <div>
+            {{ html()->label('SEO Title', 'seo_title')->class('block text-sm font-medium text-gray-700 dark:text-gray-300') }}
+            {{ html()->text('seo_title', old('seo_title'))->id('seo_title')->class(
+                    'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
+                ) }}
+            @error('seo_title')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            {{ html()->label('SEO Description', 'seo_description')->class('block text-sm font-medium text-gray-700 dark:text-gray-300') }}
+            {{ html()->textarea('seo_description', old('seo_description'))->id('seo_description')->attributes(['rows' => 3])->class(
+                    'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
+                ) }}
+            @error('seo_description')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
+</div>
+
+
+@push('js')
+    <script>
+        document.addEventListener('alpine:init', () => {
+            // Alpine store for shared state
+            Alpine.store('termForm', {
+                selectedType: '{{ old('type', 'No') }}'
+            });
+
+            // Watch and reset no inputs when switching away
+            Alpine.effect(() => {
+                if (Alpine.store('termForm').selectedType !== 'No') {
+                    const rentalSection = document.querySelector(
+                        '[x-show="$store.termForm.selectedType === \'No\'"]');
+
+                    if (rentalSection) {
+                        rentalSection.querySelectorAll('input, select, textarea').forEach(el => {
+                            if (['checkbox', 'radio'].includes(el.type)) {
+                                el.checked = false;
+                            } else {
+                                el.value = '';
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

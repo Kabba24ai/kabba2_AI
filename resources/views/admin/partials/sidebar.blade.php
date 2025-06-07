@@ -110,6 +110,52 @@
                             </ul>
                         </div>
                     </li>
+
+                    @php
+                    $settingsceActive = Route::is([
+                        'admin.terms-and-condition.terms.*',
+                    ]);
+
+                    @endphp
+                    <!-- Settings -->
+                    <li x-data="{ open: {{ $settingsceActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $settingsceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-m-shopping-cart
+                                class="w-6 h-6 {{ $settingsceActive ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Settings</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.terms-and-condition.terms.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.terms-and-condition.terms.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-c-circle-stack class="h-5 w-5" /> Terms & Condition
+                                    </a>
+                                </li>
+                                
+                            </ul>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </nav>

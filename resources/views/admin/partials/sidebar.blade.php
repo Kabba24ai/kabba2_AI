@@ -170,7 +170,7 @@
                     <li x-data="{ open: {{ $settingsceActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $settingsceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-m-shopping-cart
+                            <x-heroicon-m-cog
                                 class="w-6 h-6 {{ $settingsceActive ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Settings</span>
                             <span class="menu-item-arrow"

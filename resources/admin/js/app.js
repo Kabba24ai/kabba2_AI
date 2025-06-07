@@ -4,6 +4,7 @@ import persist from "@alpinejs/persist";
 import 'parsleyjs';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Sortable from 'sortablejs';
+import IMask from 'imask';
 
 // Make Alpine globally available
 Alpine.plugin(persist);
@@ -35,5 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const phoneInputs = document.querySelectorAll('.masked-phone');
+    phoneInputs.forEach(input => {
+        IMask(input, {
+            mask: '(000) 000-0000'
+        });
+    });
 });
 

@@ -43,6 +43,11 @@
                         'admin.product-management.options.*',
                     ]);
 
+                    $ordersActive = Route::is([
+                        'admin.order-management.orders.*',
+                        'admin.order-management.schedules.*',
+                    ]);
+
                 @endphp
 
                 <ul class="mb-6 flex flex-col gap-4">
@@ -62,8 +67,7 @@
                     <li x-data="{ open: {{ $ecommerceActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $ecommerceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-m-shopping-cart
-                                class="w-6 h-6 {{ $ecommerceActive ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
+                            <x-heroicon-o-building-storefront class="w-6 h-6 " />
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Ecommerce</span>
                             <span class="menu-item-arrow"
                                 :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
@@ -90,21 +94,66 @@
                                     <a href="{{ route('admin.product-management.products.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.product-management.products.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-c-circle-stack class="h-5 w-5" /> Products
+                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Products
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('admin.product-management.options.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.product-management.options.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-s-cube class="h-5 w-5" /> Product Options
+                                        <x-heroicon-o-cube class="h-5 w-5" /> Product Options
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('admin.product-management.categories.create') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.product-management.categories.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-s-inbox-stack class="h-5 w-5" /> Product Categories
+                                        <x-heroicon-o-inbox-stack class="h-5 w-5" /> Product Categories
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- Orders -->
+                    <li x-data="{ open: {{ $ordersActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $ordersActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-clipboard-document-list class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Orders</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.order-management.orders.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.order-management.orders.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-shopping-cart class="h-5 w-5" /> Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.order-management.schedules.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.order-management.schedules.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-calendar class="h-5 w-5" /> Schedules
                                     </a>
                                 </li>
                             </ul>
@@ -157,6 +206,7 @@
                         </div>
                     </li>
                 </ul>
+
             </div>
         </nav>
         <!-- Sidebar Menu -->

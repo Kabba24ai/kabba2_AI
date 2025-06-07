@@ -53,7 +53,7 @@ class StoreController extends Controller
             return match ($request->input('action')) {
                 'save' => redirect()->route('admin.product-management.options.edit', ['unique_id' => $productOption->unique_id]),
                 'save_new' => redirect()->route('admin.product-management.options.create'),
-                default => back(),
+                default => redirect()->route('admin.product-management.options.index'),
             };
         } catch (\Exception $e) {
             DB::rollBack();

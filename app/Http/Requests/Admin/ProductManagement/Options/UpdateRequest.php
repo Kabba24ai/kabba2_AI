@@ -41,6 +41,8 @@ class UpdateRequest extends FormRequest
             'status' => ['required', 'in:Active,Inactive'],
 
             'options' => ['required', 'array', 'min:1'],
+            'options.*.id' => ['nullable', 'integer', 'exists:product_option_items,id'],
+            'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
             'options.*.label' => ['required', 'string', 'max:255'],
             'options.*.daily' => ['nullable', 'numeric', 'min:0'],
             'options.*.weekend' => ['nullable', 'numeric', 'min:0'],

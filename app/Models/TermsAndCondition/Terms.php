@@ -1,0 +1,80 @@
+<?php
+namespace App\Models\TermsAndCondition;
+use App\Helpers\MediaHelper;
+use App\Helpers\ModelHelper;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Cviebrock\EloquentSluggable\Sluggable;
+
+use App\Models\ICAConfiguration\Setting;
+use App\Models\RevenueManagement\CustomerOrderItem;
+use App\Models\Activity\ActivityLogItem;
+
+class Terms extends Model
+{
+    use HasFactory, Sluggable;
+
+    protected $fillable = [
+        'unique_id',
+        'title',
+        'slug',
+        'content',
+        'signature_block',
+        'is_global',
+        'status',
+        'seo_title',
+        'seo_description',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at',
+    ];
+    protected $table = 'terms_and_condition';
+
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'title',
+                'onUpdate' => true,
+            ]
+        ];
+    }
+
+    // Scopes
+    public function scopeOrder($query)
+    {
+        return $query->orderBy('id', 'ASC');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'Active');
+    }
+
+   	public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->unique_id = ModelHelper::generateUniqueID($model, 'PCAT');
+
+            // If seo_title is not set, use title or slug as fallback
+            if (empty($model->seo_title)) {
+                $model->seo_title = $model->title ?? $model->slug;
+            }
+
+            // Set created_by and updated_by
+            if (auth()->check()) {
+                $model->created_by = auth()->id();
+            }
+        });
+
+        // Automatically update updated_by on update
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+    }
+}

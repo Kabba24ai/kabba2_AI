@@ -21,7 +21,19 @@ class UpdateRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        $this->merge(PurifyHelper::purify($this->all(), ['description']));
+        $input = PurifyHelper::purify($this->all());
+
+        // Filter out options with empty or null labels
+        if (isset($input['options']) && is_array($input['options'])) {
+            $input['options'] = collect($input['options'])
+                ->filter(function ($option) {
+                    return isset($option['label']) && trim($option['label']) !== '';
+                })
+                ->values()
+                ->all(); // Re-index the array
+        }
+
+        $this->merge($input);
     }
 
     /**
@@ -30,12 +42,7 @@ class UpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:240',
-                Rule::unique('product_options', 'name')->ignore($this->route('unique_id'), 'unique_id'),
-            ],
+            'name' => ['required', 'string', 'max:240', Rule::unique('product_options', 'name')->ignore($this->route('unique_id'), 'unique_id')],
             'type' => ['required', 'in:Rental,Retail'],
             'description' => ['nullable', 'string', 'max:1000'],
             'status' => ['required', 'in:Active,Inactive'],

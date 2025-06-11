@@ -1,14 +1,23 @@
+@php
+    $selectedIds = old(
+        'options',
+        isset($objProduct) ? $objProduct->options->pluck('id')->toArray() : [],
+    );
+@endphp
+
 <!-- Options Section -->
 <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-6 space-y-4">
     <h3 class="text-sm font-semibold text-gray-800 dark:text-white border-b pb-2 mb-4">Options</h3>
 
-    <!-- Search Input -->
-    <div class="mb-4">
-        <input type="text"
-               placeholder="Search Options..."
-               class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white"
-        />
-    </div>
+    {{-- options multi‐select --}}
+    <select id="product-options" name="options[]" multiple data-placeholder="Select options"
+        class="choices-select w-full rounded-md border">
+        @foreach ($options as $opt)
+            <option value="{{ $opt->id }}" data-type="{{ $opt->type }}" @selected(in_array($opt->id, $selectedIds))>
+                {{ $opt->name }} &mdash; <small>{{ ucfirst($opt->type) }}</small>
+            </option>
+        @endforeach
+    </select>
 
     <!-- Info Placeholder -->
     <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md p-6 text-center">
@@ -210,3 +219,69 @@
         });
     </script>
 @endpush --}}
+
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectEl = document.getElementById('product-options');
+            const radios = document.querySelectorAll('input[name="product_type"]');
+            if (!selectEl) return;
+
+            // 1) Snapshot all original <option>s from the DOM
+            const allOptions = Array.from(selectEl.querySelectorAll('option')).map(opt => ({
+                value: opt.value,
+                label: opt.textContent.trim(),
+                type: opt.dataset.type, // "rental" or "retail"
+                selected: opt.selected
+            }));
+
+            // 2) Try to grab an existing Choices instance…
+            let choices = null;
+            if (window.Choices && typeof window.Choices.getInstance === 'function') {
+                choices = window.Choices.getInstance(selectEl);
+            }
+            // …or create one if missing
+            if (!choices) {
+                if (!window.Choices) {
+                    console.error('Choices.js not found');
+                    return;
+                }
+                choices = new window.Choices(selectEl, {
+                    removeItemButton: true,
+                    shouldSort: false
+                });
+            }
+
+            // 3) Filtering function
+            function filterChoices(type) {
+                // completely clear out both choices & selected items
+                choices.clearStore();
+
+                // pick only matching items, preserving any initial `selected` flags
+                const subset = allOptions
+                    .filter(o => o.type === type)
+                    .map(o => ({
+                        value: o.value,
+                        label: o.label,
+                        selected: o.selected
+                    }));
+
+                // re-feed them in one go
+                choices.setChoices(subset, 'value', 'label', true);
+            }
+
+            // 4) Wire up your radios
+            radios.forEach(radio => {
+                radio.addEventListener('change', e => {
+                    filterChoices(e.target.value);
+                });
+            });
+
+            // 5) Initial pass on page load
+            const init = Array.from(radios).find(r => r.checked);
+            if (init) {
+                filterChoices(init.value);
+            }
+        });
+    </script>
+@endpush

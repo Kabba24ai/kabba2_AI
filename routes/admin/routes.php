@@ -30,7 +30,6 @@ Route::name('admin.')->group(function ($router) {
         // Product Management
         require base_path('routes/admin/product_management/routes.php');
 
-
         // Terms and Condition
         require base_path('routes/admin/terms_and_condition/routes.php');
 

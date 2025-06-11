@@ -141,7 +141,7 @@
                                 title="View">
                                 <x-heroicon-o-eye class="w-4 h-4" />
                             </a>
-                            <a href="#" class="text-indigo-600 hover:text-indigo-800" title="Edit">
+                            <a href="#" class="text-brand-600 hover:text-brand-800" title="Edit">
                                 <x-heroicon-o-pencil-square class="w-4 h-4" />
                             </a>
                             <form method="POST" action="#" onsubmit="return confirm('Are you sure?')" class="inline">

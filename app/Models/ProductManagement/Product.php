@@ -2,123 +2,83 @@
 
 namespace App\Models\ProductManagement;
 
+use App\Helpers\MediaHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
 
-use Spatie\EloquentSortable\Sortable;
-use Spatie\EloquentSortable\SortableTrait;
+use App\Helpers\ModelHelper;
+use App\Models\Global\Media;
+use App\Models\TermsAndCondition\Terms;
 
-
-use App\Models\ICAConfiguration\Setting;
-use App\Models\RevenueManagement\CustomerOrderItem;
-use App\Models\Activity\ActivityLogItem;
-
-class Product extends Model implements Sortable
+class Product extends Model
 {
-    use HasFactory, Sluggable, SortableTrait;
+    use HasFactory, Sluggable;
 
     protected $fillable = [
-        'legacy_id',
-        'unique_id',
-        'category_id',
-        'sub_category_id',
-        'fee_type_id',
-        'pict_id',
-        'legacy_unique_id',
-        'code',
-        'title',
-        'slug',
-        'repayment_prefix',
-        'currency', // 'USD', 'PGK'
-        'price',
-        'priority_processing_status', // 'On', 'Off'
-        'priority_processing_price',
-        'priority_processing_content',
-        'short_content',
-        'content',
-        'meta_title',
-        'meta_keywords',
-        'meta_description',
-        'status', // 'Active','Inactive'
-        'sort_order',
-        'created_at',
-        'updated_at',
-    ];
-    protected $table = 'products';
+        'unique_id', // Unique identifier for the product
+        'product_name', // Name/title of the product
+        'slug', // URL-friendly version of the product name
+        'product_type', // Type/category of the product (e.g., retail/rental)
+        'seo_title', // SEO-optimized title
+        'seo_description', // SEO-optimized meta description
+        'short_description', // Short summary/description for listings
+        'description', // Full product description
+        'media_id', // ID referencing media (image/gallery)
+        'is_general_term_type', // Boolean: is this a general term type
+        'is_custom_term_type', // Boolean: is this a custom term type
 
-    public $columnTitles = [
-        'code' => 'Code',
-        'title' => 'Title',
-        'slug' => 'Slug',
-        'repayment_prefix' => 'Repayment Prefix',
-        'currency' => 'Currency',
-        'price' => 'Price',
-        'priority_processing_status' => 'Priority Processing Status',
-        'priority_processing_price' => 'Priority Processing Price',
-        'priority_processing_content' => 'Priority Processing Content',
-        'short_content' => 'Short Content',
-        'content' => 'Content',
-        'meta_title' => 'Meta Title',
-        'meta_keywords' => 'Meta Keywords',
-        'meta_description' => 'Meta Description',
-        'status' => 'Status',
+        'sku', // Stock Keeping Unit
+        'barcode', // Barcode number
+        'retail_price', // Base retail price
+        'retail_sale_price', // Discounted sale price (retail)
+        'retail_product_cost', // Cost to acquire/make the product
+
+        'rental_daily', // Daily rental rate
+        'rental_weekend', // Weekend rental rate
+        'rental_weekly', // Weekly rental rate
+        'rental_monthly', // Monthly rental rate
+
+        'rental_damage_waiver_daily', // Daily damage waiver fee
+        'rental_damage_waiver_weekend', // Weekend damage waiver fee
+        'rental_damage_waiver_weekly', // Weekly damage waiver fee
+        'rental_damage_waiver_monthly', // Monthly damage waiver fee
+
+        'rental_prepaid_cleaning', // Prepaid cleaning fee
+        'rental_prepaid_fuel', // Prepaid fuel fee
+        'rental_fuel_gallons', // Number of fuel gallons provided or required
+        'rental_fuel_type', // Type of fuel (e.g., gas, diesel)
+        'rental_def_gallons', // Diesel Exhaust Fluid (DEF) gallons
+
+        'sale_price_daily', // Sale price if purchased on a daily basis
+        'sale_price_weekend', // Sale price for the weekend
+        'sale_price_weekly', // Sale price for a week
+        'sale_price_monthly', // Sale price for a month
+
+        'standard_delivery_fee',
+        'extended_delivery_fee',
+
+        'in_store_pickup', // Boolean: is in-store pickup available
+        'delivery_and_pickup', // Boolean: is delivery and pickup available
+
+        'hour_tracking', // Boolean: is hourly usage tracking enabled
+        'hour_rate', // Rate per hour if hour tracking is enabled
+
+        'status', // Product status (e.g., Published, Draft)
+        'created_by', // ID of the user who created the record
+        'updated_by', // ID of the user who last updated the record
     ];
+
+    protected $appends = ['image_url'];
 
     public function sluggable(): array
     {
         return [
             'slug' => [
-                'source' => 'title',
+                'source' => 'product_name',
                 'onUpdate' => true,
-            ]
+            ],
         ];
-    }
-
-    // Foreign Ref
-    public function order_items()
-    {
-        return $this->hasMany(CustomerOrderItem::class, 'product_id', 'id');
-    }
-
-
-    public function success_order_items()
-    {
-        return $this->hasMany(CustomerOrderItem::class, 'product_id', 'id')->whereHas('customer_order', function ($q) {
-            $q->where('payment_status', 'Success');
-        });;
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(ProductCategory::class, 'category_id', 'id');
-    }
-
-    public function sub_category()
-    {
-        return $this->belongsTo(ProductCategory::class, 'sub_category_id', 'id');
-    }
-
-    public function fee_type()
-    {
-        return $this->belongsTo(FeeType::class, 'fee_type_id', 'id');
-    }
-
-    public function pict()
-    {
-        return $this->belongsTo(ProductInformationCollectionTemplate::class, 'pict_id', 'id');
-    }
-
-
-
-    public function media()
-    {
-        return $this->belongsTo(Media::class, 'media_id', 'id');
-    }
-
-    public function activity_log_items_count()
-    {
-        return ActivityLogItem::where('subject', 'Product')->where('subject_id', $this->id)->count();
     }
 
     // Scopes
@@ -127,77 +87,89 @@ class Product extends Model implements Sortable
         return $query->orderBy('sort_order', 'ASC');
     }
 
-    public function scopeActive($query)
+    public function scopePublished($query)
     {
-        return $query->where('status', 'Active');
+        return $query->where('status', 'Published');
     }
 
     public static function boot()
     {
         parent::boot();
         self::creating(function ($model) {
-            $model->unique_id = \ModelUtility::generateUniqueID($model, 'PRO');
+            $model->unique_id = ModelHelper::generateUniqueID($model, 'PRO');
+
+            // If seo_title is not set, use title or slug as fallback
+            if (empty($model->seo_title)) {
+                $model->seo_title = $model->title ?? $model->slug;
+            }
+
+            // Set created_by and updated_by
+            if (auth()->check()) {
+                $model->created_by = auth()->id();
+            }
+        });
+
+        // Automatically update updated_by on update
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+
+        static::deleting(function ($model) {
+            // Delete child media with proper event triggering
+            $model->mediaChildren->each(function ($child) {
+                $child->delete(); // Triggers deleting event on ProductMediaChild
+            });
+
+            // Detach pivot relationships
+            $model->categories()->detach();
+            $model->terms()->detach();
+
+            // Delete associated media if needed
+            if ($model->media) {
+                MediaHelper::removeFile($model->media);
+            }
         });
     }
 
-    /*
-    * Function Name     :   getActivityTitle
-    * Use               :   Use for Activity Log
-    *
-    */
-    public function getActivityTitle($add_link = true)
+    public function terms()
     {
-        if ($add_link) {
-            return '<strong><a href="' . route('admin.product_management.products.show', ['unique_id' => $this->unique_id]) . '" target="_blank">' . $this->title . ' [' . $this->unique_id . ']</a></strong>';
-        } else {
-            return '<strong>' . $this->title . ' [' . $this->unique_id . ']</strong>';
-        }
+        return $this->belongsToMany(
+            Terms::class,
+            'product_terms_children', // pivot table name
+            'product_id', // foreign key on pivot for this model
+            'terms_and_condition_id', // foreign key on pivot for related model
+        );
     }
 
-
-    public function getProductPricePGK($format = true)
+    public function getImageUrlAttribute()
     {
-        $setting_item = Setting::where('setting_type', 'Product Settings')->where('setting_name', 'usd_to_pgk')->first();
-        $usd_to_pgk = 0;
-        if (!is_null($setting_item) && $setting_item->setting_value > 0) {
-            $usd_to_pgk = $setting_item->setting_value;
-        }
-
-        if ($this->currency == 'USD') {
-            if ($format) {
-                return number_format($this->price * $usd_to_pgk, 2);
-            } else {
-                return $this->price * $usd_to_pgk;
-            }
-        } else {
-            if ($format) {
-                return number_format($this->price, 2);
-            } else {
-                return $this->price;
-            }
-        }
+        return $this->media ? $this->media->getUrl() : asset('storage/admin/images/error/No_Image_Available.jpg');
     }
 
-    public function getProductPriorityProcessingPricePGK($format = true)
+    public function media()
     {
-        $setting_item = Setting::where('setting_type', 'Product Settings')->where('setting_name', 'usd_to_pgk')->first();
-        $usd_to_pgk = 0;
-        if (!is_null($setting_item) && $setting_item->setting_value > 0) {
-            $usd_to_pgk = $setting_item->setting_value;
-        }
+        return $this->belongsTo(Media::class, 'media_id', 'id');
+    }
 
-        if ($this->currency == 'USD') {
-            if ($format) {
-                return number_format($this->priority_processing_price * $usd_to_pgk, 2);
-            } else {
-                return $this->priority_processing_price * $usd_to_pgk;
-            }
-        } else {
-            if ($format) {
-                return number_format($this->priority_processing_price, 2);
-            } else {
-                return $this->priority_processing_price;
-            }
-        }
+    public function mediaChildren()
+    {
+        return $this->hasMany(ProductMediaChild::class, 'product_id');
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(ProductCategory::class, ProductCategoryChild::class)->withTimestamps();
+    }
+
+    public function options()
+    {
+        return $this->belongsToMany(ProductOption::class, 'product_option_children', 'product_id', 'product_option_id')->withTimestamps();
+    }
+
+    public function relatedProducts()
+    {
+        return $this->belongsToMany(Product::class, 'product_related_product_children', 'product_id', 'related_product_id')->withTimestamps();
     }
 }

@@ -1,15 +1,10 @@
 <?php
 namespace App\Models\TermsAndCondition;
-use App\Helpers\MediaHelper;
+
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Cviebrock\EloquentSluggable\Sluggable;
-
-use App\Models\ICAConfiguration\Setting;
-use App\Models\RevenueManagement\CustomerOrderItem;
-use App\Models\Activity\ActivityLogItem;
 
 class Terms extends Model
 {
@@ -48,9 +43,16 @@ class Terms extends Model
         return $query->orderBy('id', 'ASC');
     }
 
-    public function scopeActive($query)
+    public function scopeOrderByTitle($query)
     {
-        return $query->where('status', 'Active');
+        return $query->orderBy('title', 'ASC');
+    }
+
+
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'Published');
     }
 
    	public static function boot()

@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin\ProductManagement\Products;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 
 // Models
+use App\Models\ProductManagement\Product;
+use App\Models\ProductManagement\ProductCategory;
 
 class IndexController extends Controller
 {
@@ -19,21 +19,31 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        // Create an empty collection
-        $items = Collection::make([]);
+        $query = Product::query()->with('categories');
 
-        // Set pagination parameters
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $perPage = 10;
-        $offset = ($currentPage - 1) * $perPage;
+        if ($request->filled('search')) {
+            $query->where('product_name', 'like', '%' . $request->search . '%');
+        }
 
-        // Slice the empty collection (though it's empty)
-        $currentItems = $items->slice($offset, $perPage)->values();
+        if ($request->filled('category')) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->where('product_categories.id', $request->category); // Fully qualified!
+            });
+        }
 
-        // Create paginator
-        $products = new LengthAwarePaginator($currentItems, $items->count(), $perPage, $currentPage, ['path' => request()->url(), 'query' => request()->query()]);
+        if ($request->filled('type')) {
+            $query->where('product_type', $request->type);
+        }
 
-        $categories = Collection::make([]);
+        $products = $query->latest()->paginate(10)->withQueryString(); // keeps filters in pagination links
+
+        // Return only the table partial if it's an AJAX request
+        if ($request->ajax()) {
+            return view('admin.product_management.products.partials._table', compact('products'))->render();
+        }
+
+        $categories = ProductCategory::orderBy('title')->get();
+
         return view('admin.product_management.products.index', [
             'products' => $products,
             'categories' => $categories,

@@ -7,9 +7,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Daily</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('rental_prices[daily]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_daily')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -21,9 +22,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weekend Spcl.</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('rental_prices[weekend]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_weekend')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -35,9 +37,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weekly</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('rental_prices[weekly]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_weekly')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -49,9 +52,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('rental_prices[monthly]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_monthly')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -69,9 +73,10 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
                     Waiver</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('damage_waivers[monthly]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_damage_waiver_daily')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -83,9 +88,10 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
                     Waiver</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('damage_waivers[monthly]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_damage_waiver_weekend')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -97,9 +103,10 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
                     Waiver</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('damage_waivers[monthly]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_damage_waiver_weekly')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -111,9 +118,10 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
                     Waiver</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('damage_waivers[monthly]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_damage_waiver_monthly')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -131,9 +139,10 @@
                 <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prepaid
                     Cleaning</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('prepaid_cleaning')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_prepaid_cleaning')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -145,9 +154,10 @@
                 <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prepaid
                     Fuel</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('prepaid_fuel')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_prepaid_fuel')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -156,34 +166,44 @@
 
             <!-- Gallons + Fuel Type -->
             <div>
-                <label
-                    class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gallons</label>
-                {!! html()->text('fuel_gallons')->attributes([
+                <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gallons
+                    - Fuel</label>
+                {!! html()->text('rental_fuel_gallons')->attributes([
                         'placeholder' => '0',
+                        'data-digit-input' => 'true',
                         'class' =>
                             'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                     ]) !!}
+                @php
+                    $selectedFuelType = old('rental_fuel_type', $objProduct->rental_fuel_type ?? 'Diesel');
+                @endphp
+
                 <div class="flex items-center gap-4 mt-2">
                     <label class="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                        {!! html()->radio('fuel_type', false, 'diesel')->id('fuel_diesel')->class('mr-1') !!} Diesel
+                        {!! html()->radio('rental_fuel_type', $selectedFuelType === 'Diesel', 'Diesel')->id('fuel_diesel')->class('mr-1') !!} Diesel
                     </label>
+
                     <label class="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                        {!! html()->radio('fuel_type', false, 'gas')->id('fuel_gas')->class('mr-1') !!} Gas
+                        {!! html()->radio('rental_fuel_type', $selectedFuelType === 'Gas', 'Gas')->id('fuel_gas')->class('mr-1') !!} Gas
                     </label>
                 </div>
+
+            </div>
+
+            <div>
+                <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gallons
+                    - Def</label>
+                {!! html()->text('rental_def_gallons')->attributes([
+                        'placeholder' => '0',
+                        'data-digit-input' => 'true',
+                        'class' =>
+                            'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                    ]) !!}
             </div>
         </div>
 
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
-
-        <p class="text-xs">
-            <a href="#" class="text-blue-500 hover:underline font-medium">Update Settings:</a>
-            <span class="italic text-gray-700 dark:text-gray-300">
-                Damage Waiver, Cleaning, Fuel Messages, Preselection Options &amp; Fuel
-            </span>
-        </p>
-
     </div>
 
     <!-- Sale Prices -->
@@ -195,9 +215,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Daily</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('sale_prices[daily]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('sale_price_daily')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -208,9 +229,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weekend Spcl.</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('sale_prices[weekend]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('sale_price_weekend')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -221,9 +243,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weekly</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('sale_prices[weekly]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('sale_price_weekly')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -234,9 +257,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly</label>
                 <div class="flex items-center gap-1">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('sale_prices[monthly]')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('sale_price_monthly')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -254,9 +278,10 @@
                 <label class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 text-left">Delivery
                     Fee</label>
                 <div class="flex items-center gap-1 w-full">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('std_delivery_fee')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('standard_delivery_fee')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -271,9 +296,10 @@
             <div class="flex flex-col items-center">
                 <label class="block w-full text-sm font-medium text-transparent mb-1 select-none">-</label>
                 <div class="flex items-center gap-1 w-full">
-                    <span class="text-gray-500 text-sm">$</span>
-                    {!! html()->text('ext_delivery_fee')->attributes([
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('extended_delivery_fee')->attributes([
                             'placeholder' => '0',
+                            'data-digit-input' => 'true',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
@@ -283,15 +309,6 @@
                     Mi 30
                 </span>
             </div>
-
-            <!-- Update Delivery Range Link -->
-            <div class="flex items-baseline-last justify-start h-full">
-                <a href="#" class="text-xs py-2 text-blue-600 hover:underline whitespace-nowrap">Update Delivery
-                    Range</a>
-            </div>
-
-            <!-- Spacer -->
-            <div></div>
         </div>
 
         <!-- Spacer -->
@@ -300,37 +317,51 @@
         <!-- Pickup Options -->
         <div class="flex flex-wrap items-center gap-6">
             <label class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                {!! html()->checkbox('pickup_instore', true)->class('mr-2') !!}
+                {!! html()->checkbox('in_store_pickup', old('in_store_pickup', $objProduct->in_store_pickup ?? false) === 'Yes', 'Yes')->class('mr-2') !!}
                 In Store Pick Up
             </label>
 
             <label class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                {!! html()->checkbox('delivery_option', true)->class('mr-2') !!}
+                {!! html()->checkbox(
+                        'delivery_and_pickup',
+                        old('delivery_and_pickup', $objProduct->delivery_and_pickup ?? false) === 'Yes',
+                        'Yes',
+                    )->class('mr-2') !!}
                 Delivery and Pickup
             </label>
         </div>
 
+
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
-        <!-- Hour Tracking + Overage Rate -->
-        <div class="flex flex-wrap items-center gap-4 mt-6">
-            <label class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                {!! html()->checkbox('hour_tracking', true)->class('mr-2') !!}
+        <!-- Wrap the section in Alpine.js -->
+        <div x-data="{ hourTracking: {{ old('hour_tracking', $objProduct->hour_tracking ?? false) === 'Yes' ? 'true' : 'false' }} }" class="flex flex-wrap items-center gap-4 mt-6">
+
+            <!-- Checkbox + Label -->
+            <label class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 m-0">
+                <input type="checkbox" name="hour_tracking" value="Yes" x-model="hourTracking"
+                    :checked="hourTracking"
+                    class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700" />
                 Hour Tracking
             </label>
 
-            <div class="flex items-center gap-1">
-                <span class="text-gray-500 text-sm">$</span>
-                {!! html()->text('overage_rate')->attributes([
-                        'placeholder' => '0',
-                        'class' =>
-                            'w-24 rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                    ]) !!}
+            <!-- Overage Rate Input -->
+            <div class="flex items-center text-sm text-gray-700 dark:text-gray-300 gap-1">
+                <span class="text-gray-500">$</span>
+                <input type="text" name="hour_rate" placeholder="0" x-bind:disabled="!hourTracking"
+                    x-bind:value="hourTracking ? '{{ old('hour_rate', $objProduct->hour_rate ?? '') }}' : ''"
+                    data-digit-input="true"
+                    class="w-24 rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white" />
+                <span>Overage Rate / Hr.</span>
             </div>
 
-            <span class="text-sm text-gray-600 dark:text-gray-300">Overage Rate / Hr.</span>
+            <!-- Update Link -->
+            <a href="#" class="text-sm text-blue-500 hover:underline font-medium ml-auto">
+                Update Settings
+            </a>
         </div>
+
 
     </div>
 </div>

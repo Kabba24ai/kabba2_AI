@@ -66,7 +66,7 @@ class ProductCategory extends Model
     }
     public function scopeOrderByAdmin($query)
     {
-        return $query->orderBy('id', 'Desc');
+        return $query->orderBy('title', 'asc');
     }
 
     public function media(): BelongsTo

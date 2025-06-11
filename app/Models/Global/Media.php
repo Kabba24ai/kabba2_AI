@@ -35,12 +35,14 @@ class Media extends Model
 
     protected $table = 'media';
 
+    protected $appends = ['url'];
+
+
     // Scopes
     public function scopeOrder($query)
     {
         return $query->orderBy('id', 'DESC');
     }
-
 
     public static function boot()
     {
@@ -49,6 +51,11 @@ class Media extends Model
         self::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'MED');
         });
+    }
+
+    public function getUrlAttribute(): ?string
+    {
+        return $this->getUrl() ?? null;
     }
 
     public function getUrl()

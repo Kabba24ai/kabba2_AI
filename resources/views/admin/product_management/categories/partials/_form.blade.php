@@ -29,7 +29,6 @@
                     'border-red-500' => $errors->has('parent_id')
                 ])
                 ->attributes([
-                    'data-control' => 'select2',
                     'autocomplete' => 'off'
                 ])
                 ->placeholder('Select Category')

@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Create Product')
+@section('title', 'Edit Product')
 
 @push('css')
 @endpush
@@ -9,20 +9,18 @@
 
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Add New Product</h3>
+        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Edit Product</h3>
     </div>
 
     @include('flash::message')
     @include('admin.partials.formErrors')
-
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div class="lg:col-span-4">
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
                 <div class="px-4 py-4">
 
-
                     <!-- Product Form -->
-                    {{ html()->form()->attributes([
+                    {{ html()->modelForm($objProduct, 'PUT')->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',

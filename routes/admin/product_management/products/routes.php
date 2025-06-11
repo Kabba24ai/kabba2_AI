@@ -32,5 +32,5 @@ Route::prefix('products')
 
     // Fetch Options
     Route::post('/fetch/options', FetchOptionsController::class)->name('fetch-options');
-    Route::get('/fetch/{search}/{currentProductId?}', ProductSearchController::class)->name('search');
+    Route::get('/fetch/{search}/{currentProductUniqueId?}', ProductSearchController::class)->name('search');
 });

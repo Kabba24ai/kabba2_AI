@@ -15,11 +15,11 @@ class ProductSearchController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function __invoke($search, $currentProductId = null)
+    public function __invoke($search, $currentProductUniqueId = null)
     {
         $search = trim($search);
         $products = Product::with('media')
-            ->where('id', '!=', $currentProductId)
+            ->where('unique_id', '!=', $currentProductUniqueId)
             ->when($search, fn($qb) => $qb->where('product_name', 'like', "%{$search}%"))
             ->limit(5)
             ->get();

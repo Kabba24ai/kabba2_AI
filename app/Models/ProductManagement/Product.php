@@ -9,7 +9,7 @@ use Cviebrock\EloquentSluggable\Sluggable;
 
 use App\Helpers\ModelHelper;
 use App\Models\Global\Media;
-use App\Models\TermsAndCondition\Terms;
+use App\Models\TermsAndConditions\Terms;
 
 class Product extends Model
 {

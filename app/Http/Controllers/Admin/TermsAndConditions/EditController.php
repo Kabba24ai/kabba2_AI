@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Admin\TermsAndCondition\Terms;
+namespace App\Http\Controllers\Admin\TermsAndConditions;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 // Models
-use App\Models\TermsAndCondition\Terms;
+use App\Models\TermsAndConditions\Terms;
 
 class EditController extends Controller
 {
@@ -20,8 +20,8 @@ class EditController extends Controller
     public function __invoke($unique_id, Request $request)
     {
 		$terms = Terms::where('unique_id', $unique_id)->first();
-		
-		return view('admin.terms_and_condition.terms.edit', [
+
+		return view('admin.terms_and_conditions.terms.edit', [
             'terms' => $terms,
         ]);
     }

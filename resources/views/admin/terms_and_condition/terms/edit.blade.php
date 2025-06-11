@@ -17,7 +17,7 @@
     @include('flash::message')
 
     <div class="grid grid-cols-1 lg:grid-cols-1 gap-4">
-        
+
 
         {{-- Right: Form --}}
         <div class="lg:col-span-2">
@@ -30,8 +30,8 @@
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
                         ])->acceptsFiles()->open() }}
-                        
-                    @include('admin.terms_and_condition.terms.partials._form')
+
+                    @include('admin.terms_and_conditions.terms.partials._form')
 
                     {{-- Button row --}}
                     <div class="flex flex-wrap justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-800">

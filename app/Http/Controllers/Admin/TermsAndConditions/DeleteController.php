@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Admin\TermsAndCondition\Terms;
+namespace App\Http\Controllers\Admin\TermsAndConditions;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 // Models
-use App\Models\TermsAndCondition\Terms;
+use App\Models\TermsAndConditions\Terms;
 
 class DeleteController extends Controller
 {

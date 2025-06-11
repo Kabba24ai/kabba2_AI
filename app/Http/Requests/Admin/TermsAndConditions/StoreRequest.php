@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\TermsAndCondition;
+namespace App\Http\Requests\Admin\TermsAndConditions;
 
 use App\Helpers\PurifyHelper;
 use Illuminate\Foundation\Http\FormRequest;

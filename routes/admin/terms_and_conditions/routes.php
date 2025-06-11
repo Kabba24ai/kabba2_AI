@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 
 // Controllers
-use App\Http\Controllers\Admin\TermsAndCondition\Terms\IndexController;
-use App\Http\Controllers\Admin\TermsAndCondition\Terms\CreateController;
-use App\Http\Controllers\Admin\TermsAndCondition\Terms\StoreController;
-use App\Http\Controllers\Admin\TermsAndCondition\Terms\EditController;
-use App\Http\Controllers\Admin\TermsAndCondition\Terms\UpdateController;
-use App\Http\Controllers\Admin\TermsAndCondition\Terms\DeleteController;
+use App\Http\Controllers\Admin\TermsAndConditions\IndexController;
+use App\Http\Controllers\Admin\TermsAndConditions\CreateController;
+use App\Http\Controllers\Admin\TermsAndConditions\StoreController;
+use App\Http\Controllers\Admin\TermsAndConditions\EditController;
+use App\Http\Controllers\Admin\TermsAndConditions\UpdateController;
+use App\Http\Controllers\Admin\TermsAndConditions\DeleteController;
 
 Route::prefix('terms')
 ->name('terms.')

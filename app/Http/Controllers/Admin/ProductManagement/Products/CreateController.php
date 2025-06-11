@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 // Models
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\ProductManagement\ProductOption;
-use App\Models\TermsAndCondition\Terms;
+use App\Models\TermsAndConditions\Terms;
 
 class CreateController extends Controller
 {

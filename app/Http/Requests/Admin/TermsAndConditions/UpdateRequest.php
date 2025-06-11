@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\TermsAndCondition;
+namespace App\Http\Requests\Admin\TermsAndConditions;
 
 use App\Helpers\PurifyHelper;
 use Illuminate\Foundation\Http\FormRequest;
@@ -31,7 +31,7 @@ class UpdateRequest extends FormRequest
     public function rules(): array
     {
         $uniqueId = $this->route('unique_id'); // assuming your route uses {unique_id}
-       
+
         $requestArr = [
             'title' => [
             'required',

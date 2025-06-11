@@ -18,7 +18,7 @@ return new class extends Migration
 
             // Foreign key constraint
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-            $table->foreign('terms_and_condition_id')->references('id')->on('terms_and_condition')->onDelete('cascade');
+            $table->foreign('terms_and_condition_id')->references('id')->on('terms_and_conditions')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Admin\TermsAndCondition\Terms;
+namespace App\Http\Controllers\Admin\TermsAndConditions;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use App\Models\TermsAndCondition\Terms;
 
 // Models
+use App\Models\TermsAndConditions\Terms;
 
 class IndexController extends Controller
 {
@@ -35,7 +35,7 @@ class IndexController extends Controller
         $terms = new LengthAwarePaginator($currentItems, $items->count(), $perPage, $currentPage, ['path' => request()->url(), 'query' => request()->query()]);
 
         $categories = Collection::make([]);
-        return view('admin.terms_and_condition.terms.index', [
+        return view('admin.terms_and_conditions.terms.index', [
             'terms' => $terms,
         ]);
     }

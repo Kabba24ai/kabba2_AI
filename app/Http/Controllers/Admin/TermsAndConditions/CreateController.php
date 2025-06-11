@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Admin\TermsAndCondition\Terms;
+namespace App\Http\Controllers\Admin\TermsAndConditions;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 // Models
-use App\Models\TermsAndCondition\Terms;
+use App\Models\TermsAndConditions\Terms;
 
 class CreateController extends Controller
 {
@@ -19,8 +19,8 @@ class CreateController extends Controller
     public function __invoke(Request $request)
     {
         $categories = Terms::order()->get();
-        
 
-        return view('admin.terms_and_condition.terms.create');
+
+        return view('admin.terms_and_conditions.terms.create');
     }
 }

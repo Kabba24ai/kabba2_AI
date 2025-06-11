@@ -2,7 +2,7 @@
 
 namespace App\Models\ProductManagement;
 
-use App\Models\TermsAndCondition\Terms;
+use App\Models\TermsAndConditions\Terms;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductTermsChild extends Model

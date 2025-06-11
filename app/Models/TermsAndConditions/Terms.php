@@ -1,5 +1,5 @@
 <?php
-namespace App\Models\TermsAndCondition;
+namespace App\Models\TermsAndConditions;
 
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +25,7 @@ class Terms extends Model
         'created_at',
         'updated_at',
     ];
-    protected $table = 'terms_and_condition';
+    protected $table = 'terms_and_conditions';
 
     public function sluggable(): array
     {

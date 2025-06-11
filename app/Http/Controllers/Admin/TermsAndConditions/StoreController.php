@@ -1,19 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Admin\TermsAndCondition\Terms;
+namespace App\Http\Controllers\Admin\TermsAndConditions;
 
 use App\Http\Controllers\Controller;
 
 // Request
-use App\Http\Requests\Admin\TermsAndCondition\UpdateRequest;
-
-// Helpers
-use App\Helpers\MediaHelper;
+use App\Http\Requests\Admin\TermsAndConditions\StoreRequest;
 
 // Models
-use App\Models\TermsAndCondition\Terms;
+use App\Models\TermsAndConditions\Terms;
 
-class UpdateController extends Controller
+class StoreController extends Controller
 {
     /**
      * Handle the incoming request.
@@ -21,18 +18,18 @@ class UpdateController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-
-    public function __invoke($unique_id, UpdateRequest $request)
+    public function __invoke(StoreRequest $request)
     {
-
+		// Use validated data
         $validatedData = $request->validated();
 
-        $objTerms = Terms::where('unique_id', $unique_id)->firstOrFail();
-        $objTerms->fill($validatedData);
+        // Normalize is_global to 'Yes' or 'No'
+        //$validatedData['is_global'] = isset($validatedData['is_global']) ? 'Yes' : 'No';
 
-        $objTerms->save();
+        $objTerms = Terms::create($validatedData);
 
-        flash('Terms updated successfully.')->success();
+
+        flash('Terms created successfully.')->success();
 
         // Determine the redirection based on the button clicked
         $action = $request->input('action');
@@ -42,6 +39,5 @@ class UpdateController extends Controller
             'save_new' => redirect()->route('admin.terms-and-condition.terms.create'),
             default => back(), // fallback
         };
-
     }
 }

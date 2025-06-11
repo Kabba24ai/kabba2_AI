@@ -44,6 +44,8 @@ class IndexController extends Controller
 
         $categories = ProductCategory::orderBy('title')->get();
 
+        flash('here is a flash message')->success();
+
         return view('admin.product_management.products.index', [
             'products' => $products,
             'categories' => $categories,

@@ -79,235 +79,6 @@
     @enderror
 </div>
 
-{{-- Options Table --}}
-{{-- <div x-data="optionsList()" x-init="init()" x-cloak>
-    <!-- Options Table -->
-    <div class="border border-gray-200 dark:border-gray-800 rounded-md overflow-x-auto">
-        <div class="p-4">
-            <h4 class="font-medium text-gray-800 dark:text-white mb-1">Options</h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Add and configure individual options for this list
-            </p>
-
-            <table class="w-full text-sm text-left text-gray-700 dark:text-gray-300">
-                <thead class="bg-gray-100 dark:bg-gray-800 text-xs uppercase">
-                    <tr>
-                        <th class="whitespace-normal px-3 py-2">#</th>
-                        <th class="whitespace-normal px-3 py-2">Drag</th>
-                        <th class="whitespace-normal px-3 py-2">Label</th>
-
-                        <!-- Pricing columns -->
-                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Rental'">Daily</th>
-                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Rental'">W/E Spcl.</th>
-                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Rental'">Weekly</th>
-                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Rental'">Monthly</th>
-
-                        <!-- Retail: show 1 column + 3 blanks for alignment -->
-                        <th class="px-3 py-2" x-show="$store.form.selectedType === 'Retail'" class="w-10"
-                            colspan="4">Retail Price</th>
-
-                        <th class="whitespace-normal px-3 py-2">Charged Per Order</th>
-                        <th class="whitespace-normal px-3 py-2">Value</th>
-                        <th class="whitespace-normal px-3 py-2">Comment</th>
-                        <th class="whitespace-normal px-3 py-2">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="sortable-table" x-ref="sortableBody">
-                    <template x-for="(option, index) in options" :key="option.key">
-                        <tr class="bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
-                            <td class="px-3 py-2" x-text="index + 1"></td>
-                            <td class="px-3 py-2 text-center cursor-move">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="w-4 h-4 text-gray-400 group-hover:text-gray-600" fill="currentColor"
-                                    viewBox="0 0 20 20">
-                                    <circle cx="5" cy="5" r="1.5" />
-                                    <circle cx="10" cy="5" r="1.5" />
-                                    <circle cx="5" cy="10" r="1.5" />
-                                    <circle cx="10" cy="10" r="1.5" />
-                                    <circle cx="5" cy="15" r="1.5" />
-                                    <circle cx="10" cy="15" r="1.5" />
-                                </svg>
-                            </td>
-                            <td class="px-3 py-2 w-60">
-                                <input type="text" :name="`options[${index}][label]`" x-model="option.label"
-                                    class="w-full rounded-md border px-2 py-1 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                    placeholder="Option Name" />
-                                <template x-if="getError(`options.${index}.label`)">
-                                    <p class="text-xs text-red-600 mt-1" x-text="getError(`options.${index}.label`)">
-                                    </p>
-                                </template>
-
-                            </td>
-                            <template x-if="$store.form.selectedType === 'Rental'">
-                                <td class="px-3 py-2"><input type="number" :name="`options[${index}][daily]`"
-                                        x-model="option.daily"
-                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                                </td>
-                            </template>
-                            <template x-if="$store.form.selectedType === 'Rental'">
-                                <td class="px-3 py-2"><input type="number" :name="`options[${index}][weekend]`"
-                                        x-model="option.weekend"
-                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                                </td>
-                            </template>
-                            <template x-if="$store.form.selectedType === 'Rental'">
-                                <td class="px-3 py-2"><input type="number" :name="`options[${index}][weekly]`"
-                                        x-model="option.weekly"
-                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                                </td>
-                            </template>
-                            <template x-if="$store.form.selectedType === 'Rental'">
-                                <td class="px-3 py-2"><input type="number" :name="`options[${index}][monthly]`"
-                                        x-model="option.monthly"
-                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                                </td>
-                            </template>
-
-                            <!-- Retail Price Field -->
-                            <template x-if="$store.form.selectedType === 'Retail'">
-                                <td colspan="4" class="px-3 py-2">
-                                    <input type="number" :name="`options[${index}][retail_price]`"
-                                        x-model="option.retail_price"
-                                        class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800" />
-                                </td>
-                            </template>
-
-                            <td class="px-3 py-2 w-40">
-                                <select :name="`options[${index}][charged]`"
-                                    class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800">
-                                    <option value="Unlimited">Unlimited</option>
-                                    <option value="1 Time Max">1 Time Max</option>
-                                </select>
-                            </td>
-                            <td class="px-3 py-2 w-32">
-                                <select :name="`options[${index}][value]`" x-model="option.value"
-                                    class="w-full rounded-md border px-2 py-1 border-gray-300 dark:border-gray-700 dark:bg-gray-800">
-                                    <option value="Blank">Blank</option>
-                                    <option value="Checked">Checked</option>
-                                </select>
-                            </td>
-
-                            <td class="px-3 py-2 text-center">
-                                <button type="button" @click="option.value === 'Checked' && openCommentModal(index)"
-                                    :disabled="option.value !== 'Checked'"
-                                    :class="[
-                                        option.value !== 'Checked' ? 'text-gray-300 cursor-not-allowed' : (option
-                                            .comment ? 'text-blue-600' : 'text-gray-400'),
-                                        'transition hover:text-blue-700'
-                                    ]">
-                                    <x-heroicon-o-chat-bubble-left-right class="w-5 h-5" />
-                                </button>
-
-                                <input type="hidden" :name="`options[${index}][comment]`" :value="option.comment">
-                                <input type="hidden" :name="`options[${index}][accept_label]`"
-                                    :value="option.accept_label">
-                                <input type="hidden" :name="`options[${index}][decline_label]`"
-                                    :value="option.decline_label">
-                            </td>
-                            <td class="px-3 py-2 text-center text-red-600 cursor-pointer"
-                                @click="removeOption(index)">✕
-                            </td>
-                        </tr>
-                    </template>
-                </tbody>
-            </table>
-
-            <div class="mt-3 text-sm text-blue-600 hover:underline cursor-pointer" @click="addOption()">+ Add new row
-            </div>
-            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Start each new Options List with 4 blank rows by
-                default</p>
-        </div>
-    </div>
-
-    <!-- Comment Modal -->
-    <div x-show="showCommentModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 px-4"
-        x-transition x-cloak>
-        <div @click.away="closeCommentModal"
-            class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-lg p-6 space-y-5">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Option Comment & Buttons</h3>
-
-            <div
-                class="bg-blue-50 text-blue-700 border border-blue-200 p-3 text-sm rounded dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700">
-                <strong>Logic:</strong> If there is no comment added to a Pre-Checked option, then the pop-up does not
-                appear when the customer unchecks the option. Only if there is a comment does the comment pop-up appear.
-            </div>
-
-            <!-- Comment Text -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comment Text</label>
-                <textarea x-model="options[currentCommentIndex].comment"
-                    class="w-full rounded-md border px-3 py-2 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    rows="3" placeholder="Enter Comment Text..."></textarea>
-                <p class="text-xs text-gray-500 mt-1">Leave blank to disable the pop-up confirmation for this option.
-                </p>
-            </div>
-
-            <!-- If comment is empty -->
-            <template x-if="!options[currentCommentIndex].comment">
-                <div class="bg-yellow-100 text-yellow-800 p-3 rounded text-sm dark:bg-yellow-900 dark:text-yellow-200">
-                    <strong>No Pop-up:</strong> Since there's no comment, customers can uncheck this option without any
-                    confirmation pop-up.
-                </div>
-            </template>
-
-            <!-- Buttons & Preview – only visible when comment is entered -->
-            <template x-if="options[currentCommentIndex]?.comment">
-                <div class="space-y-4">
-                    <!-- Button Labels -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Decline
-                                Button Text (Red)</label>
-                            <input type="text" x-model="options[currentCommentIndex].decline_label"
-                                class="w-full rounded-md border px-3 py-2 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                placeholder="No Thanks, I'll Take The Risk">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Accept
-                                Button
-                                Text (Green)</label>
-                            <input type="text" x-model="options[currentCommentIndex].accept_label"
-                                class="w-full rounded-md border px-3 py-2 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                placeholder="Keep Safety Harness">
-                        </div>
-                    </div>
-
-                    <!-- Pop-up Preview -->
-                    <div
-                        class="border border-gray-200 dark:border-gray-700 rounded-md p-4 mt-2 bg-white dark:bg-gray-800">
-                        <p class="text-sm text-gray-800 dark:text-white mb-2">Customer Pop-up Preview:</p>
-                        <div class="space-y-3">
-                            <p class="text-sm text-gray-700 dark:text-gray-300"
-                                x-text="options[currentCommentIndex].comment"></p>
-                            <div class="flex gap-2">
-                                <button type="button" class="bg-red-600 text-white px-4 py-1 rounded text-sm"
-                                    x-text="options[currentCommentIndex].decline_label || 'No Thanks'">
-                                </button>
-                                <button type="button" class="bg-green-600 text-white px-4 py-1 rounded text-sm"
-                                    x-text="options[currentCommentIndex].accept_label || 'Yes, Keep It'">
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-
-            <!-- Actions -->
-            <div class="flex justify-end gap-2">
-                <button type="button" @click="closeCommentModal"
-                    class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">
-                    Cancel
-                </button>
-                <button type="button" @click="closeCommentModal"
-                    class="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">
-                    Save Comment
-                </button>
-            </div>
-        </div>
-    </div>
-</div> --}}
-
 <!-- Options Table -->
 <div id="options-wrapper" class="border border-gray-200 dark:border-gray-800 rounded-md overflow-x-auto mt-6"
     data-options='@json($formOptions)' data-errors='@json($formErrors)'
@@ -396,6 +167,7 @@
                 };
             }
 
+
             function renderHead() {
                 thead.innerHTML = `
             <tr class="bg-gray-100 dark:bg-gray-800 text-xs uppercase">
@@ -403,13 +175,13 @@
                 <th class="px-3 py-2 w-8">Drag</th>
                 <th class="px-3 py-2 w-48">Label</th>
                 ${selectedType === 'Rental' ? `
-                                                        <th class="px-3 py-2 w-20">Daily</th>
-                                                        <th class="px-3 py-2 w-20">W/E Spcl.</th>
-                                                        <th class="px-3 py-2 w-20">Weekly</th>
-                                                        <th class="px-3 py-2 w-20">Monthly</th>
-                                                    ` : `
-                                                        <th colspan="4" class="px-3 py-2">Retail Price</th>
-                                                    `}
+                                                            <th class="px-3 py-2 w-20">Daily</th>
+                                                            <th class="px-3 py-2 w-20">W/E Spcl.</th>
+                                                            <th class="px-3 py-2 w-20">Weekly</th>
+                                                            <th class="px-3 py-2 w-20">Monthly</th>
+                                                        ` : `
+                                                            <th colspan="4" class="px-3 py-2">Retail Price</th>
+                                                        `}
                 <th class="px-3 py-2 w-36">Charged Per Order</th>
                 <th class="px-3 py-2 w-32">Value</th>
                 <th class="px-3 py-2 w-12">Comment</th>
@@ -417,6 +189,32 @@
             </tr>
         `;
             }
+
+            function syncInputsToOptions() {
+                tbody.querySelectorAll('tr').forEach((row, i) => {
+                    if (!options[i]) return;
+                    options[i].label = row.querySelector(`input[name="options[${i}][label]"]`)?.value || '';
+                    if (selectedType === 'Rental') {
+                        options[i].daily = row.querySelector(`input[name="options[${i}][daily]"]`)?.value ||
+                            0;
+                        options[i].weekend = row.querySelector(`input[name="options[${i}][weekend]"]`)
+                            ?.value || 0;
+                        options[i].weekly = row.querySelector(`input[name="options[${i}][weekly]"]`)
+                            ?.value || 0;
+                        options[i].monthly = row.querySelector(`input[name="options[${i}][monthly]"]`)
+                            ?.value || 0;
+                    } else {
+                        options[i].retail_price = row.querySelector(
+                            `input[name="options[${i}][retail_price]"]`)?.value || 0;
+                    }
+                    options[i].charged = row.querySelector(`select[name="options[${i}][charged]"]`)
+                        ?.value || 'Unlimited';
+                    options[i].value = row.querySelector(`select[name="options[${i}][value]"]`)?.value ||
+                        'Blank';
+                    // comment, decline_label, accept_label are handled by modal, so we leave them
+                });
+            }
+
 
             function renderOptions() {
                 renderHead();
@@ -447,13 +245,13 @@
                 </td>
 
                 ${selectedType === 'Rental' ? `
-                                                        <td class="px-3 py-2"><input type="number" name="options[${index}][daily]" value="${opt.daily}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
-                                                        <td class="px-3 py-2"><input type="number" name="options[${index}][weekend]" value="${opt.weekend}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
-                                                        <td class="px-3 py-2"><input type="number" name="options[${index}][weekly]" value="${opt.weekly}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
-                                                        <td class="px-3 py-2"><input type="number" name="options[${index}][monthly]" value="${opt.monthly}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
-                                                    ` : `
-                                                        <td colspan="4" class="px-3 py-2"><input type="number" name="options[${index}][retail_price]" value="${opt.retail_price}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
-                                                    `}
+                                                            <td class="px-3 py-2"><input type="number" name="options[${index}][daily]" value="${opt.daily}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
+                                                            <td class="px-3 py-2"><input type="number" name="options[${index}][weekend]" value="${opt.weekend}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
+                                                            <td class="px-3 py-2"><input type="number" name="options[${index}][weekly]" value="${opt.weekly}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
+                                                            <td class="px-3 py-2"><input type="number" name="options[${index}][monthly]" value="${opt.monthly}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
+                                                        ` : `
+                                                            <td colspan="4" class="px-3 py-2"><input type="number" name="options[${index}][retail_price]" value="${opt.retail_price}" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white" /></td>
+                                                        `}
 
                 <td class="px-3 py-2">
                     <select name="options[${index}][charged]" class="w-full rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
@@ -496,6 +294,7 @@
             function attachEventListeners() {
                 tbody.querySelectorAll('.remove-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
+                        syncInputsToOptions();
                         const index = parseInt(btn.dataset.index);
                         options.splice(index, 1);
                         renderOptions();
@@ -512,6 +311,7 @@
 
                 tbody.querySelectorAll('select[name$="[value]"]').forEach(select => {
                     select.addEventListener('change', () => {
+                        syncInputsToOptions();
                         const index = parseInt(select.dataset.index);
                         options[index].value = select.value;
                         renderOptions();
@@ -620,22 +420,22 @@
 
 
             addBtn.addEventListener('click', () => {
+                syncInputsToOptions();
                 options.push(createBlankOption());
                 renderOptions();
             });
+
 
             new Sortable(tbody, {
                 handle: '.cursor-move',
                 animation: 150,
                 onEnd: evt => {
-
+                    syncInputsToOptions();
                     const moved = options.splice(evt.oldIndex, 1)[0];
                     options.splice(evt.newIndex, 0, moved);
-
                     options.forEach((opt, index) => {
                         opt.sort_order = index;
                     });
-
                     renderOptions();
                 }
             });

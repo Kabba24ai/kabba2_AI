@@ -40,7 +40,7 @@
                             'class' => 'space-y-8',
                         ])->acceptsFiles()->open() }}
 
-                    @include('admin.terms_and_conditions.terms.partials._form')
+                    @include('admin.terms_and_conditions.partials._form')
 
                     <div class="flex justify-center mt-8 space-x-4">
                         <!-- Save As Dropdown -->

@@ -162,7 +162,7 @@
 
                     @php
                     $settingsceActive = Route::is([
-                        'admin.terms-and-condition.terms.*',
+                        'admin.terms-and-conditions.*',
                     ]);
 
                     @endphp
@@ -195,13 +195,13 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
-                                    <a href="{{ route('admin.terms-and-condition.terms.index') }}"
+                                    <a href="{{ route('admin.terms-and-conditions.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.terms-and-condition.terms.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        {{ Route::is('admin.terms-and-conditions.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-c-circle-stack class="h-5 w-5" /> Terms & Condition
                                     </a>
                                 </li>
-                                
+
                             </ul>
                         </div>
                     </li>

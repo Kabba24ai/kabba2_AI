@@ -12,14 +12,14 @@
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Terms</h3>
-        <a href="{{ route('admin.terms-and-condition.terms.create') }}"
+        <a href="{{ route('admin.terms-and-conditions.create') }}"
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
             + Create Terms
         </a>
     </div>
 
     {{-- Search and Filters --}}
-    <form method="GET" action="{{ route('admin.terms-and-condition.terms.index') }}" class="mb-6">
+    <form method="GET" action="{{ route('admin.terms-and-conditions.index') }}" class="mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             {{-- Search Input --}}
             <div class="flex-1 relative">
@@ -54,7 +54,7 @@
                         Title</th>
                     <th class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                         Type</th>
-                    
+
                     <th class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                         Created</th>
                     <th class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
@@ -82,7 +82,7 @@
                                 {{ ($t->is_global=='Yes' ? 'Global' : 'Product') }}
                             </span>
                         </td>
-                        
+
                         <td class="px-6 py-4 text-gray-600 dark:text-gray-400">{{ $t->created_at->format('Y-m-d') }}</td>
                         <td class="px-6 py-4">
                             <span
@@ -95,13 +95,13 @@
                         </td>
                         <td class="px-6 py-4 text-right space-x-2">
                         	<div class="flex float-right gap-x-3">
-                            		<a href="{{ route('admin.terms-and-condition.terms.edit', $t->unique_id   ) }}"
+                            		<a href="{{ route('admin.terms-and-conditions.edit', $t->unique_id   ) }}"
                                         class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                         title="Edit">
                                         <x-heroicon-o-pencil class="w-5 h-5" />
                                     </a>
                                     @if($t->is_global=='No')
-                                    <form action="{{ route('admin.terms-and-condition.terms.delete', $t->unique_id    ) }}"
+                                    <form action="{{ route('admin.terms-and-conditions.delete', $t->unique_id    ) }}"
                                         method="POST"
                                         onsubmit="return confirm('Are you sure you want to delete this option?');">
                                         @csrf
@@ -114,7 +114,7 @@
                                     </form>
                                     @endif
                             </div>
-                            		
+
                         </td>
                     </tr>
                 @empty

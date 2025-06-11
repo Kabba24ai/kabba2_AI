@@ -35,8 +35,8 @@ class StoreController extends Controller
         $action = $request->input('action');
 
         return match ($action) {
-            'save' => redirect()->route('admin.terms-and-condition.terms.edit', ['unique_id' => $objTerms->unique_id]),
-            'save_new' => redirect()->route('admin.terms-and-condition.terms.create'),
+            'save' => redirect()->route('admin.terms-and-conditions.edit', ['unique_id' => $objTerms->unique_id]),
+            'save_new' => redirect()->route('admin.terms-and-conditions.create'),
             default => back(), // fallback
         };
     }

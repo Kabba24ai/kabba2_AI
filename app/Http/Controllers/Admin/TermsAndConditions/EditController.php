@@ -21,7 +21,7 @@ class EditController extends Controller
     {
 		$terms = Terms::where('unique_id', $unique_id)->first();
 
-		return view('admin.terms_and_conditions.terms.edit', [
+		return view('admin.terms_and_conditions.edit', [
             'terms' => $terms,
         ]);
     }

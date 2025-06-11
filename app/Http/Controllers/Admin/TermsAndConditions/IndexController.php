@@ -35,7 +35,7 @@ class IndexController extends Controller
         $terms = new LengthAwarePaginator($currentItems, $items->count(), $perPage, $currentPage, ['path' => request()->url(), 'query' => request()->query()]);
 
         $categories = Collection::make([]);
-        return view('admin.terms_and_conditions.terms.index', [
+        return view('admin.terms_and_conditions.index', [
             'terms' => $terms,
         ]);
     }

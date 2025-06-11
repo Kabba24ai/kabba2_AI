@@ -10,8 +10,8 @@ use App\Http\Controllers\Admin\TermsAndConditions\EditController;
 use App\Http\Controllers\Admin\TermsAndConditions\UpdateController;
 use App\Http\Controllers\Admin\TermsAndConditions\DeleteController;
 
-Route::prefix('terms')
-->name('terms.')
+Route::prefix('terms-and-conditions')
+->name('terms-and-conditions.')
 ->group(function ($router) {
 
     Route::get('/', IndexController::class)->name('index');

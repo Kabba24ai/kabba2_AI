@@ -7,7 +7,7 @@
     <div class="flex items-center justify-between mb-6">
         <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Edit Terms</h3>
 
-        <a href="{{ route('admin.terms-and-condition.terms.create') }}"
+        <a href="{{ route('admin.terms-and-conditions.create') }}"
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
             + Create
         </a>
@@ -31,7 +31,7 @@
                             'class' => 'space-y-8',
                         ])->acceptsFiles()->open() }}
 
-                    @include('admin.terms_and_conditions.terms.partials._form')
+                    @include('admin.terms_and_conditions.partials._form')
 
                     {{-- Button row --}}
                     <div class="flex flex-wrap justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-800">

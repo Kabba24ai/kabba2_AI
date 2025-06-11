@@ -24,6 +24,6 @@ class DeleteController extends Controller
         $objProductCategory->delete();
 
         flash('Terms deleted successfully.')->success();
-        return redirect()->route('admin.terms-and-condition.terms.index');
+        return redirect()->route('admin.terms-and-conditions.index');
     }
 }

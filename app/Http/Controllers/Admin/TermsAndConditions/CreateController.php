@@ -21,6 +21,6 @@ class CreateController extends Controller
         $categories = Terms::order()->get();
 
 
-        return view('admin.terms_and_conditions.terms.create');
+        return view('admin.terms_and_conditions.create');
     }
 }

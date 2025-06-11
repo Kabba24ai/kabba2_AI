@@ -21,14 +21,22 @@ yarn-error.log
 /.vscode
 /.zed
 
-# Ignore everything in storage
-/storage/**
+# 1) Ignore only top-level entries in storage
+/storage/*
 
-# Allow specific paths under storage
-!storage/app/
-!storage/app/public/
-!storage/app/public/admin/
-!storage/app/public/admin/**
+# 2) Un-ignore the folders you actually want to track
+!/storage/app/
+ /storage/app/*
+
+!/storage/app/public/
+ /storage/app/public/*
+
+!/storage/app/public/admin/
+ /storage/app/public/admin/*
+
+# 3) Finally allow everything under admin/ — including nested images/error
+!/storage/app/public/admin/**
+
 
 
 

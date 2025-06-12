@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Seeder;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
+// Seeders
+use Database\Seeders\Configurations\SettingSeeder;
 use Database\Seeders\Iam\ModuleSeeder;
 use Database\Seeders\Iam\RoleSeeder;
-use Illuminate\Database\Seeder;
 
 // Seeders
 use Database\Seeders\Iam\UserSeeder;
@@ -22,5 +22,6 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeeder::class); // first to create roles
         $this->call(ModuleSeeder::class); // third to create modules
         $this->call(UserSeeder::class); // second to create users
+        $this->call(SettingSeeder::class); // fourth to create settings
     }
 }

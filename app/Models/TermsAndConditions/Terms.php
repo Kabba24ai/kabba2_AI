@@ -59,7 +59,7 @@ class Terms extends Model
     {
         parent::boot();
         self::creating(function ($model) {
-            $model->unique_id = ModelHelper::generateUniqueID($model, 'PCAT');
+            $model->unique_id = ModelHelper::generateUniqueID($model, 'TERM');
 
             // If seo_title is not set, use title or slug as fallback
             if (empty($model->seo_title)) {

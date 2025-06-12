@@ -36,5 +36,8 @@ Route::name('admin.')->group(function ($router) {
         // Order Management
         require base_path('routes/admin/order_management/routes.php');
 
+        // Configurations
+        require base_path('routes/admin/configurations/routes.php');
+
     });
 });

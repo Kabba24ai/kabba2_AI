@@ -161,17 +161,17 @@
                     </li>
 
                     @php
-                    $settingsceActive = Route::is([
+                    $settingsActive = Route::is([
                         'admin.terms-and-conditions.*',
+                        'admin.configurations.*',
                     ]);
 
                     @endphp
                     <!-- Settings -->
-                    <li x-data="{ open: {{ $settingsceActive ? 'true' : 'false' }} }">
+                    <li x-data="{ open: {{ $settingsActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
-                            class="menu-item group flex items-center gap-3 {{ $settingsceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-m-cog
-                                class="w-6 h-6 {{ $settingsceActive ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
+                            class="menu-item group flex items-center gap-3 {{ $settingsActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-cog-6-tooth  class="w-6 h-6" />
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Settings</span>
                             <span class="menu-item-arrow"
                                 :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
@@ -198,10 +198,17 @@
                                     <a href="{{ route('admin.terms-and-conditions.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.terms-and-conditions.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-c-circle-stack class="h-5 w-5" /> Terms & Condition
+                                        <x-heroicon-o-information-circle class="h-5 w-5" /> Terms & Conditions
                                     </a>
                                 </li>
 
+                                <li>
+                                    <a href="{{ route('admin.configurations.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.configurations.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-cog-8-tooth class="h-5 w-5" /> Settings
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

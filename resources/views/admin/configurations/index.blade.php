@@ -26,63 +26,91 @@
                             <div class="flex flex-col gap-4">
                                 @foreach ($group as $setting)
                                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                        {{-- LABEL --}}
                                         <label for="setting_{{ $setting->id }}"
-                                            class="block text-gray-700 dark:text-gray-300 text-sm sm:w-64 font-medium">
+                                            class="block text-gray-700 dark:text-gray-300 text-sm font-medium
+                       sm:w-56 md:w-64 lg:w-72 flex-shrink-0">
                                             {{ $setting->setting_title }}
                                         </label>
-                                        <div class="w-full sm:w-auto flex flex-col">
+
+                                        {{-- INPUT --}}
+                                        <div class="w-full sm:flex-1 flex flex-col">
                                             @php
-                                                $input = null;
-                                                $inputClasses = [
-                                                    'rounded border border-gray-300 px-3 py-1 text-sm focus:ring-2 focus:border-brand-500 dark:bg-gray-800 dark:text-white',
-                                                    'w-full sm:w-36' => $setting->value_type === 'number',
-                                                    'w-full sm:w-48' => $setting->value_type === 'options',
-                                                    'w-full sm:w-28' => $setting->value_type === 'boolean',
-                                                    'border-red-500' => $errors->has("settings.{$setting->id}"),
-                                                ];
-                                                if ($setting->value_type === 'number') {
-                                                    $input = html()
-                                                        ->number("settings[{$setting->id}]")
-                                                        ->value(old("settings.{$setting->id}", $setting->setting_value))
-                                                        ->class($inputClasses)
-                                                        ->id("setting_{$setting->id}")
-                                                        ->attributes([
-                                                            'data-parsley-type' => 'number',
-                                                            'placeholder' => 'Enter Here',
-                                                        ]);
-                                                } elseif ($setting->value_type === 'boolean') {
-                                                    $input = html()
-                                                        ->select(
-                                                            "settings[{$setting->id}]",
-                                                            ['1' => 'Yes', '0' => 'No'],
-                                                            old("settings.{$setting->id}", $setting->setting_value),
-                                                        )
-                                                        ->class($inputClasses)
-                                                        ->id("setting_{$setting->id}");
-                                                } elseif ($setting->value_type === 'options') {
-                                                    $options = is_array($setting->setting_options)
-                                                        ? $setting->setting_options
-                                                        : json_decode($setting->setting_options, true) ?? [];
-                                                    $input = html()
-                                                        ->select(
-                                                            "settings[{$setting->id}]",
-                                                            $options,
-                                                            old("settings.{$setting->id}", $setting->setting_value),
-                                                        )
-                                                        ->class($inputClasses)
-                                                        ->id("setting_{$setting->id}")
-                                                        ->placeholder('Select');
-                                                } else {
-                                                    $input = html()
-                                                        ->text("settings[{$setting->id}]")
-                                                        ->value(old("settings.{$setting->id}", $setting->setting_value))
-                                                        ->class($inputClasses)
-                                                        ->id("setting_{$setting->id}")
-                                                        ->attributes([
-                                                            'placeholder' => 'Enter Here',
-                                                        ]);
+                                                $inputValue = old("settings.{$setting->id}", $setting->setting_value);
+
+                                                // Choose input width based on value type
+                                                $inputWidth = match ($setting->value_type) {
+                                                    'number', 'options', 'boolean' => 'sm:w-36 md:w-40',
+                                                    default => 'sm:w-60 md:w-72',
+                                                };
+
+                                                $inputClasses =
+                                                    "rounded border border-gray-300 px-3 py-1 text-sm
+                        focus:ring-2 focus:border-brand-500 dark:bg-gray-800 dark:text-white
+                        $inputWidth " .
+                                                    ($errors->has("settings.{$setting->id}") ? 'border-red-500' : '');
+
+                                                switch ($setting->value_type) {
+                                                    case 'number':
+                                                        $input = html()
+                                                            ->number("settings[{$setting->id}]")
+                                                            ->value($inputValue)
+                                                            ->class($inputClasses)
+                                                            ->id("setting_{$setting->id}")
+                                                            ->attributes([
+                                                                'data-parsley-type' => 'number',
+                                                                'placeholder' => 'Enter Here',
+                                                            ]);
+                                                        break;
+                                                    case 'boolean':
+                                                        $input = html()
+                                                            ->select(
+                                                                "settings[{$setting->id}]",
+                                                                ['1' => 'Yes', '0' => 'No'],
+                                                                $inputValue,
+                                                            )
+                                                            ->class($inputClasses)
+                                                            ->id("setting_{$setting->id}");
+                                                        break;
+                                                    case 'options':
+                                                        $options = is_array($setting->setting_options)
+                                                            ? $setting->setting_options
+                                                            : json_decode($setting->setting_options, true) ?? [];
+                                                        $input = html()
+                                                            ->select("settings[{$setting->id}]", $options, $inputValue)
+                                                            ->class($inputClasses)
+                                                            ->id("setting_{$setting->id}")
+                                                            ->placeholder('Select');
+                                                        break;
+                                                    case 'email':
+                                                        $input = html()
+                                                            ->email("settings[{$setting->id}]")
+                                                            ->value($inputValue)
+                                                            ->class($inputClasses)
+                                                            ->id("setting_{$setting->id}")
+                                                            ->attributes(['placeholder' => 'Enter Here']);
+                                                        break;
+                                                    case 'textarea':
+                                                        $input = html()
+                                                            ->textarea("settings[{$setting->id}]")
+                                                            ->value($inputValue)
+                                                            ->class($inputClasses)
+                                                            ->id("setting_{$setting->id}")
+                                                            ->attributes([
+                                                                'placeholder' => 'Enter Here',
+                                                                'rows' => 4,
+                                                            ]);
+                                                        break;
+                                                    default:
+                                                        $input = html()
+                                                            ->text("settings[{$setting->id}]")
+                                                            ->value($inputValue)
+                                                            ->class($inputClasses)
+                                                            ->id("setting_{$setting->id}")
+                                                            ->attributes(['placeholder' => 'Enter Here']);
                                                 }
                                             @endphp
+
                                             {!! $input !!}
                                             <span class="parsley-errors-list"></span>
                                             @error("settings.{$setting->id}")
@@ -92,6 +120,7 @@
                                     </div>
                                 @endforeach
                             </div>
+
                         </div>
                     </div>
                 @endforeach

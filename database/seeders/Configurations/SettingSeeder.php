@@ -20,12 +20,12 @@ class SettingSeeder extends Seeder
             'Email Settings' => [
                 // Dev/staging Customer Email
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'dev_staging_email',
                     'setting_title' => 'Development/Staging Email',
                 ],
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'customer_email_send_email_address',
                     'setting_title' => 'Customer Development/Staging Email',
                 ],
@@ -58,63 +58,82 @@ class SettingSeeder extends Seeder
                     'setting_options' => json_encode(['miles', 'kilometers']),
                     'default_value' => 'miles',
                 ],
+                // --- New settings below ---
+                [
+                    'value_type' => 'textarea',
+                    'setting_name' => 'prepaid_fuel_info',
+                    'setting_title' => 'Prepaid Fuel Information',
+                    'default_value' => '',
+                ],
+                [
+                    'value_type' => 'text',
+                    'setting_name' => 'prepaid_fuel_decline_label',
+                    'setting_title' => 'Prepaid Fuel Decline Label',
+                    'default_value' => 'No Thanks, I\'ll Take The Risk',
+                ],
+                [
+                    'value_type' => 'text',
+                    'setting_name' => 'prepaid_fuel_approve_label',
+                    'setting_title' => 'Prepaid Fuel Approve Label',
+                    'default_value' => 'Keep Safety Harness',
+                ],
             ],
 
             // Contact Us Setting
 
             'Contact Us Settings' => [
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'mobile',
                     'setting_title' => 'Mobile',
                 ],
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'email',
                     'setting_name' => 'email',
                     'setting_title' => 'Email',
                 ],
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'address1',
                     'setting_title' => 'Address 1',
                 ],
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'address2',
                     'setting_title' => 'Address 2',
                 ],
                 // Enquiry
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'enquiry-email',
                     'setting_title' => 'Enquiry Email',
                 ],
                 // Complaint
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'complaint-email',
                     'setting_title' => 'Complaint Email',
                 ],
                 // Feedback
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'feedback-email',
                     'setting_title' => 'Feedback Email',
                 ],
             ],
             'Social Media Settings' => [
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'facebook_page_link',
                     'setting_title' => 'Facebook Page Link',
                 ],
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'linkedin_page_link',
                     'setting_title' => 'LinkedIn Page Link',
                 ],
                 [
-                    'value_type' => 'value',
+                    'value_type' => 'text',
                     'setting_name' => 'twitter_page_link',
                     'setting_title' => 'Twitter Page Link',
                 ],
@@ -130,7 +149,7 @@ class SettingSeeder extends Seeder
     public function run()
     {
         // Read the --update-existing flag (defaults to false)
-        $updateExisting = true;
+        $updateExisting = false;
 
         foreach ($this->settings as $setting_type => $settings) {
             if (empty($settings) || !is_array($settings)) {
@@ -156,6 +175,7 @@ class SettingSeeder extends Seeder
                     $updateData = [
                         'setting_title' => $setting['setting_title'],
                         'value_type' => $setting['value_type'],
+                        'setting_value' => $setting['default_value'] ?? null,
                         'setting_options' => $setting['setting_options'] ?? null,
                     ];
                     // Don't override setting_value unless you want to

@@ -15,14 +15,13 @@ class FetchOptionsController extends Controller
      *
      * Expects query param: ?ids[]=1&ids[]=2...
      */
-    public function __invoke(Request $request)
+    public function __invoke($optionId)
     {
-        $opts = ProductOption::whereIn('id', $request->input('options', []))->get();
+        $objProductOption = ProductOption::where('id', $optionId)->firstOrFail();
 
         // Render the Blade component to HTML
         $html = view('components.admin.product-management.products.option-preview', [
-            'options' => $opts,
-            'productType' => $productType = $request->input('product_type', 'retail'),
+            'objProductOption' => $objProductOption,
 
         ])->render();
 

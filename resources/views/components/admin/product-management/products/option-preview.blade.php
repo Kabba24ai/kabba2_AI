@@ -1,141 +1,80 @@
 <div>
-<div class="overflow-x-auto">
-  <table class="min-w-full border-collapse">
-    <thead>
-      <tr class="bg-gray-50 text-xs font-medium text-gray-500 uppercase">
-        <th class="px-3 py-2">#</th>
-        <th class="px-3 py-2">Drag</th>
-        <th class="px-3 py-2 text-left">Label</th>
+    <div class="mb-6 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
+        <!-- Header with Option Name -->
+        <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">
+            {{ $objProductOption->name ?? 'Option Preview' }}
+        </h4>
 
-        @if($productType === 'rental')
-          <th class="px-3 py-2">Daily</th>
-          <th class="px-3 py-2">W/E Spcl.</th>
-          <th class="px-3 py-2">Weekly</th>
-          <th class="px-3 py-2">Monthly</th>
-        @elseif($productType === 'retail')
-          <th class="px-3 py-2 text-left">Retail Price</th>
-        @endif
+        <div class="overflow-x-auto">
+            <table class="min-w-full border-collapse text-sm">
+                <thead>
+                    <tr
+                        class="bg-gray-100 dark:bg-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 uppercase text-left">
+                        <th class="px-3 py-2 text-start">#</th>
+                        <th class="px-3 py-2 text-start">Label</th>
 
-        <th class="px-3 py-2">Charged Per Order</th>
-        <th class="px-3 py-2">Value</th>
-        <th class="px-3 py-2">Comment</th>
-        <th class="px-3 py-2">Actions</th>
-      </tr>
-    </thead>
+                        @if ($objProductOption->type === 'Rental')
+                            <th class="px-3 py-2 text-end">Daily</th>
+                            <th class="px-3 py-2 text-end">W/E Spcl.</th>
+                            <th class="px-3 py-2 text-end">Weekly</th>
+                            <th class="px-3 py-2 text-end">Monthly</th>
+                        @elseif($objProductOption->type === 'Retail')
+                            <th class="px-3 py-2 text-end">Retail Price</th>
+                        @endif
 
-    <tbody class="divide-y divide-gray-200">
-      @forelse($options as $i => $opt)
-        <tr class="hover:bg-gray-50">
-          <td class="px-3 py-2">{{ $i + 1 }}</td>
+                        <th class="px-3 py-2 text-center">Charged Per Order</th>
+                        <th class="px-3 py-2 text-center">Value</th>
+                        <th class="px-3 py-2 text-center">Comment</th>
+                    </tr>
+                </thead>
 
-          {{-- drag handle --}}
-          <td class="px-3 py-2 cursor-move">
-            <svg class="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M7 4a1 1 0 100 2h6a1 1 0 100-2H7zM7 9a1 1 0 100 2h6a1 1 0 100-2H7zM7 14a1 1 0 100 2h6a1 1 0 100-2H7z"/>
-            </svg>
-          </td>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
+                    @forelse ($objProductOption->items as $item)
+                        <tr class="text-gray-700 dark:text-gray-200">
+                            <td class="px-3 py-2 text-start">{{ $loop->iteration }}</td>
+                            <td class="px-3 py-2 text-start">{{ $item->label }}</td>
 
-          {{-- label --}}
-          <td class="px-3 py-2">
-            <input
-              type="text"
-              name="options[{{ $opt->id }}][label]"
-              value="{{ $opt->name }}"
-              class="w-full rounded border-gray-300 text-sm"
-            >
-          </td>
+                            @if ($objProductOption->type === 'Rental')
+                                <td class="px-3 py-2 text-end">{{ $item->daily }}</td>
+                                <td class="px-3 py-2 text-end">{{ $item->weekend }}</td>
+                                <td class="px-3 py-2 text-end">{{ $item->weekly }}</td>
+                                <td class="px-3 py-2 text-end">{{ $item->monthly }}</td>
+                            @elseif($objProductOption->type === 'Retail')
+                                <td class="px-3 py-2 text-end">{{ $item->retail_price }}</td>
+                            @endif
 
-          @if($productType === 'rental')
-            <td class="px-3 py-2">
-              <input type="number" step="0.01"
-                     name="options[{{ $opt->id }}][daily]"
-                     class="w-full rounded border-gray-300 text-sm"
-                     value="{{ old('options.'.$opt->id.'.daily', $opt->pivot->daily ?? '') }}">
-            </td>
-            <td class="px-3 py-2">
-              <input type="number" step="0.01"
-                     name="options[{{ $opt->id }}][weekend_special]"
-                     class="w-full rounded border-gray-300 text-sm"
-                     value="{{ old('options.'.$opt->id.'.weekend_special', $opt->pivot->weekend_special ?? '') }}">
-            </td>
-            <td class="px-3 py-2">
-              <input type="number" step="0.01"
-                     name="options[{{ $opt->id }}][weekly]"
-                     class="w-full rounded border-gray-300 text-sm"
-                     value="{{ old('options.'.$opt->id.'.weekly', $opt->pivot->weekly ?? '') }}">
-            </td>
-            <td class="px-3 py-2">
-              <input type="number" step="0.01"
-                     name="options[{{ $opt->id }}][monthly]"
-                     class="w-full rounded border-gray-300 text-sm"
-                     value="{{ old('options.'.$opt->id.'.monthly', $opt->pivot->monthly ?? '') }}">
-            </td>
+                            <td class="px-3 py-2 text-center">{{ $item->charged }}</td>
+                            <td class="px-3 py-2 text-center">{{ $item->value }}</td>
 
-          @elseif($productType === 'retail')
-            <td class="px-3 py-2">
-              <input type="number" step="0.01"
-                     name="options[{{ $opt->id }}][retail_price]"
-                     class="w-full rounded border-gray-300 text-sm"
-                     value="{{ old('options.'.$opt->id.'.retail_price', $opt->pivot->retail_price ?? '') }}">
-            </td>
-          @endif
+                            <td class="px-3 py-2 text-center">
+                                @php
+                                    $hasComment = !empty($item->comment);
+                                @endphp
 
-          {{-- charged per order --}}
-          <td class="px-3 py-2">
-            <select
-              name="options[{{ $opt->id }}][charged_per_order]"
-              class="w-full rounded border-gray-300 text-sm"
-            >
-              <option value="unlimited"
-                @selected(old('options.'.$opt->id.'.charged_per_order', $opt->pivot->charged_per_order ?? '') === 'unlimited')
-              >Unlimited</option>
-              <option value="per_item"
-                @selected(old('options.'.$opt->id.'.charged_per_order', $opt->pivot->charged_per_order ?? '') === 'per_item')
-              >Per Item</option>
-            </select>
-          </td>
+                                <button type="button"
+                                    class="comment-btn transition text-sm px-2 py-1 rounded
+            {{ $hasComment ? 'text-blue-600 hover:text-blue-800 cursor-pointer' : 'text-gray-400 cursor-not-allowed' }}"
+                                    {{ $hasComment ? '' : 'disabled' }} data-index="{{ $loop->index }}"
+                                    data-comment="{{ $item->comment }}" data-accept="{{ $item->accept_label }}"
+                                    data-decline="{{ $item->decline_label }}" data-label="{{ $item->label }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mx-auto" fill="currentColor"
+                                        viewBox="0 0 20 20">
+                                        <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 4V5z" />
+                                    </svg>
+                                </button>
+                            </td>
 
-          {{-- value --}}
-          <td class="px-3 py-2">
-            <select
-              name="options[{{ $opt->id }}][value]"
-              class="w-full rounded border-gray-300 text-sm"
-            >
-              <option value="blank"
-                @selected(old('options.'.$opt->id.'.value', $opt->pivot->value ?? '') === 'blank')
-              >Blank</option>
-              <option value="checked"
-                @selected(old('options.'.$opt->id.'.value', $opt->pivot->value ?? '') === 'checked')
-              >Checked</option>
-            </select>
-          </td>
-
-          {{-- comment icon --}}
-          <td class="px-3 py-2 text-center">
-            <button type="button" class="text-gray-400 hover:text-gray-600">
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M18 10c0 3.866-3.582 7-8 7a8.082 8.082 0 01-4.427-1.253L2 17l1.253-3.573A8.082 8.082 0 012 10c0-4.418 3.134-8 7-8s8 3.582 8 8z"/>
-              </svg>
-            </button>
-          </td>
-
-          {{-- delete --}}
-          <td class="px-3 py-2 text-center">
-            <button type="button" class="text-red-500 hover:text-red-700">
-              &times;
-            </button>
-          </td>
-        </tr>
-
-      @empty
-        <tr>
-          <td colspan="{{ $productType==='rental' ? 11 : 8 }}" class="py-4 text-center text-gray-500">
-            No options selected.
-          </td>
-        </tr>
-      @endforelse
-    </tbody>
-  </table>
-</div>
-
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ $objProductOption->type === 'Rental' ? 9 : 6 }}"
+                                class="px-3 py-2 text-center text-gray-500 dark:text-gray-400">
+                                No options available.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

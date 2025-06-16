@@ -1,8 +1,5 @@
 @php
-    $selectedIds = old(
-        'options',
-        isset($objProduct) ? $objProduct->options->pluck('id')->toArray() : [],
-    );
+    $selectedIds = old('options', isset($objProduct) ? $objProduct->options->pluck('id')->toArray() : []);
 @endphp
 
 <!-- Options Section -->
@@ -19,206 +16,53 @@
         @endforeach
     </select>
 
+
     <!-- Info Placeholder -->
     <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md p-6 text-center">
-        <p class="text-gray-700 dark:text-gray-200 font-medium">
-            Options section will be populated from separate Options Library
-        </p>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            This will show rental options with 4 price inputs for different durations
-        </p>
+        <div id="option-preview-tables" class="space-y-4 mt-4">
+            <p class="text-gray-700 dark:text-gray-200 font-medium">
+                Options section will be populated from separate Options Library
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                This will show rental options with 4 price inputs for different durations
+            </p>
+        </div>
     </div>
 </div>
 
+<div id="comment-modal"
+    class="fixed inset-0 hidden z-[999999] items-center justify-center overflow-y-auto bg-black/40 px-4 py-10 h-full">
+    <div id="modal-content"
+        class="relative bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-lg p-6 space-y-5 border border-gray-200 dark:border-gray-700">
 
-{{-- <div x-data="$store.optionsStore" class="space-y-6">
-    <template x-for="(group, groupIndex) in optionGroups" :key="groupIndex">
-        <div class="border rounded-lg bg-white dark:bg-gray-800 shadow-sm">
-            <!-- Header -->
-            <div class="bg-blue-50 dark:bg-blue-900 px-4 py-2 flex justify-between items-center">
-                <span class="text-blue-700 font-semibold text-sm">
-                    <template x-text="'#' + (groupIndex + 1) + ' ' + group.name"></template>
-                </span>
-                <button @click="removeGroup(groupIndex)" class="text-gray-500 hover:text-red-600">
-                    <x-heroicon-o-trash class="w-5 h-5" />
-                </button>
-            </div>
+        <!-- Close Icon (Heroicon) -->
+        <button type="button" id="close-comment-modal"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white transition"
+            aria-label="Close">
+            <x-heroicon-o-x-mark class="w-5 h-5" />
+        </button>
 
-            <!-- Name + Type -->
-            <div class="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div>
-                    <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                    <input type="text" x-model="group.name"
-                        class="w-full rounded-md border border-gray-300 focus:border-blue-500 focus:ring-2 shadow-sm text-sm px-3 py-2 dark:bg-gray-900 dark:text-white" />
-                </div>
-                <div>
-                    <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
-                    <input type="text" x-model="group.type"
-                        class="w-full rounded-md border border-gray-300 focus:border-blue-500 focus:ring-2 shadow-sm text-sm px-3 py-2 dark:bg-gray-900 dark:text-white" />
-                </div>
-            </div>
+        <h2 class="text-md font-semibold text-gray-800 dark:text-white">
+            Option Comment & Buttons
+        </h2>
 
-            <!-- Option Rows Table -->
-            <div class="p-4 overflow-x-auto">
-                <table class="w-full text-sm border-t border-gray-200 dark:border-gray-700">
-                    <thead>
-                        <tr class="text-left text-gray-600 dark:text-gray-300">
-                            <th class="py-2 pr-4 w-6"></th>
-                            <th class="py-2 pr-4">Label</th>
-                            <th class="py-2 pr-4">Price</th>
-                            <th class="py-2 pr-4">Value</th>
-                            <th class="py-2 pr-4">Comment</th>
-                            <th class="w-10"></th>
-                        </tr>
-                    </thead>
-                    <tbody x-init="$nextTick(() => initSortable($el, groupIndex))" class="sortable-group">
-                        <template x-for="(row, rowIndex) in group.options" :key="rowIndex">
-                            <tr class="group cursor-move">
-                                <td class="py-2 pr-4 align-top">
-                                    <div
-                                        class="flex items-center justify-center text-gray-400 group-hover:text-gray-600">
-                                        <x-heroicon-o-bars-3 class="w-4 h-4" />
-                                    </div>
-                                </td>
-                                <td class="py-2 pr-4">
-                                    <input type="text" x-model="row.label"
-                                        class="w-full rounded-md border border-gray-300 focus:border-blue-500 focus:ring-2 px-2 py-1 text-sm dark:bg-gray-900 dark:text-white" />
-                                </td>
-                                <td class="py-2 pr-4">
-                                    <input type="number" min="0" step="0.01" x-model="row.price"
-                                        class="w-full rounded-md border border-gray-300 focus:border-blue-500 focus:ring-2 px-2 py-1 text-sm dark:bg-gray-900 dark:text-white" />
-                                </td>
-                                <td class="py-2 pr-4">
-                                    <select x-model="row.value"
-                                        class="w-full rounded-md border border-gray-300 focus:border-blue-500 focus:ring-2 px-2 py-1 text-sm dark:bg-gray-900 dark:text-white">
-                                        <option value="Checked">Checked</option>
-                                        <option value="Blank">Blank</option>
-                                    </select>
-                                </td>
-                                <td class="py-2 pr-4">
-                                    <button type="button" @click="toggleComment(groupIndex, rowIndex)"
-                                        class="inline-flex items-center gap-1 bg-cyan-500 hover:bg-cyan-600 text-white text-xs px-3 py-1 rounded">
-                                        <x-heroicon-o-pencil-square class="w-4 h-4" />
-                                        <span x-text="row.comment ? 'Edit Comment' : 'Add Comment'"></span>
-                                    </button>
-                                </td>
-                                <td class="text-center">
-                                    <button @click="removeRow(groupIndex, rowIndex)" type="button"
-                                        class="text-gray-400 hover:text-red-600">
-                                        <x-heroicon-o-trash class="w-5 h-5" />
-                                    </button>
-                                </td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
+        <div class="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded p-3">
+            <strong>Logic:</strong> If there is no comment added to a Pre-Checked option, then the pop-up does not
+            appear when the customer unchecks the option. Only if there is a comment does the comment pop-up appear.
+        </div>
 
-                <div class="mt-3">
-                    <button @click="addRow(groupIndex)" type="button"
-                        class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-1 rounded text-sm font-medium">
-                        Add new row
-                    </button>
-                </div>
+        <div>
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-1 mt-4">
+                Customer Pop-up Preview:
+            </label>
+            <div id="preview-text" class="mb-3 text-gray-800 dark:text-gray-100"></div>
+            <div class="flex gap-2">
+                <span id="preview-decline" class="bg-red-600 text-white text-sm px-3 py-1 rounded font-medium"></span>
+                <span id="preview-accept" class="bg-green-600 text-white text-sm px-3 py-1 rounded font-medium"></span>
             </div>
         </div>
-    </template>
-
-    <!-- Add New Option Group -->
-    <div class="flex justify-between items-center mt-4">
-        <select class="rounded-md border border-gray-300 text-sm px-3 py-1 dark:bg-gray-900 dark:text-white">
-            <option>Select Retail Option</option>
-        </select>
-        <button @click="addGroup()" type="button"
-            class="bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded text-sm font-medium">
-            Add Retail Option
-        </button>
     </div>
 </div>
-
-
-@push('js')
-    <script>
-        function initSortable(el, groupIndex) {
-            if (!el) return;
-            Sortable.create(el, {
-                animation: 150,
-                handle: '.cursor-move',
-                onEnd: function(evt) {
-                    const group = Alpine.store('optionsStore').optionGroups[groupIndex];
-                    const [moved] = group.options.splice(evt.oldIndex, 1);
-                    group.options.splice(evt.newIndex, 0, moved);
-                }
-            });
-        }
-
-
-        function productOptions() {
-            return {
-                optionGroups: [{
-                    name: 'Boom Lift - 40\' Towable',
-                    type: 'Retail',
-                    options: [{
-                            label: 'Prepaid Fuel',
-                            price: 0,
-                            value: 'Checked',
-                            comment: ''
-                        },
-                        {
-                            label: 'Harness - Rental',
-                            price: 0,
-                            value: 'Checked',
-                            comment: ''
-                        },
-                        {
-                            label: 'Harness - Buy',
-                            price: 0,
-                            value: 'Blank',
-                            comment: ''
-                        },
-                        {
-                            label: 'Damage Waiver',
-                            price: 0,
-                            value: 'Checked',
-                            comment: ''
-                        },
-                    ]
-                }],
-                addGroup() {
-                    this.optionGroups.push({
-                        name: '',
-                        type: '',
-                        options: []
-                    });
-                },
-                removeGroup(index) {
-                    this.optionGroups.splice(index, 1);
-                },
-                addRow(groupIndex) {
-                    this.optionGroups[groupIndex].options.push({
-                        label: '',
-                        price: 0,
-                        value: 'Blank',
-                        comment: ''
-                    });
-                },
-                removeRow(groupIndex, rowIndex) {
-                    this.optionGroups[groupIndex].options.splice(rowIndex, 1);
-                },
-                toggleComment(groupIndex, rowIndex) {
-                    const current = this.optionGroups[groupIndex].options[rowIndex].comment;
-                    const input = prompt('Enter comment:', current);
-                    if (input !== null) {
-                        this.optionGroups[groupIndex].options[rowIndex].comment = input;
-                    }
-                }
-            };
-        }
-
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('optionsStore', productOptions());
-        });
-    </script>
-@endpush --}}
 
 @push('js')
     <script>
@@ -282,6 +126,99 @@
             if (init) {
                 filterChoices(init.value);
             }
+
+            const selectedIds = @json($selectedIds ?? []);
+            const container = document.getElementById('option-preview-tables');
+
+            if (selectedIds.length > 0) {
+                renderOptionPreviews(selectedIds);
+            }
+
+            async function fetchAndRenderOptionPreview(id) {
+                if (!id) return '';
+
+                const optionUrl = '{{ route('admin.product-management.products.fetch-options', ':optionId') }}'
+                    .replace(':optionId', id);
+
+                try {
+                    const response = await fetch(optionUrl);
+                    const result = await response.json();
+                    return result.html; // Make sure your controller returns 'html' key
+                } catch (error) {
+                    console.error('Error loading option preview:', error);
+                    notyf.error('Failed to load option preview');
+                    return '';
+                }
+            }
+
+            // 🔁 Reusable function to render previews
+            async function renderOptionPreviews(ids = []) {
+                container.innerHTML = '';
+
+                // Show loading
+                const loading = document.createElement('div');
+                loading.id = 'loading-indicator';
+                loading.innerHTML = '<p>Loading previews...</p>';
+                container.appendChild(loading);
+
+                for (const id of ids) {
+                    const html = await fetchAndRenderOptionPreview(id);
+                    if (!html) continue;
+                    container.insertAdjacentHTML('beforeend', html);
+                }
+
+                // Remove loading
+                document.getElementById('loading-indicator')?.remove();
+            }
+
+            // 🔁 Call it again when options are changed by user
+            selectEl.addEventListener('change', () => {
+                const changedIds = Array.from(selectEl.selectedOptions).map(opt => opt.value);
+                renderOptionPreviews(changedIds);
+            });
+
+
+            const modal = document.getElementById('comment-modal');
+            const previewText = document.getElementById('preview-text');
+            const previewAccept = document.getElementById('preview-accept');
+            const previewDecline = document.getElementById('preview-decline');
+
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.comment-btn');
+                if (!btn) return;
+
+                if (btn.disabled || btn.classList.contains('cursor-not-allowed')) return;
+
+                const modal = document.getElementById('comment-modal');
+                const previewText = document.getElementById('preview-text');
+                const previewAccept = document.getElementById('preview-accept');
+                const previewDecline = document.getElementById('preview-decline');
+
+                const comment = btn.dataset.comment || '';
+                const accept = btn.dataset.accept || 'Keep Safety Harness';
+                const decline = btn.dataset.decline || "No Thanks, I'll Take The Risk";
+
+                previewText.textContent = comment;
+                previewAccept.textContent = accept;
+                previewDecline.textContent = decline;
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+
+
+            // Optional: close modal on outside click or Esc key
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') modal.classList.add('hidden');
+            });
+            modal.addEventListener('click', e => {
+                if (e.target === modal) modal.classList.add('hidden');
+            });
+
+            document.getElementById('close-comment-modal')?.addEventListener('click', () => {
+                document.getElementById('comment-modal').classList.add('hidden');
+            });
+
         });
     </script>
 @endpush

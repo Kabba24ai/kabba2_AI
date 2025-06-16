@@ -11,22 +11,17 @@ class OptionPreview extends Component
      *
      * @var \Illuminate\Support\Collection
      */
-    public $options;
-
-
-    /** @var string  Either 'rental' or 'retail' */
-    public $productType;
+    public $objProductOption;
 
     /**
      * Create a new component instance.
      *
-     * @param  \Illuminate\Support\Collection  $options
+     * @param  \Illuminate\Support\Collection  $objProductOption
      * @return void
      */
-    public function __construct($options, $productType)
+    public function __construct($objProductOption)
     {
-        $this->options = $options;
-        $this->productType = $productType;
+        $this->objProductOption = $objProductOption;
     }
 
     /**

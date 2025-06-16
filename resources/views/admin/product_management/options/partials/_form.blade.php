@@ -52,7 +52,7 @@
     {{-- Status --}}
     <div>
         {{ html()->label('Status', 'status')->class('block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300') }}
-        {{ html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', 'Active'))->id('status')->class([
+        {{ html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $objProductOption->status ?? 'Active'))->id('status')->class([
                 'w-full rounded-lg border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white',
                 'border-red-500' => $errors->has('status'),
             ])->required() }}

@@ -39,6 +39,10 @@ class StoreController extends Controller
             $objProductCategory->save();
         }
 
+        // Sync products if provided
+        $objProductCategory->products()->sync($validatedData['products'] ?? []);
+
+
         flash('Product Category created successfully.')->success();
 
         // Determine the redirection based on the button clicked

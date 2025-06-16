@@ -42,6 +42,9 @@ class StoreRequest extends FormRequest
             'is_featured' => ['nullable', 'in:Yes,No'],
             'seo_title' => ['nullable', 'string', 'max:240'],
             'seo_description' => ['nullable', 'string', 'max:240'],
+
+            'products' => ['nullable', 'array'],
+            'products.*' => ['exists:products,id'],
         ];
     }
 

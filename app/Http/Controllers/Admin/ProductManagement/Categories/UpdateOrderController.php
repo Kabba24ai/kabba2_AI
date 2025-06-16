@@ -20,12 +20,13 @@ class UpdateOrderController extends Controller
 
     public function __invoke(Request $request)
     {
-        $user_item = Auth::user();
-        if ($request->has('items') && count($request->get('items')) > 0) {
-
-            ProductCategory::setNewOrder($request->get('items'));
-
-            flash('Product categories are sorted successfully.')->success();
+        $ids = $request->input('ids');
+        foreach ($ids as $index => $id) {
+            ProductCategory::where('id', $id)->update(['sort_order' => $index]);
         }
+        return response()->json([
+            'success' => true,
+            'message' => 'Order updated successfully.',
+        ]);
     }
 }

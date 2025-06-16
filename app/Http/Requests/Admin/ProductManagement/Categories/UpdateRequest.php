@@ -58,6 +58,9 @@ class UpdateRequest extends FormRequest
             'is_featured' => ['nullable', 'in:Yes,No'],
             'seo_title' => ['nullable', 'string', 'max:240'],
             'seo_description' => ['nullable', 'string', 'max:240'],
+
+            'products' => ['nullable', 'array'],
+            'products.*' => ['exists:products,id'],
         ];
 
         if (!is_null($this->request->get('parent_id')) && $this->request->get('parent_id') > 0) {

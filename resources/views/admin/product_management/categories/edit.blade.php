@@ -16,14 +16,14 @@
     {{-- Flash  --}}
     @include('flash::message')
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="flex flex-col 2xl:flex-row gap-4">
         {{-- Left: Category Hierarchy --}}
-        <div class="lg:col-span-1">
+        <div class="w-full 2xl:w-1/3 ">
             @include('admin.product_management.categories.partials._hierarchy')
         </div>
 
         {{-- Right: Form --}}
-        <div class="lg:col-span-2">
+        <div class="w-full 2xl:w-2/3 ">
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
                 <div class="px-6 py-6">
 

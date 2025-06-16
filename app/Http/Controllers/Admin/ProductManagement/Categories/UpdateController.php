@@ -43,6 +43,10 @@ class UpdateController extends Controller
 
         $objProductCategory->save();
 
+        // Sync products
+        $objProductCategory->products()->sync($validatedData['products'] ?? []);
+
+
         flash('Product category updated successfully.')->success();
 
         // Determine the redirection based on the button clicked

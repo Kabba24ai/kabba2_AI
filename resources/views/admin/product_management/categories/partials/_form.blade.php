@@ -71,29 +71,10 @@
 @endif
 
 {{-- Add Products Section --}}
-<div class="mb-8">
-    <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Add Products</label>
-
-    {{-- Search Bar --}}
-    <div class="flex items-center space-x-2 mb-4">
-        <input type="text" id="product-search" placeholder="Search products..."
-            class="w-1/3 md:w-1/4 rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white dark:border-gray-700">
-    </div>
-
-    {{-- Selected Products Drag & Drop --}}
-    <div id="selected-products" class="grid grid-cols-2 md:grid-cols-4 gap-4 border border-dashed p-4 rounded-lg dark:border-gray-700 min-h-[150px]">
-        @if(isset($selectedProducts) && $selectedProducts->count())
-            @foreach ($selectedProducts as $product)
-                <div class="draggable-item p-2 bg-white dark:bg-gray-800 border rounded shadow cursor-move" data-id="{{ $product->id }}">
-                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-24 object-cover rounded">
-                    <p class="text-sm mt-1 text-center text-gray-700 dark:text-gray-300">{{ $product->name }}</p>
-                </div>
-            @endforeach
-        @endif
-    </div>
-
-    <input type="hidden" name="product_order" id="product-order" value="">
+<div>
+    @include('admin.product_management.categories.partials._products')
 </div>
+{{-- Slug --}}
 
 {{-- Short Content --}}
 {{-- <div class="mb-8">

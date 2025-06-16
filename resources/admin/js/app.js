@@ -4,8 +4,10 @@ import 'parsleyjs';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Sortable from 'sortablejs';
 import IMask from 'imask';
-// import TomSelect from 'tom-select'; // ✅ Import Tom Select
+
 import Choices from 'choices.js';
+import { Notyf } from 'notyf';
+import 'notyf/notyf.min.css';
 
 // Make Alpine globally available
 Alpine.plugin(persist);
@@ -16,6 +18,15 @@ window.Choices = Choices;
 
 // Start Alpine.js
 Alpine.start();
+
+// ✅ Custom Notyf instance with top-right position
+window.notyf = new Notyf({
+    position: {
+        x: 'right',
+        y: 'top'
+    },
+    duration: 3000 // optional: auto-close time in ms
+});
 
 // Initialize scripts on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -46,11 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
             mask: '(000) 000-0000'
         });
     });
-
-    // Tom Select
-    // document.querySelectorAll('.tom-select').forEach((el) => {
-    //     new TomSelect(el);
-    // });
 
     document.querySelectorAll('.choices-select').forEach(function (el) {
         new Choices(el, {
@@ -102,3 +108,4 @@ document.addEventListener('DOMContentLoaded', () => {
         input.placeholder = "0.00";
     });
 });
+

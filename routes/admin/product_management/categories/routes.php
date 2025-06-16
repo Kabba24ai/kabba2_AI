@@ -27,9 +27,8 @@ Route::prefix('categories')
     Route::get('/{unique_id}/edit', EditController::class)->name('edit');
     Route::put('/{unique_id}/edit', UpdateController::class);
 
-    // Reorder
-    Route::get('/reorder', ReorderController::class)->name('reorder');
-    Route::post('/reorder', UpdateOrderController::class);
+    // Sort Order
+    Route::post('/sort-order', UpdateOrderController::class)->name('sort-order');
 
     // Delete
     Route::delete('/{unique_id}', DeleteController::class)->name('delete');

@@ -18,10 +18,16 @@ class CreateController extends Controller
      */
     public function __invoke(?int $categoryId = null)
     {
+        $categories = ProductCategory::whereNull('parent_id')->orderByAdmin()->pluck('title', 'id');
 
-        $categories = ProductCategory::whereNull('parent_id')->order()->pluck('title', 'id');
-
-        $category_tree = ProductCategory::with('childCategories')->whereNull('parent_id')->get();
+        $category_tree = ProductCategory::with([
+            'childCategories' => function ($q) {
+                $q->sortOrder();
+            },
+        ])
+            ->whereNull('parent_id')
+            ->sortOrder()
+            ->get();
 
         return view('admin.product_management.categories.create', [
             'categories' => $categories,

@@ -60,7 +60,7 @@ class ProductCategory extends Model
     }
 
     // Scopes
-    public function scopeOrder($query)
+    public function scopeSortOrder($query)
     {
         return $query->orderBy('sort_order', 'ASC');
     }
@@ -112,4 +112,10 @@ class ProductCategory extends Model
             }
         });
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, ProductCategoryChild::class)->withTimestamps();
+    }
+
 }

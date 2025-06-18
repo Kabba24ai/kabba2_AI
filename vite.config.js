@@ -16,17 +16,17 @@ export default defineConfig(() => {
             hmr: {
                 host: hmrHost,
             },
-            fs: {
-                strict: false,
-                allow: [".."],
-            },
+            // fs: {
+            //     strict: false,
+            //     allow: [".."],
+            // },
         },
         build: {
-            sourcemap: false,
+            sourcemap: false, // no source maps in production
             minify: "terser",
             terserOptions: {
                 compress: {
-                    drop_console: false,
+                    drop_console: false, // change to true to remove console.logs
                     drop_debugger: true,
                 },
                 format: {
@@ -35,7 +35,7 @@ export default defineConfig(() => {
             },
         },
         css: {
-            devSourcemap: false,
+            devSourcemap: false, // no CSS maps in dev
         },
         optimizeDeps: {
             exclude: [
@@ -45,7 +45,7 @@ export default defineConfig(() => {
             ],
             include: [],
         },
-        logLevel: "warn",
+        //logLevel: "info",
         plugins: [
             tailwindcss(),
             laravel({

@@ -17,6 +17,7 @@
         "rajchotaliya/load-migrations": "^1.2",
         "rap2hpoutre/fast-excel": "^5.6",
         "saasscaleup/laravel-log-alarm": "^1.0",
+        "spatie/eloquent-sortable": "^4.5",
         "spatie/laravel-html": "^3.12",
         "spatie/laravel-permission": "^6.18",
         "stevebauman/purify": "^6.3",

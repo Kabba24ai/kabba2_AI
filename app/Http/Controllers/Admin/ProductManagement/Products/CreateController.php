@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\ProductManagement\Products;
 
+use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
 use App\Models\ProductManagement\Product;
 use Illuminate\Http\Request;
@@ -23,10 +24,11 @@ class CreateController extends Controller
     {
         $categoryTree = ProductCategory::with('childCategories')->whereNull('parent_id')->orderByAdmin()->get();
         $funnels = collect(); // Empty Collection
-        $terms = Terms::orderByTitle()->published()->pluck('title', 'id');
+        $terms = Terms::product()->orderByTitle()->published()->pluck('title', 'id');
         $terms->prepend('Select a term...', '');
         $productOptions = ProductOption::orderBy('name')->get();
         $products = Product::published()->orderBy('product_name')->get();
+        $productSettings = ConfigurationHelper::getSettings('Product Settings');
 
         return view('admin.product_management.products.create', [
             'categoryTree' => $categoryTree,
@@ -34,6 +36,7 @@ class CreateController extends Controller
             'terms' => $terms,
             'productOptions' => $productOptions,
             'products' => $products,
+            'productSettings' => $productSettings,
         ]);
     }
 }

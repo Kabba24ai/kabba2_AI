@@ -288,27 +288,29 @@
                 </div>
                 <span
                     class="mt-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                    Mi 15
+                    Mi {{ $productSettings['standard_delivery_fee'] ?? 0 }}
                 </span>
             </div>
 
-            <!-- Extended Delivery Fee -->
-            <div class="flex flex-col items-center">
-                <label class="block w-full text-sm font-medium text-transparent mb-1 select-none">-</label>
-                <div class="flex items-center gap-1 w-full">
-                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
-                    {!! html()->text('extended_delivery_fee')->attributes([
-                            'placeholder' => '0',
-                            'data-digit-input' => 'true',
-                            'class' =>
-                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                        ]) !!}
+            @if ($productSettings['include_extended_range'] ?? false)
+                <!-- Extended Delivery Fee -->
+                <div class="flex flex-col items-center">
+                    <label class="block w-full text-sm font-medium text-transparent mb-1 select-none">-</label>
+                    <div class="flex items-center gap-1 w-full">
+                        <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                        {!! html()->text('extended_delivery_fee')->attributes([
+                                'placeholder' => '0',
+                                'data-digit-input' => 'true',
+                                'class' =>
+                                    'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                            ]) !!}
+                    </div>
+                    <span
+                        class="mt-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
+                        Mi {{ $productSettings['extended_delivery_range'] ?? 0 }}
+                    </span>
                 </div>
-                <span
-                    class="mt-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                    Mi 30
-                </span>
-            </div>
+            @endif
         </div>
 
         <!-- Spacer -->
@@ -357,7 +359,7 @@
             </div>
 
             <!-- Update Link -->
-            <a href="#" class="text-sm text-blue-500 hover:underline font-medium ml-auto">
+            <a href="{{ route('admin.configurations.index') }}" target="_blank" class="text-sm text-blue-500 hover:underline font-medium ml-auto">
                 Update Settings
             </a>
         </div>

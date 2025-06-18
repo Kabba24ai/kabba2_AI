@@ -1,8 +1,15 @@
 <div>
     <div class="mb-6 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
         <!-- Header with Option Name -->
-        <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">
-            {{ $objProductOption->name ?? 'Option Preview' }}
+        <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-3 flex items-center space-x-2">
+            <span class="leading-none">
+                {{ $objProductOption->name ?? 'Option Preview' }}
+            </span>
+            <a href="{{ route('admin.product-management.options.edit', $objProductOption->unique_id ?? null) }}"
+                target="_blank" class="text-blue-600 hover:text-blue-800 dark:hover:text-blue-400 flex items-center"
+                title="Edit Option">
+                <x-heroicon-o-pencil class="w-5 h-5" />
+            </a>
         </h4>
 
         <div class="overflow-x-auto">

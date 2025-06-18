@@ -39,8 +39,8 @@ class UpdateRequest extends FormRequest
             'is_general_term_type' => ['nullable', 'boolean'],
             'is_custom_term_type' => ['nullable', 'boolean'],
 
-            'terms' => ['nullable', 'array'],
-            'terms.*' => ['string'],
+            'terms' => ['required_if:is_custom_term_type,1', 'array'],
+            'terms.*' => ['exists:terms_and_conditions,id'],
 
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:1000'],
@@ -107,6 +107,15 @@ class UpdateRequest extends FormRequest
 
             'related_products' => ['nullable', 'array'],
             'related_products.*' => ['exists:products,id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'terms.required_if' => 'You must select at least one term when using custom terms.',
+            'terms.array' => 'The terms must be a valid list.',
+            'terms.*.exists' => 'Please select valid terms.',
         ];
     }
 }

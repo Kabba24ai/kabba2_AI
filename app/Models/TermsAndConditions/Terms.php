@@ -48,7 +48,15 @@ class Terms extends Model
         return $query->orderBy('title', 'ASC');
     }
 
+    public function scopeGlobal($query)
+    {
+        return $query->where('is_global', 'Yes');
+    }
 
+    public function scopeProduct($query)
+    {
+        return $query->where('is_global', 'No');
+    }
 
     public function scopePublished($query)
     {

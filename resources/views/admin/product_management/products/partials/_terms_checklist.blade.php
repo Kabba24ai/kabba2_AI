@@ -28,7 +28,7 @@
         <div x-show="showTermSelect" x-transition>
             {!! html()->select('terms[]', $terms, old('terms', $selectedTerms ?? []))->class(
                     'choices-select mt-2 w-full rounded border-gray-300 text-sm dark:bg-gray-900 dark:text-white dark:border-gray-700',
-                )->attribute('id', 'terms')->multiple()->attributes($terms->isEmpty() ? ['disabled' => true] : []) !!}
+                )->attribute('id', 'terms')->attributes($terms->isEmpty() ? ['disabled' => true] : []) !!}
         </div>
     </div>
 

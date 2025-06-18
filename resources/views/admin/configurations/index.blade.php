@@ -73,15 +73,19 @@
                                                             ->id("setting_{$setting->id}");
                                                         break;
                                                     case 'options':
-                                                        $options = is_array($setting->setting_options)
+                                                        $rawOptions = is_array($setting->setting_options)
                                                             ? $setting->setting_options
                                                             : json_decode($setting->setting_options, true) ?? [];
+
+                                                        $options = array_combine($rawOptions, $rawOptions);
+
                                                         $input = html()
                                                             ->select("settings[{$setting->id}]", $options, $inputValue)
                                                             ->class($inputClasses)
                                                             ->id("setting_{$setting->id}")
                                                             ->placeholder('Select');
                                                         break;
+
                                                     case 'email':
                                                         $input = html()
                                                             ->email("settings[{$setting->id}]")

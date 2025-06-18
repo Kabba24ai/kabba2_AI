@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\ProductManagement\Products;
 
+use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\View\View;
 
@@ -26,10 +27,10 @@ class EditController extends Controller
             ->firstOrFail();
         $categoryTree = ProductCategory::with('childCategories')->whereNull('parent_id')->orderByAdmin()->get();
         $funnels = collect(); // Empty Collection
-        $terms = Terms::orderByTitle()->published()->pluck('title', 'id');
+        $terms = Terms::product()->orderByTitle()->published()->pluck('title', 'id');
         $terms->prepend('Select a term...', '');
         $productOptions = ProductOption::orderBy('name')->get();
-
+        $productSettings = ConfigurationHelper::getSettings('Product Settings');
 
         return view('admin.product_management.products.edit', [
             'objProduct' => $objProduct,
@@ -37,6 +38,7 @@ class EditController extends Controller
             'funnels' => $funnels,
             'terms' => $terms,
             'productOptions' => $productOptions,
+            'productSettings' => $productSettings,
         ]);
     }
 }

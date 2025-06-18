@@ -9,9 +9,6 @@ use App\Http\Controllers\Front\FrontendController;
 
 
 
-Route::get('/', function () {
-    return view('admin.auth.login.index');
-});
 
 
 // Frontend Routes
@@ -22,7 +19,7 @@ Route::get('/category-listing/{slug}', [FrontendController::class, 'category_lis
 Route::get('/category-child-listing/{slug}', [FrontendController::class, 'category_child_listing'])->name('front.category-child.listing');
 Route::get('/product-details/{slug}', [FrontendController::class, 'product_details'])->name('front.product.details');
 
-// login 
+// login
 
 Route::get('/login', [FrontendController::class, 'login'])->name('front.login');
 

@@ -24,20 +24,21 @@
     </div>
 
     <div>
-        <label for="status" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Status</label>
-        {{ html()->select('status', ['Published' => 'Published', 'Draft' => 'Draft', 'Pending' => 'Pending'], old('status', $terms->status ?? 'Published'))
-            ->class([
+        <label for="status"
+            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Status</label>
+        {{ html()->select(
+                'status',
+                ['Published' => 'Published', 'Draft' => 'Draft', 'Pending' => 'Pending'],
+                old('status', $terms->status ?? 'Published'),
+            )->class([
                 'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
-                'border-red-500' => $errors->has('status')
-            ])
-            ->required()
-            ->placeholder('Please Select')
-        }}
+                'border-red-500' => $errors->has('status'),
+            ])->required()->placeholder('Please Select') }}
         @error('status')
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
-    
+
     <!-- Inline Radio Buttons -->
     <div x-data x-init="$store.termForm.selectedType = '{{ old('is_global', $terms->is_global ?? 'No') }}'">
         <!-- Term Type -->
@@ -87,9 +88,17 @@
     </div>
 </div>
 
+@if (isset($terms) && $terms->is_global == 'No')
+    <button type="button" id="insert-shortcode-btn"
+        class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
+        Add Customer Initials
+    </button>
+@endif
+
 {{-- Content --}}
 <div class="mb-8">
-    <label for="content" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Description</label>
+    <label for="content"
+        class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Description</label>
     {{ html()->textarea('content', $terms->content ?? null)->class(
             'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
         )->attributes([
@@ -104,7 +113,8 @@
 
 {{-- Signature --}}
 <div class="mb-8">
-    <label for="signature_block" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Signature Block</label>
+    <label for="signature_block"
+        class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Signature Block</label>
     {{ html()->textarea('signature_block', $terms->signature_block ?? null)->class(
             'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
         )->attributes([
@@ -185,6 +195,23 @@
                     }
                 }
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const insertBtn = document.getElementById('insert-shortcode-btn');
+            if (insertBtn) {
+                insertBtn.addEventListener('click', () => {
+                    const editor = window.editors['content-editor'];
+                    if (editor) {
+                        const viewFragment = editor.data.processor.toView(
+                            '[customer_initials][/customer_initials]');
+                        const modelFragment = editor.data.toModel(viewFragment);
+                        editor.model.insertContent(modelFragment);
+                    } else {
+                        console.warn('Editor not ready.');
+                    }
+                });
+            }
         });
     </script>
 @endpush

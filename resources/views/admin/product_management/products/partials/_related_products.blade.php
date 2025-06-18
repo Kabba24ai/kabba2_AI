@@ -45,7 +45,7 @@
     <div>
         <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
             Selected products:
-            <span class="italic text-xs text-gray-500">Click and Drag to Reorder Products</span>
+            {{-- <span class="italic text-xs text-gray-500">Click and Drag to Reorder Products</span> --}}
         </label>
         <ul id="rp-selected" class="flex flex-wrap gap-4"></ul>
     </div>

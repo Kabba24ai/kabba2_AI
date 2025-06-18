@@ -11,19 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         then: function () {
-            Route::middleware('web')
-                ->domain(config('app.domains.front'))
-                ->group(base_path('routes/front/routes.php'));
+            Route::domain(config('app.domains.front'))->group(base_path('routes/front/routes.php'));
 
-            Route::middleware('web')
-                ->domain(config('app.domains.admin'))
-                ->group(base_path('routes/admin/routes.php'));
+            Route::middleware('web')->domain(config('app.domains.admin'))->group(base_path('routes/admin/routes.php'));
 
             // Route::middleware(['api'])
             //     ->prefix('api')
             //     ->domain(config('app.domains.api'))
             //     ->group(base_path('routes/api/routes.php'));
-
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -31,13 +26,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'prevent-back-history' => \App\Http\Middleware\PreventBackHistoryMiddleware::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn () => route('admin.auth.login'));
-
+        $middleware->redirectGuestsTo(function () {
+            return request()->getHost() === config('app.domains.front')
+                ? route('front.auth.login') // Your frontend login
+                : route('admin.auth.login'); // Admin login
+        });
 
         // This 👇
-        $middleware->api(prepend: [
-            \App\Http\Middleware\ForceJsonResponseMiddleware::class
-        ]);
+        $middleware->api(prepend: [\App\Http\Middleware\ForceJsonResponseMiddleware::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

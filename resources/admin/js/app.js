@@ -28,27 +28,35 @@ window.notyf = new Notyf({
     duration: 3000 // optional: auto-close time in ms
 });
 
+const ckeditorElements = document.querySelectorAll('.ckeditor');
+window.editors = {}; // store instances globally
+
+ckeditorElements.forEach((el) => {
+    const id = el.getAttribute('id');
+    ClassicEditor.create(el, {
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'underline', 'link', 'bulletedList', 'numberedList', '|',
+                'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo', 'sourceEditing'
+            ]
+        },
+        table: {
+            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+        },
+        removePlugins: ['CKBox', 'CKFinder']
+    }).then(editor => {
+        if (id) {
+            window.editors[id] = editor;
+        }
+    }).catch(error => {
+        console.error('CKEditor init failed:', error);
+    });
+});
+
+
 // Initialize scripts on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-    // CKEditor
-    const editors = document.querySelectorAll('.ckeditor');
-    editors.forEach((el) => {
-        ClassicEditor.create(el, {
-            toolbar: {
-                items: [
-                    'heading', '|',
-                    'bold', 'italic', 'underline', 'link', 'bulletedList', 'numberedList', '|',
-                    'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo', 'sourceEditing'
-                ]
-            },
-            table: {
-                contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
-            },
-            removePlugins: ['CKBox', 'CKFinder']
-        }).catch(error => {
-            console.error(error);
-        });
-    });
 
     // Input masking
     const phoneInputs = document.querySelectorAll('.masked-phone');

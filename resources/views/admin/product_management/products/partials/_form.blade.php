@@ -308,7 +308,7 @@
 </div>
 
 <!-- Product Options Placeholder -->
-@includeIf('admin.product_management.products.partials._options', ['options' => $productOptions ?? []])
+@include('admin.product_management.products.partials._options', ['options' => $productOptions ?? []])
 
 <div>
     @include('admin.product_management.products.partials._related_products', [

@@ -55,8 +55,8 @@ class SettingSeeder extends Seeder
                     'value_type' => 'options',
                     'setting_name' => 'distance_unit',
                     'setting_title' => 'Distance Unit',
-                    'setting_options' => json_encode(['miles', 'kilometers']),
-                    'default_value' => 'miles',
+                    'setting_options' => json_encode(['Miles', 'Kilometers']),
+                    'default_value' => 'Miles',
                 ],
                 // --- New settings below ---
                 [
@@ -149,7 +149,7 @@ class SettingSeeder extends Seeder
     public function run()
     {
         // Read the --update-existing flag (defaults to false)
-        $updateExisting = false;
+        $updateExisting = true;
 
         foreach ($this->settings as $setting_type => $settings) {
             if (empty($settings) || !is_array($settings)) {

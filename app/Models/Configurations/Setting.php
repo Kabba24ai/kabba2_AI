@@ -64,10 +64,6 @@ class Setting extends Model
     }
 
     public function getSetting(){
-        if($this->value_type == 'value'){
-            return $this->setting_value ?? '';
-        }else{
-            return $this->setting_content ?? '';
-        }
+        return $this->setting_value;
     }
 }

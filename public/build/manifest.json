@@ -1,11 +1,11 @@
 {
   "resources/admin/css/app.css": {
-    "file": "assets/app-CDZE6tnL.css",
+    "file": "assets/app-C1nrGsn8.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-6X6Duqb7.js",
+    "file": "assets/app-C6jhzhe8.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
@@ -14,12 +14,95 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-BIeKIHmp.css",
+    "file": "assets/app-CUTJYfOX.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
+  "resources/front/assets/css/all.css": {
+    "file": "assets/all-D8LKBebk.css",
+    "src": "resources/front/assets/css/all.css",
+    "isEntry": true
+  },
+  "resources/front/assets/css/style.css": {
+    "file": "assets/style-PBXC_S1c.css",
+    "src": "resources/front/assets/css/style.css",
+    "isEntry": true
+  },
+  "resources/front/assets/css/swiper-bundle.min.css": {
+    "file": "assets/swiper-bundle-DrFcrWHL.css",
+    "src": "resources/front/assets/css/swiper-bundle.min.css",
+    "isEntry": true
+  },
+  "resources/front/assets/js/custom.js": {
+    "file": "assets/custom-C1jPT1ZK.js",
+    "name": "custom",
+    "src": "resources/front/assets/js/custom.js",
+    "isEntry": true
+  },
+  "resources/front/assets/js/flowbite.min.js": {
+    "file": "assets/flowbite.min-CTaACSkT.js",
+    "name": "flowbite.min",
+    "src": "resources/front/assets/js/flowbite.min.js",
+    "isEntry": true
+  },
+  "resources/front/assets/js/jquery-3.6.0.min.js": {
+    "file": "assets/jquery-3.6.0.min-DmDRXkoK.js",
+    "name": "jquery-3.6.0.min",
+    "src": "resources/front/assets/js/jquery-3.6.0.min.js",
+    "isEntry": true
+  },
+  "resources/front/assets/js/signature_pad.umd.min.js": {
+    "file": "assets/signature_pad.umd.min-CkLwWYoX.js",
+    "name": "signature_pad.umd.min",
+    "src": "resources/front/assets/js/signature_pad.umd.min.js",
+    "isEntry": true
+  },
+  "resources/front/assets/js/swiper-bundle.min.js": {
+    "file": "assets/swiper-bundle.min-CHBnzpkq.js",
+    "name": "swiper-bundle.min",
+    "src": "resources/front/assets/js/swiper-bundle.min.js",
+    "isEntry": true
+  },
+  "resources/front/assets/js/tailwind-browser.js": {
+    "file": "assets/tailwind-browser-CJvqUxzn.js",
+    "name": "tailwind-browser",
+    "src": "resources/front/assets/js/tailwind-browser.js",
+    "isEntry": true
+  },
+  "resources/front/assets/webfonts/fa-brands-400.ttf": {
+    "file": "assets/fa-brands-400-Dh9Nz-AR.ttf",
+    "src": "resources/front/assets/webfonts/fa-brands-400.ttf"
+  },
+  "resources/front/assets/webfonts/fa-brands-400.woff2": {
+    "file": "assets/fa-brands-400-B0G11Utd.woff2",
+    "src": "resources/front/assets/webfonts/fa-brands-400.woff2"
+  },
+  "resources/front/assets/webfonts/fa-regular-400.ttf": {
+    "file": "assets/fa-regular-400-BHXLjBeH.ttf",
+    "src": "resources/front/assets/webfonts/fa-regular-400.ttf"
+  },
+  "resources/front/assets/webfonts/fa-regular-400.woff2": {
+    "file": "assets/fa-regular-400-B0w-yroU.woff2",
+    "src": "resources/front/assets/webfonts/fa-regular-400.woff2"
+  },
+  "resources/front/assets/webfonts/fa-solid-900.ttf": {
+    "file": "assets/fa-solid-900-BLLQy4Ml.ttf",
+    "src": "resources/front/assets/webfonts/fa-solid-900.ttf"
+  },
+  "resources/front/assets/webfonts/fa-solid-900.woff2": {
+    "file": "assets/fa-solid-900-DPO7AZHW.woff2",
+    "src": "resources/front/assets/webfonts/fa-solid-900.woff2"
+  },
+  "resources/front/assets/webfonts/fa-v4compatibility.ttf": {
+    "file": "assets/fa-v4compatibility-CzA-yRXe.ttf",
+    "src": "resources/front/assets/webfonts/fa-v4compatibility.ttf"
+  },
+  "resources/front/assets/webfonts/fa-v4compatibility.woff2": {
+    "file": "assets/fa-v4compatibility-QamTF9-e.woff2",
+    "src": "resources/front/assets/webfonts/fa-v4compatibility.woff2"
+  },
   "resources/js/app.js": {
-    "file": "assets/app-T1DpEqax.js",
+    "file": "assets/app-43T2tYNv.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

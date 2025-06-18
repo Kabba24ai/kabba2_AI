@@ -39,56 +39,32 @@
         @enderror
     </div>
 
-    <!-- Inline Radio Buttons -->
+    <!-- Inline Label Display -->
     <div x-data x-init="$store.termForm.selectedType = '{{ old('is_global', $terms->is_global ?? 'No') }}'">
-        <!-- Term Type -->
         <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">
-            Is Global?
+            Term Type
         </label>
 
-        <div class="flex flex-wrap items-center gap-4 mb-6">
-            <!-- Is Global No Configuration -->
-            <label
-                :class="$store.termForm.selectedType === 'No' ?
-                    'text-gray-700 dark:text-gray-200' :
-                    'text-gray-500 dark:text-gray-400'"
-                class="relative inline-flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                <input type="radio" name="is_global" value="No" x-model="$store.termForm.selectedType"
-                    id="no" class="sr-only" disabled="disabled">
+        <div class="mb-4 text-sm font-medium text-gray-700 dark:text-gray-200">
+            <template x-if="$store.termForm.selectedType === 'Yes'">
                 <span
-                    :class="$store.termForm.selectedType === 'No' ?
-                        'border-brand-500 bg-brand-500' :
-                        'bg-transparent border-gray-300 dark:border-gray-700'"
-                    class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px]">
-                    <span :class="$store.termForm.selectedType === 'No' ? 'block' : 'hidden'"
-                        class="w-2 h-2 bg-white rounded-full"></span>
+                    class="inline-flex items-center px-3 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
+                    Global
                 </span>
-                No
-            </label>
-
-            <!-- Is global Yes Configuration -->
-            <label
-                :class="$store.termForm.selectedType === 'Yes' ?
-                    'text-gray-700 dark:text-gray-200' :
-                    'text-gray-500 dark:text-gray-400'"
-                class="relative inline-flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                <input type="radio" name="type" value="Yes" x-model="$store.termForm.selectedType"
-                    id="yes" class="sr-only" disabled="disabled">
+            </template>
+            <template x-if="$store.termForm.selectedType !== 'Yes'">
                 <span
-                    :class="$store.termForm.selectedType === 'Yes' ?
-                        'border-brand-500 bg-brand-500' :
-                        'bg-transparent border-gray-300 dark:border-gray-700'"
-                    class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px]">
-                    <span :class="$store.termForm.selectedType === 'Yes' ? 'block' : 'hidden'"
-                        class="w-2 h-2 bg-white rounded-full"></span>
+                    class="inline-flex items-center px-3 py-1 rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-400 dark:text-yellow-100">
+                    Product
                 </span>
-                Yes
-            </label>
+            </template>
         </div>
+        <input type="hidden" name="is_global" x-model="$store.termForm.selectedType">
     </div>
+
 </div>
 
-@if (isset($terms) && $terms->is_global == 'No')
+@if (!isset($terms) || $terms->is_global != 'Yes')
     <button type="button" id="insert-shortcode-btn"
         class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
         Add Customer Initials

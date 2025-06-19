@@ -6,15 +6,6 @@
 
 @section('main')
 
-
-
-<section class="rent">
-    <div class="rent-bg">
-      <div class="rent-bg-inner">
-        <div></div>
-      </div>
-    </div>
-  </section>
     <!-- Page Title Section -->
     <section
         class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc]">
@@ -24,12 +15,12 @@
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-[40px] tracking-[-2px] leading-[110%] font-bold">{{$category->title}}</h1>
                         <ul
-                            class="bg-yellow-400 px-[20px] py-1 max-w-full mt-4 lg:mt-0 text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
+                        class="bg-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('index') }}" class="opacity-25">Home</a>
                             </li>
                             <li>
-                                <a href="{{ route('front.category.listing', $category->title) }}">{{$category->title}}</a>
+                                <a href="javascript:void(0)"  class="cursor-not-allowed" >{{$category->title}}</a>
                             </li>
                         </ul>
                     </div>
@@ -39,7 +30,12 @@
     </section>
     
     <!-- Categories Listing -->
-    <section class="pb-[60px]">
+    <section class="pb-[60px] relative overflow-hidden">
+    <div class="rent-bg">
+            <div class="rent-bg-inner">
+                <div></div>
+            </div>
+        </div>
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
@@ -50,9 +46,9 @@
                     <a href="{{ route('front.product.details',$Product->slug) }}"
                         class="text-[#231E41] transition-all duration-300 ease-in-out hover:text-[#000]">
                         <div class="lg:h-80 w-full group relative">
-                            <img src="{{ Storage::url('media/public_assets/' . $Product->media->folder_name . '/' . $Product->media->file_name) }}" alt="{{$Product->product_name}}"
+                            <img src="{{ $Product->image_url }}" alt="{{$Product->product_name}}"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:opacity-0 transition-opacity duration-1000 ease-in-out" />
-                            <img src="{{ Storage::url('media/public_assets/' . $Product->media->folder_name . '/' . $Product->media->file_name) }}" alt="{{$Product->product_name}}"
+                            <img src="{{ $Product->image_url }}" alt="{{$Product->product_name}}"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-0 absolute top-0 group-hover:opacity-100 transition-opacity duration-1000 ease-in-out" />
                         </div>
 

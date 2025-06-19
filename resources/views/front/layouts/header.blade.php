@@ -37,7 +37,7 @@
                         <li class="px-[18px] group">
                             <a href="javascript:void(0)"
                                 class="hover:text-yellow-400 text-[14px] transition-all duration-300 ease-in-out">Equipment Rentals</a>
-                            <ul class=" absolute min-w-[120px] pt-[25px] pb-[20px] top-[68px] right-[15px] border-[1px] translate-y-[10px] bg-[#222] border-[#222] bg-opacity-90  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-10 grid grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-y-4 gap-x[0.5rem] before:content-[''] before:h-[30px] before:absolute before:top-[-30px] before:w-full ">
+                            <ul class=" absolute min-w-[120px] pt-[25px] pb-[20px] top-[60px] right-[15px] border-[1px] translate-y-[10px] bg-[#222] border-[#222] bg-opacity-90  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-10 grid grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-y-4 gap-x[0.5rem] before:content-[''] before:h-[30px] before:absolute before:top-[-30px] before:w-full ">
 
                                 @foreach (\App\Helpers\CustomHelper::categoryTree() as $category)
                                 <li class="{{ $category->childCategories->isNotEmpty() ? 'group/item relative' : 'flex w-full whitespace-nowrap' }}">
@@ -45,7 +45,7 @@
                                         {{ $category->title }}
                                     </a>
                                     @if ($category->childCategories->isNotEmpty())
-                                    <ul class="absolute w-auto min-w-[120px] pt-[15px] pb-[0px] top-[20px] border-[1px] translate-y-[10px] bg-black bg-opacity-90 opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-300 ease-in-out z-10 grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-4">
+                                    <ul class="absolute w-auto min-w-[120px] pt-[15px] pb-[0px] top-[10px] border-[1px] translate-y-[10px] bg-black bg-opacity-90 opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-300 ease-in-out z-10 grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-4">
                                         @foreach ($category->childCategories as $child)
                                         <li class="flex w-full whitespace-nowrap">
                                             <a href="{{ route('front.category-child.listing',$child->slug ) }}" class="hover:text-yellow-400 px-[18px] text-[14px] transition-all duration-300 ease-in-out">
@@ -158,7 +158,6 @@
                             </div>
                             <div class="flex gap-8">
                                 <div>
-
                                     <img src="{{ asset('storage/front/images/product-detail/skid-steer-daily.png') }}" alt="image" class="w-16">
                                 </div>
                                 <div>
@@ -208,7 +207,7 @@
                                 </div>
                             </div>
                             <button class="border-0 font-bold bg-yellow-400 text-[14px] w-full px-6 h-[55px] mt-4 hover:bg-yellow-300  transition-all duration-500 ease-in-out">
-                                <a href="customer-account.php">CHECKOUT</a>
+                                <a href="{{ route('front.customer.account') }}">CHECKOUT</a>
                             </button>
                         </div>
                     </div>

@@ -38,7 +38,7 @@
                                     Login
                                 </button>
                             </div>
-                            <p class="text-center text-sm mt-4">Don't have an account? <a href="register.php" class="text-blue-600">Sign up</a></p>
+                            <p class="text-center text-sm mt-4">Don't have an account? <a href="{{ route('front.Register') }}" class="text-blue-600">Sign up</a></p>
                         </form>
                     </div>
                 </main>

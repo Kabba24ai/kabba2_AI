@@ -39,5 +39,7 @@ Route::name('admin.')->group(function ($router) {
         // Configurations
         require base_path('routes/admin/configurations/routes.php');
 
+        // Maintenance Management
+        require base_path('routes/admin/maintenance_management/routes.php');
     });
 });

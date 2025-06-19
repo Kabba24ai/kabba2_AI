@@ -11,8 +11,8 @@
 <section id="banner" class="pb-[60px] md:pt-[68px] pt-[79px] lg:pt-[79px] transform transition-all duration-300 ease-in-out">
     <div class="max-w-full mx-auto px-0">
         <div class="flex flex-col items-center ">
-            <img src="{{ asset('storage/front/images/banner.jpg') }}" class="w-[100%] lg:w-full h-[430px] object-cover object-bottom ml-auto" alt="Equipment 1">
-            <h1 class="text-[30px] md:text-[26px] lg:text-[30px] mt-[20px] mx-[30px] text-center md:text-left ">Call For Live Assistance from a Real Person: <a href="contact.php">(615) 815-6734</a> </h1>
+        <img src="{{ asset('storage/front/images/banner.jpg') }}" class="w-[100%] lg:w-full h-[180px] lg:h-[500px] 2xl:h-[730px] object-cover object-top ml-auto" alt="Equipment 1">
+        <h1 class="text-[30px] md:text-[26px] lg:text-[30px] mt-[20px] mx-[30px] text-center md:text-left ">Call For Live Assistance from a Real Person: <a href="contact.php">(615) 815-6734</a> </h1>
         </div>
     </div>
 </section>
@@ -28,9 +28,9 @@
             <div class="border py-[20px] lg:py-[16px] lg:px-[16px] rounded-lg text-center shadow-[0_2px_5px_rgba(0,0,0,0.05)] transition-transform duration-300 hover:translate-y-[-5px]">
                 <a href="{{ route('front.category.listing',$category->slug) }}" class="text-[#231E41] transition-all duration-300 ease-in-out hover:text-[#000]">
                     <div class="w-full">
-                        <img src="{{ Storage::url('media/public_assets/' . $category->media->folder_name . '/' . $category->media->file_name) }}" alt="Skid Steer"
-                            class="mx-auto lg:w-full w-[90%] object-contain rounded-[5px] object-cover h-[180px] " />
-                    </div>
+                        <img src="{{ $category->media?->url }}" alt="Skid Steer"
+                        class="mx-auto lg:w-full w-[90%] object-contain rounded-[5px] object-cover h-[auto]" />
+                        </div>
                     <div>
                         <h3 class="mt-4 font-bold text-[15px] text-[#231E41] transition-all duration-300 ease-in-out hover:text-[#000] underline">{{$category->title}}</h3>
                     </div>

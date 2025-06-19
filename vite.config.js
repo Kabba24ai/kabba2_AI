@@ -50,19 +50,33 @@ export default defineConfig(() => {
             tailwindcss(),
             laravel({
                 input: [
+                    // Default
                     'resources/css/app.css',
                     'resources/js/app.js',
+
+                    // Admin
                     'resources/admin/css/app.css',
                     'resources/admin/js/app.js',
+
+                    // Admin entry points
+                    'resources/admin/css/app.css',
+                    'resources/admin/js/app.js',
+
+
+                    // Front entry points
                     "resources/front/assets/css/all.css",
                     "resources/front/assets/css/swiper-bundle.min.css",
-                    "resources/front/assets/js/tailwind-browser.js",
                     "resources/front/assets/css/style.css",
+                    "resources/front/assets/js/tailwind-browser.js",
                     "resources/front/assets/js/jquery-3.6.0.min.js",
                     "resources/front/assets/js/flowbite.min.js",
                     "resources/front/assets/js/swiper-bundle.min.js",
                     "resources/front/assets/js/signature_pad.umd.min.js",
                     "resources/front/assets/js/custom.js",
+
+                    // If you have global/shared assets, list here
+                    // 'resources/shared/css/shared.css',
+                    // 'resources/shared/js/shared.js',
                 ],
                 refresh: true,
             }),

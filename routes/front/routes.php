@@ -9,17 +9,41 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-        // Public routes (e.g., login, register)
+Route::name('front.')->group(function () {
+
+    // Home
+    require base_path('routes/front/home/routes.php');
+
+    // Categories
+    require base_path('routes/front/categories/routes.php');
+
+    // Products
+    require base_path('routes/front/products/routes.php');
+
+    // Faqs
+    require base_path('routes/front/faqs/routes.php');
+
+    // Contact us
+    require base_path('routes/front/contact_us/routes.php');
+
+    // Privacy policy
+    require base_path('routes/front/privacy_policy/routes.php');
+
+    // Terms and Conditions
+    require base_path('routes/front/terms_and_conditions/routes.php');
+
+    Route::prefix('customer')
+        ->group(function ($router) {
+
+        // Auth
         require base_path('routes/front/auth/routes.php');
 
-        // Pages (e.g., home, about, contact)
-        require base_path('routes/front/pages/routes.php');
+        // Customer
+        require base_path('routes/front/customer/routes.php');
+    });
 
-        // Product Management
-        require base_path('routes/front/product_management/category/routes.php');
-        require base_path('routes/front/product_management/order/routes.php');
-        require base_path('routes/front/product_management/product/routes.php');
+    // Pages (e.g., home, about, contact)
+    // require base_path('routes/front/pages/routes.php');
 
-        // Terms and Conditions
-        require base_path('routes/front/terms_and_conditions/routes.php');
-  
+});
+

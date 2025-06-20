@@ -307,7 +307,6 @@
 @endsection
 
 @push('js')
-
 <script>
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -447,4 +446,4 @@
         }
     });
 </script>
-@endsection
+@endpush

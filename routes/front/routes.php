@@ -32,6 +32,9 @@ Route::name('front.')->group(function () {
     // Terms and Conditions
     require base_path('routes/front/terms_and_conditions/routes.php');
 
+    // Checkout
+    require base_path('routes/front/checkout/routes.php');
+
     Route::prefix('customer')
         ->group(function ($router) {
 

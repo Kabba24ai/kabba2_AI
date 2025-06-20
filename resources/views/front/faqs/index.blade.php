@@ -183,7 +183,8 @@
                             <div class="py-5 border-b border-gray-200 dark:border-gray-700">
                                 <p class="mb-3 text-gray-500 dark:text-gray-400">Our store begins processing deliveries at
                                     <i><strong>7:00 AM</strong></i> , but the exact time your order arrives depends on
-                                    several factors, including:</p>
+                                    several factors, including:
+                                </p>
                                 <p class="text-gray-500 dark:text-gray-400 mb-3 ml-6"><strong>~ Order Placement:</strong>
                                     Deliveries are processed on a first-in, first-out basis, meaning orders placed earlier
                                     will generally be delivered first.</p>
@@ -195,7 +196,8 @@
                                     while we aim for efficiency, your equipment may not arrive exactly at <strong>9:00
                                         AM</strong></p>
                                 <p class="text-gray-500 mb-3 dark:text-gray-400">Regardless of the actual delivery time,
-                                    <strong>your rental officially starts at 9:00 AM.</strong> </p>
+                                    <strong>your rental officially starts at 9:00 AM.</strong>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -316,3 +318,32 @@
         </div>
     </section>
 @endsection
+
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.faq-btn');
+
+            buttons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    // Toggle 'active' class on button
+                    btn.classList.toggle('active');
+
+                    // Handle accordion body
+                    const targetId = btn.getAttribute('data-accordion-target');
+                    const body = document.querySelector(targetId);
+
+                    if (body.classList.contains('hidden')) {
+                        // Open accordion body
+                        body.classList.remove('max-h-0');
+                        body.classList.add('max-h-[1000px]'); // Add custom classes
+                    } else {
+                        // Close accordion body
+                        body.classList.add('max-h-0');
+                        body.classList.remove('max-h-[1000px]'); // Remove custom classes
+                    }
+                });
+            });
+        });
+    </script>
+@endpush

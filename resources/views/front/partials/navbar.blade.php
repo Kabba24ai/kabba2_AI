@@ -214,7 +214,7 @@
                          </div>
                          <button
                              class="border-0 font-bold bg-yellow-400 text-[14px] w-full px-6 h-[55px] mt-4 hover:bg-yellow-300  transition-all duration-500 ease-in-out">
-                             <a href="{{ route('front.customer.account') }}">CHECKOUT</a>
+                             <a href="{{ route('front.checkout.index') }}">CHECKOUT</a>
                          </button>
                      </div>
                  </div>

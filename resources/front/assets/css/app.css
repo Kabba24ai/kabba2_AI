@@ -1,9 +1,8 @@
 /* Custom Font (if required) */
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 body {
   font-family: 'Rubik', sans-serif !important;
@@ -25,7 +24,7 @@ body {
   width: 3px;
   height: 3px;
   display: block;
-  position: relative; 
+  position: relative;
   transition: .3s ease-in-out;
   border-radius: 50%;
 }
@@ -62,7 +61,7 @@ body {
 #toggleSidebar.active span::after {
   border-radius: 1px;
   height: 2px;
-  width: 20px;transform: 
+  width: 20px;transform:
   translateY(-7px) rotate(-90deg);
 }
 
@@ -72,7 +71,7 @@ body {
   width: 20px;
   height: 2px;
   display: block;
-  position: relative; 
+  position: relative;
   transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease;
 }
 

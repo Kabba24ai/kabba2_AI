@@ -12,13 +12,14 @@ class IndexController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke($slug)
+    public function __invoke($slug,$productType)
     {
-        $product_details = Product::with('categories', 'mediaChildren.media')->where('slug',$slug)->first();
+        $productDetail = Product::with('categories', 'mediaChildren.media')->where('slug',$slug)->firstOrFail();
 
-        return view('front.product_details', [
-            'title' => $product_details->product_name,
-            'product_details' => $product_details ,
+        return view('front.products.details', [
+            'title' => $productDetail->product_name,
+            'productType'=>$productType,
+            'productDetail' => $productDetail ,
         ]);
     }
 }

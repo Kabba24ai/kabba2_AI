@@ -11,22 +11,22 @@
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-[28px] md:text-[34px] lg:text-[40px] tracking-[-2px] leading-[110%] font-bold">
-                            {{ $product_details->product_name }}</h1>
+                            {{ $productDetail->product_name }}</h1>
                         <ul
                             class="bg-yellow-400 px-[20px] py-4 max-w-full mt-4 lg:mt-0 text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="index.php" class="opacity-25">Home</a>
                             </li>
-                            @foreach ($product_details->categories as $categorie)
+                            @foreach ($productDetail->categories as $category)
                                 <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                    <a href="{{ route('front.categories.index', $categorie->slug) }}"
-                                        class="opacity-25">{{ $categorie->title }}</a>
+                                    <a href="{{ route('front.categories.index', $category->slug) }}"
+                                        class="opacity-25">{{ $category->title }}</a>
                                 </li>
                             @endforeach
 
                             <li>
                                 <a href="javascript:void(0)"
-                                    class="cursor-not-allowed">{{ $product_details->product_name }}</a>
+                                    class="cursor-not-allowed">{{ $productDetail->product_name }}</a>
                             </li>
                         </ul>
                     </div>
@@ -44,7 +44,7 @@
                             class="swiper mainSwiper">
                             <div class="swiper-wrapper">
 
-                                @foreach ($product_details->mediaChildren as $mediaChildren)
+                                @foreach ($productDetail->mediaChildren as $mediaChildren)
                                     <div class="swiper-slide">
                                         <div class="lg:h-full w-full group relative overflow-hidden">
                                             <img src="{{ $mediaChildren->media->url }}" alt="boom-lift-v2"
@@ -56,12 +56,12 @@
                             </div>
                         </div>
                         <div class="bg-yellow-400 py-1 px-2 absolute z-10 top-3 left-3 text-[14px]">
-                            {{ $product_details->product_name }}
+                            {{ $productDetail->product_name }}
                         </div>
                     </div>
                     <div thumbsSlider="" class="swiper thumbSwiper">
                         <div class="swiper-wrapper">
-                            @foreach ($product_details->mediaChildren as $Children)
+                            @foreach ($productDetail->mediaChildren as $Children)
                                 <div class="swiper-slide">
                                     <div class="h-[50px] float-left relative group overflow-hidden">
                                         <img src="{{ $Children->media->url }}"
@@ -78,15 +78,40 @@
                     <div
                         class="bg-[#f9fafc] mb-4 flex flex-col lg:flex-row justify-between items-center p-2 lg:p-0 lg:pl-4 md:pl-4">
                         <div>
-                            <h3 class="font-bold text-[18px] lg:text-[22px]">{{ $product_details->product_name }}</h3>
+                            <h3 class="font-bold text-[18px] lg:text-[22px]">{{ $productDetail->product_name }}</h3>
                             <p
                                 class="before:content-['('] before:text-[#6f6f87] after:content-[')'] after:text-[#6f6f87] text-[#188753] text-[14px]">
                                 In Stock</p>
                         </div>
                         <div
                             class="bg-yellow-400 mt-3 lg:mt-0 lg:text-[32px] text-[24px] h-[50px] lg:h-[70px] px-6 flex items-center font-medium">
-                            <h4>$334.00</h4>
+                            <h4>
+                                @switch($productType)
+                                    @case('daily')
+                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_daily) }}
+                                        <span class="text-[16px] font-normal">/ day</span>
+                                    @break
+
+                                    @case('weekend')
+                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_weekend) }}
+                                        <span class="text-[16px] font-normal">/ week</span>
+                                    @break
+
+                                    @case('weekly')
+                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_weekly) }}
+                                        <span class="text-[16px] font-normal">/ week</span>
+                                    @break
+
+                                    @case('monthly')
+                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_monthly) }}
+                                        <span class="text-[16px] font-normal">/ month</span>
+                                    @break
+                                    @default
+                                        <span>-</span>
+                                @endswitch
+                            </h4>
                         </div>
+
                     </div>
                     <div id="distance" class="mt-5 mb-5 ">
                         <div class="flex items-center space-x-2">
@@ -157,8 +182,8 @@
                         <div class="">
                             <span>Up To: </span>
                             <label class="inline-flex items-center space-x-2">
-                                <input type="radio" name="delivery-option" value="dis1" class="sr-only peer"
-                                    checked onchange="toggleDeliveryOption(this)" />
+                                <input type="radio" name="delivery-option" value="dis1" class="sr-only peer" checked
+                                    onchange="toggleDeliveryOption(this)" />
                                 <div
                                     class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
                                     <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
@@ -209,13 +234,13 @@
                             <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelCheckbox"
                                 onclick="confirmUncheck(this, 'modalBackdropFuel')" />
                             <span class="">Prepaid Fuel <span class="font-medium">+
-                                    {{ $product_details->rental_prepaid_fuel }} </span> </span>
+                                    {{ $productDetail->rental_prepaid_fuel }} </span> </span>
                         </label>
                         <label class="inline-flex items-center space-x-2 mt-1">
                             <input type="checkbox" class="form-checkbox h-4 w-4" checked id="cleanCheckbox"
                                 onclick="confirmUncheck(this, 'modalBackdropClean')" />
                             <span class="">Prepaid Cleaning <span class="font-medium">+
-                                    {{ $product_details->rental_prepaid_cleaning }}</span></span>
+                                    {{ $productDetail->rental_prepaid_cleaning }}</span></span>
                         </label>
                         <label class="inline-flex items-center space-x-2 mt-1">
                             <input type="checkbox" class="form-checkbox h-4 w-4" checked id="toothedCheckbox"
@@ -234,7 +259,7 @@
                             <input type="checkbox" class="form-checkbox h-4 w-4" checked id="damageCheckbox"
                                 onclick="confirmUncheck(this, 'modalBackdropDamage')" />
                             <span class="">Damage Waiver <span class="font-medium">+
-                                    {{ $product_details->rental_damage_waiver_daily }}</span></span>
+                                    {{ $productDetail->rental_damage_waiver_daily }}</span></span>
                         </label>
                     </div>
 
@@ -252,87 +277,87 @@
     <!-- Amazing Additions -->
     <section class="pb-[60px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="md:text-[28px] font-bold text-left mb-10  text-[#231E41]">Amazing Additions</h2>
+            <h2 class="md:text-[28px] font-bold text-left mb-10  ">Amazing Additions</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-0 gap-x-8 lg:gap-8">
                 <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class="text-[#231E41] group">
+                    <a href="javascript:void(0)" class=" group">
                         <div class="lg:h-80 w-full relative overflow-hidden">
-                            <img src="{{ $product_details->image_url }}" alt="boom-lift-v2"
+                            <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
                             <div
                                 class="bg-[#000] opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out">
                             </div>
                         </div>
                         <div>
-                            <h3 class="font-bold text-[16px] hover:text-[#000] text-left px-2 py-3 bg-[#f2f3f5] mb-4">
-                                {{ $product_details->product_name }}- Daily</h3>
-                            <h4 class="text-[24px] mt-2 font-medium text-[#000] text-left">
-                                {{ $product_details->rental_daily }}</h4>
+                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-white mb-4">
+                                {{ $productDetail->product_name }}- Daily</h3>
+                            <h4 class="text-[24px] mt-2 font-medium text-black text-left">
+                                {{ $productDetail->rental_daily }}</h4>
                             <button type="button"
-                                class="border-0 bg-yellow-500 text-[#000] font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
+                                class="border-0 bg-yellow-500 text-black font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
                                 <i class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
                             </button>
                         </div>
                     </a>
                 </div>
                 <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class="text-[#231E41] group">
+                    <a href="javascript:void(0)" class=" group">
                         <div class="lg:h-80 w-full relative overflow-hidden">
-                            <img src="{{ $product_details->image_url }}" alt="boom-lift-v2"
+                            <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
                             <div
                                 class="bg-[#000] opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out">
                             </div>
                         </div>
                         <div>
-                            <h3 class="font-bold text-[16px] hover:text-[#000] text-left px-2 py-3 bg-[#f2f3f5] mb-4">
-                                {{ $product_details->product_name }} - Weekend</h3>
-                            <h4 class="text-[24px] mt-2 font-medium text-[#000] text-left">
-                                {{ $product_details->rental_weekend }}</h4>
+                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-white mb-4">
+                                {{ $productDetail->product_name }} - Weekend</h3>
+                            <h4 class="text-[24px] mt-2 font-medium text-black text-left">
+                                {{ $productDetail->rental_weekend }}</h4>
                             <button type="button"
-                                class="border-0 bg-yellow-500 text-[#000] font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
+                                class="border-0 bg-yellow-500 text-black font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
                                 <i class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
                             </button>
                         </div>
                     </a>
                 </div>
                 <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class="text-[#231E41] group">
+                    <a href="javascript:void(0)" class=" group">
                         <div class="lg:h-80 w-full overflow-hidden relative">
-                            <img src="{{ $product_details->image_url }}" alt="boom-lift-v2"
+                            <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
                             <div
                                 class="bg-[#000] opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out">
                             </div>
                         </div>
                         <div>
-                            <h3 class="font-bold text-[16px] hover:text-[#000] text-left px-2 py-3 bg-[#f2f3f5] mb-4">
-                                {{ $product_details->product_name }}- Weekly</h3>
-                            <h4 class="text-[24px] mt-2 font-medium text-[#000] text-left">
-                                {{ $product_details->rental_weekly }}</h4>
+                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-white mb-4">
+                                {{ $productDetail->product_name }}- Weekly</h3>
+                            <h4 class="text-[24px] mt-2 font-medium text-black text-left">
+                                {{ $productDetail->rental_weekly }}</h4>
                             <button type="button"
-                                class="border-0 bg-yellow-500 text-[#000] font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
+                                class="border-0 bg-yellow-500 text-black font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
                                 <i class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
                             </button>
                         </div>
                     </a>
                 </div>
                 <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class="text-[#231E41] group">
+                    <a href="javascript:void(0)" class=" group">
                         <div class="lg:h-80 w-full relative overflow-hidden">
-                            <img src="{{ $product_details->image_url }}" alt="boom-lift-v2"
+                            <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
                             <div
                                 class="bg-[#000] opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out ">
                             </div>
                         </div>
                         <div>
-                            <h3 class="font-bold text-[16px] hover:text-[#000] text-left px-2 py-3 bg-[#f2f3f5] mb-4">
-                                {{ $product_details->product_name }} - Monthly</h3>
-                            <h4 class="text-[24px] mt-2 font-medium text-[#000] text-left">
-                                {{ $product_details->rental_monthly }}</h4>
+                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-white mb-4">
+                                {{ $productDetail->product_name }} - Monthly</h3>
+                            <h4 class="text-[24px] mt-2 font-medium text-black text-left">
+                                {{ $productDetail->rental_monthly }}</h4>
                             <button type="button"
-                                class="border-0 bg-yellow-500 text-[#000] font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
+                                class="border-0 bg-yellow-500 text-black font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
                                 <i class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
                             </button>
                         </div>
@@ -348,13 +373,12 @@
                 <a href="#" class="bg-yellow-400 px-6 border-0 text-[14px] py-4">Details</a>
             </div>
             <div class="flex flex-col gap-y-4 text-[#6f6f87]">
-                {!! $product_details->description !!}
+                {!! $productDetail->description !!}
             </div>
         </div>
     </section>
     <!-- fule Modal -->
-    <div id="modalBackdropFuel"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="modalBackdropFuel" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
             <p class="text-gray-700 mb-4">I understand that the machine is delivered full of fuel and I’m responsible
                 for returning it full of fuel. If returned without a full tank, I realize I will be responsible for the
@@ -410,7 +434,7 @@
     </div>
     <!-- Damage Waiver  Modal -->
     <div id="modalBackdropDamage"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        class="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
             <p class="text-gray-700 mb-4">I understand that by not accepting the standard damage waiver, I will be
                 responsible for all repairs necessary while using this equipment and have Business Insurance that covers

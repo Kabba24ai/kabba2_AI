@@ -32,7 +32,7 @@
             <div class="max-w-[800px] border p-6 mx-auto my-10 text-center">
                 <h2 class="text-[24px] font-bold">Rent ‘n King Rental Agreement</h2>
                 <a href="index.php"
-                    class="text-[#0d6efd] hover:text-[#000] transition-all duration-500 ease-in-out">www.RentnKing.com</a>
+                    class="text-[#0d6efd] hover:text-black transition-all duration-500 ease-in-out">www.RentnKing.com</a>
                 <p>Development 360, Inc</p>
             </div>
             <h3 class="text-[#ff0000] text-center text-[24px] mb-6">Order ID #100005011</h3>

@@ -49,9 +49,9 @@
 
                                 <div class="w-full mt-5 text-center">
                                     <button type="button"
-                                        class="border-0 px-3 py-2 lg:px-5 lg:py-4 mx-auto font-medium bg-yellow-400 hover:bg-yellow-500 text-[#000] transform transition-all duration-500 ease-in-out text-sm">
+                                        class="border-0 px-3 py-2 lg:px-5 lg:py-4 mx-auto font-medium bg-yellow-400 hover:bg-yellow-500 text-black transform transition-all duration-500 ease-in-out text-sm">
                                         <i
-                                            class="mr-3 fa-solid fa-arrow-right text-[16px] lg:text-[24px] lg:text-sm leading-4 text-[#231E41] -rotate-45 border-2 rounded-full px-[6px] py-[6px] lg:px-[3px] lg:py-[0px] border-[#231E41]"></i>
+                                            class="mr-3 fa-solid fa-arrow-right text-[16px] lg:text-[24px] lg:text-sm leading-4  -rotate-45 border-2 rounded-full px-[6px] py-[6px] lg:px-[3px] lg:py-[0px] border-[#231E41]"></i>
                                         Register
                                     </button>
                                 </div>

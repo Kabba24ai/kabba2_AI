@@ -39,9 +39,7 @@ export default defineConfig(() => {
         },
         optimizeDeps: {
             exclude: [
-                "resources/front/assets/js/flowbite.min.js",
-                "resources/front/assets/js/swiper-bundle.min.js",
-                "resources/front/assets/js/signature_pad.umd.min.js",
+                // exclude css or js should be list here
             ],
             include: [],
         },

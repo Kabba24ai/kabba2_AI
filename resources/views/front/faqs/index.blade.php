@@ -29,7 +29,7 @@
 
     <section class="lg:pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 text-[#231E41]">Damage Waiver Details</h2>
+            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Damage Waiver Details</h2>
             <div
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4  [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
                 <div class="">
@@ -135,7 +135,7 @@
 
     <section class="lg:pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 text-[#231E41]">Rental Schedules / Cancelations
+            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Rental Schedules / Cancelations
             </h2>
             <div
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4 [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
@@ -209,7 +209,7 @@
 
     <section class="pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 text-[#231E41]">Cleaning Fees</h2>
+            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Cleaning Fees</h2>
             <div
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4 [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
                 <div class="">

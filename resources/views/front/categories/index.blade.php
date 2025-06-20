@@ -14,7 +14,7 @@
                         <ul
                             class="bg-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
+                                <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
                             <li>
                                 <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
@@ -36,46 +36,45 @@
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
-                @foreach ($Products as $Product)
+                @foreach ($products as $product)
                     <div class="py-[20px] lg:py-[30px] rounded-lg text-center">
-                        <a href="{{ route('front.products.details', $Product->slug) }}"
-                            class="text-[#231E41] transition-all duration-300 ease-in-out hover:text-[#000]">
+                        <div class="transition-all duration-300 ease-in-out hover:text-black">
                             <div class="lg:h-80 w-full group relative">
-                                <img src="{{ $Product->image_url }}" alt="{{ $Product->product_name }}"
+                                <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
                                     class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:opacity-0 transition-opacity duration-1000 ease-in-out" />
-                                <img src="{{ $Product->image_url }}" alt="{{ $Product->product_name }}"
+                                <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
                                     class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-0 absolute top-0 group-hover:opacity-100 transition-opacity duration-1000 ease-in-out" />
                             </div>
 
                             <div>
-                                <h3 class="mt-4 font-bold text-[18px] text-[#000] md:text-[22px] p-2 bg-[#f2f3f5] mb-4">
-                                    {{ $Product->product_name }}</h3>
+                                <h3 class="mt-4 font-bold text-[18px] text-black md:text-[22px] p-2 bg-[#f2f3f5] mb-4">
+                                    {{ $product->product_name }}</h3>
                                 <div class="grid grid-cols-2 gap-x-6 gap-y-2">
-                                    <button type="button"
-                                        class="border-0 bg-yellow-500 text-[#000] font-medium flex flex-col px-6 py-1 leading-4 rounded-xl text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
+                                    <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'daily']) }}"
+                                        class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Daily
-                                        <span>{{ $Product->rental_daily }}</span>
-                                    </button>
-                                    <button type="button"
-                                        class="border-0 bg-yellow-500 text-[#000] font-medium flex flex-col px-6 py-1 leading-4 rounded-xl text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
+                                        <span>{{ $product->rental_daily }}</span>
+                                    </a>
+                                    <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'weekend']) }}"
+                                        class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Weekend Spcl.
-                                        <span>{{ $Product->rental_weekend }}</span>
-                                    </button>
-                                    <button type="button"
-                                        class="border-0 bg-yellow-300 text-[#000] font-medium flex flex-col px-6 py-1 leading-4 rounded-xl text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
+                                        <span>{{ $product->rental_weekend }}</span>
+                                    </a>
+                                    <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'weekly']) }}"
+                                        class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Weekly
-                                        <span>{{ $Product->rental_weekly }}</span>
-                                    </button>
-                                    <button type="button"
-                                        class="border-0 bg-yellow-300 text-[#000] font-medium flex flex-col px-6 py-1 leading-4 rounded-xl text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
+                                        <span>{{ $product->rental_weekly }}</span>
+                                    </a>
+                                    <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'monthly']) }}"
+                                        class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Monthly
-                                        <span>{{ $Product->rental_monthly }}</span>
-                                    </button>
+                                        <span>{{ $product->rental_monthly }}</span>
+                                    </a>
                                 </div>
-                                <h6 class="text-[12px] mt-2 text-[#000]">Select an Option to Learn More or Reserve Today
+                                <h6 class="text-[12px] mt-2 text-black">Select an Option to Learn More or Reserve Today
                                 </h6>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 @endforeach
 
@@ -86,13 +85,9 @@
     <!-- Categories Listing details -->
     <section class="pb-[60px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-
             <div class="flex flex-col gap-y-4">
-
                 {!! $category->content !!}
-
             </div>
-
         </div>
     </section>
 
@@ -116,4 +111,3 @@
         </div>
     </section>
 @endsection
-

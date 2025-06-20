@@ -20,21 +20,21 @@
     <!-- Featured Rentals -->
     <section class="pb-[60px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[28px] md:text-[2rem] font-bold text-center mb-10  text-[#231E41]">Featured Rentals</h2>
+            <h2 class="text-[28px] md:text-[2rem] font-bold text-center mb-10  ">Featured Rentals</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
                 @foreach ($category_tree as $category)
                     <div
                         class="border py-[20px] lg:py-[16px] lg:px-[16px] rounded-lg text-center shadow-[0_2px_5px_rgba(0,0,0,0.05)] transition-transform duration-300 hover:translate-y-[-5px]">
                         <a href="{{ route('front.categories.index', $category->slug) }}"
-                            class="text-[#231E41] transition-all duration-300 ease-in-out hover:text-[#000]">
+                            class=" transition-all duration-300 ease-in-out hover:text-black">
                             <div class="w-full">
                                 <img src="{{ $category->media?->url }}" alt="Skid Steer"
                                     class="mx-auto lg:w-full w-[90%] object-contain rounded-[5px] object-cover h-[auto]" />
                             </div>
                             <div>
                                 <h3
-                                    class="mt-4 font-bold text-[15px] text-[#231E41] transition-all duration-300 ease-in-out hover:text-[#000] underline">
+                                    class="mt-4 font-bold text-[15px]  transition-all duration-300 ease-in-out hover:text-black underline">
                                     {{ $category->title }}</h3>
                             </div>
                         </a>
@@ -47,7 +47,7 @@
     <section class="pb-[48px] pt-[48px] bg-[#fafafa]">
         <div
             class="container mx-auto md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] px-[30px] md:px-[.7rem] relative overflow-hidden">
-            <h2 class="text-[28px] md:text-[2rem] font-bold text-center mb-[16px] text-[#231E41]">About Rent 'n King</h2>
+            <h2 class="text-[28px] md:text-[2rem] font-bold text-center mb-[16px] ">About Rent 'n King</h2>
             <!-- about content -->
             <div class="max-w-[800px] text-center mx-auto">
                 <p>Locally owned and committed to 1st-tier customer service that encourages long-term, repeat customers.

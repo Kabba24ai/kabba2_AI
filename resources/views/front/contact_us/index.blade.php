@@ -23,22 +23,22 @@
                     </div>
                     <div class="grid md:grid-cols-2 gap-2">
                         <div>
-                            <p class="text-[18px] md:text-[20px] font-bold mb-3 mt-6 lg:mb-5 lg:mt-10 text-[#231E41]"><i class="fa-solid fa-location-dot"></i> ADDRESS</p>
+                            <p class="text-[18px] md:text-[20px] font-bold mb-3 mt-6 lg:mb-5 lg:mt-10 "><i class="fa-solid fa-location-dot"></i> ADDRESS</p>
                             <p>*Coming Soon <br> Clarksville</p>
                         </div>
                         <div>
-                            <p class="text-[18px] md:text-[20px] font-bold mb-3 mt-6 lg:mb-5 lg:mt-10 text-[#231E41]"><i class="fa-solid fa-location-dot"></i> ADDRESS</p>
+                            <p class="text-[18px] md:text-[20px] font-bold mb-3 mt-6 lg:mb-5 lg:mt-10 "><i class="fa-solid fa-location-dot"></i> ADDRESS</p>
                             <p>10296 Highway 46 <br> Bon Aqua, TN 37025</p>
                         </div>
                         <div>
-                            <p class="text-[18px] md:text-[20px] font-bold mb-3 mt-6 lg:mb-5 lg:mt-10 text-[#231E41]"><i class="fa-solid fa-phone"></i> PHONE</p>
-                            <a href="#" class="hover:text-[#000]">(615) 815-6734</a>
+                            <p class="text-[18px] md:text-[20px] font-bold mb-3 mt-6 lg:mb-5 lg:mt-10 "><i class="fa-solid fa-phone"></i> PHONE</p>
+                            <a href="#" class="hover:text-black">(615) 815-6734</a>
                         </div>
                     </div>
                     <div>
                         <div>
-                            <p class="text-[18px] md:text-[20px] font-bold mb-3 mt-6 lg:mb-5 lg:mt-10 text-[#231E41]"><i class="fa-solid fa-envelope"></i> EMAIL</p>
-                            <a href="#" class="hover:text-[#000]"> SalesAndSupport@RentnKing.com</a>
+                            <p class="text-[18px] md:text-[20px] font-bold mb-3 mt-6 lg:mb-5 lg:mt-10 "><i class="fa-solid fa-envelope"></i> EMAIL</p>
+                            <a href="#" class="hover:text-black"> SalesAndSupport@RentnKing.com</a>
                         </div>
                     </div>
                 </div>
@@ -50,13 +50,13 @@
                             <form action="#">
                                 <div class="relative z-0 w-full mb-6 group">
                                     <input type="text" name="name" id="name" class="block bg-[#f9fafc] py-2.5 px-0 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
-                                    <label for="name" class=" z-1 px-4 absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-100 peer-focus:-translate-y-8 peer-focus:-translate-x-2.5 peer-focus:text-[#000]">
+                                    <label for="name" class=" z-1 px-4 absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-100 peer-focus:-translate-y-8 peer-focus:-translate-x-2.5 peer-focus:text-black">
                                         Name
                                     </label>
                                 </div>
                                 <div class="relative z-0 w-full mb-6 group">
                                     <input type="email" name="email" id="email" class="block bg-[#f9fafc] py-2.5 px-0 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
-                                    <label for="email" class=" z-1 px-4 absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-100 peer-focus:-translate-y-8 peer-focus:-translate-x-2.5 peer-focus:text-[#000]">
+                                    <label for="email" class=" z-1 px-4 absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-100 peer-focus:-translate-y-8 peer-focus:-translate-x-2.5 peer-focus:text-black">
                                         Email
                                     </label>
                                 </div>
@@ -68,7 +68,7 @@
                                     <label for="message"
                                         class="absolute px-4 text-sm text-gray-500 duration-300 transform -translate-y-8 scale-100 top-3 z-1 origin-[0]
                                                 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0
-                                                peer-focus:scale-100 peer-focus:-translate-y-8 peer-focus:-translate-x-2.5 peer-focus:text-[#000]">
+                                                peer-focus:scale-100 peer-focus:-translate-y-8 peer-focus:-translate-x-2.5 peer-focus:text-black">
                                         Message
                                     </label>
                                 </div>
@@ -76,8 +76,8 @@
                                     <p>*We promise not to disclose your <br> personal information to third parties.</p>
                                 </div>
                                 <div class="w-full mt-5 text-center">
-                                    <button type="button" class="border-0 px-3 py-2 lg:px-5 lg:py-4 mx-auto font-medium bg-yellow-400 hover:bg-yellow-500 text-[#000] transform transition-all duration-500 ease-in-out text-sm">
-                                        <i class="mr-3 fa-solid fa-arrow-right text-[16px] lg:text-[24px] lg:text-sm leading-4 text-[#231E41] -rotate-45 border-2 rounded-full px-[6px] py-[6px] lg:px-[3px] lg:py-[0px] border-[#231E41]"></i>
+                                    <button type="button" class="border-0 px-3 py-2 lg:px-5 lg:py-4 mx-auto font-medium bg-yellow-400 hover:bg-yellow-500 text-black transform transition-all duration-500 ease-in-out text-sm">
+                                        <i class="mr-3 fa-solid fa-arrow-right text-[16px] lg:text-[24px] lg:text-sm leading-4  -rotate-45 border-2 rounded-full px-[6px] py-[6px] lg:px-[3px] lg:py-[0px] border-[#231E41]"></i>
                                         Send
                                     </button>
                                 </div>

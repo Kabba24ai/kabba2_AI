@@ -17,14 +17,14 @@ class ChildController extends Controller
     {
         $category = ProductCategory::with('media')->where('slug',$childCategorySlug)->firstOrFail();
 
-        $Products = Product::with('categories','media', 'mediaChildren.media')->whereHas('categories', function ($q) use ($category) {
+        $products = Product::with('categories','media', 'mediaChildren.media')->whereHas('categories', function ($q) use ($category) {
             $q->where('product_categories.id', $category->id);
         })->get();
 
         return view('front.categories.index', [
             'title' => $category->title,
             'category'=> $category ,
-            'Products' => $Products
+            'products' => $products
         ]);
     }
 }

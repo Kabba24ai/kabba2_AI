@@ -29,7 +29,7 @@
     <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
         <div class="flex gap-x-2">
             <div class="w-2/3 border-r-[1px] pr-6">
-                <h4 class="text-[18px] md:text-[30px] font-medium  mb-3 mt-10 text-[#231E41]">Billing information</h4>
+                <h4 class="text-[18px] md:text-[30px] font-medium  mb-3 mt-10 ">Billing information</h4>
                 <form action="#" class="mt-3">
                     <div class="mb-6">
                         <div>
@@ -71,13 +71,13 @@
                         <div class="flex gap-x-10">
                             <div class="relative z-0 w-1/2 mb-6 group">
                                 <input type="text" name="name" id="name" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-[#000] ">
+                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
                                     First Name
                                 </label>
                             </div>
                             <div class="relative z-0 w-1/2 mb-6 group">
                                 <input type="text" name="name" id="name" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-[#000] ">
+                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
                                     Last Name
                                 </label>
                             </div>
@@ -85,7 +85,7 @@
                         <div class="flex gap-x-10">
                             <div class="relative z-0 w-2/3 mb-6 group">
                                 <input type="email" name="email" id="email" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="email" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-[#000] ">
+                                <label for="email" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
                                     Email
                                 </label>
                             </div>
@@ -96,7 +96,7 @@
                                     oninput="formatPhone(this)"
                                     onblur="validatePhone(this)" />
                                 <label for="phone"
-                                    class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-[#000]">
+                                    class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black">
                                     Phone
                                 </label>
                             </div>
@@ -106,7 +106,7 @@
                             <textarea name="address" id="address" class="peer h-[50px] block w-full bg-transparent border border-gray-300 py-2.5 px-2 text-sm text-gray-900 appearance-none focus:outline-none focus:ring-0 peer" placeholder=" "></textarea>
                             <label for="address" class="pointer-events-none absolute px-2 text-sm text-gray-500 bg-white duration-300 transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] z-10
                                         peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0
-                                        peer-focus:scale-[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-[#000]">
+                                        peer-focus:scale-[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black">
                                 Address
                             </label>
                         </div>
@@ -118,19 +118,19 @@
                                     <option>10296 High 46, Bon Aqua, TN, 37025</option>
                                     <option>4385 SR-48, Charlotte, TN, 37036</option>
                                 </select>
-                                <label for="category" class="pointer-events-none absolute px-2 text-gray-500 text-sm bg-white duration-300 transform top-3 origin-[0] z-10 scale-[0.85] -translate-y-[1.3rem] translate-x-2 text-[#000]">
+                                <label for="category" class="pointer-events-none absolute px-2 text-gray-500 text-sm bg-white duration-300 transform top-3 origin-[0] z-10 scale-[0.85] -translate-y-[1.3rem] translate-x-2 text-black">
                                     State
                                 </label>
                             </div>
                             <div class="relative z-0 w-1/3 mb-6 group">
                                 <input type="text" name="city" id="city" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-[#000] ">
+                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
                                     City
                                 </label>
                             </div>
                             <div class="relative z-0 w-1/3 mb-6 group">
                                 <input type="text" name="zipcode" id="zipcode" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-[#000] ">
+                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
                                     Zip code
                                 </label>
                             </div>

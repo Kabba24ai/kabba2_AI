@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Parts;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MaintenanceManagement\Parts\StoreRequest;
-use App\Models\Part\Part;
+use App\Models\MaintenanceManagement\Part;
 
 class StoreController extends Controller
 {

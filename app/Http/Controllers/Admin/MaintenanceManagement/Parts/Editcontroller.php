@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Parts;
 
 use App\Http\Controllers\Controller;
-use App\Models\Part\Part;
+use App\Models\MaintenanceManagement\Part;
 
 class EditController extends Controller
 {

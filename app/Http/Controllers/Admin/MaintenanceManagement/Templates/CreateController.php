@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Templates;
 
 use App\Http\Controllers\Controller;
-use App\Models\Part\Part;
+use App\Models\MaintenanceManagement\Part;
 
 class CreateController extends Controller
 {

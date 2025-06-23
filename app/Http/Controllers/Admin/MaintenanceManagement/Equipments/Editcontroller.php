@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
 
 use App\Http\Controllers\Controller;
-use App\Models\Equipment\Equipment;
+use App\Models\MaintenanceManagement\Equipment;
 
 class EditController extends Controller
 {
@@ -24,6 +24,6 @@ class EditController extends Controller
             'Hand Tools'
         ];
         
-        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories'));
+        return view('admin.maintenance_management.equipments.edit', compact('equipment', 'categories'));
     }
 }

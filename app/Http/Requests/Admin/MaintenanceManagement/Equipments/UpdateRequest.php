@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\MaintenanceManagement\Equipment;
+namespace App\Http\Requests\Admin\MaintenanceManagement\Equipments;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,7 +23,7 @@ class UpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('equipment', 'equipment_id')->ignore($equipmentId, 'unique_id')
+                Rule::unique('equipments', 'equipment_id')->ignore($equipmentId, 'unique_id')
             ],
             'brand' => 'required|string|max:255',
             'model' => 'nullable|string|max:255',

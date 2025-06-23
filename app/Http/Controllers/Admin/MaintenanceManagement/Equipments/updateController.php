@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\MaintenanceManagement\Equipment\UpdateRequest;
-use App\Models\Equipment\Equipment;
+use App\Http\Requests\Admin\MaintenanceManagement\Equipments\UpdateRequest;
+use App\Models\MaintenanceManagement\Equipment;
 
 class UpdateController extends Controller
 {

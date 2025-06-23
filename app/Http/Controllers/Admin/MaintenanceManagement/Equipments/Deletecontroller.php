@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
 
 use App\Http\Controllers\Controller;
-use App\Models\Equipment\Equipment;
+use App\Models\MaintenanceManagement\Equipment;
 
 class DeleteController extends Controller
 {

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
 
 use App\Http\Controllers\Controller;
-use App\Models\Equipment\Equipment;
+use App\Models\MaintenanceManagement\Equipment;
 
 class CreateController extends Controller
 {
@@ -23,6 +23,6 @@ class CreateController extends Controller
         ];
 
         $equipment = new Equipment();
-        return view('admin.maintenance_management.equipment.create', compact('categories', 'equipment'));
+        return view('admin.maintenance_management.equipments.create', compact('categories', 'equipment'));
     }
 }

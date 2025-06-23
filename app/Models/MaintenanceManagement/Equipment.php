@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Equipment;
+namespace App\Models\MaintenanceManagement;
 
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

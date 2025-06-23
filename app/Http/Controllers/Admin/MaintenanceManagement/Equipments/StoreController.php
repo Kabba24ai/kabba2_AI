@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\MaintenanceManagement\Equipment\StoreRequest;
-use App\Models\Equipment\Equipment;
+use App\Http\Requests\Admin\MaintenanceManagement\Equipments\StoreRequest;
+use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Support\Str;
 
 class StoreController extends Controller

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
 
 use App\Http\Controllers\Controller;
-use App\Models\Equipment\Equipment;
+use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Http\Request;
 
 class IndexController extends Controller
@@ -72,6 +72,6 @@ class IndexController extends Controller
             return view('admin.maintenance_management.equipments.partials._table', compact('equipments'))->render();
         }
         
-        return view('admin.maintenance_management.equipment.index', compact('equipments', 'stats', 'categories'));
+        return view('admin.maintenance_management.equipments.index', compact('equipments', 'stats', 'categories'));
     }
 }

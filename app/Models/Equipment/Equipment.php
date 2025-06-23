@@ -12,7 +12,7 @@ class Equipment extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'equipment';
+    protected $table = 'equipments';
 
     protected $fillable = [
         'unique_id',

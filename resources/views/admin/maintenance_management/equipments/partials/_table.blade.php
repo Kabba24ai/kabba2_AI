@@ -3,10 +3,10 @@
     <div class="overflow-x-auto">
         <table class="w-full" id="equipment-table-wrapper">
             {{-- Table Header --}}
-            @include('admin.maintenance_management.equipment.partials._table-header')
+            @include('admin.maintenance_management.equipments.partials._table-header')
             <div id="equipment-loading" class="hidden"></div>
             <tbody class="divide-y divide-gray-200">
-                @forelse($equipment as $item)
+                @forelse($equipments as $item)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="py-4 px-6">
                             <span class="text-sm font-medium text-gray-900">{{ $item->category }}</span>
@@ -115,9 +115,9 @@
     </div>
 
     {{-- Pagination --}}
-    @if($equipment->hasPages())
+    @if($equipments->hasPages())
         <div class="px-6 py-4 border-t border-gray-200">
-            {{ $equipment->appends(request()->query())->links() }}
+            {{ $equipments->appends(request()->query())->links() }}
         </div>
     @endif
 </div>

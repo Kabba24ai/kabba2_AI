@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 
 // Controllers
-use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\IndexController;
-use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CreateController;
-use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\StoreController;
-use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\EditController;
-use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\UpdateController;
-use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\DeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\IndexController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\CreateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\StoreController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\EditController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\UpdateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\DeleteController;
 
 Route::prefix('equipments')
     ->name('equipments.')

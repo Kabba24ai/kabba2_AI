@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
+namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
 
 use App\Http\Controllers\Controller;
 use App\Models\Equipment\Equipment;
@@ -54,7 +54,7 @@ class IndexController extends Controller
             }
         }
         
-        $equipment = $query->orderBy('created_at', 'desc')->paginate(50);
+        $equipments = $query->orderBy('created_at', 'desc')->paginate(50);
         
         // Calculate stats
         $stats = [
@@ -69,9 +69,9 @@ class IndexController extends Controller
         
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {
-            return view('admin.maintenance_management.equipment.partials._table', compact('equipment'))->render();
+            return view('admin.maintenance_management.equipments.partials._table', compact('equipments'))->render();
         }
         
-        return view('admin.maintenance_management.equipment.index', compact('equipment', 'stats', 'categories'));
+        return view('admin.maintenance_management.equipment.index', compact('equipments', 'stats', 'categories'));
     }
 }

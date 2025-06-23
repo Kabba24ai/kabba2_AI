@@ -25,9 +25,9 @@
             </div>
         @endif
 
-        @include('admin.maintenance_management.equipment.partials._stats')
-        @include('admin.maintenance_management.equipment.partials._filters')
-        @include('admin.maintenance_management.equipment.partials._table')
+        @include('admin.maintenance_management.equipments.partials._stats')
+        @include('admin.maintenance_management.equipments.partials._filters')
+        @include('admin.maintenance_management.equipments.partials._table')
     </div>
 </div>
 @endsection

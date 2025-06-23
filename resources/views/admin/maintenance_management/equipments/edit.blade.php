@@ -27,7 +27,7 @@
             <form action="{{ route('admin.maintenance-management.equipments.edit', $equipment->unique_id) }}" method="POST" class="max-w-5xl">
                 @csrf
                 @method('PUT')
-                @include('admin.maintenance_management.equipment.partials._form')
+                @include('admin.maintenance_management.equipments.partials._form')
                 
                 <div class="mt-6 flex justify-end">
                     <button type="submit" class="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">

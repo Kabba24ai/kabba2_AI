@@ -28,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectGuestsTo(function () {
             return request()->getHost() === config('app.domains.front')
-                ? route('front.auth.login.index') // Your frontend login
+                ? route('front.auth.login') // Your frontend login
                 : route('admin.auth.login'); // Admin login
         });
 

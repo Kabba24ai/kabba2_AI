@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::name('front.')->group(function () {
+Route::middleware('web')->name('front.')->group(function () {
 
     // Home
     require base_path('routes/front/home/routes.php');

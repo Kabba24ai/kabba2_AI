@@ -88,7 +88,7 @@
                  <div class="py-[15px] md:px-[15px] h-[calc(100vh-80px)] overflow-y-scroll">
                      <ul class="lg:hidden block text-center">
                          <li class=" py-[10px] active group-[.active]:font-bold group">
-                             <a href="index.php"
+                             <a href="{{ route('front.home.index') }}"
                                  class="hover:text-yellow-400 px-[18px] text-[14px] group-[.active]:font-bold transition-all duration-300 ease-in-out">Home</a>
                          </li>
                          <li class=" py-[10px] group relative">
@@ -212,8 +212,8 @@
                                  <span>$538.87</span>
                              </div>
                          </div>
-                         <button
-                             class="border-0 font-bold bg-yellow-400 text-[14px] w-full px-6 h-[55px] mt-4 hover:bg-yellow-300  transition-all duration-500 ease-in-out">
+                          <button
+                             class=" w-full border-0 bg-yellow-400 text-center font-bold justify-center flex px-6 py-3 mt-4 leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out">
                              <a href="{{ route('front.checkout.index') }}">CHECKOUT</a>
                          </button>
                      </div>

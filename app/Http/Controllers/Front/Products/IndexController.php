@@ -14,7 +14,7 @@ class IndexController extends Controller
      */
     public function __invoke($slug,$productType)
     {
-        $productDetail = Product::with('categories', 'mediaChildren.media')->where('slug',$slug)->firstOrFail();
+        $productDetail = Product::with('categories','options.items' , 'mediaChildren.media')->where('slug',$slug)->firstOrFail();
 
         return view('front.products.details', [
             'title' => $productDetail->product_name,

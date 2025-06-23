@@ -33,6 +33,12 @@ class SettingSeeder extends Seeder
 
             // Product Setting
             'Product Settings' => [
+				[
+                    'value_type' => 'number',
+                    'setting_name' => 'sales_tax',
+                    'setting_title' => 'Sales Tax',
+                    'default_value' => 0.0975,
+                ],
                 [
                     'value_type' => 'number',
                     'setting_name' => 'standard_delivery_range',

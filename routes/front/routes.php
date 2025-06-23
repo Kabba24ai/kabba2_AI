@@ -1,36 +1,52 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Front\Auth\ResetPassword\IndexController as ResetPasswordIndexController;
-use App\Http\Controllers\Front\Auth\ResetPassword\PostController as ResetPasswordPostController;
-use App\Http\Controllers\Front\Auth\ResetPassword\SuccessController;
 
-use App\Http\Controllers\Front\FrontendController;
+/*
+|--------------------------------------------------------------------------
+| Front Routes
+|--------------------------------------------------------------------------
+|
+*/
 
+Route::name('front.')->group(function () {
 
+    // Home
+    require base_path('routes/front/home/routes.php');
 
+    // Categories
+    require base_path('routes/front/categories/routes.php');
 
+    // Products
+    require base_path('routes/front/products/routes.php');
 
-// Frontend Routes
-Route::get('/', [FrontendController::class, 'index'])->name('index');
-Route::get('/faq', [FrontendController::class, 'faq'])->name('front.faq');
-Route::get('/contact', [FrontendController::class, 'contact'])->name('front.contact');
-Route::get('/category-listing/{slug}', [FrontendController::class, 'category_listing'])->name('front.category.listing');
-Route::get('/category-child-listing/{slug}', [FrontendController::class, 'category_child_listing'])->name('front.category-child.listing');
-Route::get('/product-details/{slug}', [FrontendController::class, 'product_details'])->name('front.product.details');
+    // Faqs
+    require base_path('routes/front/faqs/routes.php');
 
-// login
+    // Contact us
+    require base_path('routes/front/contact_us/routes.php');
 
-Route::get('/login', [FrontendController::class, 'login'])->name('front.login');
+    // Privacy policy
+    require base_path('routes/front/privacy_policy/routes.php');
 
+    // Terms and Conditions
+    require base_path('routes/front/terms_and_conditions/routes.php');
 
+    // Checkout
+    require base_path('routes/front/checkout/routes.php');
 
+    Route::prefix('customer')
+        ->group(function ($router) {
 
-// Static Pages
-Route::view('/privacy-policy', 'front.privacy-policy')->name('front.privacy');
-Route::view('/terms-and-conditions', 'front.terms-and-conditions')->name('front.terms');
+        // Auth
+        require base_path('routes/front/auth/routes.php');
 
-// Password Reset Flow
-Route::get('/password/reset', ResetPasswordIndexController::class)->name('password.reset');
-Route::post('/password/reset', ResetPasswordPostController::class)->name('password.update');
-Route::get('/password/reset/success', SuccessController::class)->name('password.reset.success');
+        // Customer
+        require base_path('routes/front/customer/routes.php');
+    });
+
+    // Pages (e.g., home, about, contact)
+    // require base_path('routes/front/pages/routes.php');
+
+});
+

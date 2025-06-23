@@ -39,9 +39,7 @@ export default defineConfig(() => {
         },
         optimizeDeps: {
             exclude: [
-                "resources/front/assets/js/flowbite.min.js",
-                "resources/front/assets/js/swiper-bundle.min.js",
-                "resources/front/assets/js/signature_pad.umd.min.js",
+                // exclude css or js should be list here
             ],
             include: [],
         },
@@ -50,19 +48,21 @@ export default defineConfig(() => {
             tailwindcss(),
             laravel({
                 input: [
+                    // Default
                     'resources/css/app.css',
                     'resources/js/app.js',
+
+                    // If you have global/shared assets, list here
+                    // 'resources/shared/css/shared.css',
+                    // 'resources/shared/js/shared.js',
+
+                    // Admin entry points
                     'resources/admin/css/app.css',
                     'resources/admin/js/app.js',
-                    "resources/front/assets/css/all.css",
-                    "resources/front/assets/css/swiper-bundle.min.css",
-                    "resources/front/assets/js/tailwind-browser.js",
-                    "resources/front/assets/css/style.css",
-                    "resources/front/assets/js/jquery-3.6.0.min.js",
-                    "resources/front/assets/js/flowbite.min.js",
-                    "resources/front/assets/js/swiper-bundle.min.js",
-                    "resources/front/assets/js/signature_pad.umd.min.js",
-                    "resources/front/assets/js/custom.js",
+
+                    // Front entry points
+                    "resources/front/assets/css/app.css",
+                    "resources/front/assets/js/app.js",
                 ],
                 refresh: true,
             }),

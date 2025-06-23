@@ -1,0 +1,15 @@
+import 'flowbite';
+
+import Swiper from 'swiper';
+import 'swiper/css';
+import SignaturePad from 'signature_pad';
+import '@fortawesome/fontawesome-free/js/all.js'; // Import Font Awesome JS
+
+import'./custom.js';
+
+
+// Attach Swiper to window so it’s globally available
+window.Swiper = Swiper;
+
+// Now you can use SignaturePad and other libraries as needed!
+window.SignaturePad = SignaturePad;

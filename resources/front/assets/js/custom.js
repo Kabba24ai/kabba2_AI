@@ -411,15 +411,12 @@ window.toggleDeliveryOption = function toggleDeliveryOption(radio) {
     }
 };
 
-window.addEventListener("DOMContentLoaded", () => {
+window.onload = () => {
     const mainSelected = document.querySelector('input[name="option"]:checked');
-    const subSelected = document.querySelector(
-        'input[name="delivery-option"]:checked',
-    );
-
-    if (mainSelected) toggleDeliveryOption(mainSelected);
-    if (subSelected) toggleDeliveryOption(subSelected);
-});
+    if (mainSelected) {
+        toggleDeliveryOption(mainSelected);
+    }
+};
 
 
 // product detail img

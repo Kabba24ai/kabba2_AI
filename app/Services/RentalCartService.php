@@ -2,6 +2,7 @@
 
 namespace App\Services;
 use App\Models\Configurations\Setting;
+use Illuminate\Support\Facades\Log;
 
 class RentalCartService
 {
@@ -15,49 +16,79 @@ class RentalCartService
     public function addItem(array $item)
     {
         $cart = $this->getCart();
-
+    
         $addons = json_decode($item['addons'], true) ?? [];
         $addonsTotal = collect($addons)->sum('price');
         $item['addons'] = $addons;
-      
-
-         // Calculate base price without tax
-    $baseTotal = ($item['base_price'] + $addonsTotal) * $item['qty'];
-
-    // Get tax rate from settings (or default to 0.0975)
-    $taxRate = $this->getTaxRate(); // e.g., 0.0975
-
-// Add delivery fee
-$deliveryFee = isset($item['delivery_fee']) ? floatval($item['delivery_fee']) : 0;
-$item['delivery_fee'] = $deliveryFee;
+        
+    
+        // Convert quantity to integer
+        $item['qty'] = intval($item['qty']);
+    
+        // Get tax rate from settings
+        $taxRate = $this->getTaxRate(); // e.g., 0.0975
 
 
-    // Calculate tax amount
-    $taxAmount = round($baseTotal * $taxRate, 2);
-
-    // Set all computed values
-    $item['total_price'] = round($baseTotal, 2); // without tax
-    $item['tax_rate'] = $taxRate;
-    $item['tax_amount'] = $taxAmount;
-    $item['total_price_with_tax'] = round($baseTotal + $taxAmount, 2);
-
-        $cart[] = $item;
+        // Add delivery fee
+        $deliveryFee = isset($item['delivery_fee']) ? floatval($item['delivery_fee']) : 0;
+        $item['delivery_fee'] = $deliveryFee;
+    
+        // 🔁 Check if same product_id exists
+        $updated = false;
+    
+        foreach ($cart as $key => $existingItem) {
+            if ($existingItem['product_id'] == $item['product_id']) {
+                // ✅ Combine quantities
+                $item['qty'] += intval($existingItem['qty']);
+    
+                // 💡 Replace other details with new entry
+                $cart[$key] = $item;
+                $updated = true;
+                break;
+            }
+        }
+    
+        if (!$updated) {
+            $cart[] = $item; // New product, add to cart
+        }
+    
+        // 🔄 Recalculate base total
+        $baseTotal = ($item['base_price'] + $addonsTotal) * $item['qty'];
+    
+        // Set computed values
+        $taxAmount = round($baseTotal * $taxRate, 2);
+        $item['total_price'] = round($baseTotal, 2); // Without tax
+        $item['tax_rate'] = $taxRate;
+        $item['tax_amount'] = $taxAmount;
+        $item['total_price_with_tax'] = round($baseTotal + $taxAmount, 2);
+    
+        // Re-assign with updated computed values
+        if ($updated) {
+            foreach ($cart as $k => $prod) {
+                if ($prod['product_id'] == $item['product_id']) {
+                    $cart[$k] = $item;
+                    break;
+                }
+            }
+        }
+    
         session()->put($this->sessionKey, $cart);
-
+    
         return $cart;
     }
+    
 
-    protected function getTaxRate()
+    public function getTaxRate()
     {
         
         // Load the settings from the database
-        $settings = Setting::where('setting_type', 'sales_tax')->first();
+        $settings = Setting::where('setting_name', 'sales_tax')->first();
 
         // Attempt to get from DB settings
-        $rate = $settings->setting_value ?? 0.0975;
+        $rate = $settings->setting_value ; 
 
         // Fallback to default if not set
-        return $rate !== null ? (float) $rate : 0.0975;
+        return $rate !== null ? $rate : 0;
     }
 
 

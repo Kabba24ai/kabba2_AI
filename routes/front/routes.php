@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::name('front.')->group(function () {
 
-    Route::middleware('front.common-front-data')->group(function () {
+    Route::middleware('front.common-front-data','web')->group(function () {
         // Home
         require base_path('routes/front/home/routes.php');
 
@@ -35,6 +35,9 @@ Route::name('front.')->group(function () {
 
         // Checkout
         require base_path('routes/front/checkout/routes.php');
+
+        // Cart
+        require base_path('routes/front/cart/routes.php');
     });
 
     Route::prefix('customer')->group(function ($router) {

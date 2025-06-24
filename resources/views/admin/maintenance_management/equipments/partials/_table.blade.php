@@ -31,7 +31,9 @@
                             <span class="text-sm text-gray-900">{{ $item->location ?? '-' }}</span>
                         </td>
                         <td class="py-3 px-3">
-                            <span class="text-xs text-gray-600">{{ $item->created_at->format('M d - g:i A') }}</span>
+                            <span class="text-xs text-gray-600">
+                                  {{ $item->created_at ? $item->created_at->format('M d - g:i A') : 'N/A' }}
+
                         </td>
                         <td class="py-4 px-3">
                             <span class="text-sm text-gray-600" title="{{ $item->rental_ready_checklist ?? 'No checklist assigned' }}">

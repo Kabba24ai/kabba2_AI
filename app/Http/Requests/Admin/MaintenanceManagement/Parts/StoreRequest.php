@@ -16,6 +16,8 @@ class StoreRequest extends FormRequest
         return [
             'part_name' => 'required|string|max:255',
             'equipment_id' => 'required|string|max:50',
+            'equipment_name' => 'required|string|max:50',
+            'category' => 'nullable|string|max:50',
             'current_stock' => 'nullable|integer|min:0',
             'min_stock' => 'nullable|integer|min:0',
             'dni' => 'boolean',

@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Route;
     // Orders
     #require base_path('routes/front/customer/orders/routes.php');
 });*/
-Route::prefix('orders')->name('orders.')->group(function () {
+/*Route::prefix('orders')->name('orders.')->group(function () {
 
     // Orders
     require base_path('routes/front/customer/orders/routes.php');
 
-});
+});*/

@@ -75,10 +75,12 @@
                     </div>
                 </div>
                 <div>
-                    <form id="rentalForm" method="POST" action="{{ route('front.orders.cart.add') }}">
+                <form id="rentalForm" method="POST" action="{{ route('front.cart.add') }}">
                     @csrf
 
                     <input type="hidden" name="product_id" value="{{ $productDetail->id }}">
+                    <input type="hidden" name="product_slug" value="{{ $productDetail->slug }}">
+
                     <input type="hidden" name="name" id="inputName">
                     <input type="hidden" name="image" id="inputImage">
                     <input type="hidden" name="rental_type" value="{{ $productType }}">
@@ -296,9 +298,11 @@
                                 data-keep="{{$item->accept_label}}"
                                 data-discard="{{$item->discard_label}}"
                                 data-message="{{$item->comment}}"
-                                onclick="handleCheckboxClick(this)" />
-                            <span>{{ $item->label }} <span class="font-medium">+
+                                onclick="handleCheckboxClick(this)"
+                                data-charged="{{ $item->charged ?? null }}"
 
+                                />
+                            <span>{{ $item->label }} <span class="font-medium">+
                                 @php
                                 	$price = match ($productType) {
                                         'daily' => $item->daily,
@@ -308,8 +312,12 @@
                                         default => $item->retail_price,
                                     };
                                 @endphp
-
                                 {{ App\Helpers\CustomHelper::formatCurrency($price) }}
+
+                                @if(!empty($item->charged) && $item->charged !== null)
+                                <small style="display: none;" class="text-gray-500">({{ $item->charged }})</small>
+                                 @endif
+
                             </span></span>
                         </label>
                         @endforeach
@@ -441,7 +449,7 @@
 
 	<!-- clean Modal -->
         <div id="modalBackdropClean"
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
                 <p id="modalMessage" class="text-gray-700 mb-4">Dynamic message here</p>
                 <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-center gap-3">
@@ -460,7 +468,7 @@
 
 @endsection
 @push('js')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
    <script>
 
 
@@ -744,6 +752,28 @@
 
 
 <script>
+    // Defer jQuery usage until DOM is ready AND Vite scripts are loaded
+    window.addEventListener('DOMContentLoaded', function () {
+        if (typeof window.jQuery !== 'undefined') {
+            $(function () {
+                console.log('✅ jQuery is available in inline script');
+
+                $('#rentalForm').on('submit', function (e) {
+                    e.preventDefault();
+                });
+
+                $('#addToRentalBtn').on('click', function () {
+                    console.log('Add to Rental clicked');
+                });
+            });
+        } else {
+            console.warn('❌ jQuery is NOT available in inline script');
+        }
+    });
+</script>
+
+
+<script>
     const STANDARD_DELIVERY_FEE = {{ $productDetail->standard_delivery_fee ?? 0 }};
     const EXTENDED_DELIVERY_FEE = {{ $productDetail->extended_delivery_fee ?? 0 }};
 </script>
@@ -751,92 +781,90 @@
 
     <script>
 
-
-// Block form submission from Enter key or other sources
-$('#rentalForm').on('submit', function (e) {
-    e.preventDefault(); // always block native submit
-});
-
-
- $('#addToRentalBtn').on('click', function () {
-
-        const scheduleDate = $('#selectedDateText').text().trim();
-    if (scheduleDate === 'Select Start Date') {
-        $('#dateError').removeClass('hidden');
-        return;
-    } else {
-        $('#dateError').addClass('hidden');
-    }
-
-
-        const qty = parseInt(document.querySelector('#qty').value) || 1;
-
-        console.log("qty :- ", qty);
-
-        const name = document.querySelector('h3').innerText.trim();
-        console.log("name :- ", name);
-
-
-        const image = document.querySelector('.product-image')?.src || '';
-
-        console.log("image :- ", image);
-
-
-        const basePriceText = document.querySelector('.bg-yellow-400 h4')?.innerText?.trim() || '';
-
-        console.log("Base price text:", basePriceText);
-
-        const rawPrice = basePriceText.split('/')[0].trim(); // "$1,234.00"
-        console.log("rawPrice price text:", rawPrice);
-
-
-const numericPrice = parseFloat(
-    rawPrice.replace(/[^0-9.]/g, '') // remove $ and commas
-);
-console.log("Numeric price:", numericPrice); // 1234
-
-
-
-        console.log("basePrice :- ", numericPrice);
-
-
-        const addons = [];
-        document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-            const label = cb.closest('label');
-            if (label) {
-                const spans = label.querySelectorAll('span');
-                let addonName = spans[0]?.innerText.trim() || '';
-                let price = spans[1] ? parseFloat(spans[1].innerText.replace(/[^0-9.]/g, '')) : 0;
-                addons.push({ name: addonName, price });
-            }
+window.addEventListener('DOMContentLoaded', function () {
+        if (typeof window.jQuery !== 'undefined') {
+            $(function () {
+        // Block form submission from Enter key or other sources
+        $('#rentalForm').on('submit', function (e) {
+            e.preventDefault(); // always block native submit
         });
 
 
+        $('#addToRentalBtn').on('click', function () {
 
-        console.log("addons :- ", addons);
+                const scheduleDate = $('#selectedDateText').text().trim();
+            if (scheduleDate === 'Select Start Date') {
+                $('#dateError').removeClass('hidden');
+                return;
+            } else {
+                $('#dateError').addClass('hidden');
+            }
 
-// Determine delivery fee if not already set via onchange
-let deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
 
-// Auto-pick from active dropdown if missing
-if (deliveryFee === 0) {
-    const deliveryOption = document.querySelector('input[name="delivery-option"]:checked')?.value;
+                const qty = parseInt(document.querySelector('#qty').value) || 1;
 
-    if (deliveryOption === 'dis1') {
-        const selected15 = document.getElementById('deliveryOption15');
-        if (selected15?.value) {
-            deliveryFee = parseFloat(selected15.value) * STANDARD_DELIVERY_FEE;
+                console.log("qty :- ", qty);
+
+                const name = document.querySelector('h3').innerText.trim();
+                console.log("name :- ", name);
+
+
+                const image = document.querySelector('.product-image')?.src || '';
+
+                console.log("image :- ", image);
+
+
+                const basePriceText = document.querySelector('.bg-yellow-400 h4')?.innerText?.trim() || '';
+
+                console.log("Base price text:", basePriceText);
+
+                const rawPrice = basePriceText.split('/')[0].trim(); // "$1,234.00"
+                console.log("rawPrice price text:", rawPrice);
+
+
+                const numericPrice = parseFloat(
+                    rawPrice.replace(/[^0-9.]/g, '') // remove $ and commas
+                );
+                console.log("Numeric price:", numericPrice); // 1234
+                console.log("basePrice :- ", numericPrice);
+                const addons = [];
+                document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                    const label = cb.closest('label');
+                    if (label) {
+                        const spans = label.querySelectorAll('span');
+                        let addonName = spans[0]?.innerText.trim() || '';
+                        let price = spans[1] ? parseFloat(spans[1].innerText.replace(/[^0-9.]/g, '')) : 0;
+
+                         // Get charged type from the checkbox data attribute
+                          let charged = cb.getAttribute('data-charged') || null;
+
+                          addons.push({ name: addonName, price, charged });
+                        }
+                });
+                console.log("addons :- ", addons);
+
+        // Determine delivery fee if not already set via onchange
+        let deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
+
+        // Auto-pick from active dropdown if missing
+        if (deliveryFee === 0) {
+            const deliveryOption = document.querySelector('input[name="delivery-option"]:checked')?.value;
+
+            if (deliveryOption === 'dis1') {
+                const selected15 = document.getElementById('deliveryOption15');
+                if (selected15?.value) {
+                    deliveryFee = parseFloat(selected15.value) * STANDARD_DELIVERY_FEE;
+                }
+            } else if (deliveryOption === 'dis2') {
+                const selected30 = document.getElementById('deliveryOption30');
+                if (selected30?.value) {
+                    deliveryFee = parseFloat(selected30.value) * EXTENDED_DELIVERY_FEE;
+                }
+            }
+
+            $('#inputDeliveryFee').val(deliveryFee);
+            console.log("✅ Calculated deliveryFee:", deliveryFee);
         }
-    } else if (deliveryOption === 'dis2') {
-        const selected30 = document.getElementById('deliveryOption30');
-        if (selected30?.value) {
-            deliveryFee = parseFloat(selected30.value) * EXTENDED_DELIVERY_FEE;
-        }
-    }
-
-    $('#inputDeliveryFee').val(deliveryFee);
-    console.log("✅ Calculated deliveryFee:", deliveryFee);
-}
 
 
 
@@ -873,6 +901,12 @@ if (deliveryFee === 0) {
             }
         });
     });
+
+
+});
+        }
+    });
+
     </script>
 
 

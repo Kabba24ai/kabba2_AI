@@ -396,7 +396,7 @@
                 document.querySelector(`.payment-option[data-value="${selected}"]`).classList.add(
                     'border-blue-500');
                 // Show/hide card input section
-                cardSection.style.display = selected === 'credit' ? 'block' : 'none';
+                cardSection.style.display = selected === 'Card' ? 'block' : 'none';
             }
             radioButtons.forEach(r => r.addEventListener('change', updateHighlight));
             updateHighlight();

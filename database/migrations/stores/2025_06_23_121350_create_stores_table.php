@@ -11,22 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customer_addresses', function (Blueprint $table) {
+        Schema::create('stores', function (Blueprint $table) {
             $table->id();
             $table->string('unique_id')->unique();
-            $table->enum('type', ['Billing', 'Shipping'])->default('Billing');
-            $table->unsignedBigInteger('customer_id');
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
-            $table->string('email')->nullable();
+            $table->string('store_name');
             $table->string('phone')->nullable();
+            $table->string('email')->nullable();
             $table->string('address')->nullable();
             $table->unsignedBigInteger('state_id')->nullable();
             $table->string('city')->nullable();
-            $table->string('zip_code')->nullable();
-
-            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
+            $table->string('zip_code', 10)->nullable();
+            $table->enum('is_primary', ['Yes', 'No'])->default('No');
+            $table->enum('status', ['Active', 'Inactive', 'Archived'])->default('Active');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->foreign('state_id')->references('id')->on('states')->nullOnDelete();
+            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
             $table->timestamps();
         });
     }
@@ -36,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customer_addresses');
+        Schema::dropIfExists('stores');
     }
 };

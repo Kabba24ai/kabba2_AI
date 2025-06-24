@@ -20,7 +20,7 @@ class CustomerAddress extends Model
         'address',
         'state_id',
         'city',
-        'zipcode'
+        'zip_code'
     ];
 
     public function customer()

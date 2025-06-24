@@ -33,7 +33,7 @@
                 <div class="w-full md:w-2/3 border-r px-4 md:pr-8 pb-12">
                     <!-- Billing Info -->
                     <h2 class="text-2xl font-bold mb-1">Billing information</h2>
-                    <form action="#" class="space-y-6">
+                    <form  method="post" class="space-y-6">
 
                         <!-- Address Selection -->
                         @auth
@@ -61,30 +61,32 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="text" placeholder="First Name"
+                                <input type="text" id="billingFirstName" placeholder="First Name"
                                     class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full" />
-                                <input type="text" placeholder="Last Name"
+                                <input type="text" id="billingLastName" placeholder="Last Name"
                                     class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full" />
                             </div>
-                            <input type="text" placeholder="Company Name"
+                            <input type="text" id="billingCompany" placeholder="Company Name"
                                 class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full" />
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="email" placeholder="Email"
+                                <input type="email" id="billingEmail" placeholder="Email"
                                     class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full" />
-                                <input type="text" placeholder="Phone"
+                                <input type="text" id="billingPhone" placeholder="Phone"
                                     class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full" />
                             </div>
-                            <input type="text" placeholder="Address"
-                                class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full" />
+                            <textarea id="billingAddress" name="billingAddress" class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
+                                rows="2" placeholder="Address"></textarea>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <select class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full text-gray-500">
-                                    <option>Select State...</option>
-                                    <!-- Add options here -->
+                                <select id="billingState" class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full ">
+                                    <option disabled value="">Select State...</option>
+                                    @foreach ($states as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
                                 </select>
-                                <input type="text" placeholder="City"
+                                <input type="text" id="billingCity" placeholder="City"
                                     class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full" />
-                                <input type="text" placeholder="Zip code"
-                                    class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full bg-blue-50" />
+                                <input type="text" id="billingZip"
+                                    placeholder="Zip code"class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full " />
                             </div>
 
                             <!-- Password section -->
@@ -92,7 +94,7 @@
                                 <input id="showPassword" type="checkbox" class="accent-blue-600 h-4 w-4" checked />
                                 <label for="showPassword" class="text-sm">Enter Your Custom Password</label>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div id="passwordFields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="password" placeholder="Password"
                                     class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full" />
                                 <input type="password" placeholder="Password confirmation"
@@ -111,7 +113,7 @@
                         <!-- Delivery Info -->
                         <h4 class="text-lg font-semibold">Delivery information</h4>
                         <div class="flex items-center gap-2 mb-4">
-                            <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4" />
+                            <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4" value="Yes"  />
                             <label for="sameAsBilling" class="text-sm">Same as billing information</label>
                         </div>
                         <div id="deliveryDiv" class="space-y-4">
@@ -120,52 +122,58 @@
                                     <label for="deliveryFirstName" class="block text-sm text-gray-600 mb-1">First
                                         Name</label>
                                     <input type="text" id="deliveryFirstName" name="deliveryFirstName"
-                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm" />
+                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm"
+                                        placeholder="First Name" />
                                 </div>
                                 <div class="flex-1">
                                     <label for="deliveryLastName" class="block text-sm text-gray-600 mb-1">Last
                                         Name</label>
                                     <input type="text" id="deliveryLastName" name="deliveryLastName"
-                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm" />
+                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm"
+                                        placeholder="Last Name" />
                                 </div>
                             </div>
                             <div class="flex flex-col md:flex-row gap-4">
                                 <div class="flex-[2]">
                                     <label for="deliveryEmail" class="block text-sm text-gray-600 mb-1">Email</label>
                                     <input type="email" id="deliveryEmail" name="deliveryEmail"
-                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm" />
+                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm"
+                                        placeholder="Email" />
                                 </div>
                                 <div class="flex-1">
                                     <label for="deliveryPhone" class="block text-sm text-gray-600 mb-1">Phone</label>
                                     <input type="text" id="deliveryPhone" name="deliveryPhone"
-                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm" />
+                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm"
+                                        placeholder="Phone" />
                                 </div>
                             </div>
                             <div>
                                 <label for="deliveryAddress" class="block text-sm text-gray-600 mb-1">Address</label>
                                 <textarea id="deliveryAddress" name="deliveryAddress"
-                                    class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm" rows="2"></textarea>
+                                    class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm" rows="2" placeholder="Address"></textarea>
                             </div>
                             <div class="flex flex-col md:flex-row gap-4">
                                 <div class="flex-1">
-                                    <label for="deliveryOption" class="block text-sm text-gray-600 mb-1">Delivery
-                                        Option</label>
-                                    <select id="deliveryOption" name="deliveryOption"
+                                    <label for="deliveryState" class="block text-sm text-gray-600 mb-1">State</label>
+                                    <select id="deliveryState" name="deliveryState"
                                         class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm">
-                                        <option disabled selected hidden>Select Delivery Option</option>
-                                        <option>10296 High 46, Bon Aqua, TN, 37025</option>
-                                        <option>4385 SR-48, Charlotte, TN, 37036</option>
+                                        <option disabled value="">Select State...</option>
+                                        @foreach ($states as $id => $name)
+                                            <option value="{{ $id }}">{{ $name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="flex-1">
                                     <label for="deliveryCity" class="block text-sm text-gray-600 mb-1">City</label>
                                     <input type="text" id="deliveryCity" name="deliveryCity"
-                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm" />
+                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm"
+                                        placeholder="City" />
                                 </div>
                                 <div class="flex-1">
                                     <label for="deliveryZip" class="block text-sm text-gray-600 mb-1">Zip code</label>
                                     <input type="text" id="deliveryZip" name="deliveryZip"
-                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm" />
+                                        class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm"
+                                        placeholder="Zip Code" />
                                 </div>
                             </div>
                         </div>
@@ -184,80 +192,77 @@
                         </div>
 
                         <!-- Payment Method -->
-                        <div>
+                        <div class="mx-auto" id="paymentForm">
                             <h4 class="text-lg font-semibold mb-3">Payment method</h4>
                             <div class="space-y-4">
 
                                 <!-- Credit/Debit -->
-                                <div class="border rounded-lg p-4">
-                                    <label class="inline-flex items-center gap-2">
-                                        <input type="radio" name="payment" value="credit" checked
-                                            class="accent-blue-600" />
+                                <div class="border-2 rounded-lg p-4 payment-option" data-value="Card">
+                                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="payment" value="Card"  />
                                         <span>Pay Using Credit or Debit</span>
                                     </label>
 
-                                    <div
-                                        class="relative h-48 rounded-xl transition-transform duration-700 transform-style preserve-3d shadow-lg">
-                                        <!-- Front of Card -->
-                                        <div
-                                            class="absolute w-full h-full backface-hidden rounded-xl p-5 bg-[#ddd] text-white card-front">
-                                            <div
-                                                class="w-10 h-7 relative bg-[#ccc] rounded mt-5 before:w-[70%] before:content-[''] before:h-[60%] before:bg-[#d9d9d9] before:top-[20%] before:rounded-r before:absolute">
-                                            </div>
-                                            <div id="cardNumberDisplay"
-                                                class="mt-5 text-lg tracking-widest font-mono">•••• •••• •••• ••••
-                                            </div>
-                                            <div class="flex justify-between mt-5 text-xs">
-                                                <div>
-                                                    <span id="cardHolderDisplay"
-                                                        class="block mt-1 text-lg uppercase font-mono">FULL NAME</span>
+                                    <div id="cardSection" class="block">
+                                        <!-- Card Visual -->
+                                        <div class="relative h-52 w-full max-w-md  mt-4 card-container">
+                                            <!-- Card Front -->
+                                            <div id="cardFront"
+                                                class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front">
+                                                <div
+                                                    class="w-10 h-7 relative bg-gray-400 rounded mt-5 before:w-[70%] before:content-[''] before:h-[60%] before:bg-gray-300 before:top-[20%] before:rounded-r before:absolute">
                                                 </div>
-                                                <div>
-                                                    <span id="cardExpiryDisplay"
-                                                        class="block mt-1 text-lg font-mono">MM/YY</span>
+                                                <div id="displayCardNumber"
+                                                    class="mt-8 text-2xl tracking-widest font-mono">•••• •••• •••• ••••
+                                                </div>
+                                                <div class="flex justify-between mt-8 text-base">
+                                                    <span id="displayFullName" class="uppercase font-mono">FULL
+                                                        NAME</span>
+                                                    <span id="displayExpiry" class="font-mono">MM/YY</span>
+                                                </div>
+                                            </div>
+                                            <!-- Card Back -->
+                                            <div id="cardBack"
+                                                class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-back"
+                                                style="display:none">
+                                                <div class="bg-gray-400 h-10 my-6 rounded"></div>
+                                                <div class="flex justify-end mt-4">
+                                                    <div id="displayCVC"
+                                                        class="bg-gray-200 text-black px-4 py-2 rounded font-mono text-lg">
+                                                        CVC</div>
+                                                </div>
+                                                <div class="mt-8 text-xs text-center text-gray-500">
+                                                    Keep your CVC code confidential
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <!-- Back of Card -->
-                                        <div
-                                            class="absolute w-full h-full backface-hidden rotate-y-180 rounded-xl p-5 bg-gradient-to-r from-indigo-600 to-purple-500 text-white card-back">
-                                            <div class="bg-black h-10 my-5"></div>
-                                            <div class="flex justify-end mt-2">
-                                                <div id="cvcDisplay"
-                                                    class="bg-white text-gray-800 px-3 py-1 rounded text-sm font-mono">
-                                                    CVC</div>
-                                            </div>
-                                            <div class="mt-5 text-xs text-center">
-                                                Keep your CVC code confidential
-                                            </div>
+                                        <!-- Card Inputs -->
+                                        <div class="grid md:grid-cols-2 gap-4 mt-4">
+                                            <input type="text" placeholder="First name" id="firstName"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                            <input type="text" placeholder="Last name" id="lastName"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                            <input type="text" placeholder="Card number" maxlength="19"
+                                                id="cardNumber"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm md:col-span-2 focus:border-blue-500" />
+                                            <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                            <input type="text" placeholder="CVC" maxlength="4" id="cvc"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
                                         </div>
-                                    </div>
-                                    <!-- Card Details -->
-                                    <div class="grid md:grid-cols-2 gap-4 mt-4">
-                                        <input type="text" placeholder="First name"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm" />
-                                        <input type="text" placeholder="Last name"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm" />
-                                        <input type="text" placeholder="Card number" maxlength="19"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm md:col-span-2" />
-                                        <input type="text" placeholder="MM/YY" maxlength="5"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm" />
-                                        <input type="text" placeholder="CVC" maxlength="3"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm" />
                                     </div>
                                 </div>
                                 <!-- Cash On Delivery -->
-                                <div class="border rounded-lg p-4">
-                                    <label class="inline-flex items-center gap-2">
-                                        <input type="radio" name="payment" value="cod" class="accent-blue-600" />
+                                <div class="border-2 rounded-lg p-4 payment-option" data-value="COD">
+                                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="payment" value="COD" checked />
                                         <span>Cash on delivery (COD)</span>
                                     </label>
                                 </div>
                                 <!-- Add Account -->
-                                <div class="border rounded-lg p-4">
-                                    <label class="inline-flex items-center gap-2">
-                                        <input type="radio" name="payment" value="account" class="accent-blue-600" />
+                                <div class="border-2 rounded-lg p-4 payment-option" data-value="Account">
+                                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="payment" value="Account" />
                                         <span>Add Account</span>
                                     </label>
                                 </div>
@@ -339,8 +344,9 @@
     </section>
 
     <!-- Tax Exempt Modal -->
-    <div id="taxModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden ">
-        <div class="taxModal-box bg-white rounded-lg shadow-lg w-full md:max-w-lg relative max-w-[90%]">
+    <div id="taxModal"
+        class="fixed inset-0 z-[9999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="taxModal-box bg-white rounded-lg shadow-lg w-full md:max-w-lg relative max-w-[90%] opacity-100">
             <div class="flex justify-between bg-black p-4 py-2 items-center rounded-t-lg">
                 <h5 class="text-lg text-white">Enter Admin Code</h5>
                 <button onclick="cancelModal()" class="px-4 py-2 text-white"><i class="fa-solid fa-xmark"></i></button>
@@ -352,7 +358,7 @@
                     Tax Exempt status.</p>
                 <form action="#">
                     <input type="password" name="name" id="name"
-                        class="mt-2 block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 "
+                        class="form-input mt-1 block w-full px-4 py-2 rounded-md border border-gray-300 shadow-sm "
                         placeholder=" Admin Code" />
                 </form>
             </div>
@@ -360,9 +366,9 @@
             <div class="border-t p-6 py-4">
                 <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-end gap-3">
                     <button onclick="cancelModal()"
-                        class="border-0 bg-yellow-400 text-[14px] px-6 font-bold hover:bg-yellow-300  transition-all duration-500 ease-in-out order-2 md:order-1">Cancel</button>
+                        class="bg-gray-600 hover:bg-gray-700 text-white text-base font-medium rounded px-8 py-3 ">Cancel</button>
                     <button onclick="confirmModal()"
-                        class="border-0 bg-yellow-400 text-[14px] px-6 py-3 font-bold hover:bg-yellow-300  transition-all duration-500 ease-in-out order-1 md:order-2">Submit</button>
+                        class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 ">Submit</button>
                 </div>
             </div>
         </div>
@@ -372,139 +378,182 @@
 @push('js')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const card = document.getElementById('card');
+            // ================================
+            // Payment Method Highlight & Toggle
+            // ================================
+
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            const radioButtons = document.querySelectorAll('input[name="payment"]');
+            const cardSection = document.getElementById('cardSection');
+
+            function updateHighlight() {
+                paymentOptions.forEach(opt => {
+                    opt.classList.remove('border-blue-500');
+                    opt.classList.add('border-gray-200');
+                });
+                const checkedRadio = document.querySelector('input[name="payment"]:checked');
+                const selected = checkedRadio.value;
+                document.querySelector(`.payment-option[data-value="${selected}"]`).classList.add(
+                    'border-blue-500');
+                // Show/hide card input section
+                cardSection.style.display = selected === 'credit' ? 'block' : 'none';
+            }
+            radioButtons.forEach(r => r.addEventListener('change', updateHighlight));
+            updateHighlight();
+
+            // Card info live update
             const cardNumberInput = document.getElementById('cardNumber');
-            const cardNumberDisplay = document.getElementById('cardNumberDisplay');
             const firstNameInput = document.getElementById('firstName');
             const lastNameInput = document.getElementById('lastName');
-            const cardHolderDisplay = document.getElementById('cardHolderDisplay');
-            const expiryDateInput = document.getElementById('expiryDate');
-            const expiryDateDisplay = document.getElementById('cardExpiryDisplay');
+            const expiryInput = document.getElementById('expiry');
             const cvcInput = document.getElementById('cvc');
-            const cvcDisplay = document.getElementById('cvcDisplay');
+
+            const displayCardNumber = document.getElementById('displayCardNumber');
+            const displayFullName = document.getElementById('displayFullName');
+            const displayExpiry = document.getElementById('displayExpiry');
+            const displayCVC = document.getElementById('displayCVC');
+
+            function formatCardNumber(value) {
+                return value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim();
+            }
+
+            function formatExpiry(value) {
+                value = value.replace(/[^0-9/]/g, '').substring(0, 5);
+                if (value.length === 2 && !value.includes('/')) value = value + '/';
+                return value;
+            }
 
             cardNumberInput.addEventListener('input', function() {
-                let value = this.value.replace(/\s/g, '').replace(/\D/g, '');
-                let formattedValue = '';
-
-                for (let i = 0; i < value.length; i++) {
-                    if (i > 0 && i % 4 === 0) {
-                        formattedValue += ' ';
-                    }
-                    formattedValue += value[i];
-                }
-
-                this.value = formattedValue;
-
-                if (value.length > 0) {
-                    const lastFourDigits = value.slice(-4);
-                    const maskedPart = '•••• •••• •••• ';
-                    cardNumberDisplay.textContent = maskedPart + lastFourDigits.padStart(4, '•');
-                } else {
-                    cardNumberDisplay.textContent = '•••• •••• •••• ••••';
-                }
+                this.value = formatCardNumber(this.value);
+                displayCardNumber.textContent = this.value || '•••• •••• •••• ••••';
+            });
+            firstNameInput.addEventListener('input', function() {
+                updateName();
+            });
+            lastNameInput.addEventListener('input', function() {
+                updateName();
             });
 
-            function updateCardHolder() {
-                const firstName = firstNameInput.value.trim();
-                const lastName = lastNameInput.value.trim();
-                const fullName = [firstName, lastName].filter(Boolean).join(' ').toUpperCase();
-                cardHolderDisplay.textContent = fullName || 'FULL NAME';
+            function updateName() {
+                const name = (firstNameInput.value + ' ' + lastNameInput.value).trim();
+                displayFullName.textContent = name || 'FULL NAME';
             }
-
-            firstNameInput.addEventListener('input', updateCardHolder);
-            lastNameInput.addEventListener('input', updateCardHolder);
-
-            expiryDateInput.addEventListener('input', function() {
-                let value = this.value.replace(/\D/g, '');
-
-                if (value.length > 2) {
-                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
-                }
-
-                this.value = value;
-                expiryDateDisplay.textContent = value || 'MM/YY';
+            expiryInput.addEventListener('input', function() {
+                this.value = formatExpiry(this.value);
+                displayExpiry.textContent = this.value || 'MM/YY';
             });
-
             cvcInput.addEventListener('input', function() {
-                this.value = this.value.replace(/\D/g, '');
-                cvcDisplay.textContent = this.value || 'CVC';
+                displayCVC.textContent = this.value || 'CVC';
             });
+
+            // Card flip logic for CVC
+            const cardFront = document.getElementById('cardFront');
+            const cardBack = document.getElementById('cardBack');
 
             cvcInput.addEventListener('focus', function() {
-                card.classList.add('flipped');
+                cardFront.style.display = 'none';
+                cardBack.style.display = 'block';
             });
-
             cvcInput.addEventListener('blur', function() {
-                if (!cvcInput.matches(':hover')) {
-                    card.classList.remove('flipped');
-                }
+                cardFront.style.display = 'block';
+                cardBack.style.display = 'none';
             });
 
-            cvcInput.addEventListener('mouseenter', function() {
-                card.classList.add('flipped');
-            });
+            // ========================================
+            // Sync "Same as Billing" for Delivery Info
+            // ========================================
+            const sameAsBilling = document.getElementById('sameAsBilling');
+            const deliveryDiv = document.getElementById('deliveryDiv');
 
-            cvcInput.addEventListener('mouseleave', function() {
-                if (document.activeElement !== cvcInput) {
-                    card.classList.remove('flipped');
-                }
-            });
+            // Map billing fields to delivery fields
+            const fields = [
+                ['billingFirstName', 'deliveryFirstName'],
+                ['billingLastName', 'deliveryLastName'],
+                ['billingEmail', 'deliveryEmail'],
+                ['billingPhone', 'deliveryPhone'],
+                ['billingAddress', 'deliveryAddress'],
+                ['billingState', 'deliveryState'],
+                ['billingCity', 'deliveryCity'],
+                ['billingZip', 'deliveryZip'],
+            ];
 
-            [cardNumberInput, firstNameInput, lastNameInput, expiryDateInput].forEach(input => {
-                input.addEventListener('focus', function() {
-                    card.classList.remove('flipped');
+            function syncDeliveryFields() {
+                fields.forEach(([billingId, deliveryId]) => {
+                    const billing = document.getElementById(billingId);
+                    const delivery = document.getElementById(deliveryId);
+                    if (billing && delivery) {
+                        if (billing.tagName === 'SELECT') {
+                            delivery.value = billing.value;
+                        } else if (billing.tagName === 'TEXTAREA') {
+                            delivery.value = billing.value;
+                        } else {
+                            delivery.value = billing.value;
+                        }
+                    }
                 });
+            }
+
+            // ============================
+            // Custom Password Show/Hide
+            // ============================
+            sameAsBilling.addEventListener('change', function() {
+                if (this.checked) {
+                    syncDeliveryFields();
+                    deliveryDiv.style.display = 'none';
+                    // Listen for changes in billing to update delivery fields
+                    fields.forEach(([billingId, deliveryId]) => {
+                        const billing = document.getElementById(billingId);
+                        if (billing) {
+                            billing.addEventListener('input', syncDeliveryFields);
+                            billing.addEventListener('change', syncDeliveryFields);
+                        }
+                    });
+                } else {
+                    deliveryDiv.style.display = '';
+                    // Remove listeners if needed (not strictly necessary here for most forms)
+                }
             });
-        });
-    </script>
-    <script>
-        let taxCheckbox = document.getElementById('taxCheckbox');
-        let shouldCheck = false;
 
-        function handleCheckboxChange(event) {
-            if (event.target.checked) {
-                event.target.checked = false;
-                shouldCheck = true;
-                showModal();
-            } else {
-                shouldCheck = false;
+            const showPassword = document.getElementById('showPassword');
+            const passwordFields = document.getElementById('passwordFields');
+
+            function togglePasswordFields() {
+                passwordFields.style.display = showPassword.checked ? '' : 'none';
             }
-        }
 
-        function showModal() {
-            document.getElementById('taxModal').classList.remove('hidden');
-            document.getElementById('taxModal').classList.add('flex');
-        }
+            showPassword.addEventListener('change', togglePasswordFields);
+            // Set initial state
+            togglePasswordFields();
 
-        function closeModal() {
-            document.getElementById('taxModal').classList.add('hidden');
-            document.getElementById('taxModal').classList.remove('flex');
-        }
+            // ============================
+            // Tax Exempt Modal Show/Hide
+            // ============================
+            const taxExempt = document.getElementById('taxExempt');
+            const taxModal = document.getElementById('taxModal');
 
-        function confirmModal() {
-            if (shouldCheck) {
-                taxCheckbox.checked = true;
+            function handleTaxExemptChange() {
+                if (taxExempt.checked) {
+                    taxModal.classList.remove('hidden');
+                } else {
+                    taxModal.classList.add('hidden');
+                }
             }
-            closeModal();
-        }
 
-        function cancelModal() {
-            taxCheckbox.checked = false; // ensure it's still unchecked
-            closeModal();
-        }
-        // Proper outside click detection that doesn't interfere with modal toggle
-        document.addEventListener('mousedown', function(event) {
-            const modal = document.getElementById('taxModal');
-            const modalBox = document.querySelector('.taxModal-box');
+            // Show/hide modal when checkbox changes
+            taxExempt.addEventListener('change', handleTaxExemptChange);
 
-            // Check if modal is visible
-            const isModalVisible = !modal.classList.contains('hidden');
+            // Optional: When modal is closed, uncheck the box
+            window.cancelModal = function() {
+                taxModal.classList.add('hidden');
+                taxExempt.checked = false;
+            };
 
-            // If modal is open and click is outside modal box
-            if (isModalVisible && !modalBox.contains(event.target)) {
-                cancelModal();
-            }
+            // Optional: When submitted, also hide modal (customize as needed)
+            window.confirmModal = function() {
+                taxModal.classList.add('hidden');
+                // Optionally: keep checkbox checked
+                // Optionally: Add your validation or AJAX here
+            };
         });
     </script>
 @endpush

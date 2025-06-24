@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front\Checkout;
 
 use App\Http\Controllers\Controller;
+use App\Models\Locations\State;
 use Illuminate\Http\Request;
 
 class IndexController extends Controller
@@ -12,8 +13,11 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
+        $states = State::select('id', 'name')->pluck('name', 'id');
+
         return view('front.checkout.index',[
-            'title'=> 'Checkout'
+            'title'=> 'Checkout',
+            'states'=> $states
         ]);
     }
 }

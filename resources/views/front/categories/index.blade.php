@@ -12,7 +12,7 @@
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-[40px] tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
                         <ul
-                            class="bg-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
+                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
@@ -53,22 +53,22 @@
                                     <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'daily']) }}"
                                         class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Daily
-                                        <span>{{ $product->rental_daily }}</span>
+                                        <span> {{ App\Helpers\CustomHelper::formatCurrency($product->rental_daily) }} </span>
                                     </a>
                                     <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'weekend']) }}"
                                         class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Weekend Spcl.
-                                        <span>{{ $product->rental_weekend }}</span>
+                                        <span> {{ App\Helpers\CustomHelper::formatCurrency($product->rental_weekend) }}</span>
                                     </a>
                                     <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'weekly']) }}"
                                         class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Weekly
-                                        <span>{{ $product->rental_weekly }}</span>
+                                        <span> {{ App\Helpers\CustomHelper::formatCurrency($product->rental_weekly) }}</span>
                                     </a>
                                     <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'monthly']) }}"
                                         class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Monthly
-                                        <span>{{ $product->rental_monthly }}</span>
+                                        <span> {{ App\Helpers\CustomHelper::formatCurrency($product->rental_monthly) }} </span>
                                     </a>
                                 </div>
                                 <h6 class="text-[12px] mt-2 text-black">Select an Option to Learn More or Reserve Today

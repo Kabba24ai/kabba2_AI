@@ -13,9 +13,9 @@
                         <h1 class="text-[28px] md:text-[34px] lg:text-[40px] tracking-[-2px] leading-[110%] font-bold">
                             {{ $productDetail->product_name }}</h1>
                         <ul
-                            class="bg-yellow-400 px-[20px] py-4 max-w-full mt-4 lg:mt-0 text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
+                            class="border-yellow-400 px-[20px] py-4 max-w-full mt-4 lg:mt-0 text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                <a href="index.php" class="opacity-25">Home</a>
+                                <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
                             </li>
                             @foreach ($productDetail->categories as $category)
                                 <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
@@ -48,7 +48,7 @@
                                     <div class="swiper-slide">
                                         <div class="lg:h-full w-full group relative overflow-hidden">
                                             <img src="{{ $mediaChildren->media->url }}" alt="boom-lift-v2"
-                                                class="mx-auto h-full w-full object-contain group-hover:scale-[1.045] transition-all duration-500 ease-in-out" />
+                                                class="product-image mx-auto h-full w-full object-contain group-hover:scale-[1.045] transition-all duration-500 ease-in-out" />
                                         </div>
                                     </div>
                                 @endforeach
@@ -75,6 +75,18 @@
                     </div>
                 </div>
                 <div>
+                    <form id="rentalForm" method="POST" action="{{ route('front.orders.cart.add') }}">
+                    @csrf
+
+                    <input type="hidden" name="product_id" value="{{ $productDetail->id }}">
+                    <input type="hidden" name="name" id="inputName">
+                    <input type="hidden" name="image" id="inputImage">
+                    <input type="hidden" name="rental_type" value="{{ $productType }}">
+                    <input type="hidden" name="qty" id="inputQty">
+                    <input type="hidden" name="base_price" id="inputBasePrice">
+                    <input type="hidden" name="addons" id="inputAddons">
+                    <input type="hidden" name="schedule_date" id="inputScheduleDate">
+                    <input type="hidden" name="delivery_fee" id="inputDeliveryFee">
                     <div
                         class="bg-[#f9fafc] mb-4 flex flex-col lg:flex-row justify-between items-center p-2 lg:p-0 lg:pl-4 md:pl-4">
                         <div>
@@ -88,22 +100,22 @@
                             <h4>
                                 @switch($productType)
                                     @case('daily')
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_daily) }}
+                                        {{ CustomHelper::formatCurrency($productDetail->rental_daily) }}
                                         <span class="text-[16px] font-normal">/ day</span>
                                     @break
 
                                     @case('weekend')
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_weekend) }}
+                                        {{ CustomHelper::formatCurrency($productDetail->rental_weekend) }}
                                         <span class="text-[16px] font-normal">/ week</span>
                                     @break
 
                                     @case('weekly')
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_weekly) }}
+                                        {{ CustomHelper::formatCurrency($productDetail->rental_weekly) }}
                                         <span class="text-[16px] font-normal">/ week</span>
                                     @break
 
                                     @case('monthly')
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_monthly) }}
+                                        {{ CustomHelper::formatCurrency($productDetail->rental_monthly) }}
                                         <span class="text-[16px] font-normal">/ month</span>
                                     @break
                                     @default
@@ -159,7 +171,9 @@
                                     onclick="changeQty(1)">+</button>
                             </div>
                         </div>
+                        <div id="dateError" class="text-red-600 text-sm mt-2 hidden">Please select a start date.</div>
                     </div>
+                    @if($productDetail->in_store_pickup=='Yes')
                     <div class="space-y-2 mt-4">
                         <label class="inline-flex items-center space-x-2">
                             <input type="radio" name="option" value="in-store" class="form-radio" checked
@@ -168,6 +182,8 @@
                         </label>
 
                     </div>
+                    @endif
+                    @if($productDetail->delivery_and_pickup=='Yes')
                     <div class="space-y-2">
                         <label class="inline-flex items-center space-x-2">
                             <input type="radio" name="option" value="delivery" class="form-radio"
@@ -175,12 +191,16 @@
                             <span>Delivery - Full Turnkey Service</span>
                         </label>
                     </div>
+                   @endif
+                   @if($productDetail->in_store_pickup=='Yes')
                     <div id="inStoreDiv" class="mt-4">
                     </div>
-
+                   @endif
+					@if($productDetail->delivery_and_pickup=='Yes')
                     <div id="deliveryDiv" class="mt-4 mb-5 hidden">
                         <div class="">
                             <span>Up To: </span>
+                             @if ($productDetail->standard_delivery_fee !== null)
                             <label class="inline-flex items-center space-x-2">
                                 <input type="radio" name="delivery-option" value="dis1" class="sr-only peer" checked
                                     onchange="toggleDeliveryOption(this)" />
@@ -190,6 +210,9 @@
                                 </div>
                                 <span>15 mi</span>
                             </label>
+                            @endif
+
+                            @if ($productDetail->extended_delivery_fee !== null)
                             <label class="inline-flex items-center space-x-2">
                                 <input type="radio" name="delivery-option" value="dis2" class="sr-only peer"
                                     onchange="toggleDeliveryOption(this)" />
@@ -199,6 +222,7 @@
                                 </div>
                                 <span>30 mi</span>
                             </label>
+                            @endif
                             <label class="inline-flex items-center space-x-2">
                                 <input type="radio" name="delivery-option" value="discustom" class="sr-only peer"
                                     onchange="toggleDeliveryOption(this)" />
@@ -208,6 +232,34 @@
                                 </div>
                                 <span>Custom</span>
                             </label>
+
+                             @if ($productDetail->standard_delivery_fee !== null)
+                                <!-- For 15 mi -->
+                                <div id="dropdown15" class="hidden my-2">
+                                    <label class="block font-medium mb-1">Choose Delivery Type (15 mi):</label>
+                                    <select id="deliveryOption15" class="w-full border p-2 rounded" >
+                                        <option value="">Select Delivery Options</option>
+                                        <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ CustomHelper::formatCurrency($productDetail->standard_delivery_fee * 2) }}]</option>
+                                        <option value="1">Delivery but I'll Return to Store [{{ CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
+                                        <option value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
+                                    </select>
+                                </div>
+                            @endif
+
+                            @if ($productDetail->extended_delivery_fee !== null)
+                                <!-- For 30 mi -->
+                                <div id="dropdown30" class="hidden my-2">
+                                    <label class="block font-medium mb-1">Choose Delivery Type (30 mi):</label>
+                                    <select id="deliveryOption30" class="w-full border p-2 rounded" >
+                                        <option value="">Select Delivery Options</option>
+                                        <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]</option>
+                                        <option value="1">Delivery but I'll Return to Store [{{ CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
+                                        <option value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
+                                    </select>
+                                </div>
+                            @endif
+
+                            <!-- Custom Option Text -->
                             <div id="customdis" class="hidden w-[80%] border-[5px] border-[#0391B4] p-2 mt-2">
                                 <h4 class="text-center font-bold">Please Call / Text for Custom Solutions</h4>
                                 <h5 class="text-center text-[#c40000] font-bold py-2">(615) 815-6734</h5>
@@ -216,11 +268,12 @@
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     <div id="address" class="w-full mt-5 mb-5 hidden">
                         <select id="category" name="category"
-                            class="block w-50 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
-                            <option disabled selected>Select Delivery Options</option>
+                            class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
+                            <option disabled selected>Select Store Location</option>
                             <option>10296 High 46 , Bon Aqua ,TN ,37025</option>
                             <option>10296 High 46 , Bon Aqua ,TN ,37025</option>
                             <option>4385 SR-48, Charlotte , TN ,37036</option>
@@ -229,47 +282,54 @@
 
 
                     <div class="flex flex-col">
+                    	
+                        
                         <h4 class="font-semibold text-[16px] mb-1">Options</h4>
-                        <label class="inline-flex items-center space-x-2 mt-1">
-                            <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelCheckbox"
-                                onclick="confirmUncheck(this, 'modalBackdropFuel')" />
-                            <span class="">Prepaid Fuel <span class="font-medium">+
-                                    {{ $productDetail->rental_prepaid_fuel }} </span> </span>
+                        @foreach ($productDetail->options as $option)
+                       	@if($option->items->isNotEmpty())
+                        @foreach ($option->items as $item)
+                            
+                        	<label class="inline-flex items-center space-x-2 mt-1">
+                            <input type="checkbox" class="form-checkbox h-4 w-4" @if($item->value=="Checked") checked="checked" @endif
+                                id="options_{{$item->unique_id}}"
+                                data-id="{{$item->unique_id}}"
+                                data-keep="{{$item->accept_label}}"
+                                data-discard="{{$item->discard_label}}"
+                                data-message="{{$item->comment}}"
+                                onclick="handleCheckboxClick(this)" />
+                            <span>{{ $item->label }} <span class="font-medium">+ 
+                            	
+                                @php
+                                	$price = match ($productType) {
+                                        'daily' => $item->daily,
+                                        'weekend' => $item->weekend,
+                                        'weekly' => $item->weekly,
+                                        'monthly' => $item->monthly,
+                                        default => $item->retail_price,
+                                    };
+                                @endphp
+                                
+                                {{ CustomHelper::formatCurrency($price) }}
+                            </span></span>
                         </label>
-                        <label class="inline-flex items-center space-x-2 mt-1">
-                            <input type="checkbox" class="form-checkbox h-4 w-4" checked id="cleanCheckbox"
-                                onclick="confirmUncheck(this, 'modalBackdropClean')" />
-                            <span class="">Prepaid Cleaning <span class="font-medium">+
-                                    {{ $productDetail->rental_prepaid_cleaning }}</span></span>
-                        </label>
-                        <label class="inline-flex items-center space-x-2 mt-1">
-                            <input type="checkbox" class="form-checkbox h-4 w-4" checked id="toothedCheckbox"
-                                onclick="confirmUncheck(this, 'modalBackdropToothed')" />
-                            <span class="">Toothed Bucket </span>
-                        </label>
-                        <label class="inline-flex items-center space-x-2 mt-1">
-                            <input type="checkbox" class="form-checkbox h-4 w-4" />
-                            <span class="">Smooth Bucket *Subject to Availability </span>
-                        </label>
-                        <label class="inline-flex items-center space-x-2 mt-1">
-                            <input type="checkbox" class="form-checkbox h-4 w-4" />
-                            <span class="">Forks <span class="font-medium">+ 0.00</span></span>
-                        </label>
-                        <label class="inline-flex items-center space-x-2 mt-1">
-                            <input type="checkbox" class="form-checkbox h-4 w-4" checked id="damageCheckbox"
-                                onclick="confirmUncheck(this, 'modalBackdropDamage')" />
-                            <span class="">Damage Waiver <span class="font-medium">+
-                                    {{ $productDetail->rental_damage_waiver_daily }}</span></span>
-                        </label>
+                        @endforeach
+						@endif
+                       
+                        @endforeach   
+                        <!-- Prepaid Fuel -->
+                        
+                        
                     </div>
 
 
 
                     <div id="rentalbtn">
-                        <button type="button"
-                            class="toggleCart border-0 bg-yellow-400 text-[14px] px-6 h-[55px] font-medium mt-4 hover:bg-yellow-300  transition-all duration-500 ease-in-out"><i
+                        <button type="button" 
+                        id="addToRentalBtn"
+                            class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out"><i
                                 class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental</button>
                     </div>
+                </form>
                 </div>
             </div>
         </div>
@@ -280,7 +340,8 @@
             <h2 class="md:text-[28px] font-bold text-left mb-10  ">Amazing Additions</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-0 gap-x-8 lg:gap-8">
                 <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class=" group">
+                    <a href="javascript:void(0)" class="text-[#231E41] group">
+                        
                         <div class="lg:h-80 w-full relative overflow-hidden">
                             <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
@@ -377,78 +438,443 @@
             </div>
         </div>
     </section>
-    <!-- fule Modal -->
-    <div id="modalBackdropFuel" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
-            <p class="text-gray-700 mb-4">I understand that the machine is delivered full of fuel and I’m responsible
-                for returning it full of fuel. If returned without a full tank, I realize I will be responsible for the
-                added fuel charges of $8/gallon. If I take the “Pre-Paid Fuel” option, I can just walk away from this
-                obligation and I’m covered!</p>
-            <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-center gap-3">
-                <button onclick="confirmUncheckModal('fuelCheckbox', 'modalBackdropFuel')"
-                    class="px-4 py-2 bg-[#cc3333] text-white rounded hover:bg-[#ca2626] order-2 md:order-1">No Thanks,
-                    I'll Take The Risk</button>
-                <button onclick="cancelUncheck('fuelCheckbox', 'modalBackdropFuel')"
-                    class="px-4 py-2 bg-[#007300] rounded hover:bg-[#006000] mr-2 text-[#fff] order-1 md:order-2">Keep
-                    Prepaid Fule</button>
 
+	<!-- clean Modal -->
+        <div id="modalBackdropClean"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
+                <p id="modalMessage" class="text-gray-700 mb-4">Dynamic message here</p>
+                <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-center gap-3">
+                    <button id="modalRejectBtn"
+                        class="px-4 py-2 bg-[#cc3333] text-white rounded hover:bg-[#ca2626] order-2 md:order-1">
+                        No Thanks, I'll Take The Risk
+                    </button>
+                    <button id="modalAcceptBtn"
+                        class="px-4 py-2 bg-[#007300] text-white rounded hover:bg-[#006000] order-1 md:order-2">
+                        Keep Option
+                    </button>
+
+                </div>
             </div>
         </div>
-    </div>
-    <!-- clean Modal -->
-    <div id="modalBackdropClean"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
-            <p class="text-gray-700 mb-4">I understand I’ll be responsible for bringing the equipment back at the same,
-                or better, cleanliness level as when I receive the equipment or I’ll be charged the rates specified in
-                the rental agreement. **Does not cover “Extreme” cleaning, only standard cleaning.</p>
-            <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-center gap-3">
-                <button onclick="confirmUncheckModal('cleanCheckbox', 'modalBackdropClean')"
-                    class="px-4 py-2 bg-[#cc3333] text-white rounded hover:bg-[#ca2626] order-2 md:order-1">No Thanks,
-                    I'll Take The Risk</button>
-                <button onclick="cancelUncheck('cleanCheckbox', 'modalBackdropClean')"
-                    class="px-4 py-2 bg-[#007300] rounded hover:bg-[#006000] mr-2 text-[#fff] order-1 md:order-2">Keep
-                    Prepaid Cleaning</button>
-
-            </div>
-        </div>
-    </div>
-    <!-- Toothed Bucket  Modal -->
-    <div id="modalBackdropToothed"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
-            <p class="text-gray-700 mb-4">I understand that by not accepting the standard damage waiver, I will be
-                responsible for all repairs necessary while using this equipment and have Business Insurance that covers
-                this type of rental equipment or adequate financial capability to cover all expenses... including full
-                replacement if needed.</p>
-            <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-center gap-3">
-                <button onclick="confirmUncheckModal('toothedCheckbox', 'modalBackdropToothed')"
-                    class="px-4 py-2 bg-[#cc3333] text-white rounded hover:bg-[#ca2626] order-2 md:order-1">No Thanks,
-                    I'll Take The Risk</button>
-                <button onclick="cancelUncheck('toothedCheckbox', 'modalBackdropToothed')"
-                    class="px-4 py-2 bg-[#007300] rounded hover:bg-[#006000] mr-2 text-[#fff] order-1 md:order-2">Keep
-                    Toothed Bucket</button>
-
-            </div>
-        </div>
-    </div>
-    <!-- Damage Waiver  Modal -->
-    <div id="modalBackdropDamage"
-        class="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
-            <p class="text-gray-700 mb-4">I understand that by not accepting the standard damage waiver, I will be
-                responsible for all repairs necessary while using this equipment and have Business Insurance that covers
-                this type of rental equipment or adequate financial capability to cover all expenses... including full
-                replacement if needed.</p>
-            <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-center gap-3">
-                <button onclick="confirmUncheckModal('damageCheckbox', 'modalBackdropDamage')"
-                    class="px-4 py-2 bg-[#cc3333] text-white rounded hover:bg-[#ca2626] order-2 md:order-1">No Thanks,
-                    I'll Take The Risk</button>
-                <button onclick="cancelUncheck('damageCheckbox', 'modalBackdropDamage')"
-                    class="px-4 py-2 bg-[#007300] rounded hover:bg-[#006000] mr-2 text-[#fff] order-1 md:order-2">Keep
-                    Damage Waiver</button>
-
-            </div>
-        </div>
-    </div>
+    
 @endsection
+@push('js')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   <script>
+   
+
+    // product detail img
+    document.addEventListener("DOMContentLoaded", function () {
+        var product = new Swiper(".thumbSwiper", {
+            loop: true,
+            spaceBetween: 10,
+            slidesPerView: 4,
+            freeMode: true,
+            watchSlidesProgress: true,
+        });
+
+        var swiper2 = new Swiper(".mainSwiper", {
+            loop: true,
+            spaceBetween: 10,
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            thumbs: {
+                swiper: product,
+            },
+        });
+    });
+
+    // ui-datrpicker
+    const openBtn = document.getElementById("openDatePicker");
+    const selectedText = document.getElementById("selectedDateText");
+    const datePicker = document.getElementById("datePicker");
+    const monthYear = document.getElementById("monthYear");
+    const daysGrid = document.getElementById("daysGrid");
+    const prevMonthBtn = document.getElementById("prevMonth");
+    const nextMonthBtn = document.getElementById("nextMonth");
+    const dateInput = document.getElementById("dateInput");
+
+    // Only initialize if all required elements exist
+    if (
+        openBtn &&
+        selectedText &&
+        datePicker &&
+        monthYear &&
+        daysGrid &&
+        prevMonthBtn &&
+        nextMonthBtn &&
+        dateInput
+    ) {
+        let currentDate = new Date();
+
+        openBtn.addEventListener("click", () => {
+            datePicker.classList.toggle("hidden");
+            if (!datePicker.classList.contains("hidden")) {
+                renderCalendar(currentDate);
+            }
+        });
+
+        document.addEventListener("click", (e) => {
+            if (
+                !datePicker.contains(e.target) &&
+                e.target !== openBtn &&
+                !openBtn.contains(e.target)
+            ) {
+                datePicker.classList.add("hidden");
+            }
+        });
+
+        prevMonthBtn.addEventListener("click", () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar(currentDate);
+        });
+
+        nextMonthBtn.addEventListener("click", () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar(currentDate);
+        });
+        window.renderCalendar = function renderCalendar(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth();
+
+            monthYear.textContent = date.toLocaleString("default", {
+                month: "long",
+                year: "numeric",
+            });
+            daysGrid.innerHTML = "";
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay();
+
+            for (let i = 0; i < startDay; i++) {
+                daysGrid.innerHTML += "<div></div>";
+            }
+
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dayEl = document.createElement("button");
+                dayEl.textContent = day;
+                dayEl.className =
+                    "py-1 rounded hover:bg-yellow-500 hover:text-white focus:outline-none";
+
+                const today = new Date();
+                if (
+                    day === today.getDate() &&
+                    month === today.getMonth() &&
+                    year === today.getFullYear()
+                ) {
+                    dayEl.classList.add("bg-yellow-100");
+                }
+
+                dayEl.addEventListener("click", () => {
+                    const formatted = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                    selectedText.textContent = formatted;
+                    dateInput.value = formatted; // update hidden input
+                    datePicker.classList.add("hidden");
+                });
+
+                daysGrid.appendChild(dayEl);
+            }
+        };
+    } else {
+        console.log("Date picker elements not found on this page");
+    }
+
+
+
+    // qty pluse/minus
+        window.changeQty = function changeQty(delta) {
+            const input = document.getElementById("qty");
+            let current = parseInt(input.value) || 1;
+            let newValue = current + delta;
+            if (newValue < parseInt(input.min)) newValue = parseInt(input.min);
+            if (newValue > parseInt(input.max)) newValue = parseInt(input.max);
+            input.value = newValue;
+        };
+
+        // Global variable to store the checkbox being interacted with
+        let currentCheckbox = null;
+
+        /**
+        * Called when a checkbox is clicked.
+        * If user tries to uncheck it, prevent unchecking immediately,
+        * and show the confirmation modal with dynamic content.
+        */
+       
+	    window.handleCheckboxClick = function (checkbox) {
+            if (!checkbox.checked) {
+                checkbox.checked = true;
+
+                currentCheckbox = checkbox;
+
+                // Get dynamic message and button label
+                const message = checkbox.dataset.message;
+                const keep_title = checkbox.dataset.keep;
+				const discard_title = checkbox.dataset.discard;
+				$("#modalMessage").html(message);
+				
+				
+               $("modalRejectBtn").text(discard_title || "No Thanks, I'll Take The Risk");
+			   $("modalAcceptBtn").text(keep_title);
+
+                document.getElementById("modalBackdropClean").classList.remove("hidden");
+            }
+        };
+
+        /**
+        * Called when user clicks "Keep Option" button or clicks outside the modal.
+        * Closes the modal and keeps the checkbox checked.
+        */
+        window.cancelUncheck = function () {
+            if (currentCheckbox) {
+                currentCheckbox.checked = true;
+                document.getElementById("modalBackdropClean").classList.add("hidden");
+                currentCheckbox = null;
+            }
+        };
+
+        /**
+        * Called when user clicks "No Thanks, I'll Take The Risk" button.
+        * Unchecks the checkbox and closes the modal.
+        */
+        window.confirmUncheckModal = function () {
+            if (currentCheckbox) {
+                currentCheckbox.checked = false;
+                document.getElementById("modalBackdropClean").classList.add("hidden");
+                currentCheckbox = null;
+            }
+        };
+
+        // Assign event listeners to modal buttons
+        // "Keep Option" button (green)
+        document.getElementById("modalAcceptBtn").onclick = cancelUncheck;
+
+        // "No Thanks" button (red)
+        document.getElementById("modalRejectBtn").onclick = confirmUncheckModal;
+
+        /**
+        * If user clicks anywhere outside the modal content,
+        * treat it as cancel and close the modal.
+        */
+        document.getElementById("modalBackdropClean").addEventListener("click", function (e) {
+            if (e.target === this) {
+                cancelUncheck();
+            }
+        });
+
+        // product details radio hide/show
+        window.toggleDeliveryOption = function toggleDeliveryOption(radio) {
+            const inStoreDiv = document.getElementById("inStoreDiv");
+            const deliveryDiv = document.getElementById("deliveryDiv");
+            const customdis = document.getElementById("customdis");
+            const distance = document.getElementById("distance");
+            const address = document.getElementById("address");
+            const rentalbtn = document.getElementById("rentalbtn");
+
+            if (radio.name === "option") {
+                if (radio.value === "in-store") {
+                    // Show for in-store
+                    inStoreDiv.classList.remove("hidden");
+                    address.classList.remove("hidden");
+                    distance.classList.remove("hidden");
+                    rentalbtn.classList.remove("hidden");
+
+                    // Hide delivery-related
+                    deliveryDiv.classList.add("hidden");
+                    customdis.classList.add("hidden");
+                } else if (radio.value === "delivery") {
+                    // Show delivery section
+                    deliveryDiv.classList.remove("hidden");
+                    inStoreDiv.classList.add("hidden");
+
+                    // Hide address for delivery initially
+                    address.classList.add("hidden");
+                    customdis.classList.add("hidden");
+
+                    // Check which delivery-option is selected
+                    const deliveryOption = document.querySelector(
+                        'input[name="delivery-option"]:checked',
+                    );
+                    if (deliveryOption) {
+                        toggleDeliveryOption(deliveryOption); // Trigger sub-option logic
+                    }
+                }
+            }
+
+            if (radio.name === "delivery-option") {
+                // hide both dropdowns first
+                dropdown15?.classList.add("hidden");
+                dropdown30?.classList.add("hidden");
+                customdis.classList.add("hidden");
+
+
+                if (radio.value === "dis1") {
+                    dropdown15?.classList.remove("hidden");
+                    rentalbtn.classList.remove("hidden");
+                customdis.classList.add("hidden");
+                  
+
+                } else if (radio.value === "dis2") {
+                    dropdown30?.classList.remove("hidden");
+                    rentalbtn.classList.remove("hidden");
+                    customdis.classList.add("hidden");
+
+
+                } else if (radio.value === "discustom") {
+                    customdis.classList.remove("hidden");
+                    rentalbtn.classList.add("hidden");
+
+                }
+            }
+
+        };
+
+        window.onload = () => {
+            const mainSelected = document.querySelector('input[name="option"]:checked');
+            if (mainSelected) {
+                toggleDeliveryOption(mainSelected);
+            }
+        };
+                
+   </script>
+
+
+
+<script>
+    const STANDARD_DELIVERY_FEE = {{ $productDetail->standard_delivery_fee ?? 0 }};
+    const EXTENDED_DELIVERY_FEE = {{ $productDetail->extended_delivery_fee ?? 0 }};
+</script>
+
+
+    <script>
+
+
+// Block form submission from Enter key or other sources
+$('#rentalForm').on('submit', function (e) {
+    e.preventDefault(); // always block native submit
+});
+
+
+ $('#addToRentalBtn').on('click', function () {
+     
+        const scheduleDate = $('#selectedDateText').text().trim();
+    if (scheduleDate === 'Select Start Date') {
+        $('#dateError').removeClass('hidden');
+        return;
+    } else {
+        $('#dateError').addClass('hidden');
+    }
+
+
+        const qty = parseInt(document.querySelector('#qty').value) || 1;
+
+        console.log("qty :- ", qty);
+
+        const name = document.querySelector('h3').innerText.trim();
+        console.log("name :- ", name);
+        
+
+        const image = document.querySelector('.product-image')?.src || '';
+
+        console.log("image :- ", image);
+
+
+        const basePriceText = document.querySelector('.bg-yellow-400 h4')?.innerText?.trim() || '';
+
+        console.log("Base price text:", basePriceText);
+
+        const rawPrice = basePriceText.split('/')[0].trim(); // "$1,234.00"
+        console.log("rawPrice price text:", rawPrice);
+
+
+const numericPrice = parseFloat(
+    rawPrice.replace(/[^0-9.]/g, '') // remove $ and commas
+);
+console.log("Numeric price:", numericPrice); // 1234
+
+
+        
+        console.log("basePrice :- ", numericPrice);
+
+
+        const addons = [];
+        document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+            const label = cb.closest('label');
+            if (label) {
+                const spans = label.querySelectorAll('span');
+                let addonName = spans[0]?.innerText.trim() || '';
+                let price = spans[1] ? parseFloat(spans[1].innerText.replace(/[^0-9.]/g, '')) : 0;
+                addons.push({ name: addonName, price });
+            }
+        });
+
+
+
+        console.log("addons :- ", addons);
+
+// Determine delivery fee if not already set via onchange
+let deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
+
+// Auto-pick from active dropdown if missing
+if (deliveryFee === 0) {
+    const deliveryOption = document.querySelector('input[name="delivery-option"]:checked')?.value;
+    
+    if (deliveryOption === 'dis1') {
+        const selected15 = document.getElementById('deliveryOption15');
+        if (selected15?.value) {
+            deliveryFee = parseFloat(selected15.value) * STANDARD_DELIVERY_FEE;
+        }
+    } else if (deliveryOption === 'dis2') {
+        const selected30 = document.getElementById('deliveryOption30');
+        if (selected30?.value) {
+            deliveryFee = parseFloat(selected30.value) * EXTENDED_DELIVERY_FEE;
+        }
+    }
+
+    $('#inputDeliveryFee').val(deliveryFee);
+    console.log("✅ Calculated deliveryFee:", deliveryFee);
+}
+
+
+
+        // Fill hidden fields
+        $('#inputName').val(name);
+        $('#inputImage').val(image);
+        $('#inputQty').val(qty);
+        $('#inputBasePrice').val(numericPrice);
+        $('#inputScheduleDate').val(scheduleDate);
+        $('#inputAddons').val(JSON.stringify(addons));
+
+        // Submit with AJAX
+        $.ajax({
+            url: $('#rentalForm').attr('action'),
+            method: 'POST',
+            xhrFields: {
+                withCredentials: true // ⬅️ important if you're using subdomains/local.dev
+            },
+            data: $('#rentalForm').serialize(),
+            success: function (data) {
+                if (data.success) {
+                    console.log('✅ Cart updated:', data);
+                   
+                        const toggleBtn = document.querySelector('.toggleCart');
+                        if (toggleBtn) toggleBtn.click();
+                   
+                } else {
+                    console.error('❌ Cart update failed:', data);
+                }
+            },
+            error: function (xhr) {
+                console.error('❌ AJAX Error:', xhr.responseText);
+                alert('Something went wrong!');
+            }
+        });
+    });
+    </script>
+
+
+
+@endpush

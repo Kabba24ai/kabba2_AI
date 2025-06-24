@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Providers;
-
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
 
     private function enableHttps(): void
     {
-        if (env('APP_ENV') !== 'local') {
+        if(config('app.env') !== 'local') {
             \URL::forceScheme('https');
             $this->app['request']->server->set('HTTPS', 'on');
         }

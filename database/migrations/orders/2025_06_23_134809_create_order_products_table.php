@@ -26,8 +26,8 @@ return new class extends Migration
             $table->date('schedule_end_date')->nullable();   // added field
             $table->json('product_data')->nullable(); // <<-- JSON column for extra details
             $table->enum('service_method', ['In Store Pickup', 'Delivery'])->nullable();
-            $table->unsignedBigInteger('store_id')->nullable(); // store reference
             $table->enum('service_option', ['Delivery + Pickup', 'Delivery + Return', 'Pickup + Return'])->nullable();
+            $table->unsignedBigInteger('store_id')->nullable(); // store reference
             $table->enum('distance_type', ['Standard', 'Extended', 'Custom'])->nullable();
             $table->string('distance_range')->nullable(); // 15, 30 etc.
 

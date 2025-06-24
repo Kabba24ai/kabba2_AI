@@ -1,8 +1,6 @@
 <?php
 
 namespace App\Helpers;
-use Carbon\Carbon;
-use App\Models\ProductManagement\ProductCategory;
 
 class CustomHelper
 {
@@ -14,8 +12,5 @@ class CustomHelper
 
         return config('app.currency.code') . number_format($value, 2);
     }
-    public static function categoryTree()
-    {
-        return ProductCategory::with('childCategories')->whereNull('parent_id')->get();
-    }
+
 }

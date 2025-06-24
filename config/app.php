@@ -196,9 +196,5 @@ return [
         'code' => env('CURRENCY_CODE', '₹'),
         'name' => env('CURRENCY_NAME', 'INR'),
     ],
-	
-	'aliases' => [
-		'CustomHelper' => App\Helpers\CustomHelper::class,
-	],
 
 ];

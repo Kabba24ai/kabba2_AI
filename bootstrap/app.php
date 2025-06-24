@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'prevent-back-history' => \App\Http\Middleware\PreventBackHistoryMiddleware::class,
+
+            // Front Middleware
+            'front.common-front-data' => \App\Http\Middleware\Front\CommonDataMiddleware::class,
         ]);
 
         $middleware->redirectGuestsTo(function () {

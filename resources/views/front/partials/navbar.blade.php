@@ -20,7 +20,7 @@
                          <ul
                              class=" absolute min-w-[120px] pt-[25px] pb-[20px] top-[60px] right-[15px] border-[1px] translate-y-[10px] bg-[#222] border-[#222] bg-opacity-90  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-10 grid grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-y-4 gap-x[0.5rem] before:content-[''] before:h-[30px] before:absolute before:top-[-30px] before:w-full ">
 
-                             @foreach (\App\Helpers\CustomHelper::categoryTree() as $category)
+                             @foreach ($frontCategoryTree as $category)
                                  <li
                                      class="{{ $category->childCategories->isNotEmpty() ? 'group/item relative' : 'flex w-full whitespace-nowrap' }}">
                                      <a href="{{ route('front.categories.index', $category->slug) }}"
@@ -105,7 +105,7 @@
                                          Rentals</a>
                                      <ul
                                          class="bg-[#222] text-center transition-all duration-300 ease-in-out z-10 grid gap-y-4">
-                                         @foreach (\App\Helpers\CustomHelper::categoryTree() as $category)
+                                         @foreach ($frontCategoryTree as $category)
                                              <li
                                                  class="{{ $category->childCategories->isNotEmpty() ? 'group/item relative' : 'flex w-full whitespace-nowrap' }}">
                                                  <a href=""

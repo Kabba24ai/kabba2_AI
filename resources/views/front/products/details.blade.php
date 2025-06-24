@@ -100,22 +100,22 @@
                             <h4>
                                 @switch($productType)
                                     @case('daily')
-                                        {{ CustomHelper::formatCurrency($productDetail->rental_daily) }}
+                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_daily) }}
                                         <span class="text-[16px] font-normal">/ day</span>
                                     @break
 
                                     @case('weekend')
-                                        {{ CustomHelper::formatCurrency($productDetail->rental_weekend) }}
+                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_weekend) }}
                                         <span class="text-[16px] font-normal">/ week</span>
                                     @break
 
                                     @case('weekly')
-                                        {{ CustomHelper::formatCurrency($productDetail->rental_weekly) }}
+                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_weekly) }}
                                         <span class="text-[16px] font-normal">/ week</span>
                                     @break
 
                                     @case('monthly')
-                                        {{ CustomHelper::formatCurrency($productDetail->rental_monthly) }}
+                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_monthly) }}
                                         <span class="text-[16px] font-normal">/ month</span>
                                     @break
                                     @default
@@ -239,9 +239,9 @@
                                     <label class="block font-medium mb-1">Choose Delivery Type (15 mi):</label>
                                     <select id="deliveryOption15" class="w-full border p-2 rounded" >
                                         <option value="">Select Delivery Options</option>
-                                        <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ CustomHelper::formatCurrency($productDetail->standard_delivery_fee * 2) }}]</option>
-                                        <option value="1">Delivery but I'll Return to Store [{{ CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
-                                        <option value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
+                                        <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee * 2) }}]</option>
+                                        <option value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
+                                        <option value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
                                     </select>
                                 </div>
                             @endif
@@ -252,9 +252,9 @@
                                     <label class="block font-medium mb-1">Choose Delivery Type (30 mi):</label>
                                     <select id="deliveryOption30" class="w-full border p-2 rounded" >
                                         <option value="">Select Delivery Options</option>
-                                        <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]</option>
-                                        <option value="1">Delivery but I'll Return to Store [{{ CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
-                                        <option value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
+                                        <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]</option>
+                                        <option value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
+                                        <option value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
                                     </select>
                                 </div>
                             @endif
@@ -282,13 +282,13 @@
 
 
                     <div class="flex flex-col">
-                    	
-                        
+
+
                         <h4 class="font-semibold text-[16px] mb-1">Options</h4>
                         @foreach ($productDetail->options as $option)
                        	@if($option->items->isNotEmpty())
                         @foreach ($option->items as $item)
-                            
+
                         	<label class="inline-flex items-center space-x-2 mt-1">
                             <input type="checkbox" class="form-checkbox h-4 w-4" @if($item->value=="Checked") checked="checked" @endif
                                 id="options_{{$item->unique_id}}"
@@ -297,8 +297,8 @@
                                 data-discard="{{$item->discard_label}}"
                                 data-message="{{$item->comment}}"
                                 onclick="handleCheckboxClick(this)" />
-                            <span>{{ $item->label }} <span class="font-medium">+ 
-                            	
+                            <span>{{ $item->label }} <span class="font-medium">+
+
                                 @php
                                 	$price = match ($productType) {
                                         'daily' => $item->daily,
@@ -308,23 +308,23 @@
                                         default => $item->retail_price,
                                     };
                                 @endphp
-                                
-                                {{ CustomHelper::formatCurrency($price) }}
+
+                                {{ App\Helpers\CustomHelper::formatCurrency($price) }}
                             </span></span>
                         </label>
                         @endforeach
 						@endif
-                       
-                        @endforeach   
+
+                        @endforeach
                         <!-- Prepaid Fuel -->
-                        
-                        
+
+
                     </div>
 
 
 
                     <div id="rentalbtn">
-                        <button type="button" 
+                        <button type="button"
                         id="addToRentalBtn"
                             class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out"><i
                                 class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental</button>
@@ -341,7 +341,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-0 gap-x-8 lg:gap-8">
                 <div class="pt-[30px] rounded-lg text-center">
                     <a href="javascript:void(0)" class="text-[#231E41] group">
-                        
+
                         <div class="lg:h-80 w-full relative overflow-hidden">
                             <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
@@ -457,12 +457,12 @@
                 </div>
             </div>
         </div>
-    
+
 @endsection
 @push('js')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    <script>
-   
+
 
     // product detail img
     document.addEventListener("DOMContentLoaded", function () {
@@ -603,7 +603,7 @@
         * If user tries to uncheck it, prevent unchecking immediately,
         * and show the confirmation modal with dynamic content.
         */
-       
+
 	    window.handleCheckboxClick = function (checkbox) {
             if (!checkbox.checked) {
                 checkbox.checked = true;
@@ -615,8 +615,8 @@
                 const keep_title = checkbox.dataset.keep;
 				const discard_title = checkbox.dataset.discard;
 				$("#modalMessage").html(message);
-				
-				
+
+
                $("modalRejectBtn").text(discard_title || "No Thanks, I'll Take The Risk");
 			   $("modalAcceptBtn").text(keep_title);
 
@@ -715,7 +715,7 @@
                     dropdown15?.classList.remove("hidden");
                     rentalbtn.classList.remove("hidden");
                 customdis.classList.add("hidden");
-                  
+
 
                 } else if (radio.value === "dis2") {
                     dropdown30?.classList.remove("hidden");
@@ -738,7 +738,7 @@
                 toggleDeliveryOption(mainSelected);
             }
         };
-                
+
    </script>
 
 
@@ -759,7 +759,7 @@ $('#rentalForm').on('submit', function (e) {
 
 
  $('#addToRentalBtn').on('click', function () {
-     
+
         const scheduleDate = $('#selectedDateText').text().trim();
     if (scheduleDate === 'Select Start Date') {
         $('#dateError').removeClass('hidden');
@@ -775,7 +775,7 @@ $('#rentalForm').on('submit', function (e) {
 
         const name = document.querySelector('h3').innerText.trim();
         console.log("name :- ", name);
-        
+
 
         const image = document.querySelector('.product-image')?.src || '';
 
@@ -796,7 +796,7 @@ const numericPrice = parseFloat(
 console.log("Numeric price:", numericPrice); // 1234
 
 
-        
+
         console.log("basePrice :- ", numericPrice);
 
 
@@ -821,7 +821,7 @@ let deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
 // Auto-pick from active dropdown if missing
 if (deliveryFee === 0) {
     const deliveryOption = document.querySelector('input[name="delivery-option"]:checked')?.value;
-    
+
     if (deliveryOption === 'dis1') {
         const selected15 = document.getElementById('deliveryOption15');
         if (selected15?.value) {
@@ -859,10 +859,10 @@ if (deliveryFee === 0) {
             success: function (data) {
                 if (data.success) {
                     console.log('✅ Cart updated:', data);
-                   
+
                         const toggleBtn = document.querySelector('.toggleCart');
                         if (toggleBtn) toggleBtn.click();
-                   
+
                 } else {
                     console.error('❌ Cart update failed:', data);
                 }

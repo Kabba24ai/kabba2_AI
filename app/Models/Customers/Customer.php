@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 // Helpers
 use App\Helpers\ModelHelper;
+use App\Models\Orders\Order;
 use Carbon\Carbon;
 
 class Customer extends Model
@@ -80,5 +81,10 @@ class Customer extends Model
 
         // if tax_status and dates are not given it means it applicable Exempt for lifetime
         return true;
+    }
+
+    public function orders()
+    {
+        return $this->morphMany(Order::class, 'created_by');
     }
 }

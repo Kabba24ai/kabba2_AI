@@ -8,6 +8,7 @@ class OrderAddress extends Model
 {
     protected $fillable = [
         'order_id',
+        'type', // Billing*, Shipping
         'first_name',
         'last_name',
         'email',

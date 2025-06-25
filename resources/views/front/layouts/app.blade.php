@@ -33,5 +33,15 @@
     @include('front.partials.footer')
 
     @stack('js')
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            @if (session('success'))
+                notyf.success(@json(session('success')));
+            @endif
+            @if (session('error'))
+                notyf.error(@json(session('error')));
+            @endif
+        });
+    </script>
 </body>
 </html>

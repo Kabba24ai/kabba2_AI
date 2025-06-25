@@ -95,7 +95,7 @@
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
                 <tr>
                     <th class="px-4 py-3"><input type="checkbox" /></th>
-                    <th class="px-4 py-3">ID</th>
+                    <th class="px-4 py-3">OrderNumber</th>
                     <th class="px-4 py-3">Customer</th>
                     <th class="px-4 py-3">Product</th>
                     <th class="px-4 py-3">Address</th>
@@ -103,8 +103,8 @@
                     <th class="px-4 py-3">Amount</th>
                     <th class="px-4 py-3">Payment</th>
                     <th class="px-4 py-3">Status</th>
-                    <th class="px-4 py-3">Delivery</th>
-                    <th class="px-4 py-3">Return</th>
+                    {{-- <th class="px-4 py-3">Delivery</th>
+                    <th class="px-4 py-3">Return</th> --}}
                     <th class="px-4 py-3">Created</th>
                     <th class="px-4 py-3">Actions</th>
                 </tr>
@@ -113,13 +113,13 @@
                 @forelse ($orders as $order)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3"><input type="checkbox" /></td>
-                        <td class="px-4 py-3 text-gray-900 font-medium">{{ $order->id }}</td>
-                        <td class="px-4 py-3">{{ $order->customer }}</td>
-                        <td class="px-4 py-3 truncate max-w-xs">{{ $order->product }}</td>
-                        <td class="px-4 py-3 truncate max-w-xs">{{ $order->address }}</td>
-                        <td class="px-4 py-3">{{ $order->phone }}</td>
-                        <td class="px-4 py-3 font-semibold">${{ number_format($order->amount, 2) }}</td>
-                        <td class="px-4 py-3">{{ $order->payment_method }}</td>
+                        <td class="px-4 py-3 text-gray-900 font-medium">{{ $order->order_number }}</td>
+                        <td class="px-4 py-3">{{ $order->customer_name }}</td>
+                        <td class="px-4 py-3 truncate max-w-xs">{{ $order->products->pluck('product_name')->join('<br> ') }}</td>
+                        <td class="px-4 py-3 truncate max-w-xs">{{ $order->shippingAddress->address }}</td>
+                        <td class="px-4 py-3">{{ $order->customer_phone  }}</td>
+                        <td class="px-4 py-3 font-semibold">${{ number_format($order->grand_total, 2) }}</td>
+                        <td class="px-4 py-3">{{ $order->payment_type }}</td>
                         <td class="px-4 py-3">
                             <span
                                 class="text-xs font-semibold px-2 py-1 rounded-full
@@ -127,21 +127,21 @@
                                 {{ $order->status }}
                             </span>
                         </td>
-                        <td class="px-4 py-3 flex items-center gap-1 text-blue-600">
+                        {{-- <td class="px-4 py-3 flex items-center gap-1 text-blue-600">
                             <x-heroicon-o-truck class="w-4 h-4" />
                             <span>{{ $order->delivery_date }}</span>
                         </td>
                         <td class="px-4 py-3 flex items-center gap-1 text-yellow-500">
                             <x-heroicon-o-archive-box class="w-4 h-4" />
                             <span>{{ $order->return_date }}</span>
-                        </td>
+                        </td> --}}
                         <td class="px-4 py-3">{{ $order->created_at->format('n/j/Y') }}</td>
                         <td class="px-4 py-3 flex gap-2 items-center">
-                            <a href="{{ route('admin.orders.show', $order->id) }}" class="text-sky-600 hover:text-sky-800"
+                            <a href="{{ route('admin.order-management.orders.edit', $order->id) }}" class="text-sky-600 hover:text-sky-800"
                                 title="View">
                                 <x-heroicon-o-eye class="w-4 h-4" />
                             </a>
-                            <a href="#" class="text-brand-600 hover:text-brand-800" title="Edit">
+                            {{-- <a href="#" class="text-brand-600 hover:text-brand-800" title="Edit">
                                 <x-heroicon-o-pencil-square class="w-4 h-4" />
                             </a>
                             <form method="POST" action="#" onsubmit="return confirm('Are you sure?')" class="inline">
@@ -150,7 +150,7 @@
                                 <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
                                     <x-heroicon-o-trash class="w-4 h-4" />
                                 </button>
-                            </form>
+                            </form> --}}
                         </td>
                     </tr>
                 @empty

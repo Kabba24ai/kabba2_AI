@@ -34,36 +34,34 @@ class PostRequest extends FormRequest
         $rules = [];
 
         if (!auth()->check()) {
-
             $rules = [
                 // Billing fields
                 'billingFirstName' => ['required', 'string', 'max:100'],
                 'billingLastName' => ['required', 'string', 'max:100'],
                 'billingCompany' => ['nullable', 'string', 'max:100'],
-                'billingEmail' => ['required', 'email'],
+                'billingEmail' => ['required', 'email', 'max:200'],
                 'billingPhone' => ['required', 'string', 'max:20'],
                 'billingAddress' => ['required', 'string', 'max:200'],
                 'billingState' => ['required', 'exists:states,id'],
                 'billingCity' => ['required', 'string', 'max:100'],
-                'billingZip' => ['required', 'string', 'max:20'],
+                'billingZip' => ['required', 'string', 'max:8'],
 
-                // Password (if custom password is enabled)
-                'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-                // If the field is always present, use 'required_with:showPassword' or your own logic
+                'showPassword' => ['nullable', 'in:Yes'],
+                'password' => ['nullable','required_if:showPassword,Yes', 'string', 'min:8', 'confirmed'],
             ];
         }
 
         // Delivery info
         $rules = array_merge($rules, [
-            'sameAsBilling' => ['nullable'],
+            'sameAsBilling' => ['nullable', 'in:Yes'],
             'deliveryFirstName' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
             'deliveryLastName' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
-            'deliveryEmail' => ['required_unless:sameAsBilling,Yes', 'email'],
+            'deliveryEmail' => ['required_unless:sameAsBilling,Yes', 'email', 'max:200'],
             'deliveryPhone' => ['required_unless:sameAsBilling,Yes', 'string', 'max:20'],
             'deliveryAddress' => ['required_unless:sameAsBilling,Yes', 'string', 'max:200'],
             'deliveryState' => ['required_unless:sameAsBilling,Yes', 'exists:states,id'],
             'deliveryCity' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
-            'deliveryZip' => ['required_unless:sameAsBilling,Yes', 'string', 'max:20'],
+            'deliveryZip' => ['required_unless:sameAsBilling,Yes', 'string', 'max:8'],
         ]);
 
         // Order notes (optional)
@@ -87,5 +85,21 @@ class PostRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    public function messages()
+    {
+        return [
+            'password.required_if' => 'The password field is required when you choose to set a password.',
+            // Delivery fields
+            'deliveryFirstName.required_unless' => 'The delivery first name is required unless you use the billing address.',
+            'deliveryLastName.required_unless' => 'The delivery last name is required unless you use the billing address.',
+            'deliveryEmail.required_unless' => 'The delivery email is required unless you use the billing address.',
+            'deliveryPhone.required_unless' => 'The delivery phone is required unless you use the billing address.',
+            'deliveryAddress.required_unless' => 'The delivery address is required unless you use the billing address.',
+            'deliveryState.required_unless' => 'The delivery state is required unless you use the billing address.',
+            'deliveryCity.required_unless' => 'The delivery city is required unless you use the billing address.',
+            'deliveryZip.required_unless' => 'The delivery ZIP code is required unless you use the billing address.',
+        ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models\Customers;
 
+use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Model;
 
 // Models
@@ -31,5 +32,13 @@ class CustomerAddress extends Model
     public function state()
     {
         return $this->belongsTo(State::class);
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->unique_id = ModelHelper::generateUniqueID($model, 'CUST-ADD');
+        });
     }
 }

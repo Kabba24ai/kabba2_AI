@@ -37,7 +37,6 @@
 
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <input type="hidden"  name="category" id="categoryInput"  />
             <div id="category_display" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 text-sm">
                 {{ old('category', $part->category ?? 'Select equipment first') }}
             </div>
@@ -231,14 +230,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const stockSection = document.getElementById('stock_section');
     const currentStockInput = document.getElementById('current_stock');
     const minStockInput = document.getElementById('min_stock');
-    const categoryInput = document.getElementById('categoryInput');
 
     // Update category based on equipment selection
     equipmentSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         const category = selectedOption.getAttribute('data-category') || 'Select equipment first';
         categoryDisplay.textContent = category;
-        categoryInput.value = category;
     });
 
     // Handle DNI checkbox

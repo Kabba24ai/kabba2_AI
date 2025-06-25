@@ -1,135 +1,111 @@
-{{-- Equipment Table --}}
+ {{-- Parts Table --}}
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Category</th>
-                    <th class="text-left py-3 px-3 font-semibold text-gray-700">ID</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Equipment Name</th>
-                    <th class="text-left py-3 px-3 font-semibold text-gray-700">Status</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Tech/Mgt.</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Location</th>
-                    <th class="text-left py-3 px-3 font-semibold text-gray-700">Status Change</th>
-                    <th class="text-left py-4 px-3 font-semibold text-gray-700">Rental Ready</th>
-                    <th class="text-left py-4 px-3 font-semibold text-gray-700">Equip. Service</th>
-                    <th class="text-left py-3 px-3 font-semibold text-gray-700">Service Due</th>
-                    <th class="text-left py-3 px-3 font-semibold text-gray-700">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                @forelse($equipment as $item)
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="py-4 px-6">
-                            <span class="text-sm font-medium text-gray-900">{{ $item->category }}</span>
-                        </td>
-                        <td class="py-3 px-3">
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
-                                {{ $item->equipment_id }}
-                            </span>
-                        </td>
-                        <td class="py-4 px-6">
-                            <span class="text-sm text-gray-900">{{ $item->equipment_name }}</span>
-                        </td>
-                        <td class="py-3 px-3">
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border {{ $item->status_color }}">
-                                {{ ucfirst($item->status) }}
-                            </span>
-                        </td>
-                        <td class="py-4 px-6">
-                            <span class="text-sm text-gray-900">{{ $item->tech_manager ?? '-' }}</span>
-                        </td>
-                        <td class="py-4 px-6">
-                            <span class="text-sm text-gray-900">{{ $item->location ?? '-' }}</span>
-                        </td>
-                        <td class="py-3 px-3">
-                            <span class="text-xs text-gray-600">{{ $item->created_at->format('M d - g:i A') }}</span>
-                        </td>
-                        <td class="py-4 px-3">
-                            <span class="text-sm text-gray-600" title="{{ $item->rental_ready_checklist ?? 'No checklist assigned' }}">
-                                {{ $item->truncated_rental_ready }}
-                            </span>
-                        </td>
-                        <td class="py-4 px-3">
-                            <span class="text-sm text-gray-600" title="{{ $item->equipment_service_list ?? 'No service list assigned' }}">
-                                {{ $item->truncated_service_list }}
-                            </span>
-                        </td>
-                        <td class="py-3 px-3">
-                            @php $serviceStatus = $item->service_status; @endphp
-                            <div class="flex items-center space-x-1">
-                                @if($serviceStatus['status'] === 'overdue')
-                                    <svg class="h-3 w-3 {{ $serviceStatus['color'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                    </svg>
-                                @elseif($serviceStatus['status'] === 'due-soon')
-                                    <svg class="h-3 w-3 {{ $serviceStatus['color'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                @elseif($serviceStatus['status'] === 'good')
-                                    <svg class="h-3 w-3 {{ $serviceStatus['color'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                @else
-                                    <svg class="h-3 w-3 {{ $serviceStatus['color'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    </svg>
-                                @endif
-                                <span class="text-xs font-medium {{ $serviceStatus['color'] }}">
-                                    {{ ucfirst($serviceStatus['status']) }}
-                                </span>
-                            </div>
-                        </td>
-                        <td class="py-3 px-3">
-                            <div class="flex items-center space-x-1">
-                                <a href="{{ route('admin.maintenance-management.equipments.edit', $item->unique_id) }}" 
-                                   class="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors" 
-                                   title="Edit Equipment">
-                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                </a>
-                                <form action="{{ route('admin.maintenance-management.equipments.delete', $item->unique_id) }}" method="POST" class="inline" 
-                                      onsubmit="return confirm('Are you sure you want to delete {{ $item->equipment_name }}? This action cannot be undone.')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            class="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" 
-                                            title="Delete Equipment">
-                                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
+    @if($parts->count() > 0)
+        <div class="overflow-x-auto">
+            <table class="w-full" id="parts-table-wrapper">
+                <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <td colspan="11" class="text-center py-12">
-                            <svg class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            </svg>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">No equipment found</h3>
-                            <p class="text-gray-600 mb-4">Try adjusting your search criteria or add new equipment.</p>
-                            <a href="{{ route('admin.maintenance-management.equipments.create') }}" class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                </svg>
-                                <span>Add Equipment</span>
-                            </a>
-                        </td>
+                        <th class="text-left py-4 px-6 font-semibold text-gray-700">Part Name</th>
+                        <th class="text-left py-4 px-6 font-semibold text-gray-700">Category</th>
+                        <th class="text-left py-4 px-6 font-semibold text-gray-700">Equipment Name</th>
+                        <th class="text-left py-3 px-3 font-semibold text-gray-700">Equipment ID</th>
+                        <th class="text-left py-4 px-6 font-semibold text-gray-700">Part Number</th>
+                        <th class="text-left py-4 px-6 font-semibold text-gray-700">Supplier</th>
+                        <th class="text-left py-3 px-3 font-semibold text-gray-700">Unit Cost</th>
+                        <th class="text-left py-3 px-3 font-semibold text-gray-700">Stock</th>
+                        <th class="text-left py-3 px-3 font-semibold text-gray-700">Actions</th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    {{-- Pagination --}}
-    @if($equipment->hasPages())
-        <div class="px-6 py-4 border-t border-gray-200">
-            {{ $equipment->appends(request()->query())->links() }}
+                </thead>
+                <div id="parts-loading" class="hidden"></div>
+                <tbody class="divide-y divide-gray-200">
+                    @foreach($parts as $part)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6">
+                                <span class="text-sm font-medium text-gray-900">{{ $part->part_name }}</span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="text-sm text-gray-900">{{ $part->category }}</span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="text-sm text-gray-900">{{ $part->equipment_name }}</span>
+                            </td>
+                            <td class="py-3 px-3">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                                    {{ $part->equipment_id }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="text-sm font-mono text-gray-900">{{ $part->part_number }}</span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="text-sm text-gray-900">{{ $part->supplier }}</span>
+                            </td>
+                            <td class="py-3 px-3">
+                                <span class="text-sm font-medium text-green-600">${{ number_format($part->unit_cost, 2) }}</span>
+                            </td>
+                            <td class="py-3 px-3">
+                                @php
+                                    $stockBadge = match($part->stock_status) {
+                                        'dni' => ['text' => 'DNI', 'class' => 'text-gray-700 bg-gray-100 border-gray-200'],
+                                        'out-of-stock' => ['text' => 'Out of Stock', 'class' => 'text-red-700 bg-red-100 border-red-200'],
+                                        'buy-now' => ['text' => 'Buy Now', 'class' => 'text-yellow-700 bg-yellow-100 border-yellow-200'],
+                                        'in-stock' => ['text' => 'In Stock', 'class' => 'text-green-700 bg-green-100 border-green-200']
+                                    };
+                                @endphp
+                                
+                                @if($part->dni)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border {{ $stockBadge['class'] }}">
+                                        {{ $stockBadge['text'] }}
+                                    </span>
+                                @else
+                                    <button onclick="updateStock({{ $part->id }}, '{{ $part->part_name }}', {{ $part->stock_level }}, {{ $part->min_stock }})"
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border cursor-pointer hover:opacity-80 transition-opacity {{ $stockBadge['class'] }}"
+                                            title="Click to update stock level">
+                                        {{ $stockBadge['text'] }}
+                                    </button>
+                                @endif
+                            </td>
+                            <td class="py-3 px-3">
+                                <div class="flex items-center space-x-1">
+                                    <a href="{{ route('admin.maintenance-management.parts.edit', $part->id) }}" 
+                                        class="p-1 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 rounded-lg transition-colors" 
+                                        title="Edit Part">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                    <form action="{{ route('admin.maintenance-management.parts.delete', $part->unique_id) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                onclick="return confirm('Are you sure you want to delete {{ $part->part_name }}?')"
+                                                class="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" 
+                                                title="Delete Part">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @else
+        <div class="text-center py-12">
+            <svg class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No parts found</h3>
+            <p class="text-gray-600 mb-4">Try adjusting your search criteria or add new parts.</p>
+            <a href="{{ route('admin.maintenance-management.parts.create') }}" class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                <span>Add Part</span>
+            </a>
         </div>
     @endif
 </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\MaintenanceManagement\Parts;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\MaintenanceManagement\Equipment;
 
 class StoreRequest extends FormRequest
 {
@@ -17,7 +18,7 @@ class StoreRequest extends FormRequest
             'part_name' => 'required|string|max:255',
             'equipment_id' => 'required|string|max:50',
             'equipment_name' => 'required|string|max:50',
-            'category' => 'nullable|string|max:50',
+            'category' => 'required|string|max:50',
             'current_stock' => 'nullable|integer|min:0',
             'min_stock' => 'nullable|integer|min:0',
             'dni' => 'boolean',
@@ -37,37 +38,47 @@ class StoreRequest extends FormRequest
     protected function prepareForValidation()
     {
         // Auto-determine category based on equipment_id
-        $equipmentCategories = [
-            'N/A' => 'Supplies',
-            'EXC-001' => 'Excavators',
-            'EXC-002' => 'Excavators',
-            'GEN-045' => 'Generators',
-            'GEN-046' => 'Generators',
-            'BUL-012' => 'Bulldozers',
-            'BUL-013' => 'Bulldozers',
-            'LDR-023' => 'Loaders',
-            'LDR-024' => 'Loaders',
-            'CMP-078' => 'Compressors',
-            'CMP-079' => 'Compressors'
-        ];
+        // $equipmentCategories = [
+        //     'N/A' => 'Supplies',
+        //     'EXC-001' => 'Excavators',
+        //     'EXC-002' => 'Excavators',
+        //     'GEN-045' => 'Generators',
+        //     'GEN-046' => 'Generators',
+        //     'BUL-012' => 'Bulldozers',
+        //     'BUL-013' => 'Bulldozers',
+        //     'LDR-023' => 'Loaders',
+        //     'LDR-024' => 'Loaders',
+        //     'CMP-078' => 'Compressors',
+        //     'CMP-079' => 'Compressors'
+        // ];
 
-        $equipmentNames = [
-            'N/A' => 'General Use',
-            'EXC-001' => 'CAT 320D Excavator',
-            'EXC-002' => 'John Deere 350G Excavator',
-            'GEN-045' => 'Kohler 150kW Generator',
-            'GEN-046' => 'Cummins 200kW Generator',
-            'BUL-012' => 'John Deere 650K Dozer',
-            'BUL-013' => 'CAT D6T Dozer',
-            'LDR-023' => 'CAT 950 Wheel Loader',
-            'LDR-024' => 'John Deere 644K Loader',
-            'CMP-078' => 'Atlas Copco GA30',
-            'CMP-079' => 'Ingersoll Rand R55'
-        ];
-
+        // $equipmentNames = [
+        //     'N/A' => 'General Use',
+        //     'EXC-001' => 'CAT 320D Excavator',
+        //     'EXC-002' => 'John Deere 350G Excavator',
+        //     'GEN-045' => 'Kohler 150kW Generator',
+        //     'GEN-046' => 'Cummins 200kW Generator',
+        //     'BUL-012' => 'John Deere 650K Dozer',
+        //     'BUL-013' => 'CAT D6T Dozer',
+        //     'LDR-023' => 'CAT 950 Wheel Loader',
+        //     'LDR-024' => 'John Deere 644K Loader',
+        //     'CMP-078' => 'Atlas Copco GA30',
+        //     'CMP-079' => 'Ingersoll Rand R55'
+        // ];
+        $equipment = Equipment::find($this->equipment_id);
+        if ($equipment) {
+            $this->merge([
+                'category' => $equipment->category,
+                'equipment_name' => $equipment->equipment_name
+            ]);
+        } else {
+            // Fallback to predefined categories and names if equipment not found
+            $this->merge([
+                'category' => $equipmentCategories[$this->equipment_id] ?? 'Unknown',
+                'equipment_name' => $equipmentNames[$this->equipment_id] ?? 'Unknown'
+            ]);
+        }
         $this->merge([
-            'category' => $equipmentCategories[$this->equipment_id] ?? 'Unknown',
-            'equipment_name' => $equipmentNames[$this->equipment_id] ?? 'Unknown',
             'stock_level' => $this->dni ? 0 : ($this->current_stock ?? 0),
             'min_stock' => $this->dni ? 0 : ($this->min_stock ?? 0),
             'dni' => $this->boolean('dni')

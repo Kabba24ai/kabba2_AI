@@ -59,7 +59,9 @@ class IndexController extends Controller
                                 ->distinct()
                                 ->orderBy('equipment_name')
                                 ->get();
-
+        if ($request->ajax()) {
+            return view('admin.maintenance_management.parts.partials._table', compact('parts'))->render();
+        }
         return view('admin.maintenance_management.parts.index', compact('parts', 'categories', 'equipmentOptions'));
     }
 }

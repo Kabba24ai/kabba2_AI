@@ -33,8 +33,12 @@
                 <div class="w-full md:w-2/3 border-r px-4 md:pr-8 pb-12">
                     <!-- Billing Info -->
                     <h2 class="text-2xl font-bold mb-1">Billing information</h2>
-                    <form  method="post" class="space-y-6">
-
+                    {{ html()->form()->attributes([
+                        'autocomplete' => 'off',
+                        'data-parsley-validate' => true,
+                        'class' => 'space-y-8',
+                    ])->open() }}
+                        @csrf
                         <!-- Address Selection -->
                         @auth
                             <div>
@@ -285,7 +289,7 @@
                                 Checkout
                             </button>
                         </div>
-                    </form>
+                    {{ html()->form()->close() }}
                 </div>
 
 

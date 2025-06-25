@@ -1,0 +1,4 @@
+.notyf {
+    top: 4rem !important; /* or any space like 1rem, 50px, etc. */
+    z-index: 99999 !important;
+}

@@ -4,6 +4,10 @@
 
 @import "tailwindcss";
 
+@import '../../../shared/css/parsley.css';
+@import '../../../shared/css/choice.css';
+@import '../../../shared/css/notyf.css';
+
 body {
   font-family: 'Rubik', sans-serif !important;
   color: #231e41 !important;

@@ -38,12 +38,12 @@ Route::name('front.')->group(function () {
 
         // Cart
         require base_path('routes/front/cart/routes.php');
+
+        // Customer Auth
+        require base_path('routes/front/auth/routes.php');
     });
 
     Route::prefix('customer')->name('customer.')->group(function ($router) {
-
-        // Auth
-        require base_path('routes/front/auth/routes.php');
 
         // Customer
         require base_path('routes/front/customer/routes.php');

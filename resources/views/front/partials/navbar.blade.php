@@ -60,7 +60,7 @@
                              Us</a>
                      </li>
                      <li class=" px-[18px]">
-                         <a href="{{ route('front.customer.auth.login.index') }}"
+                         <a href="{{ route('front.auth.login.index') }}"
                              class="hover:text-yellow-400 text-[14px] transition-all duration-300 ease-in-out">Log
                              In</a>
                      </li>

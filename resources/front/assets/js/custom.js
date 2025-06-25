@@ -253,11 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     cartItems.forEach((item, index) => {
                         const qty = parseInt(item.qty);
                         totalQty += qty;
-
-                     
-                       
-
-                        
                         const base = parseFloat(item.base_price);
                         const addons = (item.addons || []).filter(
                             (a) => a.name?.trim() && parseFloat(a.price) > 0,
@@ -298,17 +293,22 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <div class="flex-1">
                                     <h4 class="text-[14px] font-bold">${item.name}</h4>
                                     <p class="text-[13px]">$${item.base_price} (x${qty})</p>
+
                                     <div class="flex justify-between text-sm">
                                         Price: <span class="font-bold">$${(base * qty).toFixed(2)}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         Option: <span class="font-bold">+$${addonTotal.toFixed(2)}</span>
                                     </div>
+
                                     <div class="flex justify-between text-sm">
                                         Delivery Fee: <span class="font-bold">$${deliveryFee.toFixed(2)}</span>
                                     </div>
+                                    
                                     <ul class="flex flex-col gap-y-2 mb-2">${addonList}</ul>
+
                                     <p class="text-[13px]">Schedule Date: ${item.schedule_date}</p>
+
                                     <div>
                                         <a href="javascript:void(0)" class="removeItem text-[13px] after:content-['|'] after:pl-2 text-red-500">
                                             <i class="fa-solid fa-xmark"></i> Remove

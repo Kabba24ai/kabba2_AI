@@ -4,446 +4,747 @@
 
 @section('content')
 
-<!-- Page Title Section -->
-<section class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc]">
-    <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-[30px] md:px-0">
-        <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
-            <div class="w-full">
-                <div class="flex justify-between items-center ">
-                    <h1 class="text-[28px] md:text-[34px] lg:text-[40px] tracking-[-2px] leading-[110%] font-bold">Delivery</h1>
-                    <ul class="bg-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
-                        <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                            <a href="index.php" class="opacity-25">Home</a>
-                        </li>
-                        <li>
-                            <a href="delivery.php">Delivery</a>
-                        </li>
-                    </ul>
+    <!-- Page Title Section -->
+    <section
+        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc]">
+        <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-[30px] md:px-0">
+            <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
+                <div class="w-full">
+                    <div class="flex justify-between items-center ">
+                        <h1 class="text-[28px] md:text-[34px] lg:text-[40px] tracking-[-2px] leading-[110%] font-bold">
+                            {{ $title }}</h1>
+                        <ul
+                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
+                            <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
+                                <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)">{{ $title }}</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
-
-<section class="lg:pb-[50px]">
-    <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-        <div class="flex gap-x-2">
-            <div class="w-2/3 border-r-[1px] pr-6">
-                <h4 class="text-[18px] md:text-[30px] font-medium  mb-3 mt-10 ">Billing information</h4>
-                <form action="#" class="mt-3">
-                    <div class="mb-6">
+    </section>
+    <section class="lg:pb-[50px]">
+        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
+            <div class="flex gap-x-2">
+                <div class="w-full md:w-2/3 border-r px-4 md:pr-8 pb-12">
+                    <!-- Billing Info -->
+                    <h2 class="text-2xl font-bold mb-1">Billing information</h2>
+                    @include('front.partials.message')
+                    {{ html()->form()->attributes([
+                            'autocomplete' => 'off',
+                            'data-parsley-validate' => true,
+                            'class' => 'space-y-4',
+                        ])->open() }}
+                    @csrf
+                    <!-- Address Selection -->
+                    @auth
                         <div>
-                            <label for="selAddress" class="text-black text-sm ">
+                            <label for="selAddress" class="block text-sm font-medium text-gray-800 mb-1">
                                 Select available addresses:
                             </label>
-                            <select id="selAddress" name="selAddress" class="block w-full mt-2 bg-white border border-gray-300 py-2.5 px-2 text-sm text-gray-900 appearance-none">
+                            <select id="selAddress" name="selAddress"
+                                class="block w-full border border-gray-300 rounded-md py-2 px-3 text-gray-700 bg-white">
                                 <option>7080 MCADOO BRANCH ROAD, LYLES, Tennessee, 37098</option>
                             </select>
-                        </div>
-                        <div class="border-2 border-dashed border-[#009900] relative p-4 text-[14px] mt-3">
-                            <h4 class="text-lg font-bold">BEN LAMPLEY</h4>
-                            <p>7080 MCADOO BRANCH ROAD, LYLES, Tennessee, 37098</p>
-                            <p>Phone: (931) 996-9192</p>
-                            <p class="mt-4">Email: BENLAMPLEY30@GMAIL.COM</p>
-                            <p class="text-[#009900] absolute top-2 right-3">Default</p>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <p class="text-gray-700 text-sm text-base leading-relaxed">
-                            By providing your phone number and/or email, you agree to receive order information from us via text and/or email as well as other information pertaining to renting or buying equipment.
-                            <span id="dots" class="inline">...</span>
-                            <span id="more" class="hidden">
-                                Standard text messaging rates may apply. Reply STOP to opt-out of receiving future text messages related to your order and/or rental equipment. You may unsubscribe from any email sent to you.
-                            </span>
-                            <a href="javascript:void(0)" onclick="readMore()" id="read_more" class="text-blue-600 text-sm hover:text-blue-800 ml-1 cursor-pointer font-semibold  transform  duration-300 ">
-                                Learn More
-                            </a>
-                        </p>
-                    </div>
-                    <h4 class="text-[18px] font-medium">Delivery information</h4>
-                    <div class="relative z-0 w-full mb-4 group">
-                        <div class="flex items-center">
-                            <input id="toggleCheckbox" type="checkbox" onclick="toggleDiv()" value="delinfo" name="deliveryinfo" class="w-4 h-4 mt-3 text-blue-600 bg-gray-100 border-gray-300 rounded-sm ">
-                            <label for="deliveryinfo" class="w-full pt-3 ms-2 text-sm">Same as billing information</label>
-                        </div>
-                    </div>
-                    <div id="deliveryDiv" class="mt-4">
-                        <div class="flex gap-x-10">
-                            <div class="relative z-0 w-1/2 mb-6 group">
-                                <input type="text" name="name" id="name" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
-                                    First Name
-                                </label>
-                            </div>
-                            <div class="relative z-0 w-1/2 mb-6 group">
-                                <input type="text" name="name" id="name" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
-                                    Last Name
-                                </label>
+                            <div class="border-2 border-dashed border-green-600 rounded-md p-4 mt-4 relative bg-green-50/10">
+                                <h5 class="text-base font-bold">BEN LAMPLEY</h5>
+                                <p>7080 MCADOO BRANCH ROAD, LYLES, Tennessee, 37098</p>
+                                <p class="text-sm">Phone: (931) 996-9192</p>
+                                <p class="mt-2 text-sm">Email: BENLAMPLEY30@GMAIL.COM</p>
+                                <span class="text-green-600 font-medium text-xs absolute top-2 right-3">Default</span>
                             </div>
                         </div>
-                        <div class="flex gap-x-10">
-                            <div class="relative z-0 w-2/3 mb-6 group">
-                                <input type="email" name="email" id="email" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="email" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
-                                    Email
-                                </label>
-                            </div>
-                            <div class="relative z-0 w-1/3 mb-6 group">
-                                <input type="text" name="phone" id="phone"
-                                    class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 peer"
-                                    placeholder=""
-                                    oninput="formatPhone(this)"
-                                    onblur="validatePhone(this)" />
-                                <label for="phone"
-                                    class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black">
-                                    Phone
-                                </label>
-                            </div>
+                    @else
+                        <div class="mb-6 text-sm text-gray-600">
+                            Already have an account?
+                            <a href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline ml-1">Login</a>
+                        </div>
 
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div>
+                                <label for="billingFirstName" class="block text-sm text-gray-600 mb-1">First Name</label>
+                                {{ html()->text('billingFirstName')->class([
+                                        'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
+                                        'input-error' => $errors->has('billingFirstName'),
+                                    ])->attributes([
+                                        'maxlength' => 240,
+                                        'data-parsley-maxlength' => 240,
+                                        'placeholder' => 'First Name',
+                                        'autocomplete' => 'off',
+                                    ])->required() }}
+                                <span id="errorBillingFirstName"></span>
+                                @error('billingFirstName')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="billingLastName" class="block text-sm text-gray-600 mb-1">Last Name</label>
+                                {{ html()->text('billingLastName')->class([
+                                        'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
+                                        'input-error' => $errors->has('billingLastName'),
+                                    ])->attributes([
+                                        'maxlength' => 240,
+                                        'data-parsley-maxlength' => 240,
+                                        'placeholder' => 'Last Name',
+                                        'autocomplete' => 'off',
+                                    ])->required() }}
+                                <span id="errorBillingLastName"></span>
+                                @error('billingLastName')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
-                        <div class="relative z-0 w-full mb-6 group">
-                            <textarea name="address" id="address" class="peer h-[50px] block w-full bg-transparent border border-gray-300 py-2.5 px-2 text-sm text-gray-900 appearance-none focus:outline-none focus:ring-0 peer" placeholder=" "></textarea>
-                            <label for="address" class="pointer-events-none absolute px-2 text-sm text-gray-500 bg-white duration-300 transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] z-10
-                                        peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0
-                                        peer-focus:scale-[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black">
-                                Address
-                            </label>
+                        <div>
+                            <label for="billingCompany" class="block text-sm text-gray-600 mb-1">Company Name</label>
+                            {{ html()->text('billingCompany')->class(
+                                    'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                )->attributes([
+                                    'maxlength' => 240,
+                                    'data-parsley-maxlength' => 240,
+                                    'placeholder' => 'Company Name',
+                                    'autocomplete' => 'off',
+                                ]) }}
+                            @error('billingCompany')
+                                <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
                         </div>
-                        <div class="flex gap-x-10">
-                            <div class="relative z-0 w-1/3 mb-6 group">
-                                <select id="category" name="category" class="peer block w-full bg-transparent border border-gray-300 py-2.5 px-2 text-sm text-gray-900 appearance-none">
-                                    <option disabled selected hidden>Select Delivery Option</option>
-                                    <option>10296 High 46, Bon Aqua, TN, 37025</option>
-                                    <option>10296 High 46, Bon Aqua, TN, 37025</option>
-                                    <option>4385 SR-48, Charlotte, TN, 37036</option>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div>
+                                <label for="billingEmail" class="block text-sm text-gray-600 mb-1">Email</label>
+                                {{ html()->email('billingEmail')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                    )->attributes([
+                                        'maxlength' => 240,
+                                        'data-parsley-type' => 'email',
+                                        'placeholder' => 'Email',
+                                        'autocomplete' => 'off',
+                                    ])->required() }}
+                                @error('billingEmail')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="billingPhone" class="block text-sm text-gray-600 mb-1">Phone</label>
+                                {{ html()->text('billingPhone')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                    )->attributes([
+                                        'maxlength' => 240,
+                                        'placeholder' => 'Phone',
+                                        'autocomplete' => 'off',
+                                    ])->required() }}
+                                @error('billingPhone')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <div>
+                            <label for="billingAddress" class="block text-sm text-gray-600 mb-1">Address</label>
+                            {{ html()->textarea('billingAddress')->class(
+                                    'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                )->attributes([
+                                    'rows' => 2,
+                                    'maxlength' => 500,
+                                    'placeholder' => 'Address',
+                                ])->required() }}
+                            @error('billingAddress')
+                                <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="billingState" class="block text-sm text-gray-600 mb-1">State</label>
+                                <select name="billingState" id="billingState"
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none">
+                                    <option disabled value="">Select State...</option>
+                                    @foreach ($states as $id => $name)
+                                        <option value="{{ $id }}" @selected(old('billingState') == $id)>{{ $name }}
+                                        </option>
+                                    @endforeach
                                 </select>
-                                <label for="category" class="pointer-events-none absolute px-2 text-gray-500 text-sm bg-white duration-300 transform top-3 origin-[0] z-10 scale-[0.85] -translate-y-[1.3rem] translate-x-2 text-black">
-                                    State
-                                </label>
+                                @error('billingState')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
                             </div>
-                            <div class="relative z-0 w-1/3 mb-6 group">
-                                <input type="text" name="city" id="city" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
-                                    City
-                                </label>
+                            <div>
+                                <label for="billingCity" class="block text-sm text-gray-600 mb-1">City</label>
+                                {{ html()->text('billingCity')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                    )->attributes([
+                                        'maxlength' => 50,
+                                        'placeholder' => 'City',
+                                        'autocomplete' => 'off',
+                                    ])->required() }}
+                                @error('billingCity')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
                             </div>
-                            <div class="relative z-0 w-1/3 mb-6 group">
-                                <input type="text" name="zipcode" id="zipcode" class="block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0  peer" placeholder=" " />
-                                <label for="name" class="pointer-events-none z-10 px-2 absolute text-sm text-gray-500 duration-300 bg-white transform -translate-y-[1.3rem] translate-x-2 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale[0.85] peer-focus:-translate-y-[1.3rem] peer-focus:translate-x-2 peer-focus:text-black ">
-                                    Zip code
-                                </label>
+                            <div>
+                                <label for="billingZip" class="block text-sm text-gray-600 mb-1">ZIp Code</label>
+                                {{ html()->text('billingZip')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                    )->attributes([
+                                        'maxlength' => 8,
+                                        'placeholder' => 'Zip code',
+                                        'autocomplete' => 'off',
+                                    ])->required() }}
+                                @error('billingZip')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Password section -->
+                        <div class="flex items-center gap-2 mt-2">
+                            <input id="showPassword" name="showPassword" type="checkbox" value="Yes" class="accent-blue-600 h-4 w-4" checked />
+                            <label for="showPassword" class="text-sm">Enter Your Custom Password</label>
+                        </div>
+                        <div id="passwordFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <label for="password" class="block text-sm text-gray-600 mb-1">Password</label>
+                                <input type="password" name="password" placeholder="Password" autocomplete="new-password"
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password') ? ' border-red-400' : '' }}" />
+                                @error('password')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="password_confirmation" class="block text-sm text-gray-600 mb-1">Password
+                                    confirmation</label>
+                                <input type="password" name="password_confirmation" placeholder="Password confirmation"
+                                    autocomplete="new-password"
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password_confirmation') ? ' border-red-400' : '' }}" />
+                                @error('password_confirmation')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+
+                        <div class="text-xs text-gray-600 leading-relaxed mt-2">
+                            By providing your phone number and/or email, you agree to receive order information from
+                            us via text and/or email as well as other information pertaining to renting or buying
+                            equipment.
+                            <a href="#" class="text-blue-600 hover:underline ml-1">Learn More</a>
+                        </div>
+                    @endauth
+
+
+                    <!-- Delivery Info -->
+                    <h4 class="text-lg font-semibold">Delivery information</h4>
+                    <div class="flex items-center gap-2 mb-4">
+                        <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4" value="Yes"
+                            name="sameAsBilling" />
+                        <label for="sameAsBilling" class="text-sm">Same as billing information</label>
+                    </div>
+                    <div id="deliveryDiv" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="deliveryFirstName" class="block text-sm text-gray-600 mb-1">First Name</label>
+                                {{ html()->text('deliveryFirstName')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                            ($errors->has('deliveryFirstName') ? ' border-red-400' : ''),
+                                    )->attributes([
+                                        'placeholder' => 'First Name',
+                                        'autocomplete' => 'off',
+                                        'id' => 'deliveryFirstName',
+                                    ]) }}
+                                @error('deliveryFirstName')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="deliveryLastName" class="block text-sm text-gray-600 mb-1">Last Name</label>
+                                {{ html()->text('deliveryLastName')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                            ($errors->has('deliveryLastName') ? ' border-red-400' : ''),
+                                    )->attributes([
+                                        'placeholder' => 'Last Name',
+                                        'autocomplete' => 'off',
+                                        'id' => 'deliveryLastName',
+                                    ]) }}
+                                @error('deliveryLastName')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="deliveryEmail" class="block text-sm text-gray-600 mb-1">Email</label>
+                                {{ html()->email('deliveryEmail')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                            ($errors->has('deliveryEmail') ? ' border-red-400' : ''),
+                                    )->attributes([
+                                        'placeholder' => 'Email',
+                                        'autocomplete' => 'off',
+                                        'id' => 'deliveryEmail',
+                                    ]) }}
+                                @error('deliveryEmail')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="deliveryPhone" class="block text-sm text-gray-600 mb-1">Phone</label>
+                                {{ html()->text('deliveryPhone')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                            ($errors->has('deliveryPhone') ? ' border-red-400' : ''),
+                                    )->attributes([
+                                        'placeholder' => 'Phone',
+                                        'autocomplete' => 'off',
+                                        'id' => 'deliveryPhone',
+                                    ]) }}
+                                @error('deliveryPhone')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <div>
+                            <label for="deliveryAddress" class="block text-sm text-gray-600 mb-1">Address</label>
+                            {{ html()->textarea('deliveryAddress')->class(
+                                    'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                        ($errors->has('deliveryAddress') ? ' border-red-400' : ''),
+                                )->attributes([
+                                    'rows' => 2,
+                                    'placeholder' => 'Address',
+                                    'id' => 'deliveryAddress',
+                                ]) }}
+                            @error('deliveryAddress')
+                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="deliveryState" class="block text-sm text-gray-600 mb-1">State</label>
+                                <select name="deliveryState" id="deliveryState"
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none{{ $errors->has('deliveryState') ? ' border-red-400' : '' }}">
+                                    <option disabled value="">Select State...</option>
+                                    @foreach ($states as $id => $name)
+                                        <option value="{{ $id }}" @selected(old('deliveryState') == $id)>
+                                            {{ $name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('deliveryState')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="deliveryCity" class="block text-sm text-gray-600 mb-1">City</label>
+                                {{ html()->text('deliveryCity')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                            ($errors->has('deliveryCity') ? ' border-red-400' : ''),
+                                    )->attributes([
+                                        'placeholder' => 'City',
+                                        'autocomplete' => 'off',
+                                        'id' => 'deliveryCity',
+                                    ]) }}
+                                @error('deliveryCity')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="deliveryZip" class="block text-sm text-gray-600 mb-1">Zip code</label>
+                                {{ html()->text('deliveryZip')->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                            ($errors->has('deliveryZip') ? ' border-red-400' : ''),
+                                    )->attributes([
+                                        'placeholder' => 'Zip Code',
+                                        'autocomplete' => 'off',
+                                        'id' => 'deliveryZip',
+                                    ]) }}
+                                @error('deliveryZip')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     </div>
-                    <h4 class="text-[18px] font-medium">Order notes</h4>
-                    <div class="relative z-0 w-full mb-2 group">
-                        <textarea name="address" id="address" class="peer block w-full bg-transparent h-[50px] border border-gray-300 py-2.5 px-2 text-sm text-gray-900 appearance-none focus:outline-none focus:ring-0" placeholder="Notes about your order, e.g. special notes for delivery. "></textarea>
+
+
+                    <!-- Order Notes -->
+                    <div>
+                        <h4 class="text-lg font-semibold mb-1">Order notes</h4>
+                        {{ html()->textarea('orderNotes')->class(
+                                'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                    ($errors->has('orderNotes') ? ' border-red-400' : ''),
+                            )->attributes([
+                                'rows' => 2,
+                                'placeholder' => 'Notes about your order, e.g. special notes for delivery.',
+                                'id' => 'orderNotes',
+                            ]) }}
+                        @error('orderNotes')
+                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
-                    <div class="relative z-0 w-full mb-4 group">
-                        <div class="flex items-center">
-                        <input id="taxCheckbox" type="checkbox"
-                                class="w-4 h-4 mt-3 text-blue-600 bg-gray-100 border-gray-300 rounded-sm"
-                                onclick="handleCheckboxChange(event)">
-                        <label for="taxCheckbox" class="w-full pt-3 ms-2 text-sm">Tax Exempt</label>
-                        </div>
+
+                    <!-- Tax Exempt -->
+                    <div class="flex items-center gap-2">
+                        <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4" />
+                        <label for="taxExempt" class="text-sm">Tax Exempt</label>
                     </div>
-                    <h4 class="text-[18px] font-medium">Payment method</h4>
-                    <div class="border-[1px]">
-                        <div class="border-b px-3 py-2">
-                            <div class="space-y-2 max-w-[350px]">
-                                <label class="inline-flex items-center space-x-2">
-                                    <input type="radio" name="option" value="credit" class="form-radio" onchange="toggleCodOption(this)" checked/>
-                                    <span>Pay Using Credit or Debit </span>
+
+                    <!-- Payment Method -->
+                    <div class="mx-auto" id="paymentForm">
+                        <h4 class="text-lg font-semibold mb-3">Payment method</h4>
+                        <div class="space-y-4">
+
+                            <!-- Credit/Debit -->
+                            <div class="border-2 rounded-lg p-4 payment-option" data-value="Card">
+                                <label class="inline-flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="payment" value="Card" />
+                                    <span>Pay Using Credit or Debit</span>
                                 </label>
-                                <div id="creditSection" class="mt-4">
-                                    <div class="relative h-48 rounded-xl transition-transform duration-700 transform-style preserve-3d shadow-lg">
-                                        <!-- Front of Card -->
-                                        <div class="absolute w-full h-full backface-hidden rounded-xl p-5 bg-[#ddd] text-white card-front">
-                                            <div class="w-10 h-7 relative bg-[#ccc] rounded mt-5 before:w-[70%] before:content-[''] before:h-[60%] before:bg-[#d9d9d9] before:top-[20%] before:rounded-r before:absolute"></div>
-                                            <div id="cardNumberDisplay" class="mt-5 text-lg tracking-widest font-mono">•••• •••• •••• ••••</div>
-                                            <div class="flex justify-between mt-5 text-xs">
-                                                <div>
-                                                    <span id="cardHolderDisplay" class="block mt-1 text-lg uppercase font-mono">FULL NAME</span>
-                                                </div>
-                                                <div>
-                                                    <span id="cardExpiryDisplay" class="block mt-1 text-lg font-mono">MM/YY</span>
-                                                </div>
+
+                                <div id="cardSection" class="block">
+                                    <!-- Card Visual -->
+                                    <div class="relative h-52 w-full max-w-md  mt-4 card-container">
+                                        <!-- Card Front -->
+                                        <div id="cardFront"
+                                            class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front">
+                                            <div
+                                                class="w-10 h-7 relative bg-gray-400 rounded mt-5 before:w-[70%] before:content-[''] before:h-[60%] before:bg-gray-300 before:top-[20%] before:rounded-r before:absolute">
+                                            </div>
+                                            <div id="displayCardNumber" class="mt-8 text-2xl tracking-widest font-mono">
+                                                •••• •••• •••• ••••
+                                            </div>
+                                            <div class="flex justify-between mt-8 text-base">
+                                                <span id="displayFullName" class="uppercase font-mono">FULL
+                                                    NAME</span>
+                                                <span id="displayExpiry" class="font-mono">MM/YY</span>
                                             </div>
                                         </div>
-
-                                        <!-- Back of Card -->
-                                        <div class="absolute w-full h-full backface-hidden rotate-y-180 rounded-xl p-5 bg-gradient-to-r from-indigo-600 to-purple-500 text-white card-back">
-                                            <div class="bg-black h-10 my-5"></div>
-                                            <div class="flex justify-end mt-2">
-                                                <div id="cvcDisplay" class="bg-white text-gray-800 px-3 py-1 rounded text-sm font-mono">CVC</div>
+                                        <!-- Card Back -->
+                                        <div id="cardBack"
+                                            class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-back"
+                                            style="display:none">
+                                            <div class="bg-gray-400 h-10 my-6 rounded"></div>
+                                            <div class="flex justify-end mt-4">
+                                                <div id="displayCVC"
+                                                    class="bg-gray-200 text-black px-4 py-2 rounded font-mono text-lg">
+                                                    CVC</div>
                                             </div>
-                                            <div class="mt-5 text-xs text-center">
+                                            <div class="mt-8 text-xs text-center text-gray-500">
                                                 Keep your CVC code confidential
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="p-6">
-                                        <div class="flex gap-4 mb-4">
-                                            <input type="text" id="firstName" placeholder="First name" class="flex-1 input-style bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0">
-                                            <input type="text" id="lastName" placeholder="Last name" class="flex-1 input-style bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0">
-                                        </div>
-                                        <input type="text" id="cardNumber" placeholder="Card number" maxlength="19" class="w-full input-style mb-4 bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0">
-
-                                        <div class="flex gap-4 mb-4">
-                                            <input type="text" id="expiryDate" placeholder="MM/YY" maxlength="5" class="flex-1 input-style bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0">
-                                            <input type="text" id="cvc" placeholder="CVC" maxlength="3" class="flex-1 input-style bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0">
-                                        </div>
+                                    <!-- Card Inputs -->
+                                    <div class="grid md:grid-cols-2 gap-4 mt-4">
+                                        <input type="text" placeholder="First name" id="firstName"
+                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                        <input type="text" placeholder="Last name" id="lastName"
+                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                        <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
+                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm md:col-span-2 focus:border-blue-500" />
+                                        <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
+                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                        <input type="text" placeholder="CVC" maxlength="4" id="cvc"
+                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="px-3 py-2 border-b">
-                            <label class="inline-flex items-center space-x-2">
-                                <input type="radio" name="option" value="cod" class="form-radio" onchange="toggleCodOption(this)" />
-                                <span>Cash on delivery (COD)</span>
-                            </label>
-                            <div id="codSection" class="hidden">
-
+                            <!-- Cash On Delivery -->
+                            <div class="border-2 rounded-lg p-4 payment-option" data-value="COD">
+                                <label class="inline-flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="payment" value="COD" checked />
+                                    <span>Cash on delivery (COD)</span>
+                                </label>
                             </div>
-                        </div>
-                        <div class="px-3 py-2">
-                            <label class="inline-flex items-center space-x-2">
-                                <input type="radio" name="option" value="account" class="form-radio" onchange="toggleCodOption(this)" />
-                                <span>Add Account</span>
-                            </label>
-                            <div id="codSection" class="hidden">
-
+                            <!-- Add Account -->
+                            <div class="border-2 rounded-lg p-4 payment-option" data-value="Account">
+                                <label class="inline-flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="payment" value="Account" />
+                                    <span>Add Account</span>
+                                </label>
                             </div>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <a href="javascript:history.back()" class="text-sm text-blue-600">
-                            <i class="fa-solid fa-arrow-left"></i> Back
+
+                    <!-- Buttons -->
+                    <div class="flex justify-between items-center mt-8">
+                        <a href="javascript:history.back()"
+                            class="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                            <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Back
                         </a>
-                       <!-- <button type="button" class="toggleCart border-0 bg-yellow-400 text-[14px] px-6 h-[55px] font-medium mt-4 hover:bg-yellow-300  transition-all duration-500 ease-in-out"><a href="terms-condition.php">CHECKOUT</a></button>-->
-                        <button type="button" class=" border-0 bg-yellow-400 text-[14px] px-6 h-[55px] font-medium mt-4 hover:bg-yellow-300  transition-all duration-500 ease-in-out"><a href="terms-condition.php">CHECKOUT</a></button>
+                        <button type="submit"
+                            class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition">
+                            Checkout
+                        </button>
                     </div>
+                    {{ html()->form()->close() }}
+                </div>
+
+
+                <div class="w-1/3 mt-10 pl-6">
+                    <div class="border-b pb-4 mb-6">
+                        <div class="flex">
+                            <div class="w-1/3">
+                                <div class="border rounded relative ">
+                                    <img src="{{ asset('storage/front/images/product-detail/skid-steer-daily.png') }}"
+                                        alt="image" class="w-24 p-1">
+                                    <span
+                                        class="bg-gray-400 w-[22px] h-[22px] text-white rounded-full absolute -top-2 -right-[8px] text-[14px] text-center font-bold">1</span>
+                                </div>
+                            </div>
+                            <div class=" ml-4 w-2/3">
+                                <h4 class="text-[14px] flex">
+                                    Skid Steer Open Cab - Daily
+                                    <span class="font-bold">$334.00</span>
+                                </h4>
+                                <h5 class="text-[13px]">Options Total:</h5>
+                                <ul class="flex flex-col">
+                                    <li class="flex justify-between leading-[16px]">
+                                        <span class="text-[12px] before:content-['-'] before:pr-1">Prepaid Fuel</span>
+                                        <span class="text-[12px] font-bold">+ $118.00</span>
+                                    </li>
+                                    <li class="flex justify-between leading-[16px]">
+                                        <span class="text-[12px] before:content-['-'] before:pr-1">Toothed Bucket</span>
+                                    </li>
+                                    <li class="flex justify-between leading-[16px]">
+                                        <span class="text-[12px] before:content-['-'] before:pr-1">Damage Waiver</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <h4 class="mt-3">Schedule Date: 05/14/2025 - 05/15/2025</h4>
+                    </div>
+                    <div class="border-b pb-6">
+                        <ul class="flex flex-col">
+                            <li class="flex justify-between mb-1">
+                                <span class="text-[14px]">Subtotal:</span>
+                                <span class="text-[14px] font-bold">+ $452.00</span>
+                            </li>
+                            <li class="flex justify-between mb-1">
+                                <span class="text-[14px]">Tax</span>
+                                <span class="text-[14px] font-bold">+ $0.00</span>
+                            </li>
+                            <li class="flex justify-between mb-1">
+                                <span class="text-[14px] font-bold">Total</span>
+                                <span class="text-[16px] font-bold">+ $452.00</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tax Exempt Modal -->
+    <div id="taxModal"
+        class="fixed inset-0 z-[9999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="taxModal-box bg-white rounded-lg shadow-lg w-full md:max-w-lg relative max-w-[90%] opacity-100">
+            <div class="flex justify-between bg-black p-4 py-2 items-center rounded-t-lg">
+                <h5 class="text-lg text-white">Enter Admin Code</h5>
+                <button onclick="cancelModal()" class="px-4 py-2 text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 py-4">
+                <span class="font-medium">Note: </span>
+                <p class="text-gray-700 mb-4 inline text-sm italic">Tax Exempt sales must be pre-approved with
+                    documentation on file prior to placing the order. Call if you need assistance with placing an order with
+                    Tax Exempt status.</p>
+                <form action="#">
+                    <input type="password" name="name" id="name"
+                        class="form-input mt-1 block w-full px-4 py-2 rounded-md border border-gray-300 shadow-sm "
+                        placeholder=" Admin Code" />
                 </form>
             </div>
 
-            <div class="w-1/3 mt-10 pl-6">
-                <div class="border-b pb-4 mb-6">
-                    <div class="flex">
-                        <div class="w-1/3">
-                            <div class="border rounded relative ">
-                                <img src="{{ asset('storage/front/images/product-detail/skid-steer-daily.png') }}" alt="image" class="w-24 p-1">
-                                <span class="bg-gray-400 w-[22px] h-[22px] text-white rounded-full absolute -top-2 -right-[8px] text-[14px] text-center font-bold">1</span>
-                            </div>
-                        </div>
-                        <div class=" ml-4 w-2/3">
-                            <h4 class="text-[14px] flex">
-                                Skid Steer Open Cab - Daily
-                                <span class="font-bold">$334.00</span>
-                            </h4>
-                            <h5 class="text-[13px]">Options Total:</h5>
-                            <ul class="flex flex-col">
-                                <li class="flex justify-between leading-[16px]">
-                                    <span class="text-[12px] before:content-['-'] before:pr-1">Prepaid Fuel</span>
-                                    <span class="text-[12px] font-bold">+ $118.00</span>
-                                </li>
-                                <li class="flex justify-between leading-[16px]">
-                                    <span class="text-[12px] before:content-['-'] before:pr-1">Toothed Bucket</span>
-                                </li>
-                                <li class="flex justify-between leading-[16px]">
-                                    <span class="text-[12px] before:content-['-'] before:pr-1">Damage Waiver</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <h4 class="mt-3">Schedule Date: 05/14/2025 - 05/15/2025</h4>
-                </div>
-                <div class="border-b pb-6">
-                    <ul class="flex flex-col">
-                        <li class="flex justify-between mb-1">
-                            <span class="text-[14px]">Subtotal:</span>
-                            <span class="text-[14px] font-bold">+ $452.00</span>
-                        </li>
-                        <li class="flex justify-between mb-1">
-                            <span class="text-[14px]">Tax</span>
-                            <span class="text-[14px] font-bold">+ $0.00</span>
-                        </li>
-                        <li class="flex justify-between mb-1">
-                            <span class="text-[14px] font-bold">Total</span>
-                            <span class="text-[16px] font-bold">+ $452.00</span>
-                        </li>
-                    </ul>
+            <div class="border-t p-6 py-4">
+                <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-end gap-3">
+                    <button onclick="cancelModal()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white text-base font-medium rounded px-8 py-3 ">Cancel</button>
+                    <button onclick="confirmModal()"
+                        class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 ">Submit</button>
                 </div>
             </div>
         </div>
     </div>
-</section>
-
-<!-- Tax Exempt Modal -->
-<div id="taxModal"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden ">
-    <div class="taxModal-box bg-white rounded-lg shadow-lg w-full md:max-w-lg relative max-w-[90%]">
-        <div class="flex justify-between bg-black p-4 py-2 items-center rounded-t-lg">
-            <h5 class="text-lg text-white">Enter Admin Code</h5>
-            <button onclick="cancelModal()" class="px-4 py-2 text-white"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="p-6 py-4">
-            <span class="font-medium">Note: </span>
-            <p class="text-gray-700 mb-4 inline text-sm italic">Tax Exempt sales must be pre-approved with documentation on file prior to placing the order. Call if you need assistance with placing an order with Tax Exempt status.</p>
-            <form action="#">
-                <input type="password" name="name" id="name" class="mt-2 block bg-transparent border-[1px] py-2.5 px-2 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 " placeholder=" Admin Code" />
-            </form>
-        </div>
-
-        <div class="border-t p-6 py-4">
-            <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-end gap-3">
-                <button onclick="cancelModal()" class="border-0 bg-yellow-400 text-[14px] px-6 font-bold hover:bg-yellow-300  transition-all duration-500 ease-in-out order-2 md:order-1">Cancel</button>
-                <button onclick="confirmModal()" class="border-0 bg-yellow-400 text-[14px] px-6 py-3 font-bold hover:bg-yellow-300  transition-all duration-500 ease-in-out order-1 md:order-2">Submit</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @endsection
 
 @push('js')
-<script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ================================
+            // Payment Method Highlight & Toggle
+            // ================================
 
-    document.addEventListener('DOMContentLoaded', function () {
-    const card = document.getElementById('card');
-    const cardNumberInput = document.getElementById('cardNumber');
-    const cardNumberDisplay = document.getElementById('cardNumberDisplay');
-    const firstNameInput = document.getElementById('firstName');
-    const lastNameInput = document.getElementById('lastName');
-    const cardHolderDisplay = document.getElementById('cardHolderDisplay');
-    const expiryDateInput = document.getElementById('expiryDate');
-    const expiryDateDisplay = document.getElementById('cardExpiryDisplay');
-    const cvcInput = document.getElementById('cvc');
-    const cvcDisplay = document.getElementById('cvcDisplay');
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            const radioButtons = document.querySelectorAll('input[name="payment"]');
+            const cardSection = document.getElementById('cardSection');
 
-    cardNumberInput.addEventListener('input', function () {
-        let value = this.value.replace(/\s/g, '').replace(/\D/g, '');
-        let formattedValue = '';
-
-        for (let i = 0; i < value.length; i++) {
-            if (i > 0 && i % 4 === 0) {
-                formattedValue += ' ';
+            function updateHighlight() {
+                paymentOptions.forEach(opt => {
+                    opt.classList.remove('border-blue-500');
+                    opt.classList.add('border-gray-200');
+                });
+                const checkedRadio = document.querySelector('input[name="payment"]:checked');
+                const selected = checkedRadio.value;
+                document.querySelector(`.payment-option[data-value="${selected}"]`).classList.add(
+                    'border-blue-500');
+                // Show/hide card input section
+                cardSection.style.display = selected === 'Card' ? 'block' : 'none';
             }
-            formattedValue += value[i];
-        }
+            radioButtons.forEach(r => r.addEventListener('change', updateHighlight));
+            updateHighlight();
 
-        this.value = formattedValue;
+            // Card info live update
+            const cardNumberInput = document.getElementById('cardNumber');
+            const firstNameInput = document.getElementById('firstName');
+            const lastNameInput = document.getElementById('lastName');
+            const expiryInput = document.getElementById('expiry');
+            const cvcInput = document.getElementById('cvc');
 
-        if (value.length > 0) {
-            const lastFourDigits = value.slice(-4);
-            const maskedPart = '•••• •••• •••• ';
-            cardNumberDisplay.textContent = maskedPart + lastFourDigits.padStart(4, '•');
-        } else {
-            cardNumberDisplay.textContent = '•••• •••• •••• ••••';
-        }
-    });
+            const displayCardNumber = document.getElementById('displayCardNumber');
+            const displayFullName = document.getElementById('displayFullName');
+            const displayExpiry = document.getElementById('displayExpiry');
+            const displayCVC = document.getElementById('displayCVC');
 
-    function updateCardHolder() {
-        const firstName = firstNameInput.value.trim();
-        const lastName = lastNameInput.value.trim();
-        const fullName = [firstName, lastName].filter(Boolean).join(' ').toUpperCase();
-        cardHolderDisplay.textContent = fullName || 'FULL NAME';
-    }
+            function formatCardNumber(value) {
+                return value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim();
+            }
 
-    firstNameInput.addEventListener('input', updateCardHolder);
-    lastNameInput.addEventListener('input', updateCardHolder);
+            function formatExpiry(value) {
+                value = value.replace(/[^0-9/]/g, '').substring(0, 5);
+                if (value.length === 2 && !value.includes('/')) value = value + '/';
+                return value;
+            }
 
-    expiryDateInput.addEventListener('input', function () {
-        let value = this.value.replace(/\D/g, '');
+            cardNumberInput.addEventListener('input', function() {
+                this.value = formatCardNumber(this.value);
+                displayCardNumber.textContent = this.value || '•••• •••• •••• ••••';
+            });
+            firstNameInput.addEventListener('input', function() {
+                updateName();
+            });
+            lastNameInput.addEventListener('input', function() {
+                updateName();
+            });
 
-        if (value.length > 2) {
-            value = value.substring(0, 2) + '/' + value.substring(2, 4);
-        }
+            function updateName() {
+                const name = (firstNameInput.value + ' ' + lastNameInput.value).trim();
+                displayFullName.textContent = name || 'FULL NAME';
+            }
+            expiryInput.addEventListener('input', function() {
+                this.value = formatExpiry(this.value);
+                displayExpiry.textContent = this.value || 'MM/YY';
+            });
+            cvcInput.addEventListener('input', function() {
+                displayCVC.textContent = this.value || 'CVC';
+            });
 
-        this.value = value;
-        expiryDateDisplay.textContent = value || 'MM/YY';
-    });
+            // Card flip logic for CVC
+            const cardFront = document.getElementById('cardFront');
+            const cardBack = document.getElementById('cardBack');
 
-    cvcInput.addEventListener('input', function () {
-        this.value = this.value.replace(/\D/g, '');
-        cvcDisplay.textContent = this.value || 'CVC';
-    });
+            cvcInput.addEventListener('focus', function() {
+                cardFront.style.display = 'none';
+                cardBack.style.display = 'block';
+            });
+            cvcInput.addEventListener('blur', function() {
+                cardFront.style.display = 'block';
+                cardBack.style.display = 'none';
+            });
 
-    cvcInput.addEventListener('focus', function () {
-        card.classList.add('flipped');
-    });
+            // ========================================
+            // Sync "Same as Billing" for Delivery Info
+            // ========================================
+            const sameAsBilling = document.getElementById('sameAsBilling');
+            const deliveryDiv = document.getElementById('deliveryDiv');
 
-    cvcInput.addEventListener('blur', function () {
-        if (!cvcInput.matches(':hover')) {
-            card.classList.remove('flipped');
-        }
-    });
+            // Map billing fields to delivery fields
+            const fields = [
+                ['billingFirstName', 'deliveryFirstName'],
+                ['billingLastName', 'deliveryLastName'],
+                ['billingEmail', 'deliveryEmail'],
+                ['billingPhone', 'deliveryPhone'],
+                ['billingAddress', 'deliveryAddress'],
+                ['billingState', 'deliveryState'],
+                ['billingCity', 'deliveryCity'],
+                ['billingZip', 'deliveryZip'],
+            ];
 
-    cvcInput.addEventListener('mouseenter', function () {
-        card.classList.add('flipped');
-    });
+            function syncDeliveryFields() {
+                fields.forEach(([billingId, deliveryId]) => {
+                    const billing = document.getElementById(billingId);
+                    const delivery = document.getElementById(deliveryId);
+                    if (billing && delivery) {
+                        if (billing.tagName === 'SELECT') {
+                            delivery.value = billing.value;
+                        } else if (billing.tagName === 'TEXTAREA') {
+                            delivery.value = billing.value;
+                        } else {
+                            delivery.value = billing.value;
+                        }
+                    }
+                });
+            }
 
-    cvcInput.addEventListener('mouseleave', function () {
-        if (document.activeElement !== cvcInput) {
-            card.classList.remove('flipped');
-        }
-    });
+            // ============================
+            // Custom Password Show/Hide
+            // ============================
+            sameAsBilling.addEventListener('change', function() {
+                if (this.checked) {
+                    syncDeliveryFields();
+                    deliveryDiv.style.display = 'none';
+                    // Listen for changes in billing to update delivery fields
+                    fields.forEach(([billingId, deliveryId]) => {
+                        const billing = document.getElementById(billingId);
+                        if (billing) {
+                            billing.addEventListener('input', syncDeliveryFields);
+                            billing.addEventListener('change', syncDeliveryFields);
+                        }
+                    });
+                } else {
+                    deliveryDiv.style.display = '';
+                    // Remove listeners if needed (not strictly necessary here for most forms)
+                }
+            });
 
-    [cardNumberInput, firstNameInput, lastNameInput, expiryDateInput].forEach(input => {
-        input.addEventListener('focus', function () {
-            card.classList.remove('flipped');
+            const showPassword = document.getElementById('showPassword');
+            const passwordFields = document.getElementById('passwordFields');
+
+            function togglePasswordFields() {
+                passwordFields.style.display = showPassword.checked ? '' : 'none';
+            }
+
+            showPassword.addEventListener('change', togglePasswordFields);
+            // Set initial state
+            togglePasswordFields();
+
+            // ============================
+            // Tax Exempt Modal Show/Hide
+            // ============================
+            const taxExempt = document.getElementById('taxExempt');
+            const taxModal = document.getElementById('taxModal');
+
+            function handleTaxExemptChange() {
+                if (taxExempt.checked) {
+                    taxModal.classList.remove('hidden');
+                } else {
+                    taxModal.classList.add('hidden');
+                }
+            }
+
+            // Show/hide modal when checkbox changes
+            taxExempt.addEventListener('change', handleTaxExemptChange);
+
+            // Optional: When modal is closed, uncheck the box
+            window.cancelModal = function() {
+                taxModal.classList.add('hidden');
+                taxExempt.checked = false;
+            };
+
+            // Optional: When submitted, also hide modal (customize as needed)
+            window.confirmModal = function() {
+                taxModal.classList.add('hidden');
+                // Optionally: keep checkbox checked
+                // Optionally: Add your validation or AJAX here
+            };
         });
-    });
-    });
-
-</script>
-<script>
-    let taxCheckbox = document.getElementById('taxCheckbox');
-    let shouldCheck = false;
-
-    function handleCheckboxChange(event) {
-    if (event.target.checked) {
-        event.target.checked = false;
-        shouldCheck = true;
-        showModal();
-    } else {
-        shouldCheck = false;
-    }
-    }
-
-    function showModal() {
-    document.getElementById('taxModal').classList.remove('hidden');
-    document.getElementById('taxModal').classList.add('flex');
-    }
-
-    function closeModal() {
-    document.getElementById('taxModal').classList.add('hidden');
-    document.getElementById('taxModal').classList.remove('flex');
-    }
-
-    function confirmModal() {
-        if (shouldCheck) {
-            taxCheckbox.checked = true;
-        }
-        closeModal();
-    }
-
-    function cancelModal() {
-        taxCheckbox.checked = false; // ensure it's still unchecked
-        closeModal();
-    }
-    // Proper outside click detection that doesn't interfere with modal toggle
-    document.addEventListener('mousedown', function (event) {
-        const modal = document.getElementById('taxModal');
-        const modalBox = document.querySelector('.taxModal-box');
-
-        // Check if modal is visible
-        const isModalVisible = !modal.classList.contains('hidden');
-
-        // If modal is open and click is outside modal box
-        if (isModalVisible && !modalBox.contains(event.target)) {
-            cancelModal();
-        }
-    });
-</script>
+    </script>
 @endpush

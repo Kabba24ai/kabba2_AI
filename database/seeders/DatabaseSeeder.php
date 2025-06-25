@@ -11,6 +11,8 @@ use Database\Seeders\Iam\RoleSeeder;
 
 // Seeders
 use Database\Seeders\Iam\UserSeeder;
+use Database\Seeders\Locations\StateSeeder;
+use Database\Seeders\Stores\StoreSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,5 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ModuleSeeder::class); // third to create modules
         $this->call(UserSeeder::class); // second to create users
         $this->call(SettingSeeder::class); // fourth to create settings
+        $this->call(StateSeeder::class); // fourth to create settings
+        $this->call(StoreSeeder::class); // fourth to create settings
     }
 }

@@ -104,7 +104,7 @@ class Product extends Model
             }
 
             // Set created_by and updated_by
-            if (auth()->check()) {
+             if (auth()->check()) {
                 $model->created_by = auth()->id();
             }
         });

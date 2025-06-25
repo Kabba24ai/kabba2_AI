@@ -20,6 +20,6 @@ class IndexController extends Controller
         return view('front.home.index', [
             'title' => 'Home',
             'category_tree'=> $category_tree,
-        ]);
+        ])->with('success', 'Something went wrong. Please try again.');
     }
 }

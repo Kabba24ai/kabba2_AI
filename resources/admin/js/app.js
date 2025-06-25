@@ -6,8 +6,7 @@ import Sortable from 'sortablejs';
 import IMask from 'imask';
 
 import Choices from 'choices.js';
-import { Notyf } from 'notyf';
-import 'notyf/notyf.min.css';
+import '../../shared/js/notif.js'; // Import the Notyf setup
 
 // Make Alpine globally available
 Alpine.plugin(persist);
@@ -18,15 +17,6 @@ window.Choices = Choices;
 
 // Start Alpine.js
 Alpine.start();
-
-// ✅ Custom Notyf instance with top-right position
-window.notyf = new Notyf({
-    position: {
-        x: 'right',
-        y: 'top'
-    },
-    duration: 3000 // optional: auto-close time in ms
-});
 
 const ckeditorElements = document.querySelectorAll('.ckeditor');
 window.editors = {}; // store instances globally

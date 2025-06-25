@@ -167,18 +167,12 @@
   --z-index-999999: 999999;
 }
 
-@import './parsley.css';
-
 @import 'choices.js/public/assets/styles/choices.min.css';
 
-.notyf {
-    top: 4rem !important; /* or any space like 1rem, 50px, etc. */
-    z-index: 99999 !important;
-}
+@import '../../shared/css/parsley.css';
+@import '../../shared/css/choice.css';
+@import '../../shared/css/notyf.css';
 
-.choices__inner {
-    @apply bg-white dark:bg-gray-800 border border-gray-300 shadow-sm h-10 rounded-md px-3 py-2 text-sm text-gray-900 dark:text-white;
-}
 
 .custom-scroll::-webkit-scrollbar {
     width: 6px;

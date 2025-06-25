@@ -8,6 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 // Models
+use App\Models\Orders\Order;
 
 class IndexController extends Controller
 {
@@ -19,19 +20,8 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        // Create an empty collection
-        $items = Collection::make([]);
-
-        // Set pagination parameters
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $perPage = 10;
-        $offset = ($currentPage - 1) * $perPage;
-
-        // Slice the empty collection (though it's empty)
-        $currentItems = $items->slice($offset, $perPage)->values();
-
-        // Create paginator
-        $orders = new LengthAwarePaginator($currentItems, $items->count(), $perPage, $currentPage, ['path' => request()->url(), 'query' => request()->query()]);
+         // Fetch orders from the database, most recent first
+        $orders = Order::orderByDesc('id')->paginate(10);
 
         return view('admin.order_management.orders.index', [
             'orders' => $orders

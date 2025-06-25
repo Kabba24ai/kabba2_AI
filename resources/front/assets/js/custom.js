@@ -219,302 +219,206 @@ document.addEventListener("DOMContentLoaded", () => {
             if (dropdown) dropdown.classList.toggle("active");
         });
     });
-});
 
-// qty pluse/minus
-window.changeQty = function changeQty(delta) {
-    const input = document.getElementById("qty");
-    let current = parseInt(input.value) || 1;
-    let newValue = current + delta;
-    if (newValue < parseInt(input.min)) newValue = parseInt(input.min);
-    if (newValue > parseInt(input.max)) newValue = parseInt(input.max);
-    input.value = newValue;
-};
+    document.querySelectorAll(".toggleCart").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            fetch("/cart/", {
+                method: "GET",
+                credentials: "same-origin",
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    const cartItems = data.cart?.rental_cart || [];
+                    const fixTaxRate = data.cart?.tax_rate || 0;
 
-// ui-datrpicker
-const openBtn = document.getElementById("openDatePicker");
-const selectedText = document.getElementById("selectedDateText");
-const datePicker = document.getElementById("datePicker");
-const monthYear = document.getElementById("monthYear");
-const daysGrid = document.getElementById("daysGrid");
-const prevMonthBtn = document.getElementById("prevMonth");
-const nextMonthBtn = document.getElementById("nextMonth");
-const dateInput = document.getElementById("dateInput");
 
-// Only initialize if all required elements exist
-if (
-    openBtn &&
-    selectedText &&
-    datePicker &&
-    monthYear &&
-    daysGrid &&
-    prevMonthBtn &&
-    nextMonthBtn &&
-    dateInput
-) {
-    let currentDate = new Date();
+                    const container = document.querySelector(
+                        "#cartoffcanvas .overflow-y-scroll",
+                    );
+                    container.innerHTML = ""; // Clear cart panel
 
-    openBtn.addEventListener("click", () => {
-        datePicker.classList.toggle("hidden");
-        if (!datePicker.classList.contains("hidden")) {
-            renderCalendar(currentDate);
-        }
-    });
+                    if (cartItems.length === 0) {
+                        container.innerHTML = `<p class="text-center py-10 text-gray-600">Your cart is empty.</p>`;
+                        document
+                            .querySelectorAll(".toggleCart span")
+                            .forEach((el) => {
+                                el.textContent = 0;
+                            });
+                        return;
+                    }
 
-    document.addEventListener("click", (e) => {
-        if (
-            !datePicker.contains(e.target) &&
-            e.target !== openBtn &&
-            !openBtn.contains(e.target)
-        ) {
-            datePicker.classList.add("hidden");
-        }
-    });
+                    let subtotal = 0;
+                    let totalQty = 0;
+                
+                    cartItems.forEach((item, index) => {
+                        const qty = parseInt(item.qty);
+                        totalQty += qty;
+                        const base = parseFloat(item.base_price);
+                        const addons = (item.addons || []).filter(
+                            (a) => a.name?.trim() && parseFloat(a.price) > 0,
+                        );
 
-    prevMonthBtn.addEventListener("click", () => {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        renderCalendar(currentDate);
-    });
+                        let addonTotal = 0;
+                        addons.forEach((addon) => {
+                            const price = parseFloat(addon.price) || 0;
+                            const charged = (addon.charged || "").toLowerCase();
+                            if (!addon.name?.trim() || price <= 0) return;
+                            addonTotal +=
+                                charged === "unlimited" ? price * qty : price;
+                        });
 
-    nextMonthBtn.addEventListener("click", () => {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        renderCalendar(currentDate);
-    });
-    window.renderCalendar = function renderCalendar(date) {
-        const year = date.getFullYear();
-        const month = date.getMonth();
+                        const deliveryFee = parseFloat(item.delivery_fee || 0);
+                        const itemTotal = base * qty + addonTotal + deliveryFee;
+                        subtotal += itemTotal;
 
-        monthYear.textContent = date.toLocaleString("default", {
-            month: "long",
-            year: "numeric",
+                        const addonList = addons
+                            .map((a) => {
+                                const charged = (a.charged || "").toLowerCase();
+                                const qtyNote =
+                                    charged === "unlimited" ? ` (x${qty})` : "";
+                                return `
+                                    <li class="leading-[13px]">
+                                        <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">
+                                            ${a.name}${qtyNote}
+                                        </span>
+                                    </li>`;
+                            })
+                            .join("");
+
+                        const productURL = `/products/${item.product_slug}/${item.rental_type}/details`;
+
+                        const productHTML = `
+                            <div class="flex gap-8 mb-5 border-b pb-5" data-index="${index}">
+                                <div><img src="${item.image}" alt="image" class="w-16"></div>
+                                <div class="flex-1">
+                                    <h4 class="text-[14px] font-bold">${item.name}</h4>
+                                    <p class="text-[13px]">$${item.base_price} (x${qty})</p>
+
+                                    <div class="flex justify-between text-sm">
+                                        Price: <span class="font-bold">$${(base * qty).toFixed(2)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        Option: <span class="font-bold">+$${addonTotal.toFixed(2)}</span>
+                                    </div>
+
+                                    <div class="flex justify-between text-sm">
+                                        Delivery Fee: <span class="font-bold">$${deliveryFee.toFixed(2)}</span>
+                                    </div>
+                                    
+                                    <ul class="flex flex-col gap-y-2 mb-2">${addonList}</ul>
+
+                                    <p class="text-[13px]">Schedule Date: ${item.schedule_date}</p>
+
+                                    <div>
+                                        <a href="javascript:void(0)" class="removeItem text-[13px] after:content-['|'] after:pl-2 text-red-500">
+                                            <i class="fa-solid fa-xmark"></i> Remove
+                                        </a>
+                                        <a href="${productURL}" class="text-[13px] text-[#0dcaf0]" target="_blank">Update</a>
+                                    </div>
+                                </div>
+                            </div>`;
+
+                        container.insertAdjacentHTML("beforeend", productHTML);
+                    });
+
+                  
+                    const tax = subtotal * fixTaxRate;
+                    const grandTotal = subtotal + tax;
+
+                    const totalsHTML = `
+                        <div class="border-t mt-5 pt-5">
+                            <div class="flex justify-between">
+                                <label class="font-bold">Sub Total</label>
+                                <span>$${subtotal.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <label class="font-bold">Tax</label>
+                                <span>$${tax.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <label class="font-bold">Total</label>
+                                <span>$${grandTotal.toFixed(2)}</span>
+                            </div>
+                            <button class="w-full border-0 bg-yellow-400 text-center font-bold justify-center flex px-6 py-3 mt-4 leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out">
+                                <a href="/checkout">CHECKOUT</a>
+                            </button>
+                        </div>`;
+                    container.insertAdjacentHTML("beforeend", totalsHTML);
+
+                    // Update quantity badge
+                    document
+                        .querySelectorAll(".toggleCart span")
+                        .forEach((el) => {
+                            el.textContent = totalQty;
+                        });
+
+                    // Remove buttons
+                    container.querySelectorAll(".removeItem").forEach((btn) => {
+                        btn.addEventListener("click", function () {
+                            const index =
+                                this.closest("[data-index]").dataset.index;
+                            fetch("/cart/remove", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": document
+                                        .querySelector(
+                                            'meta[name="csrf-token"]',
+                                        )
+                                        .getAttribute("content"),
+                                },
+                                body: JSON.stringify({ index }),
+                            })
+                                .then((res) => res.json())
+                                .then(() => {
+                                    document
+                                        .querySelector(".toggleCart")
+                                        .click();
+                                })
+                                .catch((err) => {
+                                    console.error("❌ Remove failed:", err);
+                                });
+                        });
+                    });
+
+                    // Show the panel
+                    const cartPanel = document.getElementById("cartoffcanvas");
+                    cartPanel.classList.remove(
+                        "max-w-0",
+                        "w-0",
+                        "opacity-0",
+                        "translate-x-full",
+                    );
+                    cartPanel.classList.add(
+                        "max-w-[403px]",
+                        "w-full",
+                        "opacity-100",
+                        "translate-x-0",
+                    );
+                })
+                .catch((err) => {
+                    console.error("❌ Failed to fetch cart:", err);
+                });
         });
-        daysGrid.innerHTML = "";
-
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const startDay = firstDay.getDay();
-
-        for (let i = 0; i < startDay; i++) {
-            daysGrid.innerHTML += "<div></div>";
-        }
-
-        for (let day = 1; day <= lastDay.getDate(); day++) {
-            const dayEl = document.createElement("button");
-            dayEl.textContent = day;
-            dayEl.className =
-                "py-1 rounded hover:bg-yellow-500 hover:text-white focus:outline-none";
-
-            const today = new Date();
-            if (
-                day === today.getDate() &&
-                month === today.getMonth() &&
-                year === today.getFullYear()
-            ) {
-                dayEl.classList.add("bg-yellow-100");
-            }
-
-            dayEl.addEventListener("click", () => {
-                const formatted = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                selectedText.textContent = formatted;
-                dateInput.value = formatted; // update hidden input
-                datePicker.classList.add("hidden");
-            });
-
-            daysGrid.appendChild(dayEl);
-        }
-    };
-} else {
-    console.log("Date picker elements not found on this page");
-}
-
-// modal product checkbox
-window.confirmUncheck = function confirmUncheck(checkbox, modalId) {
-    // If it's being unchecked
-    if (!checkbox.checked) {
-        // Prevent uncheck immediately
-        checkbox.checked = true;
-        // Show modal
-        document.getElementById(modalId).classList.remove("hidden");
-    }
-};
-
-window.cancelUncheck = function cancelUncheck(checkboxId, modalId) {
-    // Keep it checked
-    document.getElementById(checkboxId).checked = true;
-    document.getElementById(modalId).classList.add("hidden");
-};
-
-window.confirmUncheckModal = function confirmUncheckModal(checkboxId, modalId) {
-    // Uncheck the checkbox
-    document.getElementById(checkboxId).checked = false;
-    document.getElementById(modalId).classList.add("hidden");
-};
-
-// Close modal if click outside
-document.querySelectorAll('[id^="modalBackdrop"]').forEach((modal) => {
-    modal.addEventListener("click", function (e) {
-        if (e.target === this) cancelUncheck("fuelCheckbox", this.id);
     });
-});
 
-// product details radio hide/show
-window.toggleDeliveryOption = function toggleDeliveryOption(radio) {
-    const inStoreDiv = document.getElementById("inStoreDiv");
-    const deliveryDiv = document.getElementById("deliveryDiv");
-    const customdis = document.getElementById("customdis");
-    const distance = document.getElementById("distance");
-    const address = document.getElementById("address");
-    const rentalbtn = document.getElementById("rentalbtn");
-
-    if (radio.name === "option") {
-        if (radio.value === "in-store") {
-            // Show for in-store
-            inStoreDiv.classList.remove("hidden");
-            address.classList.remove("hidden");
-            distance.classList.remove("hidden");
-            rentalbtn.classList.remove("hidden");
-
-            // Hide delivery-related
-            deliveryDiv.classList.add("hidden");
-            customdis.classList.add("hidden");
-        } else if (radio.value === "delivery") {
-            // Show delivery section
-            deliveryDiv.classList.remove("hidden");
-            inStoreDiv.classList.add("hidden");
-
-            // Hide address for delivery initially
-            address.classList.add("hidden");
-            customdis.classList.add("hidden");
-
-            // Check which delivery-option is selected
-            const deliveryOption = document.querySelector(
-                'input[name="delivery-option"]:checked',
+    // Automatically fetch cart total quantity on page load
+    fetch("/cart/", {
+        method: "GET",
+        credentials: "same-origin",
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            const cartItems = data.cart?.rental_cart || [];
+            const totalQty = cartItems.reduce(
+                (sum, item) => sum + parseInt(item.qty || 0),
+                0,
             );
-            if (deliveryOption) {
-                toggleDeliveryOption(deliveryOption); // Trigger sub-option logic
-            }
-        }
-    }
-
-    if (radio.name === "delivery-option") {
-        if (radio.value === "dis1" || radio.value === "dis2") {
-            distance.classList.remove("hidden");
-            rentalbtn.classList.remove("hidden");
-            customdis.classList.add("hidden");
-            address.classList.add("hidden"); // ✅ HIDE address in delivery
-        } else if (radio.value === "discustom") {
-            customdis.classList.remove("hidden");
-            distance.classList.add("hidden");
-            rentalbtn.classList.add("hidden");
-            address.classList.add("hidden"); // ✅ HIDE address in custom
-        }
-    }
-};
-
-window.onload = () => {
-    const mainSelected = document.querySelector('input[name="option"]:checked');
-    if (mainSelected) {
-        toggleDeliveryOption(mainSelected);
-    }
-};
-
-
-// product detail img
-document.addEventListener("DOMContentLoaded", function () {
-    var product = new Swiper(".thumbSwiper", {
-        loop: true,
-        spaceBetween: 10,
-        slidesPerView: 4,
-        freeMode: true,
-        watchSlidesProgress: true,
-    });
-
-    var swiper2 = new Swiper(".mainSwiper", {
-        loop: true,
-        spaceBetween: 10,
-        navigation: {
-            nextEl: ".swiper-button-next",
-            prevEl: ".swiper-button-prev",
-        },
-        thumbs: {
-            swiper: product,
-        },
-    });
+            document.querySelectorAll(".toggleCart span").forEach((el) => {
+                el.textContent = totalQty;
+            });
+        })
+        .catch((err) => {
+            console.error("❌ Failed to fetch cart on load:", err);
+        });
 });
-
-// readmore
-window.readMore = function readMore() {
-    const dots = document.getElementById("dots");
-    const moreText = document.getElementById("more");
-    const btn = document.getElementById("read_more");
-
-    if (dots.style.display === "none") {
-        dots.style.display = "inline";
-        moreText.classList.add("hidden");
-        btn.textContent = "Learn More";
-        btn.classList.remove("font-bold", "text-blue-800");
-        btn.classList.add("text-blue-600");
-    } else {
-        dots.style.display = "none";
-        moreText.classList.remove("hidden");
-        btn.textContent = "Show Less";
-        btn.classList.remove("text-blue-600");
-        btn.classList.add("font-bold", "text-blue-800");
-    }
-};
-
-// payment method
-window.toggleCodOption = function toggleCodOption(radio) {
-    const creditSection = document.getElementById("creditSection");
-    const codSection = document.getElementById("codSection");
-    const accountSection = document.getElementById("accountSection");
-
-    if (radio.value === "credit") {
-        creditSection.classList.remove("hidden");
-        codSection.classList.add("hidden");
-        accountSection.classList.add("hidden");
-    } else if (radio.value === "cod") {
-        codSection.classList.remove("hidden");
-        creditSection.classList.add("hidden");
-        accountSection.classList.add("hidden");
-    } else if (radio.value === "account") {
-        accountSection.classList.remove("hidden");
-        creditSection.classList.add("hidden");
-        codSection.classList.add("hidden");
-    }
-};
-
-// phone number formate
-window.formatPhone = function formatPhone(input) {
-    let value = input.value.replace(/\D/g, ""); // Remove non-digits
-
-    if (value.length > 10) value = value.slice(0, 10); // Limit to 10 digits
-
-    let formatted = value;
-
-    if (value.length >= 1) {
-        formatted = `(${value.slice(0, 3)}`;
-    }
-    if (value.length >= 4) {
-        formatted = `(${value.slice(0, 3)})-${value.slice(3, 6)}`;
-    }
-    if (value.length >= 7) {
-        formatted = `(${value.slice(0, 3)})-${value.slice(3, 6)}-${value.slice(6, 10)}`;
-    }
-
-    input.value = formatted;
-};
-
-window.validatePhone = function validatePhone(input) {
-    const pattern = /^\(\d{3}\)-\d{3}-\d{4}$/;
-    if (!pattern.test(input.value)) {
-        input.focus();
-    }
-};
-
-// deliver information
-window.toggleDiv = function toggleDiv() {
-    const checkbox = document.getElementById("toggleCheckbox");
-    const div = document.getElementById("deliveryDiv");
-    div.style.display = checkbox.checked ? "none" : "block";
-};

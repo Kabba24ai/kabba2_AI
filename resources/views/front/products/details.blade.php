@@ -81,7 +81,11 @@
                     <input type="hidden" name="product_id" value="{{ $productDetail->id }}">
                     <input type="hidden" name="product_slug" value="{{ $productDetail->slug }}">
 
+
+                   
                     <input type="hidden" name="name" id="inputName">
+                    <input type="hidden" name="store_id" id="inputstoreLocation">
+
                     <input type="hidden" name="image" id="inputImage">
                     <input type="hidden" name="rental_type" value="{{ $productType }}">
                     <input type="hidden" name="qty" id="inputQty">
@@ -196,13 +200,14 @@
                    @endif
                    @if($productDetail->in_store_pickup=='Yes')
                     <div id="inStoreDiv" class="mt-4">
+
                     </div>
                    @endif
 					@if($productDetail->delivery_and_pickup=='Yes')
                     <div id="deliveryDiv" class="mt-4 mb-5 hidden">
                         <div class="">
                             <span>Up To: </span>
-                             @if ($productDetail->standard_delivery_fee !== null)
+                            @if ($productDetail->standard_delivery_fee !== null)
                             <label class="inline-flex items-center space-x-2">
                                 <input type="radio" name="delivery-option" value="dis1" class="sr-only peer" checked
                                     onchange="toggleDeliveryOption(this)" />
@@ -237,9 +242,9 @@
 
                              @if ($productDetail->standard_delivery_fee !== null)
                                 <!-- For 15 mi -->
-                                <div id="dropdown15" class="hidden my-2">
+                                <div id="dropdown15" class="hidden  w-full mt-5 mb-5 ">
                                     <label class="block font-medium mb-1">Choose Delivery Type (15 mi):</label>
-                                    <select id="deliveryOption15" class="w-full border p-2 rounded" >
+                                    <select id="deliveryOption15" class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none" >
                                         <option value="">Select Delivery Options</option>
                                         <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee * 2) }}]</option>
                                         <option value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
@@ -250,9 +255,9 @@
 
                             @if ($productDetail->extended_delivery_fee !== null)
                                 <!-- For 30 mi -->
-                                <div id="dropdown30" class="hidden my-2">
+                                <div id="dropdown30" class="hidden w-full mt-5 mb-5">
                                     <label class="block font-medium mb-1">Choose Delivery Type (30 mi):</label>
-                                    <select id="deliveryOption30" class="w-full border p-2 rounded" >
+                                    <select id="deliveryOption30" class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none" >
                                         <option value="">Select Delivery Options</option>
                                         <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]</option>
                                         <option value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
@@ -273,34 +278,151 @@
                     @endif
 
                     <div id="address" class="w-full mt-5 mb-5 hidden">
-                        <select id="category" name="category"
+                        <select id="storeLocation" name="store_location" 
                             class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
-                            <option disabled selected>Select Store Location</option>
-                            <option>10296 High 46 , Bon Aqua ,TN ,37025</option>
-                            <option>10296 High 46 , Bon Aqua ,TN ,37025</option>
-                            <option>4385 SR-48, Charlotte , TN ,37036</option>
+                            <option disabled selected value="">Select Store Location</option>
+                            @foreach($stores as $store)
+                                    <option value="{{ $store->id }}">
+                                        {{ $store->address }}, {{ $store->city }}, , {{ $store->zip_code ?? '' }}
+                                    </option>
+                                @endforeach
                         </select>
                     </div>
+                    <div id="dateErroraddress" class="text-red-600 text-sm mt-2 hidden">Please select a Store Location.</div>
 
 
                     <div class="flex flex-col">
 
 
                         <h4 class="font-semibold text-[16px] mb-1">Options</h4>
+
+
+                        @if($productDetail->rental_prepaid_fuel !== null)
+                         <!-- Prepaid Fuel -->
+                         <label class="inline-flex items-center space-x-2 mt-1">
+                            <input type="checkbox" class="form-checkbox h-4 w-4" checked
+                                id="fuelCheckbox"
+                                 data-charged="1 Time Max"
+
+                                  data-keep="No Thanks, I'll Take The Risk"
+                                data-discard="Keep Option"
+
+                                data-id="fuelCheckbox"
+                                data-title="Keep Prepaid Fuel"
+                                data-message="I understand that the machine is delivered full of fuel and I’m responsible for returning it full of fuel. If returned without a full tank, I will be charged $8/gallon. If I take the 'Pre-Paid Fuel' option, I can just walk away from this obligation."
+                                onclick="handleCheckboxClick(this)" />
+                            <span>Prepaid Fuel <span class="font-medium">+ {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_fuel) }} </span></span>
+                        </label>
+						@endif
+
+                      
+
+                        @if($productDetail->rental_prepaid_cleaning !== null)
+                            <!-- Prepaid Cleaning -->
+                            <label class="inline-flex items-center space-x-2 mt-1">
+                                <input type="checkbox" class="form-checkbox h-4 w-4" checked
+                                    id="cleanCheckbox"
+                                    data-keep="No Thanks, I'll Take The Risk"
+                                data-discard="Keep Option"
+                                     data-charged="1 Time Max"
+                                    data-id="cleanCheckbox"
+                                    data-title="Keep Prepaid Cleaning"
+                                    data-message="I understand I’ll be responsible for bringing the equipment back clean or be charged. This does not cover 'Extreme' cleaning, only standard."
+                                    onclick="handleCheckboxClick(this)" />
+                                <span>Prepaid Cleaning <span class="font-medium">+ {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_cleaning) }} </span></span>
+                            </label>
+						@endif
+
+                        @if($productDetail->rental_fuel_gallons !== null)
+                            <!-- Prepaid Fuel Gallons -->
+                            <label class="inline-flex items-center space-x-2 mt-1">
+                                <input type="checkbox" class="form-checkbox h-4 w-4" checked
+                                    id="fuelGallonsCheckbox"
+                                    data-charged="1 Time Max"
+                                    data-keep="No Thanks, I'll Take The Risk"
+                                data-discard="Keep Option"
+                                    data-id="fuelGallonsCheckbox"
+                                    data-title="Keep Prepaid Fuel Gallons"
+                                    data-message="This includes a set number of fuel gallons in your rental package."
+                                    onclick="handleCheckboxClick(this)" />
+                                <span>Fuel Gallons <span class="font-medium">+ {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_fuel_gallons) }}</span></span>
+                            </label>
+                        @endif
+
+                        @if($productDetail->rental_def_gallons !== null)
+                            <!-- DEF Gallons -->
+                            <label class="inline-flex items-center space-x-2 mt-1">
+                                <input type="checkbox" class="form-checkbox h-4 w-4" checked
+                                    id="defGallonsCheckbox"
+                                    data-charged="1 Time Max"
+                                    data-keep="No Thanks, I'll Take The Risk"
+                                data-discard="Keep Option"
+                                    data-id="defGallonsCheckbox"
+                                    data-title="Keep Prepaid DEF Gallons"
+                                    data-message="This includes a set number of DEF gallons in your rental package."
+                                    onclick="handleCheckboxClick(this)" />
+                                <span>DEF Gallons <span class="font-medium">+ {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_def_gallons) }}</span></span>
+                            </label>
+                        @endif
+                        
+                        @if(
+                                $productDetail->rental_damage_waiver_daily !== null ||
+                                $productDetail->rental_damage_waiver_weekend !== null ||
+                                $productDetail->rental_damage_waiver_weekly !== null ||
+                                $productDetail->rental_damage_waiver_monthly !== null
+                            )
+                        <!-- Damage Waiver -->
+                        <label class="inline-flex items-center space-x-2 mt-1">
+                            <input type="checkbox" class="form-checkbox h-4 w-4" checked
+                                id="damageCheckbox"
+                                 data-charged="1 Time Max"
+                                data-id="damageCheckbox"
+
+                                data-keep="No Thanks, I'll Take The Risk"
+                                data-discard="Keep Option"
+
+                                data-title="Keep Damage Waiver"
+                                data-message="By removing the Damage Waiver, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance."
+                                onclick="handleCheckboxClick(this)" />
+
+                                @switch($productType)
+                                    @case('daily')
+                                    <span>Damage Waiver <span class="font-medium">+  {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_damage_waiver_daily) }} </span></span>
+                                    @break
+
+                                    @case('weekend')
+                                    <span>Damage Waiver <span class="font-medium">+  {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_damage_waiver_weekend) }} </span></span>
+                                    @break
+
+                                    @case('weekly')
+                                    <span>Damage Waiver <span class="font-medium">+  {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_damage_waiver_weekly) }} </span></span>
+                                    @break
+
+                                    @case('monthly')
+                                    <span>Damage Waiver <span class="font-medium">+  {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_damage_waiver_monthly) }} </span></span>
+                                    @break
+                                    @default
+                                        <span>-</span>
+                                @endswitch
+                        </label>
+                        @endif
+
+
                         @foreach ($productDetail->options as $option)
                        	@if($option->items->isNotEmpty())
                         @foreach ($option->items as $item)
 
-                        	<label class="inline-flex items-center space-x-2 mt-1">
+                        <label class="inline-flex items-center space-x-2 mt-1">
                             <input type="checkbox" class="form-checkbox h-4 w-4" @if($item->value=="Checked") checked="checked" @endif
                                 id="options_{{$item->unique_id}}"
                                 data-id="{{$item->unique_id}}"
                                 data-keep="{{$item->accept_label}}"
-                                data-discard="{{$item->discard_label}}"
+                                data-discard="{{$item->decline_label}}"
                                 data-message="{{$item->comment}}"
-                                onclick="handleCheckboxClick(this)"
-                                data-charged="{{ $item->charged ?? null }}"
 
+                                @if($item->comment !== null)  onclick="handleCheckboxClick(this)" @endif
+                               
+                                data-charged="{{ $item->charged ?? null }}"
                                 />
                             <span>{{ $item->label }} <span class="font-medium">+
                                 @php
@@ -324,9 +446,11 @@
 						@endif
 
                         @endforeach
-                        <!-- Prepaid Fuel -->
 
 
+                        
+
+                        
                     </div>
 
 
@@ -342,100 +466,58 @@
             </div>
         </div>
     </section>
-    <!-- Amazing Additions -->
-    <section class="pb-[60px]">
+
+ <!-- Amazing Additions -->
+ <section class="pb-[60px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="md:text-[28px] font-bold text-left mb-10  ">Amazing Additions</h2>
+            <h2 class="md:text-[28px] font-bold text-left mb-10  text-purple">Amazing Additions</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-0 gap-x-8 lg:gap-8">
-                <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class="text-[#231E41] group">
 
-                        <div class="lg:h-80 w-full relative overflow-hidden">
-                            <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
-                                class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
-                            <div
-                                class="bg-[#000] opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out">
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-white mb-4">
-                                {{ $productDetail->product_name }}- Daily</h3>
-                            <h4 class="text-[24px] mt-2 font-medium text-black text-left">
-                                {{ $productDetail->rental_daily }}</h4>
-                            <button type="button"
-                                class="border-0 bg-yellow-500 text-black font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
-                                <i class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
-                            </button>
-                        </div>
-                    </a>
-                </div>
+            @foreach ($productDetail->relatedProducts as $relatedProducts)
                 <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class=" group">
+                    <div
+                        class="text-purple group">
                         <div class="lg:h-80 w-full relative overflow-hidden">
-                            <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
+                            <img src="{{ $relatedProducts->media->url }}" alt="boom-lift-v2"
                                 class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
-                            <div
-                                class="bg-[#000] opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out">
-                            </div>
+                            <div class="bg-black opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out"></div>
                         </div>
                         <div>
-                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-white mb-4">
-                                {{ $productDetail->product_name }} - Weekend</h3>
-                            <h4 class="text-[24px] mt-2 font-medium text-black text-left">
-                                {{ $productDetail->rental_weekend }}</h4>
-                            <button type="button"
-                                class="border-0 bg-yellow-500 text-black font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
-                                <i class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
-                            </button>
-                        </div>
-                    </a>
-                </div>
-                <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class=" group">
-                        <div class="lg:h-80 w-full overflow-hidden relative">
-                            <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
-                                class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
-                            <div
-                                class="bg-[#000] opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out">
+                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-[#f2f3f5] mb-4">{{ $relatedProducts->product_name }}</h3>
+                           
+                            <div class="grid grid-cols-2 gap-x-2 gap-y-2">
+                                <a href="{{ route('front.products.details', ['slug' => $relatedProducts->slug, 'productType' => 'daily']) }}"
+                                    class="border-0 bg-yellow-500  font-medium flex flex-col px-2 py-1 leading-4 rounded-lg text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
+                                    Daily
+                                        <span> {{ App\Helpers\CustomHelper::formatCurrency($relatedProducts->rental_daily) }} </span>
+                        </a>
+                                <a href="{{ route('front.products.details', ['slug' => $relatedProducts->slug, 'productType' => 'weekend']) }}"
+                                    class="border-0 bg-yellow-500  font-medium flex flex-col px-2 py-1 leading-4 rounded-lg text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
+                                    Weekend Spcl.
+                                    <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProducts->rental_weekend) }}</span>
+                        </a>
+                                <a href="{{ route('front.products.details', ['slug' => $relatedProducts->slug, 'productType' => 'weekly']) }}"
+                                    class="border-0 bg-yellow-300  font-medium flex flex-col px-2 py-1 leading-4 rounded-lg text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
+                                    Weekly
+                                    <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProducts->rental_weekly) }}</span>
+                        </a>
+                                <a href="{{ route('front.products.details', ['slug' => $relatedProducts->slug, 'productType' => 'monthly']) }}"
+                                    class="border-0 bg-yellow-300  font-medium flex flex-col px-2 py-1 leading-4 rounded-lg text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
+                                    Monthly
+                                    <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProducts->rental_monthly) }}</span>
+                        </a>
                             </div>
                         </div>
-                        <div>
-                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-white mb-4">
-                                {{ $productDetail->product_name }}- Weekly</h3>
-                            <h4 class="text-[24px] mt-2 font-medium text-black text-left">
-                                {{ $productDetail->rental_weekly }}</h4>
-                            <button type="button"
-                                class="border-0 bg-yellow-500 text-black font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
-                                <i class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
-                            </button>
-                        </div>
-                    </a>
+                    </div>
                 </div>
-                <div class="pt-[30px] rounded-lg text-center">
-                    <a href="javascript:void(0)" class=" group">
-                        <div class="lg:h-80 w-full relative overflow-hidden">
-                            <img src="{{ $productDetail->image_url }}" alt="boom-lift-v2"
-                                class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
-                            <div
-                                class="bg-[#000] opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out ">
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-white mb-4">
-                                {{ $productDetail->product_name }} - Monthly</h3>
-                            <h4 class="text-[24px] mt-2 font-medium text-black text-left">
-                                {{ $productDetail->rental_monthly }}</h4>
-                            <button type="button"
-                                class="border-0 bg-yellow-500 text-black font-medium mt-4 px-6 py-1 leading-[50px] text-[14px] hover:bg-yellow-400 transition-all duration-500 ease-in-out">
-                                <i class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
-                            </button>
-                        </div>
-                    </a>
-                </div>
-
+            @endforeach
+                
             </div>
         </div>
     </section>
+
+
+
     <section class="pb-[60px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="pb-[60px]">
@@ -468,10 +550,10 @@
 
 @endsection
 @push('js')
-
+<script>
+    window.appDateFormat = "{{ config('app.date.date_format') }}";
+</script>
    <script>
-
-
     // product detail img
     document.addEventListener("DOMContentLoaded", function () {
         var product = new Swiper(".thumbSwiper", {
@@ -505,17 +587,17 @@
     const nextMonthBtn = document.getElementById("nextMonth");
     const dateInput = document.getElementById("dateInput");
 
-    // Only initialize if all required elements exist
-    if (
-        openBtn &&
-        selectedText &&
-        datePicker &&
-        monthYear &&
-        daysGrid &&
-        prevMonthBtn &&
-        nextMonthBtn &&
-        dateInput
-    ) {
+        // Only initialize if all required elements exist
+        if (
+            openBtn &&
+            selectedText &&
+            datePicker &&
+            monthYear &&
+            daysGrid &&
+            prevMonthBtn &&
+            nextMonthBtn &&
+            dateInput
+        ) {
         let currentDate = new Date();
 
         openBtn.addEventListener("click", () => {
@@ -563,12 +645,19 @@
             }
 
             for (let day = 1; day <= lastDay.getDate(); day++) {
-                const dayEl = document.createElement("button");
-                dayEl.textContent = day;
+            const dayEl = document.createElement("button");
+            dayEl.textContent = day;
+
+            const thisDate = new Date(year, month, day);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+
+            if (thisDate < today) {
+                dayEl.className = "py-1 rounded text-gray-400 cursor-not-allowed";
+                dayEl.disabled = true;
+            } else {
                 dayEl.className =
                     "py-1 rounded hover:bg-yellow-500 hover:text-white focus:outline-none";
-
-                const today = new Date();
                 if (
                     day === today.getDate() &&
                     month === today.getMonth() &&
@@ -578,14 +667,38 @@
                 }
 
                 dayEl.addEventListener("click", () => {
-                    const formatted = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                    const jsFormat = window.appDateFormat || "d/m/Y"; // fallback
+
+                    const dayStr = String(day).padStart(2, "0");
+                    const monthStr = String(month + 1).padStart(2, "0");
+                    const yearStr = String(year);
+
+                    // Build the date string based on the format
+                    let formatted;
+                    switch (jsFormat) {
+                        case 'd/m/Y':
+                            formatted = `${dayStr}/${monthStr}/${yearStr}`;
+                            break;
+                        case 'm/d/Y':
+                            formatted = `${monthStr}/${dayStr}/${yearStr}`;
+                            break;
+                        case 'Y-m-d':
+                            formatted = `${yearStr}-${monthStr}-${dayStr}`;
+                            break;
+                        default:
+                            formatted = `${dayStr}/${monthStr}/${yearStr}`; // default fallback
+                    }
+
                     selectedText.textContent = formatted;
-                    dateInput.value = formatted; // update hidden input
+                    dateInput.value = formatted;
                     datePicker.classList.add("hidden");
                 });
 
-                daysGrid.appendChild(dayEl);
             }
+
+            daysGrid.appendChild(dayEl);
+        }
+
         };
     } else {
         console.log("Date picker elements not found on this page");
@@ -622,11 +735,13 @@
                 const message = checkbox.dataset.message;
                 const keep_title = checkbox.dataset.keep;
 				const discard_title = checkbox.dataset.discard;
+
+
+
+                 // Update modal content
 				$("#modalMessage").html(message);
-
-
-               $("modalRejectBtn").text(discard_title || "No Thanks, I'll Take The Risk");
-			   $("modalAcceptBtn").text(keep_title);
+                $("#modalRejectBtn").text(discard_title || "No Thanks, I'll Take The Risk");
+                $("#modalAcceptBtn").text(keep_title || "Keep Option");
 
                 document.getElementById("modalBackdropClean").classList.remove("hidden");
             }
@@ -699,7 +814,7 @@
                     inStoreDiv.classList.add("hidden");
 
                     // Hide address for delivery initially
-                    address.classList.add("hidden");
+                    // address.classList.add("hidden");
                     customdis.classList.add("hidden");
 
                     // Check which delivery-option is selected
@@ -781,129 +896,142 @@
 
     <script>
 
-window.addEventListener('DOMContentLoaded', function () {
-        if (typeof window.jQuery !== 'undefined') {
-            $(function () {
-        // Block form submission from Enter key or other sources
-        $('#rentalForm').on('submit', function (e) {
-            e.preventDefault(); // always block native submit
-        });
+            window.addEventListener('DOMContentLoaded', function () {
+                    if (typeof window.jQuery !== 'undefined') {
+                        $(function () {
+                    // Block form submission from Enter key or other sources
+                    $('#rentalForm').on('submit', function (e) {
+                        e.preventDefault(); // always block native submit
+                    });
 
 
-        $('#addToRentalBtn').on('click', function () {
+                    $('#addToRentalBtn').on('click', function () {
 
-                const scheduleDate = $('#selectedDateText').text().trim();
-            if (scheduleDate === 'Select Start Date') {
-                $('#dateError').removeClass('hidden');
-                return;
-            } else {
-                $('#dateError').addClass('hidden');
-            }
-
-
-                const qty = parseInt(document.querySelector('#qty').value) || 1;
-
-                console.log("qty :- ", qty);
-
-                const name = document.querySelector('h3').innerText.trim();
-                console.log("name :- ", name);
-
-
-                const image = document.querySelector('.product-image')?.src || '';
-
-                console.log("image :- ", image);
-
-
-                const basePriceText = document.querySelector('.bg-yellow-400 h4')?.innerText?.trim() || '';
-
-                console.log("Base price text:", basePriceText);
-
-                const rawPrice = basePriceText.split('/')[0].trim(); // "$1,234.00"
-                console.log("rawPrice price text:", rawPrice);
-
-
-                const numericPrice = parseFloat(
-                    rawPrice.replace(/[^0-9.]/g, '') // remove $ and commas
-                );
-                console.log("Numeric price:", numericPrice); // 1234
-                console.log("basePrice :- ", numericPrice);
-                const addons = [];
-                document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-                    const label = cb.closest('label');
-                    if (label) {
-                        const spans = label.querySelectorAll('span');
-                        let addonName = spans[0]?.innerText.trim() || '';
-                        let price = spans[1] ? parseFloat(spans[1].innerText.replace(/[^0-9.]/g, '')) : 0;
-
-                         // Get charged type from the checkbox data attribute
-                          let charged = cb.getAttribute('data-charged') || null;
-
-                          addons.push({ name: addonName, price, charged });
+                            const scheduleDate = $('#selectedDateText').text().trim();
+                        if (scheduleDate === 'Select Start Date') {
+                            $('#dateError').removeClass('hidden');
+                            return;
+                        } else {
+                            $('#dateError').addClass('hidden');
                         }
+
+                        
+                        const storeLocation = $('#storeLocation').val();
+
+                            // Check if no store is selected
+                            if (!storeLocation) {
+                                $('#dateErroraddress').removeClass('hidden');
+                                return;
+                            } else {
+                                $('#dateErroraddress').addClass('hidden');
+                            }
+
+                            console.log('storeLocation :-', storeLocation);
+
+
+                            const qty = parseInt(document.querySelector('#qty').value) || 1;
+
+                           
+
+                            const name = document.querySelector('h3').innerText.trim();
+                         
+
+                            const image = document.querySelector('.product-image')?.src || '';
+
+                         
+
+
+                            const basePriceText = document.querySelector('.bg-yellow-400 h4')?.innerText?.trim() || '';
+
+                      
+
+                            const rawPrice = basePriceText.split('/')[0].trim(); // "$1,234.00"
+                       
+
+
+                            const numericPrice = parseFloat(
+                                rawPrice.replace(/[^0-9.]/g, '') // remove $ and commas
+                            );
+                          
+                            const addons = [];
+                            document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                                const label = cb.closest('label');
+                                if (label) {
+                                    const spans = label.querySelectorAll('span');
+                                    let addonName = spans[0]?.innerText.trim() || '';
+                                    let price = spans[1] ? parseFloat(spans[1].innerText.replace(/[^0-9.]/g, '')) : 0;
+
+                                    // Get charged type from the checkbox data attribute
+                                    let charged = cb.getAttribute('data-charged') || null;
+
+                                    addons.push({ name: addonName, price, charged });
+                                    }
+                            });
+                      
+
+                    // Determine delivery fee if not already set via onchange
+                    let deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
+
+                    // Auto-pick from active dropdown if missing
+                    if (deliveryFee === 0) {
+                        const deliveryOption = document.querySelector('input[name="delivery-option"]:checked')?.value;
+
+                        if (deliveryOption === 'dis1') {
+                            const selected15 = document.getElementById('deliveryOption15');
+                            if (selected15?.value) {
+                                deliveryFee = parseFloat(selected15.value) * STANDARD_DELIVERY_FEE;
+                            }
+                        } else if (deliveryOption === 'dis2') {
+                            const selected30 = document.getElementById('deliveryOption30');
+                            if (selected30?.value) {
+                                deliveryFee = parseFloat(selected30.value) * EXTENDED_DELIVERY_FEE;
+                            }
+                        }
+
+                        $('#inputDeliveryFee').val(deliveryFee);
+                        console.log("✅ Calculated deliveryFee:", deliveryFee);
+                    }
+
+                    $('#inputName').val(name);
+                    $('#inputstoreLocation').val(storeLocation);
+
+                    
+
+                    $('#inputImage').val(image);
+                    $('#inputQty').val(qty);
+                    $('#inputBasePrice').val(numericPrice);
+                    $('#inputScheduleDate').val(scheduleDate);
+                    $('#inputAddons').val(JSON.stringify(addons));
+
+
+                    // Submit with AJAX
+                    $.ajax({
+                        url: $('#rentalForm').attr('action'),
+                        method: 'POST',
+                        xhrFields: {
+                            withCredentials: true // ⬅️ important if you're using subdomains/local.dev
+                        },
+                        data: $('#rentalForm').serialize(),
+                        success: function (data) {
+                            if (data.success) {
+                                console.log('✅ Cart updated:', data);
+
+                                    const toggleBtn = document.querySelector('.toggleCart');
+                                    if (toggleBtn) toggleBtn.click();
+
+                            } else {
+                                console.error('❌ Cart update failed:', data);
+                            }
+                        },
+                        error: function (xhr) {
+                            console.error('❌ AJAX Error:', xhr.responseText);
+                            alert('Something went wrong!');
+                        }
+                    });
                 });
-                console.log("addons :- ", addons);
-
-        // Determine delivery fee if not already set via onchange
-        let deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
-
-        // Auto-pick from active dropdown if missing
-        if (deliveryFee === 0) {
-            const deliveryOption = document.querySelector('input[name="delivery-option"]:checked')?.value;
-
-            if (deliveryOption === 'dis1') {
-                const selected15 = document.getElementById('deliveryOption15');
-                if (selected15?.value) {
-                    deliveryFee = parseFloat(selected15.value) * STANDARD_DELIVERY_FEE;
-                }
-            } else if (deliveryOption === 'dis2') {
-                const selected30 = document.getElementById('deliveryOption30');
-                if (selected30?.value) {
-                    deliveryFee = parseFloat(selected30.value) * EXTENDED_DELIVERY_FEE;
-                }
-            }
-
-            $('#inputDeliveryFee').val(deliveryFee);
-            console.log("✅ Calculated deliveryFee:", deliveryFee);
-        }
 
 
-
-        // Fill hidden fields
-        $('#inputName').val(name);
-        $('#inputImage').val(image);
-        $('#inputQty').val(qty);
-        $('#inputBasePrice').val(numericPrice);
-        $('#inputScheduleDate').val(scheduleDate);
-        $('#inputAddons').val(JSON.stringify(addons));
-
-        // Submit with AJAX
-        $.ajax({
-            url: $('#rentalForm').attr('action'),
-            method: 'POST',
-            xhrFields: {
-                withCredentials: true // ⬅️ important if you're using subdomains/local.dev
-            },
-            data: $('#rentalForm').serialize(),
-            success: function (data) {
-                if (data.success) {
-                    console.log('✅ Cart updated:', data);
-
-                        const toggleBtn = document.querySelector('.toggleCart');
-                        if (toggleBtn) toggleBtn.click();
-
-                } else {
-                    console.error('❌ Cart update failed:', data);
-                }
-            },
-            error: function (xhr) {
-                console.error('❌ AJAX Error:', xhr.responseText);
-                alert('Something went wrong!');
-            }
-        });
-    });
-
-
-});
+            });
         }
     });
 

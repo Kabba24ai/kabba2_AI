@@ -20,6 +20,10 @@ class RentalCartService
         $addons = json_decode($item['addons'], true) ?? [];
         $addonsTotal = collect($addons)->sum('price');
         $item['addons'] = $addons;
+
+        $delivery_pickup = json_decode($item['delivery_pickup'], true) ?? [];
+       
+        $item['delivery_pickup'] = $delivery_pickup;
         
     
         // Convert quantity to integer
@@ -33,15 +37,15 @@ class RentalCartService
         $deliveryFee = isset($item['delivery_fee']) ? floatval($item['delivery_fee']) : 0;
         $item['delivery_fee'] = $deliveryFee;
     
-        // 🔁 Check if same product_id exists
+        //Check if same product_id exists
         $updated = false;
     
         foreach ($cart as $key => $existingItem) {
             if ($existingItem['product_id'] == $item['product_id']) {
-                // ✅ Combine quantities
+                //Combine quantities
                 $item['qty'] += intval($existingItem['qty']);
     
-                // 💡 Replace other details with new entry
+                //Replace other details with new entry
                 $cart[$key] = $item;
                 $updated = true;
                 break;
@@ -52,7 +56,7 @@ class RentalCartService
             $cart[] = $item; // New product, add to cart
         }
     
-        // 🔄 Recalculate base total
+        //Recalculate base total
         $baseTotal = ($item['base_price'] + $addonsTotal) * $item['qty'];
     
         // Set computed values

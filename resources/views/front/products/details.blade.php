@@ -93,6 +93,7 @@
                     <input type="hidden" name="addons" id="inputAddons">
                     <input type="hidden" name="schedule_date" id="inputScheduleDate">
                     <input type="hidden" name="delivery_fee" id="inputDeliveryFee">
+                    <input type="hidden" name="delivery_pickup" id="inputDeliveryPickup">
                     <div
                         class="bg-[#f9fafc] mb-4 flex flex-col lg:flex-row justify-between items-center p-2 lg:p-0 lg:pl-4 md:pl-4">
                         <div>
@@ -246,9 +247,9 @@
                                     <label class="block font-medium mb-1">Choose Delivery Type (15 mi):</label>
                                     <select id="deliveryOption15" class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none" >
                                         <option value="">Select Delivery Options</option>
-                                        <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee * 2) }}]</option>
-                                        <option value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
-                                        <option value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
+                                        <option data-id="Delivery+Pickup" value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee * 2) }}]</option>
+                                        <option data-id="Delivery" value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
+                                        <option data-id="Pickup" value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
                                     </select>
                                 </div>
                             @endif
@@ -259,9 +260,9 @@
                                     <label class="block font-medium mb-1">Choose Delivery Type (30 mi):</label>
                                     <select id="deliveryOption30" class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none" >
                                         <option value="">Select Delivery Options</option>
-                                        <option value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]</option>
-                                        <option value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
-                                        <option value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
+                                        <option data-id="Delivery+Pickup" value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]</option>
+                                        <option data-id="Delivery" value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
+                                        <option data-id="Pickup" value="1">I'll Pick Up In-Store but Need Return Service Pick Up [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
                                     </select>
                                 </div>
                             @endif
@@ -871,18 +872,16 @@
     window.addEventListener('DOMContentLoaded', function () {
         if (typeof window.jQuery !== 'undefined') {
             $(function () {
-                console.log('✅ jQuery is available in inline script');
-
                 $('#rentalForm').on('submit', function (e) {
                     e.preventDefault();
                 });
 
                 $('#addToRentalBtn').on('click', function () {
-                    console.log('Add to Rental clicked');
+                    //console.log('Add to Rental clicked');
                 });
             });
         } else {
-            console.warn('❌ jQuery is NOT available in inline script');
+            alert('jQuery is NOT available in inline script');
         }
     });
 </script>
@@ -957,8 +956,9 @@
                             document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
                                 const label = cb.closest('label');
                                 if (label) {
-                                    const spans = label.querySelectorAll('span');
-                                    let addonName = spans[0]?.innerText.trim() || '';
+                                    const spans = label.querySelectorAll('span'); 
+                                    //let addonName = spans[0]?.innerText.trim() || '';
+                                    let addonName = spans[0]?.childNodes[0]?.nodeValue.trim() || '';
                                     let price = spans[1] ? parseFloat(spans[1].innerText.replace(/[^0-9.]/g, '')) : 0;
 
                                     // Get charged type from the checkbox data attribute
@@ -967,29 +967,51 @@
                                     addons.push({ name: addonName, price, charged });
                                     }
                             });
+
+                            const delivery_pickup=[];
                       
 
                     // Determine delivery fee if not already set via onchange
                     let deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
 
                     // Auto-pick from active dropdown if missing
-                    if (deliveryFee === 0) {
+                    if (deliveryFee === 0) { 
                         const deliveryOption = document.querySelector('input[name="delivery-option"]:checked')?.value;
 
                         if (deliveryOption === 'dis1') {
                             const selected15 = document.getElementById('deliveryOption15');
                             if (selected15?.value) {
                                 deliveryFee = parseFloat(selected15.value) * STANDARD_DELIVERY_FEE;
+                                const selectedOption = selected15.options[selected15.selectedIndex]; 
+                                deliveryDataId = selectedOption.getAttribute('data-id');
+                                if(deliveryDataId=='Delivery+Pickup')
+                                {
+                                    delivery_pickup.push({ name: 'Delivery' });
+                                    delivery_pickup.push({ name: 'Pickup' });
+                                }
+                                else{
+                                    delivery_pickup.push({ name: deliveryDataId });
+                                }
                             }
                         } else if (deliveryOption === 'dis2') {
                             const selected30 = document.getElementById('deliveryOption30');
                             if (selected30?.value) {
                                 deliveryFee = parseFloat(selected30.value) * EXTENDED_DELIVERY_FEE;
+                                const selectedOption = selected30.options[selected15.selectedIndex]; 
+                                deliveryDataId = selectedOption.getAttribute('data-id');
+                                if(deliveryDataId=='Delivery+Pickup')
+                                {
+                                    delivery_pickup.push({ name: 'Delivery' });
+                                    delivery_pickup.push({ name: 'Pickup' });
+                                }
+                                else{
+                                   delivery_pickup.push({ name: deliveryDataId });
+                                }
                             }
                         }
 
                         $('#inputDeliveryFee').val(deliveryFee);
-                        console.log("✅ Calculated deliveryFee:", deliveryFee);
+                        
                     }
 
                     $('#inputName').val(name);
@@ -997,11 +1019,12 @@
 
                     
 
-                    $('#inputImage').val(image);
+                    $('#inputImage').val(image); 
                     $('#inputQty').val(qty);
                     $('#inputBasePrice').val(numericPrice);
                     $('#inputScheduleDate').val(scheduleDate);
                     $('#inputAddons').val(JSON.stringify(addons));
+                    $('#inputDeliveryPickup').val(JSON.stringify(delivery_pickup));
 
 
                     // Submit with AJAX
@@ -1009,22 +1032,19 @@
                         url: $('#rentalForm').attr('action'),
                         method: 'POST',
                         xhrFields: {
-                            withCredentials: true // ⬅️ important if you're using subdomains/local.dev
+                            withCredentials: true
                         },
                         data: $('#rentalForm').serialize(),
                         success: function (data) {
                             if (data.success) {
-                                console.log('✅ Cart updated:', data);
-
-                                    const toggleBtn = document.querySelector('.toggleCart');
-                                    if (toggleBtn) toggleBtn.click();
+                                const toggleBtn = document.querySelector('.toggleCart');
+                                if (toggleBtn) toggleBtn.click();
 
                             } else {
-                                console.error('❌ Cart update failed:', data);
+                                alert('Cart update failed:', data);
                             }
                         },
                         error: function (xhr) {
-                            console.error('❌ AJAX Error:', xhr.responseText);
                             alert('Something went wrong!');
                         }
                     });

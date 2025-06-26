@@ -150,73 +150,9 @@
              class="offcanvas-cart-body absolute top-[85px] right-0 overflow-hidden md:top-[70px] max-w-0 lg:top-[79px] opacity-0 md:max-w-[403px] w-0 h-screen bg-white bg-opacity-90 shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
              <div class="relative w-full h-[calc(100vh-80px)]">
                  <div class="px-[40px] pt-[60px] pb-[60px] overflow-y-scroll h-full w-full">
-                     <div>
-                         <div class="flex items-center justify-between mb-[30px]">
-                             <h4 class="text-[16px] font-bold">Your Cart</h4>
-                             <i class="fas fa-arrow-down text-[#6f6f87] text-[10px] opacity-[0.5]"></i>
-                         </div>
-                         <div class="flex gap-8">
-                             <div>
-                                 <img src="{{ asset('storage/front/images/product-detail/skid-steer-daily.png') }}"
-                                     alt="image" class="w-16">
-                             </div>
-                             <div>
-                                 <a href="javascript:void(0)">
-                                     <h4 class="text-[14px] font-bold">Skid Steer Open Cab - Daily</h4>
-                                 </a>
-                                 <p class="text-[13px]">$491.00(x1)</p>
-                                 <div class="flex justify-between">
-                                     Price: <span class="font-bold">$334.00</span>
-                                 </div>
-                                 <div class="flex justify-between">
-                                     Option: <span class="font-bold">+$157.00</span>
-                                 </div>
-                                 <ul class="flex flex-col gap-y-2 mb-2">
-                                     <li class="leading-[13px]">
-                                         <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">Prepaid
-                                             Fuel</span>
-                                     </li>
-                                     <li class="leading-[13px]">
-                                         <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">Prepaid
-                                             Cleaning</span>
-                                     </li>
-                                     <li class="leading-[13px]">
-                                         <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">Toothed
-                                             Bucket</span>
-                                     </li>
-                                     <li class="leading-[13px]">
-                                         <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">Damage
-                                             Waiver</span>
-                                     </li>
-                                 </ul>
-                                 <p class="text-[13px]">Schedule Date: 05/14/2025</p>
-                                 <div>
-                                     <a href="javascript:void(0)"
-                                         class="text-[13px] after:content-['|'] after:pl-2"><i
-                                             class="fa-solid fa-xmark"></i> Remove</a>
-                                     <a href="javascript:void(0)" class="text-[13px] text-[#0dcaf0]">Update</a>
-                                 </div>
-                             </div>
-                         </div>
-                         <div class="border-t mt-5 pt-5">
-                             <div class="flex justify-between">
-                                 <label class="font-bold">Sub Total</label>
-                                 <span>$491.00</span>
-                             </div>
-                             <div class="flex justify-between">
-                                 <label class="font-bold">Tax</label>
-                                 <span>$47.87</span>
-                             </div>
-                             <div class="flex justify-between">
-                                 <label class="font-bold">Total</label>
-                                 <span>$538.87</span>
-                             </div>
-                         </div>
-                          <button
-                             class=" w-full border-0 bg-yellow-400 text-center font-bold justify-center flex px-6 py-3 mt-4 leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out">
-                             <a href="{{ route('front.checkout.index') }}">CHECKOUT</a>
-                         </button>
-                     </div>
+                     
+                    <p class="text-center py-10 text-gray-600">Your cart is empty.</p>
+             
                  </div>
              </div>
          </div>

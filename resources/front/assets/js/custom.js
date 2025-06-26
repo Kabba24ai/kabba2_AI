@@ -257,6 +257,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         const addons = (item.addons || []).filter(
                             (a) => a.name?.trim() && parseFloat(a.price) > 0,
                         );
+                        const delivery_pickup = (item.delivery_pickup || []).filter(
+                            (a) => a.name?.trim(),
+                        );
 
                         let addonTotal = 0;
                         addons.forEach((addon) => {
@@ -274,8 +277,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         const addonList = addons
                             .map((a) => {
                                 const charged = (a.charged || "").toLowerCase();
-                                const qtyNote =
-                                    charged === "unlimited" ? ` (x${qty})` : "";
+                                //const qtyNote =
+                                //    charged === "unlimited" ? ` (x${qty})` : "";
+                                 const qtyNote =
+                                    charged === "unlimited" ? ` ` : "";
                                 return `
                                     <li class="leading-[13px]">
                                         <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">
@@ -284,11 +289,22 @@ document.addEventListener("DOMContentLoaded", () => {
                                     </li>`;
                             })
                             .join("");
+                        
+                        const delivery_pickupList = delivery_pickup
+                            .map((a) => {
+                                return `
+                                    <li class="leading-[13px]">
+                                        <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">
+                                            ${a.name}
+                                        </span>
+                                    </li>`;
+                            })
+                            .join("");
 
                         const productURL = `/products/${item.product_slug}/${item.rental_type}/details`;
 
                         const productHTML = `
-                            <div class="flex gap-8 mb-5 border-b pb-5" data-index="${index}">
+                            <div class="flex gap-8 mb-5 pb-5" data-index="${index}">
                                 <div><img src="${item.image}" alt="image" class="w-16"></div>
                                 <div class="flex-1">
                                     <h4 class="text-[14px] font-bold">${item.name}</h4>
@@ -298,14 +314,14 @@ document.addEventListener("DOMContentLoaded", () => {
                                         Price: <span class="font-bold">$${(base * qty).toFixed(2)}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
-                                        Option: <span class="font-bold">+$${addonTotal.toFixed(2)}</span>
+                                        Options: <span class="font-bold">+$${(addonTotal+deliveryFee).toFixed(2)}</span>
                                     </div>
 
-                                    <div class="flex justify-between text-sm">
+                                    <!--<div class="flex justify-between text-sm">
                                         Delivery Fee: <span class="font-bold">$${deliveryFee.toFixed(2)}</span>
-                                    </div>
+                                    </div>-->
                                     
-                                    <ul class="flex flex-col gap-y-2 mb-2">${addonList}</ul>
+                                    <ul class="flex flex-col gap-y-2 mb-2">${addonList} ${delivery_pickupList}</ul>
 
                                     <p class="text-[13px]">Schedule Date: ${item.schedule_date}</p>
 
@@ -419,6 +435,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         })
         .catch((err) => {
-            console.error("❌ Failed to fetch cart on load:", err);
+            console.error("Failed to fetch cart on load:", err);
         });
 });

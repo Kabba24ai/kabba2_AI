@@ -78,6 +78,7 @@ class StoreRequest extends FormRequest
                 'equipment_name' => $equipmentNames[$this->equipment_id] ?? 'Unknown'
             ]);
         }
+       
         $this->merge([
             'stock_level' => $this->dni ? 0 : ($this->current_stock ?? 0),
             'min_stock' => $this->dni ? 0 : ($this->min_stock ?? 0),

@@ -23,7 +23,7 @@
 
         {{-- Form --}}
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <form action="{{ route('admin.maintenance-management.parts.edit', $part->unique_id) }}" method="POST">
+            <form action="{{ route('admin.maintenance-management.parts.edit', $part->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 

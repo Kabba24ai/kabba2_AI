@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Parts;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\MaintenanceManagement\Supplier;
 
 class CreateController extends Controller
 {
@@ -16,14 +17,8 @@ class CreateController extends Controller
             ->orderBy('equipment_name')
             ->get()
             ->toArray();
-        $suppliers = [
-            'Caterpillar Inc.',
-            'Parker Hannifin',
-            'Kohler Power',
-            'Atlas Copco',
-            'John Deere',
-            'Industrial Supply Co.'
-        ];
+
+       $suppliers = Supplier::orderBy('name')->pluck('name')->toArray();
 
         return view('admin.maintenance_management.parts.create', compact('categories', 'equipmentOptions', 'suppliers'));
     }

@@ -165,6 +165,7 @@
                     $maintenanceActive = Route::is([
                         'admin.maintenance-management.equipments.*',
                         'admin.maintenance-management.parts.*',
+                        'admin.maintenance-management.suppliers.*',
                     ]);
                       
                     @endphp
@@ -200,14 +201,21 @@
                                     <a href="{{ route('admin.maintenance-management.equipments.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.maintenance-management.equipments.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment
+                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipments
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.parts.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.maintenance-management.parts.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Part
+                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Parts List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.maintenance-management.suppliers.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.suppliers.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Suppliers
                                     </a>
                                 </li>
                                

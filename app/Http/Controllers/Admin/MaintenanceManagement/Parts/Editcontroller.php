@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Parts;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Part;
+use App\Models\MaintenanceManagement\Supplier;
 
 class EditController extends Controller
 {
@@ -18,14 +19,7 @@ class EditController extends Controller
             // ... rest of equipment options
         ];
 
-        $suppliers = [
-            'Caterpillar Inc.',
-            'Parker Hannifin',
-            'Kohler Power',
-            'Atlas Copco',
-            'John Deere',
-            'Industrial Supply Co.'
-        ];
+        $suppliers = Supplier::orderBy('name')->pluck('name')->toArray();
 
         return view('admin.maintenance_management.parts.edit', compact('part', 'categories', 'equipmentOptions', 'suppliers'));
     }

@@ -29,6 +29,7 @@ class IndexController extends Controller
             'schedule_date',
             'delivery_fee',
             'store_id',
+            'delivery_pickup',
         ]);
 
         $cart = $this->cartService->addItem($item);

@@ -75,29 +75,24 @@
                     </div>
                 </div>
                 <div>
-                <form id="rentalForm" method="POST" action="{{ route('front.cart.add') }}">
-                    @csrf
+             
 
-                    <input type="hidden" name="product_id" value="{{ $productDetail->id }}">
-                    <input type="hidden" name="product_slug" value="{{ $productDetail->slug }}">
-
-
-                   
-                    <input type="hidden" name="name" id="inputName">
-                    <input type="hidden" name="store_id" id="inputstoreLocation">
-
-                    <input type="hidden" name="image" id="inputImage">
-                    <input type="hidden" name="rental_type" value="{{ $productType }}">
-                    <input type="hidden" name="qty" id="inputQty">
-                    <input type="hidden" name="base_price" id="inputBasePrice">
-                    <input type="hidden" name="addons" id="inputAddons">
-                    <input type="hidden" name="schedule_date" id="inputScheduleDate">
+                    <input type="hidden" name="product_id" id="inputProductId" value="{{ $productDetail->id }}">
+                    <input type="hidden" name="product_slug" id="inputProductSlug" value="{{ $productDetail->slug }}">
+                    <input type="hidden" name="rental_type" id="inputRentalType" value="{{ $productType }}">
                     <input type="hidden" name="delivery_fee" id="inputDeliveryFee">
                     <input type="hidden" name="delivery_pickup" id="inputDeliveryPickup">
+
+                    <!-- <input type="hidden" name="unique_id" id="inputunique_id" value="{{ $productDetail->unique_id  }}"> -->
+                    <input type="hidden" name="product_type" id="inputproduct_type" value="{{ $productDetail->product_type }}">
+                    <input type="hidden" name="product_sku" id="inputProductsku" value="{{ $productDetail->sku }}">
+                    <input type="hidden" name="product_barcode" id="inputProductbarcode" value="{{ $productDetail->barcode }}">
+
+
                     <div
-                        class="bg-[#f9fafc] mb-4 flex flex-col lg:flex-row justify-between items-center p-2 lg:p-0 lg:pl-4 md:pl-4">
+                        class="bg-[#f9fafc] mb-4 flex flex-col lg:flex-row justify-between items-center p-2 lg:p-0  md:pl-4">
                         <div>
-                            <h3 class="font-bold text-[18px] lg:text-[22px]">{{ $productDetail->product_name }}</h3>
+                            <h3 class="font-bold text-[18px] lg:text-[22px] productname">{{ $productDetail->product_name }}</h3>
                             <p
                                 class="before:content-['('] before:text-[#6f6f87] after:content-[')'] after:text-[#6f6f87] text-[#188753] text-[14px]">
                                 In Stock</p>
@@ -138,11 +133,11 @@
                             <div class="relative">
                                 <input type="text" id="dateInput" name="date" readonly class="hidden" />
                                 <div class="flex items-center">
-                                    <button id="openDatePicker" type="button" class="px-4 py-2">
+                                    <button id="openDatePicker" type="button" class="pr-2 py-2">
                                         <img src="{{ asset('storage/front/images/calendar_icon.png') }}" alt=""
                                             class="w-[52px]">
                                     </button>
-                                    <div id="selectedDateText">Select Start Date</div>
+                                    <div id="selectedDateText" class="mr-4">Select Start Date</div>
                                 </div>
 
                                 <div id="datePicker"
@@ -201,7 +196,6 @@
                    @endif
                    @if($productDetail->in_store_pickup=='Yes')
                     <div id="inStoreDiv" class="mt-4">
-
                     </div>
                    @endif
 					@if($productDetail->delivery_and_pickup=='Yes')
@@ -216,7 +210,7 @@
                                     class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
                                     <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
                                 </div>
-                                <span>15 mi</span>
+                                <span>{{$standard_delivery_range->setting_value }} mi</span>
                             </label>
                             @endif
 
@@ -228,7 +222,7 @@
                                     class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
                                     <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
                                 </div>
-                                <span>30 mi</span>
+                                <span>{{$extended_delivery_range->setting_value }} mi</span>
                             </label>
                             @endif
                             <label class="inline-flex items-center space-x-2">
@@ -242,10 +236,10 @@
                             </label>
 
                              @if ($productDetail->standard_delivery_fee !== null)
-                                <!-- For 15 mi -->
-                                <div id="dropdown15" class="hidden  w-full mt-5 mb-5 ">
-                                    <label class="block font-medium mb-1">Choose Delivery Type (15 mi):</label>
-                                    <select id="deliveryOption15" class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none" >
+                                <!-- For standard_delivery_range mi -->
+                                <div id="dropdown_std_delivery_fee" class="hidden  w-full mt-5 mb-5 ">
+                                    <label class="block font-medium mb-1">Choose Delivery Type ({{$standard_delivery_range->setting_value }} mi):</label>
+                                    <select id="deliveryOption_std_delivery_fee" class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none" >
                                         <option value="">Select Delivery Options</option>
                                         <option data-id="Delivery+Pickup" value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee * 2) }}]</option>
                                         <option data-id="Delivery" value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]</option>
@@ -255,10 +249,10 @@
                             @endif
 
                             @if ($productDetail->extended_delivery_fee !== null)
-                                <!-- For 30 mi -->
-                                <div id="dropdown30" class="hidden w-full mt-5 mb-5">
-                                    <label class="block font-medium mb-1">Choose Delivery Type (30 mi):</label>
-                                    <select id="deliveryOption30" class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none" >
+                                <!-- For extended_delivery_fee mi -->
+                                <div id="dropdown_ext_delivery_fee" class="hidden w-full mt-5 mb-5">
+                                    <label class="block font-medium mb-1">Choose Delivery Type ({{$extended_delivery_range->setting_value }} mi):</label>
+                                    <select id="deliveryOption_ext_delivery_fee" class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none" >
                                         <option value="">Select Delivery Options</option>
                                         <option data-id="Delivery+Pickup" value="2">Delivery + Pick Up (To/From My Job Site) [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]</option>
                                         <option data-id="Delivery" value="1">Delivery but I'll Return to Store [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]</option>
@@ -284,16 +278,16 @@
                             <option disabled selected value="">Select Store Location</option>
                             @foreach($stores as $store)
                                     <option value="{{ $store->id }}">
-                                        {{ $store->address }}, {{ $store->city }}, , {{ $store->zip_code ?? '' }}
+                                        {{ $store->address }}, {{ $store->city }}, {{ $store->state->abbreviation }} , {{ $store->zip_code ?? '' }}
                                     </option>
                                 @endforeach
                         </select>
                     </div>
+
                     <div id="dateErroraddress" class="text-red-600 text-sm mt-2 hidden">Please select a Store Location.</div>
 
 
                     <div class="flex flex-col">
-
 
                         <h4 class="font-semibold text-[16px] mb-1">Options</h4>
 
@@ -304,10 +298,8 @@
                             <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                 id="fuelCheckbox"
                                  data-charged="1 Time Max"
-
-                                  data-keep="No Thanks, I'll Take The Risk"
-                                data-discard="Keep Option"
-
+                                  data-keep="Keep Option"
+                                data-discard="No Thanks, I'll Take The Risk"
                                 data-id="fuelCheckbox"
                                 data-title="Keep Prepaid Fuel"
                                 data-message="I understand that the machine is delivered full of fuel and I’m responsible for returning it full of fuel. If returned without a full tank, I will be charged $8/gallon. If I take the 'Pre-Paid Fuel' option, I can just walk away from this obligation."
@@ -323,8 +315,8 @@
                             <label class="inline-flex items-center space-x-2 mt-1">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                     id="cleanCheckbox"
-                                    data-keep="No Thanks, I'll Take The Risk"
-                                data-discard="Keep Option"
+                                     data-keep="Keep Option"
+                                data-discard="No Thanks, I'll Take The Risk"
                                      data-charged="1 Time Max"
                                     data-id="cleanCheckbox"
                                     data-title="Keep Prepaid Cleaning"
@@ -340,8 +332,8 @@
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                     id="fuelGallonsCheckbox"
                                     data-charged="1 Time Max"
-                                    data-keep="No Thanks, I'll Take The Risk"
-                                data-discard="Keep Option"
+                                      data-keep="Keep Option"
+                                data-discard="No Thanks, I'll Take The Risk"
                                     data-id="fuelGallonsCheckbox"
                                     data-title="Keep Prepaid Fuel Gallons"
                                     data-message="This includes a set number of fuel gallons in your rental package."
@@ -356,8 +348,8 @@
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                     id="defGallonsCheckbox"
                                     data-charged="1 Time Max"
-                                    data-keep="No Thanks, I'll Take The Risk"
-                                data-discard="Keep Option"
+                                      data-keep="Keep Option"
+                                data-discard="No Thanks, I'll Take The Risk"
                                     data-id="defGallonsCheckbox"
                                     data-title="Keep Prepaid DEF Gallons"
                                     data-message="This includes a set number of DEF gallons in your rental package."
@@ -378,9 +370,8 @@
                                 id="damageCheckbox"
                                  data-charged="1 Time Max"
                                 data-id="damageCheckbox"
-
-                                data-keep="No Thanks, I'll Take The Risk"
-                                data-discard="Keep Option"
+                                data-keep="Keep Option"
+                                data-discard="No Thanks, I'll Take The Risk"
 
                                 data-title="Keep Damage Waiver"
                                 data-message="By removing the Damage Waiver, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance."
@@ -420,7 +411,7 @@
                                 data-keep="{{$item->accept_label}}"
                                 data-discard="{{$item->decline_label}}"
                                 data-message="{{$item->comment}}"
-
+                                data-unique_id="{{$item->unique_id}}"
                                 @if($item->comment !== null)  onclick="handleCheckboxClick(this)" @endif
                                
                                 data-charged="{{ $item->charged ?? null }}"
@@ -447,10 +438,6 @@
 						@endif
 
                         @endforeach
-
-
-                        
-
                         
                     </div>
 
@@ -462,14 +449,26 @@
                             class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out"><i
                                 class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental</button>
                     </div>
-                </form>
+                <!-- </form> -->
                 </div>
             </div>
         </div>
     </section>
 
+    <section class="pb-[60px]">
+        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
+            <div class="pb-[60px]">
+                <a href="#" class="bg-yellow-400 px-6 border-0 text-[14px] py-4">Details</a>
+            </div>
+            <div class="flex flex-col gap-y-4 text-[#6f6f87]">
+                {!! $productDetail->description !!}
+            </div>
+        </div>
+    </section>
+
+
  <!-- Amazing Additions -->
- <section class="pb-[60px]">
+   <section class="pb-[60px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <h2 class="md:text-[28px] font-bold text-left mb-10  text-purple">Amazing Additions</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-0 gap-x-8 lg:gap-8">
@@ -517,19 +516,7 @@
         </div>
     </section>
 
-
-
-    <section class="pb-[60px]">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <div class="pb-[60px]">
-                <a href="#" class="bg-yellow-400 px-6 border-0 text-[14px] py-4">Details</a>
-            </div>
-            <div class="flex flex-col gap-y-4 text-[#6f6f87]">
-                {!! $productDetail->description !!}
-            </div>
-        </div>
-    </section>
-
+   
 	<!-- clean Modal -->
         <div id="modalBackdropClean"
             class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
@@ -694,18 +681,13 @@
                     dateInput.value = formatted;
                     datePicker.classList.add("hidden");
                 });
-
             }
-
             daysGrid.appendChild(dayEl);
         }
-
         };
-    } else {
-        console.log("Date picker elements not found on this page");
-    }
-
-
+        } else {
+            console.log("Date picker elements not found on this page");
+        }
 
     // qty pluse/minus
         window.changeQty = function changeQty(delta) {
@@ -789,72 +771,86 @@
             }
         });
 
-        // product details radio hide/show
-        window.toggleDeliveryOption = function toggleDeliveryOption(radio) {
-            const inStoreDiv = document.getElementById("inStoreDiv");
-            const deliveryDiv = document.getElementById("deliveryDiv");
-            const customdis = document.getElementById("customdis");
-            const distance = document.getElementById("distance");
-            const address = document.getElementById("address");
-            const rentalbtn = document.getElementById("rentalbtn");
+             window.toggleDeliveryOption = function toggleDeliveryOption(radio) {
+                const inStoreDiv = document.getElementById("inStoreDiv");
+                const deliveryDiv = document.getElementById("deliveryDiv");
+                const customdis = document.getElementById("customdis");
+                const distance = document.getElementById("distance");
+                const address = document.getElementById("address");
+                const rentalbtn = document.getElementById("rentalbtn");
 
-            if (radio.name === "option") {
-                if (radio.value === "in-store") {
-                    // Show for in-store
-                    inStoreDiv.classList.remove("hidden");
-                    address.classList.remove("hidden");
-                    distance.classList.remove("hidden");
-                    rentalbtn.classList.remove("hidden");
+                const dropdown_std = document.getElementById("dropdown_std_delivery_fee");
+                const dropdown_ext = document.getElementById("dropdown_ext_delivery_fee");
 
-                    // Hide delivery-related
-                    deliveryDiv.classList.add("hidden");
-                    customdis.classList.add("hidden");
-                } else if (radio.value === "delivery") {
-                    // Show delivery section
-                    deliveryDiv.classList.remove("hidden");
-                    inStoreDiv.classList.add("hidden");
+                if (radio.name === "option") {
+                    if (radio.value === "in-store") {
+                        inStoreDiv.classList.remove("hidden");
+                        deliveryDiv.classList.add("hidden");
 
-                    // Hide address for delivery initially
-                    // address.classList.add("hidden");
-                    customdis.classList.add("hidden");
+                        address.classList.remove("hidden"); //  Always show for In-Store
+                        distance?.classList.remove("hidden");
+                        rentalbtn?.classList.remove("hidden");
 
-                    // Check which delivery-option is selected
-                    const deliveryOption = document.querySelector(
-                        'input[name="delivery-option"]:checked',
-                    );
-                    if (deliveryOption) {
-                        toggleDeliveryOption(deliveryOption); // Trigger sub-option logic
+                        customdis.classList.add("hidden");
+                    } else if (radio.value === "delivery") {
+                        inStoreDiv.classList.add("hidden");
+                        deliveryDiv.classList.remove("hidden");
+
+                        address.classList.add("hidden"); // initially hide for delivery
+                        rentalbtn?.classList.remove("hidden");
+
+                        const deliveryOption = document.querySelector('input[name="delivery-option"]:checked');
+                        if (deliveryOption) {
+                            toggleDeliveryOption(deliveryOption);
+                        }
                     }
                 }
-            }
 
-            if (radio.name === "delivery-option") {
-                // hide both dropdowns first
-                dropdown15?.classList.add("hidden");
-                dropdown30?.classList.add("hidden");
-                customdis.classList.add("hidden");
-
-
-                if (radio.value === "dis1") {
-                    dropdown15?.classList.remove("hidden");
-                    rentalbtn.classList.remove("hidden");
-                customdis.classList.add("hidden");
-
-
-                } else if (radio.value === "dis2") {
-                    dropdown30?.classList.remove("hidden");
-                    rentalbtn.classList.remove("hidden");
+                if (radio.name === "delivery-option") {
+                    dropdown_std?.classList.add("hidden");
+                    dropdown_ext?.classList.add("hidden");
                     customdis.classList.add("hidden");
 
+                    if (radio.value === "dis1") {
+                        dropdown_std?.classList.remove("hidden");
+                    } else if (radio.value === "dis2") {
+                        dropdown_ext?.classList.remove("hidden");
+                    } else if (radio.value === "discustom") {
+                        customdis.classList.remove("hidden");
+                        rentalbtn?.classList.add("hidden");
+                    }
 
-                } else if (radio.value === "discustom") {
-                    customdis.classList.remove("hidden");
-                    rentalbtn.classList.add("hidden");
-
+                    // Reset address visibility
+                    address.classList.add("hidden");
                 }
-            }
+            };
 
-        };
+            // Add this to handle dropdown change logic
+            document.addEventListener('DOMContentLoaded', function () {
+                const stdSelect = document.getElementById('deliveryOption_std_delivery_fee');
+                const extSelect = document.getElementById('deliveryOption_ext_delivery_fee');
+                const address = document.getElementById("address");
+                const rentalbtn = document.getElementById("rentalbtn");
+
+                function handleDeliveryTypeChange(event) {
+                    const selected = event.target.options[event.target.selectedIndex];
+                    const dataId = selected?.getAttribute("data-id");
+
+                    // Show address only for these types
+                    if (["Delivery", "Pickup"].includes(dataId)) {
+                        address.classList.remove("hidden");
+                    } else {
+                        address.classList.add("hidden");
+                    }
+
+                    // Always show rental button for valid selection
+                    rentalbtn?.classList.remove("hidden");
+                }
+
+                stdSelect?.addEventListener('change', handleDeliveryTypeChange);
+                extSelect?.addEventListener('change', handleDeliveryTypeChange);
+            });
+
 
         window.onload = () => {
             const mainSelected = document.querySelector('input[name="option"]:checked');
@@ -862,201 +858,203 @@
                 toggleDeliveryOption(mainSelected);
             }
         };
-
    </script>
+    <script>
+        // Defer jQuery usage until DOM is ready AND Vite scripts are loaded
+        window.addEventListener('DOMContentLoaded', function () {
+            if (typeof window.jQuery !== 'undefined') {
+                $(function () {
+                    $('#rentalForm').on('submit', function (e) {
+                        e.preventDefault();
+                    });
 
-
-
-<script>
-    // Defer jQuery usage until DOM is ready AND Vite scripts are loaded
-    window.addEventListener('DOMContentLoaded', function () {
-        if (typeof window.jQuery !== 'undefined') {
-            $(function () {
-                $('#rentalForm').on('submit', function (e) {
-                    e.preventDefault();
+                    $('#addToRentalBtn').on('click', function () {
+                        //console.log('Add to Rental clicked');
+                    });
                 });
-
-                $('#addToRentalBtn').on('click', function () {
-                    //console.log('Add to Rental clicked');
-                });
-            });
-        } else {
-            alert('jQuery is NOT available in inline script');
-        }
-    });
-</script>
-
+            } else {
+                alert('jQuery is NOT available in inline script');
+            }
+        });
+    </script>
 
 <script>
     const STANDARD_DELIVERY_FEE = {{ $productDetail->standard_delivery_fee ?? 0 }};
     const EXTENDED_DELIVERY_FEE = {{ $productDetail->extended_delivery_fee ?? 0 }};
 </script>
+        
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.jQuery !== 'undefined') {
+        $(function () {
+            // Prevent native form submit
+            $('#rentalForm').on('submit', function (e) {
+                e.preventDefault();
+            });
 
+            // Watch delivery selection changes
+            $('input[name="delivery-option"]').on('change', calculateDeliveryFee);
+            $('#deliveryOption_std_delivery_fee, #deliveryOption_ext_delivery_fee').on('change', calculateDeliveryFee);
 
-    <script>
+            let distance_type = null;
+            let distance_range = null;
 
-            window.addEventListener('DOMContentLoaded', function () {
-                    if (typeof window.jQuery !== 'undefined') {
-                        $(function () {
-                    // Block form submission from Enter key or other sources
-                    $('#rentalForm').on('submit', function (e) {
-                        e.preventDefault(); // always block native submit
-                    });
+            function calculateDeliveryFee() {
+                let deliveryFee = 0;
+                let delivery_pickup = [];
+                let deliveryDataId = null;
 
+               
+                const deliveryOption = $('input[name="delivery-option"]:checked').val();
 
-                    $('#addToRentalBtn').on('click', function () {
+                if (deliveryOption === 'dis1') {
+                    const $selected = $('#deliveryOption_std_delivery_fee');
+                    if ($selected.val()) {
+                        deliveryFee = parseFloat($selected.val()) * STANDARD_DELIVERY_FEE;
+                        const label = $selected.find('option:selected').data('id');
+                        deliveryDataId = label;
 
-                            const scheduleDate = $('#selectedDateText').text().trim();
-                        if (scheduleDate === 'Select Start Date') {
-                            $('#dateError').removeClass('hidden');
-                            return;
-                        } else {
-                            $('#dateError').addClass('hidden');
-                        }
+                        distance_type = 'standard_delivery_fee' ;
+                        distance_range =  @json($standard_delivery_range->setting_value) ;
 
-                        
-                        const storeLocation = $('#storeLocation').val();
-
-                            // Check if no store is selected
-                            if (!storeLocation) {
-                                $('#dateErroraddress').removeClass('hidden');
-                                return;
-                            } else {
-                                $('#dateErroraddress').addClass('hidden');
-                            }
-
-                            console.log('storeLocation :-', storeLocation);
-
-
-                            const qty = parseInt(document.querySelector('#qty').value) || 1;
-
-                           
-
-                            const name = document.querySelector('h3').innerText.trim();
-                         
-
-                            const image = document.querySelector('.product-image')?.src || '';
-
-                         
-
-
-                            const basePriceText = document.querySelector('.bg-yellow-400 h4')?.innerText?.trim() || '';
-
-                      
-
-                            const rawPrice = basePriceText.split('/')[0].trim(); // "$1,234.00"
-                       
-
-
-                            const numericPrice = parseFloat(
-                                rawPrice.replace(/[^0-9.]/g, '') // remove $ and commas
-                            );
-                          
-                            const addons = [];
-                            document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-                                const label = cb.closest('label');
-                                if (label) {
-                                    const spans = label.querySelectorAll('span'); 
-                                    //let addonName = spans[0]?.innerText.trim() || '';
-                                    let addonName = spans[0]?.childNodes[0]?.nodeValue.trim() || '';
-                                    let price = spans[1] ? parseFloat(spans[1].innerText.replace(/[^0-9.]/g, '')) : 0;
-
-                                    // Get charged type from the checkbox data attribute
-                                    let charged = cb.getAttribute('data-charged') || null;
-
-                                    addons.push({ name: addonName, price, charged });
-                                    }
-                            });
-
-                            const delivery_pickup=[];
-                      
-
-                    // Determine delivery fee if not already set via onchange
-                    let deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
-
-                    // Auto-pick from active dropdown if missing
-                    if (deliveryFee === 0) { 
-                        const deliveryOption = document.querySelector('input[name="delivery-option"]:checked')?.value;
-
-                        if (deliveryOption === 'dis1') {
-                            const selected15 = document.getElementById('deliveryOption15');
-                            if (selected15?.value) {
-                                deliveryFee = parseFloat(selected15.value) * STANDARD_DELIVERY_FEE;
-                                const selectedOption = selected15.options[selected15.selectedIndex]; 
-                                deliveryDataId = selectedOption.getAttribute('data-id');
-                                if(deliveryDataId=='Delivery+Pickup')
-                                {
-                                    delivery_pickup.push({ name: 'Delivery' });
-                                    delivery_pickup.push({ name: 'Pickup' });
-                                }
-                                else{
-                                    delivery_pickup.push({ name: deliveryDataId });
-                                }
-                            }
-                        } else if (deliveryOption === 'dis2') {
-                            const selected30 = document.getElementById('deliveryOption30');
-                            if (selected30?.value) {
-                                deliveryFee = parseFloat(selected30.value) * EXTENDED_DELIVERY_FEE;
-                                const selectedOption = selected30.options[selected15.selectedIndex]; 
-                                deliveryDataId = selectedOption.getAttribute('data-id');
-                                if(deliveryDataId=='Delivery+Pickup')
-                                {
-                                    delivery_pickup.push({ name: 'Delivery' });
-                                    delivery_pickup.push({ name: 'Pickup' });
-                                }
-                                else{
-                                   delivery_pickup.push({ name: deliveryDataId });
-                                }
-                            }
-                        }
-
-                        $('#inputDeliveryFee').val(deliveryFee);
-                        
                     }
+                } else if (deliveryOption === 'dis2') {
+                    const $selected = $('#deliveryOption_ext_delivery_fee');
+                    if ($selected.val()) {
+                        deliveryFee = parseFloat($selected.val()) * EXTENDED_DELIVERY_FEE;
+                        const label = $selected.find('option:selected').data('id');
+                        deliveryDataId = label;
 
-                    $('#inputName').val(name);
-                    $('#inputstoreLocation').val(storeLocation);
+                        distance_type = 'extended_delivery_fee' ;
+                        distance_range =  @json($extended_delivery_range->setting_value) ;
 
-                    
+                    }
+                }
 
-                    $('#inputImage').val(image); 
-                    $('#inputQty').val(qty);
-                    $('#inputBasePrice').val(numericPrice);
-                    $('#inputScheduleDate').val(scheduleDate);
-                    $('#inputAddons').val(JSON.stringify(addons));
-                    $('#inputDeliveryPickup').val(JSON.stringify(delivery_pickup));
+                if (deliveryDataId === 'Delivery+Pickup') {
+                    delivery_pickup.push({ name: 'Delivery' }, { name: 'Pickup' });
+                } else if (deliveryDataId) {
+                    delivery_pickup.push({ name: deliveryDataId });
+                }
+
+                $('#inputDeliveryFee').val(deliveryFee);
+                $('#inputDeliveryPickup').val(JSON.stringify(delivery_pickup));
+                console.log('deliveryFee :-', deliveryFee);
+            }
+
+            // Add to rental cart (localStorage)
+            $('#addToRentalBtn').on('click', function () {
+               
+                const scheduleDate = $('#selectedDateText').text().trim();
+                if (scheduleDate === 'Select Start Date') {
+                    $('#dateError').removeClass('hidden');
+                    return;
+                } else {
+                    $('#dateError').addClass('hidden');
+                }
+
+                const storeLocation = $('#storeLocation').val();
+                const qty = parseInt($('#qty').val()) || 1;
+                const name = $('.productname').text().trim();
+                const image = $('.product-image').attr('src') || '';
+                const basePriceText = $('.bg-yellow-400 h4').text().trim().split('/')[0].trim();
+                const numericPrice = parseFloat(basePriceText.replace(/[^0-9.]/g, ''));
 
 
-                    // Submit with AJAX
-                    $.ajax({
-                        url: $('#rentalForm').attr('action'),
-                        method: 'POST',
-                        xhrFields: {
-                            withCredentials: true
-                        },
-                        data: $('#rentalForm').serialize(),
-                        success: function (data) {
-                            if (data.success) {
-                                const toggleBtn = document.querySelector('.toggleCart');
-                                if (toggleBtn) toggleBtn.click();
+                const service_method = $('input[name="option"]:checked').val(); // 'in-store' or 'delivery'
+                let service_option = null;
 
-                            } else {
-                                alert('Cart update failed:', data);
-                            }
-                        },
-                        error: function (xhr) {
-                            alert('Something went wrong!');
-                        }
-                    });
-                });
+                // Determine delivery option only if method is delivery
+                if (service_method === 'delivery') {
+                    const selectedStd = $('#deliveryOption_std_delivery_fee').val();
+                    const selectedExt = $('#deliveryOption_ext_delivery_fee').val();
 
+                    if (selectedStd) {
+                        service_option = $('#deliveryOption_std_delivery_fee option:selected').data('id');
+                    } else if (selectedExt) {
+                        service_option = $('#deliveryOption_ext_delivery_fee option:selected').data('id');
+                    }
+                }
+
+                const addons = [];
+$('input[type="checkbox"]:checked').each(function () {
+    const label = $(this).closest('label');
+    const spans = label.find('span');
+    const addonName = spans[0]?.childNodes[0]?.nodeValue.trim() || '';
+    const price = parseFloat(spans[1]?.innerText.replace(/[^0-9.]/g, '')) || 0;
+    const charged = $(this).data('charged') || null;
+    const unique_id = $(this).data('unique_id') || null;
+
+    // ✅ Only push if name or unique_id is present (you can modify this logic as needed)
+    if (addonName || unique_id) {
+        addons.push({ name: addonName, price, charged, unique_id });
+    }
+});
+
+
+                const delivery_pickup = [];
+                const rawPickup = $('#inputDeliveryPickup').val();
+                if (rawPickup) {
+                    try {
+                        delivery_pickup.push(...JSON.parse(rawPickup));
+                    } catch (e) {
+                        console.warn('Invalid pickup JSON', rawPickup);
+                    }
+                }
+
+                const deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
+
+                const item = {
+                    product_id: @json($productDetail->id),
+                    product_unique_id: @json($productDetail->unique_id),
+                    varient_type: @json($productDetail->product_type),
+                    product_price_type: null,
+                    product_sku: @json($productDetail->sku),
+                    product_barcode: @json($productDetail->barcode),
+                    name,
+                    image,
+                    product_type: @json($productType),
+                    qty,
+                    base_price: numericPrice,
+                    product_slug: @json($productDetail->slug),
+                    addons,
+                    sechdule_start_date: scheduleDate,
+                    schedule_end_date:null ,
+                    delivery_fee: deliveryFee,
+                    store_id: storeLocation,
+                    service_option: service_option,
+                    service_method: service_method,
+                    distance_type: distance_type ,
+                    distance_range:distance_range ,
+            
+                    delivery_pickup
+                };
+
+                const cart = JSON.parse(localStorage.getItem('rental_cart')) || [];
+
+                const existingIndex = cart.findIndex(i => i.product_id == item.product_id);
+
+                // Then update or push
+                if (existingIndex !== -1) {
+                    cart[existingIndex].qty += item.qty;
+                    cart[existingIndex] = { ...cart[existingIndex], ...item };
+                } else {
+                    cart.push(item);
+                }
+
+
+
+                localStorage.setItem('rental_cart', JSON.stringify(cart));
+
+                // Open cart
+                document.querySelector('.toggleCart')?.click();
+
+           
 
             });
-        }
-    });
-
-    </script>
-
-
+        });
+    }
+});
+</script>
 
 @endpush

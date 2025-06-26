@@ -35,6 +35,12 @@ class Store extends Model
         return $query->where('status', 'Active');
     }
 
+    public function state()
+{
+    return $this->belongsTo(\App\Models\Locations\State::class);
+}
+
+
     public static function boot()
     {
         parent::boot();

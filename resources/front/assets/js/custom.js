@@ -222,20 +222,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll(".toggleCart").forEach((btn) => {
         btn.addEventListener("click", () => {
-            fetch("/cart/", {
+            const cartItems =
+                JSON.parse(localStorage.getItem("rental_cart")) || [];
+
+            // If you need the tax rate, fetch only that:
+            fetch("/cart", {
                 method: "GET",
                 credentials: "same-origin",
             })
                 .then((res) => res.json())
                 .then((data) => {
-                    const cartItems = data.cart?.rental_cart || [];
                     const fixTaxRate = data.cart?.tax_rate || 0;
-
 
                     const container = document.querySelector(
                         "#cartoffcanvas .overflow-y-scroll",
                     );
-                    container.innerHTML = ""; // Clear cart panel
+                    container.innerHTML = "";
 
                     if (cartItems.length === 0) {
                         container.innerHTML = `<p class="text-center py-10 text-gray-600">Your cart is empty.</p>`;
@@ -249,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     let subtotal = 0;
                     let totalQty = 0;
-                
+
                     cartItems.forEach((item, index) => {
                         const qty = parseInt(item.qty);
                         totalQty += qty;
@@ -257,9 +259,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         const addons = (item.addons || []).filter(
                             (a) => a.name?.trim() && parseFloat(a.price) > 0,
                         );
-                        const delivery_pickup = (item.delivery_pickup || []).filter(
-                            (a) => a.name?.trim(),
-                        );
+                        const delivery_pickup = (
+                            item.delivery_pickup || []
+                        ).filter((a) => a.name?.trim());
 
                         let addonTotal = 0;
                         addons.forEach((addon) => {
@@ -279,57 +281,61 @@ document.addEventListener("DOMContentLoaded", () => {
                                 const charged = (a.charged || "").toLowerCase();
                                 //const qtyNote =
                                 //    charged === "unlimited" ? ` (x${qty})` : "";
-                                 const qtyNote =
+                                const qtyNote =
                                     charged === "unlimited" ? ` ` : "";
                                 return `
-                                    <li class="leading-[13px]">
-                                        <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">
+                                    <li class="lh-13">
+                                        <span class="text-xs mb-0 before:content-['-'] before:pr-1">
                                             ${a.name}${qtyNote}
                                         </span>
                                     </li>`;
                             })
                             .join("");
-                        
+
                         const delivery_pickupList = delivery_pickup
                             .map((a) => {
                                 return `
-                                    <li class="leading-[13px]">
-                                        <span class="text-[13px] mb-0 before:content-['-'] before:pr-1">
+                                    <li class="lh-13">
+                                        <span class="text-xs mb-0 before:content-['-'] before:pr-1">
                                             ${a.name}
                                         </span>
                                     </li>`;
                             })
                             .join("");
 
-                        const productURL = `/products/${item.product_slug}/${item.rental_type}/details`;
+                        const productURL = `/products/${item.product_slug}/${item.product_type}/details`;
 
                         const productHTML = `
-                            <div class="flex gap-8 mb-5 pb-5" data-index="${index}">
-                                <div><img src="${item.image}" alt="image" class="w-16"></div>
-                                <div class="flex-1">
-                                    <h4 class="text-[14px] font-bold">${item.name}</h4>
-                                    <p class="text-[13px]">$${item.base_price} (x${qty})</p>
-
+                        <div class="flex items-center justify-between mb-8">
+                            <h4 class="text-base font-bold">Your Cart</h4>
+                            <i class="fas fa-arrow-down text-light-gray text-3 opacity-[0.5]"></i>
+                        </div>
+                            <div class="flex gap-4 justify-between mb-8" data-index="${index}">
+                                <div class="w-20"><img src="${item.image}" alt="image" class="w-full"></div>
+                                <div class="w-80">
+                                    <h4 class="text-sm font-bold">${item.name}</h4>
+                                    <p class="text-xs my-1">$${item.base_price} (x${qty})</p>
+ 
                                     <div class="flex justify-between text-sm">
                                         Price: <span class="font-bold">$${(base * qty).toFixed(2)}</span>
                                     </div>
-                                    <div class="flex justify-between text-sm">
-                                        Options: <span class="font-bold">+$${(addonTotal+deliveryFee).toFixed(2)}</span>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        Options: <span class="font-bold">+$${(addonTotal + deliveryFee).toFixed(2)}</span>
                                     </div>
-
+ 
                                     <!--<div class="flex justify-between text-sm">
                                         Delivery Fee: <span class="font-bold">$${deliveryFee.toFixed(2)}</span>
                                     </div>-->
-                                    
+                                   
                                     <ul class="flex flex-col gap-y-2 mb-2">${addonList} ${delivery_pickupList}</ul>
-
-                                    <p class="text-[13px]">Schedule Date: ${item.schedule_date}</p>
-
+ 
+                                    <p class="text-sm">Schedule Date: ${item.sechdule_start_date}</p>
+ 
                                     <div>
-                                        <a href="javascript:void(0)" class="removeItem text-[13px] after:content-['|'] after:pl-2 text-red-500">
+                                        <a href="javascript:void(0)" class="removeItem text-sm after:content-['|'] after:pl-2 text-red-500">
                                             <i class="fa-solid fa-xmark"></i> Remove
                                         </a>
-                                        <a href="${productURL}" class="text-[13px] text-[#0dcaf0]" target="_blank">Update</a>
+                                        <a href="${productURL}" class="text-sm text-cyan-400" target="_blank">Update</a>
                                     </div>
                                 </div>
                             </div>`;
@@ -337,7 +343,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         container.insertAdjacentHTML("beforeend", productHTML);
                     });
 
-                  
                     const tax = subtotal * fixTaxRate;
                     const grandTotal = subtotal + tax;
 
@@ -355,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <label class="font-bold">Total</label>
                                 <span>$${grandTotal.toFixed(2)}</span>
                             </div>
-                            <button class="w-full border-0 bg-yellow-400 text-center font-bold justify-center flex px-6 py-3 mt-4 leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out">
+                            <button class="w-full border-0 bg-yellow-400 text-center font-bold justify-center flex px-6 py-3 mt-4 leading-4 rounded-lg text-sm hover:bg-yellow-300  transition-all duration-500 ease-in-out">
                                 <a href="/checkout">CHECKOUT</a>
                             </button>
                         </div>`;
@@ -373,27 +378,19 @@ document.addEventListener("DOMContentLoaded", () => {
                         btn.addEventListener("click", function () {
                             const index =
                                 this.closest("[data-index]").dataset.index;
-                            fetch("/cart/remove", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "X-CSRF-TOKEN": document
-                                        .querySelector(
-                                            'meta[name="csrf-token"]',
-                                        )
-                                        .getAttribute("content"),
-                                },
-                                body: JSON.stringify({ index }),
-                            })
-                                .then((res) => res.json())
-                                .then(() => {
-                                    document
-                                        .querySelector(".toggleCart")
-                                        .click();
-                                })
-                                .catch((err) => {
-                                    console.error("❌ Remove failed:", err);
-                                });
+                            // Remove from localStorage directly
+                            const cart =
+                                JSON.parse(
+                                    localStorage.getItem("rental_cart"),
+                                ) || [];
+                            cart.splice(index, 1);
+                            localStorage.setItem(
+                                "rental_cart",
+                                JSON.stringify(cart),
+                            );
+
+                            // Re-render cart panel
+                            document.querySelector(".toggleCart")?.click();
                         });
                     });
 
@@ -413,28 +410,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 })
                 .catch((err) => {
-                    console.error("❌ Failed to fetch cart:", err);
+                    console.error("Failed to fetch cart:", err);
                 });
         });
     });
 
-    // Automatically fetch cart total quantity on page load
-    fetch("/cart/", {
-        method: "GET",
-        credentials: "same-origin",
-    })
-        .then((res) => res.json())
-        .then((data) => {
-            const cartItems = data.cart?.rental_cart || [];
-            const totalQty = cartItems.reduce(
-                (sum, item) => sum + parseInt(item.qty || 0),
-                0,
-            );
-            document.querySelectorAll(".toggleCart span").forEach((el) => {
-                el.textContent = totalQty;
-            });
-        })
-        .catch((err) => {
-            console.error("Failed to fetch cart on load:", err);
-        });
+    const cartItems = JSON.parse(localStorage.getItem("rental_cart")) || [];
+    const totalQty = cartItems.reduce(
+        (sum, item) => sum + parseInt(item.qty || 0),
+        0,
+    );
+    document.querySelectorAll(".toggleCart span").forEach((el) => {
+        el.textContent = totalQty;
+    });
 });

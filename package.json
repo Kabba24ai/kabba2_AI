@@ -22,7 +22,7 @@
     },
     "dependencies": {
         "@alpinejs/persist": "^3.14.9",
-        "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+        "@ckeditor/ckeditor5-build-classic": "^44.3.0",
         "@fortawesome/fontawesome-free": "^6.7.2",
         "choices.js": "^11.1.0",
         "flowbite": "^3.1.2",

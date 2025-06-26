@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Templates;
 
 use App\Http\Controllers\Controller;
-use App\Models\Template;
+use App\Models\MaintenanceManagement\Template;
 
 class DeleteController extends Controller
 {

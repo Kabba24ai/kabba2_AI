@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\MaintenanceManagement\Part;
+namespace App\Models\MaintenanceManagement;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +26,7 @@ class Template extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (empty($model->unique_id)) {
                 $model->unique_id = Str::uuid();

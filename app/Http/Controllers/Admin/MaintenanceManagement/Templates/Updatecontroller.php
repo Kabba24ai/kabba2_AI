@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Templates;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Templates\UpdateRequest;
-use App\Models\Template;
+use App\Models\MaintenanceManagement\Template;
 
 class UpdateController extends Controller
 {
@@ -19,7 +19,7 @@ class UpdateController extends Controller
                 $partsWithOrder[$partId] = ['sort_order' => $index + 1];
             }
         }
-        
+
         $unique_id->parts()->sync($partsWithOrder);
 
         return redirect()

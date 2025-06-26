@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Templates;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Templates\StoreRequest;
-use App\Models\Template;
+use App\Models\MaintenanceManagement\Template;
 use Illuminate\Support\Facades\Auth;
 
 class StoreController extends Controller

@@ -1,6 +1,6 @@
 {
-  "_notif-B7rD0Oi_.js": {
-    "file": "assets/notif-B7rD0Oi_.js",
+  "_notif-Bm69V-d8.js": {
+    "file": "assets/notif-Bm69V-d8.js",
     "name": "notif",
     "css": [
       "assets/notif-jshjrsWp.css"
@@ -48,16 +48,16 @@
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-DVPHq-Bn.js",
+    "file": "assets/app-CgxA_Nad.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_notif-B7rD0Oi_.js"
+      "_notif-Bm69V-d8.js"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-DRRuMS0-.css",
+    "file": "assets/app-3RiB8z_0.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -67,12 +67,12 @@
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-1ov-GLQX.js",
+    "file": "assets/app-CV0gaOKA.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_notif-B7rD0Oi_.js"
+      "_notif-Bm69V-d8.js"
     ],
     "css": [
       "assets/app-DV8PrLMj.css"

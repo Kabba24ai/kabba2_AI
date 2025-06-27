@@ -70,6 +70,9 @@ class PostRequest extends FormRequest
         // Tax exempt (if checked, require admin code)
         $rules['taxExempt'] = ['nullable'];
 
+        // cart
+        $rules['cart'] = ['nullable'];
+
         // Payment
         $rules['payment'] = ['required', 'in:COD,Account,Card'];
 

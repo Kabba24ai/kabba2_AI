@@ -38,8 +38,10 @@
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-4',
+                            'id'=> 'checkout-form'
                         ])->open() }}
                     @csrf
+                    <input type="hidden" name="cart" id="cart-input">
                     <!-- Address Selection -->
                     @auth
                         <div>
@@ -130,7 +132,7 @@
                             <div>
                                 <label for="billingPhone" class="block text-sm text-gray-600 mb-1">Phone</label>
                                 {{ html()->text('billingPhone')->class(
-                                        'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                        'masked-phone w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 240,
                                         'placeholder' => 'Phone',
@@ -237,10 +239,10 @@
                     <h4 class="text-lg font-semibold">Delivery information</h4>
                     <div class="flex items-center gap-2 mb-4">
                         <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4" value="Yes"
-                            name="sameAsBilling" />
+                            name="sameAsBilling" checked />
                         <label for="sameAsBilling" class="text-sm">Same as billing information</label>
                     </div>
-                    <div id="deliveryDiv" class="space-y-4">
+                    <div id="deliveryDiv" class="space-y-4 hidden">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="deliveryFirstName" class="block text-sm text-gray-600 mb-1">First Name</label>
@@ -289,7 +291,7 @@
                             <div>
                                 <label for="deliveryPhone" class="block text-sm text-gray-600 mb-1">Phone</label>
                                 {{ html()->text('deliveryPhone')->class(
-                                        'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
+                                        'masked-phone w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
                                             ($errors->has('deliveryPhone') ? ' border-red-400' : ''),
                                     )->attributes([
                                         'placeholder' => 'Phone',
@@ -479,7 +481,6 @@
                     {{ html()->form()->close() }}
                 </div>
 
-
                 <div class="w-1/3 mt-10 pl-6">
                     <div class="border-b pb-4 mb-6">
                         <div class="flex">
@@ -516,16 +517,16 @@
                     <div class="border-b pb-6">
                         <ul class="flex flex-col">
                             <li class="flex justify-between mb-1">
-                                <span class="text-[14px]">Subtotal:</span>
-                                <span class="text-[14px] font-bold">+ $452.00</span>
+                                <span class="">Subtotal:</span>
+                                <span class=" font-bold">+ $452.00</span>
                             </li>
                             <li class="flex justify-between mb-1">
-                                <span class="text-[14px]">Tax</span>
-                                <span class="text-[14px] font-bold">+ $0.00</span>
+                                <span class="">Tax</span>
+                                <span class=" font-bold">+ $0.00</span>
                             </li>
                             <li class="flex justify-between mb-1">
-                                <span class="text-[14px] font-bold">Total</span>
-                                <span class="text-[16px] font-bold">+ $452.00</span>
+                                <span class=" font-bold">Total</span>
+                                <span class=" font-bold">+ $452.00</span>
                             </li>
                         </ul>
                     </div>
@@ -569,6 +570,12 @@
 @push('js')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            document.getElementById('checkout-form').addEventListener('submit', function(e) {
+                let cart = localStorage.getItem('rental_cart');
+                document.getElementById('cart-input').value = cart; // pass as JSON string
+            });
+
             // ================================
             // Payment Method Highlight & Toggle
             // ================================
@@ -690,7 +697,7 @@
             sameAsBilling.addEventListener('change', function() {
                 if (this.checked) {
                     syncDeliveryFields();
-                    deliveryDiv.style.display = 'none';
+                    deliveryDiv.classList.add('hidden');
                     // Listen for changes in billing to update delivery fields
                     fields.forEach(([billingId, deliveryId]) => {
                         const billing = document.getElementById(billingId);
@@ -700,7 +707,7 @@
                         }
                     });
                 } else {
-                    deliveryDiv.style.display = '';
+                    deliveryDiv.classList.remove('hidden');
                     // Remove listeners if needed (not strictly necessary here for most forms)
                 }
             });

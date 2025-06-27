@@ -30,7 +30,7 @@
 
                     <div class="flex justify-center mt-8 space-x-4">
                         <!-- Save As Dropdown -->
-                        <div x-data="{ open: false }" class="relative flex items-center">
+                        {{-- <div x-data="{ open: false }" class="relative flex items-center">
                             <button type="button" @click="open = !open"
                                 class="inline-flex items-center px-6 py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-sm font-semibold shadow transition">
                                 Save As
@@ -58,7 +58,14 @@
                                     Published
                                 </button>
                             </div>
-                        </div>
+                        </div> --}}
+
+                         <!-- Save -->
+                        <button type="submit" name="action" value="save"
+                            class="inline-flex items-center px-6 py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-sm font-semibold shadow transition">
+                            Save
+                            <x-heroicon-o-check class="w-4 h-4 ml-2" />
+                        </button>
 
                         <!-- Save & New Button -->
                         <button type="submit" name="action" value="save_new"

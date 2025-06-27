@@ -18,7 +18,7 @@
 
 
     <!-- Info Placeholder -->
-    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md p-6 text-center">
+    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md p-6 text-center mt-5">
         <div id="option-preview-tables" class="space-y-4 mt-4">
             <p class="text-gray-700 dark:text-gray-200 font-medium">
                 Options section will be populated from separate Options Library

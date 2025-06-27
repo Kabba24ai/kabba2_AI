@@ -1,5 +1,5 @@
 <!-- Basic Info -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Product Name Input -->
     <div>
         <label for="product_name" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
@@ -19,6 +19,32 @@
             ])->required() !!}
 
         @error('product_name')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <!-- Status Input -->
+    <div>
+        <label for="Status" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
+            Status
+        </label>
+
+        {!! html()
+            ->select('status', [
+                '' => 'Select Status',
+                'Draft' => 'Draft',
+                'Pending' => 'Pending',
+                'Published' => 'Published'
+            ], old('status', $objProduct->status ?? ''))
+            ->id('status')
+            ->class([
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                'border-red-500' => $errors->has('status'),
+            ])
+            ->required()
+        !!}
+
+        @error('status')
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
@@ -400,9 +426,6 @@
         </div>
     </div>
 </div>
-
-<input type="hidden" name="status" x-ref="statusField" value="{{ old('status', $product->status ?? 'Draft') }}">
-
 
 @push('js')
     <script>

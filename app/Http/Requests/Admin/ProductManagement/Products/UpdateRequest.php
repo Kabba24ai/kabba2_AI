@@ -39,8 +39,7 @@ class UpdateRequest extends FormRequest
             'is_general_term_type' => ['nullable', 'boolean'],
             'is_custom_term_type' => ['nullable', 'boolean'],
 
-            'terms' => ['required_if:is_custom_term_type,1', 'array'],
-            'terms.*' => ['exists:terms_and_conditions,id'],
+            'terms' => ['required_if:is_custom_term_type,1'],
 
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:1000'],
@@ -110,12 +109,40 @@ class UpdateRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $data = $this->all();
+
+            // Only apply if product_type is Rental
+            if (($data['product_type'] ?? null) === 'Rental') {
+                // At least one delivery fee required and > 0
+                $stdFee = floatval($data['standard_delivery_fee'] ?? 0);
+                $extFee = floatval($data['extended_delivery_fee'] ?? 0);
+
+                if ($stdFee <= 0 && $extFee <= 0) {
+                    $validator->errors()->add('standard_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
+                    $validator->errors()->add('extended_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
+                }
+
+                // At least one pickup option "Yes"
+                $pickup = $data['in_store_pickup'] ?? null;
+                $deliveryPickup = $data['delivery_and_pickup'] ?? null;
+
+                if ($pickup !== 'Yes' && $deliveryPickup !== 'Yes') {
+                    $validator->errors()->add('in_store_pickup', 'At least one pickup option (In Store or Delivery and Pickup) must be "Yes" for rental products.');
+                    $validator->errors()->add('delivery_and_pickup', 'At least one pickup option (In Store or Delivery and Pickup) must be "Yes" for rental products.');
+                }
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [
             'terms.required_if' => 'You must select at least one term when using custom terms.',
-            'terms.array' => 'The terms must be a valid list.',
-            'terms.*.exists' => 'Please select valid terms.',
+            // 'terms.array' => 'The terms must be a valid list.',
+            // 'terms.*.exists' => 'One or more selected terms are invalid or no longer exist.',
         ];
     }
 }

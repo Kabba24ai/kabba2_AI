@@ -288,7 +288,7 @@
                 </div>
                 <span
                     class="mt-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                    Mi {{ $productSettings['standard_delivery_fee'] ?? 0 }}
+                     {{ $productSettings['standard_delivery_range'] ?? 0 }} {{ $productSettings['distance_unit'] }}
                 </span>
             </div>
 
@@ -307,7 +307,7 @@
                     </div>
                     <span
                         class="mt-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                        Mi {{ $productSettings['extended_delivery_range'] ?? 0 }}
+                         {{ $productSettings['extended_delivery_range'] ?? 0 }} {{ $productSettings['distance_unit'] }}
                     </span>
                 </div>
             @endif
@@ -348,14 +348,14 @@
                 Hour Tracking
             </label>
 
-            <!-- Overage Rate Input -->
+            <!-- Average Rate Input -->
             <div class="flex items-center text-sm text-gray-700 dark:text-gray-300 gap-1">
                 <span class="text-gray-500">$</span>
                 <input type="text" name="hour_rate" placeholder="0" x-bind:disabled="!hourTracking"
                     x-bind:value="hourTracking ? '{{ old('hour_rate', $objProduct->hour_rate ?? '') }}' : ''"
                     data-digit-input="true"
                     class="w-24 rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white" />
-                <span>Overage Rate / Hr.</span>
+                <span>Average Rate / Hr.</span>
             </div>
 
             <!-- Update Link -->

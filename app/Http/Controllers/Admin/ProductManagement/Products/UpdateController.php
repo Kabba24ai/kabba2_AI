@@ -121,7 +121,8 @@ class UpdateController extends Controller
 
             // Replace custom terms if Custom selected
             if (!empty($validated['is_custom_term_type']) && !empty($validated['terms'])) {
-                $product->terms()->sync($validated['terms'] ?? []); // assuming $terms are IDs
+                $terms = is_array($validated['terms']) ? $validated['terms'] : [$validated['terms']];
+                $product->terms()->sync($terms); // assuming $terms are IDs
             } else {
                 $product->terms()->detach();
             }

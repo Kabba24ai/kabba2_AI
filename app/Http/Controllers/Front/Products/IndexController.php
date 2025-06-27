@@ -25,9 +25,9 @@ class IndexController extends Controller
 
         $standard_delivery_range = Setting::where('setting_name', 'standard_delivery_range')->first();
         $extended_delivery_range = Setting::where('setting_name', 'extended_delivery_range')->first();
+        $taxValue = Setting::where('setting_name', 'sales_tax')->value('setting_value') ?? 0;
 
-        
-        // dd($productDetail->options->pluck('unique_id')->toArray());
+        // dd($taxValue);
 
         return view('front.products.details', [
             'title' => $productDetail->product_name,
@@ -36,6 +36,7 @@ class IndexController extends Controller
             'stores' => $stores ,
             'standard_delivery_range' => $standard_delivery_range ,
             'extended_delivery_range' => $extended_delivery_range ,
+            'taxRate'=>$taxValue ,
 
         ]);
     }

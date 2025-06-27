@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Front\Checkout;
 
+use App\Helpers\CartHelper;
+use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
 
 // Request
@@ -12,33 +14,27 @@ use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 use App\Models\Locations\State;
 use App\Models\ProductManagement\Product;
-use App\Services\RentalCartService;
+use Carbon\Carbon;
 use DB;
 
 class PostController extends Controller
 {
-    protected $cartService;
-
-    public function __construct(RentalCartService $cartService)
-    {
-        $this->cartService = $cartService;
-    }
-
     /**
      * Handle the incoming request.
      */
     public function __invoke(PostRequest $request)
     {
-
         DB::beginTransaction();
+        $validated = $request->validated();
+        $cart = json_decode($validated['cart'], true);
+        if (empty($cart)) {
+            return redirect()->back()->withInput()->with('error', 'Your cart is empty. Please add products before placing an order.');
+        }
+
+        $productSettings = ConfigurationHelper::getSettings('Product Settings');
+        $taxRate = $productSettings['sales_tax'];
+
         try {
-            $validated = $request->validated();
-
-            $cart = $this->cartService->getCart();
-            if (empty($cart)) {
-                return redirect()->back()->withInput()->with('error', 'Your cart is empty. Please add products before placing an order.');
-            }
-
             // 1. Find or create customer
             $customer = Customer::firstOrCreate(
                 [
@@ -113,10 +109,7 @@ class PostController extends Controller
                 ];
             }
 
-            $deliveryAddress = CustomerAddress::updateOrCreate(
-                $deliveryAddressField,
-                $deliveryData,
-            );
+            $deliveryAddress = CustomerAddress::updateOrCreate($deliveryAddressField, $deliveryData);
 
             $billingState = State::where('id', $billingAddress->state_id)->first();
             $deliveryState = State::where('id', $deliveryAddress->state_id)->first();
@@ -126,9 +119,40 @@ class PostController extends Controller
             $grandTotal = 0;
 
             foreach ($cart as $item) {
-                $subTotal += $item['total_price'];
-                $taxAmount += $item['tax_amount'];
-                $grandTotal += $item['total_price_with_tax'];
+                // 1. Get prices from DB if needed (not shown here)
+                $basePrice = floatval($item['base_price']);
+                $deliveryFee = floatval($item['delivery_fee'] ?? 0);
+                $qty = intval($item['qty'] ?? 1);
+
+                // 2. Addons: sum prices
+                $addonsTotal = 0;
+                if (!empty($item['addons'])) {
+                    foreach ($item['addons'] as $addon) {
+                        $addonsTotal += floatval($addon['price']);
+                    }
+                }
+
+                // 3. Calculate subtotal for ONE quantity
+                $itemSubTotal = $basePrice + $deliveryFee + $addonsTotal;
+                // For multiple quantities:
+                $itemSubTotalAll = $itemSubTotal * $qty;
+
+                // 4. Tax
+                $itemTax = round($itemSubTotalAll * $taxRate, 2);
+
+                // 5. Total
+                $itemTotal = round($itemSubTotalAll + $itemTax, 2);
+
+                // 6. Add to running totals
+                $subTotal += $itemSubTotalAll;
+                $taxAmount += $itemTax;
+                $grandTotal += $itemTotal;
+
+                // Optionally store in array for later
+                $item['calculated_subtotal'] = $itemSubTotalAll;
+                $item['calculated_tax'] = $itemTax;
+                $item['calculated_total'] = $itemTotal;
+                // $items[] = $item;
             }
 
             // 4. Save Order
@@ -189,6 +213,42 @@ class PostController extends Controller
                     $tax = round($price * $quantity * $taxRate, 2);
                     $total = round($price * $quantity + $tax, 2);
 
+                    // Format dates with Carbon (handle null or empty date)
+                    $startDate = !empty($item['sechdule_start_date']) ? Carbon::createFromFormat('d/m/Y', $item['sechdule_start_date'])->format('Y-m-d') : null;
+
+                    $endDate = !empty($item['schedule_end_date']) ? Carbon::createFromFormat('d/m/Y', $item['schedule_end_date'])->format('Y-m-d') : null;
+
+                    if ($item['service_method'] == 'delivery') {
+                        $serviceMethod = 'Delivery';
+                    }
+
+                    if ($item['service_method'] == 'in-store') {
+                        $serviceMethod = 'In Store Pickup';
+                    }
+
+                    if ($item['service_option'] == 'in-store') {
+                        $serviceMethod = 'In Store Pickup';
+                    }
+                    if ($item['service_option'] == 'in-store') {
+                        $serviceMethod = 'In Store Pickup';
+                    }
+
+                    switch ($item['distance_type']) {
+                        case 'standard_delivery_fee':
+                            $distanceType = 'Standard';
+                            break;
+                        case 'extended_delivery_fee':
+                            $distanceType = 'Extended';
+                            break;
+                        case 'Custom':
+                            $distanceType = 'Custom';
+                            break;
+
+                        default:
+                            $distanceType = null;
+                            break;
+                    }
+
                     // Save order product
                     $order->products()->create([
                         'order_id' => $order->id,
@@ -198,13 +258,13 @@ class PostController extends Controller
                         'quantity' => $quantity,
                         'tax' => $tax,
                         'total' => $total,
-                        'schedule_start_date' => $item['schedule_date'],
-                        'schedule_end_date' => $item['schedule_end_date'] ?? null,
+                        'schedule_start_date' => $startDate,
+                        'schedule_end_date' => $endDate,
                         'product_data' => json_encode($item),
-                        'service_method' => $item['service_method'] ?? null,
-                        'service_option' => $item['service_option'] ?? null,
-                        'store_id' => $product->store_id ?? null,
-                        'distance_type' => $item['distance_type'] ?? null,
+                        'service_method' => $serviceMethod,
+                        'service_option' => str_replace('+', ' + ', $item['service_option']) ?? null,
+                        'store_id' => $item['store_id'] ?? null,
+                        'distance_type' => $distanceType,
                         'distance_range' => $item['distance_range'] ?? null,
                     ]);
                 }

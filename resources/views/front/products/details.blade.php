@@ -76,18 +76,8 @@
                 </div>
                 <div>
              
-
-                    <input type="hidden" name="product_id" id="inputProductId" value="{{ $productDetail->id }}">
-                    <input type="hidden" name="product_slug" id="inputProductSlug" value="{{ $productDetail->slug }}">
-                    <input type="hidden" name="rental_type" id="inputRentalType" value="{{ $productType }}">
                     <input type="hidden" name="delivery_fee" id="inputDeliveryFee">
                     <input type="hidden" name="delivery_pickup" id="inputDeliveryPickup">
-
-                    <!-- <input type="hidden" name="unique_id" id="inputunique_id" value="{{ $productDetail->unique_id  }}"> -->
-                    <input type="hidden" name="product_type" id="inputproduct_type" value="{{ $productDetail->product_type }}">
-                    <input type="hidden" name="product_sku" id="inputProductsku" value="{{ $productDetail->sku }}">
-                    <input type="hidden" name="product_barcode" id="inputProductbarcode" value="{{ $productDetail->barcode }}">
-
 
                     <div
                         class="bg-[#f9fafc] mb-4 flex flex-col lg:flex-row justify-between items-center p-2 lg:p-0  md:pl-4">
@@ -126,14 +116,20 @@
                             </h4>
                         </div>
 
+                    
                     </div>
+
+                    <div>
+                    <p> {!! $productDetail->short_description !!} </p>    
+                </div>
+
                     <div id="distance" class="mt-5 mb-5 ">
                         <div class="flex items-center space-x-2">
 
                             <div class="relative">
                                 <input type="text" id="dateInput" name="date" readonly class="hidden" />
                                 <div class="flex items-center">
-                                    <button id="openDatePicker" type="button" class="pr-2 py-2">
+                                    <button id="openDatePicker" type="button" class="pr-2">
                                         <img src="{{ asset('storage/front/images/calendar_icon.png') }}" alt=""
                                             class="w-[52px]">
                                     </button>
@@ -173,7 +169,7 @@
                                     onclick="changeQty(1)">+</button>
                             </div>
                         </div>
-                        <div id="dateError" class="text-red-600 text-sm mt-2 hidden">Please select a start date.</div>
+                        <div id="dateError" class="text-red-600 text-sm hidden">Please select a start date.</div>
                     </div>
                     @if($productDetail->in_store_pickup=='Yes')
                     <div class="space-y-2 mt-4">
@@ -271,7 +267,6 @@
                         </div>
                     </div>
                     @endif
-
                     <div id="address" class="w-full mt-5 mb-5 hidden">
                         <select id="storeLocation" name="store_location" 
                             class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
@@ -282,19 +277,17 @@
                                     </option>
                                 @endforeach
                         </select>
+                    <div id="dateErroraddress" class="text-red-600 text-sm mt-2 hidden ">Please select a Store Location.</div>
+
                     </div>
-
-                    <div id="dateErroraddress" class="text-red-600 text-sm mt-2 hidden">Please select a Store Location.</div>
-
-
-                    <div class="flex flex-col">
+                    <div class="inline-grid">
 
                         <h4 class="font-semibold text-[16px] mb-1">Options</h4>
 
 
                         @if($productDetail->rental_prepaid_fuel !== null)
                          <!-- Prepaid Fuel -->
-                         <label class="inline-flex items-center space-x-2 mt-1">
+                         <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                             <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                 id="fuelCheckbox"
                                  data-charged="1 Time Max"
@@ -312,7 +305,7 @@
 
                         @if($productDetail->rental_prepaid_cleaning !== null)
                             <!-- Prepaid Cleaning -->
-                            <label class="inline-flex items-center space-x-2 mt-1">
+                            <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                     id="cleanCheckbox"
                                      data-keep="Keep Option"
@@ -328,7 +321,7 @@
 
                         @if($productDetail->rental_fuel_gallons !== null)
                             <!-- Prepaid Fuel Gallons -->
-                            <label class="inline-flex items-center space-x-2 mt-1">
+                            <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                     id="fuelGallonsCheckbox"
                                     data-charged="1 Time Max"
@@ -344,7 +337,7 @@
 
                         @if($productDetail->rental_def_gallons !== null)
                             <!-- DEF Gallons -->
-                            <label class="inline-flex items-center space-x-2 mt-1">
+                            <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                     id="defGallonsCheckbox"
                                     data-charged="1 Time Max"
@@ -365,7 +358,7 @@
                                 $productDetail->rental_damage_waiver_monthly !== null
                             )
                         <!-- Damage Waiver -->
-                        <label class="inline-flex items-center space-x-2 mt-1">
+                        <label class="inline-flex items-center space-x-2 mt-1 w-fit" >
                             <input type="checkbox" class="form-checkbox h-4 w-4" checked
                                 id="damageCheckbox"
                                  data-charged="1 Time Max"
@@ -404,7 +397,7 @@
                        	@if($option->items->isNotEmpty())
                         @foreach ($option->items as $item)
 
-                        <label class="inline-flex items-center space-x-2 mt-1">
+                        <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                             <input type="checkbox" class="form-checkbox h-4 w-4" @if($item->value=="Checked") checked="checked" @endif
                                 id="options_{{$item->unique_id}}"
                                 data-id="{{$item->unique_id}}"
@@ -440,14 +433,12 @@
                         @endforeach
                         
                     </div>
-
-
-
                     <div id="rentalbtn">
                         <button type="button"
                         id="addToRentalBtn"
                             class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out"><i
-                                class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental</button>
+                                class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
+                                <img src="{{ asset('storage/front/images/loading.gif') }}" alt="loading" class="loader-gif" /></button>
                     </div>
                 <!-- </form> -->
                 </div>
@@ -538,6 +529,11 @@
 
 @endsection
 @push('js')
+
+
+
+
+
 <script>
     window.appDateFormat = "{{ config('app.date.date_format') }}";
 </script>
@@ -869,7 +865,7 @@
                     });
 
                     $('#addToRentalBtn').on('click', function () {
-                        //console.log('Add to Rental clicked');
+                     
                     });
                 });
             } else {
@@ -939,12 +935,128 @@ window.addEventListener('DOMContentLoaded', function () {
 
                 $('#inputDeliveryFee').val(deliveryFee);
                 $('#inputDeliveryPickup').val(JSON.stringify(delivery_pickup));
-                console.log('deliveryFee :-', deliveryFee);
+              
             }
 
-            // Add to rental cart (localStorage)
             $('#addToRentalBtn').on('click', function () {
-               
+                const $btn = $(this);
+                const $loader = $btn.find('.loader-gif'); // use exact class
+
+                try {
+                    // --- Validate first ---
+                    const scheduleDate = $('#selectedDateText').text().trim();
+                    if (scheduleDate === 'Select Start Date') {
+                        $('#dateError').removeClass('hidden');
+                        return;
+                    } else {
+                        $('#dateError').addClass('hidden');
+                    }
+
+                    
+                    $loader.css('display', 'inline-block');
+                    $btn.prop('disabled', true);
+
+                    const storeLocation = $('#storeLocation').val();
+                    const qty = parseInt($('#qty').val()) || 1;
+                    const name = $('.productname').text().trim();
+                    const image = $('.product-image').attr('src') || '';
+                    const basePriceText = $('.bg-yellow-400 h4').text().trim().split('/')[0].trim();
+                    const numericPrice = parseFloat(basePriceText.replace(/[^0-9.]/g, ''));
+
+                    const service_method = $('input[name="option"]:checked').val();
+                    let service_option = null;
+
+                    if (service_method === 'delivery') {
+                        const selectedStd = $('#deliveryOption_std_delivery_fee').val();
+                        const selectedExt = $('#deliveryOption_ext_delivery_fee').val();
+
+                        if (selectedStd) {
+                            service_option = $('#deliveryOption_std_delivery_fee option:selected').data('id');
+                        } else if (selectedExt) {
+                            service_option = $('#deliveryOption_ext_delivery_fee option:selected').data('id');
+                        }
+                    }
+
+                    const addons = [];
+                    $('input[type="checkbox"]:checked').each(function () {
+                        const label = $(this).closest('label');
+                        const spans = label.find('span');
+                        const addonName = spans[0]?.childNodes[0]?.nodeValue.trim() || '';
+                        const price = parseFloat(spans[1]?.innerText.replace(/[^0-9.]/g, '')) || 0;
+                        const charged = $(this).data('charged') || null;
+                        const unique_id = $(this).data('unique_id') || null;
+
+                        if (addonName || unique_id) {
+                            addons.push({ name: addonName, price, charged, unique_id });
+                        }
+                    });
+
+                    const delivery_pickup = [];
+                    const rawPickup = $('#inputDeliveryPickup').val();
+                    if (rawPickup) {
+                        try {
+                            delivery_pickup.push(...JSON.parse(rawPickup));
+                        } catch (e) {
+                            console.warn('Invalid pickup JSON', rawPickup);
+                        }
+                    }
+
+                    const deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
+
+                    const item = {
+                        product_id: @json($productDetail->id),
+                        product_unique_id: @json($productDetail->unique_id),
+                        varient_type: @json($productDetail->product_type),
+                        product_price_type: null,
+                        product_sku: @json($productDetail->sku),
+                        product_barcode: @json($productDetail->barcode),
+                        name,
+                        image,
+                        product_type: @json($productType),
+                        qty,
+                        base_price: numericPrice,
+                        product_slug: @json($productDetail->slug),
+                        addons,
+                        sechdule_start_date: scheduleDate,
+                        schedule_end_date: null,
+                        delivery_fee: deliveryFee,
+                        store_id: storeLocation,
+                        service_option: service_option,
+                        service_method: service_method,
+                        distance_type: distance_type,
+                        distance_range: distance_range,
+                        delivery_pickup
+                    };
+
+                    const cart = JSON.parse(localStorage.getItem('rental_cart')) || [];
+                    const existingIndex = cart.findIndex(i => i.product_id == item.product_id);
+
+                    if (existingIndex !== -1) {
+                        cart[existingIndex].qty += item.qty;
+                        cart[existingIndex] = { ...cart[existingIndex], ...item };
+                    } else {
+                        cart.push(item);
+                    }
+
+                    localStorage.setItem('rental_cart', JSON.stringify(cart));
+
+                    setTimeout(() => {
+                        $loader.css('display', 'none');
+                        $btn.prop('disabled', false);
+                        document.querySelector(".toggleCart")?.click();
+                    }, 1500);
+                } catch (error) {
+                    console.error("Cart processing error:", error);
+                    $loader.css('display', 'none');
+                    $btn.prop('disabled', false);
+                }
+
+
+                /*try {
+                    // Show loader and disable button
+                    $loader.css('display', 'inline-block');
+                    $btn.prop('disabled', true);
+
                 const scheduleDate = $('#selectedDateText').text().trim();
                 if (scheduleDate === 'Select Start Date') {
                     $('#dateError').removeClass('hidden');
@@ -977,19 +1089,19 @@ window.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const addons = [];
-$('input[type="checkbox"]:checked').each(function () {
-    const label = $(this).closest('label');
-    const spans = label.find('span');
-    const addonName = spans[0]?.childNodes[0]?.nodeValue.trim() || '';
-    const price = parseFloat(spans[1]?.innerText.replace(/[^0-9.]/g, '')) || 0;
-    const charged = $(this).data('charged') || null;
-    const unique_id = $(this).data('unique_id') || null;
+                    $('input[type="checkbox"]:checked').each(function () {
+                        const label = $(this).closest('label');
+                        const spans = label.find('span');
+                        const addonName = spans[0]?.childNodes[0]?.nodeValue.trim() || '';
+                        const price = parseFloat(spans[1]?.innerText.replace(/[^0-9.]/g, '')) || 0;
+                        const charged = $(this).data('charged') || null;
+                        const unique_id = $(this).data('unique_id') || null;
 
-    // ✅ Only push if name or unique_id is present (you can modify this logic as needed)
-    if (addonName || unique_id) {
-        addons.push({ name: addonName, price, charged, unique_id });
-    }
-});
+                        //  Only push if name or unique_id is present (you can modify this logic as needed)
+                        if (addonName || unique_id) {
+                            addons.push({ name: addonName, price, charged, unique_id });
+                        }
+                    });
 
 
                 const delivery_pickup = [];
@@ -1046,10 +1158,16 @@ $('input[type="checkbox"]:checked').each(function () {
 
                 localStorage.setItem('rental_cart', JSON.stringify(cart));
 
-                // Open cart
-                document.querySelector('.toggleCart')?.click();
-
-           
+                setTimeout(() => {
+            $loader.css('display', 'none');
+            $btn.prop('disabled', false);
+            document.querySelector(".toggleCart")?.click();
+        }, 1500);
+    } catch (error) {
+        console.error("Cart processing error:", error);
+        $loader.css('display', 'none');
+        $btn.prop('disabled', false);
+    }*/
 
             });
         });

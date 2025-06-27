@@ -111,6 +111,13 @@
                                         <x-heroicon-o-inbox-stack class="h-5 w-5" /> Product Categories
                                     </a>
                                 </li>
+                                <li>
+                                    <a href=""
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.product-management.categories.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-users class="h-5 w-5" /> Customer Portals
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

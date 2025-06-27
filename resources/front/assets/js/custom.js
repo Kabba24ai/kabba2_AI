@@ -252,6 +252,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     let subtotal = 0;
                     let totalQty = 0;
 
+                    container.insertAdjacentHTML(
+                        "beforeend",
+                        `
+                        <div class="flex items-center justify-between mb-8">
+                            <h4 class="text-base font-bold">Your Cart</h4>
+                            <i class="fas fa-arrow-down text-light-gray text-3 opacity-[0.5]"></i>
+                        </div>
+                    `,
+                    );
+
                     cartItems.forEach((item, index) => {
                         const qty = parseInt(item.qty);
                         totalQty += qty;
@@ -303,13 +313,43 @@ document.addEventListener("DOMContentLoaded", () => {
                             })
                             .join("");
 
-                        const productURL = `/products/${item.product_slug}/${item.product_type}/details`;
+                        // const productURL = `/products/${item.product_slug}/${item.product_type}/details`;
+
+                        const urlParams = new URLSearchParams();
+
+                        urlParams.set("qty", item.qty);
+                        urlParams.set(
+                            "sechdule_start_date",
+                            item.sechdule_start_date,
+                        );
+                        urlParams.set("delivery_fee", item.delivery_fee || 0);
+                        urlParams.set("store_id", item.store_id || "");
+                        urlParams.set(
+                            "service_method",
+                            item.service_method || "",
+                        );
+                        urlParams.set(
+                            "service_option",
+                            item.service_option || "",
+                        );
+
+                        if (item.addons?.length) {
+                            urlParams.set(
+                                "addons",
+                                JSON.stringify(item.addons),
+                            );
+                        }
+
+                        if (item.delivery_pickup?.length) {
+                            urlParams.set(
+                                "delivery_pickup",
+                                JSON.stringify(item.delivery_pickup),
+                            );
+                        }
+
+                        const productURL = `/products/${item.product_slug}/${item.product_type}/details?${urlParams.toString()}`;
 
                         const productHTML = `
-                        <div class="flex items-center justify-between mb-8">
-                            <h4 class="text-base font-bold">Your Cart</h4>
-                            <i class="fas fa-arrow-down text-light-gray text-3 opacity-[0.5]"></i>
-                        </div>
                             <div class="flex gap-4 justify-between mb-8" data-index="${index}">
                                 <div class="w-20"><img src="${item.image}" alt="image" class="w-full"></div>
                                 <div class="w-80">
@@ -423,4 +463,155 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".toggleCart span").forEach((el) => {
         el.textContent = totalQty;
     });
+
+    // update section 
+    window.onload = function () {
+        if (!window.location.search) return; 
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        //  Uncheck all delivery method radios ---
+        const optionRadios = document.querySelectorAll('input[name="option"]');
+        optionRadios.forEach((radio) => (radio.checked = false));
+
+        //  Select correct delivery method from URL ---
+        const serviceMethod = urlParams.get("service_method"); // 'delivery' or 'in-store'
+        if (serviceMethod) {
+            const selectedOption = document.querySelector(
+                `input[name="option"][value="${serviceMethod}"]`,
+            );
+            if (selectedOption) {
+                selectedOption.checked = true;
+                selectedOption.dispatchEvent(new Event("change"));
+            }
+        }
+
+        //  Uncheck all delivery-option radios first ---
+        const deliveryOptionRadios = document.querySelectorAll(
+            'input[name="delivery-option"]',
+        );
+        deliveryOptionRadios.forEach((radio) => (radio.checked = false));
+
+        // Match delivery_fee to dis1/dis2 radio ---
+        const deliveryFee = parseFloat(urlParams.get("delivery_fee"));
+        let matchedRadio = null;
+
+        if (!isNaN(deliveryFee)) {
+            const stdOption = document.querySelector(
+                '#deliveryOption_std_delivery_fee option[data-id="Delivery"]',
+            );
+            const extOption = document.querySelector(
+                '#deliveryOption_ext_delivery_fee option[data-id="Delivery"]',
+            );
+
+            const stdFee = stdOption
+                ? parseFloat(stdOption.textContent.replace(/[^0-9.]/g, ""))
+                : null;
+            const extFee = extOption
+                ? parseFloat(extOption.textContent.replace(/[^0-9.]/g, ""))
+                : null;
+
+            if (deliveryFee === stdFee) {
+                matchedRadio = document.querySelector(
+                    `input[name="delivery-option"][value="dis1"]`,
+                );
+            } else if (deliveryFee === extFee) {
+                matchedRadio = document.querySelector(
+                    `input[name="delivery-option"][value="dis2"]`,
+                );
+            }
+        }
+
+        // Default to dis1 if nothing matched
+        if (!matchedRadio) {
+            matchedRadio = document.querySelector(
+                `input[name="delivery-option"][value="dis1"]`,
+            );
+        }
+
+        if (matchedRadio) {
+            matchedRadio.checked = true;
+            matchedRadio.dispatchEvent(new Event("change"));
+        }
+
+        //  Select deliveryOption dropdown (Delivery / Pickup) ---
+        const serviceOption = urlParams.get("service_option");
+        [
+            "deliveryOption_std_delivery_fee",
+            "deliveryOption_ext_delivery_fee",
+        ].forEach((selectId) => {
+            const select = document.getElementById(selectId);
+            if (select && serviceOption) {
+                [...select.options].forEach((opt) => {
+                    if (opt.dataset.id === serviceOption) {
+                        select.value = opt.value;
+                    }
+                });
+            }
+        });
+
+        //  Add-ons ---
+        const addonsParam = urlParams.get("addons");
+        if (addonsParam) {
+            try {
+                // Uncheck all checkboxes first
+                document
+                    .querySelectorAll('input[type="checkbox"]')
+                    .forEach((cb) => (cb.checked = false));
+
+                const addons = JSON.parse(decodeURIComponent(addonsParam));
+                addons.forEach((addon) => {
+                    const id = addon?.unique_id;
+                    const name = addon?.name;
+
+                    if (id) {
+                        const checkbox = document.querySelector(
+                            `input[data-id="${id}"]`,
+                        );
+                        if (checkbox) checkbox.checked = true;
+                    } else if (name) {
+                        document
+                            .querySelectorAll('input[type="checkbox"]')
+                            .forEach((input) => {
+                                const labelText =
+                                    input.closest("label")?.innerText || "";
+                                if (labelText.includes(name)) {
+                                    input.checked = true;
+                                }
+                            });
+                    }
+                });
+            } catch (e) {
+                console.error("Invalid addons param:", e);
+            }
+        }
+
+        //  Set quantity ---
+        const qty = urlParams.get("qty");
+        if (qty) {
+            const qtyInput = document.getElementById("qty");
+            if (qtyInput) qtyInput.value = qty;
+        }
+
+        //  Set schedule start date ---
+        const date = urlParams.get("sechdule_start_date");
+        if (date) {
+            const dateInput = document.getElementById("dateInput");
+            const dateDisplay = document.getElementById("selectedDateText");
+            if (dateInput) dateInput.value = date;
+            if (dateDisplay) dateDisplay.innerText = date;
+        }
+
+        // Store location dropdown ---
+        const storeId = urlParams.get("store_id");
+        const storeDropdown = document.getElementById("storeLocation");
+        const addressDiv = document.getElementById("address");
+
+        if (storeId && storeDropdown) {
+            storeDropdown.value = storeId;
+
+            //  Unhide the address div
+            addressDiv?.classList.remove("hidden");
+        }
+    };
 });

@@ -262,7 +262,7 @@ class PostController extends Controller
                         'schedule_end_date' => $endDate,
                         'product_data' => json_encode($item),
                         'service_method' => $serviceMethod,
-                        'service_option' => str_replace('+', ' + ', $item['service_option']) ?? null,
+                        'service_option' => null,
                         'store_id' => $item['store_id'] ?? null,
                         'distance_type' => $distanceType,
                         'distance_range' => $item['distance_range'] ?? null,

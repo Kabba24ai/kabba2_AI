@@ -120,6 +120,7 @@
                     </div>
 
                     <div>
+                    <strong> Short Description :- </strong>
                     <p> {!! $productDetail->short_description !!} </p>    
                 </div>
 
@@ -935,127 +936,11 @@ window.addEventListener('DOMContentLoaded', function () {
 
                 $('#inputDeliveryFee').val(deliveryFee);
                 $('#inputDeliveryPickup').val(JSON.stringify(delivery_pickup));
-              
             }
 
             $('#addToRentalBtn').on('click', function () {
                 const $btn = $(this);
-                const $loader = $btn.find('.loader-gif'); // use exact class
-
-                try {
-                    // --- Validate first ---
-                    const scheduleDate = $('#selectedDateText').text().trim();
-                    if (scheduleDate === 'Select Start Date') {
-                        $('#dateError').removeClass('hidden');
-                        return;
-                    } else {
-                        $('#dateError').addClass('hidden');
-                    }
-
-                    
-                    $loader.css('display', 'inline-block');
-                    $btn.prop('disabled', true);
-
-                    const storeLocation = $('#storeLocation').val();
-                    const qty = parseInt($('#qty').val()) || 1;
-                    const name = $('.productname').text().trim();
-                    const image = $('.product-image').attr('src') || '';
-                    const basePriceText = $('.bg-yellow-400 h4').text().trim().split('/')[0].trim();
-                    const numericPrice = parseFloat(basePriceText.replace(/[^0-9.]/g, ''));
-
-                    const service_method = $('input[name="option"]:checked').val();
-                    let service_option = null;
-
-                    if (service_method === 'delivery') {
-                        const selectedStd = $('#deliveryOption_std_delivery_fee').val();
-                        const selectedExt = $('#deliveryOption_ext_delivery_fee').val();
-
-                        if (selectedStd) {
-                            service_option = $('#deliveryOption_std_delivery_fee option:selected').data('id');
-                        } else if (selectedExt) {
-                            service_option = $('#deliveryOption_ext_delivery_fee option:selected').data('id');
-                        }
-                    }
-
-                    const addons = [];
-                    $('input[type="checkbox"]:checked').each(function () {
-                        const label = $(this).closest('label');
-                        const spans = label.find('span');
-                        const addonName = spans[0]?.childNodes[0]?.nodeValue.trim() || '';
-                        const price = parseFloat(spans[1]?.innerText.replace(/[^0-9.]/g, '')) || 0;
-                        const charged = $(this).data('charged') || null;
-                        const unique_id = $(this).data('unique_id') || null;
-
-                        if (addonName || unique_id) {
-                            addons.push({ name: addonName, price, charged, unique_id });
-                        }
-                    });
-
-                    const delivery_pickup = [];
-                    const rawPickup = $('#inputDeliveryPickup').val();
-                    if (rawPickup) {
-                        try {
-                            delivery_pickup.push(...JSON.parse(rawPickup));
-                        } catch (e) {
-                            console.warn('Invalid pickup JSON', rawPickup);
-                        }
-                    }
-
-                    const deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
-
-                    const item = {
-                        product_id: @json($productDetail->id),
-                        product_unique_id: @json($productDetail->unique_id),
-                        varient_type: @json($productDetail->product_type),
-                        product_price_type: null,
-                        product_sku: @json($productDetail->sku),
-                        product_barcode: @json($productDetail->barcode),
-                        name,
-                        image,
-                        product_type: @json($productType),
-                        qty,
-                        base_price: numericPrice,
-                        product_slug: @json($productDetail->slug),
-                        addons,
-                        sechdule_start_date: scheduleDate,
-                        schedule_end_date: null,
-                        delivery_fee: deliveryFee,
-                        store_id: storeLocation,
-                        service_option: service_option,
-                        service_method: service_method,
-                        distance_type: distance_type,
-                        distance_range: distance_range,
-                        delivery_pickup
-                    };
-
-                    const cart = JSON.parse(localStorage.getItem('rental_cart')) || [];
-                    const existingIndex = cart.findIndex(i => i.product_id == item.product_id);
-
-                    if (existingIndex !== -1) {
-                        cart[existingIndex].qty += item.qty;
-                        cart[existingIndex] = { ...cart[existingIndex], ...item };
-                    } else {
-                        cart.push(item);
-                    }
-
-                    localStorage.setItem('rental_cart', JSON.stringify(cart));
-
-                    setTimeout(() => {
-                        $loader.css('display', 'none');
-                        $btn.prop('disabled', false);
-                        document.querySelector(".toggleCart")?.click();
-                    }, 1500);
-                } catch (error) {
-                    console.error("Cart processing error:", error);
-                    $loader.css('display', 'none');
-                    $btn.prop('disabled', false);
-                }
-
-
-                /*try {
-                    // Show loader and disable button
-                    $loader.css('display', 'inline-block');
-                    $btn.prop('disabled', true);
+                const $loader = $btn.find('.loader-gif'); 
 
                 const scheduleDate = $('#selectedDateText').text().trim();
                 if (scheduleDate === 'Select Start Date') {
@@ -1065,13 +950,18 @@ window.addEventListener('DOMContentLoaded', function () {
                     $('#dateError').addClass('hidden');
                 }
 
+                try {
+                    // Show loader and disable button
+                $loader.css('display', 'inline-block');
+                $btn.prop('disabled', true);
+                
+
                 const storeLocation = $('#storeLocation').val();
                 const qty = parseInt($('#qty').val()) || 1;
                 const name = $('.productname').text().trim();
                 const image = $('.product-image').attr('src') || '';
                 const basePriceText = $('.bg-yellow-400 h4').text().trim().split('/')[0].trim();
                 const numericPrice = parseFloat(basePriceText.replace(/[^0-9.]/g, ''));
-
 
                 const service_method = $('input[name="option"]:checked').val(); // 'in-store' or 'delivery'
                 let service_option = null;
@@ -1103,7 +993,6 @@ window.addEventListener('DOMContentLoaded', function () {
                         }
                     });
 
-
                 const delivery_pickup = [];
                 const rawPickup = $('#inputDeliveryPickup').val();
                 if (rawPickup) {
@@ -1115,6 +1004,20 @@ window.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
+
+                let addonTotal = 0;
+                    addons.forEach(addon => {
+                    const price   = parseFloat(addon.price) || 0;
+                    const charged = (addon.charged || '').toLowerCase();
+                    addonTotal += (charged === 'unlimited' ? price * qty : price);
+                    });
+
+
+                    const total_price = (numericPrice * qty) + addonTotal + deliveryFee;
+                    const taxrate = @json($taxRate);
+                    const tax_amount = +(total_price * taxrate );
+                    const total_price_with_tax = +(total_price + tax_amount).toFixed(2);
+
 
                 const item = {
                     product_id: @json($productDetail->id),
@@ -1138,7 +1041,10 @@ window.addEventListener('DOMContentLoaded', function () {
                     service_method: service_method,
                     distance_type: distance_type ,
                     distance_range:distance_range ,
-            
+                    tax_rate: taxrate,
+                    total_price: total_price,
+                    tax_amount: tax_amount,
+                    total_price_with_tax: total_price_with_tax,
                     delivery_pickup
                 };
 
@@ -1154,8 +1060,6 @@ window.addEventListener('DOMContentLoaded', function () {
                     cart.push(item);
                 }
 
-
-
                 localStorage.setItem('rental_cart', JSON.stringify(cart));
 
                 setTimeout(() => {
@@ -1167,7 +1071,7 @@ window.addEventListener('DOMContentLoaded', function () {
         console.error("Cart processing error:", error);
         $loader.css('display', 'none');
         $btn.prop('disabled', false);
-    }*/
+    }
 
             });
         });

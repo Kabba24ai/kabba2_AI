@@ -690,3 +690,7 @@ body {
 }
 
 @media screen and (min-width:280px) and (max-width:350px) {}
+
+.text-custom-blue {
+    color: #71bed7;
+}

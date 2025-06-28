@@ -43,12 +43,12 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-C3BvXbJi.css",
+    "file": "assets/app-Bnxhk9hW.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-CgxA_Nad.js",
+    "file": "assets/app-BHyBfUOR.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
@@ -57,17 +57,17 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-3RiB8z_0.css",
+    "file": "assets/app-DCROzQmn.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-yihI9NrB.css",
+    "file": "assets/app-B0OCc4IO.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-CV0gaOKA.js",
+    "file": "assets/app-Kvf12ZEO.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
@@ -75,7 +75,7 @@
       "_notif-Bm69V-d8.js"
     ],
     "css": [
-      "assets/app-DV8PrLMj.css"
+      "assets/app-Ce1H3Bte.css"
     ]
   },
   "resources/js/app.js": {

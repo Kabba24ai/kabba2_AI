@@ -5,14 +5,14 @@
 @section('content')
     <!-- Page Title Section -->
     <section
-        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc]">
+        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-white md:border-r-[30px] md:border-r-white bg-gray-100">
         <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-[30px] md:px-0">
             <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-[40px] tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
                         <ul
-                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
+                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
@@ -50,29 +50,28 @@
                                 <h3 class="mt-4 font-bold text-[18px] text-black md:text-[22px] p-2 bg-[#f2f3f5] mb-4">
                                     {{ $product->product_name }}</h3>
                                 <div class="grid grid-cols-2 gap-x-6 gap-y-2">
-                                    <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'daily']) }}"
+                                    <a href="{{ route('front.products.details', ['categorySlug'=> $category->slug,'slug' => $product->slug, 'productType' => 'daily']) }}"
                                         class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Daily
                                         <span> {{ App\Helpers\CustomHelper::formatCurrency($product->rental_daily) }} </span>
                                     </a>
-                                    <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'weekend']) }}"
+                                    <a href="{{ route('front.products.details', ['categorySlug'=> $category->slug,'slug' => $product->slug, 'productType' => 'weekend']) }}"
                                         class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Weekend Spcl.
                                         <span> {{ App\Helpers\CustomHelper::formatCurrency($product->rental_weekend) }}</span>
                                     </a>
-                                    <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'weekly']) }}"
+                                    <a href="{{ route('front.products.details', ['categorySlug'=> $category->slug,'slug' => $product->slug, 'productType' => 'weekly']) }}"
                                         class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Weekly
                                         <span> {{ App\Helpers\CustomHelper::formatCurrency($product->rental_weekly) }}</span>
                                     </a>
-                                    <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productType' => 'monthly']) }}"
+                                    <a href="{{ route('front.products.details', ['categorySlug'=> $category->slug,'slug' => $product->slug, 'productType' => 'monthly']) }}"
                                         class="border-0 bg-yellow-400 text-black font-medium flex flex-col px-6 py-2 leading-4 rounded-xl text-[14px] hover:bg-yellow-500  transition-all duration-500 ease-in-out">
                                         Monthly
                                         <span> {{ App\Helpers\CustomHelper::formatCurrency($product->rental_monthly) }} </span>
                                     </a>
                                 </div>
-                                <h6 class="text-[12px] mt-2 text-black">Select an Option to Learn More or Reserve Today
-                                </h6>
+                                <h6 class="text-[12px] mt-2 text-black">Select an Option to Learn More or Reserve Today</h6>
                             </div>
                         </div>
                     </div>

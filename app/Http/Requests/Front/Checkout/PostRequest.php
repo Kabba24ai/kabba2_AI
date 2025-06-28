@@ -62,6 +62,15 @@ class PostRequest extends FormRequest
             'deliveryState' => ['nullable', 'exists:states,id'],
             'deliveryCity' => ['nullable', 'string', 'max:100'],
             'deliveryZip' => ['nullable', 'string', 'max:8'],
+
+            // 'deliveryFirstName' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
+            // 'deliveryLastName' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
+            // 'deliveryEmail' => ['required_unless:sameAsBilling,Yes', 'email', 'max:200'],
+            // 'deliveryPhone' => ['required_unless:sameAsBilling,Yes', 'string', 'max:20'],
+            // 'deliveryAddress' => ['required_unless:sameAsBilling,Yes', 'string', 'max:200'],
+            // 'deliveryState' => ['required_unless:sameAsBilling,Yes', 'exists:states,id'],
+            // 'deliveryCity' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
+            // 'deliveryZip' => ['required_unless:sameAsBilling,Yes', 'string', 'max:8'],
         ]);
 
         // Order notes (optional)

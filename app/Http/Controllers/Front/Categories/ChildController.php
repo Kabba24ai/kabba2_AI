@@ -15,9 +15,9 @@ class ChildController extends Controller
      */
     public function __invoke($slug,$childCategorySlug)
     {
-        $category = ProductCategory::with('media')->where('slug',$childCategorySlug)->firstOrFail();
+        $category = ProductCategory::published()->with('media')->where('slug',$childCategorySlug)->firstOrFail();
 
-        $products = Product::with('categories','media', 'mediaChildren.media')->whereHas('categories', function ($q) use ($category) {
+        $products = Product::published()->with('categories','media', 'mediaChildren.media')->whereHas('categories', function ($q) use ($category) {
             $q->where('product_categories.id', $category->id);
         })->get();
 

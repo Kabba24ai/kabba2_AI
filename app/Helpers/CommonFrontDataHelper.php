@@ -12,7 +12,7 @@ class CommonFrontDataHelper
         $categoryTree = self::categoryTree();
 
         $data = [
-            'frontCategoryTree' => $categoryTree
+            'frontCategoryTree' => $categoryTree,
         ];
 
         view()->share($data);
@@ -20,6 +20,13 @@ class CommonFrontDataHelper
 
     public static function categoryTree()
     {
-        return ProductCategory::with('childCategories')->whereNull('parent_id')->get();
+        return ProductCategory::published()
+            ->with([
+                'childCategories' => function ($query) {
+                    $query->published();
+                },
+            ])
+            ->whereNull('parent_id')
+            ->get();
     }
 }

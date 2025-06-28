@@ -1,6 +1,6 @@
 
  <nav
-     class="text-dark border-b-[1px] border-b-neutral-800 fixed w-full mt-[0px] z-[9999] bg-neutral-800 top-0 bg-opacity-100 transform transition-all duration-300 ease-in-out">
+     class="text-dark border-b-[1px] border-b-neutral-800 fixed w-full mt-[0px] z-[9999] bg-neutral-800 top-0 bg-opacity-100 ">
      <div class="container !px-0">
          <div class="max-w-7xl mx-auto py-1 flex items-center  px-4">
              <a href="#" class="1/6">
@@ -92,7 +92,7 @@
                                  class="hover:text-yellow-400 px-5 text-sm group-[.active]:font-bold transition-all duration-300 ease-in-out">Home</a>
                          </li>
 
-                         
+
                          <li class=" py-3 group relative">
                              <a href="javascript:void(0)" id="menuToggleBtn"
                                  class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out">Equipment
@@ -153,9 +153,9 @@
          class="offcanvas-cart-body absolute top-17 right-0 overflow-hidden md:top-17 max-w-0 lg:top-20 opacity-0 md:max-w-sm w-0 h-screen bg-white/90  shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
             <div class="relative w-full h-[calc(100vh-80px)]">
                  <div class="px-9 pt-15 pb-15 overflow-y-scroll h-full w-full">
-                     
+
                     <p class="text-center py-10 text-gray-600">Your cart is empty.</p>
-             
+
                  </div>
              </div>
          </div>

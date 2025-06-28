@@ -64,9 +64,15 @@ class ProductCategory extends Model
     {
         return $query->orderBy('sort_order', 'ASC');
     }
+
     public function scopeOrderByAdmin($query)
     {
         return $query->orderBy('title', 'asc');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'Published');
     }
 
     public function media(): BelongsTo

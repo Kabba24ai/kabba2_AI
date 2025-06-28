@@ -197,20 +197,20 @@ document.addEventListener("DOMContentLoaded", () => {
     updateContactPosition();
 
     // add / remove class
-    window.updateClPosition = function updateClPosition() {
-        const breadcrumb = document.querySelector("#breadcrumbs");
-        if (!breadcrumb) return;
-        if (window.scrollY >= 10) {
-            breadcrumb.classList.add("pt-[142px]");
-            breadcrumb.classList.remove("pt-[100px]");
-        } else {
-            breadcrumb.classList.remove("pt-[142px]");
-            breadcrumb.classList.add("pt-[100px]");
-        }
-    };
+    // window.updateClPosition = function updateClPosition() {
+    //     const breadcrumb = document.querySelector("#breadcrumbs");
+    //     if (!breadcrumb) return;
+    //     if (window.scrollY >= 10) {
+    //         breadcrumb.classList.add("pt-[142px]");
+    //         breadcrumb.classList.remove("pt-[100px]");
+    //     } else {
+    //         breadcrumb.classList.remove("pt-[142px]");
+    //         breadcrumb.classList.add("pt-[100px]");
+    //     }
+    // };
 
-    window.addEventListener("scroll", updateClPosition);
-    updateClPosition();
+    // window.addEventListener("scroll", updateClPosition);
+    // updateClPosition();
 
     // Optional: dropdown inside header
     document.querySelectorAll("#menuToggleBtn").forEach((btn) => {
@@ -355,22 +355,22 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <div class="w-80">
                                     <h4 class="text-sm font-bold">${item.name}</h4>
                                     <p class="text-xs my-1">$${item.base_price} (x${qty})</p>
- 
+
                                     <div class="flex justify-between text-sm">
                                         Price: <span class="font-bold">$${(base * qty).toFixed(2)}</span>
                                     </div>
                                     <div class="flex justify-between text-sm mb-1">
                                         Options: <span class="font-bold">+$${(addonTotal + deliveryFee).toFixed(2)}</span>
                                     </div>
- 
+
                                     <!--<div class="flex justify-between text-sm">
                                         Delivery Fee: <span class="font-bold">$${deliveryFee.toFixed(2)}</span>
                                     </div>-->
-                                   
+
                                     <ul class="flex flex-col gap-y-2 mb-2">${addonList} ${delivery_pickupList}</ul>
- 
+
                                     <p class="text-sm">Schedule Date: ${item.sechdule_start_date}</p>
- 
+
                                     <div>
                                         <a href="javascript:void(0)" class="removeItem text-sm after:content-['|'] after:pl-2 text-red-500">
                                             <i class="fa-solid fa-xmark"></i> Remove
@@ -464,9 +464,9 @@ document.addEventListener("DOMContentLoaded", () => {
         el.textContent = totalQty;
     });
 
-    // update section 
+    // update section
     window.onload = function () {
-        if (!window.location.search) return; 
+        if (!window.location.search) return;
 
         const urlParams = new URLSearchParams(window.location.search);
 

@@ -265,7 +265,7 @@
                                     <a href="{{ route('admin.crm.customer_portal.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.crm.customer_portal.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-inbox-stack class="h-5 w-5" /> Customer Portal
+                                        <x-heroicon-o-inbox-stack class="h-5 w-5" /> Customers
                                     </a>
                                 </li>
                                

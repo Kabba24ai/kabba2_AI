@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Customers\Customer;
+// Models
+
+
+class IndexController extends Controller
+{
+    /**
+     * Handle the incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */ 
+    public function __invoke(Request $request)
+    {
+        $query = Customer::with('orders','addresses');
+    
+        if ($request->filled('search_name')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('first_name', 'like', '%' . $request->search_name . '%')
+                  ->orWhere('last_name', 'like', '%' . $request->search_name . '%');
+            });
+        }
+    
+        if ($request->filled('search_phone')) {
+            $query->where('phone', 'like', '%' . $request->search_phone . '%');
+        }
+    
+        $customers = $query->latest()->paginate(10)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('admin.crm.customer_portal.partials._table', compact('customers'))->render();
+        }
+    
+        return view('admin.crm.customer_portal.index', compact('customers'));
+    }
+    
+}

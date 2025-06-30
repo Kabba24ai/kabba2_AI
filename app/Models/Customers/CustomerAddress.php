@@ -19,6 +19,7 @@ class CustomerAddress extends Model
         'email',
         'phone',
         'address',
+        'website',
         'state_id',
         'city',
         'zip_code'

@@ -13,18 +13,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('product-management')
-->name('product-management.')
+Route::prefix('crm')
+->name('crm.')
 ->group(function ($router) {
 
-    // Categories
-    require base_path('routes/admin/product_management/categories/routes.php');
-
-    // Options
-    require base_path('routes/admin/product_management/options/routes.php');
-
-    // Products
-    require base_path('routes/admin/product_management/products/routes.php');
-
-   
+    // customer_portal
+    require base_path('routes/admin/crm/customer_portal/routes.php');
 });

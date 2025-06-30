@@ -41,6 +41,7 @@
                         'admin.product-management.products.*',
                         'admin.product-management.categories.*',
                         'admin.product-management.options.*',
+
                     ]);
 
                     $ordersActive = Route::is([
@@ -111,13 +112,9 @@
                                         <x-heroicon-o-inbox-stack class="h-5 w-5" /> Product Categories
                                     </a>
                                 </li>
-                                <li>
-                                    <a href=""
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.product-management.categories.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-users class="h-5 w-5" /> Customer Portals
-                                    </a>
-                                </li>
+
+                              
+
                             </ul>
                         </div>
                     </li>
@@ -174,6 +171,11 @@
                         'admin.maintenance-management.parts.*',
                         'admin.maintenance-management.suppliers.*',
                     ]);
+
+
+                    $crmActive = Route::is([
+                        'admin.crm.customer_portal.*',
+                    ]);
                       
                     @endphp
                     
@@ -229,6 +231,48 @@
                             </ul>
                         </div>
                     </li>
+
+
+                    
+                    <!-- crm -->
+                    <li x-data="{ open: {{ $crmActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $crmActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-cog-6-tooth  class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">CRM</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.crm.customer_portal.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.crm.customer_portal.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-inbox-stack class="h-5 w-5" /> Customer Portal
+                                    </a>
+                                </li>
+                               
+                            </ul>
+                        </div>
+                    </li>
+
                     @php
                     $settingsActive = Route::is([
                         'admin.terms-and-conditions.*',

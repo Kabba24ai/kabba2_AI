@@ -96,8 +96,8 @@
                         'border-gray-300' => !$errors->has('phone'),
                     ])->attributes([
                         'maxlength' => 14,
-                        'data-parsley-pattern' => '^\(\d{3}\) \d{3}-\d{4}$',
-                        'data-parsley-error-message' => 'Please enter phone number in format (123)456-7890',
+                        'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                        'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
                         'placeholder' => '(123) 456-7890',
                         'id' => 'phone',
                         'autocomplete' => 'tel',
@@ -176,8 +176,8 @@
                     'border-gray-300' => !$errors->has('company_phone'),
                 ])->attributes([
                     'maxlength' => 14,
-                    'data-parsley-pattern' => '^\(\d{3}\) \d{3}-\d{4}$',
-                    'data-parsley-error-message' => 'Please enter phone number in format (123)456-7890',
+                    'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                    'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
                     'placeholder' => '(123) 456-7890',
                     'id' => 'company_phone',
                     'autocomplete' => 'tel',

@@ -10,7 +10,7 @@ use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 
 // Request
-use App\Http\Requests\Admin\Crm\CustomerPortal\StoreRequest;
+use App\Http\Requests\Admin\CRM\CustomerPortal\StoreRequest;
 
 // Models
 

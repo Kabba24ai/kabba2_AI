@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     /*
     |--------------------------------------------------------------------------
@@ -157,6 +157,7 @@ return [
         'date_time_format_without_second' => env('DATE_TIME_FORMAT_WITHOUT_SECOND', 'd/m/Y H:i'),
         'date_format' => env('DATE_FORMAT', 'd/m/Y'),
         'fancy_date_time_format' => env('FANCY_DATE_TIME_FORMAT', 'd/m/Y - H:i'),
+        'js_date_format' => 'MM/dd/yyyy',
     ],
 
     /*

@@ -172,4 +172,41 @@ class Product extends Model
     {
         return $this->belongsToMany(Product::class, 'product_related_product_children', 'product_id', 'related_product_id')->withTimestamps();
     }
+
+    public function getRetailPrice($salePriceFlag = true)
+    {
+        // If a sale price is set and greater than zero, return it. Otherwise, return retail_price.
+        if ($salePriceFlag) {
+            return ($this->retail_sale_price && $this->retail_sale_price > 0)
+                ? $this->retail_sale_price
+                : $this->retail_price;
+        }
+        return $this->retail_price;
+    }
+
+    public function getRentalPrice($type,  $salePriceFlag = true)
+    {
+        // $type = daily, weekend, weekly, monthly
+        $saleField = 'sale_price_' . $type;
+        $rentField = 'rental_' . $type;
+        if ($salePriceFlag) {
+            return ($this->$saleField && $this->$saleField > 0)
+            ? $this->$saleField
+            : $this->$rentField;
+        }
+        return $this->$rentField;
+    }
+
+    public function isRentalOnSale($period)
+    {
+        $saleField = 'sale_price_' . $period;
+        return ($this->$saleField && $this->$saleField > 0);
+    }
+
+    public function isRetailOnSale()
+    {
+        $saleField = 'retail_sale_price';
+        return ($this->$saleField && $this->$saleField > 0);
+    }
+
 }

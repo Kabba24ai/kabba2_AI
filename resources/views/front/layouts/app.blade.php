@@ -48,5 +48,11 @@
             });
         </script>
     @endif
+    <!-- ===========================================
+            Section: Set Global Date Format
+    ========================================== -->
+    <script>
+        window.appDateFormat = "{{ config('app.date.date_format') }}";
+    </script>
 </body>
 </html>

@@ -65,7 +65,7 @@
                         </div>
                         <!-- Main image (with lightbox, initially first image) -->
                         <a href="{{ $galleryImages[0] }}" id="main-image-link">
-                            <img src="{{ $galleryImages[0] }}" alt="Product Image" id="main-image"
+                            <img src="{{ $galleryImages[0] }}" alt="Product" id="main-image"
                                 class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" />
                         </a>
 
@@ -81,57 +81,51 @@
                             <div class="h-12 w-12 rounded-lg border border-gray-200 overflow-hidden bg-white cursor-pointer flex items-center justify-center {{ $imgIndex === 0 ? 'ring-2 ring-yellow-400' : '' }}"
                                 data-thumb-index="{{ $imgIndex }}">
                                 <img src="{{ $imgUrl }}" alt="Thumbnail" class="w-full h-full object-contain" />
-                                <a href="{{ $imgUrl }}" data-gallery="product-gallery" class="hidden"></a>
+                                <a href="{{ $imgUrl }}" data-gallery="product-gallery" class="hidden">
+                                    <span class="sr-only">View larger image of product thumbnail {{ $imgIndex + 1 }}</span>
+                                </a>
                             </div>
                         @endforeach
                     </div>
                 </div>
 
-
                 <div>
-
-                    <input type="hidden" name="delivery_fee" id="inputDeliveryFee">
-                    <input type="hidden" name="delivery_pickup" id="inputDeliveryPickup">
-
                     <div class="bg-gray-100 mb-4 flex flex-col lg:flex-row justify-between items-center pl-2">
                         <div>
-                            <h3 class="font-bold text-[18px] lg:text-[22px] productname">{{ $productDetail->product_name }}
+                            <h3 class="font-bold text-2xl">{{ $productDetail->product_name }}
                             </h3>
                             <p
                                 class="before:content-['('] before:text-gray-500 after:content-[')'] after:text-gray-500 text-green-600 ">
                                 In Stock</p>
                         </div>
-                        <div
-                            class="bg-yellow-400 mt-3 lg:mt-0 lg:text-[32px] text-[24px] h-[50px] lg:h-[70px] px-6 flex items-center font-medium">
+                        <div class="bg-yellow-400 text-xl h-[50px] lg:h-[70px] px-6 flex items-center font-medium">
                             <h4>
-                                @switch($productType)
-                                    @case('daily')
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_daily) }}
-                                        <span class="text-[16px] font-normal">/ day</span>
-                                    @break
-
-                                    @case('weekend')
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_weekend) }}
-                                        <span class="text-[16px] font-normal">/ week</span>
-                                    @break
-
-                                    @case('weekly')
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_weekly) }}
-                                        <span class="text-[16px] font-normal">/ week</span>
-                                    @break
-
-                                    @case('monthly')
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_monthly) }}
-                                        <span class="text-[16px] font-normal">/ month</span>
-                                    @break
-
-                                    @default
-                                        <span>-</span>
-                                @endswitch
+                                @if ($productDetail->product_type == 'Rental')
+                                    <span>
+                                        <span class="font-bold text-3xl">
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productType)) }}
+                                        </span>
+                                        @if ($productDetail->isRentalOnSale($productType))
+                                            <span class="line-through text-gray-500 text-base ml-1 font-normal italic">
+                                                {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productType, false)) }}
+                                            </span>
+                                        @endif
+                                        <span class="font-normal">/ {{ $productType }}</span>
+                                    </span>
+                                @else
+                                    <span>
+                                        <span class="font-bold text-3xl">
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRetailPrice()) }}
+                                        </span>
+                                        @if ($productDetail->isRetailOnSale())
+                                            <span class="line-through text-gray-500 text-base ml-1 font-normal italic">
+                                                {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRetailPrice(false)) }}
+                                            </span>
+                                        @endif
+                                    </span>
+                                @endif
                             </h4>
                         </div>
-
-
                     </div>
 
                     <div>
@@ -139,107 +133,82 @@
                         <p> {!! $productDetail->short_description !!} </p>
                     </div>
 
-                    <div id="distance" class="mt-5 mb-5 ">
-                        <div class="flex items-center space-x-2">
+                    <div class="my-5">
+                        <div class="flex items-center space-x-4">
+                            <!-- Calendar icon button -->
+                            <a href="javascript:void(0);" id="openDatePicker" >
+                                <img src="{{ asset('storage/front/images/calendar_icon.png') }}" alt="Calendar"
+                                    class="w-[52px]">
+                            </a>
+                            <input type="text" name="schedule_start_date" id="scheduleStartDateInput"
+                                data-format="{{ config('app.date.js_date_format') }}"
+                                data-min-date="{{ now()->format('Y-m-d') }}" class="sr-only" readonly
+                                placeholder="Select Start Date" />
 
-                            <div class="relative">
-                                <input type="text" id="dateInput" name="date" readonly class="hidden" />
-                                <div class="flex items-center">
-                                    <button id="openDatePicker" type="button" class="pr-2">
-                                        <img src="{{ asset('storage/front/images/calendar_icon.png') }}" alt=""
-                                            class="w-[52px]">
-                                    </button>
-                                    <div id="selectedDateText" class="mr-4">Select Start Date</div>
-                                </div>
+                            <!-- Optional: error message -->
+                            <div id="dateError" class="text-red-600 text-sm hidden mt-1"></div>
 
-                                <div id="datePicker"
-                                    class="absolute top-full -left-28 lg:left-0 mt-2 max-[380px]:w-[280px] w-[300px] bg-white border border-gray-300 rounded-md shadow-lg p-4 hidden z-10">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <button id="prevMonth" class="p-1 rounded hover:bg-gray-200">&lt;</button>
-                                        <div id="monthYear" class="font-semibold"></div>
-                                        <button id="nextMonth" class="p-1 rounded hover:bg-gray-200">&gt;</button>
-                                    </div>
-                                    <div
-                                        class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-500 mb-2">
-                                        <div>Sun</div>
-                                        <div>Mon</div>
-                                        <div>Tue</div>
-                                        <div>Wed</div>
-                                        <div>Thu</div>
-                                        <div>Fri</div>
-                                        <div>Sat</div>
-                                    </div>
-                                    <div id="daysGrid" class="grid grid-cols-7 gap-1 text-center"></div>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button type="button"
-                                    class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300  transition-all duration-500 ease-in-out"
-                                    onclick="changeQty(-1)">−</button>
+                            <!-- Show selected date here -->
+                            <span id="selectedDateText" class="text-gray-700 text-base">Select Start Date</span>
+                            <!-- Quantity controls unchanged -->
 
-                                <input type="number" id="qty" name="qty" value="1" min="1"
-                                    max="1000" class="w-16 text-center border border-gray-300 rounded" />
+                            <button type="button"
+                                class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
+                                onclick="changeQty(-1)">−</button>
 
-                                <button type="button"
-                                    class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300  transition-all duration-500 ease-in-out"
-                                    onclick="changeQty(1)">+</button>
-                            </div>
+                            <input type="number" id="qty" name="qty" value="1" min="1" max="1000"
+                                class="w-16 text-center border border-gray-300 rounded" />
+
+                            <button type="button"
+                                class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
+                                onclick="changeQty(1)">+</button>
                         </div>
-                        <div id="dateError" class="text-red-600 text-sm hidden">Please select a start date.</div>
                     </div>
+
                     @if ($productDetail->in_store_pickup == 'Yes')
                         <div class="space-y-2 mt-4">
                             <label class="inline-flex items-center space-x-2">
-                                <input type="radio" name="option" value="in-store" class="form-radio" checked
-                                    onchange="toggleDeliveryOption(this)" />
+                                <input type="radio" name="service_method" value="In Store Pickup" class="form-radio" />
                                 <span>In Store Pickup / Return</span>
                             </label>
-
                         </div>
                     @endif
                     @if ($productDetail->delivery_and_pickup == 'Yes')
                         <div class="space-y-2">
                             <label class="inline-flex items-center space-x-2">
-                                <input type="radio" name="option" value="delivery" class="form-radio"
-                                    onchange="toggleDeliveryOption(this)" />
+                                <input type="radio" name="service_method" value="Delivery" class="form-radio" />
                                 <span>Delivery - Full Turnkey Service</span>
                             </label>
                         </div>
-                    @endif
-                    @if ($productDetail->in_store_pickup == 'Yes')
-                        <div id="inStoreDiv" class="mt-4">
-                        </div>
-                    @endif
-                    @if ($productDetail->delivery_and_pickup == 'Yes')
                         <div id="deliveryDiv" class="mt-4 mb-5 hidden">
                             <div class="">
                                 <span>Up To: </span>
                                 @if ($productDetail->standard_delivery_fee !== null)
                                     <label class="inline-flex items-center space-x-2">
-                                        <input type="radio" name="delivery-option" value="dis1" class="sr-only peer"
-                                            checked onchange="toggleDeliveryOption(this)" />
+                                        <input type="radio" name="distance_type" value="Standard" class="sr-only peer"
+                                            checked onChange="toggleDeliveryOption(this)" />
                                         <div
                                             class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
                                             <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
                                         </div>
-                                        <span>{{ $standard_delivery_range }} mi</span>
+                                        <span>{{ $standardDeliveryRange . ' ' . $distanceUnit }} </span>
                                     </label>
                                 @endif
 
                                 @if ($productDetail->extended_delivery_fee !== null)
                                     <label class="inline-flex items-center space-x-2">
-                                        <input type="radio" name="delivery-option" value="dis2" class="sr-only peer"
-                                            onchange="toggleDeliveryOption(this)" />
+                                        <input type="radio" name="distance_type" value="Standard" class="sr-only peer"
+                                            onChange="toggleDeliveryOption(this)" />
                                         <div
                                             class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
                                             <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
                                         </div>
-                                        <span>{{ $extended_delivery_range }} mi</span>
+                                        <span>{{ $extendedDeliveryRange . ' ' . $distanceUnit }} </span>
                                     </label>
                                 @endif
                                 <label class="inline-flex items-center space-x-2">
-                                    <input type="radio" name="delivery-option" value="discustom" class="sr-only peer"
-                                        onchange="toggleDeliveryOption(this)" />
+                                    <input type="radio" name="distance_type" value="Custom" class="sr-only peer"
+                                        onChange="toggleDeliveryOption(this)" />
                                     <div
                                         class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
                                         <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
@@ -247,54 +216,30 @@
                                     <span>Custom</span>
                                 </label>
 
-                                @if ($productDetail->standard_delivery_fee !== null)
-                                    <!-- For standard_delivery_range mi -->
-                                    <div id="dropdown_std_delivery_fee" class="hidden  w-full mt-5 mb-5 ">
-                                        <label class="block font-medium mb-1">Choose Delivery Type
-                                            ({{ $standard_delivery_range }} mi):</label>
-                                        <select id="deliveryOption_std_delivery_fee"
-                                            class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
-                                            <option value="">Select Delivery Options</option>
-                                            <option data-id="Delivery+Pickup" value="2">Delivery + Pick Up (To/From
-                                                My Job Site)
-                                                [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee * 2) }}]
-                                            </option>
-                                            <option data-id="Delivery" value="1">Delivery but I'll Return to Store
-                                                [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]
-                                            </option>
-                                            <option data-id="Pickup" value="1">I'll Pick Up In-Store but Need Return
-                                                Service Pick Up
-                                                [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee) }}]
-                                            </option>
-                                        </select>
-                                    </div>
-                                @endif
 
-                                @if ($productDetail->extended_delivery_fee !== null)
-                                    <!-- For extended_delivery_fee mi -->
-                                    <div id="dropdown_ext_delivery_fee" class="hidden w-full mt-5 mb-5">
-                                        <label class="block font-medium mb-1">Choose Delivery Type
-                                            ({{ $extended_delivery_range }} mi):</label>
-                                        <select id="deliveryOption_ext_delivery_fee"
-                                            class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
-                                            <option value="">Select Delivery Options</option>
-                                            <option data-id="Delivery+Pickup" value="2">Delivery + Pick Up (To/From
-                                                My Job Site)
-                                                [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]
-                                            </option>
-                                            <option data-id="Delivery" value="1">Delivery but I'll Return to Store
-                                                [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]
-                                            </option>
-                                            <option data-id="Pickup" value="1">I'll Pick Up In-Store but Need Return
-                                                Service Pick Up
-                                                [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]
-                                            </option>
-                                        </select>
-                                    </div>
-                                @endif
+                                <div id="dropdown_ext_delivery_fee" class="hidden w-full mt-5 mb-5">
+                                    <label class="block font-medium mb-1">Choose Delivery Type
+                                        ({{ $extendedDeliveryRange . ' ' . $distanceUnit }}):</label>
+                                    <select id="deliveryOption_ext_delivery_fee"
+                                        class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
+                                        <option value="">Select Delivery Options</option>
+                                        <option data-id="1" value="Delivery + Pickup">Delivery + Pick Up (To/From
+                                            My Job Site)
+                                            [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]
+                                        </option>
+                                        <option data-id="2" value="Delivery + Return">Delivery but I'll Return to Store
+                                            [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]
+                                        </option>
+                                        <option data-id="3" value="Pickup + Return">I'll Pick Up In-Store but Need
+                                            Return
+                                            Service Pick Up
+                                            [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]
+                                        </option>
+                                    </select>
+                                </div>
 
                                 <!-- Custom Option Text -->
-                                <div id="customdis" class="hidden w-[80%] border-[5px] border-sky-400 p-2 mt-2">
+                                <div id="customServiceOption" class="hidden w-[80%] border-[5px] border-sky-400 p-2 mt-2">
                                     <h4 class="text-center font-bold">Please Call / Text for Custom Solutions</h4>
                                     <h5 class="text-center text-red font-bold py-2">(615) 815-6734</h5>
                                     <p class="italic">Please reserve the item now, using the closest delivery range, then
@@ -303,8 +248,9 @@
                             </div>
                         </div>
                     @endif
-                    <div id="address" class="w-full mt-5 mb-5 hidden">
-                        <select id="storeLocation" name="store_location"
+
+                    <div class="w-full mt-5 mb-5 hidden">
+                        <select id="storeLocation" name="store_id"
                             class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
                             <option disabled selected value="">Select Store Location</option>
                             @foreach ($stores as $store)
@@ -314,15 +260,13 @@
                                 </option>
                             @endforeach
                         </select>
-                        <div id="dateErroraddress" class="text-red-600 text-sm mt-2 hidden ">Please select a Store
-                            Location.</div>
-
+                        <div id="dateErrorAddress" class="text-red-600 text-sm mt-2 hidden ">
+                            Please select a Store Location.
+                        </div>
                     </div>
+
                     <div class="inline-grid">
-
-                        <h4 class="font-semibold text-[16px] mb-1">Options</h4>
-
-
+                        <h4 class="font-semibold text-2xl mb-1">Options</h4>
                         @if ($productDetail->rental_prepaid_fuel !== null)
                             <!-- Prepaid Fuel -->
                             <label class="inline-flex items-center space-x-2 mt-1 w-fit">
@@ -332,9 +276,12 @@
                                     data-title="Keep Prepaid Fuel"
                                     data-message="I understand that the machine is delivered full of fuel and I’m responsible for returning it full of fuel. If returned without a full tank, I will be charged $8/gallon. If I take the 'Pre-Paid Fuel' option, I can just walk away from this obligation."
                                     onclick="handleCheckboxClick(this)" />
-                                <span>Prepaid Fuel <span class="font-medium">+
+                                <span>Prepaid Fuel
+                                    <span class="font-medium">
+                                        +
                                         {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_fuel) }}
-                                    </span></span>
+                                    </span>
+                                </span>
                             </label>
                         @endif
 
@@ -348,9 +295,11 @@
                                     data-charged="1 Time Max" data-id="cleanCheckbox" data-title="Keep Prepaid Cleaning"
                                     data-message="I understand I’ll be responsible for bringing the equipment back clean or be charged. This does not cover 'Extreme' cleaning, only standard."
                                     onclick="handleCheckboxClick(this)" />
-                                <span>Prepaid Cleaning <span class="font-medium">+
+                                <span>Prepaid Cleaning
+                                    <span class="font-medium">+
                                         {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_cleaning) }}
-                                    </span></span>
+                                    </span>
+                                </span>
                             </label>
                         @endif
 
@@ -476,63 +425,79 @@
         </div>
     </section>
 
-    <section class="pb-[60px]">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <div class="pb-[60px]">
-                <a href="#" class="bg-yellow-400 px-6 border-0 text-[14px] py-4">Details</a>
+    <section class="pb-16">
+        <div class="container mx-auto max-w-screen-2xl px-4 md:px-6">
+            <div class="pb-10">
+                <a href="javascript:void(0)"
+                    class="bg-yellow-400 px-6 py-3 text-sm font-medium rounded-lg shadow hover:bg-yellow-300 transition-colors border-0">
+                    Details
+                </a>
             </div>
-            <div class="flex flex-col gap-y-4 text-gray-500">
+            <div class="flex flex-col gap-4 text-gray-700 leading-relaxed">
                 {!! $productDetail->description !!}
             </div>
         </div>
     </section>
 
 
+
     <!-- Amazing Additions -->
     <section class="pb-[60px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <h2 class="md:text-[28px] font-bold text-left mb-10  text-purple">Amazing Additions</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-0 gap-x-8 lg:gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-y-0 gap-x-8 lg:gap-8">
 
-                @foreach ($productDetail->relatedProducts as $relatedProducts)
-                    <div class="pt-[30px] rounded-lg text-center">
-                        <div class="text-purple group">
-                            <div class="lg:h-80 w-full relative overflow-hidden">
-                                <img src="{{ $relatedProducts->media->url }}" alt="boom-lift-v2"
-                                    class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:scale-[1.05] transition-all duration-500 ease-in-out" />
-                                <div
-                                    class="bg-black opacity-0 top-0 group-hover:opacity-25 absolute h-full w-full transition-all duration-500 ease-in-out">
-                                </div>
+                @foreach ($productDetail->relatedProducts as $relatedProduct)
+                    <div class="py-[20px] lg:py-[30px] rounded-lg text-center">
+                        <div class="transition-all duration-300 ease-in-out hover:text-black">
+                            <div class="lg:h-80 w-full group relative">
+                                <img src="{{ $relatedProduct->image_url }}" alt="{{ $relatedProduct->product_name }}"
+                                    class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:opacity-0 transition-opacity duration-1000 ease-in-out" />
                             </div>
+
                             <div>
-                                <h3 class="font-bold text-[16px] hover:text-black text-left px-2 py-3 bg-gray-100 mb-4">
-                                    {{ $relatedProducts->product_name }}</h3>
-
-                                <div class="grid grid-cols-2 gap-x-2 gap-y-2">
-                                    <a href="{{ route('front.products.details', ['slug' => $relatedProducts->slug, 'productType' => 'daily']) }}"
-                                        class="border-0 bg-yellow-500  font-medium flex flex-col px-2 py-1 leading-4 rounded-lg text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
-                                        Daily
-                                        <span>
-                                            {{ App\Helpers\CustomHelper::formatCurrency($relatedProducts->rental_daily) }}
-                                        </span>
-                                    </a>
-                                    <a href="{{ route('front.products.details', ['slug' => $relatedProducts->slug, 'productType' => 'weekend']) }}"
-                                        class="border-0 bg-yellow-500  font-medium flex flex-col px-2 py-1 leading-4 rounded-lg text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
-                                        Weekend Spcl.
-                                        <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProducts->rental_weekend) }}</span>
-                                    </a>
-                                    <a href="{{ route('front.products.details', ['slug' => $relatedProducts->slug, 'productType' => 'weekly']) }}"
-                                        class="border-0 bg-yellow-300  font-medium flex flex-col px-2 py-1 leading-4 rounded-lg text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
-                                        Weekly
-                                        <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProducts->rental_weekly) }}</span>
-                                    </a>
-                                    <a href="{{ route('front.products.details', ['slug' => $relatedProducts->slug, 'productType' => 'monthly']) }}"
-                                        class="border-0 bg-yellow-300  font-medium flex flex-col px-2 py-1 leading-4 rounded-lg text-[14px] hover:bg-yellow-400  transition-all duration-500 ease-in-out">
-                                        Monthly
-                                        <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProducts->rental_monthly) }}</span>
-                                    </a>
-                                </div>
+                                <h3 class="mt-4 font-bold text-black md:text-xl p-2 bg-gray-100 mb-4">
+                                    {{ $relatedProduct->product_name }}
+                                </h3>
+                                @if ($relatedProduct->product_type == 'Rental')
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <!-- Repeat this button block for each rental period -->
+                                        @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
+                                            <a href="{{ route('front.products.details', ['categorySlug' => $category->slug, 'slug' => $relatedProduct->slug, 'productType' => $type]) }}"
+                                                class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
+                                                @if ($relatedProduct->isRentalOnSale($type))
+                                                    <span
+                                                        class="absolute left-[-25px] top-2 w-[100px] h-6 bg-white text-yellow-400 font-bold text-xs flex items-center justify-center"
+                                                        style="transform: rotate(-50deg); z-index: 20; box-shadow: 0 4px 6px rgba(0,0,0,0.10); letter-spacing: 0.5px;">
+                                                        Sale
+                                                    </span>
+                                                @endif
+                                                <span class="z-30">{{ ucfirst($type) }}</span>
+                                                <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProduct->getRentalPrice($type)) }}</span>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <!-- Retail Product (centered button, no inline styles) -->
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <a href="{{ route('front.products.details', ['categorySlug' => $category->slug, 'slug' => $relatedProduct->slug, 'productType' => 'retail']) }}"
+                                            class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
+                                            @if ($relatedProduct->isRetailOnSale())
+                                                <span
+                                                    class="absolute left-[-25px] top-2 w-[100px] h-6 bg-white text-yellow-400 font-bold text-xs flex items-center justify-center"
+                                                    style="transform: rotate(-50deg); z-index: 20; box-shadow: 0 4px 6px rgba(0,0,0,0.10); letter-spacing: 0.5px;">
+                                                    Sale
+                                                </span>
+                                            @endif
+                                            <span class="z-30">Retail</span>
+                                            <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProduct->getRetailPrice()) }}</span>
+                                        </a>
+                                    </div>
+                                @endif
+                                <h6 class="text-[12px] mt-2 text-black text-center ">Select an Option to Learn More or
+                                    Reserve Today</h6>
                             </div>
+
                         </div>
                     </div>
                 @endforeach
@@ -562,150 +527,62 @@
 @endsection
 
 @push('js')
-    <!-- ===========================================
-                                                                                 Section: Set Global Date Format
-                                                                                 Purpose: Set JS-accessible date format from Laravel config
-                                                                            ========================================== -->
     <script>
-        window.appDateFormat = "{{ config('app.date.date_format') }}";
-    </script>
+        // <!-- ===========================================
+        //         Section: Set Delivery Fee Constants
+        //         Purpose: JS-side variables for delivery fee calculations
+        // ========================================== -->
+        const STANDARD_DELIVERY_FEE = {{ $productDetail->standard_delivery_fee ?? 0 }};
+        const EXTENDED_DELIVERY_FEE = {{ $productDetail->extended_delivery_fee ?? 0 }};
 
+        document.addEventListener('DOMContentLoaded', function() {
+            const scheduleStartDateInput = document.getElementById('scheduleStartDateInput');
+            const openDatePicker = document.getElementById('openDatePicker');
+            const selectedDateText = document.getElementById('selectedDateText');
+            if (!scheduleStartDateInput || !openDatePicker || !selectedDateText) return;
 
+            // *** Ensure the button does NOT have focus ***
+            openDatePicker.blur();
 
-
-    <!-- ===========================================
-                                                                                 Section: Custom Date Picker
-                                                                                 Purpose: Manages calendar popover for scheduling start date
-                                                                            ========================================== -->
-    <script>
-        // Date picker logic
-        const openBtn = document.getElementById("openDatePicker");
-        const selectedText = document.getElementById("selectedDateText");
-        const datePicker = document.getElementById("datePicker");
-        const monthYear = document.getElementById("monthYear");
-        const daysGrid = document.getElementById("daysGrid");
-        const prevMonthBtn = document.getElementById("prevMonth");
-        const nextMonthBtn = document.getElementById("nextMonth");
-        const dateInput = document.getElementById("dateInput");
-
-        if (
-            openBtn &&
-            selectedText &&
-            datePicker &&
-            monthYear &&
-            daysGrid &&
-            prevMonthBtn &&
-            nextMonthBtn &&
-            dateInput
-        ) {
-            let currentDate = new Date();
-
-            openBtn.addEventListener("click", () => {
-                datePicker.classList.toggle("hidden");
-                if (!datePicker.classList.contains("hidden")) {
-                    renderCalendar(currentDate);
-                }
-            });
-
-            document.addEventListener("click", (e) => {
-                if (
-                    !datePicker.contains(e.target) &&
-                    e.target !== openBtn &&
-                    !openBtn.contains(e.target)
-                ) {
-                    datePicker.classList.add("hidden");
-                }
-            });
-
-            prevMonthBtn.addEventListener("click", () => {
-                currentDate.setMonth(currentDate.getMonth() - 1);
-                renderCalendar(currentDate);
-            });
-
-            nextMonthBtn.addEventListener("click", () => {
-                currentDate.setMonth(currentDate.getMonth() + 1);
-                renderCalendar(currentDate);
-            });
-
-            window.renderCalendar = function renderCalendar(date) {
-                const year = date.getFullYear();
-                const month = date.getMonth();
-
-                monthYear.textContent = date.toLocaleString("default", {
-                    month: "long",
-                    year: "numeric",
-                });
-                daysGrid.innerHTML = "";
-
-                const firstDay = new Date(year, month, 1);
-                const lastDay = new Date(year, month + 1, 0);
-                const startDay = firstDay.getDay();
-
-                for (let i = 0; i < startDay; i++) {
-                    daysGrid.innerHTML += "<div></div>";
-                }
-
-                for (let day = 1; day <= lastDay.getDate(); day++) {
-                    const dayEl = document.createElement("button");
-                    dayEl.textContent = day;
-
-                    const thisDate = new Date(year, month, day);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-
-                    if (thisDate < today) {
-                        dayEl.className = "py-1 rounded text-gray-400 cursor-not-allowed";
-                        dayEl.disabled = true;
+            // Init Air Datepicker (no manual show() needed!)
+            const picker = new window.AirDatepicker(scheduleStartDateInput, {
+                locale: window.airDatepickerLocaleEn,
+                timepicker: false,
+                dateFormat: scheduleStartDateInput.dataset.format || 'yyyy-MM-dd',
+                minDate: scheduleStartDateInput.dataset.minDate ? new Date(scheduleStartDateInput.dataset
+                    .minDate) : false,
+                autoClose: false,
+                onSelect({
+                    date,
+                    formattedDate
+                }) {
+                    if (date) {
+                        selectedDateText.textContent = formattedDate;
+                        scheduleStartDateInput.value = formattedDate;
                     } else {
-                        dayEl.className =
-                            "py-1 rounded hover:bg-yellow-500 hover:text-white focus:outline-none";
-                        if (
-                            day === today.getDate() &&
-                            month === today.getMonth() &&
-                            year === today.getFullYear()
-                        ) {
-                            dayEl.classList.add("bg-yellow-100");
-                        }
-
-                        dayEl.addEventListener("click", () => {
-                            const jsFormat = window.appDateFormat || "d/m/Y";
-                            const dayStr = String(day).padStart(2, "0");
-                            const monthStr = String(month + 1).padStart(2, "0");
-                            const yearStr = String(year);
-
-                            let formatted;
-                            switch (jsFormat) {
-                                case 'd/m/Y':
-                                    formatted = `${dayStr}/${monthStr}/${yearStr}`;
-                                    break;
-                                case 'm/d/Y':
-                                    formatted = `${monthStr}/${dayStr}/${yearStr}`;
-                                    break;
-                                case 'Y-m-d':
-                                    formatted = `${yearStr}-${monthStr}-${dayStr}`;
-                                    break;
-                                default:
-                                    formatted = `${dayStr}/${monthStr}/${yearStr}`;
-                            }
-
-                            selectedText.textContent = formatted;
-                            dateInput.value = formatted;
-                            datePicker.classList.add("hidden");
-                        });
+                        selectedDateText.textContent = 'Select Start Date';
+                        scheduleStartDateInput.value = '';
                     }
-                    daysGrid.appendChild(dayEl);
                 }
-            };
-        } else {
-            console.log("Date picker elements not found on this page");
-        }
-    </script>
+            });
 
-    <!-- ===========================================
-                                                                                 Section: Quantity Increment/Decrement
-                                                                                 Purpose: Handles + and - button logic for qty input
-                                                                            ========================================== -->
-    <script>
+            openDatePicker.addEventListener('click', function(e) {
+                e.preventDefault();
+                picker.show();
+            });
+
+
+            // Update label if value exists on load
+            if (scheduleStartDateInput.value) {
+                selectedDateText.textContent = scheduleStartDateInput.value;
+            }
+        });
+
+        // <!-- ===========================================
+        //     Section: Quantity Increment/Decrement
+        //     Purpose: Handles + and - button logic for qty input
+        //     ========================================== -->
+
         window.changeQty = function changeQty(delta) {
             const input = document.getElementById("qty");
             let current = parseInt(input.value) || 1;
@@ -714,14 +591,14 @@
             if (newValue > parseInt(input.max)) newValue = parseInt(input.max);
             input.value = newValue;
         };
-    </script>
 
-    <!-- ===========================================
-                                                                                 Section: Option/Addon Checkbox Modal Confirmation
-                                                                                 Purpose: Prevents accidental unchecking of important add-ons,
-                                                                                          displays a confirmation modal with dynamic messaging.
-                                                                            ========================================== -->
-    <script>
+
+        // <!-- ===========================================
+        //  Section: Option/Addon Checkbox Modal Confirmation
+        //  Purpose: Prevents accidental unchecking of important add-ons,
+        //  displays a confirmation modal with dynamic messaging.
+        // ========================================== -->
+
         // Store checkbox being interacted with
         let currentCheckbox = null;
 
@@ -772,9 +649,9 @@
     </script>
 
     <!-- ===========================================
-                                                                                 Section: Delivery/Pickup Option UI Toggling
-                                                                                 Purpose: Switches between in-store and delivery forms, reveals relevant UI.
-                                                                            ========================================== -->
+                                                            Section: Delivery/Pickup Option UI Toggling
+                                                            Purpose: Switches between in-store and delivery forms, reveals relevant UI.
+                                                            ========================================== -->
     <script>
         window.toggleDeliveryOption = function toggleDeliveryOption(radio) {
             const inStoreDiv = document.getElementById("inStoreDiv");
@@ -857,19 +734,10 @@
     </script>
 
     <!-- ===========================================
-                                                                                 Section: Set Delivery Fee Constants
-                                                                                 Purpose: JS-side variables for delivery fee calculations
-                                                                            ========================================== -->
-    <script>
-        const STANDARD_DELIVERY_FEE = {{ $productDetail->standard_delivery_fee ?? 0 }};
-        const EXTENDED_DELIVERY_FEE = {{ $productDetail->extended_delivery_fee ?? 0 }};
-    </script>
-
-    <!-- ===========================================
-                                                                                 Section: Delivery Fee Calculation
-                                                                                 Purpose: Update delivery fee and delivery_pickup JSON in hidden fields
-                                                                                 Dependencies: jQuery
-                                                                            ========================================== -->
+                                                                Section: Delivery Fee Calculation
+                                                                Purpose: Update delivery fee and delivery_pickup JSON in hidden fields
+                                                                Dependencies: jQuery
+                                                        ========================================== -->
     <script>
         window.addEventListener('DOMContentLoaded', function() {
             if (typeof window.jQuery !== 'undefined') {
@@ -895,7 +763,7 @@
                                 const label = $selected.find('option:selected').data('id');
                                 deliveryDataId = label;
                                 distance_type = 'standard_delivery_fee';
-                                distance_range = @json($standard_delivery_range);
+                                distance_range = @json($standardDeliveryRange);
                             }
                         } else if (deliveryOption === 'dis2') {
                             const $selected = $('#deliveryOption_ext_delivery_fee');
@@ -904,7 +772,7 @@
                                 const label = $selected.find('option:selected').data('id');
                                 deliveryDataId = label;
                                 distance_type = 'extended_delivery_fee';
-                                distance_range = @json($extended_delivery_range);
+                                distance_range = @json($extendedDeliveryRange);
                             }
                         }
 
@@ -929,10 +797,10 @@
     </script>
 
     <!-- ===========================================
-                                                                                 Section: Add To Rental Cart
-                                                                                 Purpose: Main cart processing logic (validation, collect all options, store in localStorage)
-                                                                                 Dependencies: jQuery
-                                                                            ========================================== -->
+                                                                Section: Add To Rental Cart
+                                                                Purpose: Main cart processing logic (validation, collect all options, store in localStorage)
+                                                                Dependencies: jQuery
+                                                        ========================================== -->
     <script>
         window.addEventListener('DOMContentLoaded', function() {
             if (typeof window.jQuery !== 'undefined') {

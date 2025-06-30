@@ -64,10 +64,11 @@
                             {{ $productDetail->product_name ?? 'Product' }}
                         </div>
                         <!-- Main image (with lightbox, initially first image) -->
-                        <a href="{{ $galleryImages[0] }}" data-gallery="product-gallery" id="main-image-link">
+                        <a href="{{ $galleryImages[0] }}" id="main-image-link">
                             <img src="{{ $galleryImages[0] }}" alt="Product Image" id="main-image"
                                 class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" />
                         </a>
+
                         <!-- Zoom icon -->
                         <button type="button" id="zoom-btn"
                             class="absolute bottom-3 right-3 bg-white/80 hover:bg-white rounded-full shadow p-2 transition opacity-0 group-hover:opacity-100 focus:opacity-100">
@@ -77,17 +78,11 @@
                     <!-- Thumbnails -->
                     <div class="flex gap-2 mt-3 px-1">
                         @foreach ($galleryImages as $imgIndex => $imgUrl)
-                            <div class="h-12 w-12 rounded-lg border border-gray-200 overflow-hidden bg-white cursor-pointer flex items-center justify-center
-            {{ $imgIndex === 0 ? 'ring-2 ring-yellow-400' : '' }}"
+                            <div class="h-12 w-12 rounded-lg border border-gray-200 overflow-hidden bg-white cursor-pointer flex items-center justify-center {{ $imgIndex === 0 ? 'ring-2 ring-yellow-400' : '' }}"
                                 data-thumb-index="{{ $imgIndex }}">
                                 <img src="{{ $imgUrl }}" alt="Thumbnail" class="w-full h-full object-contain" />
-                            </div>
-                        @endforeach
-                        <!-- The rest of the gallery for GLightbox, hidden but clickable by JS -->
-                        @foreach ($galleryImages as $imgIndex => $imgUrl)
-                            @if ($imgIndex !== 0)
                                 <a href="{{ $imgUrl }}" data-gallery="product-gallery" class="hidden"></a>
-                            @endif
+                            </div>
                         @endforeach
                     </div>
                 </div>
@@ -568,9 +563,9 @@
 
 @push('js')
     <!-- ===========================================
-                                                                             Section: Set Global Date Format
-                                                                             Purpose: Set JS-accessible date format from Laravel config
-                                                                        ========================================== -->
+                                                                                 Section: Set Global Date Format
+                                                                                 Purpose: Set JS-accessible date format from Laravel config
+                                                                            ========================================== -->
     <script>
         window.appDateFormat = "{{ config('app.date.date_format') }}";
     </script>
@@ -579,9 +574,9 @@
 
 
     <!-- ===========================================
-                                                                             Section: Custom Date Picker
-                                                                             Purpose: Manages calendar popover for scheduling start date
-                                                                        ========================================== -->
+                                                                                 Section: Custom Date Picker
+                                                                                 Purpose: Manages calendar popover for scheduling start date
+                                                                            ========================================== -->
     <script>
         // Date picker logic
         const openBtn = document.getElementById("openDatePicker");
@@ -707,9 +702,9 @@
     </script>
 
     <!-- ===========================================
-                                                                             Section: Quantity Increment/Decrement
-                                                                             Purpose: Handles + and - button logic for qty input
-                                                                        ========================================== -->
+                                                                                 Section: Quantity Increment/Decrement
+                                                                                 Purpose: Handles + and - button logic for qty input
+                                                                            ========================================== -->
     <script>
         window.changeQty = function changeQty(delta) {
             const input = document.getElementById("qty");
@@ -722,10 +717,10 @@
     </script>
 
     <!-- ===========================================
-                                                                             Section: Option/Addon Checkbox Modal Confirmation
-                                                                             Purpose: Prevents accidental unchecking of important add-ons,
-                                                                                      displays a confirmation modal with dynamic messaging.
-                                                                        ========================================== -->
+                                                                                 Section: Option/Addon Checkbox Modal Confirmation
+                                                                                 Purpose: Prevents accidental unchecking of important add-ons,
+                                                                                          displays a confirmation modal with dynamic messaging.
+                                                                            ========================================== -->
     <script>
         // Store checkbox being interacted with
         let currentCheckbox = null;
@@ -777,9 +772,9 @@
     </script>
 
     <!-- ===========================================
-                                                                             Section: Delivery/Pickup Option UI Toggling
-                                                                             Purpose: Switches between in-store and delivery forms, reveals relevant UI.
-                                                                        ========================================== -->
+                                                                                 Section: Delivery/Pickup Option UI Toggling
+                                                                                 Purpose: Switches between in-store and delivery forms, reveals relevant UI.
+                                                                            ========================================== -->
     <script>
         window.toggleDeliveryOption = function toggleDeliveryOption(radio) {
             const inStoreDiv = document.getElementById("inStoreDiv");
@@ -862,19 +857,19 @@
     </script>
 
     <!-- ===========================================
-                                                                             Section: Set Delivery Fee Constants
-                                                                             Purpose: JS-side variables for delivery fee calculations
-                                                                        ========================================== -->
+                                                                                 Section: Set Delivery Fee Constants
+                                                                                 Purpose: JS-side variables for delivery fee calculations
+                                                                            ========================================== -->
     <script>
         const STANDARD_DELIVERY_FEE = {{ $productDetail->standard_delivery_fee ?? 0 }};
         const EXTENDED_DELIVERY_FEE = {{ $productDetail->extended_delivery_fee ?? 0 }};
     </script>
 
     <!-- ===========================================
-                                                                             Section: Delivery Fee Calculation
-                                                                             Purpose: Update delivery fee and delivery_pickup JSON in hidden fields
-                                                                             Dependencies: jQuery
-                                                                        ========================================== -->
+                                                                                 Section: Delivery Fee Calculation
+                                                                                 Purpose: Update delivery fee and delivery_pickup JSON in hidden fields
+                                                                                 Dependencies: jQuery
+                                                                            ========================================== -->
     <script>
         window.addEventListener('DOMContentLoaded', function() {
             if (typeof window.jQuery !== 'undefined') {
@@ -934,10 +929,10 @@
     </script>
 
     <!-- ===========================================
-                                                                             Section: Add To Rental Cart
-                                                                             Purpose: Main cart processing logic (validation, collect all options, store in localStorage)
-                                                                             Dependencies: jQuery
-                                                                        ========================================== -->
+                                                                                 Section: Add To Rental Cart
+                                                                                 Purpose: Main cart processing logic (validation, collect all options, store in localStorage)
+                                                                                 Dependencies: jQuery
+                                                                            ========================================== -->
     <script>
         window.addEventListener('DOMContentLoaded', function() {
             if (typeof window.jQuery !== 'undefined') {

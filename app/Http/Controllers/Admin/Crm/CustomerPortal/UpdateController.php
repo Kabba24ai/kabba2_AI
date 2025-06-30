@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
 
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Crm\CustomerPortal\UpdateRequest;
+use App\Http\Requests\Admin\CRM\CustomerPortal\UpdateRequest;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 use Illuminate\Support\Facades\DB;

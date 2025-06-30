@@ -5,6 +5,9 @@ import Sortable from 'sortablejs';
 
 import '../../shared/js/app.js'; // Import the Notyf setup
 import '../../shared/js/notif.js'; // Import the Notyf setup
+// import '../../admin/js/calendar-init.js'; 
+
+import flatpickr from "flatpickr";
 
 // Make Alpine globally available
 Alpine.plugin(persist);
@@ -40,6 +43,8 @@ ckeditorElements.forEach((el) => {
     });
 });
 
+//make flatpicker globally available
+window.flatpickr = flatpickr; 
 
 
 

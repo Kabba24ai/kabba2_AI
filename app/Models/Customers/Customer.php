@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Helpers\ModelHelper;
 use App\Models\Orders\Order;
 use Carbon\Carbon;
+use App\Models\Global\Media;
 
 class Customer extends Model
 {
@@ -29,6 +30,9 @@ class Customer extends Model
         'tax_document_valid_until',
         'is_credit_account', // true of false
         'credit_limit',
+        'account_approved_by',
+        'account_application_completed',
+        'tax_status_approved_by'
     ];
 
     protected $appends = [
@@ -83,8 +87,33 @@ class Customer extends Model
         return true;
     }
 
+    public function media()
+    {
+        return $this->belongsTo(Media::class, 'tax_document_media_id', 'id');
+    }
+
     public function orders()
     {
         return $this->morphMany(Order::class, 'created_by');
+    }
+
+    public function getTotalOrderAmountAttribute()
+    {
+        return $this->orders()->sum('grand_total');
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(CustomerAddress::class);
+    }
+
+    public function billingAddress()
+    {
+        return $this->hasOne(CustomerAddress::class)->where('type', 'Billing');
+    }
+
+    public function shippingAddress()
+    {
+        return $this->hasOne(CustomerAddress::class)->where('type', 'Shipping');
     }
 }

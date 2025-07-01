@@ -11,6 +11,8 @@ use App\Models\Customers\CustomerAddress;
 
 // Request
 use App\Http\Requests\Admin\CRM\CustomerPortal\StoreRequest;
+use Illuminate\Support\Carbon;
+use App\Helpers\CustomHelper;
 
 // Models
 
@@ -36,20 +38,36 @@ class StoreController extends Controller
                 'last_name' => $validated['last_name'] ?? null,
                 'company_name' => $validated['company_name'] ?? null,
                 'email' => $validated['email'] ?? null,
-                'phone' => $validated['phone'] ?? null,
-                'company_phone' => $validated['company_phone'] ?? null, // Added company_phone
+              
+'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
+'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
+                'company_website' => $validated['company_website'] ?? null, // Added company_website
+
+
+
                 'dob' => $validated['dob'] ?? null,
                 'status' => $validated['status'] ?? 'Active',
                 'is_guest' => $validated['is_guest'] ?? false,
                 'tax_status' => $validated['tax_status'] ?? 'Taxable',
                 'tax_document_media_id' => $validated['tax_document_media_id'] ?? null,
-                'tax_document_upload_date' => $validated['tax_document_upload_date'] ?? null,
-                'tax_document_valid_until' => $validated['tax_document_valid_until'] ?? null,
+                'tax_document_upload_date' => !empty($validated['tax_document_upload_date'])
+                    ? Carbon::createFromFormat('m/d/Y', $validated['tax_document_upload_date'])->format('Y-m-d')
+                    : null,
+
+                'tax_document_valid_until' => !empty($validated['tax_document_valid_until'])
+                    ? Carbon::createFromFormat('m/d/Y', $validated['tax_document_valid_until'])->format('Y-m-d')
+                    : null,
+
+                    'tax_status_approved_by' => $validated['tax_status_approved_by'] ?? null,
+                    'account_approved_by' => $validated['account_approved_by'] ?? null,
+
                 'is_credit_account' => $validated['is_credit_account'] ?? false,
                 'credit_limit' => $validated['credit_limit'] ?? null,
-                'account_application_completed' => $validated['applicationcom'] ?? null,
+                'account_application_completed' => !empty($validated['account_application_completed'])
+                ? Carbon::createFromFormat('m/d/Y', $validated['account_application_completed'])->format('Y-m-d')
+                : null,
                 'tax_status' => $validated['tax_status'] ?? null,
-                'tax_document_upload_date' => $validated['tax_document_upload_date'] ?? null,
+             
             ];
 
             // Create the customer
@@ -104,7 +122,7 @@ class StoreController extends Controller
             DB::rollBack();
             report($e);
 
-            flash('Something went wrong while creating the customer.')->error();
+            flash('Something went wrong while creating the customer.'.$e)->error();
 
             return redirect()
                 ->back()

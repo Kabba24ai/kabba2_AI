@@ -9,7 +9,7 @@ use App\Helpers\ModelHelper;
 use App\Models\Orders\Order;
 use Carbon\Carbon;
 use App\Models\Global\Media;
-
+use App\Models\Iam\Personnel\User;
 class Customer extends Model
 {
     protected $fillable = [
@@ -17,6 +17,10 @@ class Customer extends Model
         'first_name',
         'last_name',
         'company_name',
+
+        'company_phone',
+        'company_website',
+
         'email',
         'password',
         'media_id',
@@ -56,6 +60,16 @@ class Customer extends Model
     {
         return $this->first_name . ' ' . $this->last_name;
     }
+
+    public function accountApprovedBy()
+{
+    return $this->belongsTo(User::class, 'account_approved_by');
+}
+
+public function taxStatusApprovedBy()
+{
+    return $this->belongsTo(User::class, 'tax_status_approved_by');
+}
 
     /**
      * Determine if the customer's tax-exempt status is currently valid.

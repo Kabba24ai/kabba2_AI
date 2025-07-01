@@ -238,7 +238,7 @@
                     <li x-data="{ open: {{ $crmActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $crmActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-o-cog-6-tooth  class="w-6 h-6" />
+                            <x-heroicon-o-inbox class="w-6 h-6" />
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">CRM</span>
                             <span class="menu-item-arrow"
                                 :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
@@ -265,7 +265,7 @@
                                     <a href="{{ route('admin.crm.customer_portal.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.crm.customer_portal.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-inbox-stack class="h-5 w-5" /> Customers
+                                        <x-heroicon-o-users class="w-6 h-6" /> Customers
                                     </a>
                                 </li>
                                

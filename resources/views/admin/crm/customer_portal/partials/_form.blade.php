@@ -1,9 +1,8 @@
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-gray-50">
         <!-- Personal Information -->
         <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
             <h2 class="text-lg font-semibold mb-4">Personal Information</h2>
-
 
                  <!-- First Name  -->
                 <div class="mb-4">
@@ -47,27 +46,7 @@
                     @enderror
                 </div>
 
-                <!-- Phone -->
-                <!-- <div class="mb-4">
-                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-
-                    {!! html()->text('phone', old('phone', $customer->phone ?? ''))->class([
-                        'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500',
-                        'border-red-500' => $errors->has('phone'),
-                        'border-gray-300' => !$errors->has('phone'),
-                    ])->attributes([
-                        'maxlength' => 15,
-                        'data-parsley-type' => 'digits',
-                        'data-parsley-maxlength' => 15,
-                        'placeholder' => 'Enter phone number',
-                        'id' => 'phone',
-                        'autocomplete' => 'off',
-                    ])->required() !!}
-
-                    @error('phone')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div> -->
+                
                 <div class="mb-4">
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
 
@@ -77,10 +56,15 @@
                         'border-gray-300' => !$errors->has('email'),
                     ])->attributes([
                         'maxlength' => 100,
-                        'data-parsley-maxlength' => 100,
-                        'placeholder' => 'Enter Email-Id',
+                        'placeholder' => 'Enter Email',
                         'id' => 'email',
                         'autocomplete' => 'off',
+                        'data-parsley-type' => 'email',
+                        'data-parsley-trigger' => 'change',
+                        'data-parsley-remote' => route('admin.crm.customer_portal.check.email.unique', [
+                            'except' => $customer->id ?? null, 
+                        ]),
+                        'data-parsley-remote-message' => 'This email is already taken by another user.',
                     ])->required() !!}
 
                     @error('email')
@@ -91,7 +75,7 @@
                 <div class="mb-4">
                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                     {!! html()->text('phone', old('phone', $customer->phone ?? ''))->class([
-                        'phone-input w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                        'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                         'border-red-500' => $errors->has('phone'),
                         'border-gray-300' => !$errors->has('phone'),
                     ])->attributes([
@@ -155,23 +139,14 @@
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
-            @php
-
-            if(isset($customer)){
-                $companyPhone = $customer->billingAddress->phone
-                    ?? $customer->shippingAddress->phone
-                    ?? optional($customer->addresses->first())->phone
-                    ?? '';
-            }
-            
-            @endphp
+           
 
             {{-- Company Phone --}}
          
             <div class="mb-4">
                 <label for="company_phone" class="block text-sm font-medium text-gray-700 mb-1">Company Phone</label>
-                {!! html()->text('company_phone', old('company_phone', $companyPhone ?? ''))->class([
-                    'phone-input w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                {!! html()->text('company_phone', old('company_phone', $customer->company_phone ?? ''))->class([
+                    'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                     'border-red-500' => $errors->has('company_phone'),
                     'border-gray-300' => !$errors->has('company_phone'),
                 ])->attributes([
@@ -188,21 +163,21 @@
             </div>
             <!-- {{-- Website --}} -->
             <div>
-                <label for="website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                {!! html()->text('website', old('website', isset($customer) ? $customer->addresses->first()->website ?? '' : ''))->class([
+                <label for="company_website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                {!! html()->text('company_website', old('company_website', isset($customer) ? $customer->company_website ?? '' : ''))->class([
                     'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
-                    'border-red-500' => $errors->has('website'),
-                    'border-gray-300' => !$errors->has('website'),
+                    'border-red-500' => $errors->has('company_website'),
+                    'border-gray-300' => !$errors->has('company_website'),
                 ])->attributes([
                     'maxlength' => 255,
                     'data-parsley-type' => 'url',
                     'placeholder' => 'https://example.com',
-                    'id' => 'website',
+                    'id' => 'company_website',
                     'autocomplete' => 'url',
                 ]) !!}
 
 
-                @error('website')
+                @error('company_website')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -211,14 +186,156 @@
        <!-- Addresses -->
         <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
             <h2 class="text-lg font-semibold mb-4">Addresses</h2>
+            <div x-data="{ showAddressModal: false }">
+                <a href="javascript:void(0)"
+                @click="showAddressModal = true"
+                class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                    + Add Addresses
+                </a>
+ 
+                <!-- Modal -->
+                <div
+                    x-show="showAddressModal"
+                    x-transition
+                    x-cloak
+                    class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+                    <div
+                        @click.away="showAddressModal = false"
+                        class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-xl p-6 space-y-5 border border-gray-200 dark:border-gray-700" >
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Add Address</h3>
+                            <button @click="showAddressModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                        </div>
+            
+                        <!-- Address form goes here -->
+                        
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Full name</label>
+                                    <input type="text" placeholder="Enter name"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Phone</label>
+                                    <input type="text" placeholder="Enter phone"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Zip code</label>
+                                    <input type="text" placeholder="Enter zip code"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Email</label>
+                                    <input type="email" placeholder="Enter email"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
+                                </div>
+                            </div>
 
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Address</label>
+                                <input type="text" placeholder="Enter address"
+                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">State</label>
+                                    <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
+                                            <option value="">Select State</option>
+                                            <option value="NY">New York</option>
+                                            <option value="CA">California</option>
+                                            <option value="TX">Texas</option>
+                                            <option value="FL">Florida</option>
+                                            <option value="IL">Illinois</option>
+                                            <!-- Add more states as needed -->
+                                        </select>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">City</label>
+                                    <input type="text" placeholder="Enter city"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
+                                </div>
+                            </div>
+
+            
+                            <!-- Add more fields as needed -->
+            
+                            <div class="flex justify-end gap-2">
+                                <button type="button" @click="showAddressModal = false"
+                                    class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
+                                <button type="submit"
+                                    class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-blue-700">Add </button>
+                            </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg bg-white dark:bg-gray-900 mt-6">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                    <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                        <tr>
+                            <th class="px-4 py-2">#</th>
+                            <th class="px-4 py-2">Address</th>
+                            <th class="px-4 py-2">Zip Code</th>
+                            <th class="px-4 py-2">Country</th>
+                            <th class="px-4 py-2">State</th>
+                            <th class="px-4 py-2">City</th>
+                            <th class="px-4 py-2 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="">
+                        <tr class="">
+                            <td class="px-4 py-2">1</td>
+                            <td class="px-4 py-2">County Road</td>
+                            <td class="px-4 py-2">333333</td>
+                            <td class="px-4 py-2">US</td>
+                            <td class="px-4 py-2">Texas</td>
+                            <td class="px-4 py-2">Pearland</td>
+                            <td class="px-4 py-2 text-center space-x-2">
+                                <a href="#">
+                                    <button class="text-green-600 hover:text-green-800" title="Edit">
+                                        <x-heroicon-o-pencil class="w-5 h-5" />
+                                    </button>
+                                </a>
+                                <a href="#">
+                                    <button class="text-red-600 hover:text-red-800" title="Delete">
+                                        <x-heroicon-o-trash class="w-5 h-5" />
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-2">2</td>
+                            <td class="px-4 py-2">County Road</td>
+                            <td class="px-4 py-2">333333</td>
+                            <td class="px-4 py-2">US</td>
+                            <td class="px-4 py-2">Texas</td>
+                            <td class="px-4 py-2">Pearland</td>
+                            <td class="px-4 py-2 text-center space-x-2">
+                               <a href="#">
+                                    <button class="text-green-600 hover:text-green-800" title="Edit">
+                                        <x-heroicon-o-pencil class="w-5 h-5" />
+                                    </button>
+                                </a>
+                                <a href="#">
+                                    <button class="text-red-600 hover:text-red-800" title="Delete">
+                                        <x-heroicon-o-trash class="w-5 h-5" />
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <!--  Billing Address  -->
-            <div class="mb-4">
+            <!-- <div class="mb-4">
                 {{ html()->label('Billing Address', 'billing_address')->class('block text-sm font-medium text-gray-700 mb-1') }}
 
                 {{ html()->textarea('billing_address', old('billing_address', isset($customer->billingAddress) ? $customer->billingAddress->address : ''))->id('billing_address')->attributes([
                     'rows' => 2,
-                    'maxlength' => 255,
+                    'maxlength' => 255, 
                     'data-parsley-maxlength' => 255,
                     'placeholder' => 'Enter billing address',
                 ])->class([
@@ -230,10 +347,10 @@
                 @error('billing_address')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-            </div>
+            </div>-->
 
             <!--  Delivery Address  -->
-            <div>
+            <!--<div>
                 {{ html()->label('Delivery Address', 'delivery_address')->class('block text-sm font-medium text-gray-700 mb-1') }}
 
                 {{ html()->textarea('delivery_address', old('delivery_address', $customer->shippingAddress->address ?? ''))->id('delivery_address')->attributes([
@@ -250,12 +367,12 @@
                 @error('delivery_address')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-            </div>
+            </div> -->
         </div>
 
 </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-gray-50 mt-6">
 
         <!-- Customer Account -->
         <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
@@ -279,7 +396,7 @@
                             'border-red-500' => $errors->has('is_credit_account'),
                             'border-gray-300' => !$errors->has('is_credit_account'),
                         ])
-                        ->required()
+                        
                     !!}
 
                     @error('is_credit_account')
@@ -288,40 +405,45 @@
 
             </div>
 
-
-
             <div class="w-full">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Approved By</label>
-                
-                {!! html()->text('approved_by', old('approved_by', $customer->approved_by ?? ''))->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm   ',
-                    'border-red-500' => $errors->has('approved_by'),
-                    'border-gray-300' => !$errors->has('approved_by'),
-                ])->attributes([
-                    'maxlength' => 200,
-                    'data-parsley-maxlength' => 200,
-                    'id' => 'approved_by',
-                ]) !!}
+                <label for="account_approved_by" class="block text-sm font-medium text-gray-700 mb-1">Approved By</label>
 
-                @error('approved_by')
+                {!! html()
+                    ->select(
+                        'account_approved_by',
+                        $admins->mapWithKeys(fn($user) => [$user->id => $user->full_name])->toArray(),
+                        old('account_approved_by', $customer->account_approved_by ?? '')
+                    )
+                    ->id('account_approved_by')
+                    ->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                        'border-red-500' => $errors->has('account_approved_by'),
+                        'border-gray-300' => !$errors->has('account_approved_by'),
+                    ])
+                    ->placeholder('Select approver')
+                    
+                !!}
+
+                @error('account_approved_by')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-
-
             </div>
-            
+
+           
             </div>
 
             <!-- Row 2: Credit Limit & Application Completed -->
             <div class="flex flex-col md:flex-row gap-4">
+
+
             <div class="w-full">
                 
-            <label class="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
 
-               
-                {!! html()->text('credit_limit', old('credit_limit', $customer->credit_limit ?? ''))->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm  bg-gray-100 ',
-                    'border-red-500' => $errors->has('credit_limit'),
+                
+                    {!! html()->text('credit_limit', old('credit_limit', $customer->credit_limit ?? ''))->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm  bg-gray-100 ',
+                        'border-red-500' => $errors->has('credit_limit'),
                     'border-gray-300' => !$errors->has('credit_limit'),
                 ])->attributes([
                     'maxlength' => 200,
@@ -339,23 +461,40 @@
             <div class="w-full">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Application Completed</label>
 
-                {!! html()->text('applicationcom', old('applicationcom', $customer->applicationcom ?? ''))->class([
-                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white',
-                        'border-red-500' => $errors->has('applicationcom'),
-                        'border-gray-300' => !$errors->has('applicationcom'),
+                    {!! html()->text('account_application_completed', old('account_application_completed', $customer->account_application_completed ?? ''))->class([
+                        'w-full border datepicker unded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white',
+                        'border-red-500' => $errors->has('account_application_completed'),
+                        'border-gray-300' => !$errors->has('account_application_completed'),
                     ])->attributes([
-                        'id' => 'applicationcom',
+                        'id' => 'account_application_completed',
                         'placeholder' => 'MM-DD-YYYY',
                         'autocomplete' => 'off',
                     ]) !!}
 
-                    @error('applicationcom')
+                    @error('account_application_completed')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
 
 
             </div>
+            
             </div>
+
+            <!-- Row 3 : Status :-Good Standing , Overdue , Bad Debt , Blacklisted   -->
+            <div class="flex flex-col md:flex-row gap-4">
+
+                        <div class="w-full">
+                            <span class="inline-block rounded-full bg-green-100 text-green-800 text-sm font-semibold px-2 py-1">
+                            Good Standing
+                        </span>
+            </div>
+
+
+
+
+
+                    </div>
+
         </div>
 
         <!-- Tax Exempt -->
@@ -386,24 +525,30 @@
                     @enderror
 
             </div>
+
+           
             <div class="w-full">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Approved By</label>
+                <label for="tax_status_approved_by" class="block text-sm font-medium text-gray-700 mb-1">Approved By</label>
 
-                {!! html()->text('approved_by', old('approved_by', $customer->approved_by ?? ''))->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
-                    'border-red-500' => $errors->has('approved_by'),
-                    'border-gray-300' => !$errors->has('approved_by'),
-                ])->attributes([
-                    'maxlength' => 200,
-                    'data-parsley-maxlength' => 200,
-                    'id' => 'approved_by',
-                ]) !!}
+                {!! html()
+                    ->select(
+                        'tax_status_approved_by',
+                        $admins->mapWithKeys(fn($user) => [$user->id => $user->full_name])->toArray(),
+                        old('tax_status_approved_by', $customer->tax_status_approved_by ?? '')
+                    )
+                    ->id('tax_status_approved_by')
+                    ->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                        'border-red-500' => $errors->has('tax_status_approved_by'),
+                        'border-gray-300' => !$errors->has('tax_status_approved_by'),
+                    ])
+                    ->placeholder('Select approver')
+                    
+                !!}
 
-                @error('approved_by')
+                @error('tax_status_approved_by')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-
-
             </div>
             </div>
 
@@ -413,8 +558,8 @@
                 <div class="w-full">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Upload Date</label>
 
-                    {!! html()->date('tax_document_upload_date', old('tax_document_upload_date', $customer->tax_document_upload_date ?? null))->class([
-                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white',
+                    {!! html()->text('tax_document_upload_date', old('tax_document_upload_date', $customer->tax_document_upload_date ?? null))->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker',
                         'border-red-500' => $errors->has('tax_document_upload_date'),
                         'border-gray-300' => !$errors->has('tax_document_upload_date'),
                     ])->attributes([
@@ -431,8 +576,8 @@
                 <div class="w-full">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
 
-                    {!! html()->date('tax_document_valid_until', old('tax_document_valid_until', $customer->tax_document_valid_until ?? null))->class([
-                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white',
+                    {!! html()->text('tax_document_valid_until', old('tax_document_valid_until', $customer->tax_document_valid_until ?? null))->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker',
                         'border-red-500' => $errors->has('tax_document_valid_until'),
                         'border-gray-300' => !$errors->has('tax_document_valid_until'),
                     ])->attributes([
@@ -445,7 +590,7 @@
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
-        </div>
+            </div>
 
         </div>
 
@@ -472,23 +617,23 @@
            
 
 
+            @isset($customer->tax_document_upload_date)
             <div class="flex items-center justify-between bg-gray-50 rounded-md py-2 mb-4">
                 <div>
-                    @isset($customer->tax_document_upload_date)
-
                     <p class="text-sm font-medium text-gray-800"> {{$customer->media->original_file_name}}</p>
-                    <p class="text-xs text-gray-500"> Uploaded: {{ \Carbon\Carbon::parse($customer->tax_document_upload_date)->format(config('app.date.date_format')) }}
+                    <p class="text-xs text-gray-500"> Uploaded: {{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) }}
                     </p>
-                    @endisset
+                    
                 </div>
                 <div class="flex gap-2">
-                 
+                <a href="{{ !empty($customer) && $customer->media ? $customer->media->getUrl() : 'javascript:void(0)' }}" target="_blank">
+
                     <svg class="w-5 h-5 text-gray-600 hover:text-blue-600 cursor-pointer" fill="none" stroke="currentColor"
                     stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
                     <circle cx="12" cy="12" r="3" />
                     </svg>
-                  
+                    </a>
                     <svg class="w-5 h-5 text-gray-600 hover:text-red-600 cursor-pointer" fill="none" stroke="currentColor"
                         stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6" />
@@ -496,6 +641,7 @@
                     </svg>
                 </div>
             </div>
+             @endisset
 {!! html()->file('tax_document')->class([
                 'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                 'border-red-500' => $errors->has('tax_document'),
@@ -507,8 +653,9 @@
     
             
             @endif 
+            @isset($customer->tax_document_upload_date)
 
-            <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex flex-col md:flex-row gap-4 mt-3 mb-3">
                 <div class="w-full">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 </div>
@@ -527,10 +674,11 @@
                     Reject
                 </button>
             </div>
+            @endisset
         </div>
     </div>
 
-<div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm overflow-x-auto">
+<div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm overflow-x-auto mt-6">
   <h2 class="text-lg font-semibold text-gray-900 mb-4">Order History (Read Only)</h2>
 
   <table class="min-w-full text-sm text-left">
@@ -562,95 +710,37 @@
 </div>
 @push('js')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Function to format phone number
-    function formatPhoneNumber(value) {
-        const digits = value.replace(/\D/g, ''); // Remove all non-digits
-        
-        if (digits.length >= 6) {
-            return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-        } else if (digits.length >= 3) {
-            return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-        } else if (digits.length > 0) {
-            return `(${digits}`;
-        }
-        return '';
-    }
-    
-    // Function to handle phone input formatting
-    function initPhoneInput(input) {
-        // Format phone number as user types
-        input.addEventListener('input', function(e) {
-            const cursorPosition = e.target.selectionStart;
-            const oldValue = e.target.value;
-            const newValue = formatPhoneNumber(oldValue);
-            
-            e.target.value = newValue;
-            
-            // Maintain cursor position
-            if (newValue.length >= oldValue.length) {
-                e.target.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
-            } else {
-                e.target.setSelectionRange(cursorPosition, cursorPosition);
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInputs = document.querySelectorAll('input.datepicker');
+
+    const jsFormat = @json(config('app.date.js_date_format'));
+    dateInputs.forEach(input => {
+        new AirDatepicker(input, {
+            autoClose: true,
+            dateFormat: jsFormat,
+            minDate: new Date(),
+            locale: {
+                days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                daysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                months: [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ],
+                monthsShort: [
+                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                ],
+                today: 'Today',
+                clear: 'Clear',
+                dateFormat: jsFormat,
+                timeFormat: 'hh:mm aa',
+                firstDay: 0
             }
         });
-        
-        // Prevent non-numeric input
-        input.addEventListener('keydown', function(e) {
-            // Allow: backspace, delete, tab, escape, enter
-            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                (e.keyCode === 65 && e.ctrlKey === true) ||
-                (e.keyCode === 67 && e.ctrlKey === true) ||
-                (e.keyCode === 86 && e.ctrlKey === true) ||
-                (e.keyCode === 88 && e.ctrlKey === true) ||
-                // Allow: home, end, left, right, down, up
-                (e.keyCode >= 35 && e.keyCode <= 40)) {
-                return;
-            }
-            // Ensure that it is a number and stop the keypress
-            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-                e.preventDefault();
-            }
-        });
-        
-        // Handle paste events
-        input.addEventListener('paste', function(e) {
-            setTimeout(function() {
-                e.target.value = formatPhoneNumber(e.target.value);
-            }, 1);
-        });
-    }
-    
-    // Initialize all phone inputs
-    const phoneInputs = document.querySelectorAll('.phone-input');
-    phoneInputs.forEach(function(input) {
-        initPhoneInput(input);
     });
 });
-document.addEventListener('DOMContentLoaded', function () {
-    flatpickr("#applicationcom", {
-        dateFormat: "m-d-Y",
-        allowInput: true,
-        minDate: "today",
-        defaultDate: null,
-    });
-});
-document.addEventListener('DOMContentLoaded', function () {
-    flatpickr("#tax_document_upload_date", {
-        dateFormat: "m-d-Y",
-        allowInput: true,
-        minDate: "today",
-        defaultDate: null,
-    });
-});
-document.addEventListener('DOMContentLoaded', function () {
-    flatpickr("#tax_document_valid_until", {
-        dateFormat: "m-d-Y",
-        allowInput: true,
-        minDate: "today",
-        defaultDate: null,
-    });
-});
+
 </script>
 @endpush

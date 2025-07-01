@@ -3,30 +3,29 @@
 namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
-
 // Models
 use App\Models\Customers\Customer;
-use App\Models\Iam\Personnel\User;
 
-class EditController extends Controller
+class ViewController extends Controller
 {
-    /**
-     * Show the form for editing the specified product option.
+    
+     /**
+     * Show the form for view the specified product option.
      *
      * @param string $unique_id
      * @return View
      */
     public function __invoke(string $unique_id): View
     {
-       
-        $customer = Customer::with('orders','addresses', 'billingAddress', 'shippingAddress','media')
+        
+        $customer = Customer::with('orders','accountApprovedBy', 'taxStatusApprovedBy' , 'addresses', 'billingAddress', 'shippingAddress','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();
-        $admins = User::get();
-        return view('admin.crm.customer_portal.edit', [
+
+        return view('admin.crm.customer_portal.view', [
             'customer' => $customer,
-            'admins' => $admins ,
         ]);
     }
 }

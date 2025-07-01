@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
-
+// Models
+use App\Models\Iam\Personnel\User;
 
 class CreateController extends Controller
 {
@@ -17,9 +18,10 @@ class CreateController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function __invoke(Request $request)
-    {
-       
-        return view('admin.crm.customer_portal.create');
-    }
+{
+    $admins = User::get();
+
+    return view('admin.crm.customer_portal.create', compact('admins'));
+}
     
 }

@@ -28,7 +28,7 @@
 
                         @include('admin.crm.customer_portal.partials._form')
 
-                        <div class="flex justify-center mt-8 space-x-4">
+                        <div class="flex flex-wrap gap-y-3 gap-x-2 md:gap-x-0 md:gap-y-0 justify-center mt-8 md:space-x-4">
                         <!-- Save As Dropdown -->
                         {{-- <div x-data="{ open: false }" class="relative flex items-center">
                             <button type="button" @click="open = !open"

@@ -21,7 +21,7 @@
                 <td class="px-4 py-3">
                {{$customer->company_name }}
                
-            <a href="{{ optional($customer->addresses->first())->website }}" target="_blank">
+            <a href="{{ $customer->company_website ?? '#' }}" target="_blank">
                 <div class="text-sm text-gray-500 flex items-center gap-1">
                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
                     viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -40,21 +40,25 @@
                     <path
                         d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.2 19.8a19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.08 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.4 12.4 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.4 12.4 0 0 0 2.81.7 2 2 0 0 1 1.81 2z" />
                     </svg>
-                    <span> {{$customer->phone }} </span>
+                    <span>         {{ \App\Helpers\CustomHelper::formatPhone($customer->phone ?? '') ?: 'N/A' }}
+                     </span>
                 </div>
-                <div class="text-xs text-gray-500">Company:     Company: {{ optional($customer->addresses->first())->phone ?? 'N/A' }}</div>
+                <div class="text-xs text-gray-500">Company:         {{ \App\Helpers\CustomHelper::formatPhone($customer->company_phone ?? '') ?: 'N/A' }}
+                </div>
                 </td>
                 @php
-                $status = $customer->status;
+                $status = $customer->customer_account_status ?? 'Good Standing';
 
                 $statusStyles = [
-                    'Active'   => ['label' => 'Active', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
-                    'Inactive' => ['label' => 'Inactive',      'bg' => 'bg-red-100',   'text' => 'text-red-800'],
-                    'Archived' => ['label' => 'Archived',   'bg' => 'bg-black',     'text' => 'text-white'],
+                    'Good Standing' => ['label' => 'Good Standing', 'bg' => 'bg-green-100',  'text' => 'text-green-800'],
+                    'Overdue'       => ['label' => 'Overdue',       'bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
+                    'Bad Debt'      => ['label' => 'Bad Debt',      'bg' => 'bg-red-100',    'text' => 'text-red-800'],
+                    'Blacklisted'   => ['label' => 'Blacklisted',   'bg' => 'bg-gray-800',   'text' => 'text-white'],
                 ];
 
                 $style = $statusStyles[$status] ?? ['label' => $status, 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'];
-               @endphp
+            @endphp
+
 
             <td class="px-4 py-3">
                 <span class="inline-block rounded-full {{ $style['bg'] }} {{ $style['text'] }} px-2 py-0.5 text-xs font-medium">
@@ -69,9 +73,15 @@
                 {{ \App\Helpers\CustomHelper::formatCurrency($customer->total_order_amount) }}
                 </td>
                 <td class="px-4 py-3 space-x-2">
+                   <a href="{{ route('admin.crm.customer_portal.view', $customer->unique_id) }}">
+
                     <button class="text-blue-600 hover:text-blue-800" title="View">
                         <x-heroicon-o-eye class="w-5 h-5" />
                     </button>
+
+                    </a>
+
+
                    <a href="{{ route('admin.crm.customer_portal.edit', $customer->unique_id) }}">
                 
                     <button class="text-green-600 hover:text-green-800" title="Edit">

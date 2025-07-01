@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\Crm\CustomerPortal\EditController;
 use App\Http\Controllers\Admin\Crm\CustomerPortal\StoreController;
 use App\Http\Controllers\Admin\Crm\CustomerPortal\UpdateController;
 use App\Http\Controllers\Admin\Crm\CustomerPortal\DeleteController;
+use App\Http\Controllers\Admin\Crm\CustomerPortal\CheckEmailController;
+use App\Http\Controllers\Admin\Crm\CustomerPortal\ViewController;
 
 
 
@@ -22,9 +24,14 @@ Route::prefix('customer_portal')
     Route::get('/create', CreateController::class)->name('create');
     Route::post('/create', StoreController::class);
 
-     // Edit
-     Route::get('/{unique_id}/edit', EditController::class)->name('edit');
-     Route::put('/{unique_id}/edit', UpdateController::class);
+    // View
+    Route::get('/{unique_id}/view', ViewController::class)->name('view');
+
+    // Edit
+    Route::get('/{unique_id}/edit', EditController::class)->name('edit');
+    Route::put('/{unique_id}/edit', UpdateController::class);
+
+    Route::get('/check-email-unique', CheckEmailController::class)->name('check.email.unique');
 
       // Create
     Route::get('/create', CreateController::class)->name('create');

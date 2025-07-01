@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Customers\Customer;
+use App\Helpers\CustomHelper;
+
 // Models
 
 
@@ -28,7 +30,8 @@ class IndexController extends Controller
         }
     
         if ($request->filled('search_phone')) {
-            $query->where('phone', 'like', '%' . $request->search_phone . '%');
+            $searchPhone = CustomHelper::unformatPhone($request->search_phone);
+            $query->where('phone', 'like', '%' . $searchPhone . '%');
         }
     
         $customers = $query->latest()->paginate(10)->withQueryString();

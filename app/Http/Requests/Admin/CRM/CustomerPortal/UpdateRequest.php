@@ -31,16 +31,26 @@ class UpdateRequest extends FormRequest
                 'email'
             ],
             'phone' => ['required', 'string', 'max:30'],
-            //'dob' => ['nullable', 'date'],
+           
             'status' => ['required', Rule::in(['Active', 'Inactive', 'Archived'])],
             'is_guest' => ['boolean'],
             'tax_status' => ['required', Rule::in(['Taxable', 'Exempt'])],
             'tax_document_media_id' => ['nullable'],
             'tax_document_upload_date' => ['nullable', 'date'],
             'tax_document_valid_until' => ['nullable', 'date'],
+
+            
+            'account_approved_by' => ['nullable'],
+            'tax_status_approved_by' => ['nullable'],
+           
+
+
             'is_credit_account' => ['boolean'],
             'credit_limit' => ['nullable'],
-            'website' => ['nullable', 'string', 'max:255'],
+           
+            'company_website' => ['nullable'],
+            'company_phone' => ['nullable'],
+            
             'billing_address' => ['nullable', 'string'],
             'account_application_completed' => ['nullable', 'date'],
         ];

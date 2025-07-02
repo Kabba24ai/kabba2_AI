@@ -145,8 +145,6 @@
                                 data-min-date="{{ now()->format('Y-m-d') }}" class="sr-only" readonly
                                 placeholder="Select Start Date" />
 
-                            <!-- Optional: error message -->
-                            <div id="dateError" class="text-red-600 text-sm hidden mt-1"></div>
 
                             <!-- Show selected date here -->
                             <span id="selectedDateText" class="text-gray-700 text-base">Select Start Date</span>
@@ -162,7 +160,10 @@
                             <button type="button"
                                 class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
                                 onclick="changeQty(1)">+</button>
+
                         </div>
+                        <!-- Optional: error message -->
+                        <div id="dateError" class="text-red-600 text-sm hidden mt-1"></div>
                     </div>
 
                     <div class="my-5">
@@ -292,146 +293,148 @@
                     </div>
 
                     @if ($productDetail->hasOptions())
-                    <div id="optionDiv" class="inline-grid">
-                        <h4 class="font-semibold text-2xl mb-1">Options</h4>
-                        @if ($productDetail->rental_prepaid_fuel !== null)
-                            <!-- Prepaid Fuel -->
-                            <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelCheckbox"
-                                    data-charged="1 Time Max"
-                                    data-keep="{{ $productSettings['prepaid_fuel_approve_label'] }}"
-                                    data-discard="{{ $productSettings['prepaid_fuel_decline_label'] }}"
-                                    data-message="{{ $productSettings['prepaid_fuel_info'] }}" />
-                                <span>Prepaid Fuel
-                                    <span class="font-medium">
-                                        +
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_fuel) }}
-                                    </span>
-                                </span>
-                            </label>
-                        @endif
-
-                        @if ($productDetail->rental_prepaid_cleaning !== null)
-                            <!-- Prepaid Cleaning -->
-                            <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                <input type="checkbox" class="form-checkbox h-4 w-4" checked id="cleanCheckbox"
-                                    data-charged="1 Time Max"
-                                    data-keep="{{ $productSettings['prepaid_cleaning_approve_label'] }}"
-                                    data-discard="{{ $productSettings['prepaid_cleaning_decline_label'] }}"
-                                    data-message="{{ $productSettings['prepaid_cleaning_info'] }}" />
-                                <span>Prepaid Cleaning
-                                    <span class="font-medium">+
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_cleaning) }}
-                                    </span>
-                                </span>
-                            </label>
-                        @endif
-
-                        @if ($productDetail->rental_fuel_gallons !== null)
-                            <!-- Prepaid Fuel Gallons -->
-                            <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelGallonsCheckbox"
-                                    data-charged="1 Time Max"
-                                    data-keep="{{ $productSettings['fuel_gallons_approve_label'] }}"
-                                    data-discard="{{ $productSettings['fuel_gallons_decline_label'] }}"
-                                    data-message="{{ $productSettings['fuel_gallons_info'] }}" />
-                                <span>Fuel Gallons <span class="font-medium">+
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_fuel_gallons) }}</span></span>
-                            </label>
-                        @endif
-
-                        @if ($productDetail->rental_def_gallons !== null)
-                            <!-- DEF Gallons -->
-                            <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                <input type="checkbox" class="form-checkbox h-4 w-4" checked id="defGallonsCheckbox"
-                                    data-charged="1 Time Max"
-                                    data-keep="{{ $productSettings['def_gallons_approve_label'] }}"
-                                    data-discard="{{ $productSettings['def_gallons_decline_label'] }}"
-                                    data-message="{{ $productSettings['def_gallons_info'] }}" />
-                                <span>DEF Gallons <span class="font-medium">+
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_def_gallons) }}</span></span>
-                            </label>
-                        @endif
-
-                        @if (
-                            $productDetail->rental_damage_waiver_daily !== null ||
-                                $productDetail->rental_damage_waiver_weekend !== null ||
-                                $productDetail->rental_damage_waiver_weekly !== null ||
-                                $productDetail->rental_damage_waiver_monthly !== null)
-                            <!-- Damage Waiver -->
-                            <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                <input type="checkbox" class="form-checkbox h-4 w-4" checked id="damageCheckbox"
-                                    data-charged="1 Time Max"
-                                    data-keep="{{ $productSettings['damage_waiver_approve_label'] }}"
-                                    data-discard="{{ $productSettings['damage_waiver_decline_label'] }}"
-                                    data-message="{{ $productSettings['damage_waiver_info'] }}" />
-                                @php
-                                    $damageWaiverPrice = match ($productType) {
-                                        'daily' => App\Helpers\CustomHelper::formatCurrency(
-                                            $productDetail->rental_damage_waiver_daily,
-                                        ),
-                                        'weekend' => App\Helpers\CustomHelper::formatCurrency(
-                                            $productDetail->rental_damage_waiver_weekend,
-                                        ),
-                                        'weekly' => App\Helpers\CustomHelper::formatCurrency(
-                                            $productDetail->rental_damage_waiver_weekly,
-                                        ),
-                                        'monthly' => App\Helpers\CustomHelper::formatCurrency(
-                                            $productDetail->rental_damage_waiver_monthly,
-                                        ),
-                                        default => '-',
-                                    };
-                                @endphp
-
-                                <span>Damage Waiver
-                                    <span class="font-medium">
-                                        + {{ $damageWaiverPrice }}
-                                    </span>
-                                </span>
-                            </label>
-                        @endif
-
-                        @foreach ($productDetail->options as $option)
-                            @if ($option->items->isNotEmpty())
-                                @foreach ($option->items as $item)
-                                    <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                        <input type="checkbox" class="form-checkbox h-4 w-4"
-                                            {{ $item->value == 'Checked' ? 'checked' : '' }}
-                                            id="options_{{ $item->unique_id }}" data-keep="{{ $item->accept_label }}"
-                                            data-discard="{{ $item->decline_label }}"
-                                            data-message="{{ $item->comment }}" data-unique_id="{{ $item->unique_id }}"
-                                            data-charged="{{ $item->charged ?? null }}" />
-                                        <span>{{ $item->label }}
-                                            <span class="font-medium">+
-                                                @php
-                                                    $price = match ($productType) {
-                                                        'daily' => $item->daily,
-                                                        'weekend' => $item->weekend,
-                                                        'weekly' => $item->weekly,
-                                                        'monthly' => $item->monthly,
-                                                        default => $item->retail_price,
-                                                    };
-                                                @endphp
-                                                {{ App\Helpers\CustomHelper::formatCurrency($price) }}
-
-                                                @if (!empty($item->charged) && $item->charged !== null)
-                                                    <small style="display: none;"
-                                                        class="text-gray-500">({{ $item->charged }})</small>
-                                                @endif
-                                            </span>
+                        <div id="optionDiv" class="inline-grid">
+                            <h4 class="font-semibold text-2xl mb-1">Options</h4>
+                            @if ($productDetail->rental_prepaid_fuel !== null)
+                                <!-- Prepaid Fuel -->
+                                <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelCheckbox"
+                                        data-charged="1 Time Max" data-name="rental_prepaid_fuel"
+                                        data-keep="{{ $productSettings['prepaid_fuel_approve_label'] }}"
+                                        data-discard="{{ $productSettings['prepaid_fuel_decline_label'] }}"
+                                        data-message="{{ $productSettings['prepaid_fuel_info'] }}" />
+                                    <span>Prepaid Fuel
+                                        <span class="font-medium">
+                                            +
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_fuel) }}
                                         </span>
-                                    </label>
-                                @endforeach
+                                    </span>
+                                </label>
                             @endif
-                        @endforeach
-                    </div>
+
+                            @if ($productDetail->rental_prepaid_cleaning !== null)
+                                <!-- Prepaid Cleaning -->
+                                <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="cleanCheckbox"
+                                        data-charged="1 Time Max" data-name="rental_prepaid_cleaning"
+                                        data-keep="{{ $productSettings['prepaid_cleaning_approve_label'] }}"
+                                        data-discard="{{ $productSettings['prepaid_cleaning_decline_label'] }}"
+                                        data-message="{{ $productSettings['prepaid_cleaning_info'] }}" />
+                                    <span>Prepaid Cleaning
+                                        <span class="font-medium">+
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_cleaning) }}
+                                        </span>
+                                    </span>
+                                </label>
+                            @endif
+
+                            @if ($productDetail->rental_fuel_gallons !== null)
+                                <!-- Prepaid Fuel Gallons -->
+                                <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelGallonsCheckbox"
+                                        data-charged="1 Time Max" data-name="rental_fuel_gallons"
+                                        data-keep="{{ $productSettings['fuel_gallons_approve_label'] }}"
+                                        data-discard="{{ $productSettings['fuel_gallons_decline_label'] }}"
+                                        data-message="{{ $productSettings['fuel_gallons_info'] }}" />
+                                    <span>Fuel Gallons <span class="font-medium">+
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_fuel_gallons) }}</span></span>
+                                </label>
+                            @endif
+
+                            @if ($productDetail->rental_def_gallons !== null)
+                                <!-- DEF Gallons -->
+                                <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="defGallonsCheckbox"
+                                        data-charged="1 Time Max" data-name="rental_def_gallons"
+                                        data-keep="{{ $productSettings['def_gallons_approve_label'] }}"
+                                        data-discard="{{ $productSettings['def_gallons_decline_label'] }}"
+                                        data-message="{{ $productSettings['def_gallons_info'] }}" />
+                                    <span>DEF Gallons <span class="font-medium">+
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_def_gallons) }}</span></span>
+                                </label>
+                            @endif
+
+                            @if (
+                                $productDetail->rental_damage_waiver_daily !== null ||
+                                    $productDetail->rental_damage_waiver_weekend !== null ||
+                                    $productDetail->rental_damage_waiver_weekly !== null ||
+                                    $productDetail->rental_damage_waiver_monthly !== null)
+                                <!-- Damage Waiver -->
+                                <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="damageCheckbox"
+                                        data-charged="1 Time Max" data-name="rental_damage_waiver"
+                                        data-keep="{{ $productSettings['damage_waiver_approve_label'] }}"
+                                        data-discard="{{ $productSettings['damage_waiver_decline_label'] }}"
+                                        data-message="{{ $productSettings['damage_waiver_info'] }}" />
+                                    @php
+                                        $damageWaiverPrice = match ($productType) {
+                                            'daily' => App\Helpers\CustomHelper::formatCurrency(
+                                                $productDetail->rental_damage_waiver_daily,
+                                            ),
+                                            'weekend' => App\Helpers\CustomHelper::formatCurrency(
+                                                $productDetail->rental_damage_waiver_weekend,
+                                            ),
+                                            'weekly' => App\Helpers\CustomHelper::formatCurrency(
+                                                $productDetail->rental_damage_waiver_weekly,
+                                            ),
+                                            'monthly' => App\Helpers\CustomHelper::formatCurrency(
+                                                $productDetail->rental_damage_waiver_monthly,
+                                            ),
+                                            default => '-',
+                                        };
+                                    @endphp
+
+                                    <span>Damage Waiver
+                                        <span class="font-medium">
+                                            + {{ $damageWaiverPrice }}
+                                        </span>
+                                    </span>
+                                </label>
+                            @endif
+
+                            @foreach ($productDetail->options as $option)
+                                @if ($option->items->isNotEmpty())
+                                    @foreach ($option->items as $item)
+                                        <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                            <input type="checkbox" class="form-checkbox h-4 w-4"
+                                                {{ $item->value == 'Checked' ? 'checked' : '' }}
+                                                id="options_{{ $item->unique_id }}"
+                                                data-keep="{{ $item->accept_label }}"
+                                                data-discard="{{ $item->decline_label }}"
+                                                data-message="{{ $item->comment }}"
+                                                data-unique_id="{{ $item->unique_id }}"
+                                                data-charged="{{ $item->charged ?? null }}" />
+                                            <span>{{ $item->label }}
+                                                <span class="font-medium">+
+                                                    @php
+                                                        $price = match ($productType) {
+                                                            'daily' => $item->daily,
+                                                            'weekend' => $item->weekend,
+                                                            'weekly' => $item->weekly,
+                                                            'monthly' => $item->monthly,
+                                                            default => $item->retail_price,
+                                                        };
+                                                    @endphp
+                                                    {{ App\Helpers\CustomHelper::formatCurrency($price) }}
+
+                                                    @if (!empty($item->charged) && $item->charged !== null)
+                                                        <small style="display: none;"
+                                                            class="text-gray-500">({{ $item->charged }})</small>
+                                                    @endif
+                                                </span>
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                @endif
+                            @endforeach
+                        </div>
                     @endif
                     <div>
-                        <button type="button" id="addToRentalBtn"
+                        <button type="button" id="addToCart"
                             class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out"><i
                                 class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Cart
                             <img src="{{ asset('storage/front/images/loading.gif') }}" alt="loading"
-                                class="loader-gif" /></button>
+                                class="loader-gif ml-5 h-5 hidden" /></button>
                     </div>
                 </div>
             </div>
@@ -521,7 +524,7 @@
 
 
     <!-- clean Modal -->
-    <div id="modalBackdropClean" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div id="modalBackdropClean" class="fixed inset-0 bg-black/50 flex items-center justify-center z-99999 hidden">
         <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[90%]">
             <p id="modalMessage" class="text-gray-700 mb-4">Dynamic message here</p>
             <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-center gap-3">
@@ -627,17 +630,20 @@
             });
 
             // Listen for delivery option changes
-            document.getElementById('deliveryOptionSelect').addEventListener('change', function(event) {
-                const value = event.target.value;
-                const storeDiv = document.getElementById('storeDiv');
+            const deliveryOptionSelect = document.getElementById('deliveryOptionSelect');
+            if (deliveryOptionSelect) {
+                deliveryOptionSelect.addEventListener('change', function(event) {
+                    const value = event.target.value;
+                    const storeDiv = document.getElementById('storeDiv');
 
-                // Show storeDiv for "Delivery + Return" and "Pickup + Return" (the 2nd and 3rd options)
-                if (value === "Delivery + Return" || value === "Pickup + Return") {
-                    storeDiv.classList.remove('hidden');
-                } else {
-                    storeDiv.classList.add('hidden');
-                }
-            });
+                    // Show storeDiv for "Delivery + Return" and "Pickup + Return" (the 2nd and 3rd options)
+                    if (value === "Delivery + Return" || value === "Pickup + Return") {
+                        storeDiv.classList.remove('hidden');
+                    } else {
+                        storeDiv.classList.add('hidden');
+                    }
+                });
+            }
 
             const scheduleStartDateInput = document.getElementById('scheduleStartDateInput');
             const openDatePicker = document.getElementById('openDatePicker');
@@ -696,6 +702,7 @@
             openDatePicker.addEventListener('click', function(e) {
                 e.preventDefault();
                 picker.show();
+                document.getElementById('dateError').textContent = "";
             });
 
 
@@ -753,7 +760,7 @@
                     // Set modal data
                     modalMessage.innerHTML = message;
                     modalRejectBtn.textContent = checkbox.dataset.discard ||
-                    "No Thanks, I'll Take The Risk";
+                        "No Thanks, I'll Take The Risk";
                     modalAcceptBtn.textContent = checkbox.dataset.keep || "Keep Option";
                     currentCheckbox = checkbox;
 
@@ -781,166 +788,138 @@
             document.addEventListener("keydown", function(e) {
                 if (e.key === "Escape") closeModal();
             });
-        });
-    </script>
 
-    <!-- ===========================================
-            Section: Add To Rental Cart
-    ========================================== -->
-    <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            if (typeof window.jQuery !== 'undefined') {
-                $(function() {
-                    // Prevent native form submit (if present)
-                    $('#rentalForm').on('submit', function(e) {
-                        e.preventDefault();
-                    });
+            // add to cart functionality
+            const addToCartBtn = document.getElementById('addToCart');
+            if (!addToCartBtn) return;
 
-                    // "Add to Rental" Button Click Logic
-                    $('#addToRentalBtn').on('click', function() {
-                        const $btn = $(this);
-                        const $loader = $btn.find('.loader-gif');
+            addToCartBtn.addEventListener('click', function() {
+                const loader = addToCartBtn.querySelector('.loader-gif');
+                if (loader) loader.classList.remove('hidden');
+                addToCartBtn.disabled = true;
+                addToCartBtn.classList.add('opacity-60', 'cursor-not-allowed');
 
-                        const scheduleDate = $('#selectedDateText').text().trim();
-                        if (scheduleDate === 'Select Start Date') {
-                            $('#dateError').removeClass('hidden');
-                            return;
+                // 1. Gather input (no price/totals)
+                const qty = parseInt(document.getElementById('qty').value) || 1;
+                const scheduleDate = document.getElementById('scheduleStartDateInput').value;
+                // Show error message inline
+                const dateError = document.getElementById('dateError');
+
+                // --------- ADD THIS CHECK ----------
+                if (!scheduleDate) {
+                    if (loader) loader.classList.add('hidden');
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    if (dateError) {
+                        dateError.textContent = 'Please select a date before adding to cart.';
+                        dateError.classList.remove('hidden');
+                    }
+                    //document.getElementById('scheduleStartDateInput').focus();
+                    return; // Stop the rest of the function
+                }
+                // -----------------------------------
+
+                const serviceMethod = document.querySelector('input[name="service_method"]:checked')
+                    ?.value || '';
+                let distanceType = '';
+                if (serviceMethod === 'Delivery') {
+                    distanceType = document.querySelector('input[name="distance_type"]:checked')?.value ||
+                        '';
+                }
+                const serviceOption = document.getElementById('deliveryOptionSelect')?.value || '';
+                const storeId = document.getElementById('storeSelect')?.value || '';
+                let distanceRange = '';
+                let unit = "{{ $productSettings['distance_unit'] ?? '' }}";
+                if (distanceType === 'Standard') {
+                    distanceRange = "{{ $productSettings['standard_delivery_range'] ?? '' }} " + unit;
+                } else if (distanceType === 'Extended') {
+                    distanceRange = "{{ $productSettings['extended_delivery_range'] ?? '' }} " + unit;
+                }
+
+                const productOptionItems = [];
+                const productRentalItems = [];
+
+                document.querySelectorAll('#optionDiv input[type="checkbox"].form-checkbox:checked')
+                    .forEach(checkbox => {
+                        if (checkbox.dataset.unique_id) {
+                            // Real option from the database
+                            productOptionItems.push({
+                                unique_id: checkbox.dataset.unique_id,
+                                // Optionally add more data as needed
+                            });
                         } else {
-                            $('#dateError').addClass('hidden');
-                        }
-
-                        try {
-                            $loader.css('display', 'inline-block');
-                            $btn.prop('disabled', true);
-
-                            const storeLocation = $('#storeLocation').val();
-                            const qty = parseInt($('#qty').val()) || 1;
-                            const name = $('.productname').text().trim();
-                            const image = $('.product-image').attr('src') || '';
-                            const basePriceText = $('.bg-yellow-400 h4').text().trim().split('/')[0]
-                                .trim();
-                            const numericPrice = parseFloat(basePriceText.replace(/[^0-9.]/g, ''));
-
-                            const service_method = $('input[name="option"]:checked').val();
-                            let service_option = null;
-                            if (service_method === 'delivery') {
-                                const selectedStd = $('#deliveryOption_std_delivery_fee').val();
-                                const selectedExt = $('#deliveryOption_ext_delivery_fee').val();
-
-                                if (selectedStd) {
-                                    service_option = $(
-                                            '#deliveryOption_std_delivery_fee option:selected')
-                                        .data('id');
-                                } else if (selectedExt) {
-                                    service_option = $(
-                                            '#deliveryOption_ext_delivery_fee option:selected')
-                                        .data('id');
-                                }
-                            }
-
-                            const addons = [];
-                            $('input[type="checkbox"]:checked').each(function() {
-                                const label = $(this).closest('label');
-                                const spans = label.find('span');
-                                const addonName = spans[0]?.childNodes[0]?.nodeValue
-                                    .trim() || '';
-                                const price = parseFloat(spans[1]?.innerText.replace(
-                                    /[^0-9.]/g, '')) || 0;
-                                const charged = $(this).data('charged') || null;
-                                const unique_id = $(this).data('unique_id') || null;
-                                if (addonName || unique_id) {
-                                    addons.push({
-                                        name: addonName,
-                                        price,
-                                        charged,
-                                        unique_id
-                                    });
-                                }
-                            });
-
-                            const delivery_pickup = [];
-                            const rawPickup = $('#inputDeliveryPickup').val();
-                            if (rawPickup) {
-                                try {
-                                    delivery_pickup.push(...JSON.parse(rawPickup));
-                                } catch (e) {
-                                    console.warn('Invalid pickup JSON', rawPickup);
-                                }
-                            }
-
-                            const deliveryFee = parseFloat($('#inputDeliveryFee').val()) || 0;
-
-                            let addonTotal = 0;
-                            addons.forEach(addon => {
-                                const price = parseFloat(addon.price) || 0;
-                                const charged = (addon.charged || '').toLowerCase();
-                                addonTotal += (charged === 'unlimited' ? price * qty :
-                                    price);
-                            });
-
-                            const total_price = (numericPrice * qty) + addonTotal + deliveryFee;
-                            const taxrate = @json($productSettings['sales_tax']);
-                            const tax_amount = +(total_price * taxrate);
-                            const total_price_with_tax = +(total_price + tax_amount).toFixed(2);
-
-                            const item = {
-                                product_id: @json($productDetail->id),
-                                product_unique_id: @json($productDetail->unique_id),
-                                varient_type: @json($productDetail->product_type),
-                                product_price_type: null,
-                                product_sku: @json($productDetail->sku),
-                                product_barcode: @json($productDetail->barcode),
-                                name,
-                                image,
-                                product_type: @json($productType),
-                                qty,
-                                base_price: numericPrice,
-                                product_slug: @json($productDetail->slug),
-                                addons,
-                                sechdule_start_date: scheduleDate,
-                                schedule_end_date: null,
-                                delivery_fee: deliveryFee,
-                                store_id: storeLocation,
-                                service_option: service_option,
-                                service_method: service_method,
-                                distance_type: distance_type,
-                                distance_range: distance_range,
-                                tax_rate: taxrate,
-                                total_price: total_price,
-                                tax_amount: tax_amount,
-                                total_price_with_tax: total_price_with_tax,
-                                delivery_pickup
-                            };
-
-                            const cart = JSON.parse(localStorage.getItem('rental_cart')) || [];
-                            const existingIndex = cart.findIndex(i => i.product_id == item
-                                .product_id);
-
-                            if (existingIndex !== -1) {
-                                cart[existingIndex].qty += item.qty;
-                                cart[existingIndex] = {
-                                    ...cart[existingIndex],
-                                    ...item
-                                };
-                            } else {
-                                cart.push(item);
-                            }
-
-                            localStorage.setItem('rental_cart', JSON.stringify(cart));
-
-                            setTimeout(() => {
-                                $loader.css('display', 'none');
-                                $btn.prop('disabled', false);
-                                document.querySelector(".toggleCart")?.click();
-                            }, 1500);
-                        } catch (error) {
-                            console.error("Cart processing error:", error);
-                            $loader.css('display', 'none');
-                            $btn.prop('disabled', false);
+                            // UI-only flags (not real options)
+                            productRentalItems.push(checkbox.dataset.name);
                         }
                     });
-                });
-            }
+
+                // Send minimal info only
+                const payload = {
+                    product_unique_id: "{{ $productDetail->unique_id ?? '' }}",
+                    product_type: "{{ $productDetail->product_type ?? '' }}",
+                    product_variant: "{{ $productType }}",
+                    quantity: qty,
+                    schedule_start_date: scheduleDate,
+                    service_method: serviceMethod,
+                    distance_type: distanceType,
+                    distance_range: distanceRange,
+                    service_option: serviceOption,
+                    store_id: storeId,
+                    product_option_items: productOptionItems,
+                    product_rental_items: productRentalItems
+                };
+
+                // 2. Send to server (update with your route!)
+                fetch('{{ route('front.cart.save') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content'),
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(async response => {
+                        if (!response.ok) {
+                            // Try to parse error JSON if available
+                            const errorData = await response.json().catch(() => null);
+                            throw errorData || {
+                                message: 'An unknown error occurred.'
+                            };
+                        }
+                        return response.json();
+                    })
+                    .then(resp => {
+                        if (resp.success && resp.cart_items) {
+                            resp.cart_items.cart_data.forEach(item => CartStorage.addOrUpdateItem(item));
+
+                            document.querySelectorAll('.toggleCart span').forEach(el =>
+                                el.textContent = CartStorage.getTotalQuantity()
+                            );
+                            document.querySelector('.toggleCart')?.click();
+                        } else {
+                            notyf.error(resp.message || 'Failed to add to cart.');
+                        }
+                    })
+                    .catch(err => {
+                        if (err && err.errors) {
+                            Object.values(err.errors).forEach(messages => {
+                                messages.forEach(msg => showStickyError(msg));
+                            });
+                        } else {
+                            showStickyError(err.message ||
+                                'Could not connect to server. Please try again.');
+                        }
+                    })
+                    .finally(() => {
+                        if (loader) loader.classList.add('hidden');
+                        addToCartBtn.disabled = false;
+                        addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    });
+
+            });
+
         });
     </script>
 @endpush

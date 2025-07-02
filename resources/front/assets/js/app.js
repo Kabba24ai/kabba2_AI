@@ -11,6 +11,7 @@ import '../../../shared/js/app.js'; // Import the Notyf setup
 import '../../../shared/js/notif.js'; // Import the Notyf setup
 import '../../../shared/js/air-datepicker.js';
 import "./custom.js";
+import "./cart.js";
 import "./glightbox.js";
 
 

@@ -82,7 +82,7 @@
          </div>
 
          <!-- mobile menu -->
-         <div id="headeroffcanvas"
+         <div id="headerOffCanvas"
              class="offcanvas-header-body left-0 md:left-auto md:ml-4 md:right-auto lg:hidden opacity-0 absolute md:max-w-2xl top-16 sm:top-17 bottom-0 lg:max-w-md w-full max-h-0 bg-neutral-800/90 text-white shadow-lg z-[9999] transform translate-y-full">
              <div class="relative w-full h-full overflow-y-auto ">
                  <div class="py-4 md:px-4 h-[calc(100vh-80px)] overflow-y-auto">
@@ -148,8 +148,8 @@
          </div>
          <!-- mobile menu end -->
 
-         <!--  Offcanvas Cart -->
-         <div id="cartoffcanvas"
+         <!--  Off canvas Cart -->
+         <div id="cartOffCanvas"
          class="offcanvas-cart-body absolute top-17 right-0 overflow-hidden md:top-17 max-w-0 lg:top-20 opacity-0 md:max-w-sm w-0 h-screen bg-white/90  shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
             <div class="relative w-full h-[calc(100vh-80px)]">
                  <div class="px-9 pt-15 pb-15 overflow-y-scroll h-full w-full">

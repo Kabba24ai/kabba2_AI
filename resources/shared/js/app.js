@@ -16,10 +16,9 @@ window.Parsley = Parsley;
 // Initialize scripts on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
 
-
     const form = document.querySelector("form");
     if (form) {
-        $(form).parsley(); 
+        $(form).parsley();
     }
 
     // Input masking

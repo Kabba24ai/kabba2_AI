@@ -53,6 +53,10 @@ class UpdateRequest extends FormRequest
             
             'billing_address' => ['nullable', 'string'],
             'account_application_completed' => ['nullable', 'date'],
+
+            'alladdresslist'=>['nullable'],
+            'website_protocol' => ['nullable', 'string'],
+            'website_extension' => ['nullable', 'string'],
         ];
     }
 

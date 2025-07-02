@@ -1,12 +1,26 @@
-import 'parsleyjs';
-import IMask from 'imask';
 
+import $ from "jquery";
 import Choices from 'choices.js';
-
+import "parsleyjs";
+import IMask from "imask";
 window.Choices = Choices;
+
+
+window.$ = $;
+window.jQuery = $;
+
+window.Parsley = Parsley;
+
+
 
 // Initialize scripts on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+
+
+    const form = document.querySelector("form");
+    if (form) {
+        $(form).parsley(); 
+    }
 
     // Input masking
     const phoneInputs = document.querySelectorAll('.masked-phone');

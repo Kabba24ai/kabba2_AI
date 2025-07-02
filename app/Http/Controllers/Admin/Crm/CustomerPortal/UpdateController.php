@@ -25,12 +25,16 @@ class UpdateController extends Controller
         DB::beginTransaction();
         // dd($validated);
         try {
+            $fullWebsite = trim(($validated['website_protocol'] ?? '') . ($validated['company_website'] ?? '') . ($validated['website_extension'] ?? ''));
+           $customerData['company_website'] = $fullWebsite;
+
             $customerData = [
                 'first_name' => $validated['first_name'] ?? null,
                 'last_name' => $validated['last_name'] ?? null,
                 'company_name' => $validated['company_name'] ?? null,
-               
-                'company_website' => $validated['company_website'] ?? null, // Added company_website
+               // 'website_protocol' => $validated['website_protocol'] ?? null,
+               // 'company_website' => $validated['company_website'] ?? null,
+               // 'website_extension' => $validated['website_extension'] ?? null, // Added company_website
                 'email' => $validated['email'] ?? null,
                
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
@@ -39,7 +43,7 @@ class UpdateController extends Controller
                 'status' => $validated['status'] ?? 'Active',
                 'is_guest' => $validated['is_guest'] ?? false,
                 'tax_status' => $validated['tax_status'] ?? 'Taxable',
-                'tax_document_media_id' => $validated['tax_document_media_id'] ?? null,
+                //'tax_document_media_id' => $validated['tax_document_media_id'] ?? null,
                
               
                 'is_credit_account' => $validated['is_credit_account'] ?? false,
@@ -58,67 +62,99 @@ class UpdateController extends Controller
     ? Carbon::parse($validated['account_application_completed'])->format('Y-m-d')
     : null,
 
-                'tax_status_approved_by' => $validated['tax_status_approved_by'] ?? null,
-                'account_approved_by' => $validated['account_approved_by'] ?? null,
+                'tax_status_approved_by' => $validated['tax_status_approved_by'] ?? 0,
+                'account_approved_by' => $validated['account_approved_by'] ?? 0,
 
 
             ];
+
+
+
+           //$customerData['company_website'] = ($validated['website_protocol'] ?? '') . ($validated['company_website'] ?? '') . ($validated['website_extension'] ?? '');
+           $customerData['company_website'] = $fullWebsite;
 
             $customer->update($customerData);
 
-            // Check if any relevant fields are filled (you can modify this list)
-            $addressInput = [
-                'first_name' => $validated['first_name'] ?? null,
-                'last_name' => $validated['last_name'] ?? null,
-                'email' => $validated['email'] ?? null,
-                'billing_address' => $validated['billing_address'] ?? null,
-                'phone' => $validated['phone'] ?? null,
-                'website' => $validated['website'] ?? null,
-            ];
-            $hasCompanyFields = collect($addressInput)->only([
-                'first_name',
-                'last_name',
-                'email',
-                'billing_address',
-                'phone',
-                'website',
-            ])->filter()->isNotEmpty();
+            // Process address list
+                if (!empty($validated['alladdresslist'])) {
+                    $submittedAddresses = collect(json_decode($validated['alladdresslist'], true));
 
-            if ($hasCompanyFields) {
-                // Get or create address record
-                $customerAddress = CustomerAddress::firstOrNew(['customer_id' => $customer->id]);
+                    $existingIds = $submittedAddresses
+                        ->filter(fn($addr) => !empty($addr['address_id']))
+                        ->pluck('address_id')
+                        ->toArray();
 
-                $customerAddress->fill([
-                    'address' => $addressInput['billing_address'] ?? $customerAddress->billing_address,
-                    'first_name' => $addressInput['first_name'] ?? $customerAddress->first_name,
-                    'last_name' => $addressInput['last_name'] ?? $customerAddress->last_name,
-                    'phone' => $addressInput['phone'] ?? $customerAddress->phone,
-                    'email' => $addressInput['email'] ?? $customerAddress->email,
-                    'website' => $addressInput['website'] ?? $customerAddress->website,
-                    
-                ]);
+                    // Delete removed addresses
+                    CustomerAddress::where('customer_id', $customer->id)
+                        ->whereNotIn('id', $existingIds)
+                        ->delete();
 
-                $customerAddress->customer_id = $customer->id;
-                $customerAddress->save();
-            }
+                    //  Loop through submitted and update/create
+                    foreach ($submittedAddresses as $address) {
+                        $data = [
+                            'first_name'    => $address['first_name'] ?? null,
+                            'last_name'     => $address['last_name'] ?? null,
+                            'email'         => $address['email'] ?? null,
+                            'phone'         => $address['phone'] ?? null,
+                            'type'          => $address['type'] ?? null,
+                            'address'       => $address['address'] ?? null,
+                            'city'          => $address['city'] ?? null,
+                            'state_id'      => $address['state_id'] ?? null,
+                            'zip_code'      => $address['zip_code'] ?? null,
+                            'customer_id'   => $customer->id,
+                        ];
+
+                        if (!empty($address['address_id'])) {
+                            // update
+                            CustomerAddress::where('id', $address['address_id'])
+                                ->where('customer_id', $customer->id)
+                                ->update($data);
+                        } else {
+                            // create
+                            CustomerAddress::create($data);
+                        }
+                    }
+                }
 
            
-            if ($request->hasFile('tax_document')) {
+            // if ($request->hasFile('tax_document')) {
             
-                $mediaData = MediaHelper::uploadStorageFile(
-                    'Public Asset', 
-                    $request->file('tax_document'), 
-                    'customers', 
-                    $customer
-                );
+            //     $mediaData = MediaHelper::uploadStorageFile(
+            //         'Public Asset', 
+            //         $request->file('tax_document'), 
+            //         'customers', 
+            //         $customer
+            //     );
             
                
-                if (!empty($mediaData['mediaObj'])) {
-                    $customer->update([
-                        'tax_document_media_id' => $mediaData['mediaObj']->id,
-                        'tax_document_upload_date' => now(),
-                    ]);
+            //     if (!empty($mediaData['mediaObj'])) {
+            //         $customer->update([
+            //             'tax_document_media_id' => $mediaData['mediaObj']->id,
+            //             'tax_document_upload_date' => now(),
+            //         ]);
+            //     }
+                
+            // }
+            if ($request->hasFile('tax_document')) {
+                if ($request->has('tax_document') && !is_null($request->file('tax_document'))) {
+                    if (!is_null($customer->media)) {
+                        MediaHelper::removeFile($customer->media);
+                    }
                 }
+
+
+                $mediaData = MediaHelper::uploadStorageFile(
+                    'Public Asset',
+                    $request->file('tax_document'),
+                    'customers',
+                    $customer
+                );
+
+                if (!empty($mediaData['mediaObj'])) {
+                    $customerData['tax_document_media_id'] = $mediaData['mediaObj']->id;
+                    $customerData['tax_document_upload_date'] = now(); // or keep original if needed
+                }
+                $customer->update($customerData);
             }
 
             DB::commit();

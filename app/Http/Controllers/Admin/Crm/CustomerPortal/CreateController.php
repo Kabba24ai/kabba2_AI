@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 
 // Models
 use App\Models\Iam\Personnel\User;
+use App\Models\Locations\State;
+
 
 class CreateController extends Controller
 {
@@ -21,7 +23,13 @@ class CreateController extends Controller
 {
     $admins = User::get();
 
-    return view('admin.crm.customer_portal.create', compact('admins'));
+    $states = State::get();
+
+    $website_protocol = 'https://';       // default protocol
+    $website_extension = '.com';          // default extension
+    $company_website = '';
+
+    return view('admin.crm.customer_portal.create', compact('admins','states','company_website','website_extension','website_protocol'));
 }
     
 }

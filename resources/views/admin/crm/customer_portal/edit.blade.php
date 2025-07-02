@@ -86,6 +86,35 @@
                     {{ html()->form()->close() }}
 
 
+
+           <!-- Hidden Delete Form -->
+<form id="delete-media-form-{{ $customer->id }}" method="POST" action="{{ route('admin.crm.customer_portal.tax-document.delete', $customer->unique_id) }}" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>         
+                    
+        @include('admin.crm.customer_portal.partials._add_addreshh_form')
+                    
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('openAddressModal').addEventListener('click', () => {
+                    const modalRoot = document.querySelector('[x-ref="addressRoot"]');
+                    if (modalRoot?._x_dataStack?.[0]) {
+                        modalRoot._x_dataStack[0].showAddressModal = true;
+                    }
+                });
+            
+            });
+            
+            
+function confirmAndDelete(id) {
+    if (confirm("Are you sure you want to delete this document?")) {
+        document.getElementById(`delete-media-form-${id}`).submit();
+    }
+}
+                    </script>
+
 @endsection
 
 

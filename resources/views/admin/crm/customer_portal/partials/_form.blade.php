@@ -4,6 +4,14 @@
         <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
             <h2 class="text-lg font-semibold mb-4">Personal Information</h2>
 
+            {!! html()->text('alladdresslist', $addressListJson ?? '')->class('hidden')->attributes([
+                    'id' => 'alladdresslist',
+                    'autocomplete' => 'off'
+                ]) !!}
+
+               
+
+
                  <!-- First Name  -->
                 <div class="mb-4">
                     <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
@@ -48,9 +56,9 @@
 
                 
                 <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
 
-                    {!! html()->email('email', old('email', $customer->email ?? ''))->class([
+                        {!! html()->email('email', old('email', $customer->email ?? ''))->class([
                         'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500',
                         'border-red-500' => $errors->has('email'),
                         'border-gray-300' => !$errors->has('email'),
@@ -59,18 +67,23 @@
                         'placeholder' => 'Enter Email',
                         'id' => 'email',
                         'autocomplete' => 'off',
+                        'name' => 'email', 
                         'data-parsley-type' => 'email',
                         'data-parsley-trigger' => 'change',
                         'data-parsley-remote' => route('admin.crm.customer_portal.check.email.unique', [
-                            'except' => $customer->id ?? null, 
+                            'except' => $customer->id ?? null,
                         ]),
+                        'data-parsley-remote-validator' => 'customemailcheck',
                         'data-parsley-remote-message' => 'This email is already taken by another user.',
                     ])->required() !!}
 
-                    @error('email')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                   
+
+                @error('email')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
 
                 <div class="mb-4">
                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
@@ -164,7 +177,7 @@
             <!-- {{-- Website --}} -->
             <div>
                 <label for="company_website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                {!! html()->text('company_website', old('company_website', isset($customer) ? $customer->company_website ?? '' : ''))->class([
+                <!-- {!! html()->text('company_website', old('company_website', isset($customer) ? $customer->company_website ?? '' : ''))->class([
                     'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                     'border-red-500' => $errors->has('company_website'),
                     'border-gray-300' => !$errors->has('company_website'),
@@ -174,200 +187,76 @@
                     'placeholder' => 'https://example.com',
                     'id' => 'company_website',
                     'autocomplete' => 'url',
-                ]) !!}
+                ]) !!} -->
+                <div class="flex flex-col md:flex-row gap-4 mb-4">
+                {{-- Protocol --}}
+                {!! html()->select('website_protocol', [
+                        'https://' => 'https://',
+                        'http://' => 'http://',
+                    ], old('website_protocol', $website_protocol))
+                    ->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                        'border-red-500' => $errors->has('website_protocol'),
+                        'border-gray-300' => !$errors->has('website_protocol'),
+                    ])
+                    ->id('website_protocol') !!}
+                       
+
+                {{-- Website Name --}}
+                {!! html()->text('company_website', old('company_website',$company_website))
+                    ->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                        'border-red-500' => $errors->has('company_website'),
+                        'border-gray-300' => !$errors->has('company_website'),
+                    ])
+                    ->placeholder('example')
+                    ->id('company_website') !!}
+
+                {{-- Extension --}}
+                {!! html()->select('website_extension', [
+                        '.com' => '.com',
+                        '.org' => '.org',
+                        '.net' => '.net',
+                        '.in' => '.in',
+                        '.edu' => '.edu',
+                        '.gov' => '.gov',
+                    ], old('website_extension', $website_extension))
+                    ->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                        'border-red-500' => $errors->has('website_extension'),
+                        'border-gray-300' => !$errors->has('website_extension'),
+                    ])
+                    ->id('website_extension') !!}
 
 
                 @error('company_website')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
+                    </div>
             </div>
         </div>
 
        <!-- Addresses -->
         <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold mb-4">Addresses</h2>
-            <div x-data="{ showAddressModal: false }">
-                <a href="javascript:void(0)"
-                @click="showAddressModal = true"
-                class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                    + Add Addresses
-                </a>
- 
-                <!-- Modal -->
-                <div
-                    x-show="showAddressModal"
-                    x-transition
-                    x-cloak
-                    class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
-                    <div
-                        @click.away="showAddressModal = false"
-                        class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-xl p-6 space-y-5 border border-gray-200 dark:border-gray-700" >
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Add Address</h3>
-                            <button @click="showAddressModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
-                        </div>
-            
-                        <!-- Address form goes here -->
-                        
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700">Full name</label>
-                                    <input type="text" placeholder="Enter name"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700">Phone</label>
-                                    <input type="text" placeholder="Enter phone"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700">Zip code</label>
-                                    <input type="text" placeholder="Enter zip code"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700">Email</label>
-                                    <input type="email" placeholder="Enter email"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
-                                </div>
-                            </div>
 
-                            <div>
-                                <label class="text-sm font-medium text-gray-700">Address</label>
-                                <input type="text" placeholder="Enter address"
-                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
-                            </div>
+        <div class="flex justify-between">
+       
+        <h2 class="text-lg font-semibold">Addresses</h2>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700">State</label>
-                                    <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
-                                            <option value="">Select State</option>
-                                            <option value="NY">New York</option>
-                                            <option value="CA">California</option>
-                                            <option value="TX">Texas</option>
-                                            <option value="FL">Florida</option>
-                                            <option value="IL">Illinois</option>
-                                            <!-- Add more states as needed -->
-                                        </select>
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700">City</label>
-                                    <input type="text" placeholder="Enter city"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500">
-                                </div>
-                            </div>
+        <!-- Somewhere else on the page -->
+<a href="javascript:void(0)" id="openAddressModal"
+   class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
+   + Add 
+</a>
 
-            
-                            <!-- Add more fields as needed -->
-            
-                            <div class="flex justify-end gap-2">
-                                <button type="button" @click="showAddressModal = false"
-                                    class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
-                                <button type="submit"
-                                    class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-blue-700">Add </button>
-                            </div>
-                        
-                    </div>
                 </div>
-            </div>
+<div id="addressList" class="flex flex-col gap-y-2">
+           
+              
+           </div>
 
-            <div class="overflow-x-auto rounded-lg bg-white dark:bg-gray-900 mt-6">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                    <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                        <tr>
-                            <th class="px-4 py-2">#</th>
-                            <th class="px-4 py-2">Address</th>
-                            <th class="px-4 py-2">Zip Code</th>
-                            <th class="px-4 py-2">Country</th>
-                            <th class="px-4 py-2">State</th>
-                            <th class="px-4 py-2">City</th>
-                            <th class="px-4 py-2 text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="">
-                        <tr class="">
-                            <td class="px-4 py-2">1</td>
-                            <td class="px-4 py-2">County Road</td>
-                            <td class="px-4 py-2">333333</td>
-                            <td class="px-4 py-2">US</td>
-                            <td class="px-4 py-2">Texas</td>
-                            <td class="px-4 py-2">Pearland</td>
-                            <td class="px-4 py-2 text-center space-x-2">
-                                <a href="#">
-                                    <button class="text-green-600 hover:text-green-800" title="Edit">
-                                        <x-heroicon-o-pencil class="w-5 h-5" />
-                                    </button>
-                                </a>
-                                <a href="#">
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                        <x-heroicon-o-trash class="w-5 h-5" />
-                                    </button>
-                                </a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-2">2</td>
-                            <td class="px-4 py-2">County Road</td>
-                            <td class="px-4 py-2">333333</td>
-                            <td class="px-4 py-2">US</td>
-                            <td class="px-4 py-2">Texas</td>
-                            <td class="px-4 py-2">Pearland</td>
-                            <td class="px-4 py-2 text-center space-x-2">
-                               <a href="#">
-                                    <button class="text-green-600 hover:text-green-800" title="Edit">
-                                        <x-heroicon-o-pencil class="w-5 h-5" />
-                                    </button>
-                                </a>
-                                <a href="#">
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                        <x-heroicon-o-trash class="w-5 h-5" />
-                                    </button>
-                                </a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <!--  Billing Address  -->
-            <!-- <div class="mb-4">
-                {{ html()->label('Billing Address', 'billing_address')->class('block text-sm font-medium text-gray-700 mb-1') }}
 
-                {{ html()->textarea('billing_address', old('billing_address', isset($customer->billingAddress) ? $customer->billingAddress->address : ''))->id('billing_address')->attributes([
-                    'rows' => 2,
-                    'maxlength' => 255, 
-                    'data-parsley-maxlength' => 255,
-                    'placeholder' => 'Enter billing address',
-                ])->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
-                    'border-red-500' => $errors->has('billing_address'),
-                    'border-gray-300' => !$errors->has('billing_address'),
-                ]) }}
-
-                @error('billing_address')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>-->
-
-            <!--  Delivery Address  -->
-            <!--<div>
-                {{ html()->label('Delivery Address', 'delivery_address')->class('block text-sm font-medium text-gray-700 mb-1') }}
-
-                {{ html()->textarea('delivery_address', old('delivery_address', $customer->shippingAddress->address ?? ''))->id('delivery_address')->attributes([
-                    'rows' => 2,
-                    'maxlength' => 255,
-                    'data-parsley-maxlength' => 255,
-                    'placeholder' => 'Enter delivery address',
-                ])->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
-                    'border-red-500' => $errors->has('delivery_address'),
-                    'border-gray-300' => !$errors->has('delivery_address'),
-                ]) }}
-
-                @error('delivery_address')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div> -->
+           
         </div>
 
 </div>
@@ -380,7 +269,6 @@
 
             <!-- Row 1: Account Approved & Approved By -->
             <div class="flex flex-col md:flex-row gap-4 mb-4">
-
 
             <div class="w-full">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Account Approved</label>
@@ -396,7 +284,6 @@
                             'border-red-500' => $errors->has('is_credit_account'),
                             'border-gray-300' => !$errors->has('is_credit_account'),
                         ])
-                        
                     !!}
 
                     @error('is_credit_account')
@@ -441,7 +328,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
 
                 
-                    {!! html()->text('credit_limit', old('credit_limit', $customer->credit_limit ?? ''))->class([
+                    <!-- {!! html()->text('credit_limit', old('credit_limit', $customer->credit_limit ?? ''))->class([
                         'w-full border rounded-md px-3 py-2 text-sm shadow-sm  bg-gray-100 ',
                         'border-red-500' => $errors->has('credit_limit'),
                     'border-gray-300' => !$errors->has('credit_limit'),
@@ -451,7 +338,22 @@
                     'placeholder' => 'Enter Approved By',
                     'id' => 'credit_limit',
                    
-                ]) !!}
+                ]) !!} -->
+                @php
+                    $creditOptions = collect(range(1000, 20000, 1000))->mapWithKeys(function ($value) {
+                        return [$value => number_format($value)];
+                    });
+                @endphp
+
+                {!! html()
+                    ->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
+                    ->id('credit_limit')
+                    ->class([
+                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                        'border-red-500' => $errors->has('credit_limit'),
+                        'border-gray-300' => !$errors->has('credit_limit'),
+                    ])
+                !!}
 
                 @error('credit_limit')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -459,7 +361,7 @@
 
             </div>
             <div class="w-full">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Application Completed</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Completed On</label>
 
                     {!! html()->text('account_application_completed', old('account_application_completed', $customer->account_application_completed ?? ''))->class([
                         'w-full border datepicker unded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white',
@@ -481,7 +383,7 @@
             </div>
 
             <!-- Row 3 : Status :-Good Standing , Overdue , Bad Debt , Blacklisted   -->
-            <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex flex-col md:flex-row gap-4 mt-4">
 
                         <div class="w-full">
                             <span class="inline-block rounded-full bg-green-100 text-green-800 text-sm font-semibold px-2 py-1">
@@ -595,19 +497,26 @@
         </div>
 
         <!-- Tax Exempt Upload -->
-        <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
+        <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col ">
             <h2 class="text-lg font-semibold text-gray-900 mb-6">Tax Exempt Upload</h2>
             
             @if (isset($customer) && !$customer->tax_document_media_id)
+                {!! html()->text('tax_document_media_id', $customer->tax_document_media_id ?? '')->class('hidden')->attributes([
+                    'id' => 'tax_document_media_id',
+                    'autocomplete' => 'off'
+                ]) !!}
+            <div class="flex ">                
+                <label for="tax_document" class="shadow-[0px_1px_3px_0px_rgba(0,_0,_0,_0.2)] rounded-l-md px-3 py-2 bg-gray-200">Browse...</label>
+                {!! html()->file('tax_document')->class([
+                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                    'border-red-500' => $errors->has('tax_document'),
+                    'border-gray-300' => !$errors->has('tax_document'),
+                ])->attributes([
+                    'id' => 'tax_document',
+                    'accept' => 'application/pdf,image/*',
+                ]) !!}
+            </div>
 
-            {!! html()->file('tax_document')->class([
-                'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
-                'border-red-500' => $errors->has('tax_document'),
-                'border-gray-300' => !$errors->has('tax_document'),
-            ])->attributes([
-                'id' => 'tax_document',
-                'accept' => 'application/pdf,image/*',
-            ]) !!}
 
             @error('tax_document')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -626,7 +535,7 @@
                     
                 </div>
                 <div class="flex gap-2">
-                <a href="{{ !empty($customer) && $customer->media ? $customer->media->getUrl() : 'javascript:void(0)' }}" target="_blank">
+                    <a href="{{ !empty($customer) && $customer->media ? $customer->media->getUrl() : 'javascript:void(0)' }}" target="_blank">
 
                     <svg class="w-5 h-5 text-gray-600 hover:text-blue-600 cursor-pointer" fill="none" stroke="currentColor"
                     stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -634,23 +543,29 @@
                     <circle cx="12" cy="12" r="3" />
                     </svg>
                     </a>
+                    <a href="javascript:void(0);" onclick="confirmAndDelete('{{ $customer->id }}')" title="Delete">
                     <svg class="w-5 h-5 text-gray-600 hover:text-red-600 cursor-pointer" fill="none" stroke="currentColor"
                         stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
                     </svg>
+                    </a>
                 </div>
             </div>
              @endisset
-{!! html()->file('tax_document')->class([
-                'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+             
+            <div class="flex ">
+                <label for="tax_document" class="shadow-[0px_1px_3px_0px_rgba(0,_0,_0,_0.2)] rounded-l-md px-3 py-2 bg-gray-200">Browse...</label>
+            {!! html()->file('tax_document')->class([
+                'w-full border rounded-r-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                 'border-red-500' => $errors->has('tax_document'),
                 'border-gray-300' => !$errors->has('tax_document'),
             ])->attributes([
                 'id' => 'tax_document',
                 'accept' => 'application/pdf,image/*',
             ]) !!}
-    
+            </div>
+
             
             @endif 
             @isset($customer->tax_document_upload_date)
@@ -708,10 +623,19 @@
     </tbody>
   </table>
 </div>
+
+
 @push('js')
 <script>
-
 document.addEventListener('DOMContentLoaded', () => {
+
+    window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
+    // Expecting { valid: true/false }
+    const response = xhr.responseJSON || {};
+    return response.valid === true;
+});
+
+
     const dateInputs = document.querySelectorAll('input.datepicker');
 
     const jsFormat = @json(config('app.date.js_date_format'));

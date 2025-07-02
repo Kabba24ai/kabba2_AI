@@ -7,7 +7,6 @@ use App\Models\Customers\Customer;
 use Illuminate\Http\Request;
 
 
-
 class CheckEmailController extends Controller
 {
     /**
@@ -18,14 +17,16 @@ class CheckEmailController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $email = $request->get('value'); 
-        $exceptId = $request->get('except'); 
+        $email = strtolower(trim($request->get('email'))); 
+        $exceptId = $request->get('except');
+    
+       
     
         if (!$email) {
             return response()->json(false); 
         }
     
-        $query = Customer::where('email', $email);
+        $query = Customer::whereRaw('LOWER(email) = ?', [$email]); 
     
         if ($exceptId) {
             $query->where('id', '!=', $exceptId);
@@ -33,7 +34,10 @@ class CheckEmailController extends Controller
     
         $exists = $query->exists();
     
-        return response()->json(!$exists); // true = valid, false = already taken
+      
+    
+        return response()->json(['valid' => !$exists]); 
+
     }
     
     

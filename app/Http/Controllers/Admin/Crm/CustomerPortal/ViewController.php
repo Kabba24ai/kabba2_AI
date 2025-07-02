@@ -20,7 +20,7 @@ class ViewController extends Controller
     public function __invoke(string $unique_id): View
     {
         
-        $customer = Customer::with('orders','accountApprovedBy', 'taxStatusApprovedBy' , 'addresses', 'billingAddress', 'shippingAddress','media')
+        $customer = Customer::with('orders','accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();
 

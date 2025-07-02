@@ -11,7 +11,7 @@ use App\Http\Controllers\Admin\Crm\CustomerPortal\UpdateController;
 use App\Http\Controllers\Admin\Crm\CustomerPortal\DeleteController;
 use App\Http\Controllers\Admin\Crm\CustomerPortal\CheckEmailController;
 use App\Http\Controllers\Admin\Crm\CustomerPortal\ViewController;
-
+use App\Http\Controllers\Admin\Crm\CustomerPortal\TaxDocumentDeleteController;
 
 
 Route::prefix('customer_portal')
@@ -38,4 +38,6 @@ Route::prefix('customer_portal')
    
     // Delete
     Route::delete('/{unique_id}', DeleteController::class)->name('delete');
+
+    Route::delete('/tax-document/{unique_id}', TaxDocumentDeleteController::class)->name('tax-document.delete');
 });

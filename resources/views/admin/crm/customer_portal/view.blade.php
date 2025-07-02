@@ -57,19 +57,19 @@
         <div class="space-y-3 text-sm">
             <div>
                 <p class="text-gray-500 text-xs">Full Name</p>
-                <span class="text-gray-900 font-medium text-sm">{{ $customer->full_name }}</span>
+                <span class="text-gray-900 font-medium text-sm">{{ $customer->full_name ?? 'N/A' }}</span>
             </div>
             <div>
                 <p class="text-gray-500 text-xs">Phone</p>
                 <span class="text-gray-900 flex items-center gap-1 text-sm">
-                    <x-heroicon-o-phone class="w-4 h-4" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) }}
+                    <x-heroicon-o-phone class="w-4 h-4" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
                 </span>
             </div>
             <div>
                 <p class="text-gray-500 text-xs">Customer Since</p>
                 <span class="text-gray-900 flex items-center gap-1 text-sm">
                     <x-heroicon-o-calendar class="w-4 h-4" />  
-                    
+                    {{ App\Helpers\CustomHelper::formatDate($customer->created_at) ?? 'N/A' }}
                     </span>
             </div>
             @php
@@ -100,19 +100,19 @@
         <div class="space-y-3 text-sm">
             <div>
                 <p class="text-gray-500 text-xs">Company Name</p>
-                <span class="text-gray-900 font-medium text-sm">{{ $customer->company_name }}</span>
+                <span class="text-gray-900 font-medium text-sm">{{ $customer->company_name  ?? 'N/A'}}</span>
             </div>
             <div>
                 <p class="text-gray-500 text-xs">Company Phone</p>
                 <span class="text-gray-900 flex items-center gap-1 text-sm">
-                    <x-heroicon-o-phone class="w-4 h-4" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) }} 
+                    <x-heroicon-o-phone class="w-4 h-4" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }} 
                 </span>
             </div>
             <div>
                 <p class="text-gray-500 text-xs">Website</p>
                 <span class="text-blue-600 hover:underline flex items-center gap-1 text-sm">
                     <x-heroicon-o-globe-alt class="w-4 h-4" />
-                    <a href="{{ $customer->company_website }}" target="_blank">{{ $customer->company_website }}</a>
+                    <a href="{{ $customer->company_website ?? '#' }}" target="_blank">{{ $customer->company_website ?? 'N/A' }}</a>
                 </span>
             </div>
         </div>
@@ -122,18 +122,24 @@
     <div class="bg-white rounded-lg border shadow-sm p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Addresses</h3>
         <div class="space-y-3 text-sm">
+
+        @foreach ($customer->addresses as $addresse)
+            
+      
+
             <div>
-                <p class="text-gray-500 text-xs">Billing Address</p>
-                <span class="text-gray-900 flex items-center gap-1 text-sm">
-                    <x-heroicon-o-map-pin class="w-4 h-4" /> 123 Main St, New York, NY 10001
+                <p class="text-gray-500 text-xs">{{$addresse->type}} Address</p>
+                <span class="text-gray-900 flex  gap-1 text-sm">
+                    <x-heroicon-o-map-pin class="w-4 h-4" /> <div class="w-full">
+
+                         {{$addresse->address}} , {{$addresse->city}} , {{$addresse->state->name}} , {{$addresse->zip_code}} .
+
+                    </div>
                 </span>
             </div>
-            <div>
-                <p class="text-gray-500 text-xs">Delivery Address</p>
-                <span class="text-gray-900 flex items-center gap-1 text-sm">
-                    <x-heroicon-o-map-pin class="w-4 h-4" /> 456 Oak Ave, New York, NY 10002
-                </span>
-            </div>
+            
+            @endforeach
+
             <div>
                 <p class="text-gray-500 text-xs">Alt. Billing Address</p>
                 <span class="italic text-gray-400 text-sm">Not specified</span>
@@ -166,7 +172,7 @@
                 <p class=" text-gray-500 text-xs">Approved By</p>
 
 
-                <p class="text-base text-gray-900 text-sm"> {{ $customer->accountApprovedBy->full_name ?? ''}} </p>
+                <p class="text-base text-gray-900 text-sm"> {{ $customer->accountApprovedBy->full_name ?? 'N/A'}} </p>
 
 
             </div>
@@ -176,11 +182,11 @@
         <div class="flex justify-between mb-5">
             <div class="float-left">
               <p class=" text-gray-500 text-xs">Credit Limit</p>
-                <p class="text-base text-gray-900 text-sm">{{ config('app.currency.code') }} {{ $customer->credit_limit }} </p>
+                <p class="text-base text-gray-900 text-sm">{{ config('app.currency.code') }} {{ $customer->credit_limit ?? 0 }} </p>
             </div>
             <div class="float-right text-right">
                 <p class=" text-gray-500 text-xs">Application Completed</p>
-                <p class="text-base text-gray-900 text-sm"> {{ App\Helpers\CustomHelper::formatDate($customer->account_application_completed) }}</p>
+                <p class="text-base text-gray-900 text-sm"> {{ App\Helpers\CustomHelper::formatDate($customer->account_application_completed) ?? 'N/A' }}</p>
             </div>
         </div>
         <div class="">
@@ -191,18 +197,18 @@
         </div>
     </div>
 
-    <div class="bg-white border border-gray-200 shadow rounded-lg p-6 w-full max-w-md mx-auto">
+    <div class="bg-white border border-gray-200 shadow rounded-lg p-6 w-full  mx-auto">
         <h2 class="text-lg font-semibold text-gray-900 mb-5">Tax Exempt</h2>
 
         <!-- Row 1 -->
         <div class="flex justify-between mb-5">
             <div class="float-left">
                 <p class="text-gray-500 text-xs">Status</p>
-                <p class="text-base text-gray-900 text-sm"> {{ $customer->tax_status }}</p>
+                <p class="text-base text-gray-900 text-sm"> {{ $customer->tax_status ?? 'N/A' }}</p>
             </div>
             <div class="float-right text-right">
                 <p class="text-gray-500 text-xs">Approved By</p>
-                <p class="text-base text-gray-900 text-sm">{{ $customer->taxStatusApprovedBy->full_name ?? ''}} </p>
+                <p class="text-base text-gray-900 text-sm">{{ $customer->taxStatusApprovedBy->full_name ?? 'N/A'}} </p>
             </div>
         </div>
 
@@ -210,11 +216,11 @@
         <div class="flex justify-between">
             <div class="float-left">
                 <p class=" text-gray-500 text-xs">Upload Date</p>
-                <p class="text-base text-gray-900 text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) }}</p>
+                <p class="text-base text-gray-900 text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</p>
             </div>
             <div class="float-right text-right">
                 <p class=" text-gray-500 text-xs">Valid Until</p>
-                <p class="text-base text-gray-900 text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) }}</p>
+                <p class="text-base text-gray-900 text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</p>
             </div>
         </div>
     </div>
@@ -223,6 +229,9 @@
     <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Tax Exempt Upload</h2>
 
+        @if ($customer->media)
+            
+       
         <!-- File preview -->
         <div class="bg-gray-100 rounded flex items-center justify-between p-3 mb-4">
             <div>
@@ -258,14 +267,17 @@
 
             <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-gray-600">Reviewed By:</span>
-                <span class="text-sm text-gray-900">{{ $customer->taxStatusApprovedBy->full_name ?? ''}}</span>
+                <span class="text-sm text-gray-900">{{ $customer->taxStatusApprovedBy->full_name ?? 'N/A'}}</span>
             </div>
 
             <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-gray-600">Review Date:</span>
-                <span class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) }}</span>
+                <span class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
             </div>
         </div>
+
+        @endif
+
     </div>
 </div>
 

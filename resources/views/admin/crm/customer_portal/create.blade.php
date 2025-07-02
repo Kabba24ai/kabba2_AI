@@ -85,6 +85,22 @@
 
                     {{ html()->form()->close() }}
 
+                    
+        @include('admin.crm.customer_portal.partials._add_addreshh_form')
+                    
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('openAddressModal').addEventListener('click', () => {
+        const modalRoot = document.querySelector('[x-ref="addressRoot"]');
+        if (modalRoot?._x_dataStack?.[0]) {
+            modalRoot._x_dataStack[0].showAddressModal = true;
+        }
+    });
+
+});
+
+        </script>
 
 @endsection
 

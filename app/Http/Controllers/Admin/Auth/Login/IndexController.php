@@ -20,6 +20,8 @@ class IndexController extends Controller
             return redirect(route('admin.dashboard.index'));
         }
 
+       
+
         return view('admin.auth.login.index', []);
     }
 }

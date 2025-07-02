@@ -104,7 +104,7 @@ class Product extends Model
             }
 
             // Set created_by and updated_by
-             if (auth()->check()) {
+            if (auth()->check()) {
                 $model->created_by = auth()->id();
             }
         });
@@ -177,22 +177,18 @@ class Product extends Model
     {
         // If a sale price is set and greater than zero, return it. Otherwise, return retail_price.
         if ($salePriceFlag) {
-            return ($this->retail_sale_price && $this->retail_sale_price > 0)
-                ? $this->retail_sale_price
-                : $this->retail_price;
+            return $this->retail_sale_price && $this->retail_sale_price > 0 ? $this->retail_sale_price : $this->retail_price;
         }
         return $this->retail_price;
     }
 
-    public function getRentalPrice($type,  $salePriceFlag = true)
+    public function getRentalPrice($type, $salePriceFlag = true)
     {
         // $type = daily, weekend, weekly, monthly
         $saleField = 'sale_price_' . $type;
         $rentField = 'rental_' . $type;
         if ($salePriceFlag) {
-            return ($this->$saleField && $this->$saleField > 0)
-            ? $this->$saleField
-            : $this->$rentField;
+            return $this->$saleField && $this->$saleField > 0 ? $this->$saleField : $this->$rentField;
         }
         return $this->$rentField;
     }
@@ -200,13 +196,36 @@ class Product extends Model
     public function isRentalOnSale($period)
     {
         $saleField = 'sale_price_' . $period;
-        return ($this->$saleField && $this->$saleField > 0);
+        return $this->$saleField && $this->$saleField > 0;
     }
 
     public function isRetailOnSale()
     {
         $saleField = 'retail_sale_price';
-        return ($this->$saleField && $this->$saleField > 0);
+        return $this->$saleField && $this->$saleField > 0;
     }
 
+    public function hasOptions()
+    {
+        $optionFields = [
+            'rental_prepaid_fuel',
+            'rental_prepaid_cleaning',
+            'rental_fuel_gallons',
+            'rental_def_gallons',
+            'rental_damage_waiver_daily',
+            'rental_damage_waiver_weekend',
+            'rental_damage_waiver_weekly',
+            'rental_damage_waiver_monthly',
+        ];
+
+        $hasSettingOption = collect($optionFields)->contains(function($field) {
+            return $this->{$field} !== null;
+        });
+
+        $hasCustomOptions = $this->options && $this->options->filter(function ($option) {
+            return $option->items && $option->items->isNotEmpty();
+        })->isNotEmpty();
+
+        return $hasSettingOption || $hasCustomOptions;
+    }
 }

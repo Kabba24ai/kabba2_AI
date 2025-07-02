@@ -136,7 +136,7 @@
                     <div class="my-5">
                         <div class="flex items-center space-x-4">
                             <!-- Calendar icon button -->
-                            <a href="javascript:void(0);" id="openDatePicker" >
+                            <a href="javascript:void(0);" id="openDatePicker">
                                 <img src="{{ asset('storage/front/images/calendar_icon.png') }}" alt="Calendar"
                                     class="w-[52px]">
                             </a>
@@ -165,75 +165,101 @@
                         </div>
                     </div>
 
-                    @if ($productDetail->in_store_pickup == 'Yes')
-                        <div class="space-y-2 mt-4">
-                            <label class="inline-flex items-center space-x-2">
-                                <input type="radio" name="service_method" value="In Store Pickup" class="form-radio" />
-                                <span>In Store Pickup / Return</span>
-                            </label>
-                        </div>
-                    @endif
-                    @if ($productDetail->delivery_and_pickup == 'Yes')
-                        <div class="space-y-2">
-                            <label class="inline-flex items-center space-x-2">
-                                <input type="radio" name="service_method" value="Delivery" class="form-radio" />
-                                <span>Delivery - Full Turnkey Service</span>
-                            </label>
-                        </div>
-                        <div id="deliveryDiv" class="mt-4 mb-5 hidden">
-                            <div class="">
-                                <span>Up To: </span>
-                                @if ($productDetail->standard_delivery_fee !== null)
-                                    <label class="inline-flex items-center space-x-2">
-                                        <input type="radio" name="distance_type" value="Standard" class="sr-only peer"
-                                            checked onChange="toggleDeliveryOption(this)" />
-                                        <div
-                                            class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
-                                            <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
-                                        </div>
-                                        <span>{{ $standardDeliveryRange . ' ' . $distanceUnit }} </span>
-                                    </label>
-                                @endif
+                    <div class="my-5">
+                        @php
+                            $showInStore = $productDetail->in_store_pickup === 'Yes';
+                            $showDelivery = $productDetail->delivery_and_pickup === 'Yes';
 
-                                @if ($productDetail->extended_delivery_fee !== null)
-                                    <label class="inline-flex items-center space-x-2">
-                                        <input type="radio" name="distance_type" value="Standard" class="sr-only peer"
-                                            onChange="toggleDeliveryOption(this)" />
-                                        <div
-                                            class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
-                                            <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
-                                        </div>
-                                        <span>{{ $extendedDeliveryRange . ' ' . $distanceUnit }} </span>
-                                    </label>
-                                @endif
+                            // Figure out which service method should be checked by default
+                            $checkedOption = $showInStore
+                                ? 'In Store Pickup'
+                                : ($showDelivery
+                                    ? 'Delivery'
+                                    : 'In Store Pickup');
+
+                            $hasStandard = $productDetail->standard_delivery_fee !== null;
+                            $hasExtended = $productDetail->extended_delivery_fee !== null;
+
+                            // Determine default checked value
+                            $checkedDistanceType = $hasStandard ? 'Standard' : ($hasExtended ? 'Extended' : 'Custom');
+                        @endphp
+                        @if ($showInStore)
+                            <div class="space-y-2">
                                 <label class="inline-flex items-center space-x-2">
-                                    <input type="radio" name="distance_type" value="Custom" class="sr-only peer"
-                                        onChange="toggleDeliveryOption(this)" />
-                                    <div
-                                        class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
-                                        <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
-                                    </div>
-                                    <span>Custom</span>
+                                    <input type="radio" name="service_method" value="In Store Pickup" class="form-radio"
+                                        {{ $checkedOption === 'In Store Pickup' ? 'checked' : '' }} />
+                                    <span>In Store Pickup / Return</span>
                                 </label>
+                            </div>
+                        @endif
+                        @if ($showDelivery)
+                            <div class="space-y-2">
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="radio" name="service_method" value="Delivery" class="form-radio"
+                                        {{ $checkedOption === 'Delivery' ? 'checked' : '' }} />
+                                    <span>Delivery - Full Turnkey Service</span>
+                                </label>
+                            </div>
+                            <div id="deliveryDiv" class="mt-4 mb-5 {{ $checkedOption === 'Delivery' ? '' : 'hidden' }}">
+                                <div>
+                                    <span>Up To: </span>
+                                    @if ($hasStandard)
+                                        <label class="inline-flex items-center space-x-2">
+                                            <input type="radio" name="distance_type" value="Standard"
+                                                class="sr-only peer"
+                                                data-text="{{ $productSettings['standard_delivery_range'] . ' ' . $productSettings['distance_unit'] }}"
+                                                {{ $checkedDistanceType === 'Standard' ? 'checked' : '' }} />
+                                            <div
+                                                class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
+                                                <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
+                                            </div>
+                                            <span>{{ $productSettings['standard_delivery_range'] . ' ' . $productSettings['distance_unit'] }}</span>
+                                        </label>
+                                    @endif
 
+                                    @if ($hasExtended)
+                                        <label class="inline-flex items-center space-x-2">
+                                            <input type="radio" name="distance_type" value="Extended"
+                                                class="sr-only peer"
+                                                data-text="{{ $productSettings['extended_delivery_range'] . ' ' . $productSettings['distance_unit'] }}"
+                                                {{ $checkedDistanceType === 'Extended' ? 'checked' : '' }} />
+                                            <div
+                                                class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
+                                                <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
+                                            </div>
+                                            <span>{{ $productSettings['extended_delivery_range'] . ' ' . $productSettings['distance_unit'] }}</span>
+                                        </label>
+                                    @endif
+                                    <label class="inline-flex items-center space-x-2">
+                                        <input type="radio" name="distance_type" value="Custom" class="sr-only peer"
+                                            {{ $checkedDistanceType === 'Custom' ? 'checked' : '' }} />
+                                        <div
+                                            class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
+                                            <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
+                                        </div>
+                                        <span>Custom</span>
+                                    </label>
+                                </div>
 
-                                <div id="dropdown_ext_delivery_fee" class="hidden w-full mt-5 mb-5">
-                                    <label class="block font-medium mb-1">Choose Delivery Type
-                                        ({{ $extendedDeliveryRange . ' ' . $distanceUnit }}):</label>
-                                    <select id="deliveryOption_ext_delivery_fee"
+                                <div id="deliveryOptionsDropdown" class="hidden w-full mt-5 mb-5">
+                                    <label for="deliveryOptionSelect" class="block font-medium mb-1">
+                                        Choose Delivery Type
+                                        <span id="distanceTypeTitle"></span>
+                                    </label>
+                                    <select id="deliveryOptionSelect"
                                         class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
                                         <option value="">Select Delivery Options</option>
-                                        <option data-id="1" value="Delivery + Pickup">Delivery + Pick Up (To/From
-                                            My Job Site)
-                                            [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee * 2) }}]
+                                        <option data-id="1" value="Delivery + Pickup">
+                                            Delivery + Pick Up (To/From My Job Site)
+                                            [<span id="DeliveryPickupPrice"></span>]
                                         </option>
-                                        <option data-id="2" value="Delivery + Return">Delivery but I'll Return to Store
-                                            [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]
+                                        <option data-id="2" value="Delivery + Return">
+                                            Delivery but I'll Return to Store
+                                            [<span id="DeliveryReturnPrice"></span>]
                                         </option>
-                                        <option data-id="3" value="Pickup + Return">I'll Pick Up In-Store but Need
-                                            Return
-                                            Service Pick Up
-                                            [{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee) }}]
+                                        <option data-id="3" value="Pickup + Return">
+                                            I'll Pick Up In-Store but Need Return Service Pick Up
+                                            [<span id="PickupReturnPrice"></span>]
                                         </option>
                                     </select>
                                 </div>
@@ -242,40 +268,40 @@
                                 <div id="customServiceOption" class="hidden w-[80%] border-[5px] border-sky-400 p-2 mt-2">
                                     <h4 class="text-center font-bold">Please Call / Text for Custom Solutions</h4>
                                     <h5 class="text-center text-red font-bold py-2">(615) 815-6734</h5>
-                                    <p class="italic">Please reserve the item now, using the closest delivery range, then
+                                    <p class="italic">Please reserve the item now, using the closest delivery range,
+                                        then
                                         call / text afterwards for a custom delivery solution. </p>
                                 </div>
                             </div>
-                        </div>
-                    @endif
-
-                    <div class="w-full mt-5 mb-5 hidden">
-                        <select id="storeLocation" name="store_id"
-                            class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
-                            <option disabled selected value="">Select Store Location</option>
-                            @foreach ($stores as $store)
-                                <option value="{{ $store->id }}">
-                                    {{ $store->address }}, {{ $store->city }}, {{ $store->state->abbreviation }} ,
-                                    {{ $store->zip_code ?? '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div id="dateErrorAddress" class="text-red-600 text-sm mt-2 hidden ">
-                            Please select a Store Location.
+                        @endif
+                        <div id="storeDiv" class="hidden w-full mt-5 mb-5">
+                            <label for="storeSelect" class="block font-medium mb-1">
+                                Choose Store Location
+                            </label>
+                            <select id="storeSelect"
+                                class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
+                                <option disabled selected value="">Select Store Location</option>
+                                @foreach ($stores as $store)
+                                    <option value="{{ $store->id }}">
+                                        {{ $store->address }}, {{ $store->city }}, {{ $store->state->abbreviation }} ,
+                                        {{ $store->zip_code ?? '' }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
-                    <div class="inline-grid">
+                    @if ($productDetail->hasOptions())
+                    <div id="optionDiv" class="inline-grid">
                         <h4 class="font-semibold text-2xl mb-1">Options</h4>
                         @if ($productDetail->rental_prepaid_fuel !== null)
                             <!-- Prepaid Fuel -->
                             <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelCheckbox"
-                                    data-charged="1 Time Max" data-keep="Keep Option"
-                                    data-discard="No Thanks, I'll Take The Risk" data-id="fuelCheckbox"
-                                    data-title="Keep Prepaid Fuel"
-                                    data-message="I understand that the machine is delivered full of fuel and I’m responsible for returning it full of fuel. If returned without a full tank, I will be charged $8/gallon. If I take the 'Pre-Paid Fuel' option, I can just walk away from this obligation."
-                                    onclick="handleCheckboxClick(this)" />
+                                    data-charged="1 Time Max"
+                                    data-keep="{{ $productSettings['prepaid_fuel_approve_label'] }}"
+                                    data-discard="{{ $productSettings['prepaid_fuel_decline_label'] }}"
+                                    data-message="{{ $productSettings['prepaid_fuel_info'] }}" />
                                 <span>Prepaid Fuel
                                     <span class="font-medium">
                                         +
@@ -285,16 +311,14 @@
                             </label>
                         @endif
 
-
-
                         @if ($productDetail->rental_prepaid_cleaning !== null)
                             <!-- Prepaid Cleaning -->
                             <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked id="cleanCheckbox"
-                                    data-keep="Keep Option" data-discard="No Thanks, I'll Take The Risk"
-                                    data-charged="1 Time Max" data-id="cleanCheckbox" data-title="Keep Prepaid Cleaning"
-                                    data-message="I understand I’ll be responsible for bringing the equipment back clean or be charged. This does not cover 'Extreme' cleaning, only standard."
-                                    onclick="handleCheckboxClick(this)" />
+                                    data-charged="1 Time Max"
+                                    data-keep="{{ $productSettings['prepaid_cleaning_approve_label'] }}"
+                                    data-discard="{{ $productSettings['prepaid_cleaning_decline_label'] }}"
+                                    data-message="{{ $productSettings['prepaid_cleaning_info'] }}" />
                                 <span>Prepaid Cleaning
                                     <span class="font-medium">+
                                         {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_cleaning) }}
@@ -307,11 +331,10 @@
                             <!-- Prepaid Fuel Gallons -->
                             <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelGallonsCheckbox"
-                                    data-charged="1 Time Max" data-keep="Keep Option"
-                                    data-discard="No Thanks, I'll Take The Risk" data-id="fuelGallonsCheckbox"
-                                    data-title="Keep Prepaid Fuel Gallons"
-                                    data-message="This includes a set number of fuel gallons in your rental package."
-                                    onclick="handleCheckboxClick(this)" />
+                                    data-charged="1 Time Max"
+                                    data-keep="{{ $productSettings['fuel_gallons_approve_label'] }}"
+                                    data-discard="{{ $productSettings['fuel_gallons_decline_label'] }}"
+                                    data-message="{{ $productSettings['fuel_gallons_info'] }}" />
                                 <span>Fuel Gallons <span class="font-medium">+
                                         {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_fuel_gallons) }}</span></span>
                             </label>
@@ -321,11 +344,10 @@
                             <!-- DEF Gallons -->
                             <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked id="defGallonsCheckbox"
-                                    data-charged="1 Time Max" data-keep="Keep Option"
-                                    data-discard="No Thanks, I'll Take The Risk" data-id="defGallonsCheckbox"
-                                    data-title="Keep Prepaid DEF Gallons"
-                                    data-message="This includes a set number of DEF gallons in your rental package."
-                                    onclick="handleCheckboxClick(this)" />
+                                    data-charged="1 Time Max"
+                                    data-keep="{{ $productSettings['def_gallons_approve_label'] }}"
+                                    data-discard="{{ $productSettings['def_gallons_decline_label'] }}"
+                                    data-message="{{ $productSettings['def_gallons_info'] }}" />
                                 <span>DEF Gallons <span class="font-medium">+
                                         {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_def_gallons) }}</span></span>
                             </label>
@@ -339,56 +361,48 @@
                             <!-- Damage Waiver -->
                             <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                 <input type="checkbox" class="form-checkbox h-4 w-4" checked id="damageCheckbox"
-                                    data-charged="1 Time Max" data-id="damageCheckbox" data-keep="Keep Option"
-                                    data-discard="No Thanks, I'll Take The Risk" data-title="Keep Damage Waiver"
-                                    data-message="By removing the Damage Waiver, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance."
-                                    onclick="handleCheckboxClick(this)" />
+                                    data-charged="1 Time Max"
+                                    data-keep="{{ $productSettings['damage_waiver_approve_label'] }}"
+                                    data-discard="{{ $productSettings['damage_waiver_decline_label'] }}"
+                                    data-message="{{ $productSettings['damage_waiver_info'] }}" />
+                                @php
+                                    $damageWaiverPrice = match ($productType) {
+                                        'daily' => App\Helpers\CustomHelper::formatCurrency(
+                                            $productDetail->rental_damage_waiver_daily,
+                                        ),
+                                        'weekend' => App\Helpers\CustomHelper::formatCurrency(
+                                            $productDetail->rental_damage_waiver_weekend,
+                                        ),
+                                        'weekly' => App\Helpers\CustomHelper::formatCurrency(
+                                            $productDetail->rental_damage_waiver_weekly,
+                                        ),
+                                        'monthly' => App\Helpers\CustomHelper::formatCurrency(
+                                            $productDetail->rental_damage_waiver_monthly,
+                                        ),
+                                        default => '-',
+                                    };
+                                @endphp
 
-                                @switch($productType)
-                                    @case('daily')
-                                        <span>Damage Waiver <span class="font-medium">+
-                                                {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_damage_waiver_daily) }}
-                                            </span></span>
-                                    @break
-
-                                    @case('weekend')
-                                        <span>Damage Waiver <span class="font-medium">+
-                                                {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_damage_waiver_weekend) }}
-                                            </span></span>
-                                    @break
-
-                                    @case('weekly')
-                                        <span>Damage Waiver <span class="font-medium">+
-                                                {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_damage_waiver_weekly) }}
-                                            </span></span>
-                                    @break
-
-                                    @case('monthly')
-                                        <span>Damage Waiver <span class="font-medium">+
-                                                {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_damage_waiver_monthly) }}
-                                            </span></span>
-                                    @break
-
-                                    @default
-                                        <span>-</span>
-                                @endswitch
+                                <span>Damage Waiver
+                                    <span class="font-medium">
+                                        + {{ $damageWaiverPrice }}
+                                    </span>
+                                </span>
                             </label>
                         @endif
-
 
                         @foreach ($productDetail->options as $option)
                             @if ($option->items->isNotEmpty())
                                 @foreach ($option->items as $item)
                                     <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                         <input type="checkbox" class="form-checkbox h-4 w-4"
-                                            @if ($item->value == 'Checked') checked="checked" @endif
-                                            id="options_{{ $item->unique_id }}" data-id="{{ $item->unique_id }}"
-                                            data-keep="{{ $item->accept_label }}"
+                                            {{ $item->value == 'Checked' ? 'checked' : '' }}
+                                            id="options_{{ $item->unique_id }}" data-keep="{{ $item->accept_label }}"
                                             data-discard="{{ $item->decline_label }}"
                                             data-message="{{ $item->comment }}" data-unique_id="{{ $item->unique_id }}"
-                                            @if ($item->comment !== null) onclick="handleCheckboxClick(this)" @endif
                                             data-charged="{{ $item->charged ?? null }}" />
-                                        <span>{{ $item->label }} <span class="font-medium">+
+                                        <span>{{ $item->label }}
+                                            <span class="font-medium">+
                                                 @php
                                                     $price = match ($productType) {
                                                         'daily' => $item->daily,
@@ -404,22 +418,21 @@
                                                     <small style="display: none;"
                                                         class="text-gray-500">({{ $item->charged }})</small>
                                                 @endif
-
-                                            </span></span>
+                                            </span>
+                                        </span>
                                     </label>
                                 @endforeach
                             @endif
                         @endforeach
-
                     </div>
-                    <div id="rentalbtn">
+                    @endif
+                    <div>
                         <button type="button" id="addToRentalBtn"
                             class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out"><i
-                                class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Rental
+                                class="fa-solid fa-bag-shopping text-[20px] mr-3"></i> Add to Cart
                             <img src="{{ asset('storage/front/images/loading.gif') }}" alt="loading"
                                 class="loader-gif" /></button>
                     </div>
-                    <!-- </form> -->
                 </div>
             </div>
         </div>
@@ -520,7 +533,6 @@
                     class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 order-1 md:order-2">
                     Keep Option
                 </button>
-
             </div>
         </div>
     </div>
@@ -532,10 +544,101 @@
         //         Section: Set Delivery Fee Constants
         //         Purpose: JS-side variables for delivery fee calculations
         // ========================================== -->
-        const STANDARD_DELIVERY_FEE = {{ $productDetail->standard_delivery_fee ?? 0 }};
-        const EXTENDED_DELIVERY_FEE = {{ $productDetail->extended_delivery_fee ?? 0 }};
 
         document.addEventListener('DOMContentLoaded', function() {
+            const STANDARD_DELIVERY_FEE = {{ $productDetail->standard_delivery_fee ?? 0 }};
+            const EXTENDED_DELIVERY_FEE = {{ $productDetail->extended_delivery_fee ?? 0 }};
+            const FORMATTED_STANDARD_DELIVERY_FEE =
+                "{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee ?? 0) }}";
+            const FORMATTED_EXTENDED_DELIVERY_FEE =
+                "{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee ?? 0) }}";
+            const FORMATTED_STANDARD_DELIVERY_FEE_X2 =
+                "{{ App\Helpers\CustomHelper::formatCurrency(($productDetail->standard_delivery_fee ?? 0) * 2) }}";
+            const FORMATTED_EXTENDED_DELIVERY_FEE_X2 =
+                "{{ App\Helpers\CustomHelper::formatCurrency(($productDetail->extended_delivery_fee ?? 0) * 2) }}";
+
+
+            function updateDeliveryPrices(type) {
+                const dropdown = document.getElementById('deliveryOptionsDropdown');
+                const customBox = document.getElementById('customServiceOption');
+                const title = document.getElementById('distanceTypeTitle');
+
+                // Clear price spans
+                ['DeliveryPickupPrice', 'DeliveryReturnPrice', 'PickupReturnPrice'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerText = '';
+                });
+
+                let radio = document.querySelector('input[name="distance_type"]:checked');
+                if (radio && radio.dataset.text) {
+                    title.textContent = `(${radio.dataset.text})`;
+                } else {
+                    title.textContent = '';
+                }
+
+                if (type === 'Standard' || type === 'Extended') {
+                    dropdown.classList.remove('hidden');
+                    customBox.classList.add('hidden');
+
+                    if (type === 'Standard') {
+                        document.getElementById('DeliveryPickupPrice').innerText =
+                            FORMATTED_STANDARD_DELIVERY_FEE_X2;
+                        document.getElementById('DeliveryReturnPrice').innerText = FORMATTED_STANDARD_DELIVERY_FEE;
+                        document.getElementById('PickupReturnPrice').innerText = FORMATTED_STANDARD_DELIVERY_FEE;
+                    } else {
+                        document.getElementById('DeliveryPickupPrice').innerText =
+                            FORMATTED_EXTENDED_DELIVERY_FEE_X2;
+                        document.getElementById('DeliveryReturnPrice').innerText = FORMATTED_EXTENDED_DELIVERY_FEE;
+                        document.getElementById('PickupReturnPrice').innerText = FORMATTED_EXTENDED_DELIVERY_FEE;
+                    }
+                } else {
+                    dropdown.classList.add('hidden');
+                    customBox.classList.remove('hidden');
+                }
+            }
+
+            function toggleServiceMethod(selected) {
+                const deliveryDiv = document.getElementById('deliveryDiv');
+                const storeDiv = document.getElementById('storeDiv');
+                if (selected === 'Delivery') {
+                    if (deliveryDiv) deliveryDiv.classList.remove('hidden');
+                    if (storeDiv) storeDiv.classList.add('hidden');
+                    // Show delivery options for default checked distance type
+                    let checkedRadio = document.querySelector('input[name="distance_type"]:checked');
+                    updateDeliveryPrices(checkedRadio ? checkedRadio.value : 'Standard');
+                } else if (selected === 'In Store Pickup') {
+                    if (deliveryDiv) deliveryDiv.classList.add('hidden');
+                    if (storeDiv) storeDiv.classList.remove('hidden');
+                }
+            }
+
+            // Initial state for service_method
+            let checkedService = document.querySelector('input[name="service_method"]:checked');
+            toggleServiceMethod(checkedService ? checkedService.value : '');
+
+            // Listen for service_method changes
+            document.body.addEventListener('change', function(event) {
+                if (event.target.name === 'service_method') {
+                    toggleServiceMethod(event.target.value);
+                }
+                if (event.target.name === 'distance_type') {
+                    updateDeliveryPrices(event.target.value);
+                }
+            });
+
+            // Listen for delivery option changes
+            document.getElementById('deliveryOptionSelect').addEventListener('change', function(event) {
+                const value = event.target.value;
+                const storeDiv = document.getElementById('storeDiv');
+
+                // Show storeDiv for "Delivery + Return" and "Pickup + Return" (the 2nd and 3rd options)
+                if (value === "Delivery + Return" || value === "Pickup + Return") {
+                    storeDiv.classList.remove('hidden');
+                } else {
+                    storeDiv.classList.add('hidden');
+                }
+            });
+
             const scheduleStartDateInput = document.getElementById('scheduleStartDateInput');
             const openDatePicker = document.getElementById('openDatePicker');
             const selectedDateText = document.getElementById('selectedDateText');
@@ -543,6 +646,20 @@
 
             // *** Ensure the button does NOT have focus ***
             openDatePicker.blur();
+
+            // Helper to track last input type and key
+            let lastInputType = null;
+            let lastKeyPressed = null;
+
+            document.addEventListener('keydown', function(e) {
+                lastInputType = 'keyboard';
+                lastKeyPressed = e.key;
+            });
+
+            document.addEventListener('mousedown', function() {
+                lastInputType = 'mouse';
+                lastKeyPressed = null;
+            });
 
             // Init Air Datepicker (no manual show() needed!)
             const picker = new window.AirDatepicker(scheduleStartDateInput, {
@@ -552,13 +669,23 @@
                 minDate: scheduleStartDateInput.dataset.minDate ? new Date(scheduleStartDateInput.dataset
                     .minDate) : false,
                 autoClose: false,
+                keyboardNav: true,
                 onSelect({
                     date,
-                    formattedDate
+                    formattedDate,
+                    datepicker
                 }) {
                     if (date) {
                         selectedDateText.textContent = formattedDate;
                         scheduleStartDateInput.value = formattedDate;
+
+                        // Autoclose if selected by mouse, or Enter key via keyboard
+                        if (lastInputType === 'mouse' || lastKeyPressed === 'Enter') {
+                            datepicker.hide();
+                        }
+
+                        lastInputType = null;
+                        lastKeyPressed = null;
                     } else {
                         selectedDateText.textContent = 'Select Start Date';
                         scheduleStartDateInput.value = '';
@@ -576,231 +703,90 @@
             if (scheduleStartDateInput.value) {
                 selectedDateText.textContent = scheduleStartDateInput.value;
             }
-        });
 
-        // <!-- ===========================================
-        //     Section: Quantity Increment/Decrement
-        //     Purpose: Handles + and - button logic for qty input
-        //     ========================================== -->
+            // <!-- ===========================================
+            //     Section: Quantity Increment/Decrement
+            //     Purpose: Handles + and - button logic for qty input
+            //     ========================================== -->
 
-        window.changeQty = function changeQty(delta) {
-            const input = document.getElementById("qty");
-            let current = parseInt(input.value) || 1;
-            let newValue = current + delta;
-            if (newValue < parseInt(input.min)) newValue = parseInt(input.min);
-            if (newValue > parseInt(input.max)) newValue = parseInt(input.max);
-            input.value = newValue;
-        };
+            window.changeQty = function changeQty(delta) {
+                const input = document.getElementById("qty");
+                let current = parseInt(input.value) || 1;
+                let newValue = current + delta;
+                if (newValue < parseInt(input.min)) newValue = parseInt(input.min);
+                if (newValue > parseInt(input.max)) newValue = parseInt(input.max);
+                input.value = newValue;
+            };
 
 
-        // <!-- ===========================================
-        //  Section: Option/Addon Checkbox Modal Confirmation
-        //  Purpose: Prevents accidental unchecking of important add-ons,
-        //  displays a confirmation modal with dynamic messaging.
-        // ========================================== -->
+            // <!-- ===========================================
+            //  Section: Option/Addon Checkbox Modal Confirmation
+            //  Purpose: Prevents accidental unchecking of important add-ons,
+            //  displays a confirmation modal with dynamic messaging.
+            // ========================================== -->
 
-        // Store checkbox being interacted with
-        let currentCheckbox = null;
+            const optionGrid = document.getElementById('optionDiv');
+            const modal = document.getElementById("modalBackdropClean");
+            const modalMessage = document.getElementById("modalMessage");
+            const modalRejectBtn = document.getElementById("modalRejectBtn");
+            const modalAcceptBtn = document.getElementById("modalAcceptBtn");
+            let currentCheckbox = null;
 
-        // Show modal if unchecking; populate with dynamic data attributes
-        window.handleCheckboxClick = function(checkbox) {
-            if (!checkbox.checked) {
-                checkbox.checked = true;
-                currentCheckbox = checkbox;
+            if (!optionGrid) return;
 
-                const message = checkbox.dataset.message;
-                const keep_title = checkbox.dataset.keep;
-                const discard_title = checkbox.dataset.discard;
+            // Handle all option checkboxes with event delegation
+            optionGrid.addEventListener("click", function(e) {
+                const checkbox = e.target.closest('input[type="checkbox"].form-checkbox');
+                if (!checkbox) return;
 
-                $("#modalMessage").html(message);
-                $("#modalRejectBtn").text(discard_title || "No Thanks, I'll Take The Risk");
-                $("#modalAcceptBtn").text(keep_title || "Keep Option");
+                // Only if trying to uncheck
+                if (!checkbox.checked) {
+                    const message = (checkbox.dataset.message || "").trim();
 
-                document.getElementById("modalBackdropClean").classList.remove("hidden");
-            }
-        };
+                    // If no message, allow normal uncheck
+                    if (!message) return;
 
-        // Close modal, keep option checked
-        window.cancelUncheck = function() {
-            if (currentCheckbox) {
-                currentCheckbox.checked = true;
-                document.getElementById("modalBackdropClean").classList.add("hidden");
+                    // Prevent the uncheck
+                    e.preventDefault();
+                    checkbox.checked = true;
+
+                    // Set modal data
+                    modalMessage.innerHTML = message;
+                    modalRejectBtn.textContent = checkbox.dataset.discard ||
+                    "No Thanks, I'll Take The Risk";
+                    modalAcceptBtn.textContent = checkbox.dataset.keep || "Keep Option";
+                    currentCheckbox = checkbox;
+
+                    modal.classList.remove("hidden");
+                }
+            });
+
+            // Modal handlers (use a single function to DRY up close logic)
+            function closeModal() {
+                modal.classList.add("hidden");
                 currentCheckbox = null;
             }
-        };
 
-        // Close modal, allow unchecking
-        window.confirmUncheckModal = function() {
-            if (currentCheckbox) {
-                currentCheckbox.checked = false;
-                document.getElementById("modalBackdropClean").classList.add("hidden");
-                currentCheckbox = null;
-            }
-        };
+            modalAcceptBtn.addEventListener("click", closeModal);
 
-        // Modal button events
-        document.getElementById("modalAcceptBtn").onclick = cancelUncheck;
-        document.getElementById("modalRejectBtn").onclick = confirmUncheckModal;
-        document.getElementById("modalBackdropClean").addEventListener("click", function(e) {
-            if (e.target === this) {
-                cancelUncheck();
-            }
+            modalRejectBtn.addEventListener("click", function() {
+                if (currentCheckbox) currentCheckbox.checked = false;
+                closeModal();
+            });
+
+            // Close modal on backdrop click or ESC key
+            modal.addEventListener("click", function(e) {
+                if (e.target === modal) closeModal();
+            });
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Escape") closeModal();
+            });
         });
     </script>
 
     <!-- ===========================================
-                                                            Section: Delivery/Pickup Option UI Toggling
-                                                            Purpose: Switches between in-store and delivery forms, reveals relevant UI.
-                                                            ========================================== -->
-    <script>
-        window.toggleDeliveryOption = function toggleDeliveryOption(radio) {
-            const inStoreDiv = document.getElementById("inStoreDiv");
-            const deliveryDiv = document.getElementById("deliveryDiv");
-            const customdis = document.getElementById("customdis");
-            const distance = document.getElementById("distance");
-            const address = document.getElementById("address");
-            const rentalbtn = document.getElementById("rentalbtn");
-
-            const dropdown_std = document.getElementById("dropdown_std_delivery_fee");
-            const dropdown_ext = document.getElementById("dropdown_ext_delivery_fee");
-
-            if (radio.name === "option") {
-                if (radio.value === "in-store") {
-                    inStoreDiv.classList.remove("hidden");
-                    deliveryDiv.classList.add("hidden");
-                    address.classList.remove("hidden");
-                    distance?.classList.remove("hidden");
-                    rentalbtn?.classList.remove("hidden");
-                    customdis.classList.add("hidden");
-                } else if (radio.value === "delivery") {
-                    inStoreDiv.classList.add("hidden");
-                    deliveryDiv.classList.remove("hidden");
-                    address.classList.add("hidden");
-                    rentalbtn?.classList.remove("hidden");
-                    const deliveryOption = document.querySelector('input[name="delivery-option"]:checked');
-                    if (deliveryOption) {
-                        toggleDeliveryOption(deliveryOption);
-                    }
-                }
-            }
-
-            if (radio.name === "delivery-option") {
-                dropdown_std?.classList.add("hidden");
-                dropdown_ext?.classList.add("hidden");
-                customdis.classList.add("hidden");
-
-                if (radio.value === "dis1") {
-                    dropdown_std?.classList.remove("hidden");
-                } else if (radio.value === "dis2") {
-                    dropdown_ext?.classList.remove("hidden");
-                } else if (radio.value === "discustom") {
-                    customdis.classList.remove("hidden");
-                    rentalbtn?.classList.add("hidden");
-                }
-                address.classList.add("hidden");
-            }
-        };
-
-        // Handle dropdown change for delivery types (show/hide address)
-        document.addEventListener('DOMContentLoaded', function() {
-            const stdSelect = document.getElementById('deliveryOption_std_delivery_fee');
-            const extSelect = document.getElementById('deliveryOption_ext_delivery_fee');
-            const address = document.getElementById("address");
-            const rentalbtn = document.getElementById("rentalbtn");
-
-            function handleDeliveryTypeChange(event) {
-                const selected = event.target.options[event.target.selectedIndex];
-                const dataId = selected?.getAttribute("data-id");
-
-                if (["Delivery", "Pickup"].includes(dataId)) {
-                    address.classList.remove("hidden");
-                } else {
-                    address.classList.add("hidden");
-                }
-                rentalbtn?.classList.remove("hidden");
-            }
-
-            stdSelect?.addEventListener('change', handleDeliveryTypeChange);
-            extSelect?.addEventListener('change', handleDeliveryTypeChange);
-        });
-
-        // Initialize delivery form on load
-        window.onload = () => {
-            // const mainSelected = document.querySelector('input[name="option"]:checked");
-            //     if (mainSelected) {
-            //         toggleDeliveryOption(mainSelected);
-            //     }
-        };
-    </script>
-
-    <!-- ===========================================
-                                                                Section: Delivery Fee Calculation
-                                                                Purpose: Update delivery fee and delivery_pickup JSON in hidden fields
-                                                                Dependencies: jQuery
-                                                        ========================================== -->
-    <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            if (typeof window.jQuery !== 'undefined') {
-                $(function() {
-                    $('input[name="delivery-option"]').on('change', calculateDeliveryFee);
-                    $('#deliveryOption_std_delivery_fee, #deliveryOption_ext_delivery_fee').on('change',
-                        calculateDeliveryFee);
-
-                    let distance_type = null;
-                    let distance_range = null;
-
-                    function calculateDeliveryFee() {
-                        let deliveryFee = 0;
-                        let delivery_pickup = [];
-                        let deliveryDataId = null;
-
-                        const deliveryOption = $('input[name="delivery-option"]:checked').val();
-
-                        if (deliveryOption === 'dis1') {
-                            const $selected = $('#deliveryOption_std_delivery_fee');
-                            if ($selected.val()) {
-                                deliveryFee = parseFloat($selected.val()) * STANDARD_DELIVERY_FEE;
-                                const label = $selected.find('option:selected').data('id');
-                                deliveryDataId = label;
-                                distance_type = 'standard_delivery_fee';
-                                distance_range = @json($standardDeliveryRange);
-                            }
-                        } else if (deliveryOption === 'dis2') {
-                            const $selected = $('#deliveryOption_ext_delivery_fee');
-                            if ($selected.val()) {
-                                deliveryFee = parseFloat($selected.val()) * EXTENDED_DELIVERY_FEE;
-                                const label = $selected.find('option:selected').data('id');
-                                deliveryDataId = label;
-                                distance_type = 'extended_delivery_fee';
-                                distance_range = @json($extendedDeliveryRange);
-                            }
-                        }
-
-                        if (deliveryDataId === 'Delivery+Pickup') {
-                            delivery_pickup.push({
-                                name: 'Delivery'
-                            }, {
-                                name: 'Pickup'
-                            });
-                        } else if (deliveryDataId) {
-                            delivery_pickup.push({
-                                name: deliveryDataId
-                            });
-                        }
-
-                        $('#inputDeliveryFee').val(deliveryFee);
-                        $('#inputDeliveryPickup').val(JSON.stringify(delivery_pickup));
-                    }
-                });
-            }
-        });
-    </script>
-
-    <!-- ===========================================
-                                                                Section: Add To Rental Cart
-                                                                Purpose: Main cart processing logic (validation, collect all options, store in localStorage)
-                                                                Dependencies: jQuery
-                                                        ========================================== -->
+            Section: Add To Rental Cart
+    ========================================== -->
     <script>
         window.addEventListener('DOMContentLoaded', function() {
             if (typeof window.jQuery !== 'undefined') {
@@ -893,7 +879,7 @@
                             });
 
                             const total_price = (numericPrice * qty) + addonTotal + deliveryFee;
-                            const taxrate = @json($taxRate);
+                            const taxrate = @json($productSettings['sales_tax']);
                             const tax_amount = +(total_price * taxrate);
                             const total_price_with_tax = +(total_price + tax_amount).toFixed(2);
 

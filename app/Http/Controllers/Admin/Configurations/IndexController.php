@@ -13,7 +13,7 @@ class IndexController extends Controller
     {
 
         // Load the settings from the database
-        $settings = Setting::whereNotIn('setting_type', ['Email Settings'])->get()->groupBy('setting_type');
+        $settings = Setting::whereNotIn('setting_type', ['Email Settings'])->orderBy('sort_order','asc')->get()->groupBy('setting_type')->sortKeys(); // This will sort keys alphabetically (A-Z)
 
         // Return the view with the settings data
         return view('admin.configurations.index', compact('settings'));

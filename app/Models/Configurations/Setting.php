@@ -18,6 +18,7 @@ class Setting extends Model
         'setting_title', // e.g., 'Customer Development/Staging Email'
         'setting_value', // e.g., example@example.com
         'setting_options', // For options like dropdowns
+        'sort_order',
         'created_by',
         'updated_by',
     ];

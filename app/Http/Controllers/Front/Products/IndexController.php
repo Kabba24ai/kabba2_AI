@@ -48,24 +48,15 @@ class IndexController extends Controller
 
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
 
-        $standardDeliveryRange = $productSettings['standard_delivery_range'];
-        $extendedDeliveryRange = $productSettings['extended_delivery_range'];
-        $distanceUnit = $productSettings['distance_unit'];
-
-        $taxValue = $productSettings['sales_tax'];
-
         return view('front.products.details', [
             'title' => $productDetail->product_name,
             'category' => $category,
             'productType' => $productType,
             'productDetail' => $productDetail,
             'stores' => $stores,
-            'taxRate' => $taxValue,
             'parentCategory' => $parentCategory,
             'childCategories' => $childCategories,
-            'standardDeliveryRange' => $standardDeliveryRange,
-            'extendedDeliveryRange' => $extendedDeliveryRange,
-            'distanceUnit' => $distanceUnit,
+            'productSettings' => $productSettings,
         ]);
     }
 }

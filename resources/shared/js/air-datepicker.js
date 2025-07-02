@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 dateFormat: el.dataset.format || 'yyyy-MM-dd HH:mm',
                 minDate: el.dataset.minDate ? new Date(el.dataset.minDate) : false,
                 autoClose: true,
+                keyboardNav:true,
             });
         }
     });

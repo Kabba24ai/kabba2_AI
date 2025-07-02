@@ -198,4 +198,16 @@ return [
         'name' => env('CURRENCY_NAME', 'INR'),
     ],
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Seeders Settings
+    |--------------------------------------------------------------------------
+    |
+    |
+    */
+    'seeders' => [
+        'existing_settings_update' => env('EXISTING_SETTINGS_UPDATE', false),
+    ],
+
 ];

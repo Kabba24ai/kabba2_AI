@@ -101,9 +101,9 @@
                                                 </span>
                                             @endif --}}
                                             <span class="z-30">
-                                                {{ ucfirst($type) }}
+                                                {{ ucfirst('retail') }}
                                                 @if ($product->isRetailOnSale())
-                                                    - <span class="font-bold bg-white text-yellow-400 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                    - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
                                                 @endif
                                             </span>
                                             <span>

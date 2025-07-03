@@ -466,9 +466,14 @@
                 @foreach ($productDetail->relatedProducts as $relatedProduct)
                     <div class="py-[20px] lg:py-[30px] rounded-lg text-center">
                         <div class="transition-all duration-300 ease-in-out hover:text-black">
-                            <div class="lg:h-80 w-full group relative">
-                                <img src="{{ $relatedProduct->image_url }}" alt="{{ $relatedProduct->product_name }}"
-                                    class="mx-auto h-full lg:w-full w-[90%] object-contain opacity-100 group-hover:opacity-0 transition-opacity duration-1000 ease-in-out" />
+                            <div
+                                class="lg:h-80 w-full flex items-center justify-center relative rounded-lg overflow-hidden group transition-all duration-500">
+                                <div
+                                    class="w-full h-full flex items-center justify-center bg-white transition-all duration-500 rounded-lg">
+                                    <img src="{{ $relatedProduct->image_url }}" alt="{{ $relatedProduct->product_name }}"
+                                        class="w-[90%] h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105 "
+                                        loading="lazy" />
+                                </div>
                             </div>
 
                             <div>
@@ -481,15 +486,30 @@
                                         @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
                                             <a href="{{ route('front.products.details', ['categorySlug' => $category->slug, 'slug' => $relatedProduct->slug, 'productType' => $type]) }}"
                                                 class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
-                                                @if ($relatedProduct->isRentalOnSale($type))
+                                                {{-- @if ($relatedProduct->isRentalOnSale($type))
                                                     <span
                                                         class="absolute left-[-25px] top-2 w-[100px] h-6 bg-white text-yellow-400 font-bold text-xs flex items-center justify-center"
                                                         style="transform: rotate(-50deg); z-index: 20; box-shadow: 0 4px 6px rgba(0,0,0,0.10); letter-spacing: 0.5px;">
                                                         Sale
                                                     </span>
-                                                @endif
-                                                <span class="z-30">{{ ucfirst($type) }}</span>
-                                                <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProduct->getRentalPrice($type)) }}</span>
+                                                @endif --}}
+                                                <span class="z-30">
+                                                    {{ ucfirst($type) }}
+                                                    @if ($relatedProduct->isRentalOnSale($type))
+                                                        - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                    @endif
+                                                </span>
+                                                <span>
+                                                    <span class="font-bold text-black">
+                                                        {{ App\Helpers\CustomHelper::formatCurrency($relatedProduct->getRentalPrice($type)) }}
+                                                    </span>
+                                                    @if ($relatedProduct->isRentalOnSale($type))
+                                                        <span
+                                                            class="line-through text-gray-500 text-base ml-1 font-normal italic">
+                                                            {{ App\Helpers\CustomHelper::formatCurrency($relatedProduct->getRentalPrice($type, false)) }}
+                                                        </span>
+                                                    @endif
+                                                </span>
                                             </a>
                                         @endforeach
                                     </div>
@@ -498,15 +518,30 @@
                                     <div class="grid grid-cols-2 gap-2">
                                         <a href="{{ route('front.products.details', ['categorySlug' => $category->slug, 'slug' => $relatedProduct->slug, 'productType' => 'retail']) }}"
                                             class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
-                                            @if ($relatedProduct->isRetailOnSale())
+                                            {{-- @if ($relatedProduct->isRetailOnSale())
                                                 <span
                                                     class="absolute left-[-25px] top-2 w-[100px] h-6 bg-white text-yellow-400 font-bold text-xs flex items-center justify-center"
                                                     style="transform: rotate(-50deg); z-index: 20; box-shadow: 0 4px 6px rgba(0,0,0,0.10); letter-spacing: 0.5px;">
                                                     Sale
                                                 </span>
-                                            @endif
-                                            <span class="z-30">Retail</span>
-                                            <span>{{ App\Helpers\CustomHelper::formatCurrency($relatedProduct->getRetailPrice()) }}</span>
+                                            @endif --}}
+                                            <span class="z-30">
+                                                {{ ucfirst('retail') }}
+                                                @if ($relatedProduct->isRetailOnSale())
+                                                    - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                @endif
+                                            </span>
+                                            <span>
+                                                <span class="font-bold text-lg text-black">
+                                                    {{ App\Helpers\CustomHelper::formatCurrency($relatedProduct->getRetailPrice(false)) }}
+                                                </span>
+                                                @if ($relatedProduct->isRetailOnSale())
+                                                    <span
+                                                        class="line-through text-gray-500 text-base ml-1 font-normal italic">
+                                                        {{ App\Helpers\CustomHelper::formatCurrency($relatedProduct->getRetailPrice(false)) }}
+                                                    </span>
+                                                @endif
+                                            </span>
                                         </a>
                                     </div>
                                 @endif

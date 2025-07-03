@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
         deliveryOptionSelect.addEventListener('change', function(event) {
             const value = event.target.value;
             const storeDiv = document.getElementById('storeDiv');
+            const storeSelect = document.getElementById('storeSelect');
+            if (storeSelect) {
+                storeSelect.selectedIndex = 0;
+            }
             if (value === "Delivery + Return" || value === "Pickup + Return") {
                 storeDiv.classList.remove('hidden');
             } else {

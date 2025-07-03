@@ -121,7 +121,7 @@
                 if (controller) controller.abort();
                 controller = new AbortController();
                 try {
-                    const url = '{{ route('admin.product-management.products.search', [':search', $objProduct->id ?? 0]) }}';
+                    const url = '{{ route('admin.product-management.products.search', [':search', $objProduct->unique_id ?? 0]) }}';
                     const res = await fetch(
                         url.replace(':search', encodeURIComponent(term)),
                         {
@@ -153,7 +153,12 @@
                     suggestionsEl.innerHTML = '';
 
                     if (!list.length) {
-                        suggestionsEl.classList.add('hidden');
+                        suggestionsEl.innerHTML = `
+                            <li class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                No products available
+                            </li>
+                        `;
+                        suggestionsEl.classList.remove('hidden');
                         return;
                     }
 

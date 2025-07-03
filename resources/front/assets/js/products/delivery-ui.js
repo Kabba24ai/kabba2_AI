@@ -23,10 +23,22 @@ export function updateDeliveryPrices(type, context) {
         title.textContent = '';
     }
 
+    // Reset dropdown to first option
+    const deliveryOptionSelect = document.getElementById('deliveryOptionSelect');
+    if (deliveryOptionSelect) {
+        deliveryOptionSelect.selectedIndex = 0;
+        deliveryOptionSelect.dispatchEvent(new Event('change'));
+    }
+
+    const addToCartButton = document.getElementById('addToCart');
+
     if (type === 'Standard' || type === 'Extended') {
         dropdown.classList.remove('hidden');
         customBox.classList.add('hidden');
-
+        if (addToCartButton) {
+            addToCartButton.classList.remove('hidden');
+            addToCartButton.disabled = false;
+        }
         if (type === 'Standard') {
             document.getElementById('DeliveryPickupPrice').innerText = formattedStandardFeeX2;
             document.getElementById('DeliveryReturnPrice').innerText = formattedStandardFee;
@@ -39,12 +51,20 @@ export function updateDeliveryPrices(type, context) {
     } else {
         dropdown.classList.add('hidden');
         customBox.classList.remove('hidden');
+        if (addToCartButton) {
+            addToCartButton.classList.add('hidden');
+            addToCartButton.disabled = true;
+        }
     }
 }
 
 export function toggleServiceMethod(selected, context) {
     const deliveryDiv = document.getElementById('deliveryDiv');
     const storeDiv = document.getElementById('storeDiv');
+    const storeSelect = document.getElementById('storeSelect');
+    if (storeSelect) {
+        storeSelect.selectedIndex = 0;
+    }
     if (selected === 'Delivery') {
         if (deliveryDiv) deliveryDiv.classList.remove('hidden');
         if (storeDiv) storeDiv.classList.add('hidden');

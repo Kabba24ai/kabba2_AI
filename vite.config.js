@@ -41,7 +41,18 @@ export default defineConfig(() => {
             exclude: [
                 // exclude css or js should be list here
             ],
-            include: [],
+            include: [
+                'alpinejs',
+                'jquery',
+                '@alpinejs/persist',
+                'flowbite',
+                '@ckeditor/ckeditor5-build-classic',
+                'signature_pad',
+                'sortablejs',
+                '@fortawesome/fontawesome-free/js/all.js',
+                'air-datepicker',
+                'notyf'
+            ],
         },
         //logLevel: "info",
         plugins: [

@@ -2,11 +2,23 @@
 
 namespace App\Http\Controllers\Front\Cart;
 
+use App\Helpers\CartHelper;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 class IndexController extends Controller
 {
-    public function __invoke()
+    public function __invoke(Request $request)
     {
+        // 1. Get cart from session or backend storage (not localStorage)
+        $cartData = $request->kabba_cart ?? [];
+
+        // 2. Build summary using CartHelper
+        $cartSummary = CartHelper::buildCartSummary(['cart_data' => $cartData]);
+
+        // 3. Pass to component/view
+        return view('components.front.cart-sidebar-preview', [
+            'cart' => $cartSummary,
+        ]);
     }
 }

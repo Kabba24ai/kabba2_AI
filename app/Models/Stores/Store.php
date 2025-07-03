@@ -36,10 +36,21 @@ class Store extends Model
     }
 
     public function state()
-{
-    return $this->belongsTo(\App\Models\Locations\State::class);
-}
+    {
+        return $this->belongsTo(\App\Models\Locations\State::class);
+    }
 
+    public function getFullAddress()
+    {
+        $parts = [
+            $this->address,
+            $this->city,
+            optional($this->state)->name,
+            $this->zip_code
+        ];
+
+        return implode(', ', array_filter($parts));
+    }
 
     public static function boot()
     {

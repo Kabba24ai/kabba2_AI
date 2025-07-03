@@ -1,3 +1,78 @@
+window.updateCartCount = function() {
+    if (window.CartStorage && typeof window.CartStorage.getTotalQuantity === 'function') {
+        const count = window.CartStorage.getTotalQuantity();
+        const cartCountEl = document.getElementById('cart-count');
+        if (cartCountEl) {
+            cartCountEl.textContent = count;
+        }
+    }
+};
+
+window.loadCartSidebarPreview = (function() {
+    let loading = false; // Prevents double fetches
+
+    return function() {
+        const cartDataDiv = document.getElementById('cartData');
+        if (!cartDataDiv) return;
+
+        // Prevent double loading if already loading
+        if (loading) return;
+
+        // Try to get kabba_cart from localStorage
+        let cart = window.CartStorage.getCart();
+
+        // Update cart count every time sidebar preview loads
+        if (typeof window.updateCartCount === "function") {
+            window.updateCartCount();
+        }
+
+        if (!cart?.length) {
+            cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Your cart is empty.</p>';
+            return;
+        }
+
+        const url = cartDataDiv.dataset.fetchCartUrl;
+        if (!url) {
+            cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Cart URL not set.</p>';
+            return;
+        }
+
+        // Show a loading spinner or message
+        cartDataDiv.innerHTML = `
+            <div class="flex items-center justify-center py-10">
+                <svg class="animate-spin h-6 w-6 text-gray-600 mr-3" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-4a6 6 0 0 0-6-6V2z"></path>
+                </svg>
+                <span class="text-gray-700">Loading cart...</span>
+            </div>
+        `;
+        loading = true;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            },
+            body: JSON.stringify({ kabba_cart: cart })
+        })
+        .then(response => response.text())
+        .then(html => {
+            cartDataDiv.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Could not load cart.</p>';
+        })
+        .finally(() => {
+            loading = false;
+        });
+    };
+})();
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
     // Panel configs
     const offcanvasConfigs = [
@@ -60,6 +135,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     closeAllOffcanvas(panel);
                     setPanelState(panelEl, true, openClasses, closeClasses, directionClass);
                     toggleEl.classList.add("active");
+
+                    // If this is the cart panel, load the sidebar preview
+                    // if (panel === "#cartOffCanvas" && typeof window.loadCartSidebarPreview === "function") {
+                    //     window.loadCartSidebarPreview();
+                    // }
                 }
             });
         });
@@ -106,4 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (dropdown) dropdown.classList.toggle("active");
         });
     });
+
+    // Update cart count ONCE when the page loads
+    window.loadCartSidebarPreview();
 });

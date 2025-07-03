@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductOptionItem;
+use App\Models\Stores\Store;
 
 class CartHelper
 {
@@ -39,7 +40,7 @@ class CartHelper
                 continue;
             }
 
-            $item = self::buildCartItem($product, $validated, $taxRate);
+            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings);
             $items[] = $item;
             $subTotal += $item['sub_total'];
             $taxTotal += $item['tax'];
@@ -62,20 +63,32 @@ class CartHelper
         ];
     }
 
-    private static function buildCartItem($product, $validated, $taxRate)
+    private static function buildCartItem($product, $validated, $taxRate, $productSettings)
     {
         $quantity = $validated['quantity'];
         $variant = $validated['product_variant'] ?? null;
 
-         // --- Sale logic based on product type/variant ---
-        $isSale = $product->product_type === 'Rental'
-            ? $product->isRentalOnSale($variant)
-            : $product->isRetailOnSale();
+        $storeAddress = null;
+        if (!empty($validated['store_id'])) {
+            $store = Store::find($validated['store_id']);
+            $storeAddress = $store ? $store->getFullAddress() : null;
+        }
+
+        // Add distance_range from product settings based on distance_type
+        $distanceRange = null;
+        if (!empty($validated['distance_type'])) {
+            $distanceType = $validated['distance_type'];
+            // Example: keys like 'standard_distance_range', 'extended_distance_range'
+            $settingKey = strtolower($distanceType) . '_delivery_range';
+            if (isset($productSettings[$settingKey])) {
+                $distanceRange = $productSettings[$settingKey] . ' ' . $productSettings['distance_unit'];
+            }
+        }
+        // --- Sale logic based on product type/variant ---
+        $isSale = $product->product_type === 'Rental' ? $product->isRentalOnSale($variant) : $product->isRetailOnSale();
 
         // --- Get product base price ---
-        $price = $product->product_type === 'Rental'
-            ? $product->getRentalPrice($variant, $isSale)
-            : $product->getRetailPrice($isSale);
+        $price = $product->product_type === 'Rental' ? $product->getRentalPrice($variant, $isSale) : $product->getRetailPrice($isSale);
 
         // --- Collect selected rental add-on items and their prices ---
         $selectedRentalItemsWithPrices = self::resolveRentalItems($product, $validated, $variant);
@@ -89,12 +102,14 @@ class CartHelper
         // --- Calculate all totals ---
         $rentalItemsTotal = array_sum($selectedRentalItemsWithPrices);
 
-        $itemSubTotal = ($price * $quantity) + $optionsTotal + $serviceOptionPrice + $rentalItemsTotal;
+        $itemSubTotal = $price * $quantity + $optionsTotal + $serviceOptionPrice + $rentalItemsTotal;
         $itemTax = $itemSubTotal * $taxRate;
         $itemTotal = $itemSubTotal + $itemTax;
 
         return [
             'product_unique_id' => $product->unique_id,
+            'product_name' => $product->product_name,
+            'product_image_url' => $product->image_url,
             'product_type' => $product->product_type,
             'product_variant' => $variant,
             'product_sale_active' => $isSale ? true : false,
@@ -103,10 +118,11 @@ class CartHelper
             'schedule_start_date' => $validated['schedule_start_date'] ?? null,
             'service_method' => $validated['service_method'] ?? null,
             'distance_type' => $validated['distance_type'] ?? null,
-            'distance_range' => $validated['distance_range'] ?? null,
+            'distance_range' => $distanceRange,
             'service_option' => $validated['service_option'] ?? null,
             'service_option_price' => round($serviceOptionPrice, 2),
             'store_id' => $validated['store_id'] ?? null,
+            'store_address' => $storeAddress ?? null,
             'product_option_items' => $resolvedOptions,
             'product_rental_items' => $validated['product_rental_items'],
             'product_rental_items_prices' => $selectedRentalItemsWithPrices,
@@ -136,11 +152,7 @@ class CartHelper
     private static function resolveServiceOptionPrice($product, $validated)
     {
         $serviceOptionPrice = 0;
-        if (
-            ($validated['service_method'] ?? null) === 'Delivery' &&
-            !empty($validated['distance_type']) &&
-            !empty($validated['service_option'])
-        ) {
+        if (($validated['service_method'] ?? null) === 'Delivery' && !empty($validated['distance_type']) && !empty($validated['service_option'])) {
             $distanceType = $validated['distance_type'];
             $serviceOption = $validated['service_option'];
 
@@ -184,8 +196,8 @@ class CartHelper
                 $optionPrice = $objOption->retail_price;
             }
             // "Unlimited" charge per quantity, else once
-            if ($objOption->charged == "Unlimited") {
-                $optionsTotal += ($optionPrice * $quantity);
+            if ($objOption->charged == 'Unlimited') {
+                $optionsTotal += $optionPrice * $quantity;
             } else {
                 $optionsTotal += $optionPrice;
             }

@@ -82,9 +82,7 @@ export function initAddToCart(context) {
             .then(resp => {
                 if (resp.success && resp.cart_items) {
                     resp.cart_items.cart_data.forEach(item => CartStorage.addOrUpdateItem(item));
-                    document.querySelectorAll('.toggleCart span').forEach(el =>
-                        el.textContent = CartStorage.getTotalQuantity()
-                    );
+                    window.loadCartSidebarPreview();
                     document.querySelector('.toggleCart')?.click();
                 } else {
                     notyf.error(resp.message || 'Failed to add to cart.');

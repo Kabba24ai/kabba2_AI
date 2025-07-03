@@ -21,7 +21,21 @@ class SaveRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $this->merge(PurifyHelper::purify($this->all(), []));
+        $data = PurifyHelper::purify($this->all(), []);
+
+        // Normalize fields based on service_method
+        if (($data['service_method'] ?? null) === 'Delivery') {
+            // For Delivery, store_id should be blank if service_option is "Delivery + Pickup"
+            if (($data['service_option'] ?? null) === 'Delivery + Pickup') {
+                $data['store_id'] = null;
+            }
+        } else {
+            // For In Store Pickup or no service_method, delivery-related fields should be blank
+            $data['distance_type'] = null;
+            $data['service_option'] = null;
+        }
+
+        $this->merge($data);
     }
 
     /**

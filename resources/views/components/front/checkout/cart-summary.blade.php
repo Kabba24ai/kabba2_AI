@@ -1,10 +1,10 @@
 <div>
-    @if (!empty($cart['cart_data']))
-        @foreach ($cart['cart_data'] as $item)
+    @if (!empty($cart['cart_items']))
+        @foreach ($cart['cart_items'] as $item)
             <div class="border-b pb-4 mb-6">
                 <div class="flex">
                     <div class="w-1/3">
-                        <div class="border rounded relative">
+                        <div class="border border-yellow-400 rounded relative">
                             <img src="{{ $item['product_image_url'] }}" alt="Product" class="object-cover rounded">
                             <span
                                 class="bg-yellow-400 w-[22px] h-[22px] text-black rounded-full absolute -top-2 -right-[8px] text-[14px] text-center font-bold">

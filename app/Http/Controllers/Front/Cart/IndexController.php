@@ -14,7 +14,7 @@ class IndexController extends Controller
         $cartData = $request->kabba_cart ?? [];
 
         // 2. Build summary using CartHelper
-        $cartSummary = CartHelper::buildCartSummary(['cart_data' => $cartData]);
+        $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cartData]);
 
         // 3. Pass to component/view
         return response()->json([

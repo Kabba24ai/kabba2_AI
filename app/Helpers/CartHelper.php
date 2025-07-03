@@ -23,7 +23,7 @@ class CartHelper
         $discount = floatval($input['discount'] ?? 0);
 
         // --- Prepare Cart Data ---
-        $cartData = $input['cart_data'] ?? [];
+        $cartData = $input['cart_items'] ?? [];
         // Support: If single product, wrap in array
         if (!isset($cartData[0]) && is_array($cartData)) {
             $cartData = [$cartData];
@@ -54,7 +54,7 @@ class CartHelper
             'tax_exempt' => $taxExempt,
             'order_notes' => $orderNotes,
             'payment_method' => $paymentMethod,
-            'cart_data' => $items,
+            'cart_items' => $items,
             'sub_total' => round($subTotal, 2),
             'tax_total' => round($taxTotal, 2),
             'coupon_code' => $couponCode,
@@ -219,7 +219,7 @@ class CartHelper
             'tax_exempt' => 'true/false',
             'order_notes' => 'test', // nullable
             'payment_method' => 'COD/Account/Card',
-            'cart_data' => [
+            'cart_items' => [
                 'product_unique_id' => 'PRO-001', // not null
                 'product_type' => 'Rental/Retail', // not null
                 'product_variant' => 'Daily/Monthly/Weekend/Weekly', // null

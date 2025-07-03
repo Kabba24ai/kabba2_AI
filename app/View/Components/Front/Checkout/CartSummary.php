@@ -18,7 +18,7 @@ class CartSummary extends Component
     /**
      * Create a new component instance.
      *
-     * @param  \Illuminate\Support\Collection  $cart_data
+     * @param  \Illuminate\Support\Collection  $cart_items
      * @return void
      */
     public function __construct($cart)

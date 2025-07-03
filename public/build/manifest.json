@@ -43,7 +43,7 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-CACBR_x9.css",
+    "file": "assets/app-DYjemfWB.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
@@ -57,20 +57,17 @@
     ]
   },
   "resources/css/app.css": {
-
-    "file": "assets/app-T_EXRaGf.css",
-"src": "resources/css/app.css",
+    "file": "assets/app-CixuPtut.css",
+    "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-
-    "file": "assets/app-6HydK2qh.css",
-
+    "file": "assets/app-CQmUYvdI.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-tvA1LUig.js",
+    "file": "assets/app-Bic6Zil_.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
@@ -82,9 +79,7 @@
     ]
   },
   "resources/front/assets/js/products/product-details-page.js": {
-
-    "file": "assets/product-details-page-DihFALLw.js",
-
+    "file": "assets/product-details-page-4H6i3I5a.js",
     "name": "product-details-page",
     "src": "resources/front/assets/js/products/product-details-page.js",
     "isEntry": true

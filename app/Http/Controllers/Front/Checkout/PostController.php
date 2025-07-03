@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Front\Checkout;
 
-use App\Helpers\CartHelper;
-use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+use DB;
+
+// Helpers
+use App\Helpers\CartHelper;
 
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
@@ -14,8 +17,6 @@ use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 use App\Models\Locations\State;
 use App\Models\ProductManagement\Product;
-use Carbon\Carbon;
-use DB;
 
 class PostController extends Controller
 {
@@ -27,12 +28,7 @@ class PostController extends Controller
         DB::beginTransaction();
         $validated = $request->validated();
         $cart = json_decode($validated['cart'], true);
-        if (empty($cart)) {
-            return redirect()->back()->withInput()->with('error', 'Your cart is empty. Please add products before placing an order.');
-        }
-
-        $productSettings = ConfigurationHelper::getSettings('Product Settings');
-        $taxRate = $productSettings['sales_tax'];
+        $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
 
         try {
             // 1. Find or create customer
@@ -114,58 +110,17 @@ class PostController extends Controller
             $billingState = State::where('id', $billingAddress->state_id)->first();
             $deliveryState = State::where('id', $deliveryAddress->state_id)->first();
 
-            $subTotal = 0;
-            $taxAmount = 0;
-            $grandTotal = 0;
-
-            foreach ($cart as $item) {
-                // 1. Get prices from DB if needed (not shown here)
-                $basePrice = floatval($item['base_price']);
-                $deliveryFee = floatval($item['delivery_fee'] ?? 0);
-                $qty = intval($item['qty'] ?? 1);
-
-                // 2. Addons: sum prices
-                $addonsTotal = 0;
-                if (!empty($item['addons'])) {
-                    foreach ($item['addons'] as $addon) {
-                        $addonsTotal += floatval($addon['price']);
-                    }
-                }
-
-                // 3. Calculate subtotal for ONE quantity
-                $itemSubTotal = $basePrice + $deliveryFee + $addonsTotal;
-                // For multiple quantities:
-                $itemSubTotalAll = $itemSubTotal * $qty;
-
-                // 4. Tax
-                $itemTax = round($itemSubTotalAll * $taxRate, 2);
-
-                // 5. Total
-                $itemTotal = round($itemSubTotalAll + $itemTax, 2);
-
-                // 6. Add to running totals
-                $subTotal += $itemSubTotalAll;
-                $taxAmount += $itemTax;
-                $grandTotal += $itemTotal;
-
-                // Optionally store in array for later
-                $item['calculated_subtotal'] = $itemSubTotalAll;
-                $item['calculated_tax'] = $itemTax;
-                $item['calculated_total'] = $itemTotal;
-                // $items[] = $item;
-            }
-
-            // 4. Save Order
+            // Save Order
             $order = $customer->orders()->create([
                 'customer_id' => $customer->id,
                 'customer_name' => $customer->full_name,
                 'customer_email' => $customer->email,
                 'customer_phone' => $customer->phone,
-                'subtotal' => $subTotal,
-                'tax_amount' => $taxAmount,
+                'subtotal' => $cartSummary['sub_total'],
+                'tax_amount' => $cartSummary['tax_total'],
                 'coupon_code' => null,
-                'discount_amount' => 0,
-                'grand_total' => $grandTotal,
+                'discount_amount' => $cartSummary['discount'],
+                'grand_total' => $cartSummary['grand_total'],
                 'payment_type' => $validated['payment'],
                 'order_note' => $validated['orderNotes'] ?? null,
                 'status' => 'Pending',
@@ -200,71 +155,25 @@ class PostController extends Controller
                 'zip_code' => $deliveryAddress->zip_code,
             ]);
 
-            foreach ($cart as $item) {
-                if ($product = Product::where('id', $item['product_id'])->first()) {
-                    // Optional: If you need store, tax, or other related info, join here
+            foreach ($cartSummary['cart_items'] as $item) {
 
-                    $price = $item['base_price']; // use DB price, not posted price
-                    $taxRate = $product->tax_rate ?? 0; // use DB tax rate
-                    $productName = $product->product_name; // always from DB
-
-                    // Calculate
-                    $quantity = (int) $item['qty'];
-                    $tax = round($price * $quantity * $taxRate, 2);
-                    $total = round($price * $quantity + $tax, 2);
-
-                    // Format dates with Carbon (handle null or empty date)
-                    $startDate = !empty($item['sechdule_start_date']) ? Carbon::createFromFormat('d/m/Y', $item['sechdule_start_date'])->format('Y-m-d') : null;
-
-                    $endDate = !empty($item['schedule_end_date']) ? Carbon::createFromFormat('d/m/Y', $item['schedule_end_date'])->format('Y-m-d') : null;
-
-                    if ($item['service_method'] == 'delivery') {
-                        $serviceMethod = 'Delivery';
-                    }
-
-                    if ($item['service_method'] == 'in-store') {
-                        $serviceMethod = 'In Store Pickup';
-                    }
-
-                    if ($item['service_option'] == 'in-store') {
-                        $serviceMethod = 'In Store Pickup';
-                    }
-                    if ($item['service_option'] == 'in-store') {
-                        $serviceMethod = 'In Store Pickup';
-                    }
-
-                    switch ($item['distance_type']) {
-                        case 'standard_delivery_fee':
-                            $distanceType = 'Standard';
-                            break;
-                        case 'extended_delivery_fee':
-                            $distanceType = 'Extended';
-                            break;
-                        case 'Custom':
-                            $distanceType = 'Custom';
-                            break;
-
-                        default:
-                            $distanceType = null;
-                            break;
-                    }
-
+                if ($product = Product::find($item['product_unique_id'])) {
                     // Save order product
                     $order->products()->create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
-                        'product_name' => $productName,
-                        'price' => $price,
-                        'quantity' => $quantity,
-                        'tax' => $tax,
-                        'total' => $total,
-                        'schedule_start_date' => $startDate,
-                        'schedule_end_date' => $endDate,
+                        'product_name' => $item['product_name'],
+                        'price' => $item['product_price'],
+                        'quantity' => $item['quantity'],
+                        'tax' => $item['tax'],
+                        'total' => $item['total'],
+                        'schedule_start_date' => $item['schedule_start_date'],
+                        'schedule_end_date' => $item['schedule_end_date'] ?? null,
                         'product_data' => json_encode($item),
-                        'service_method' => $serviceMethod,
-                        'service_option' => null,
+                        'service_method' => $item['service_method'] ?? null,
+                        'service_option' => $item['service_option'] ?? null,
                         'store_id' => $item['store_id'] ?? null,
-                        'distance_type' => $distanceType,
+                        'distance_type' => $item['distance_type'] ?? null,
                         'distance_range' => $item['distance_range'] ?? null,
                     ]);
                 }
@@ -272,8 +181,11 @@ class PostController extends Controller
 
             DB::commit();
 
-            // Success: redirect back with success message
-            return redirect()->route('front.home.index')->with('success', 'Order placed successfully!');
+            // Generate a signed URL for the thank you page with order unique id
+            $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you',now()->addMinutes(5),['order' => $order->unique_id]);
+
+            // Success: redirect to signed thank you page with order id
+            return redirect($signedUrl);
         } catch (\Exception $e) {
             DB::rollback();
             dd($e);

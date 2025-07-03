@@ -4,8 +4,8 @@
         <x-heroicon-o-chevron-down class="h-4 w-4 text-gray-800" />
     </div>
 
-    @if (!empty($cart['cart_data']))
-        @foreach ($cart['cart_data'] as $item)
+    @if (!empty($cart['cart_items']))
+        @foreach ($cart['cart_items'] as $item)
             <div class="flex items-start gap-3 mb-4">
 
                 <img src="{{ $item['product_image_url'] }}" alt="Product" class="w-14 h-14 object-cover rounded border border-yellow-400">

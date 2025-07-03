@@ -80,8 +80,8 @@ export function initAddToCart(context) {
                 return response.json();
             })
             .then(resp => {
-                if (resp.success && resp.cart_items) {
-                    resp.cart_items.cart_data.forEach(item => CartStorage.addOrUpdateItem(item));
+                if (resp.success && resp.cart_data) {
+                    resp.cart_data.cart_items.forEach(item => CartStorage.addOrUpdateItem(item));
                     window.loadCartSidebarPreview();
                     document.querySelector('.toggleCart')?.click();
                 } else {
@@ -89,7 +89,7 @@ export function initAddToCart(context) {
                 }
             })
             .catch(err => {
-                if (err && err.errors) {
+                if (err?.errors) {
                     Object.values(err.errors).forEach(messages => {
                         messages.forEach(msg => showStickyError(msg));
                     });

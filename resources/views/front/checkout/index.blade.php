@@ -14,7 +14,7 @@
                         <h1 class="text-[28px] md:text-[34px] lg:text-[40px] tracking-[-2px] leading-[110%] font-bold">
                             {{ $title }}</h1>
                         <ul
-                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
+                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 ">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
@@ -33,7 +33,7 @@
                 <div class="w-full md:w-2/3 border-r px-4 md:pr-8 pb-12">
                     <!-- Billing Info -->
                     <h2 class="text-2xl font-bold mt-2">Billing information</h2>
-                    @include('front.partials.message')
+
                     {{ html()->form()->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
@@ -42,6 +42,9 @@
                         ])->open() }}
                     @csrf
                     <input type="hidden" name="cart" id="cart-input">
+                    @error('cart')
+                        <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
+                    @enderror
                     <!-- Address Selection -->
                     @auth
                         <div>
@@ -239,11 +242,14 @@
                     <!-- Delivery Info -->
                     <h4 class="text-lg font-semibold">Delivery information</h4>
                     <div class="flex items-center gap-2 mb-4">
-                        <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4" value="Yes"
-                            name="sameAsBilling" checked />
+                        <input type="hidden" name="sameAsBilling" value="{{ old('sameAsBilling', 'Yes') }}">
+                        <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4" {{ old('sameAsBilling', 'Yes') == 'Yes' ? 'checked' : '' }} />
                         <label for="sameAsBilling" class="text-sm">Same as billing information</label>
+                        @error('sameAsBilling')
+                            <span class="text-sm text-red-500 ml-2">{{ $message }}</span>
+                        @enderror
                     </div>
-                    <div id="deliveryDiv" class="space-y-4 hidden">
+                    <div id="deliveryDiv" class="space-y-4 {{ old('sameAsBilling', 'Yes') == 'Yes' ? 'hidden' : '' }}">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="deliveryFirstName" class="block text-sm text-gray-600 mb-1">First Name</label>
@@ -547,8 +553,14 @@
         document.addEventListener('DOMContentLoaded', function() {
 
             document.getElementById('checkout-form').addEventListener('submit', function(e) {
-                let cart = localStorage.getItem('rental_cart');
-                document.getElementById('cart-input').value = cart; // pass as JSON string
+                let cart = window.CartStorage.getCart();
+                if (!cart || cart.length === 0) {
+                    e.preventDefault();
+                    notyf.error('Your cart is empty. Please add items before checking out.');
+                    return;
+                }
+                // Convert cart to JSON string and store in hidden input
+                document.getElementById('cart-input').value = JSON.stringify(cart);
             });
 
             // ================================
@@ -636,6 +648,7 @@
             // Sync "Same as Billing" for Delivery Info
             // ========================================
             const sameAsBilling = document.getElementById('sameAsBilling');
+            const hiddenSameAsBilling = document.querySelector('input[name="sameAsBilling"][type="hidden"]');
             const deliveryDiv = document.getElementById('deliveryDiv');
 
             // Map billing fields to delivery fields
@@ -671,6 +684,7 @@
             // ============================
             sameAsBilling.addEventListener('change', function() {
                 if (this.checked) {
+                    hiddenSameAsBilling.value = 'Yes';
                     syncDeliveryFields();
                     deliveryDiv.classList.add('hidden');
                     // Listen for changes in billing to update delivery fields
@@ -682,6 +696,7 @@
                         }
                     });
                 } else {
+                    hiddenSameAsBilling.value = 'No';
                     deliveryDiv.classList.remove('hidden');
                     // Remove listeners if needed (not strictly necessary here for most forms)
                 }

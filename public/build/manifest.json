@@ -1,0 +1,93 @@
+{
+  "_air-datepicker-CzFpSg6G.js": {
+    "file": "assets/air-datepicker-CzFpSg6G.js",
+    "name": "air-datepicker",
+    "css": [
+      "assets/air-datepicker-jshjrsWp.css"
+    ]
+  },
+  "_air-datepicker-jshjrsWp.css": {
+    "file": "assets/air-datepicker-jshjrsWp.css",
+    "src": "_air-datepicker-jshjrsWp.css"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf": {
+    "file": "assets/fa-brands-400-D1LuMI3I.ttf",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2": {
+    "file": "assets/fa-brands-400-D_cYUPeE.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.ttf": {
+    "file": "assets/fa-regular-400-DZaxPHgR.ttf",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.ttf"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2": {
+    "file": "assets/fa-regular-400-BjRzuEpd.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.ttf": {
+    "file": "assets/fa-solid-900-D0aA9rwL.ttf",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.ttf"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2": {
+    "file": "assets/fa-solid-900-CTAAxXor.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.ttf": {
+    "file": "assets/fa-v4compatibility-CCth-dXg.ttf",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.ttf"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2": {
+    "file": "assets/fa-v4compatibility-C9RhG_FT.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
+  },
+  "resources/admin/css/app.css": {
+    "file": "assets/app-B3ab6Ze1.css",
+    "src": "resources/admin/css/app.css",
+    "isEntry": true
+  },
+  "resources/admin/js/app.js": {
+    "file": "assets/app-_b4cDTmO.js",
+    "name": "app",
+    "src": "resources/admin/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_air-datepicker-CzFpSg6G.js"
+    ]
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-THGhAREx.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/front/assets/css/app.css": {
+    "file": "assets/app-DS2k_90c.css",
+    "src": "resources/front/assets/css/app.css",
+    "isEntry": true
+  },
+  "resources/front/assets/js/app.js": {
+    "file": "assets/app-tvA1LUig.js",
+    "name": "app",
+    "src": "resources/front/assets/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_air-datepicker-CzFpSg6G.js"
+    ],
+    "css": [
+      "assets/app-Bt149cem.css"
+    ]
+  },
+  "resources/front/assets/js/products/product-details-page.js": {
+    "file": "assets/product-details-page-4rwJ_GWB.js",
+    "name": "product-details-page",
+    "src": "resources/front/assets/js/products/product-details-page.js",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-43T2tYNv.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  }
+}

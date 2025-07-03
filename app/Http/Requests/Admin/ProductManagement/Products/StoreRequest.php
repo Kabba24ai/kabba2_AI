@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Http\Requests\Admin\ProductManagement\Products;
+
+use App\Helpers\PurifyHelper;
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        return true;
+    }
+
+    protected function prepareForValidation()
+    {
+        $input = PurifyHelper::purify($this->all(), ['short_description', 'description']);
+
+        $this->merge($input);
+
+        //dd($this->all()); // This will dump ALL incoming request data and stop execution
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'product_name' => ['required', 'string', 'max:240', 'unique:products,product_name'],
+            'product_type' => ['required', 'in:Rental,Retail'],
+
+            'is_general_term_type' => ['nullable', 'boolean'],
+            'is_custom_term_type' => ['nullable', 'boolean'],
+
+            'terms' => ['required_if:is_custom_term_type,1'],
+
+            'seo_title' => ['nullable', 'string', 'max:255'],
+            'seo_description' => ['nullable', 'string', 'max:1000'],
+
+            'short_description' => ['nullable', 'string', 'max:1000'],
+            'description' => ['required', 'string'],
+
+            'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'hover_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+
+            // Retail
+            'sku' => ['nullable', 'string', 'max:255'],
+            'barcode' => ['nullable', 'string', 'max:255'],
+            'retail_price' => ['nullable', 'numeric', 'min:0'],
+            'retail_sale_price' => ['nullable', 'numeric', 'min:0'],
+            'retail_product_cost' => ['nullable', 'numeric', 'min:0'],
+
+            // Rental pricing
+            'rental_daily' => ['nullable', 'numeric', 'min:0'],
+            'rental_weekend' => ['nullable', 'numeric', 'min:0'],
+            'rental_weekly' => ['nullable', 'numeric', 'min:0'],
+            'rental_monthly' => ['nullable', 'numeric', 'min:0'],
+
+            // Damage waivers
+            'rental_damage_waiver_daily' => ['nullable', 'numeric', 'min:0'],
+            'rental_damage_waiver_weekend' => ['nullable', 'numeric', 'min:0'],
+            'rental_damage_waiver_weekly' => ['nullable', 'numeric', 'min:0'],
+            'rental_damage_waiver_monthly' => ['nullable', 'numeric', 'min:0'],
+
+            // Prepaid options
+            'rental_prepaid_cleaning' => ['nullable', 'numeric', 'min:0'],
+            'rental_prepaid_fuel' => ['nullable', 'numeric', 'min:0'],
+            'rental_fuel_gallons' => ['nullable', 'numeric', 'min:0'],
+            'rental_fuel_type' => ['nullable', 'in:Diesel,Gas'],
+            'rental_def_gallons' => ['nullable', 'numeric', 'min:0'],
+
+            // Sale prices
+            'sale_price_daily' => ['nullable', 'numeric', 'min:0'],
+            'sale_price_weekend' => ['nullable', 'numeric', 'min:0'],
+            'sale_price_weekly' => ['nullable', 'numeric', 'min:0'],
+            'sale_price_monthly' => ['nullable', 'numeric', 'min:0'],
+
+            // Delivery
+            'standard_delivery_fee' => ['nullable', 'numeric', 'min:0'],
+            'extended_delivery_fee' => ['nullable', 'numeric', 'min:0'],
+
+            'in_store_pickup' => ['nullable', 'in:Yes,No'],
+            'delivery_and_pickup' => ['nullable', 'in:Yes,No'],
+
+            // Hour tracking
+            'hour_tracking' => ['nullable', 'in:Yes,No'],
+            'hour_rate' => ['nullable', 'numeric', 'min:0'],
+
+            // Status
+            'status' => ['nullable', 'in:Published,Draft,Pending'],
+
+            'categories' => ['nullable', 'array'],
+            'categories.*' => ['exists:product_categories,id'],
+
+            'options' => ['nullable', 'array'],
+            'options.*' => ['exists:product_options,id'],
+
+            'related_products' => ['nullable', 'array'],
+            'related_products.*' => ['exists:products,id'],
+        ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $data = $this->all();
+
+            // Only apply if product_type is Rental
+            if (($data['product_type'] ?? null) === 'Rental') {
+                // At least one delivery fee required and > 0
+                $stdFee = floatval($data['standard_delivery_fee'] ?? 0);
+                $extFee = floatval($data['extended_delivery_fee'] ?? 0);
+
+                if ($stdFee <= 0 && $extFee <= 0) {
+                    $validator->errors()->add('standard_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
+                    $validator->errors()->add('extended_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
+                }
+
+                // At least one pickup option "Yes"
+                $pickup = $data['in_store_pickup'] ?? null;
+                $deliveryPickup = $data['delivery_and_pickup'] ?? null;
+
+                if ($pickup !== 'Yes' && $deliveryPickup !== 'Yes') {
+                    $validator->errors()->add('in_store_pickup', 'At least one pickup option (In Store or Delivery and Pickup) must be "Yes" for rental products.');
+                    $validator->errors()->add('delivery_and_pickup', 'At least one pickup option (In Store or Delivery and Pickup) must be "Yes" for rental products.');
+                }
+            }
+        });
+    }
+
+    public function messages(): array
+    {
+        return [
+            'terms.required_if' => 'You must select at least one term when using custom terms.',
+            // 'terms.array' => 'The terms must be a valid list.',
+            // 'terms.*.exists' => 'One or more selected terms are invalid or no longer exist.',
+        ];
+    }
+}

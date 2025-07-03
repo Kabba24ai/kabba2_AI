@@ -6,12 +6,34 @@
         "dev": "vite"
     },
     "devDependencies": {
+        "@tailwindcss/forms": "^0.5.10",
+        "@tailwindcss/postcss": "^4.0.0",
         "@tailwindcss/vite": "^4.0.0",
-        "autoprefixer": "^10.4.20",
+        "alpinejs": "^3.14.9",
+        "autoprefixer": "^10.4.21",
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.2.0",
+        "postcss": "^8.5.3",
+        "prettier": "^3.5.3",
+        "prettier-plugin-tailwindcss": "^0.6.11",
         "tailwindcss": "^4.0.0",
-        "vite": "^6.0.11"
+        "vite": "^6.3.5"
+    },
+    "dependencies": {
+        "@alpinejs/persist": "^3.14.9",
+        "@ckeditor/ckeditor5-build-classic": "^44.3.0",
+        "@fortawesome/fontawesome-free": "^6.7.2",
+        "air-datepicker": "^3.6.0",
+        "choices.js": "^11.1.0",
+        "flatpickr": "^4.6.13",
+        "flowbite": "^3.1.2",
+        "glightbox": "^3.3.1",
+        "imask": "^7.6.1",
+        "jquery": "^3.7.1",
+        "notyf": "^3.10.0",
+        "parsleyjs": "^2.9.2",
+        "signature_pad": "^5.0.9",
+        "sortablejs": "^1.15.6"
     }
 }

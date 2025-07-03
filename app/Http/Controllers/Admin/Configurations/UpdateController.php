@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Controllers\Admin\Configurations;
+
+use App\Http\Controllers\Controller;
+
+// Requests
+use App\Http\Requests\Admin\Configurations\UpdateSettingsRequest;
+
+// Models
+use App\Models\Configurations\Setting;
+
+class UpdateController extends Controller
+{
+    public function __invoke(UpdateSettingsRequest $request)
+    {
+        $settings = $request->validated()['settings'] ?? [];
+
+        foreach ($settings as $id => $value) {
+            $setting = Setting::find($id);
+            if ($setting) {
+                $setting->setting_value = $value;
+                $setting->save();
+            }
+        }
+
+        flash()->success(__('Settings updated successfully.'));
+        return redirect()->back();
+    }
+}

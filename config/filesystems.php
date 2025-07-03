@@ -47,6 +47,23 @@ return [
             'report' => false,
         ],
 
+        'secure_asset' => [
+            'driver' => 'local', // or 'local'
+            'root' => storage_path('app/public/media/secure_assets'),
+            'visibility' => 'private',
+            // ... add credentials for s3 if needed
+        ],
+
+        'public_asset' => [
+            'driver' => 'local', // or 'local'
+            'root' => storage_path('app/public/media/public_assets'),
+            'url' => env('APP_URL') . '/storage/media/public_assets',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

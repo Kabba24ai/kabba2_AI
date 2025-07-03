@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+// Controllers
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\IndexController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\CreateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\StoreController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\EditController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\UpdateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipments\DeleteController;
+
+Route::prefix('equipments')
+    ->name('equipments.')
+    ->group(function ($router) {
+        
+        Route::get('/', IndexController::class)->name('index');
+        
+        // Create
+        Route::get('/create', CreateController::class)->name('create');
+        Route::post('/create', StoreController::class);
+        
+        // Edit
+        Route::get('/{unique_id}/edit', EditController::class)->name('edit');
+        Route::put('/{unique_id}/edit', UpdateController::class);
+        
+        // Delete
+        Route::delete('/{unique_id}', DeleteController::class)->name('delete');
+    });

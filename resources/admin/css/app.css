@@ -796,3 +796,12 @@ span.flatpickr-weekday,
 .modal-scrollable {
   height: calc(100% - 3rem);
 }
+
+#taxDocumentPreview .w-140
+{
+  width: 140px;
+}
+#taxDocumentPreview .h-130
+{
+  height: 130px;
+}

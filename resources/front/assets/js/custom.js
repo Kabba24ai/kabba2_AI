@@ -12,6 +12,8 @@ window.loadCartSidebarPreview = (function() {
     let loading = false; // Prevents double fetches
 
     return function() {
+        // Show loading for cart summary if it exists
+        const cartSummaryDiv = document.getElementById('cartSummary');
         const cartDataDiv = document.getElementById('cartData');
         if (!cartDataDiv) return;
 
@@ -20,11 +22,6 @@ window.loadCartSidebarPreview = (function() {
 
         // Try to get kabba_cart from localStorage
         let cart = window.CartStorage.getCart();
-
-        // Update cart count every time sidebar preview loads
-        if (typeof window.updateCartCount === "function") {
-            window.updateCartCount();
-        }
 
         if (!cart?.length) {
             cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Your cart is empty.</p>';
@@ -40,13 +37,25 @@ window.loadCartSidebarPreview = (function() {
         // Show a loading spinner or message
         cartDataDiv.innerHTML = `
             <div class="flex items-center justify-center py-10">
-                <svg class="animate-spin h-6 w-6 text-gray-600 mr-3" viewBox="0 0 24 24" fill="none">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-4a6 6 0 0 0-6-6V2z"></path>
-                </svg>
-                <span class="text-gray-700">Loading cart...</span>
+            <svg class="animate-spin h-6 w-6 text-gray-600 mr-3" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-4a6 6 0 0 0-6-6V2z"></path>
+            </svg>
+            <span class="text-gray-700">Loading cart...</span>
             </div>
         `;
+
+        if (cartSummaryDiv) {
+            cartSummaryDiv.innerHTML = `
+            <div class="flex items-center justify-center py-6">
+                <svg class="animate-spin h-5 w-5 text-gray-600 mr-2" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-4a6 6 0 0 0-6-6V2z"></path>
+                </svg>
+                <span class="text-gray-700">Loading summary...</span>
+            </div>
+            `;
+        }
         loading = true;
 
         fetch(url, {
@@ -57,12 +66,23 @@ window.loadCartSidebarPreview = (function() {
             },
             body: JSON.stringify({ kabba_cart: cart })
         })
-        .then(response => response.text())
-        .then(html => {
-            cartDataDiv.innerHTML = html;
+        .then(response => response.json())
+        .then(data => {
+            if (data?.sidebar) {
+                cartDataDiv.innerHTML = data.sidebar;
+            } else {
+                cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Your cart is empty.</p>';
+            }
+            // Update cart summary if available
+            if (cartSummaryDiv && data?.summary) {
+                cartSummaryDiv.innerHTML = data.summary;
+            }
+            // Update cart count
+            window.updateCartCount();
         })
         .catch(error => {
-            console.error('Fetch error:', error);
+            notyf.error('Failed to load cart data. Please try again later.');
+            console.error('Error loading cart data:', error);
             cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Could not load cart.</p>';
         })
         .finally(() => {

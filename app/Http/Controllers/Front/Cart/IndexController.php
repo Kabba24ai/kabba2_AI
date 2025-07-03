@@ -17,8 +17,13 @@ class IndexController extends Controller
         $cartSummary = CartHelper::buildCartSummary(['cart_data' => $cartData]);
 
         // 3. Pass to component/view
-        return view('components.front.cart-sidebar-preview', [
-            'cart' => $cartSummary,
+        return response()->json([
+            'sidebar' => view('components.front.cart-sidebar-preview', [
+                'cart' => $cartSummary,
+            ])->render(),
+            'summary' => view('components.front.checkout.cart-summary', [
+                'cart' => $cartSummary,
+            ])->render(),
         ]);
     }
 }

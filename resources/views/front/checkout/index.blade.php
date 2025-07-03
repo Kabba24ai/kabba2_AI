@@ -32,13 +32,13 @@
             <div class="flex gap-x-2">
                 <div class="w-full md:w-2/3 border-r px-4 md:pr-8 pb-12">
                     <!-- Billing Info -->
-                    <h2 class="text-2xl font-bold mb-1">Billing information</h2>
+                    <h2 class="text-2xl font-bold mt-2">Billing information</h2>
                     @include('front.partials.message')
                     {{ html()->form()->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-4',
-                            'id'=> 'checkout-form'
+                            'id' => 'checkout-form',
                         ])->open() }}
                     @csrf
                     <input type="hidden" name="cart" id="cart-input">
@@ -201,7 +201,8 @@
 
                         <!-- Password section -->
                         <div class="flex items-center gap-2 mt-2">
-                            <input id="showPassword" name="showPassword" type="checkbox" value="Yes" class="accent-blue-600 h-4 w-4" checked />
+                            <input id="showPassword" name="showPassword" type="checkbox" value="Yes"
+                                class="accent-blue-600 h-4 w-4" checked />
                             <label for="showPassword" class="text-sm">Enter Your Custom Password</label>
                         </div>
                         <div id="passwordFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
@@ -481,44 +482,17 @@
                     {{ html()->form()->close() }}
                 </div>
 
-                <div class="w-1/3 mt-10 pl-6">
+                <!-- Cart Summary -->
+                <div id="cartSummary" class="w-1/3 mt-10 pl-6">
                     <div class="border-b pb-4 mb-6">
-                        <div class="flex">
-                            <div class="w-1/3">
-                                <div class="border rounded relative ">
-                                    <img src="{{ asset('storage/front/images/product-detail/skid-steer-daily.png') }}"
-                                        alt="image" class="w-24 p-1">
-                                    <span
-                                        class="bg-gray-400 w-[22px] h-[22px] text-white rounded-full absolute -top-2 -right-[8px] text-[14px] text-center font-bold">1</span>
-                                </div>
-                            </div>
-                            <div class=" ml-4 w-2/3">
-                                <h4 class="text-[14px] flex">
-                                    Skid Steer Open Cab - Daily
-                                    <span class="font-bold">$334.00</span>
-                                </h4>
-                                <h5 class="text-[13px]">Options Total:</h5>
-                                <ul class="flex flex-col">
-                                    <li class="flex justify-between leading-[16px]">
-                                        <span class="text-[12px] before:content-['-'] before:pr-1">Prepaid Fuel</span>
-                                        <span class="text-[12px] font-bold">+ $118.00</span>
-                                    </li>
-                                    <li class="flex justify-between leading-[16px]">
-                                        <span class="text-[12px] before:content-['-'] before:pr-1">Toothed Bucket</span>
-                                    </li>
-                                    <li class="flex justify-between leading-[16px]">
-                                        <span class="text-[12px] before:content-['-'] before:pr-1">Damage Waiver</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <h4 class="mt-3">Schedule Date: 05/14/2025 - 05/15/2025</h4>
+                        <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
+                        <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
                     </div>
                     <div class="border-b pb-6">
                         <ul class="flex flex-col">
                             <li class="flex justify-between mb-1">
                                 <span class="">Subtotal:</span>
-                                <span class=" font-bold">+ $452.00</span>
+                                <span class=" font-bold">+ $0.00</span>
                             </li>
                             <li class="flex justify-between mb-1">
                                 <span class="">Tax</span>
@@ -526,11 +500,12 @@
                             </li>
                             <li class="flex justify-between mb-1">
                                 <span class=" font-bold">Total</span>
-                                <span class=" font-bold">+ $452.00</span>
+                                <span class=" font-bold">+ $0.00</span>
                             </li>
                         </ul>
                     </div>
                 </div>
+
             </div>
         </div>
     </section>

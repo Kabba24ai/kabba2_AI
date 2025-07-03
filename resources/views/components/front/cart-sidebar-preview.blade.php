@@ -132,15 +132,15 @@
         <div class="space-y-1 text-sm mt-4 border-t pt-4">
             <div class="flex justify-between">
                 <span class="text-gray-600">Sub Total:</span>
-                <span class="font-medium">${{ number_format($cart['sub_total'] ?? 0, 2) }}</span>
+                <span class="font-medium">{{ App\Helpers\CustomHelper::formatCurrency($cart['sub_total'] ?? 0) }}</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-gray-600">Tax:</span>
-                <span class="font-medium">${{ number_format($cart['tax_total'] ?? 0, 2) }}</span>
+                <span class="font-medium">{{ App\Helpers\CustomHelper::formatCurrency($cart['tax_total'] ?? 0) }}</span>
             </div>
             <div class="flex justify-between text-lg font-bold">
                 <span>Total:</span>
-                <span>${{ number_format($cart['grand_total'] ?? 0, 2) }}</span>
+                <span>{{ App\Helpers\CustomHelper::formatCurrency($cart['grand_total'] ?? 0) }}</span>
             </div>
         </div>
 

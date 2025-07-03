@@ -16,10 +16,10 @@ class CustomerAddress extends Model
         'customer_id',
         'first_name',
         'last_name',
-        'email',
+      
         'phone',
         'address',
-        'website',
+      
         'state_id',
         'city',
         'zip_code'

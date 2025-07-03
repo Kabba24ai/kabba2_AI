@@ -14,7 +14,7 @@
                                 class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-xl  space-y-5 border border-gray-200 dark:border-gray-700 max-h-full overflow-hidden flex flex-col" >
                                 <div class="flex justify-between items-center  px-6 pt-4 ">
                                     <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Add Address</h3>
-                                    <!-- <button @click="showAddressModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button> -->
+                                    <button @click="showAddressModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
                                 </div>
                     
                                 <!-- Address form goes here -->
@@ -54,21 +54,7 @@
                                     </div>
                                 </div>
 
-                                {{-- Email --}}
-                                <div class=" ">
-                                    <label class="text-sm font-medium text-gray-700" for="email">Email</label>
-                                    {!! html()->email('add_email', old('add_email'))->class([
-                                        'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
-                                        'border-red-500' => $errors->has('add_email'),
-                                    ])->attributes([
-                                        'placeholder' => 'Enter email',
-                                        'id' => 'add_email',
-                                        'autocomplete' => 'email',
-                                    ])->required() !!}
-                                    @error('add_email')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
+                
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4   ">
                                     {{-- Phone --}}
@@ -122,7 +108,7 @@
                                         @enderror
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4  ">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4  ">
                                         <div>
                                             <label class="text-sm font-medium text-gray-700">State</label>
                                             
@@ -195,10 +181,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = document.getElementById('submitAddressBtn');
     const hiddenInput = document.getElementById('alladdresslist');
-    const addressList = document.getElementById('addressList');
+    const addressList = document.getElementById('realAddressList');
 
     const fields = [
-        'add_first_name', 'add_last_name', 'add_email', 'add_phone', 'add_type',
+        'add_first_name', 'add_last_name', 'add_phone', 'add_type',
         'address', 'add_city', 'add_zip_code', 'add_state'
     ];
 
@@ -206,11 +192,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     let allAddresses = [];
+
+    function updateAltPlaceholders() {
+        const hasBilling = allAddresses.some(addr => addr.type === 'Billing');
+        const hasShipping = allAddresses.some(addr => addr.type === 'Shipping');
+
+        document.getElementById('altBillingPlaceholder').style.display = hasBilling ? 'none' : 'block';
+        document.getElementById('altShippingPlaceholder').style.display = hasShipping ? 'none' : 'block';
+    }
+
+
     try {
         const val = hiddenInput.value?.trim();
         allAddresses = val ? JSON.parse(val) : [];
 
-        console.log('#alladdresslist', allAddresses);
+        updateAltPlaceholders();
+
 
     } catch (e) {
         console.log('Invalid JSON in #alladdresslist', e);
@@ -246,6 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const idx = [...addressList.children].indexOf(addressBlock);
             allAddresses.splice(idx, 1);
             addressBlock.remove();
+
+            updateAltPlaceholders();
+
+
             hiddenInput.value = JSON.stringify(allAddresses);
         });
 
@@ -257,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('add_first_name').value = data.first_name;
             document.getElementById('add_last_name').value = data.last_name;
-            document.getElementById('add_email').value = data.email;
+          
             document.getElementById('add_phone').value = data.phone;
             document.getElementById('add_type').value = data.type;
             document.getElementById('address').value = data.address;
@@ -288,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const firstName = document.getElementById('add_first_name').value;
         const lastName = document.getElementById('add_last_name').value;
-        const email = document.getElementById('add_email').value;
+       
         const phone = document.getElementById('add_phone').value;
         const type = document.getElementById('add_type').value;
         const address = document.getElementById('address').value;
@@ -301,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const addressObj = {
             first_name: firstName,
             last_name: lastName,
-            email,
             phone,
             type,
             address,
@@ -328,10 +328,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         hiddenInput.value = JSON.stringify(allAddresses);
 
-        const root = document.querySelector('[x-data]');
-        if (root?.__x?.$data) {
-            root.__x.$data.showAddressModal = false;
-        }
+        updateAltPlaceholders();
+
+        
+        const modalRoot = document.querySelector('[x-ref="addressRoot"]');
+        if (modalRoot?._x_dataStack?.[0]) {
+                modalRoot._x_dataStack[0].showAddressModal = false;
+            }
 
         fields.forEach(id => {
             const input = document.getElementById(id);

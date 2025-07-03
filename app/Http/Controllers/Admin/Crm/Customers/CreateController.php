@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Http\Controllers\Controller;
 
@@ -29,7 +29,7 @@ class CreateController extends Controller
     $website_extension = '.com';          // default extension
     $company_website = '';
 
-    return view('admin.crm.customer_portal.create', compact('admins','states','company_website','website_extension','website_protocol'));
+    return view('admin.crm.customers.create', compact('admins','states','company_website','website_extension','website_protocol'));
 }
     
 }

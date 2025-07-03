@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Crm\CustomerPortal;
+namespace App\Http\Requests\Admin\Crm\Customers;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -31,6 +31,8 @@ class UpdateRequest extends FormRequest
                 'email'
             ],
             'phone' => ['required', 'string', 'max:30'],
+            
+            'tax_document_review_status' => ['nullable'],
            
             'status' => ['required', Rule::in(['Active', 'Inactive', 'Archived'])],
             'is_guest' => ['boolean'],

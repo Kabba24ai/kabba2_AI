@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -24,7 +24,7 @@ class ViewController extends Controller
         ->where('unique_id', $unique_id)
         ->firstOrFail();
 
-        return view('admin.crm.customer_portal.view', [
+        return view('admin.crm.customers.view', [
             'customer' => $customer,
         ]);
     }

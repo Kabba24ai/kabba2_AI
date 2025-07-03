@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -26,6 +26,6 @@ class DeleteController extends Controller
 
         flash('Customer deleted successfully.')->success();
 
-        return redirect()->route('admin.crm.customer_portal.index');
+        return redirect()->route('admin.crm.customers.index');
     }
 }

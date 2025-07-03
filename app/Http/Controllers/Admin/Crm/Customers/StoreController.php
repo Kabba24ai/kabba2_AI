@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
@@ -10,13 +10,9 @@ use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 
 // Request
-use App\Http\Requests\Admin\CRM\CustomerPortal\StoreRequest;
+use App\Http\Requests\Admin\CRM\Customers\StoreRequest;
 use Illuminate\Support\Carbon;
 use App\Helpers\CustomHelper;
-
-
-// Models
-
 
 class StoreController extends Controller
 {
@@ -43,11 +39,12 @@ class StoreController extends Controller
                 'email' => $validated['email'] ?? null,
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
-                
                 'company_website' => $validated['company_website'] ?? null, 
-                
                 'dob' => $validated['dob'] ?? null,
                 'status' => $validated['status'] ?? 'Active',
+                
+                'tax_document_status' => $validated['tax_document_review_status'] ?? '',
+
                 'is_guest' => $validated['is_guest'] ?? false,
                 'tax_status' => $validated['tax_status'] ?? 'Taxable',
                 'tax_document_media_id' => $validated['tax_document_media_id'] ?? null,
@@ -80,7 +77,6 @@ class StoreController extends Controller
                     $customer->addresses()->create([
                         'first_name'    => $address['first_name'] ?? null,
                         'last_name'     => $address['last_name'] ?? null,
-                        'email'         => $address['email'] ?? null,
                         'phone'         => $address['phone'] ?? null,
                         'type'          => $address['type'] ?? null,
                         'city'          => $address['city'] ?? null,
@@ -115,9 +111,9 @@ class StoreController extends Controller
             flash('Customer created successfully.')->success();
 
             return match ($request->input('action')) {
-                'save' => redirect()->route('admin.crm.customer_portal.edit', ['unique_id' => $customer->unique_id]),
-                'save_new' => redirect()->route('admin.crm.customer_portal.create'),
-                default => redirect()->route('admin.crm.customer_portal.index'),
+                'save' => redirect()->route('admin.crm.customers.edit', ['unique_id' => $customer->unique_id]),
+                'save_new' => redirect()->route('admin.crm.customers.create'),
+                default => redirect()->route('admin.crm.customers.index'),
             };
 
         } catch (\Throwable $e) {

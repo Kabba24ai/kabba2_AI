@@ -20,7 +20,7 @@ class Customer extends Model
 
         'company_phone',
         'company_website',
-
+        'tax_document_status',
         'email',
         'password',
         'media_id',

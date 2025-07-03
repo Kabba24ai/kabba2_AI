@@ -21,7 +21,7 @@
                 <td class="px-4 py-3">
                {{$customer->company_name }}
                
-            <a href="{{ $customer->company_website ?? '#' }}" target="_blank">
+            <a @if(!empty($customer->company_website)) href="{{ $customer->company_website ?? 'javascript:void(0)' }}"  target="_blank" @endif>
                 <div class="text-sm text-gray-500 flex items-center gap-1">
                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
                     viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -29,7 +29,7 @@
                     <line x1="2" y1="12" x2="22" y2="12" />
                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                     </svg>
-                    <span>Website</span>
+                    <span>@if(!empty($customer->company_website)) {{ $customer->company_website }} @else - @endif</span>
                 </div>
                 </a>
                 </td>
@@ -73,7 +73,7 @@
                 {{ \App\Helpers\CustomHelper::formatCurrency($customer->total_order_amount) }}
                 </td>
                 <td class="px-4 py-3 space-x-2">
-                   <a href="{{ route('admin.crm.customer_portal.view', $customer->unique_id) }}">
+                   <a href="{{ route('admin.crm.customers.view', $customer->unique_id) }}">
 
                     <button class="text-blue-600 hover:text-blue-800" title="View">
                         <x-heroicon-o-eye class="w-5 h-5" />
@@ -82,7 +82,7 @@
                     </a>
 
 
-                   <a href="{{ route('admin.crm.customer_portal.edit', $customer->unique_id) }}">
+                   <a href="{{ route('admin.crm.customers.edit', $customer->unique_id) }}">
                 
                     <button class="text-green-600 hover:text-green-800" title="Edit">
                         <x-heroicon-o-pencil class="w-5 h-5" />
@@ -90,7 +90,7 @@
 
                     </a>
                     {{-- Delete Button --}}
-                        <form action="{{ route('admin.crm.customer_portal.delete', $customer->unique_id) }}"
+                        <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}"
                             method="POST" class="inline"
                             onsubmit="return confirm('Are you sure you want to delete this Customer?');">
                             @csrf
@@ -106,7 +106,7 @@
             @empty
                 <tr>
                     <td colspan="7" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
-                        No products found.
+                        No customers found.
                     </td>
                 </tr>
             @endforelse

@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Customer Portal')
+@section('title', 'Customers')
 
 @push('css')
 @endpush
@@ -11,8 +11,8 @@
 
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Customer Portal</h3>
-        <a href="{{ route('admin.crm.customer_portal.create') }}"
+        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Customers</h3>
+        <a href="{{ route('admin.crm.customers.create') }}"
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
             + Add Customer
         </a>
@@ -57,7 +57,7 @@
 
     <div class="overflow-x-auto rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
     <div id="customer-table-wrapper">
-    @include('admin.crm.customer_portal.partials._table', ['customers' => $customers])
+    @include('admin.crm.customers.partials._table', ['customers' => $customers])
     </div>
 
     </div>
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (name.length >= 3 || name.length === 0) params.append('search_name', name);
         if (phone.length >= 3 || phone.length === 0) params.append('search_phone', phone);
 
-        fetch("{{ route('admin.crm.customer_portal.index') }}?" + params.toString(), {
+        fetch("{{ route('admin.crm.customers.index') }}?" + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(response => response.text())

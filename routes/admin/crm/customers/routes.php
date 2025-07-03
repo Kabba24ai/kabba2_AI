@@ -3,19 +3,19 @@
 use Illuminate\Support\Facades\Route;
 
 // Controllers
-use App\Http\Controllers\Admin\Crm\CustomerPortal\IndexController;
-use App\Http\Controllers\Admin\Crm\CustomerPortal\CreateController;
-use App\Http\Controllers\Admin\Crm\CustomerPortal\EditController;
-use App\Http\Controllers\Admin\Crm\CustomerPortal\StoreController;
-use App\Http\Controllers\Admin\Crm\CustomerPortal\UpdateController;
-use App\Http\Controllers\Admin\Crm\CustomerPortal\DeleteController;
-use App\Http\Controllers\Admin\Crm\CustomerPortal\CheckEmailController;
-use App\Http\Controllers\Admin\Crm\CustomerPortal\ViewController;
-use App\Http\Controllers\Admin\Crm\CustomerPortal\TaxDocumentDeleteController;
+use App\Http\Controllers\Admin\Crm\Customers\IndexController;
+use App\Http\Controllers\Admin\Crm\Customers\CreateController;
+use App\Http\Controllers\Admin\Crm\Customers\EditController;
+use App\Http\Controllers\Admin\Crm\Customers\StoreController;
+use App\Http\Controllers\Admin\Crm\Customers\UpdateController;
+use App\Http\Controllers\Admin\Crm\Customers\DeleteController;
+use App\Http\Controllers\Admin\Crm\Customers\CheckEmailController;
+use App\Http\Controllers\Admin\Crm\Customers\ViewController;
+use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentDeleteController;
 
 
-Route::prefix('customer_portal')
-->name('customer_portal.')
+Route::prefix('customers')
+->name('customers.')
 ->group(function ($router) {
 
     Route::get('/', IndexController::class)->name('index');

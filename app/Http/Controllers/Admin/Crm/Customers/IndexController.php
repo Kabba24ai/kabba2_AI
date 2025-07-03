@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -37,10 +37,10 @@ class IndexController extends Controller
         $customers = $query->latest()->paginate(10)->withQueryString();
 
         if ($request->ajax()) {
-            return view('admin.crm.customer_portal.partials._table', compact('customers'))->render();
+            return view('admin.crm.customers.partials._table', compact('customers'))->render();
         }
     
-        return view('admin.crm.customer_portal.index', compact('customers'));
+        return view('admin.crm.customers.index', compact('customers'));
     }
     
 }

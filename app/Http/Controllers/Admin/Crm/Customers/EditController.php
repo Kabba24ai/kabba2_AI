@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\View\View;
@@ -60,7 +60,6 @@ class EditController extends Controller
             'address_id' => $address->id ,
             'first_name' => $address->first_name ?? '',
             'last_name' => $address->last_name ?? '',
-            'email' => $address->email ?? '',
             'phone' => $address->phone ?? '',
             'type' => $address->type ?? '',
             'address' => $address->address ?? '',
@@ -72,10 +71,7 @@ class EditController extends Controller
         ];
     })->values()->toJson();
 
-
-    
-
-        return view('admin.crm.customer_portal.edit', [
+        return view('admin.crm.customers.edit', [
             'customer' => $customer,
             'admins' => $admins ,
             'states' => $states ,

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\CRM\CustomerPortal\UpdateRequest;
+use App\Http\Requests\Admin\CRM\Customers\UpdateRequest;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 use Illuminate\Support\Facades\DB;
@@ -32,10 +32,7 @@ class UpdateController extends Controller
                 'first_name' => $validated['first_name'] ?? null,
                 'last_name' => $validated['last_name'] ?? null,
                 'company_name' => $validated['company_name'] ?? null,
-               // 'website_protocol' => $validated['website_protocol'] ?? null,
-               // 'company_website' => $validated['company_website'] ?? null,
-               // 'website_extension' => $validated['website_extension'] ?? null, // Added company_website
-                'email' => $validated['email'] ?? null,
+               'email' => $validated['email'] ?? null,
                
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
@@ -51,20 +48,21 @@ class UpdateController extends Controller
                
                 'tax_status' => $validated['tax_status'] ?? null,
                'tax_document_upload_date' => !empty($validated['tax_document_upload_date'])
-    ? Carbon::parse($validated['tax_document_upload_date'])->format('Y-m-d')
-    : null,
+                    ? Carbon::parse($validated['tax_document_upload_date'])->format('Y-m-d')
+                    : null,
 
-'tax_document_valid_until' => !empty($validated['tax_document_valid_until'])
-    ? Carbon::parse($validated['tax_document_valid_until'])->format('Y-m-d')
-    : null,
+                'tax_document_valid_until' => !empty($validated['tax_document_valid_until'])
+                    ? Carbon::parse($validated['tax_document_valid_until'])->format('Y-m-d')
+                    : null,
 
-'account_application_completed' => !empty($validated['account_application_completed'])
-    ? Carbon::parse($validated['account_application_completed'])->format('Y-m-d')
-    : null,
+                'account_application_completed' => !empty($validated['account_application_completed'])
+                    ? Carbon::parse($validated['account_application_completed'])->format('Y-m-d')
+                    : null,
+
+                'tax_document_status' => $validated['tax_document_review_status'] ?? '',
 
                 'tax_status_approved_by' => $validated['tax_status_approved_by'] ?? 0,
                 'account_approved_by' => $validated['account_approved_by'] ?? 0,
-
 
             ];
 
@@ -94,7 +92,6 @@ class UpdateController extends Controller
                         $data = [
                             'first_name'    => $address['first_name'] ?? null,
                             'last_name'     => $address['last_name'] ?? null,
-                            'email'         => $address['email'] ?? null,
                             'phone'         => $address['phone'] ?? null,
                             'type'          => $address['type'] ?? null,
                             'address'       => $address['address'] ?? null,
@@ -117,24 +114,7 @@ class UpdateController extends Controller
                 }
 
            
-            // if ($request->hasFile('tax_document')) {
-            
-            //     $mediaData = MediaHelper::uploadStorageFile(
-            //         'Public Asset', 
-            //         $request->file('tax_document'), 
-            //         'customers', 
-            //         $customer
-            //     );
-            
-               
-            //     if (!empty($mediaData['mediaObj'])) {
-            //         $customer->update([
-            //             'tax_document_media_id' => $mediaData['mediaObj']->id,
-            //             'tax_document_upload_date' => now(),
-            //         ]);
-            //     }
-                
-            // }
+           
             if ($request->hasFile('tax_document')) {
                 if ($request->has('tax_document') && !is_null($request->file('tax_document'))) {
                     if (!is_null($customer->media)) {
@@ -162,9 +142,9 @@ class UpdateController extends Controller
             flash('Customer updated successfully.')->success();
 
             return match ($request->input('action')) {
-                'save' => redirect()->route('admin.crm.customer_portal.edit', ['unique_id' => $customer->unique_id]),
-                'save_new' => redirect()->route('admin.crm.customer_portal.create'),
-                default => redirect()->route('admin.crm.customer_portal.index'),
+                'save' => redirect()->route('admin.crm.customers.edit', ['unique_id' => $customer->unique_id]),
+                'save_new' => redirect()->route('admin.crm.customers.create'),
+                default => redirect()->route('admin.crm.customers.index'),
             };
         } catch (\Throwable $e) {
             DB::rollBack();

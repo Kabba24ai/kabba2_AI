@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Edit Customer')
+@section('title', 'Create Customer')
 
 @push('css')
 @endpush
@@ -8,8 +8,8 @@
 @section('content')
 
     <div class="mb-6 flex items-center justify-between">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Edit Customer</h3>
-        <a href="{{ route('admin.crm.customer_portal.index') }}" class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition">
+        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Add New Customer</h3>
+        <a href="{{ route('admin.crm.customers.index') }}" class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition">
             <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
             </svg> Back
@@ -20,15 +20,15 @@
                 @include('admin.partials.formErrors')
 
                        <!-- Customer Form -->
-                       {{ html()->modelForm($customer, 'PUT')->attributes([
+                        {{ html()->form()->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
                         ])->acceptsFiles()->open() }}
 
-                        @include('admin.crm.customer_portal.partials._form')
+                        @include('admin.crm.customers.partials._form')
 
-                        <div class="flex justify-center mt-8 space-x-4">
+                        <div class="flex flex-wrap gap-y-3 gap-x-2 md:gap-x-0 md:gap-y-0 justify-center mt-8 md:space-x-4">
                         <!-- Save As Dropdown -->
                         {{-- <div x-data="{ open: false }" class="relative flex items-center">
                             <button type="button" @click="open = !open"
@@ -85,36 +85,22 @@
 
                     {{ html()->form()->close() }}
 
-
-
-           <!-- Hidden Delete Form -->
-<form id="delete-media-form-{{ $customer->id }}" method="POST" action="{{ route('admin.crm.customer_portal.tax-document.delete', $customer->unique_id) }}" style="display: none;">
-    @csrf
-    @method('DELETE')
-</form>         
                     
-        @include('admin.crm.customer_portal.partials._add_addreshh_form')
+        @include('admin.crm.customers.partials._add_addreshh_form')
                     
 
-                    <script>
-                        document.addEventListener('DOMContentLoaded', () => {
-                document.getElementById('openAddressModal').addEventListener('click', () => {
-                    const modalRoot = document.querySelector('[x-ref="addressRoot"]');
-                    if (modalRoot?._x_dataStack?.[0]) {
-                        modalRoot._x_dataStack[0].showAddressModal = true;
-                    }
-                });
-            
-            });
-            
-            
-function confirmAndDelete(id) {
-    if (confirm("Are you sure you want to delete this document?")) {
-        document.getElementById(`delete-media-form-${id}`).submit();
-    }
-}
-                    </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('openAddressModal').addEventListener('click', () => {
+        const modalRoot = document.querySelector('[x-ref="addressRoot"]');
+        if (modalRoot?._x_dataStack?.[0]) {
+            modalRoot._x_dataStack[0].showAddressModal = true;
+        }
+    });
+
+});
+
+        </script>
 
 @endsection
-
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Crm\CustomerPortal;
+namespace App\Http\Requests\Admin\Crm\Customers;
 use Illuminate\Validation\Rule;
 use App\Helpers\PurifyHelper;
 use Illuminate\Foundation\Http\FormRequest;
@@ -49,6 +49,9 @@ class StoreRequest extends FormRequest
             'tax_document_upload_date' => ['nullable', 'date'],
             'tax_document_valid_until' => ['nullable', 'date'],
 
+            'tax_document_review_status' => ['nullable'],
+        
+        
             'account_approved_by' => ['nullable', 'sometimes', 'integer', 'min:0'],
             'tax_status_approved_by' => ['nullable', 'sometimes', 'integer', 'min:0'],
 

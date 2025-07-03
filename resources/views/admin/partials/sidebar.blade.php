@@ -174,7 +174,7 @@
 
 
                     $crmActive = Route::is([
-                        'admin.crm.customer_portal.*',
+                        'admin.crm.customers.*',
                     ]);
                       
                     @endphp
@@ -262,9 +262,9 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
-                                    <a href="{{ route('admin.crm.customer_portal.index') }}"
+                                    <a href="{{ route('admin.crm.customers.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.crm.customer_portal.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        {{ Route::is('admin.crm.customers.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-users class="w-6 h-6" /> Customers
                                     </a>
                                 </li>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\CustomerPortal;
+namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -32,6 +32,6 @@ class TaxDocumentDeleteController extends Controller
 
         flash('Tax document deleted successfully.')->success();
 
-        return redirect()->route('admin.crm.customer_portal.edit', ['unique_id' => $customer->unique_id]);
+        return redirect()->route('admin.crm.customers.edit', ['unique_id' => $customer->unique_id]);
     }
 }

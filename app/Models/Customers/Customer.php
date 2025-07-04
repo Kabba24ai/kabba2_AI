@@ -4,14 +4,23 @@ namespace App\Models\Customers;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+
 // Helpers
 use App\Helpers\ModelHelper;
 use App\Models\Orders\Order;
 use Carbon\Carbon;
 use App\Models\Global\Media;
 use App\Models\Iam\Personnel\User;
-class Customer extends Model
+
+
+
+class Customer extends Authenticatable
 {
+    use Notifiable;
+
     protected $fillable = [
         'unique_id',
         'first_name',

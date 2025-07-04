@@ -43,10 +43,10 @@ Route::name('front.')->group(function () {
         require base_path('routes/front/auth/routes.php');
     });
 
-    Route::prefix('customer')->name('customer.')->group(function ($router) {
+    Route::prefix('customer')->middleware(['web', 'auth:customer'])->name('customer.')->group(function ($router) {
 
-        // Customer
-        require base_path('routes/front/customer/routes.php');
+        // dashboard
+         require base_path('routes/front/customer/dashboard/routes.php');
     });
 
     // Pages (e.g., home, about, contact)

@@ -274,7 +274,7 @@
                                     <span class="text-xs font-semibold bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">
                                 @elseif($customer->tax_document_status!='' && $customer->tax_document_status=='Approved')
                                     <span class="text-xs font-semibold bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                                @elseif($customer->tax_document_status!='' && $customer->tax_document_status=='Rejected')
+                                @elseif($customer->tax_document_status!='' || $customer->tax_document_status=='Rejected')
                                     <span class="text-xs font-semibold bg-red-100 text-red-800 px-3 py-1 rounded-full">
                                 @else
                                     <span class="text-xs font-semibold bg-gray-100 text-gray-800 px-3 py-1 rounded-full">

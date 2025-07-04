@@ -10,6 +10,9 @@ Route::name('auth.')->group(function () {
     // Login
     require base_path('routes/front/auth/register/routes.php');
 
+    // Logout
+    require base_path('routes/front/auth/logout/routes.php');
+
     // Reset password
     require base_path('routes/front/auth/reset_password/routes.php');
 });

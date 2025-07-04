@@ -1,9 +1,21 @@
 import jQuery from "jquery";
 
+
+import Alpine from 'alpinejs';
+import persist from "@alpinejs/persist";
+import Sortable from 'sortablejs';
 window.$ = jQuery;
 window.jQuery = jQuery;
 
 import "flowbite";
+
+// Make Alpine globally available
+Alpine.plugin(persist);
+window.Alpine = Alpine;
+window.Sortable = Sortable;
+
+// Start Alpine.js
+Alpine.start();
 
 import SignaturePad from "signature_pad";
 import "@fortawesome/fontawesome-free/js/all.js"; // Import Font Awesome JS

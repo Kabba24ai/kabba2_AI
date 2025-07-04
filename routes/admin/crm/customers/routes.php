@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\Crm\Customers\DeleteController;
 use App\Http\Controllers\Admin\Crm\Customers\CheckEmailController;
 use App\Http\Controllers\Admin\Crm\Customers\ViewController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentDeleteController;
+use App\Http\Controllers\Admin\Crm\Customers\TaxStatusUpdateController;
 
 
 Route::prefix('customers')
@@ -32,6 +33,9 @@ Route::prefix('customers')
     Route::put('/{unique_id}/edit', UpdateController::class);
 
     Route::get('/check-email-unique', CheckEmailController::class)->name('check.email.unique');
+
+    Route::post('/tax-status-update', TaxStatusUpdateController::class)->name('tax_status.update');
+
 
       // Create
     Route::get('/create', CreateController::class)->name('create');

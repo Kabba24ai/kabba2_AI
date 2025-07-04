@@ -2,63 +2,158 @@
 
 
 @section('content')
+<section
+        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-white md:border-r-[30px] md:border-r-white bg-light">
+        <div class="container md:px-0">
+            <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
+                <div class="w-full">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-y-2 md:gap-y-0">
+                        <h1 class="header-title">Sign up</h1>
+                        <ul
+                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-white">
+                            <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
+                                <a href="index.php" class="opacity-25">Home</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="cursor-not-allowed">Sign up</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
     <section
         class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc] border-b-0">
-        <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-[30px] md:px-0">
+        <div class="container md:px-0">
             <div class="lg:flex gap-2 pb-[60px] md:pt-[60px] pt-[20px]">
                 <div class="lg:w-1/5"></div>
                 <div class="lg:w-3/5">
 
-                    <main class="flex justify-center py-16 px-4">
-                        <div class="bg-white shadow rounded-lg w-full max-w-md p-8">
+                    <main class="flex items-center justify-center p-4 lg:p-8 bg-white shadow rounded">
+                        <div class="border-dotted border-4 border-gray w-full p-4 lg:p-8 ">
                             <h2 class="text-center text-lg font-semibold mb-6">Sign up</h2>
+                            @if ($errors->any())
+                            <div class="text-red-500 hover:border-red-500 py-2">
+                                <div class="alert-text">
+                                    <ul class="mb-0 ps-3">
+                                        @foreach ($errors->all() as $error)
+                                            <li class="">{!! $error !!}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            @endif
 
-                            <form class="space-y-4">
-                                <div>
-                                    <input type="text" placeholder="Name" class="w-full px-4 py-2 border rounded"
-                                        required>
-                                    <p class="text-red-500 text-sm mt-1">The Name field is required.</p>
+
+                            {{-- Registration Form --}}
+                            {{ html()->form()->attributes([
+                                'class' => 'space-y-5',
+                                'method' => 'POST',
+                                'id' => 'registerForm',
+                                'autocomplete' => 'off',
+                                'data-parsley-validate' => true,
+                            ])->open() }}
+                                @csrf
+
+                                {{-- Name --}}
+                                <div class="relative z-0 w-full my-6 group">
+                                    {{ html()->text('name')->attributes([
+                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
+                                        'required' => true,
+                                        'id' => 'name',
+                                        'maxlength' => 100,
+                                    ])->placeholder('') }}
+                                    <label for="name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black ">
+                                        Name
+                                    </label>
+                                    @error('name')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
-                                <div>
-                                    <input type="email" placeholder="Email" class="w-full px-4 py-2 border rounded"
-                                        required>
+                                {{-- Email --}}
+                                <div class="relative z-0 w-full my-6 group">
+                                    {{ html()->email('email',old('email'))->attributes([
+                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
+                                        'required' => true,
+                                        'id' => 'email',
+                                        'maxlength' => 240,
+                                        'autocomplete' => 'off',
+                                        'data-parsley-type' => 'email',
+                                        'data-parsley-trigger' => 'change',
+                                        'data-parsley-remote' => route('front.auth.register.check.email.unique'),
+                                        'data-parsley-remote-validator' => 'customemailcheck',
+                                        'data-parsley-remote-message' => 'This email is already taken.',
+                                    ])->placeholder('') }}
+                                    <label for="email" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
+                                        Email
+                                    </label>
+                                    @error('email')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
-                                <div>
-                                    <input type="password" placeholder="Password" class="w-full px-4 py-2 border rounded"
-                                        required>
+                                {{-- Password --}}
+                                <div class="relative z-0 w-full my-6 group">
+                                    {{ html()->password('password')->attributes([
+                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
+                                        'required' => true,
+                                        'id' => 'password',
+                                        'data-parsley-errors-container' => '#password-errors',
+                                    ])->placeholder('') }}
+                                    <label for="password" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
+                                        Password
+                                    </label>
+                                    <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
+                                    @error('password')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
-                                <div>
-                                    <input type="password" placeholder="Password Confirmation"
-                                        class="w-full px-4 py-2 border rounded" required>
+                                {{-- Password Confirmation --}}
+                                <div class="relative z-0 w-full my-6 group">
+                                    {{ html()->password('password_confirmation')->attributes([
+                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
+                                        'required' => true,
+                                        'id' => 'password_confirmation',
+                                        'data-parsley-equalto' => '#password',
+                                    ])->placeholder('') }}
+                                    <label for="password_confirmation" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
+                                        Password Confirmation
+                                    </label>
+                                    @error('password_confirmation')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
+                                {{-- Policy Notice --}}
                                 <p class="text-xs text-gray-500">
                                     Your personal data will be used to support your experience throughout this website, to
-                                    manage access to your account, and for other purposes described in our <a href="#"
-                                        class="underline">privacy policy</a>.
+                                    manage access to your account, and for other purposes described in our
+                                    <a href="#" class="underline">privacy policy</a>.
                                 </p>
 
+                                {{-- Terms Agreement --}}
                                 <div class="flex items-center">
-                                    <input type="checkbox" class="mr-2" id="terms">
+                                    <input type="checkbox" class="mr-2" id="terms" required>
                                     <label for="terms" class="text-sm">I agree to terms & Policy.</label>
                                 </div>
 
-
+                                {{-- Submit Button --}}
                                 <div class="w-full mt-5 text-center">
-                                    <button type="button"
-                                        class="border-0 px-3 py-2 lg:px-5 lg:py-4 mx-auto font-medium bg-yellow-400 hover:bg-yellow-500 text-black transform transition-all duration-500 ease-in-out text-sm">
-                                        <i
-                                            class="mr-3 fa-solid fa-arrow-right text-[16px] lg:text-[24px] lg:text-sm leading-4  -rotate-45 border-2 rounded-full px-[6px] py-[6px] lg:px-[3px] lg:py-[0px] border-[#231E41]"></i>
+                                    <button type="submit"
+                                        class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out text-sm mx-auto">
+                                            <i class="mr-3 fa-solid fa-arrow-right text-base lg:text-2xl lg:text-sm leading-4 text-purple -rotate-45 border-2 rounded-full link-icon border-purple"></i>
                                         Register
                                     </button>
                                 </div>
-                            </form>
+                            {{ html()->form()->close() }}
+    
 
                             <p class="text-center text-sm mt-6">Already have an account? <a
-                                    href="{{ route('front.auth.login.index') }}" class="text-blue-600">Login</a></p>
+                                    href="{{ route('front.auth.login.index') }}" class="text-gray-700 hover:text-black">Login</a></p>
                         </div>
                     </main>
 
@@ -68,3 +163,19 @@
             </div>
     </section>
 @endsection
+
+
+@push('js')
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Register custom async validator
+    window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
+        const response = xhr.responseJSON || {};
+        return response.valid === true;
+    });
+});
+</script>
+
+
+@endpush

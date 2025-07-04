@@ -33,8 +33,8 @@
 
             <!-- Customer Info -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">jhh hhh</h1>
-                <p class="text-sm text-gray-500">CUS-4IVT-XR5N</p>
+                <h1 class="text-2xl font-bold text-gray-900"> {{$customer->full_name}} </h1>
+                <p class="text-sm text-gray-500">{{$customer->unique_id}}</p>
             </div>
         </div>
 

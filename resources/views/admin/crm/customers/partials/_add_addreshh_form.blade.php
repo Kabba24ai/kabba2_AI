@@ -64,7 +64,7 @@
                                             'masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
                                             'border-red-500' => $errors->has('add_phone'),
                                         ])->attributes([
-                                            'placeholder' => 'Enter phone',
+                                            'placeholder' => '(123) 456-7890',
                                             'id' => 'add_phone',
                                             'autocomplete' => 'tel',
                                         ])->required() !!}
@@ -99,7 +99,7 @@
                                             'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
                                             'border-red-500' => $errors->has('address'),
                                         ])->attributes([
-                                            'placeholder' => 'Enter address',
+                                            'placeholder' => '10 Downing Street , LONDON',
                                             'id' => 'address',
                                             'autocomplete' => 'street-address',
                                         ])->required() !!}

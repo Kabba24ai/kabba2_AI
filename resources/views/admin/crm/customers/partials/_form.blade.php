@@ -190,7 +190,7 @@
                         'http://' => 'http://',
                     ], old('website_protocol', $website_protocol))
                     ->class([
-                        'w-2/6 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                        'w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                         'border-red-500' => $errors->has('website_protocol'),
                         'border-gray-300' => !$errors->has('website_protocol'),
                     ])
@@ -217,7 +217,7 @@
                         '.gov' => '.gov',
                     ], old('website_extension', $website_extension))
                     ->class([
-                        'w-2/6 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                        'w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                         'border-red-500' => $errors->has('website_extension'),
                         'border-gray-300' => !$errors->has('website_extension'),
                     ])
@@ -474,7 +474,14 @@
                     </div>
                 </div>
             </div>
-            @php
+
+            @if (!empty($customer))
+                <input type="hidden" id="is_edit_mode" value="1">
+                <input type="hidden" id="customer_id" value="{{ $customer->id }}">                
+                <input type="hidden" id="tax_document_status" value="{{ $customer->tax_document_status }}">  
+            @endif
+
+           @php
                 $taxDocumentUrl = isset($customer) && $customer->media ? $customer->media->getUrl() : null;
                 $taxDocumentMediaId = isset($customer) && $customer->media ? $customer->media->id : null;
            @endphp
@@ -485,53 +492,41 @@
             <!-- Upload Right Panel -->
             <div class="md:w-1/2 md:pl-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">Tax Exempt Upload</h2>
-                <!--  Image Upload -->
-            <div class="flex flex-col md:flex-row gap-6 items-start w-full">
-                <div class="w-full md:w-1/2 border border-dashed border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800">
-      
-                    <div class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md h-32 flex flex-col justify-center items-center cursor-pointer hover:border-blue-500"
-                        onclick="document.getElementById('taxDocumentInput').click()">
-                        <x-heroicon-o-document-text class="w-6 h-6 text-gray-400" />
-                        <span class="text-sm text-blue-600 mt-1 text-center">Upload Tax Document</span>
-                    </div>
+            
 
-                    <input type="file" name="tax_document" id="taxDocumentInput" class="hidden">
-
-                    @error('tax_document')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
+            <div id="uploadedFileBox" class="hidden flex items-center justify-between bg-gray-200 px-2 w-full rounded-md mb-3 shadow-sm">
+                <div><x-heroicon-o-document-text class="w-5 h-5" /></div>
+                <div class="w-4/6  py-2 text-sm text-gray-600">
+                    <div id="uploadedFileName" class="truncate text-nowrap">No file chosen</div>
+                    <div id="uploadedDate">Uploaded</div>
                 </div>
-                <div class="w-full md:w-1/2">
-                    <!-- Tax Document Preview -->
-                    <div class="relative" id="taxDocumentPreview" style="display: {{ !empty($taxDocumentUrl) ? 'block' : 'none' }};">
-                        <img id="taxDocumentTag" class="w-140 h-130  object-cover rounded-md border" 
-                            style="display: {{ !empty($taxDocumentUrl) && Str::endsWith($taxDocumentUrl, ['.jpg', '.jpeg', '.png', '.webp']) ? 'block' : 'none' }};"
-                            src="{{ $taxDocumentUrl ?? '' }}" />
-                        
-                        <!-- PDF Icon -->
-                        <div id="taxPdfIconContainer" class="flex items-center gap-2 p-2">
-                            @if (!empty($taxDocumentUrl) && Str::endsWith($taxDocumentUrl, '.pdf'))
-                                <x-heroicon-o-document-text class="w-5 h-5 text-red-600" />
-                                <span class="text-sm text-red-500 break-all w-full">{{ basename($taxDocumentUrl) }}</span>
-                            @endif
-                        </div>
-
-                        <button type="button"
-                            class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100"
-                            onclick="removeTaxDocument()">
-                            ×
-                        </button>
-
-                        @if (!empty($taxDocumentMediaId))
-                            <input type="hidden" id="existing_tax_document_media_id" name="existing_tax_document_media_id" value="{{ $taxDocumentMediaId }}">
-                        @else
-                            <input type="hidden" id="existing_tax_document_media_id" name="existing_tax_document_media_id" value="">
-                        @endif
-                    </div>
+                <div class="w-1/6 flex gap-x-2">
+                    <button  type="button" id="viewFileBtn" class="text-blue-600 hover:text-blue-800" title="View" target="_blank">
+                        <x-heroicon-o-eye class="w-5 h-5" />
+                    </button>
+                    <button type="button" id="deleteFileBtn" class="text-red-600 hover:text-red-800" title="Delete">
+                        <x-heroicon-o-trash class="w-5 h-5" />
+                    </button>
                 </div>
+            </div>
 
-            </div>   
-                <div class="flex flex-col md:flex-row gap-4 mt-3 mb-3">
+            <!-- BROWSE SECTION (initially visible) -->
+            <div id="browseBox">
+                <label for="taxDocumentInput" class="cursor-pointer border rounded-l-md flex items-center shadow-sm">
+                    <span class="bg-gray-300 px-2 py-2">Browse...</span>
+                    <span id="file-name" class="truncate w-full text-nowrap px-3 py-2 text-sm text-gray-600">No file chosen</span>
+                </label>
+                <input 
+                    type="file" 
+                    id="taxDocumentInput" 
+                    name="tax_document"
+                    class="hidden w-full border rounded-r-md px-3 py-2 text-sm shadow-sm"
+                    accept="image/*,.pdf,.doc,.docx"
+                />
+            </div>
+
+               
+            <div class="flex flex-col md:flex-row gap-4 mt-3 mb-3">
                     <div class="w-full" id="statusLabelWrapper" style="display: {{ !empty($taxDocumentUrl) ? 'block' : 'none' }}">
                         <label  class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                     </div>
@@ -541,11 +536,9 @@
                             style="display: {{ !empty($taxDocumentUrl) ? 'inline-block' : 'none' }}">
                             {{ $customer->tax_document_status ?? 'Pending Review' }}
                             </span>
-                        <!-- {!! html()->hidden('tax_document_status', old('tax_document_status', $customer->tax_document_status ?? null))->attributes([
-                            'id' => 'tax_document_status'
-                        ]) !!} -->
+                        
                     </div>
-                </div>
+            </div>
 
             <div class="flex justify-between gap-4 mt-auto"
                 style="display: {{ !empty($taxDocumentUrl) ? 'flex' : 'none' }}">
@@ -567,194 +560,276 @@
 
 @push('js')
 
+@if (!empty($taxDocumentUrl))
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const uploadedFileBox = document.getElementById("uploadedFileBox");
+            const uploadedFileName = document.getElementById("uploadedFileName");
+            const uploadedDate = document.getElementById("uploadedDate");
+            const viewFileBtn = document.getElementById("viewFileBtn");
+            const deleteFileBtn = document.getElementById("deleteFileBtn");
+            
+            const browseBox = document.getElementById("browseBox");
+                // Hide browse, show uploaded box
+            browseBox.style.display = 'none';
+            uploadedFileBox.classList.remove("hidden");
+            uploadedFileName.textContent = "{{ basename($taxDocumentUrl) }}";
+            uploadedDate.textContent = "Uploaded: {{ $customer->tax_document_upload_date ?? 'N/A' }}";
+            viewFileBtn.setAttribute("onclick", "window.open('{{ $taxDocumentUrl }}', '_blank')");
+
+
+            
+
+           // Handle delete via hidden form
+            deleteFileBtn.addEventListener("click", function () {
+                if (confirm("Are you sure you want to delete this document?")) {
+                    document.getElementById("delete-media-form-{{ $customer->id }}").submit();
+                }
+            });
+
+
+        });
+    </script>
+@endif
+
 
 <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const uploadDateInput = document.getElementById("tax_document_upload_date");
-            const validUntilInput = document.getElementById("tax_document_valid_until");
-            const fileInput = document.getElementById("taxDocumentInput");
-            const statusBadge = document.getElementById("taxStatusBadge");
-            const approveBtn = document.getElementById("approveBtn");
-            const rejectBtn = document.getElementById("rejectBtn");
-            const statusLabelWrapper = document.getElementById('statusLabelWrapper');
+document.addEventListener("DOMContentLoaded", function () {
+    const uploadDateInput = document.getElementById("tax_document_upload_date");
+    const validUntilInput = document.getElementById("tax_document_valid_until");
+    const fileInput = document.getElementById("taxDocumentInput");
+    const statusBadge = document.getElementById("taxStatusBadge");
+    const approveBtn = document.getElementById("approveBtn");
+    const rejectBtn = document.getElementById("rejectBtn");
+    const statusLabelWrapper = document.getElementById("statusLabelWrapper");
+    const approverSelect = document.getElementById("tax_status_approved_by");
+    const hiddenStatusInput = document.getElementById("tax_document_review_status");
 
-            function setStatus(text, bgColor, textColor) {
-                statusBadge.textContent = text;
-                statusBadge.className = `inline-block float-right rounded-full ${bgColor} ${textColor} text-xs font-medium px-3 py-1`;
+    let manualAction = null;
 
-                const hiddenInput = document.getElementById("tax_document_review_status");
-                if (hiddenInput) hiddenInput.value = text;
-            }
+    function setStatus(text, bgColor, textColor) {
+        statusBadge.textContent = text;
+        statusBadge.className = `inline-block float-right rounded-full ${bgColor} ${textColor} text-xs font-medium px-3 py-1`;
+        hiddenStatusInput.value = text;
+    }
 
-            function isDateFilled(dateInput) {
-                return dateInput && dateInput.value.trim() !== '';
-            }
-            function isFileSelected() {
-            const hasExistingFile = document.getElementById("has_existing_tax_document")?.value === '1';
-            return fileInput && fileInput.files.length > 0 || hasExistingFile;
-        }
-        function updateStatusBasedOnInputs() {
-            const hasFile = isFileSelected();
-            const hasDates = isDateFilled(uploadDateInput) && isDateFilled(validUntilInput);
+    function isDateFilled(dateInput) {
+        return dateInput && dateInput.value.trim() !== '';
+    }
 
-            const statusBadge = document.getElementById('taxStatusBadge');
-            const approveBtn = document.getElementById('approveBtn');
-            const rejectBtn = document.getElementById('rejectBtn');
-            const statusLabelWrapper = document.getElementById("statusLabelWrapper");
+    function isFileSelected() {
+        const hasExistingFile = document.getElementById("has_existing_tax_document")?.value === '1';
+        return fileInput && fileInput.files.length > 0 || hasExistingFile;
+    }
 
-            if (hasFile) {
-                statusBadge.style.display = 'inline-block';
-                approveBtn.parentElement.style.display = 'flex';
-                statusLabelWrapper.style.display = 'block';
-                if (hasDates && $("#tax_document_review_status").val()=='') {
-                    //$("#tax_document_status").val('Pending Review');
-                    setStatus('Pending Review', 'bg-yellow-100', 'text-yellow-800');
-                }
-                else if (hasDates && $("#tax_document_review_status").val()=='Approved') {
-                    //$("#tax_document_status").val('Approved');
-                    setStatus('Approved', 'bg-green-100', 'text-green-800');
-                }
-                else if (hasDates && $("#tax_document_review_status").val()=='Rejected') {
-                   // $("#tax_document_status").val('Rejected');
-                    setStatus('Rejected', 'bg-red-100', 'text-red-800');
-                }
-                else {
-                    //$("#tax_document_status").val('Expired');
-                    setStatus('Expired', 'bg-gray-200', 'text-gray-700');
-                }
-            } else {
-                statusBadge.style.display = 'none';
-                approveBtn.parentElement.style.display = 'none';
-                statusLabelWrapper.style.display = 'none';
-            }
+    function updateStatusBasedOnInputs() {
+        const hasFile = isFileSelected();
+        const hasUploadDate = isDateFilled(uploadDateInput);
+        const hasValidUntilDate = isDateFilled(validUntilInput);
+        const approverSelected = approverSelect?.value?.trim() !== "";
+        const existingStatus = document.getElementById("tax_document_status")?.value?.trim();
+
+
+        if (!hasFile) {
+            // No file uploaded, hide everything
+            statusBadge.style.display = 'none';
+            approveBtn.parentElement.style.display = 'none';
+            statusLabelWrapper.style.display = 'none';
+            hiddenStatusInput.value = '';
+            manualAction = null;
+            return;
         }
 
+        // File exists: show buttons and status
+        statusBadge.style.display = 'inline-block';
+        approveBtn.parentElement.style.display = 'flex';
+        statusLabelWrapper.style.display = 'block';
 
-        approveBtn.addEventListener("click", () => {
-            if (isDateFilled(uploadDateInput) && isDateFilled(validUntilInput) && isFileSelected()) {
-                //$("#tax_document_status").val('Approved');
-                setStatus('Approved', 'bg-green-100', 'text-green-800');
+        // Determine status
+        if (manualAction === 'Approved') {
+            setStatus('Approved', 'bg-green-100', 'text-green-800');
+        } else if (manualAction === 'Rejected') {
+            setStatus('Rejected', 'bg-red-100', 'text-red-800');
+        }
+           // Existing DB status (from server)
+    else if (existingStatus === 'Approved') {
+        setStatus('Approved', 'bg-green-100', 'text-green-800');
+    } else if (existingStatus === 'Rejected') {
+        setStatus('Rejected', 'bg-red-100', 'text-red-800');
+    }
+        else if (
+            (hasUploadDate || hasValidUntilDate || approverSelected)
+        ) {
+            if (hasUploadDate && hasValidUntilDate && approverSelected) {
+                setStatus('Pending Review', 'bg-yellow-100', 'text-yellow-800');
             } else {
-                alert("Please fill Upload Date, Valid Until, and upload a file before approving.");
+                setStatus('Expired', 'bg-gray-200', 'text-gray-700');
             }
+        } else {
+            // Only file selected, nothing else → show Pending Review
+            setStatus('Pending Review', 'bg-yellow-100', 'text-yellow-800');
+        }
+    }
+
+    approveBtn.addEventListener("click", () => {
+        const hasFile = isFileSelected();
+        const hasUploadDate = isDateFilled(uploadDateInput);
+        const hasValidUntilDate = isDateFilled(validUntilInput);
+        const approverSelected = approverSelect?.value?.trim() !== "";
+
+        const isEditMode = document.getElementById("is_edit_mode")?.value === '1';
+
+        if (hasFile && hasUploadDate && hasValidUntilDate && approverSelected) {
+            manualAction = 'Approved';
+
+            updateStatusBasedOnInputs();
+
+        if (isEditMode) {
+            sendReviewStatusAjax('Approved');
+        }
+
+        } else {
+            alert("Please select a file, fill both dates, and select an approver before approving.");
+        }
+    });
+
+    rejectBtn.addEventListener("click", () => {
+        const hasFile = isFileSelected();
+        const hasUploadDate = isDateFilled(uploadDateInput);
+        const hasValidUntilDate = isDateFilled(validUntilInput);
+        const approverSelected = approverSelect?.value?.trim() !== "";
+
+        const isEditMode = document.getElementById("is_edit_mode")?.value === '1';
+
+
+        if (hasFile && hasUploadDate && hasValidUntilDate && approverSelected) {
+            manualAction = 'Rejected';
+            updateStatusBasedOnInputs();
+
+
+            
+        if (isEditMode) {
+            sendReviewStatusAjax('Rejected');
+        }
+
+
+        } else {
+            alert("Please select a file, fill both dates, and select an approver before rejecting.");
+        }
+    });
+
+    // Reset manual action when any field changes
+    [uploadDateInput, validUntilInput, fileInput, approverSelect].forEach(input => {
+        input?.addEventListener("change", () => {
+            manualAction = null;
+            updateStatusBasedOnInputs();
         });
+    });
 
-        rejectBtn.addEventListener("click", () => {
-            if (isDateFilled(uploadDateInput) && isDateFilled(validUntilInput) && isFileSelected()) {
-                //$("#tax_document_status").val('Rejected');
-                setStatus('Rejected', 'bg-red-100', 'text-red-800');
-            } else {
-                alert("Please fill Upload Date, Valid Until, and upload a file before rejecting.");
-            }
-        });
-
-    // Live check on input change
-    uploadDateInput.addEventListener("change", updateStatusBasedOnInputs);
-    validUntilInput.addEventListener("change", updateStatusBasedOnInputs);
-    fileInput.addEventListener("change", updateStatusBasedOnInputs);
-
-    // Initial status check on page load
+    // Run once on load
     updateStatusBasedOnInputs();
 
+
+    function sendReviewStatusAjax(status) {
+    const customerId = document.getElementById("customer_id")?.value;
+
+    if (!customerId || !status) return;
+
+    console.log('customerId:', customerId);
+    console.log('status:', status);
+
+    fetch("{{ route('admin.crm.customers.tax_status.update') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: JSON.stringify({
+            customer_id: customerId,
+            status: status,
+        }),
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            console.log('AJAX success:', data.message);
+            notyf.success(data.message || "Status updated successfully.");
+        } else {
+            console.error('AJAX error:', data.message);
+            notyf.error(data.message || "Failed to update status.");
+        }
+    })
+    .catch(error => {
+        console.error('AJAX catch:', error);
+        notyf.error("Something went wrong while updating status.");
+    });
+}
+
+
+
+
+    const fileInputforshow = document.getElementById("taxDocumentInput");
+    const fileNameSpan = document.getElementById("file-name");
+    const uploadedFileBox = document.getElementById("uploadedFileBox");
+    const uploadedFileName = document.getElementById("uploadedFileName");
+    const uploadedDate = document.getElementById("uploadedDate");
+    const browseBox = document.getElementById("browseBox");
+    const viewFileBtn = document.getElementById("viewFileBtn");
+    const deleteFileBtn = document.getElementById("deleteFileBtn");
+
+    let uploadedFileURL = null;
+
+    function formatDate(date) {
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    }
+
+    fileInputforshow.addEventListener('change', function (e) {
+        if (!e.target.files.length) return;
+
+        const file = e.target.files[0];
+        fileNameSpan.textContent = file.name;
+
+        // Hide browse, show uploaded box
+        browseBox.style.display = 'none';
+        uploadedFileBox.classList.remove('hidden');
+
+        uploadedFileName.textContent = file.name;
+        uploadedDate.textContent = `Uploaded ${formatDate(new Date())}`;
+
+        // Create object URL for viewing
+        uploadedFileURL = URL.createObjectURL(file);
+        viewFileBtn.onclick = () => window.open(uploadedFileURL, '_blank');
+    });
+
+    deleteFileBtn.addEventListener('click', function () {
+        fileInputforshow.value = ''; // Clear the file input
+        fileNameSpan.textContent = 'No file chosen';
+        uploadedFileBox.classList.add('hidden');
+        browseBox.style.display = 'block';
+
+        uploadedFileName.textContent = '';
+        uploadedDate.textContent = '';
+        uploadedFileURL = null;
+
+        updateStatusBasedOnInputs();
+    });
+
     
+
 });
 </script>
 
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const taxDocumentInput = document.getElementById("taxDocumentInput");
-        const taxDocumentPreview = document.getElementById("taxDocumentPreview");
-        const taxDocumentTag = document.getElementById("taxDocumentTag");
-        const taxPdfIconContainer = document.getElementById("taxPdfIconContainer");
-
-        taxDocumentInput.addEventListener("change", function () {
-            const file = this.files[0];
-            if (!file) return;
-
-            const fileType = file.type;
-
-            // Reset preview
-            taxDocumentTag.src = "";
-            taxDocumentTag.style.display = "none";
-            taxPdfIconContainer.innerHTML = "";
-
-            const oldHiddenInput = document.querySelector('input[name="existing_tax_document_media_id"]');
-            if (oldHiddenInput) oldHiddenInput.remove();
-
-            if (fileType.startsWith("image/")) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    taxDocumentTag.src = e.target.result;
-                    taxDocumentTag.style.display = "block";
-                    taxDocumentPreview.style.display = "block";
-                };
-                reader.readAsDataURL(file);
-            } else if (fileType === "application/pdf") {
-                taxPdfIconContainer.innerHTML =
-                    `<x-heroicon-o-document-text class="w-5 h-5 text-red-600" /> <span class="text-sm text-red-500 ml-1 break-all w-full">${file.name}</span>`;
-                taxDocumentPreview.style.display = "block";
-            }
-        });
-
-        window.removeTaxDocument = function () {
-            @if(isset($customer) && !empty($customer->id))
-            if($("#existing_tax_document_media_id").val()!='' && $("#existing_tax_document_media_id").val()>0)
-            {
-                confirmAndDelete("{{ $customer->id }}");
-            }
-            @endif
-
-            const taxDocumentTag = document.getElementById("taxDocumentTag");
-            const taxPdfIconContainer = document.getElementById("taxPdfIconContainer");
-            const taxDocumentPreview = document.getElementById("taxDocumentPreview");
-            const taxDocumentInput = document.getElementById("taxDocumentInput");
-            
-            if (taxDocumentTag) {
-                taxDocumentTag.src = "";
-                taxDocumentTag.style.display = "none";
-            }
-
-            if (taxPdfIconContainer) {
-                taxPdfIconContainer.innerHTML = "";
-            }
-
-            if (taxDocumentPreview) {
-                taxDocumentPreview.style.display = "none";
-            }
-
-            if (taxDocumentInput) {
-                taxDocumentInput.value = null;
-            }
-
-            const existingInput = document.querySelector('input[name="existing_tax_document_media_id"]');
-            if (existingInput) {
-                existingInput.remove();
-            }
-
-           
-            const taxStatusBadge = document.getElementById("taxStatusBadge");
-            const approveBtn = document.getElementById("approveBtn");
-            const rejectBtn = document.getElementById("rejectBtn");
-            const statusLabelWrapper = document.getElementById("statusLabelWrapper");
-            
-
-            if (taxStatusBadge) {
-                taxStatusBadge.style.display = "none";
-            }
-
-            if (approveBtn && approveBtn.parentElement) {
-                approveBtn.parentElement.style.display = "none";
-            }
-
-            statusLabelWrapper.style.display = "none";
-
-           
-            updateStatusBasedOnInputs?.();
-        };
-
-    });
+document.addEventListener("DOMContentLoaded", function () {
+    
+});
 </script>
+
 
 
 

@@ -19,6 +19,7 @@ class Equipment extends Model
         'equipment_name',
         'category',
         'equipment_id',
+        'equipment_hours',
         'brand',
         'model',
         'model_year',

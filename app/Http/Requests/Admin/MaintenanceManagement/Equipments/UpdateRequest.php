@@ -25,6 +25,7 @@ class UpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique('equipments', 'equipment_id')->ignore($equipmentId, 'unique_id')
             ],
+            'equipment_hours' => 'nullable|numeric|min:0',
             'brand' => 'required|string|max:255',
             'model' => 'nullable|string|max:255',
             'model_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),

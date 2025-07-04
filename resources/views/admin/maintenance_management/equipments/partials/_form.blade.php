@@ -12,7 +12,7 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="sm:col-span-2">
+                <div class="">
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Equipment Name <span class="text-red-500">*</span>
                     </label>
@@ -33,7 +33,7 @@
                         </p>
                     @enderror
                 </div>
-
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Category <span class="text-red-500">*</span>
@@ -57,7 +57,20 @@
                         </p>
                     @enderror
                 </div>
-
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Equipment Hours
+                    </label>
+                    <input
+                        type="text"
+                        name="equipment_hours"
+                        value="{{ old('equipment_hours', $equipment->equipment_hours ?? '') }}"
+                        placeholder="10.5"
+                        style="max-width: 200px;"
+                        class="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    />
+                   
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Equipment ID <span class="text-red-500">*</span>

@@ -17,6 +17,7 @@ class StoreRequest extends FormRequest
             'equipment_name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'equipment_id' => 'required|string|max:255|unique:equipments,equipment_id',
+            'equipment_hours' => 'nullable|numeric|min:0',
             'brand' => 'required|string|max:255',
             'model' => 'nullable|string|max:255',
             'model_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),

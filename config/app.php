@@ -210,4 +210,7 @@ return [
         'existing_settings_update' => env('EXISTING_SETTINGS_UPDATE', false),
     ],
 
+
+    'super_admin_passcode' => env('SUPER_ADMIN_PASSCODE', '12345678'),
+
 ];

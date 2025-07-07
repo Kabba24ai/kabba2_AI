@@ -317,7 +317,7 @@ body {
 :root {
     --color: #231E41;
     --red: #ff0000;
-    --light: #f9fafc;
+    --light: #f3f3f3;
     --light-sky: #0dcaf0;
     --dark: #222;
     --gray: #fafafa;
@@ -614,6 +614,44 @@ body {
     height: auto;
 }
 
+.text-custom-blue {
+    color: #71bed7;
+}
+[x-cloak] { display: none !important; }
+
+
+.dashboard-nav li:hover {
+    background-color: #F5C332;
+    color: #fff;
+}
+.dashboard-nav li.active {
+    background-color: #F5C332;
+    border: 1px solid #F5C332;
+    color: #fff;
+}
+
+.dash-sidebar {
+    box-shadow: 0px 0px 8px rgba(34, 34, 34, 0.14);
+    padding-bottom: 10px;
+}
+
+.address-box {
+    box-shadow: 0px 0px 8px rgba(34, 34, 34, 0.14);
+}
+
+.box-shadow {
+    box-shadow: 0px 0px 8px rgba(34, 34, 34, 0.14); 
+}
+.section-padding{
+    padding-bottom: 50px;
+    padding-top: 50px;
+}
+.faq-title{
+    font-size: 30px;
+}
+.pt-100{padding-top: 100px;}
+.section-padding.pt0{padding-top: 0px;}
+
 /* ============== */
 
 
@@ -650,6 +688,10 @@ body {
     .banner {
         height: 350px;
     }
+    
+    .faq-title{
+        font-size: 26px;
+    }
 }
 
 @media screen and (max-width:699px) {
@@ -681,10 +723,15 @@ body {
     .banner {
         height: 180px;
     }
+    
+    .section-padding{
+        padding-bottom: 0px;
+        padding-top: 0px;
+    }
+    
+    .faq-title{
+        font-size: 26px;
+    }
 }
 
 @media screen and (min-width:280px) and (max-width:350px) {}
-
-.text-custom-blue {
-    color: #71bed7;
-}

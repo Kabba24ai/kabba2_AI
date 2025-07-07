@@ -1,5 +1,5 @@
 <nav
-    class="text-dark border-b-[1px] border-b-neutral-800 fixed w-full mt-[0px] z-[9999] bg-neutral-800 top-0 bg-opacity-100 ">
+    class="text-dark border-b border-b-neutral-800 fixed w-full mt-0 z-[9999] bg-neutral-800 top-0 bg-opacity-100 ">
     <div class="container !px-0">
         <div class="max-w-7xl mx-auto py-1 flex items-center  px-4">
             <a href="#" class="1/6">
@@ -57,11 +57,38 @@
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">Contact
                             Us</a>
                     </li>
-                    <li class=" px-5">
+
+                    <!-- <li class=" px-5">
                         <a href="{{ route('front.auth.login.index') }}"
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">Log
                             In</a>
                     </li>
+                     -->
+
+                     <li class="px-5 relative">
+                            @if(auth('customer')->check())
+                                @php
+                                    $user = auth('customer')->user();
+                                    $initial = strtoupper(substr($user->full_name, 0, 1));
+                                @endphp
+
+                                <a href="{{ route('front.customer.dashboard.index') }}" class="flex items-center gap-2 group">
+                                    <div class="w-8 h-8 rounded-full bg-yellow-400 text-white font-bold flex items-center justify-center text-sm shadow">
+                                        {{ $initial }}
+                                    </div>
+                                    <span class="text-sm font-medium group-hover:text-yellow-400 transition-all duration-300">
+                                        {{ $user->full_name }}
+                                    </span>
+                                </a>
+                            @else
+                                <a href="{{ route('front.auth.login.index') }}"
+                                class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">
+                                    Log In
+                                </a>
+                            @endif
+                        </li>
+
+
                 </ul>
             </div>
             <div>

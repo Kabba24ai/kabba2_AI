@@ -178,168 +178,168 @@
                 </div>
         </div>
         <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const submitBtn = document.getElementById('submitAddressBtn');
-    const hiddenInput = document.getElementById('alladdresslist');
-    const addressList = document.getElementById('realAddressList');
+            document.addEventListener('DOMContentLoaded', () => {
+                const submitBtn = document.getElementById('submitAddressBtn');
+                const hiddenInput = document.getElementById('alladdresslist');
+                const addressList = document.getElementById('realAddressList');
 
-    const fields = [
-        'add_first_name', 'add_last_name', 'add_phone', 'add_type',
-        'address', 'add_city', 'add_zip_code', 'add_state'
-    ];
+                const fields = [
+                    'add_first_name', 'add_last_name', 'add_phone', 'add_type',
+                    'address', 'add_city', 'add_zip_code', 'add_state'
+                ];
 
-    let editIndex = null;
-
-
-    let allAddresses = [];
-
-    function updateAltPlaceholders() {
-        const hasBilling = allAddresses.some(addr => addr.type === 'Billing');
-        const hasShipping = allAddresses.some(addr => addr.type === 'Shipping');
-
-        document.getElementById('altBillingPlaceholder').style.display = hasBilling ? 'none' : 'block';
-        document.getElementById('altShippingPlaceholder').style.display = hasShipping ? 'none' : 'block';
-    }
+                let editIndex = null;
 
 
-    try {
-        const val = hiddenInput.value?.trim();
-        allAddresses = val ? JSON.parse(val) : [];
+                let allAddresses = [];
 
-        updateAltPlaceholders();
+                function updateAltPlaceholders() {
+                    const hasBilling = allAddresses.some(addr => addr.type === 'Billing');
+                    const hasShipping = allAddresses.some(addr => addr.type === 'Shipping');
 
-
-    } catch (e) {
-        console.log('Invalid JSON in #alladdresslist', e);
-    }
-
-  
-    allAddresses.forEach((addr, i) => renderAddressBlock(addr, i));
-
-    function renderAddressBlock(addressObj, index) {
-        const label = addressObj.type === 'Billing' ? 'Billing Address' : 'Shipping Address';
-        const fullText = `${addressObj.address}, ${addressObj.city}, ${addressObj.state} - ${addressObj.zip_code}`;
-
-        const addressBlock = document.createElement('div');
-        addressBlock.className = 'address-entry';
-        addressBlock.innerHTML = `
-            <span class="text-xs text-gray-500">${label}</span>
-            <div class="flex gap-x-2 mt-1">
-                <x-heroicon-o-map-pin class="w-5 h-5" />
-                <div class="text-sm flex-1">${fullText}</div>
-                <div class="ml-2 flex gap-x-2">
-                    <button type="button" class="text-green-600 hover:text-green-800 edit-address" title="Edit">
-                        <x-heroicon-o-pencil class="w-4 h-4" />
-                    </button>
-                    <button type="button" class="text-red-600 hover:text-red-800 delete-address" title="Delete">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-        `;
-
-     
-        addressBlock.querySelector('.delete-address').addEventListener('click', () => {
-            const idx = [...addressList.children].indexOf(addressBlock);
-            allAddresses.splice(idx, 1);
-            addressBlock.remove();
-
-            updateAltPlaceholders();
+                    document.getElementById('altBillingPlaceholder').style.display = hasBilling ? 'none' : 'block';
+                    document.getElementById('altShippingPlaceholder').style.display = hasShipping ? 'none' : 'block';
+                }
 
 
-            hiddenInput.value = JSON.stringify(allAddresses);
-        });
+                try {
+                    const val = hiddenInput.value?.trim();
+                    allAddresses = val ? JSON.parse(val) : [];
 
-   
-        addressBlock.querySelector('.edit-address').addEventListener('click', () => {
-            const idx = [...addressList.children].indexOf(addressBlock);
-            const data = allAddresses[idx];
-            editIndex = idx;
+                    updateAltPlaceholders();
 
-            document.getElementById('add_first_name').value = data.first_name;
-            document.getElementById('add_last_name').value = data.last_name;
-          
-            document.getElementById('add_phone').value = data.phone;
-            document.getElementById('add_type').value = data.type;
-            document.getElementById('address').value = data.address;
-            document.getElementById('add_city').value = data.city;
-            document.getElementById('add_zip_code').value = data.zip_code;
-            document.getElementById('add_state').value = data.state_id;
 
-            const modalRoot = document.querySelector('[x-ref="addressRoot"]');
-            if (modalRoot?._x_dataStack?.[0]) {
-                modalRoot._x_dataStack[0].showAddressModal = true;
-            }
-        });
+                } catch (e) {
+                    console.log('Invalid JSON in #alladdresslist', e);
+                }
 
-        addressList.appendChild(addressBlock);
-    }
+            
+                allAddresses.forEach((addr, i) => renderAddressBlock(addr, i));
 
-    submitBtn.addEventListener('click', () => {
-        let isValid = true;
+                function renderAddressBlock(addressObj, index) {
+                    const label = addressObj.type === 'Billing' ? 'Billing Address' : 'Shipping Address';
+                    const fullText = `${addressObj.address}, ${addressObj.city}, ${addressObj.state} - ${addressObj.zip_code}`;
 
-        fields.forEach(id => {
-            const el = document.getElementById(id);
-            if ($(el).parsley().validate() !== true) {
-                isValid = false;
-            }
-        });
+                    const addressBlock = document.createElement('div');
+                    addressBlock.className = 'address-entry';
+                    addressBlock.innerHTML = `
+                        <span class="text-xs text-gray-500">${label}</span>
+                        <div class="flex gap-x-2 mt-1">
+                            <x-heroicon-o-map-pin class="w-5 h-5" />
+                            <div class="text-sm flex-1">${fullText}</div>
+                            <div class="ml-2 flex gap-x-2">
+                                <button type="button" class="text-green-600 hover:text-green-800 edit-address" title="Edit">
+                                    <x-heroicon-o-pencil class="w-4 h-4" />
+                                </button>
+                                <button type="button" class="text-red-600 hover:text-red-800 delete-address" title="Delete">
+                                    <x-heroicon-o-trash class="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    `;
 
-        if (!isValid) return;
+                
+                    addressBlock.querySelector('.delete-address').addEventListener('click', () => {
+                        const idx = [...addressList.children].indexOf(addressBlock);
+                        allAddresses.splice(idx, 1);
+                        addressBlock.remove();
 
-        const firstName = document.getElementById('add_first_name').value;
-        const lastName = document.getElementById('add_last_name').value;
-       
-        const phone = document.getElementById('add_phone').value;
-        const type = document.getElementById('add_type').value;
-        const address = document.getElementById('address').value;
-        const city = document.getElementById('add_city').value;
-        const zip = document.getElementById('add_zip_code').value;
-        const state = document.getElementById('add_state').selectedOptions[0]?.text || '';
-        const state_id = document.getElementById('add_state').value;
-        const label = type === 'Billing' ? 'Billing Address' : 'Shipping Address';
+                        updateAltPlaceholders();
 
-        const addressObj = {
-            first_name: firstName,
-            last_name: lastName,
-            phone,
-            type,
-            address,
-            city,
-            state,
-            state_id,
-            zip_code: zip,
-            label
-        };
 
-        if (editIndex !== null) {
-            addressObj.address_id = allAddresses[editIndex].address_id ?? null;
+                        hiddenInput.value = JSON.stringify(allAddresses);
+                    });
 
-            allAddresses[editIndex] = addressObj;
+            
+                    addressBlock.querySelector('.edit-address').addEventListener('click', () => {
+                        const idx = [...addressList.children].indexOf(addressBlock);
+                        const data = allAddresses[idx];
+                        editIndex = idx;
 
-            const block = addressList.children[editIndex];
-            block.querySelector('.text-xs').innerText = label;
-            block.querySelector('.text-sm').innerText = `${address}, ${city}, ${state} - ${zip}`;
-            editIndex = null;
-        } else {
-            allAddresses.push(addressObj);
-            renderAddressBlock(addressObj, allAddresses.length - 1);
-        }
+                        document.getElementById('add_first_name').value = data.first_name;
+                        document.getElementById('add_last_name').value = data.last_name;
+                    
+                        document.getElementById('add_phone').value = data.phone;
+                        document.getElementById('add_type').value = data.type;
+                        document.getElementById('address').value = data.address;
+                        document.getElementById('add_city').value = data.city;
+                        document.getElementById('add_zip_code').value = data.zip_code;
+                        document.getElementById('add_state').value = data.state_id;
 
-        hiddenInput.value = JSON.stringify(allAddresses);
+                        const modalRoot = document.querySelector('[x-ref="addressRoot"]');
+                        if (modalRoot?._x_dataStack?.[0]) {
+                            modalRoot._x_dataStack[0].showAddressModal = true;
+                        }
+                    });
 
-        updateAltPlaceholders();
+                    addressList.appendChild(addressBlock);
+                }
 
-        
-        const modalRoot = document.querySelector('[x-ref="addressRoot"]');
-        if (modalRoot?._x_dataStack?.[0]) {
-                modalRoot._x_dataStack[0].showAddressModal = false;
-            }
+                submitBtn.addEventListener('click', () => {
+                    let isValid = true;
 
-        fields.forEach(id => {
-            const input = document.getElementById(id);
-            if (input) input.value = '';
-        });
-    });
-});
-</script>
+                    fields.forEach(id => {
+                        const el = document.getElementById(id);
+                        if ($(el).parsley().validate() !== true) {
+                            isValid = false;
+                        }
+                    });
+
+                    if (!isValid) return;
+
+                    const firstName = document.getElementById('add_first_name').value;
+                    const lastName = document.getElementById('add_last_name').value;
+                
+                    const phone = document.getElementById('add_phone').value;
+                    const type = document.getElementById('add_type').value;
+                    const address = document.getElementById('address').value;
+                    const city = document.getElementById('add_city').value;
+                    const zip = document.getElementById('add_zip_code').value;
+                    const state = document.getElementById('add_state').selectedOptions[0]?.text || '';
+                    const state_id = document.getElementById('add_state').value;
+                    const label = type === 'Billing' ? 'Billing Address' : 'Shipping Address';
+
+                    const addressObj = {
+                        first_name: firstName,
+                        last_name: lastName,
+                        phone,
+                        type,
+                        address,
+                        city,
+                        state,
+                        state_id,
+                        zip_code: zip,
+                        label
+                    };
+
+                    if (editIndex !== null) {
+                        addressObj.address_id = allAddresses[editIndex].address_id ?? null;
+
+                        allAddresses[editIndex] = addressObj;
+
+                        const block = addressList.children[editIndex];
+                        block.querySelector('.text-xs').innerText = label;
+                        block.querySelector('.text-sm').innerText = `${address}, ${city}, ${state} - ${zip}`;
+                        editIndex = null;
+                    } else {
+                        allAddresses.push(addressObj);
+                        renderAddressBlock(addressObj, allAddresses.length - 1);
+                    }
+
+                    hiddenInput.value = JSON.stringify(allAddresses);
+
+                    updateAltPlaceholders();
+
+                    
+                    const modalRoot = document.querySelector('[x-ref="addressRoot"]');
+                    if (modalRoot?._x_dataStack?.[0]) {
+                            modalRoot._x_dataStack[0].showAddressModal = false;
+                        }
+
+                    fields.forEach(id => {
+                        const input = document.getElementById(id);
+                        if (input) input.value = '';
+                    });
+                });
+            });
+        </script>

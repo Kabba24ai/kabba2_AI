@@ -3,15 +3,15 @@
 
 @section('content')
 <section
-        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-white md:border-r-[30px] md:border-r-white bg-light">
+        class="transform transition-all duration-300 ease-in-out md:border-l-30 md:border-l-white md:border-r-30 md:border-r-white bg-light">
         <div class="container md:px-0">
-            <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
+            <div id="breadcrumbs" class="pt-100 pb-5 ">
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center gap-y-2 md:gap-y-0">
                         <h1 class="header-title">Sign up</h1>
                         <ul
-                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-white">
-                            <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
+                            class="border-yellow-400 px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative border-2 border-white">
+                            <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-1">
                                 <a href="index.php" class="opacity-25">Home</a>
                             </li>
                             <li>
@@ -24,9 +24,9 @@
         </div>
     </section>
     <section
-        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc] border-b-0">
+        class="transform transition-all duration-300 ease-in-out  border-b-0">
         <div class="container md:px-0">
-            <div class="lg:flex gap-2 pb-[60px] md:pt-[60px] pt-[20px]">
+            <div class="lg:flex gap-2 pb-60 md:pt-[60px] pt-5">
                 <div class="lg:w-1/5"></div>
                 <div class="lg:w-3/5">
 
@@ -59,19 +59,36 @@
 
                                 {{-- Name --}}
                                 <div class="relative z-0 w-full my-6 group">
-                                    {{ html()->text('name')->attributes([
+                                    {{ html()->text('first_name')->attributes([
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,
-                                        'id' => 'name',
+                                        'id' => 'first_name',
                                         'maxlength' => 100,
                                     ])->placeholder('') }}
-                                    <label for="name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black ">
-                                        Name
+                                    <label for="first_name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black ">
+                                    First Name
                                     </label>
-                                    @error('name')
+                                    @error('first_name')
                                         <p class="text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
+
+                                {{-- last_name --}}
+                                <div class="relative z-0 w-full my-6 group">
+                                    {{ html()->text('last_name')->attributes([
+                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
+                                        'required' => true,
+                                        'id' => 'last_name',
+                                        'maxlength' => 100,
+                                    ])->placeholder('') }}
+                                    <label for="last_name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black ">
+                                    Last Name
+                                    </label>
+                                    @error('last_name')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
 
                                 {{-- Email --}}
                                 <div class="relative z-0 w-full my-6 group">

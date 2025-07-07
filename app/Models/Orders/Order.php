@@ -48,6 +48,11 @@ class Order extends Model
         return $this->hasOne(OrderAddress::class, 'order_id')->where('type','Shipping');
     }
 
+    public function billingAddress()
+    {
+        return $this->hasOne(OrderAddress::class, 'order_id')->where('type','Billing');
+    }
+
     public function products()
     {
         return $this->hasMany(OrderProduct::class, 'order_id');
@@ -77,7 +82,7 @@ class Order extends Model
 
             // Format: ORD-00001
             $model->order_number = '#' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-            $model->order_date = Carbon::now()->format('Y-m-d');
+            $model->order_date = Carbon::now()->format(config('app.date.db_date_format'));
         });
     }
 }

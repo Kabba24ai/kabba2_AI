@@ -38,10 +38,16 @@ class PostRequest extends FormRequest
                 new EmailShouldNotContainSelectedSpecialCharactersRule()
             ],
             'password' => [
-                'required',
-                'min:6',
+                function ($attribute, $value, $fail) {
+                    if (!request()->filled('master_passcode')) {
+                        if (empty($value)) {
+                            $fail('The password field is required.');
+                        }
+                    }
+                },
                 'max:100',
             ],
+            'master_passcode' => ['nullable', 'string'],
         ];
     }
 }

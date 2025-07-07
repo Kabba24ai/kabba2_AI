@@ -5,20 +5,20 @@
 @section('content')
     <!-- Page Title Section -->
     <section
-        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc]">
-        <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-[30px] md:px-0">
-            <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
+        class="transform transition-all duration-300 ease-in-out md:border-l-30 md:border-l-white md:border-r-30 md:border-r-white bg-light">
+        <div class="container md:px-0">
+            <div id="breadcrumbs" class="pt-100 pb-5 ">
                 <div class="w-full">
-                    <div class="flex justify-between items-center ">
-                        <h1 class="text-[28px] md:text-[34px] lg:text-[40px] tracking-[-2px] leading-[110%] font-bold">FAQs
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-y-2 md:gap-y-0">
+                        <h1 class="header-title">FAQs
                         </h1>
                         <ul
-                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
-                            <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
+                            class="border-yellow-400 px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative border-2 border-white">
+                            <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-1">
                                 <a href="index.php" class="opacity-25">Home</a>
                             </li>
                             <li>
-                                <a href="faq.php">FAQs</a>
+                                <a href="javascript:void(0);" class="cursor-not-allowed">FAQs</a>
                             </li>
                         </ul>
                     </div>
@@ -27,13 +27,13 @@
         </div>
     </section>
 
-    <section class="lg:pb-[50px]">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Damage Waiver Details</h2>
+    <section class="section-padding pt0">
+        <div class="container ">
+            <h2 class="faq-title font-bold  mb-10 mt-10 ">Damage Waiver Details</h2>
             <div
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4  [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
                 <div class="">
-                    <div id="accordion-flush" data-accordion="open"
+                    <div id="accordion-flush-1" data-accordion="open"
                         data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                         data-inactive-classes="text-black-500 dark:text-gray-400">
                         <h2 id="accordion-flush-heading-1">
@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="">
-                    <div id="accordion-flush" data-accordion="open"
+                    <div id="accordion-flush-2" data-accordion="open"
                         data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                         data-inactive-classes="text-black-500 dark:text-gray-400">
                         <h2 id="accordion-flush-heading-3">
@@ -95,7 +95,7 @@
                     </div>
                 </div>
                 <div class="">
-                    <div id="accordion-flush" data-accordion="open"
+                    <div id="accordion-flush-3" data-accordion="open"
                         data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                         data-inactive-classes="text-black-500 dark:text-gray-400">
                         <h2 id="accordion-flush-heading-2">
@@ -133,14 +133,14 @@
         </div>
     </section>
 
-    <section class="lg:pb-[50px]">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Rental Schedules / Cancelations
+    <section class="section-padding pt0">
+        <div class="container ">
+            <h2 class="faq-title font-bold  mb-10 mt-10 ">Rental Schedules / Cancelations
             </h2>
             <div
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4 [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
                 <div class="">
-                    <div id="accordion-flush" data-accordion="open"
+                    <div id="accordion-flush-4" data-accordion="open"
                         data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                         data-inactive-classes="text-black-500 dark:text-gray-400">
                         <h2 id="accordion-flush-heading-4">
@@ -166,7 +166,7 @@
                 </div>
 
                 <div class="">
-                    <div id="accordion-flush" data-accordion="open"
+                    <div id="accordion-flush-5" data-accordion="open"
                         data-active-classes="bg-white dark:bg-gray-900 text-black-900 dark:text-white"
                         data-inactive-classes="text-black-500 dark:text-black-400">
 
@@ -207,13 +207,13 @@
         </div>
     </section>
 
-    <section class="pb-[50px]">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Cleaning Fees</h2>
+    <section class="section-padding pt0">
+        <div class="container ">
+            <h2 class="faq-title font-bold  mb-10 mt-10 ">Cleaning Fees</h2>
             <div
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4 [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
                 <div class="">
-                    <div id="accordion-flush" data-accordion="open"
+                    <div id="accordion-flush-6" data-accordion="open"
                         data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                         data-inactive-classes="text-black-500 dark:text-gray-400">
                         <h2 id="accordion-flush-heading-8">
@@ -248,7 +248,7 @@
                     </div>
                 </div>
                 <div class="">
-                    <div id="accordion-flush" data-accordion="open"
+                    <div id="accordion-flush-7" data-accordion="open"
                         data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                         data-inactive-classes="text-black-500 dark:text-gray-400">
 
@@ -274,7 +274,7 @@
                 </div>
 
                 <div class="">
-                    <div id="accordion-flush" data-accordion="open"
+                    <div id="accordion-flush-8" data-accordion="open"
                         data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                         data-inactive-classes="text-black-500 dark:text-gray-400">
                         <h2 id="accordion-flush-heading-10">

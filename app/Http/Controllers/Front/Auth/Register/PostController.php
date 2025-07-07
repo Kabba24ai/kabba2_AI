@@ -32,7 +32,8 @@ class PostController extends Controller
 
             $customerData = [
                 'unique_id' => $uniqueId,
-                'first_name' => $validated['name'] ?? null,
+                'first_name' => $validated['first_name'] ?? null,
+                'last_name' => $validated['last_name'] ?? null,
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
             ];
@@ -45,7 +46,7 @@ class PostController extends Controller
 
             DB::commit();
 
-            flash('Account registered successfully.')->success();
+            // flash('Account registered successfully.')->success();
 
             return redirect()->route('front.customer.dashboard.index');
 
@@ -53,7 +54,7 @@ class PostController extends Controller
             DB::rollBack();
             report($e);
 
-            flash('Registration failed: ' . $e->getMessage())->error();
+            // flash('Registration failed: ' . $e->getMessage())->error();
 
             return redirect()
                 ->back()

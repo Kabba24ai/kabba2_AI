@@ -5,7 +5,7 @@
 @section('content')
     <!-- Page Title Section -->
     <section
-        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc] border-b-0">
+        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-light border-b-0">
         <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-[30px] md:px-0">
             <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
                 <div class="w-full border-b-4 border-b-[#231e41] pb-4">
@@ -49,13 +49,13 @@
                             <h4 class="text-[22px] font-bold text-center mb-8">Send Message</h4>
                             <form action="#">
                                 <div class="relative z-0 w-full mb-6 group">
-                                    <input type="text" name="name" id="name" class="block bg-[#f9fafc] py-2.5 px-0 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                                    <input type="text" name="name" id="name" class="block bg-light py-2.5 px-0 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
                                     <label for="name" class=" z-1 px-4 absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-100 peer-focus:-translate-y-8 peer-focus:-translate-x-2.5 peer-focus:text-black">
                                         Name
                                     </label>
                                 </div>
                                 <div class="relative z-0 w-full mb-6 group">
-                                    <input type="email" name="email" id="email" class="block bg-[#f9fafc] py-2.5 px-0 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                                    <input type="email" name="email" id="email" class="block bg-light py-2.5 px-0 w-full text-sm text-gray-900 border-0 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
                                     <label for="email" class=" z-1 px-4 absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-100 peer-focus:-translate-y-8 peer-focus:-translate-x-2.5 peer-focus:text-black">
                                         Email
                                     </label>
@@ -63,7 +63,7 @@
 
                                 <div class="relative z-0 w-full mb-6 group">
                                     <textarea name="message" id="message" rows="4"
-                                        class="block bg-[#f9fafc] py-2.5 px-0 w-full text-sm text-gray-900 border-0  appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                        class="block bg-light py-2.5 px-0 w-full text-sm text-gray-900 border-0  appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                         placeholder=" "></textarea>
                                     <label for="message"
                                         class="absolute px-4 text-sm text-gray-500 duration-300 transform -translate-y-8 scale-100 top-3 z-1 origin-[0]
@@ -76,8 +76,8 @@
                                     <p>*We promise not to disclose your <br> personal information to third parties.</p>
                                 </div>
                                 <div class="w-full mt-5 text-center">
-                                    <button type="button" class="border-0 px-3 py-2 lg:px-5 lg:py-4 mx-auto font-medium bg-yellow-400 hover:bg-yellow-500 text-black transform transition-all duration-500 ease-in-out text-sm">
-                                        <i class="mr-3 fa-solid fa-arrow-right text-[16px] lg:text-[24px] lg:text-sm leading-4  -rotate-45 border-2 rounded-full px-[6px] py-[6px] lg:px-[3px] lg:py-[0px] border-[#231E41]"></i>
+                                    <button type="button" class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-sm hover:bg-yellow-300  transition-all duration-500 ease-in-out mx-auto">
+                                        <i class="mr-3 fa-solid fa-arrow-right text-base lg:text-lg leading-4  -rotate-45 border-2 rounded-full link-icon border-purple"></i>
                                         Send
                                     </button>
                                 </div>

@@ -20,7 +20,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-         // Fetch orders from the database, most recent first
+        // Fetch orders from the database, most recent first
         $orders = Order::orderByDesc('id')->paginate(10);
 
         return view('admin.order_management.orders.index', [

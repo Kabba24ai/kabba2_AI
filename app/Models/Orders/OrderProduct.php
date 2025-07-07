@@ -16,6 +16,7 @@ class OrderProduct extends Model
         'product_name',
         'price',
         'quantity',
+        'sub_total',
         'tax',
         'total',
         'schedule_start_date',
@@ -26,6 +27,11 @@ class OrderProduct extends Model
         'store_id',
         'distance_type', // 'Standard', 'Extended', 'Custom'
         'distance_range',
+    ];
+
+    // In your OrderProduct.php model
+    protected $casts = [
+        'product_data' => 'array',
     ];
 
     // Relationships

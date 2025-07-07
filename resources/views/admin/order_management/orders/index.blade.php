@@ -20,6 +20,7 @@
 
     {{-- Filters Row --}}
     <div class="bg-white p-4 rounded-md shadow-sm mb-6">
+        @include('admin.partials.formErrors')
         <div class="flex flex-wrap items-end gap-4">
 
             {{-- Search Name --}}
@@ -95,62 +96,46 @@
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
                 <tr>
                     <th class="px-4 py-3"><input type="checkbox" /></th>
-                    <th class="px-4 py-3">OrderNumber</th>
-                    <th class="px-4 py-3">Customer</th>
-                    <th class="px-4 py-3">Product</th>
-                    <th class="px-4 py-3">Address</th>
-                    <th class="px-4 py-3">Phone</th>
-                    <th class="px-4 py-3">Amount</th>
-                    <th class="px-4 py-3">Payment</th>
-                    <th class="px-4 py-3">Status</th>
-                    {{-- <th class="px-4 py-3">Delivery</th>
-                    <th class="px-4 py-3">Return</th> --}}
-                    <th class="px-4 py-3">Created</th>
-                    <th class="px-4 py-3">Actions</th>
+                    <th class="px-4 py-3 text-left">OrderNumber</th>
+                    <th class="px-4 py-3 text-left">Customer</th>
+                    <th class="px-4 py-3 text-center">Product</th>
+                    <th class="px-4 py-3 ">Address</th>
+                    <th class="px-4 py-3 text-left">Phone</th>
+                    <th class="px-4 py-3 text-right">Amount</th>
+                    <th class="px-4 py-3 text-left">Payment</th>
+                    <th class="px-4 py-3 text-center">Status</th>
+                    {{-- <th class="px-4 py-3 text-center">Delivery</th>
+                    <th class="px-4 py-3 text-center">Return</th> --}}
+                    <th class="px-4 py-3 text-center">Created</th>
+                    <th class="px-4 py-3 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
                 @forelse ($orders as $order)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3"><input type="checkbox" /></td>
-                        <td class="px-4 py-3 text-gray-900 font-medium">{{ $order->order_number }}</td>
-                        <td class="px-4 py-3">{{ $order->customer_name }}</td>
-                        <td class="px-4 py-3 truncate max-w-xs">{{ $order->products->pluck('product_name')->join('<br> ') }}</td>
-                        <td class="px-4 py-3 truncate max-w-xs">{{ $order->shippingAddress->address }}</td>
-                        <td class="px-4 py-3">{{ $order->customer_phone  }}</td>
-                        <td class="px-4 py-3 font-semibold">${{ number_format($order->grand_total, 2) }}</td>
-                        <td class="px-4 py-3">{{ $order->payment_type }}</td>
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 text-left">{{ $order->order_number }}</td>
+                        <td class="px-4 py-3 text-left">{{ $order->customer_name }}</td>
+                        <td class="px-4 py-3 truncate max-w-xs text-center">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
+                        <td class="px-4 py-3 truncate max-w-xs ">{{ $order->shippingAddress->address }}</td>
+                        <td class="px-4 py-3 text-left ">{{ $order->customer_phone  }}</td>
+                        <td class="px-4 py-3 font-semibold text-right">{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
+                        <td class="px-4 py-3 text-center">{{ $order->payment_type }}</td>
+                        <td class="px-4 py-3 text-center">
                             <span
                                 class="text-xs font-semibold px-2 py-1 rounded-full
                             {{ $order->status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
                                 {{ $order->status }}
                             </span>
                         </td>
-                        {{-- <td class="px-4 py-3 flex items-center gap-1 text-blue-600">
-                            <x-heroicon-o-truck class="w-4 h-4" />
-                            <span>{{ $order->delivery_date }}</span>
-                        </td>
-                        <td class="px-4 py-3 flex items-center gap-1 text-yellow-500">
-                            <x-heroicon-o-archive-box class="w-4 h-4" />
-                            <span>{{ $order->return_date }}</span>
-                        </td> --}}
-                        <td class="px-4 py-3">{{ $order->created_at->format('n/j/Y') }}</td>
-                        <td class="px-4 py-3 flex gap-2 items-center">
-                            <a href="{{ route('admin.order-management.orders.edit', $order->id) }}" class="text-sky-600 hover:text-sky-800"
-                                title="View">
-                                <x-heroicon-o-eye class="w-4 h-4" />
-                            </a>
-                            {{-- <a href="#" class="text-brand-600 hover:text-brand-800" title="Edit">
-                                <x-heroicon-o-pencil-square class="w-4 h-4" />
-                            </a>
-                            <form method="POST" action="#" onsubmit="return confirm('Are you sure?')" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-4 h-4" />
-                                </button>
-                            </form> --}}
+                        <td class="px-4 py-3 text-center">{{ $order->created_at->format(config('app.date.date_format')) }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2 items-center justify-center">
+                                <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" class="text-sky-600 hover:text-sky-800"
+                                    title="View">
+                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 @empty

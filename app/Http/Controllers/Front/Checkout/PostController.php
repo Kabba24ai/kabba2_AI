@@ -132,7 +132,7 @@ class PostController extends Controller
                 'type' => 'Billing',
                 'first_name' => $billingAddress->first_name,
                 'last_name' => $billingAddress->last_name,
-                'email' => $billingAddress->email,
+                'email' => $customer->email,
                 'phone' => $billingAddress->phone,
                 'address' => $billingAddress->address,
                 'city' => $billingAddress->city,
@@ -146,7 +146,7 @@ class PostController extends Controller
                 'type' => 'Shipping',
                 'first_name' => $deliveryAddress->first_name,
                 'last_name' => $deliveryAddress->last_name,
-                'email' => $deliveryAddress->email,
+                'email' => $customer->email,
                 'phone' => $deliveryAddress->phone,
                 'address' => $deliveryAddress->address,
                 'city' => $deliveryAddress->city,
@@ -157,7 +157,7 @@ class PostController extends Controller
 
             foreach ($cartSummary['cart_items'] as $item) {
 
-                if ($product = Product::find($item['product_unique_id'])) {
+                if ($product = Product::where('unique_id', $item['product_unique_id'])->first()) {
                     // Save order product
                     $order->products()->create([
                         'order_id' => $order->id,
@@ -165,11 +165,12 @@ class PostController extends Controller
                         'product_name' => $item['product_name'],
                         'price' => $item['product_price'],
                         'quantity' => $item['quantity'],
+                        'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],
                         'total' => $item['total'],
-                        'schedule_start_date' => $item['schedule_start_date'],
-                        'schedule_end_date' => $item['schedule_end_date'] ?? null,
-                        'product_data' => json_encode($item),
+                        'schedule_start_date' => !empty($item['schedule_start_date']) ? Carbon::parse($item['schedule_start_date'])->format(config('app.date.db_date_format')) : null,
+                        'schedule_end_date' => !empty($item['schedule_end_date']) ? Carbon::parse($item['schedule_end_date'])->format(config('app.date.db_date_format')) : null,
+                        'product_data' => $item,
                         'service_method' => $item['service_method'] ?? null,
                         'service_option' => $item['service_option'] ?? null,
                         'store_id' => $item['store_id'] ?? null,

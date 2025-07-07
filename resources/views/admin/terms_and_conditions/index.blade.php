@@ -83,7 +83,7 @@
                             </span>
                         </td>
 
-                        <td class="px-6 py-4 text-gray-600 dark:text-gray-400">{{ $t->created_at->format('Y-m-d') }}</td>
+                        <td class="px-6 py-4 text-gray-600 dark:text-gray-400">{{ $t->created_at->format(config('app.date.db_date_format')) }}</td>
                         <td class="px-6 py-4">
                             <span
                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium

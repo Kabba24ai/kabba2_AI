@@ -17,7 +17,7 @@ Route::prefix('orders')
     // Route::post('/create', IndexController::class);
 
     // Edit
-    Route::get('edit', EditController::class)->name('edit');
+    Route::get('edit/{unique_id}', EditController::class)->name('edit');
     // Route::put('/{unique_id}/edit', IndexController::class);
 
     // // Reorder

@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('equipments', function (Blueprint $table) {
-            $$table->decimal('equipment_hours', 8, 1)->nullable()->after('equipment_id'); // replace 'column_name' with an actual existing column
+            $table->decimal('equipment_hours', 8, 1)->nullable()->after('equipment_id');
         });
     }
 

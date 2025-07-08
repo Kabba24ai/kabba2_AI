@@ -33,23 +33,21 @@ class PostRequest extends FormRequest
         // Only run these for guests, not auth users with stored addresses
         $rules = [];
 
-        if (!auth()->check()) {
-            $rules = [
-                // Billing fields
-                'billingFirstName' => ['required', 'string', 'max:100'],
-                'billingLastName' => ['required', 'string', 'max:100'],
-                'billingCompany' => ['nullable', 'string', 'max:100'],
-                'billingEmail' => ['required', 'email', 'max:200'],
-                'billingPhone' => ['required', 'string', 'max:20'],
-                'billingAddress' => ['required', 'string', 'max:200'],
-                'billingState' => ['required', 'exists:states,id'],
-                'billingCity' => ['required', 'string', 'max:100'],
-                'billingZip' => ['required', 'string', 'max:8'],
+        $rules = [
+            // Billing fields
+            'billingFirstName' => ['required', 'string', 'max:100'],
+            'billingLastName' => ['required', 'string', 'max:100'],
+            'billingCompany' => ['nullable', 'string', 'max:100'],
+            'billingEmail' => ['required', 'email', 'max:200'],
+            'billingPhone' => ['required', 'string', 'max:20'],
+            'billingAddress' => ['required', 'string', 'max:200'],
+            'billingState' => ['required', 'exists:states,id'],
+            'billingCity' => ['required', 'string', 'max:100'],
+            'billingZip' => ['required', 'string', 'max:8'],
 
-                'showPassword' => ['nullable', 'in:Yes'],
-                'password' => ['nullable', 'required_if:showPassword,Yes', 'string', 'min:8', 'confirmed'],
-            ];
-        }
+            // 'showPassword' => ['nullable', 'in:Yes'],
+            // 'password' => ['nullable', 'required_if:showPassword,Yes', 'string', 'min:8', 'confirmed'],
+        ];
 
         // Delivery info
         $rules = array_merge($rules, [
@@ -94,6 +92,25 @@ class PostRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    public function withValidator($validator)
+    {
+        if (auth('customer')->check()) {
+            $userEmail = auth('customer')->user()->email;
+
+            $validator->after(function ($validator) use ($userEmail) {
+                $billingEmail = $this->input('billingEmail');
+                $deliveryEmail = $this->input('deliveryEmail');
+
+                if ($billingEmail && $billingEmail !== $userEmail) {
+                    $validator->errors()->add('billingEmail', 'The billing email must match your account email.');
+                }
+                if ($deliveryEmail && $deliveryEmail !== $userEmail) {
+                    $validator->errors()->add('deliveryEmail', 'The delivery email must match your account email.');
+                }
+            });
+        }
     }
 
     public function messages()

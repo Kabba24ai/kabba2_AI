@@ -46,33 +46,62 @@
                         <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
                     @enderror
                     <!-- Address Selection -->
-                    @auth
+                    @auth('customer')
+                        @php
+                            $addresses =
+                                auth('customer')->user()->addresses()->where('type', 'Billing')->get() ?? collect();
+                            $primaryAddress = $addresses->firstWhere('is_primary', true);
+                        @endphp
                         <div>
-                            <label for="selAddress" class="block text-sm font-medium text-gray-800 mb-1">
+                            <label for="selAddress" class="block text-sm font-medium text-gray-800 mt-3">
                                 Select available addresses:
                             </label>
-                            <select id="selAddress" name="selAddress"
-                                class="block w-full border border-gray-300 rounded-md py-2 px-3 text-gray-700 bg-white">
-                                <option>7080 MCADOO BRANCH ROAD, LYLES, Tennessee, 37098</option>
+                            <select id="selAddress" name="address_id"
+                                class="block w-full border border-gray-300 rounded-md py-2 px-3 text-gray-700 bg-white capitalize">
+                                <option disabled selected value="">Select Address...</option>
+                                <option value="new" class="font-bold">+ Add New Address</option>
+                                @foreach ($addresses as $addressItem)
+                                    <option value="{{ $addressItem->id }}" data-addressItem="{{ json_encode($addressItem) }}"
+                                        {{ old('selAddress') == $addressItem->id || (empty(old('selAddress')) && $addressItem->is_primary) ? 'selected' : '' }}>
+                                        {{ collect([$addressItem->address, $addressItem->city, $addressItem->state_name, $addressItem->zip_code])->filter()->join(', ') }}
+                                    </option>
+                                @endforeach
                             </select>
-                            <div class="border-2 border-dashed border-green-600 rounded-md p-4 mt-4 relative bg-green-50/10">
-                                <h5 class="text-base font-bold">BEN LAMPLEY</h5>
-                                <p>7080 MCADOO BRANCH ROAD, LYLES, Tennessee, 37098</p>
-                                <p class="text-sm">Phone: (931) 996-9192</p>
-                                <p class="mt-2 text-sm">Email: BENLAMPLEY30@GMAIL.COM</p>
-                                <span class="text-green-600 font-medium text-xs absolute top-2 right-3">Default</span>
+                            <!-- Selected Address Preview -->
+                            <div id="selectedAddressPreview"
+                                class="border-2 border-dashed border-green-600 rounded-md p-4 mt-4 relative capitalize bg-green-50/10 {{ $primaryAddress ? '' : 'hidden' }}">
+                                <h5 class="text-base font-bold" id="addressName">
+                                    {{ $primaryAddress ? $primaryAddress->full_name : '' }}
+                                </h5>
+                                <p id="addressFull">
+                                    {{ $primaryAddress? collect([$primaryAddress->addressItem, $primaryAddress->city, $primaryAddress->state_name, $primaryAddress->zip_code])->filter()->join(', '): '' }}
+                                </p>
+                                <p class="text-sm" id="addressPhone">
+                                    {{ $primaryAddress ? 'Phone: ' . $primaryAddress->phone : '' }}
+                                </p>
+                                <p class="mt-2 text-sm" id="addressEmail">
+                                    {{ $primaryAddress ? 'Email: ' . $primaryAddress->email : '' }}
+                                </p>
+                                <span class="text-green-600 font-medium text-xs absolute top-2 right-3" id="addressDefault">
+                                    {{ $primaryAddress && $primaryAddress->is_primary ? 'Default' : '' }}
+                                </span>
                             </div>
                         </div>
                     @else
                         <div class="mb-6 text-sm text-gray-600">
                             Already have an account?
-                            <a href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline ml-1">Login</a>
+                            <a href="{{ route('front.auth.login.index') }}"
+                                class="text-blue-600 hover:underline ml-1">Login</a>
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        @php
+                            $primaryAddress = null;
+                        @endphp
+                    @endauth
+                    <div id="billingDiv" class="space-y-4 {{ $primaryAddress ? 'hidden' : '' }}">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 ">
                             <div>
                                 <label for="billingFirstName" class="block text-sm text-gray-600 mb-1">First Name</label>
-                                {{ html()->text('billingFirstName')->class([
+                                {{ html()->text('billingFirstName', old('billingFirstName', $primaryAddress ? $primaryAddress->first_name : null))->class([
                                         'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
                                         'input-error' => $errors->has('billingFirstName'),
                                     ])->attributes([
@@ -80,6 +109,7 @@
                                         'data-parsley-maxlength' => 240,
                                         'placeholder' => 'First Name',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingFirstName',
                                     ])->required() }}
                                 <span id="errorBillingFirstName"></span>
                                 @error('billingFirstName')
@@ -88,7 +118,7 @@
                             </div>
                             <div>
                                 <label for="billingLastName" class="block text-sm text-gray-600 mb-1">Last Name</label>
-                                {{ html()->text('billingLastName')->class([
+                                {{ html()->text('billingLastName', old('billingLastName', $primaryAddress ? $primaryAddress->last_name : null))->class([
                                         'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
                                         'input-error' => $errors->has('billingLastName'),
                                     ])->attributes([
@@ -96,6 +126,7 @@
                                         'data-parsley-maxlength' => 240,
                                         'placeholder' => 'Last Name',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingLastName',
                                     ])->required() }}
                                 <span id="errorBillingLastName"></span>
                                 @error('billingLastName')
@@ -105,13 +136,14 @@
                         </div>
                         <div>
                             <label for="billingCompany" class="block text-sm text-gray-600 mb-1">Company Name</label>
-                            {{ html()->text('billingCompany')->class(
+                            {{ html()->text('billingCompany', old('billingCompany', $primaryAddress ? $primaryAddress->company : null))->class(
                                     'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                 )->attributes([
                                     'maxlength' => 240,
                                     'data-parsley-maxlength' => 240,
                                     'placeholder' => 'Company Name',
                                     'autocomplete' => 'off',
+                                    'id' => 'billingCompany',
                                 ]) }}
                             @error('billingCompany')
                                 <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -120,26 +152,29 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <div>
                                 <label for="billingEmail" class="block text-sm text-gray-600 mb-1">Email</label>
-                                {{ html()->email('billingEmail')->class(
+                                {{ html()->email('billingEmail', auth('customer')->check() ? auth('customer')->user()->email : old('billingEmail', $primaryAddress ? $primaryAddress->email : null))->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
-                                    )->attributes([
+                                    )->attributes(array_merge([
                                         'maxlength' => 240,
                                         'data-parsley-type' => 'email',
                                         'placeholder' => 'Email',
                                         'autocomplete' => 'off',
-                                    ])->required() }}
+                                        'id' => 'billingEmail',
+                                    ], auth('customer')->check() ? ['readonly' => 'readonly'] : []))
+                                    ->required() }}
                                 @error('billingEmail')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
                                 <label for="billingPhone" class="block text-sm text-gray-600 mb-1">Phone</label>
-                                {{ html()->text('billingPhone')->class(
+                                {{ html()->text('billingPhone', old('billingPhone', $primaryAddress ? $primaryAddress->phone : null))->class(
                                         'masked-phone w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 240,
                                         'placeholder' => 'Phone',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingPhone',
                                     ])->required() }}
                                 @error('billingPhone')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -148,12 +183,13 @@
                         </div>
                         <div>
                             <label for="billingAddress" class="block text-sm text-gray-600 mb-1">Address</label>
-                            {{ html()->textarea('billingAddress')->class(
+                            {{ html()->textarea('billingAddress', old('billingAddress', $primaryAddress ? $primaryAddress->address : null))->class(
                                     'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                 )->attributes([
                                     'rows' => 2,
                                     'maxlength' => 500,
                                     'placeholder' => 'Address',
+                                    'id' => 'billingAddress',
                                 ])->required() }}
                             @error('billingAddress')
                                 <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -166,7 +202,9 @@
                                     class="w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none">
                                     <option disabled value="">Select State...</option>
                                     @foreach ($states as $id => $name)
-                                        <option value="{{ $id }}" @selected(old('billingState') == $id)>{{ $name }}
+                                        <option value="{{ $id }}"
+                                            @selected(old('billingState', $primaryAddress ? $primaryAddress->state_id : null) == $id)>
+                                            {{ $name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -176,12 +214,13 @@
                             </div>
                             <div>
                                 <label for="billingCity" class="block text-sm text-gray-600 mb-1">City</label>
-                                {{ html()->text('billingCity')->class(
+                                {{ html()->text('billingCity', old('billingCity', $primaryAddress ? $primaryAddress->city : null))->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 50,
                                         'placeholder' => 'City',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingCity',
                                     ])->required() }}
                                 @error('billingCity')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -189,12 +228,13 @@
                             </div>
                             <div>
                                 <label for="billingZip" class="block text-sm text-gray-600 mb-1">ZIp Code</label>
-                                {{ html()->text('billingZip')->class(
+                                {{ html()->text('billingZip', old('billingZip', $primaryAddress ? $primaryAddress->zip_code : null))->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 8,
                                         'placeholder' => 'Zip code',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingZip',
                                     ])->required() }}
                                 @error('billingZip')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -202,48 +242,49 @@
                             </div>
                         </div>
 
-                        <!-- Password section -->
-                        <div class="flex items-center gap-2 mt-2">
-                            <input id="showPassword" name="showPassword" type="checkbox" value="Yes"
-                                class="accent-blue-600 h-4 w-4" checked />
-                            <label for="showPassword" class="text-sm">Enter Your Custom Password</label>
-                        </div>
-                        <div id="passwordFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                            <div>
-                                <label for="password" class="block text-sm text-gray-600 mb-1">Password</label>
-                                <input type="password" name="password" placeholder="Password" autocomplete="new-password"
-                                    class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password') ? ' border-red-400' : '' }}" />
-                                @error('password')
-                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="password_confirmation" class="block text-sm text-gray-600 mb-1">Password
-                                    confirmation</label>
-                                <input type="password" name="password_confirmation" placeholder="Password confirmation"
-                                    autocomplete="new-password"
-                                    class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password_confirmation') ? ' border-red-400' : '' }}" />
-                                @error('password_confirmation')
-                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
+                        {{-- <!-- Password section -->
+                                            <div class="flex items-center gap-2 mt-2">
+                                                <input id="showPassword" name="showPassword" type="checkbox" value="Yes"
+                                                    class="accent-blue-600 h-4 w-4" checked />
+                                                <label for="showPassword" class="text-sm">Enter Your Custom Password</label>
+                                            </div>
+                                            <div id="passwordFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                                <div>
+                                                    <label for="password" class="block text-sm text-gray-600 mb-1">Password</label>
+                                                    <input type="password" name="password" placeholder="Password" autocomplete="new-password"
+                                                        class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password') ? ' border-red-400' : '' }}" />
+                                                    @error('password')
+                                                        <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                                <div>
+                                                    <label for="password_confirmation" class="block text-sm text-gray-600 mb-1">Password
+                                                        confirmation</label>
+                                                    <input type="password" name="password_confirmation" placeholder="Password confirmation"
+                                                        autocomplete="new-password"
+                                                        class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password_confirmation') ? ' border-red-400' : '' }}" />
+                                                    @error('password_confirmation')
+                                                        <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}
 
 
-                        <div class="text-xs text-gray-600 leading-relaxed mt-2">
-                            By providing your phone number and/or email, you agree to receive order information from
-                            us via text and/or email as well as other information pertaining to renting or buying
-                            equipment.
-                            <a href="#" class="text-blue-600 hover:underline ml-1">Learn More</a>
-                        </div>
-                    @endauth
+                        {{-- <div class="text-xs text-gray-600 leading-relaxed mt-2">
+                                                By providing your phone number and/or email, you agree to receive order information from
+                                                us via text and/or email as well as other information pertaining to renting or buying
+                                                equipment.
+                                                <a href="#" class="text-blue-600 hover:underline ml-1">Learn More</a>
+                                            </div> --}}
+                    </div>
 
 
                     <!-- Delivery Info -->
                     <h4 class="text-lg font-semibold">Delivery information</h4>
                     <div class="flex items-center gap-2 mb-4">
                         <input type="hidden" name="sameAsBilling" value="{{ old('sameAsBilling', 'Yes') }}">
-                        <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4" {{ old('sameAsBilling', 'Yes') == 'Yes' ? 'checked' : '' }} />
+                        <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4"
+                            {{ old('sameAsBilling', 'Yes') == 'Yes' ? 'checked' : '' }} />
                         <label for="sameAsBilling" class="text-sm">Same as billing information</label>
                         @error('sameAsBilling')
                             <span class="text-sm text-red-500 ml-2">{{ $message }}</span>
@@ -290,6 +331,8 @@
                                         'placeholder' => 'Email',
                                         'autocomplete' => 'off',
                                         'id' => 'deliveryEmail',
+                                    ])->attributes([
+                                        'readonly' => true,
                                     ]) }}
                                 @error('deliveryEmail')
                                     <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
@@ -651,11 +694,11 @@
             const hiddenSameAsBilling = document.querySelector('input[name="sameAsBilling"][type="hidden"]');
             const deliveryDiv = document.getElementById('deliveryDiv');
 
-            // Map billing fields to delivery fields
+            // Map billing fields to delivery fields (exclude deliveryEmail)
             const fields = [
                 ['billingFirstName', 'deliveryFirstName'],
                 ['billingLastName', 'deliveryLastName'],
-                ['billingEmail', 'deliveryEmail'],
+                // ['billingEmail', 'deliveryEmail'], // deliveryEmail should always match billingEmail, not editable
                 ['billingPhone', 'deliveryPhone'],
                 ['billingAddress', 'deliveryAddress'],
                 ['billingState', 'deliveryState'],
@@ -663,55 +706,159 @@
                 ['billingZip', 'deliveryZip'],
             ];
 
+            // Always keep deliveryEmail in sync with billingEmail
+            function syncDeliveryEmail() {
+                const billing = document.getElementById('billingEmail');
+                const delivery = document.getElementById('deliveryEmail');
+                if (billing && delivery) {
+                    delivery.value = billing.value;
+                }
+            }
+
+            // Define the sync function
             function syncDeliveryFields() {
                 fields.forEach(([billingId, deliveryId]) => {
                     const billing = document.getElementById(billingId);
                     const delivery = document.getElementById(deliveryId);
                     if (billing && delivery) {
-                        if (billing.tagName === 'SELECT') {
-                            delivery.value = billing.value;
-                        } else if (billing.tagName === 'TEXTAREA') {
-                            delivery.value = billing.value;
-                        } else {
-                            delivery.value = billing.value;
-                        }
+                        delivery.value = billing.value;
                     }
                 });
+                syncDeliveryEmail();
             }
+
+            // Handler references for easy removal
+            function addBillingListeners() {
+                fields.forEach(([billingId, _]) => {
+                    const billing = document.getElementById(billingId);
+                    if (billing) {
+                        billing.addEventListener('input', syncDeliveryFields);
+                        billing.addEventListener('change', syncDeliveryFields);
+                    }
+                });
+                // Always sync deliveryEmail with billingEmail
+                const billingEmail = document.getElementById('billingEmail');
+                if (billingEmail) {
+                    billingEmail.addEventListener('input', syncDeliveryEmail);
+                    billingEmail.addEventListener('change', syncDeliveryEmail);
+                }
+            }
+
+            function removeBillingListeners() {
+                fields.forEach(([billingId, _]) => {
+                    const billing = document.getElementById(billingId);
+                    if (billing) {
+                        billing.removeEventListener('input', syncDeliveryFields);
+                        billing.removeEventListener('change', syncDeliveryFields);
+                    }
+                });
+                // Remove deliveryEmail sync
+                const billingEmail = document.getElementById('billingEmail');
+                if (billingEmail) {
+                    billingEmail.removeEventListener('input', syncDeliveryEmail);
+                    billingEmail.removeEventListener('change', syncDeliveryEmail);
+                }
+            }
+
+            sameAsBilling.addEventListener('change', function() {
+                if (this.checked) {
+                    hiddenSameAsBilling.value = 'Yes';
+                    syncDeliveryFields(); // Sync immediately
+                    addBillingListeners(); // Start syncing on billing field changes
+                    deliveryDiv.classList.add('hidden'); // Hide delivery section
+                } else {
+                    hiddenSameAsBilling.value = 'No';
+                    removeBillingListeners(); // Stop syncing
+                    deliveryDiv.classList.remove('hidden'); // Show delivery section
+                    // Prefill delivery fields with billing values when showing delivery section
+                    syncDeliveryFields();
+                    // Still keep deliveryEmail in sync and readonly
+                    syncDeliveryEmail();
+                }
+            });
+
+            // On page load, always sync deliveryEmail and keep it readonly/disabled
+            syncDeliveryEmail();
+            const deliveryEmail = document.getElementById('deliveryEmail');
+            if (deliveryEmail) {
+                deliveryEmail.readOnly = true;
+                // deliveryEmail.disabled = true;
+            }
+
+            // Helper to fill billing fields from address object
+            function fillBillingFields(addr) {
+                if (!addr) return;
+                if (document.getElementById('billingFirstName')) document.getElementById('billingFirstName').value = addr.first_name || '';
+                if (document.getElementById('billingLastName')) document.getElementById('billingLastName').value = addr.last_name || '';
+                if (document.getElementById('billingCompany')) document.getElementById('billingCompany').value = addr.company || '';
+                // if (document.getElementById('billingEmail')) document.getElementById('billingEmail').value = addr.email || '';
+                if (document.getElementById('billingPhone')) document.getElementById('billingPhone').value = addr.phone || '';
+                if (document.getElementById('billingAddress')) document.getElementById('billingAddress').value = addr.address || '';
+                if (document.getElementById('billingState')) document.getElementById('billingState').value = addr.state_id || '';
+                if (document.getElementById('billingCity')) document.getElementById('billingCity').value = addr.city || '';
+                if (document.getElementById('billingZip')) document.getElementById('billingZip').value = addr.zip_code || '';
+            }
+
+            function updateAddressPreview() {
+                const sel = document.getElementById('selAddress');
+                const preview = document.getElementById('selectedAddressPreview');
+                const billingDiv = document.getElementById('billingDiv');
+                const selectedOption = sel ? sel.options[sel.selectedIndex] : null;
+
+
+                if (selectedOption) {
+                    if (selectedOption.value === 'new') {
+                        // Show billingDiv, hide preview, clear billing fields
+                        billingDiv.classList.remove('hidden');
+                        preview.classList.add('hidden');
+                        fillBillingFields({});
+                        return;
+                    }
+                    if (selectedOption.dataset.addressitem) {
+                        const addr = JSON.parse(selectedOption.dataset.addressitem);
+                        document.getElementById('addressName').textContent = (addr.full_name || '');
+                        document.getElementById('addressFull').textContent = [
+                            addr.addressItem,
+                            addr.city,
+                            addr.state_name,
+                            addr.zip_code
+                        ].filter(Boolean).join(', ');
+                        document.getElementById('addressPhone').textContent = 'Phone: ' + (addr.phone || '');
+                        document.getElementById('addressEmail').textContent = 'Email: ' + (addr.email || '');
+                        document.getElementById('addressDefault').textContent = addr.is_primary ? 'Default' : '';
+                        preview.classList.remove('hidden');
+                        billingDiv.classList.add('hidden');
+                        fillBillingFields(addr);
+                        return;
+                    }
+                }
+                // Default: hide preview, show billingDiv, clear billing fields
+                preview.classList.add('hidden');
+                billingDiv.classList.remove('hidden');
+                fillBillingFields({});
+            }
+
+            const sel = document.getElementById('selAddress');
+            if (sel) {
+                sel.addEventListener('change', updateAddressPreview);
+            }
+
 
             // ============================
             // Custom Password Show/Hide
             // ============================
-            sameAsBilling.addEventListener('change', function() {
-                if (this.checked) {
-                    hiddenSameAsBilling.value = 'Yes';
-                    syncDeliveryFields();
-                    deliveryDiv.classList.add('hidden');
-                    // Listen for changes in billing to update delivery fields
-                    fields.forEach(([billingId, deliveryId]) => {
-                        const billing = document.getElementById(billingId);
-                        if (billing) {
-                            billing.addEventListener('input', syncDeliveryFields);
-                            billing.addEventListener('change', syncDeliveryFields);
-                        }
-                    });
-                } else {
-                    hiddenSameAsBilling.value = 'No';
-                    deliveryDiv.classList.remove('hidden');
-                    // Remove listeners if needed (not strictly necessary here for most forms)
-                }
-            });
-
             const showPassword = document.getElementById('showPassword');
             const passwordFields = document.getElementById('passwordFields');
 
-            function togglePasswordFields() {
-                passwordFields.style.display = showPassword.checked ? '' : 'none';
-            }
+            if (showPassword && passwordFields) {
+                function togglePasswordFields() {
+                    passwordFields.style.display = showPassword.checked ? '' : 'none';
+                }
 
-            showPassword.addEventListener('change', togglePasswordFields);
-            // Set initial state
-            togglePasswordFields();
+                showPassword.addEventListener('change', togglePasswordFields);
+                // Set initial state
+                togglePasswordFields();
+            }
 
             // ============================
             // Tax Exempt Modal Show/Hide
@@ -742,6 +889,7 @@
                 // Optionally: keep checkbox checked
                 // Optionally: Add your validation or AJAX here
             };
+
         });
     </script>
 @endpush

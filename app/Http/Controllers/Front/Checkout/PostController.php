@@ -39,12 +39,27 @@ class PostController extends Controller
                 [
                     'first_name' => $validated['billingFirstName'],
                     'last_name' => $validated['billingLastName'],
-                    'company' => $validated['billingCompany'] ?? null,
+                    'company_name' => $validated['billingCompany'] ?? null,
                     'phone' => $validated['billingPhone'],
                     'is_guest' => false,
                     'Status' => 'Active',
                 ],
             );
+
+            // Update company and phone if not already set
+            $updated = false;
+            if (empty($customer->company) && !empty($validated['billingCompany'])) {
+                $customer->company_name = $validated['billingCompany'];
+                $updated = true;
+            }
+            if (empty($customer->phone) && !empty($validated['billingPhone'])) {
+                $customer->phone = $validated['billingPhone'];
+                $updated = true;
+            }
+            if ($updated) {
+                $customer->save();
+                $customer->refresh();
+            }
 
             if (!empty($validated['showPassword']) && $validated['showPassword'] === 'Yes' && !empty($validated['password'])) {
                 $customer->password = bcrypt($validated['password']);
@@ -69,6 +84,11 @@ class PostController extends Controller
                     'zip_code' => $validated['billingZip'],
                 ],
             );
+
+            // Set primary billing address if not already set
+            if (!$billingAddress->is_primary) {
+                CustomerAddress::setPrimaryBillingAddress($billingAddress);
+            }
 
             // 3. Add Delivery Address (Check if same as billing)
             if (!empty($validated['sameAsBilling']) && $validated['sameAsBilling'] === 'Yes') {

@@ -112,7 +112,7 @@
                     @endif
 
                     <div class="text-xs flex items-center gap-x-2">
-                        <a href="#" class="text-red-500 hover:text-red-700 font-medium"
+                        <a href="javascript:void(0)" class="text-red-500 hover:text-red-700 font-medium remove-cart-item"
                             data-remove-uid="{{ $item['product_unique_id'] }}">
                             Remove
                         </a>

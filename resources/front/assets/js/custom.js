@@ -25,6 +25,7 @@ window.loadCartSidebarPreview = (function() {
 
         if (!cart?.length) {
             cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Your cart is empty.</p>';
+            window.updateCartCount(); // Update cart count to 0
             return;
         }
 
@@ -77,8 +78,7 @@ window.loadCartSidebarPreview = (function() {
             if (cartSummaryDiv && data?.summary) {
                 cartSummaryDiv.innerHTML = data.summary;
             }
-            // Update cart count
-            window.updateCartCount();
+
         })
         .catch(error => {
             notyf.error('Failed to load cart data. Please try again later.');
@@ -87,11 +87,39 @@ window.loadCartSidebarPreview = (function() {
         })
         .finally(() => {
             loading = false;
+            // Update cart count
+            window.updateCartCount(); // Ensure cart count is updated after loading
         });
     };
 })();
 
+window.initCartRemoveHandler = function() {
+    const cartDataDiv = document.getElementById('cartData');
+    if (cartDataDiv && !cartDataDiv._removeHandlerAttached) { // avoid duplicate listeners!
+        cartDataDiv.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-cart-item')) {
+                event.preventDefault();
+                const uniqueId = event.target.getAttribute('data-remove-uid');
+                CartStorage.removeItemByUniqueId(uniqueId);
+                window.loadCartSidebarPreview();
 
+                notyf.success('Item removed from cart.');
+
+                // If cart is now empty, close the cart panel
+                const cart = CartStorage.getCart();
+                if (!cart?.length) {
+                    const cartPanel = document.querySelector('#cartOffCanvas');
+                    if (cartPanel) {
+                        cartPanel.classList.remove("max-w-[403px]", "w-full", "opacity-100", "translate-x-0");
+                        cartPanel.classList.add("max-w-0", "w-0", "opacity-0", "translate-x-full");
+                    }
+                    document.querySelectorAll('.toggleCart').forEach(btn => btn.classList.remove('active'));
+                }
+            }
+        });
+        cartDataDiv._removeHandlerAttached = true; // Custom flag to avoid double-adding
+    }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     // Panel configs
@@ -209,4 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Update cart count ONCE when the page loads
     window.loadCartSidebarPreview();
+    window.initCartRemoveHandler();
+
 });

@@ -23,6 +23,13 @@ window.CartStorage = (function(){
         return cart;
     }
 
+    function removeItemByUniqueId(uniqueId) {
+        let cart = getCart();
+        cart = cart.filter(item => item.product_unique_id !== uniqueId);
+        setCart(cart);
+        return cart;
+    }
+
     function removeItemByIndex(index) {
         let cart = getCart();
         if (index >= 0 && index < cart.length) {
@@ -44,8 +51,10 @@ window.CartStorage = (function(){
         getCart,
         setCart,
         addOrUpdateItem,
-        removeItemByIndex,
         clearCart,
-        getTotalQuantity
+        getTotalQuantity,
+        removeItemByUniqueId,
+        removeItemByIndex
     };
 })();
+

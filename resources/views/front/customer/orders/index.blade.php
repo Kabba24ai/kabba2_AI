@@ -56,7 +56,7 @@
                                             <p>{{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }}</p>
                                         </td>
                                         <td class="border px-4 py-2">
-                                            <p>{{ config('app.currency.code') }} {{ number_format($order->grand_total, 2) }}</p>
+                                            <p>{{ App\Helpers\CustomHelper::formatCurrency($order->grand_total) }} </p>
                                         </td>
                                         <td class="border px-4 py-2">
                                             <p>{{ $order->status }}</p>

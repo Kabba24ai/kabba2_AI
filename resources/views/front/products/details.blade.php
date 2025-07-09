@@ -103,14 +103,14 @@
                                 @if ($productDetail->product_type == 'Rental')
                                     <span>
                                         <span class="font-bold text-3xl">
-                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productType)) }}
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productVariant)) }}
                                         </span>
-                                        @if ($productDetail->isRentalOnSale($productType))
+                                        @if ($productDetail->isRentalOnSale($productVariant))
                                             <span class="line-through text-gray-500 text-base ml-1 font-normal italic">
-                                                {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productType, false)) }}
+                                                {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productVariant, false)) }}
                                             </span>
                                         @endif
-                                        <span class="font-normal">/ {{ $productType }}</span>
+                                        <span class="font-normal">/ {{ $productVariant }}</span>
                                     </span>
                                 @else
                                     <span>
@@ -367,7 +367,7 @@
                                         data-discard="{{ $productSettings['damage_waiver_decline_label'] }}"
                                         data-message="{{ $productSettings['damage_waiver_info'] }}" />
                                     @php
-                                        $damageWaiverPrice = match ($productType) {
+                                        $damageWaiverPrice = match ($productVariant) {
                                             'daily' => App\Helpers\CustomHelper::formatCurrency(
                                                 $productDetail->rental_damage_waiver_daily,
                                             ),
@@ -407,7 +407,7 @@
                                             <span>{{ $item->label }}
                                                 <span class="font-medium">+
                                                     @php
-                                                        $price = match ($productType) {
+                                                        $price = match ($productVariant) {
                                                             'daily' => $item->daily,
                                                             'weekend' => $item->weekend,
                                                             'weekly' => $item->weekly,
@@ -484,7 +484,7 @@
                                     <div class="grid grid-cols-2 gap-2">
                                         <!-- Repeat this button block for each rental period -->
                                         @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
-                                            <a href="{{ route('front.products.details', ['categorySlug' => $category->slug, 'slug' => $relatedProduct->slug, 'productType' => $type]) }}"
+                                            <a href="{{ route('front.products.details', ['slug' => $relatedProduct->slug, 'productVariant' => $type]) }}"
                                                 class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                                 {{-- @if ($relatedProduct->isRentalOnSale($type))
                                                     <span
@@ -516,7 +516,7 @@
                                 @else
                                     <!-- Retail Product (centered button, no inline styles) -->
                                     <div class="grid grid-cols-2 gap-2">
-                                        <a href="{{ route('front.products.details', ['categorySlug' => $category->slug, 'slug' => $relatedProduct->slug, 'productType' => 'retail']) }}"
+                                        <a href="{{ route('front.products.details', ['slug' => $relatedProduct->slug, 'productVariant' => 'retail']) }}"
                                             class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                             {{-- @if ($relatedProduct->isRetailOnSale())
                                                 <span
@@ -588,7 +588,7 @@
             extendedDeliveryRange: "{{ $productSettings['extended_delivery_range'] ?? '' }}",
             productUniqueId: "{{ $productDetail->unique_id ?? '' }}",
             productType: "{{ $productDetail->product_type ?? '' }}",
-            productVariant: "{{ $productType }}",
+            productVariant: "{{ $productVariant }}",
             cartSaveUrl: "{{ route('front.cart.save') }}",
             csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
         };

@@ -18,9 +18,6 @@ class IndexController extends Controller
         $customer = Auth::guard('customer')->user() ;
      
         $customer->load('addresses.state');
-
-        // dd($customer);
-
         return view('front.customer.dashboard.index', [
             'title' => 'Home - Customer Dashboard',
             'customer' => $customer,

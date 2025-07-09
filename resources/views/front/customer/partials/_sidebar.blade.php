@@ -25,9 +25,9 @@
         <li class="{{ Route::is('front.customer.dashboard.index') ? 'active' : '' }} px-4 py-3 border-b-0 last:border-b ">
             <a href="{{ route('front.customer.dashboard.index') }}" class="w-full flex gap-x-2"><i class="fa-solid fa-home text-xl min-w-6 max-w-6"></i> Overview</a>
         </li>
-        <!-- <li class="{{ Route::is('front.customer.profile.index') ? 'active' : '' }} px-4 py-3 border-b-0 last:border-b  ">
+        <li class="{{ Route::is('front.customer.profile.index') ? 'active' : '' }} px-4 py-3 border-b-0 last:border-b  ">
             <a href="{{ route('front.customer.profile.index') }}" class="w-full flex gap-x-2"> <i class="fa-solid fa-user text-xl min-w-6 max-w-6"></i> Profile</a>
-        </li> -->
+        </li>
         <li class="{{ Route::is('front.customer.orders.index') ? 'active' : '' }}  px-4 py-3 border-b-0 last:border-b  ">
             <a href="{{ route('front.customer.orders.index') }}" class="w-full flex gap-x-2"><i class="fa-solid fa-shopping-cart text-xl min-w-6 max-w-6"></i> Orders</a>
         </li>

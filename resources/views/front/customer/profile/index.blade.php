@@ -49,7 +49,8 @@
                     @csrf
 
 
-                        <div class="relative z-0 w-full my-6 group">
+                    <div class="flex flex-col md:flex-row gap-4">    
+                    <div class="relative z-0 w-full md:w-1/2 mt-2 group">
                                 
                             {{ html()->text('first_name', $customer->first_name)->attributes([
                             'class' => 'check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
@@ -59,11 +60,11 @@
                                 ]) }}
 
                             <label for="first_name" class=" z-1 pointer-events-none px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
-                                Full Name <i class="fa-solid fa-circle-check text-yellow-400 opacity-0"></i>
+                                First Name <i class="fa-solid fa-circle-check text-yellow-400 opacity-0"></i>
                             </label>
 
                         </div>
-                        <div class="relative z-0 w-full my-6 group">
+                        <div class="relative z-0 w-full md:w-1/2 mt-2 group">
                                 
                                 {{ html()->text('last_name', $customer->last_name)->attributes([
                                     'class' => 'check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
@@ -77,8 +78,9 @@
                                 </label>
     
                             </div>
-                        <div class="relative z-0 w-full my-6 group">
-
+                        </div>
+                        <div class="relative z-0 w-full my-6 mt-2 group">
+                        
                             {{ html()->email('email', $customer->email)->attributes([
                                 'class' => 'check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                 'id' => 'email',
@@ -97,6 +99,7 @@
                             {{ html()->text('number', $customer->phone)->attributes([
                                 'class' => 'masked-phone check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                 'id' => 'phone',
+                                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
                                 'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
                                 'placeholder' => '',
                                 'autocomplete' => 'tel',
@@ -104,30 +107,6 @@
 
                             <label for="phone" class=" z-1 pointer-events-none px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
                                 Phone <i class="fa-solid fa-circle-check text-yellow-400 opacity-0"></i>
-                            </label>
-                        </div>
-                        <div class="relative z-0 w-full my-6 group">
-
-                            <!-- <input type="text" name="dob" id="datepicker" class="check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer" placeholder=" "> -->
-
-                            <!-- {{ html()->text('dob')->attributes([
-                                    'class' => 'datepicker check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
-                                    'id' => 'datepicker',
-                                    'placeholder' => '',
-                                    'autocomplete' => 'off',
-                                    ]) }} -->
-
-                                    {!! html()->text('dob', old('dob', $formattedDob))->class([
-                                            'datepicker check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
-                                        ])->attributes([
-                                            'id' => 'dob',
-                                            'placeholder' => '',
-                                            'autocomplete' => 'off',
-                                        ]) !!}
-
-
-                            <label for="datepicker" class=" z-1 pointer-events-none px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
-                                Date of birth <i class="fa-solid fa-circle-check text-yellow-400 opacity-0"></i>
                             </label>
                         </div>
                         <button type="submit" class="border-0 px-3 py-2 lg:px-5 lg:py-4 mx-auto font-medium bg-yellow-400 hover:bg-yellow-500 text-black transform transition-all duration-500 ease-in-out text-sm">
@@ -139,44 +118,5 @@
             </div>
          </div>
      </section>
-@push('js')
 
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const dateInputs = document.querySelectorAll('input.datepicker');
-    const jsFormat = @json(config('app.date.js_date_format')); 
-
-    dateInputs.forEach(input => {
-        new AirDatepicker(input, {
-            autoClose: true,
-            dateFormat: jsFormat,   
-            timepicker: false,       
-            minDate: new Date(),
-            onSelect({ date, formattedDate, datepicker }) {
-                if (date) {
-                 
-                    input.value = formattedDate;
-                }
-            },
-            locale: {
-                days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-                daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                daysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-                months: ['January', 'February', 'March', 'April', 'May', 'June',
-                         'July', 'August', 'September', 'October', 'November', 'December'],
-                monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                today: 'Today',
-                clear: 'Clear',
-                firstDay: 0
-            }
-        });
-    });
-});
-</script>
-
-
-
-@endpush
 @endsection

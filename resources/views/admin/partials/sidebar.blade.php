@@ -172,7 +172,20 @@
                         'admin.maintenance-management.suppliers.*',
                     ]);
 
+                    // Checklist Management
+                    $checklistManagementActive = Route::is([
+                        'admin.checklist_management.*',
+                    ]);
 
+                    $rentalReadyActive = Route::is([
+                        'admin.checklist_management.rental_ready.question_and_categories.*',
+                    ]);
+
+                    $customerChecklistActive = Route::is([
+                        // Add the correct route for customer checklist when ready
+                        'admin.checklist_management.customer_checklist.*',
+                    ]);
+                    
                     $crmActive = Route::is([
                         'admin.crm.customers.*',
                     ]);
@@ -228,6 +241,93 @@
                                     </a>
                                 </li>
                                
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- Checklist Mangement -->
+                    <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $checklistManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+
+                                <x-heroicon-o-clipboard-document-check class="w-6 h-6" />
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Checklist Management</span>
+                                <span class="menu-item-arrow"
+                                    :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ? 'lg:hidden' : '']">
+                                    <template x-if="!open"><x-heroicon-o-chevron-left class="w-5 h-5" /></template>
+                                    <template x-if="open"><x-heroicon-o-chevron-down class="w-5 h-5" /></template>
+                                </span>
+                            </a>
+
+                        <!-- Level 2 Dropdown -->
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+
+                                <!-- Rental Ready (Level 2) -->
+                                <li x-data="{ subOpen: {{ $rentalReadyActive ? 'true' : 'false' }} }" >
+                                <a href="#" @click.prevent="subOpen = !subOpen"
+                                        class="menu-dropdown-item group flex items-center justify-between gap-2
+                                                {{ $rentalReadyActive ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                            <div class="flex items-center gap-2">
+                                                <x-heroicon-o-truck class="h-5 w-5" /> Rental Ready
+                                            </div>
+
+                                            <svg :class="{ 'rotate-90': subOpen }" class="w-4 h-4 transform transition-transform" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
+                                    </a>
+
+                                    <!-- Level 3 Dropdown -->
+                                    <ul x-show="subOpen" x-transition class="mt-1 pl-5 space-y-1 text-sm text-gray-600 menu-dropdown-item-inactive">
+                                        <li>
+                                        <a href="{{ route('admin.checklist_management.rental_ready.question_and_categories.index') }}"
+                                        class="block px-2 py-1 hover:text-black {{ $rentalReadyActive ? 'text-brand-600 font-semibold' : '' }}">
+                                        Question & Categories
+                                        </a>
+
+                                        </li>
+                                        <!-- <li><a href="#" class="block px-2 py-1 hover:text-black">Templates</a></li> -->
+                                    </ul>
+                                </li>
+                              
+                            </ul>
+                        </div>
+
+                         <!-- Level 2 Dropdown -->
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+
+                                <!-- Equipments (Level 2) -->
+                                <li x-data="{ subOpen: {{ $customerChecklistActive ? 'true' : 'false' }} }">
+                                    <a href="#" @click.prevent="subOpen = !subOpen"
+                                    class="menu-dropdown-item group flex items-center justify-between gap-2
+                                            {{ $customerChecklistActive ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <div class="flex items-center gap-2">
+                                            <x-heroicon-o-clipboard-document-list class="h-5 w-5" /> Customer Checklist
+                                        </div>
+                                        <svg :class="{ 'rotate-90': subOpen }" class="w-4 h-4 transform transition-transform" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+
+                                    <!-- Level 3 Dropdown -->
+                                    <ul x-show="subOpen" x-transition class="mt-1 pl-5 space-y-1 text-sm text-gray-600">
+                                        <li>
+                                            <a href="#"
+                                            class="menu-dropdown-item block px-2 py-1
+                                                    {{ $customerChecklistActive ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                Question & Categories
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+
                             </ul>
                         </div>
                     </li>

@@ -69,9 +69,11 @@ class CartHelper
         $variant = $validated['product_variant'] ?? null;
 
         $storeAddress = null;
+        $storeName = null;
         if (!empty($validated['store_id'])) {
             $store = Store::find($validated['store_id']);
             $storeAddress = $store ? $store->getFullAddress() : null;
+            $storeName = $store ? $store->name : null;
         }
 
         // Add distance_range from product settings based on distance_type
@@ -124,6 +126,7 @@ class CartHelper
             'service_option_price' => round($serviceOptionPrice, 2),
             'store_id' => $validated['store_id'] ?? null,
             'store_address' => $storeAddress ?? null,
+            'store_name' => $storeName ?? null,
             'product_option_items' => $resolvedOptions,
             'product_rental_items' => $validated['product_rental_items'],
             'product_rental_items_prices' => $selectedRentalItemsWithPrices,

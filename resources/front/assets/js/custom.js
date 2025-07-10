@@ -25,6 +25,9 @@ window.loadCartSidebarPreview = (function() {
 
         if (!cart?.length) {
             cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Your cart is empty.</p>';
+            if (cartSummaryDiv) {
+            cartSummaryDiv.innerHTML = '<p class="text-center py-6 text-gray-600">No summary available.</p>';
+            }
             window.updateCartCount(); // Update cart count to 0
             return;
         }
@@ -78,7 +81,6 @@ window.loadCartSidebarPreview = (function() {
             if (cartSummaryDiv && data?.summary) {
                 cartSummaryDiv.innerHTML = data.summary;
             }
-
         })
         .catch(error => {
             notyf.error('Failed to load cart data. Please try again later.');

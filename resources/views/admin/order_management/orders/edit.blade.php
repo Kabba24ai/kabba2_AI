@@ -171,7 +171,6 @@
             <div class="px-4 py-4 rounded-t-lg border-b border-gray-200">
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-semibold text-gray-800">History</h3>
-                    <x-heroicon-o-pencil-square class="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer" />
                 </div>
             </div>
             <div class="p-6">

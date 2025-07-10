@@ -29,8 +29,8 @@
     </section>
     <section class="lg:pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <div class="flex gap-x-2">
-                <div class="w-full md:w-2/3 border-r px-4 md:pr-8 pb-12">
+            <div class="flex flex-col md:flex-row gap-2">
+                <div class="w-full md:w-1/2 md:border-r px-4 md:pr-8 pb-12">
                     <!-- Billing Info -->
                     <h2 class="text-2xl font-bold mt-2">Billing information</h2>
 
@@ -97,7 +97,12 @@
                             $primaryAddress = null;
                         @endphp
                     @endauth
-                    
+                    <!-- Tax Exempt -->
+                    <div class="flex items-center gap-2">
+                        <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4" />
+                        <label for="taxExempt" class="text-sm">Tax Exempt</label>
+                    </div>
+
                     <div id="billingDiv" class="space-y-4 {{ $primaryAddress ? 'hidden' : '' }}">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 ">
                             <div>
@@ -529,7 +534,7 @@
                 </div>
 
                 <!-- Cart Summary -->
-                <div id="cartSummary" class="w-1/3 mt-10 pl-6">
+                <div id="cartSummary" class="w-full md:w-1/2 mt-10 pl-6">
                     <div class="border-b pb-4 mb-6">
                         <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
                         <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
@@ -551,7 +556,6 @@
                         </ul>
                     </div>
                 </div>
-
             </div>
         </div>
     </section>

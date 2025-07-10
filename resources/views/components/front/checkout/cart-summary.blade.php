@@ -2,17 +2,18 @@
     @if (!empty($cart['cart_items']))
         @foreach ($cart['cart_items'] as $item)
             <div class="border-b pb-4 mb-6">
-                <div class="flex">
-                    <div class="w-1/3">
-                        <div class="border border-yellow-400 rounded relative">
-                            <img src="{{ $item['product_image_url'] }}" alt="Product" class="object-cover rounded">
-                            <span
-                                class="bg-yellow-400 w-[22px] h-[22px] text-black rounded-full absolute -top-2 -right-[8px] text-[14px] text-center font-bold">
-                                {{ $item['quantity'] ?? 1 }}
-                            </span>
-                        </div>
+                <div class="flex items-start gap-3 py-2">
+                    <!-- Image Column -->
+                    <div class="relative" style="min-width:80px;max-width:80px;">
+                        <img src="{{ $item['product_image_url'] }}" alt="Product"
+                            class="w-20 h-20 rounded border object-cover" />
+                        <span
+                            class="bg-yellow-400 w-[22px] h-[22px] text-black rounded-full absolute -top-2 -right-[8px] text-[14px] text-center font-bold">
+                            {{ $item['quantity'] ?? 1 }}
+                        </span>
                     </div>
-                    <div class="ml-4 w-2/3">
+
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
                         <h4 class="text-sm flex items-center gap-2">
                             {{ $item['product_name'] }}
                             @if ($item['product_type'] === 'Rental' && !empty($item['product_variant']))
@@ -139,7 +140,7 @@
     @else
         <div class="border-b pb-4 mb-6">
             <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
-            <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
+            <p class="text-sm text-gray-600">Please add items to your cart.</p>
         </div>
         <div class="border-b pb-6">
             <ul class="flex flex-col">

@@ -29,7 +29,12 @@ class Order extends Model
         'payment_type', // COD*, Account, Card
         'order_note',
         'status', // Pending, In Progress, Completed, Cancelled
+        'cart_data', // JSON data of cart items
         'platform', // Web*, Android, iOS
+    ];
+
+    protected $casts = [
+        'cart_data' => 'array',
     ];
 
     // Customer relationship (if you want)

@@ -15,7 +15,12 @@
             </option>
         @endforeach
     </select>
-
+    @error('options')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+    @enderror
+    @error('options.*')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+    @enderror
 
     <!-- Info Placeholder -->
     <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md p-6 text-center mt-5">

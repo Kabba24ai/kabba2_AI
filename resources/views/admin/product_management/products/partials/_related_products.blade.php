@@ -39,6 +39,12 @@
              border border-gray-300 dark:border-gray-700 rounded
              shadow-lg overflow-auto max-h-60 hidden">
         </ul>
+        @error('related_products')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+        @error('related_products.*')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
     </div>
 
     <!-- Selected Products -->

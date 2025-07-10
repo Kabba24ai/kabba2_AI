@@ -103,6 +103,10 @@ class Product extends Model
                 $model->seo_title = $model->title ?? $model->slug;
             }
 
+            if (empty($model->seo_description)) {
+                $model->seo_description = $model->short_description ?? null;
+            }
+
             // Set created_by and updated_by
             if (auth()->check()) {
                 $model->created_by = auth()->id();
@@ -111,6 +115,15 @@ class Product extends Model
 
         // Automatically update updated_by on update
         static::updating(function ($model) {
+            // If seo_title is not set, use title or slug as fallback
+            if (empty($model->seo_title)) {
+                $model->seo_title = $model->title ?? $model->slug;
+            }
+
+            if (empty($model->seo_description)) {
+                $model->seo_description = $model->short_description ?? null;
+            }
+
             if (auth()->check()) {
                 $model->updated_by = auth()->id();
             }

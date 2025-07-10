@@ -144,6 +144,7 @@ class PostController extends Controller
                 'payment_type' => $validated['payment'],
                 'order_note' => $validated['orderNotes'] ?? null,
                 'status' => 'Pending',
+                'cart_data' => $cart,
                 'platform' => 'Web',
             ]);
 

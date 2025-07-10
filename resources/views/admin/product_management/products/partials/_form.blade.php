@@ -35,7 +35,7 @@
                 'Draft' => 'Draft',
                 'Pending' => 'Pending',
                 'Published' => 'Published'
-            ], old('status', $objProduct->status ?? ''))
+            ], old('status', $objProduct->status ?? 'Published'))
             ->id('status')
             ->class([
                 'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
@@ -93,13 +93,13 @@
             <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
         @enderror
     </div>
-
 </div>
 
 {{-- Short Description --}}
 <div class="mb-8">
     <label for="short_description" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Short
-        Description</label>
+        Description
+    </label>
     {{ html()->textarea('short_description')->class([
             'ckeditor w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
             'border-red-500' => $errors->has('short_description'),
@@ -124,7 +124,8 @@
             'id' => 'description',
             'placeholder' => 'Enter Description Of The Product',
             'autocomplete' => 'off',
-        ]) }}
+        ])->required()
+    }}
     @error('description')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
     @enderror
@@ -342,9 +343,11 @@
     ])
 </div>
 
-@include('admin.product_management.products.partials._terms_checklist')
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    @include('admin.product_management.products.partials._terms_checklist')
+
     <!-- Categories Column -->
     <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
         <h3 class="text-md font-semibold text-gray-700 dark:text-white mb-4">Category Hierarchy</h3>
@@ -525,19 +528,37 @@
 
             // Watch and reset Rental inputs when switching away
             Alpine.effect(() => {
-                if (Alpine.store('productForm').selectedType !== 'Rental') {
-                    const rentalSection = document.querySelector(
-                        '[x-show="$store.productForm.selectedType === \'Rental\'"]');
+                const isRental = Alpine.store('productForm').selectedType === 'Rental';
+                // Your section
+                const rentalSection = document.querySelector('[x-show="$store.productForm.selectedType === \'Rental\'"]');
+                // The two delivery fee fields
+                const stdFee = document.querySelector('input[name="standard_delivery_fee"]');
+                const extFee = document.querySelector('input[name="extended_delivery_fee"]');
+                const inStore = document.querySelector('input[name="in_store_pickup"]');
+                const delivery = document.querySelector('input[name="delivery_and_pickup"]');
 
-                    if (rentalSection) {
-                        rentalSection.querySelectorAll('input, select, textarea').forEach(el => {
-                            if (['checkbox', 'radio'].includes(el.type)) {
-                                el.checked = false;
-                            } else {
-                                el.value = '';
-                            }
-                        });
-                    }
+
+                // Dynamically set or remove required
+                if (isRental) {
+                    stdFee && stdFee.setAttribute('required', 'required');
+                    extFee && extFee.setAttribute('required', 'required');
+                    inStore && inStore.setAttribute('required', 'required');
+                    delivery && delivery.setAttribute('required', 'required');
+                } else {
+                    stdFee && stdFee.removeAttribute('required');
+                    extFee && extFee.removeAttribute('required');
+                    inStore && inStore.removeAttribute('required');
+                    delivery && delivery.removeAttribute('required');
+                }
+
+                if (!isRental && rentalSection) {
+                    rentalSection.querySelectorAll('input, select, textarea').forEach(el => {
+                        if (['checkbox', 'radio'].includes(el.type)) {
+                            // el.checked = false;
+                        } else {
+                            el.value = '';
+                        }
+                    });
                 }
             });
         });

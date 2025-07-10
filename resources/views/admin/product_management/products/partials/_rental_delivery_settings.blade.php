@@ -223,6 +223,9 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                @error('sale_price_daily')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Weekend Spcl. -->
@@ -237,6 +240,9 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                @error('sale_price_weekend')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Weekly -->
@@ -251,6 +257,9 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                @error('sale_price_weekly')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Monthly -->
@@ -265,6 +274,9 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                @error('sale_price_monthly')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
         </div>
 
@@ -282,13 +294,18 @@
                     {!! html()->text('standard_delivery_fee')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-errors-container' => '#standard-delivery-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="standard-delivery-errors"></div>
+                @error('standard_delivery_fee')
+                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+                @enderror
                 <span
                     class="mt-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                     {{ $productSettings['standard_delivery_range'] ?? 0 }} {{ $productSettings['distance_unit'] }}
+                    {{ $productSettings['standard_delivery_range'] ?? 0 }} {{ $productSettings['distance_unit'] }}
                 </span>
             </div>
 
@@ -301,13 +318,18 @@
                         {!! html()->text('extended_delivery_fee')->attributes([
                                 'placeholder' => '0',
                                 'data-digit-input' => 'true',
+                                'data-parsley-errors-container' => '#extended-delivery-errors',
                                 'class' =>
                                     'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                             ]) !!}
                     </div>
+                    <div id="extended-delivery-errors"></div>
+                    @error('extended_delivery_fee')
+                        <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+                    @enderror
                     <span
                         class="mt-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                         {{ $productSettings['extended_delivery_range'] ?? 0 }} {{ $productSettings['distance_unit'] }}
+                        {{ $productSettings['extended_delivery_range'] ?? 0 }} {{ $productSettings['distance_unit'] }}
                     </span>
                 </div>
             @endif
@@ -318,20 +340,33 @@
 
         <!-- Pickup Options -->
         <div class="flex flex-wrap items-center gap-6">
-            <label class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                {!! html()->checkbox('in_store_pickup', old('in_store_pickup', $objProduct->in_store_pickup ?? false) === 'Yes', 'Yes')->class('mr-2') !!}
-                In Store Pick Up
-            </label>
+            <div class="flex flex-col">
+                <label class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('in_store_pickup', old('in_store_pickup', $objProduct->in_store_pickup ?? 'Yes') === 'Yes', 'Yes')->class('mr-2')->attribute('data-parsley-errors-container', '#in-store-pickup-errors') !!}
+                    In Store Pick Up
+                </label>
+                <div id="in-store-pickup-errors"></div>
+                @error('in_store_pickup')
+                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+                @enderror
+            </div>
 
-            <label class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                {!! html()->checkbox(
-                        'delivery_and_pickup',
-                        old('delivery_and_pickup', $objProduct->delivery_and_pickup ?? false) === 'Yes',
-                        'Yes',
-                    )->class('mr-2') !!}
-                Delivery and Pickup
-            </label>
+            <div class="flex flex-col">
+                <label class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'delivery_and_pickup',
+                            old('delivery_and_pickup', $objProduct->delivery_and_pickup ?? 'Yes') === 'Yes',
+                            'Yes',
+                        )->class('mr-2')->attribute('data-parsley-errors-container', '#delivery-and-pickup-errors') !!}
+                    Delivery and Pickup
+                </label>
+                <div id="delivery-and-pickup-errors"></div>
+                @error('delivery_and_pickup')
+                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+                @enderror
+            </div>
         </div>
+
 
 
         <!-- Spacer -->
@@ -347,19 +382,26 @@
                     class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700" />
                 Hour Tracking
             </label>
+            @error('hour_tracking')
+                <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+            @enderror
 
-            <!-- Average Rate Input -->
+            <!-- Overage Rate Input -->
             <div class="flex items-center text-sm text-gray-700 dark:text-gray-300 gap-1">
                 <span class="text-gray-500">$</span>
                 <input type="text" name="hour_rate" placeholder="0" x-bind:disabled="!hourTracking"
                     x-bind:value="hourTracking ? '{{ old('hour_rate', $objProduct->hour_rate ?? '') }}' : ''"
                     data-digit-input="true"
                     class="w-24 rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white" />
-                <span>Average Rate / Hr.</span>
+                <span>Overage Rate / Hr.</span>
             </div>
+            @error('hour_rate')
+                <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+            @enderror
 
             <!-- Update Link -->
-            <a href="{{ route('admin.configurations.index') }}" target="_blank" class="text-sm text-blue-500 hover:underline font-medium ml-auto">
+            <a href="{{ route('admin.configurations.index') }}" target="_blank"
+                class="text-sm text-blue-500 hover:underline font-medium ml-auto">
                 Update Settings
             </a>
         </div>

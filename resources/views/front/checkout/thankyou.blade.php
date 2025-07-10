@@ -76,8 +76,6 @@
 
 @push('js')
     <script>
-        setTimeout(function() {
-            window.CartStorage.clearCart();
-        }, 5000);
+        window.CartStorage.clearCart();
     </script>
 @endpush

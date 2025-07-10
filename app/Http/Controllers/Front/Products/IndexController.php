@@ -18,14 +18,14 @@ class IndexController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke($categorySlug, $slug, $productType)
+    public function __invoke($slug, $productVariant)
     {
         $productDetail = Product::published()->with('categories', 'options.items', 'relatedProducts', 'mediaChildren.media')->where('slug', $slug)->firstOrFail();
 
         $stores = Store::with('state')->get();
 
         // 1. Find the category from the product's categories by slug
-        $category = $productDetail->categories->where('slug', $categorySlug)->first();
+        $category = $productDetail->categories->sortBy('slug')->first();
 
         if (!$category) {
             $parentCategory = null;
@@ -51,7 +51,7 @@ class IndexController extends Controller
         return view('front.products.details', [
             'title' => $productDetail->product_name,
             'category' => $category,
-            'productType' => $productType,
+            'productVariant' => $productVariant,
             'productDetail' => $productDetail,
             'stores' => $stores,
             'parentCategory' => $parentCategory,

@@ -50,7 +50,7 @@
 
 
                     <div class="flex flex-col md:flex-row gap-4">    
-                    <div class="relative z-0 w-full md:w-1/2 mt-2 group">
+                        <div class="relative z-0 w-full md:w-1/2 mt-2 group">
                                 
                             {{ html()->text('first_name', $customer->first_name)->attributes([
                             'class' => 'check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
@@ -62,10 +62,9 @@
                             <label for="first_name" class=" z-1 pointer-events-none px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
                                 First Name <i class="fa-solid fa-circle-check text-yellow-400 opacity-0"></i>
                             </label>
-
                         </div>
                         <div class="relative z-0 w-full md:w-1/2 mt-2 group">
-                                
+                        
                                 {{ html()->text('last_name', $customer->last_name)->attributes([
                                     'class' => 'check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                     'id' => 'last_name',
@@ -80,7 +79,6 @@
                             </div>
                         </div>
                         <div class="relative z-0 w-full my-6 mt-2 group">
-                        
                             {{ html()->email('email', $customer->email)->attributes([
                                 'class' => 'check-on-input block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                 'id' => 'email',
@@ -109,6 +107,7 @@
                                 Phone <i class="fa-solid fa-circle-check text-yellow-400 opacity-0"></i>
                             </label>
                         </div>
+
                         <button type="submit" class="border-0 px-3 py-2 lg:px-5 lg:py-4 mx-auto font-medium bg-yellow-400 hover:bg-yellow-500 text-black transform transition-all duration-500 ease-in-out text-sm">
                             <i class="mr-3 fa-solid fa-arrow-right text-base lg:text-2xl lg:text-sm leading-4 text-purple -rotate-45 border-2 rounded-full link-icon border-purple"></i>
                             Update
@@ -118,5 +117,4 @@
             </div>
          </div>
      </section>
-
 @endsection

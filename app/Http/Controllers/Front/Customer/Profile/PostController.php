@@ -35,7 +35,6 @@ class PostController extends Controller
             $customer->first_name = $validated['first_name'];
             $customer->last_name  = $validated['last_name'];
             $customer->phone      = $validated['number'] ?? null;
-
             $customer->save();
 
             DB::commit();

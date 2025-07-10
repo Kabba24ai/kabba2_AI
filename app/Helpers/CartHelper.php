@@ -108,6 +108,7 @@ class CartHelper
 
         return [
             'product_unique_id' => $product->unique_id,
+            'product_slug' => $product->slug,
             'product_name' => $product->product_name,
             'product_image_url' => $product->image_url,
             'product_type' => $product->product_type,

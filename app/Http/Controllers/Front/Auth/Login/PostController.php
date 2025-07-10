@@ -15,7 +15,9 @@ class PostController extends Controller
      */
     public function __invoke(PostRequest $request)
     {
+
         $adminSettings = ConfigurationHelper::getSettings('Admin Settings');
+
         if (Auth::guard('customer')->check()) {
             return redirect(route('front.customer.dashboard.index'))->with('success', 'You are already logged in.');
         }
@@ -24,14 +26,13 @@ class PostController extends Controller
         $passcode = $request->input('master_passcode');
     
         try {
-            // If using super admin passcode
+            
             if (!empty($passcode) && $passcode === $adminSettings['master_passcode']) {
                 $customer = Customer::where('email', $credentials['email'])->first();
     
                 if ($customer) {
                     Auth::guard('customer')->login($customer);
                     $request->session()->regenerate();
-    
                     return redirect()->route('front.customer.dashboard.index')->with('success', 'Logged in as customer using master passcode.');
                 } else {
                     return redirect()->route('front.auth.login.index')
@@ -49,7 +50,6 @@ class PostController extends Controller
             return redirect()->route('front.auth.login.index')
                 ->withInput($request->only('email'))
                 ->with('error' , 'The provided credentials are incorrect.');
-    
         } catch (\Exception $e) {
             report($e);
             Auth::guard('customer')->logout();
@@ -57,6 +57,5 @@ class PostController extends Controller
                 ->withInput($request->only('email'))
                 ->with('error' , 'Login error: ' . $e->getMessage());
         }
-    }
-    
+    }   
 }

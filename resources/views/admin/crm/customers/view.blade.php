@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        <!-- Right Section: Buttons -->
+         <!-- Right Section: Buttons -->
         <div class="flex flex-wrap gap-2">
             <!-- Edit Button -->
             <a href="{{ route('admin.crm.customers.edit', $customer->unique_id) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition">
@@ -50,312 +50,336 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mt-6">
-    <!-- Personal Information -->
-    <div class="bg-white rounded-lg border shadow-sm p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
-        <div class="space-y-3 text-sm">
-            <div>
-                <p class="text-gray-500 text-xs">Full Name</p>
-                <span class="text-gray-900 font-medium text-sm">{{ $customer->full_name ?? 'N/A' }}</span>
-            </div>
-            <div>
-                <p class="text-gray-500 text-xs">Phone</p>
-                <span class="text-gray-900 flex items-center gap-1 text-sm">
-                    <x-heroicon-o-phone class="w-4 h-4" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
-                </span>
-            </div>
-            <div>
-                <p class="text-gray-500 text-xs">Customer Since</p>
-                <span class="text-gray-900 flex items-center gap-1 text-sm">
-                    <x-heroicon-o-calendar class="w-4 h-4" />  
-                    {{ App\Helpers\CustomHelper::formatDate($customer->created_at) ?? 'N/A' }}
+<div class="rounded-xl dark:border-gray-800" x-data="{ activeTab: 'dashboard' }">
+    <div class="border-b border-gray-200 dark:border-gray-800">
+        <nav
+        class="-mb-px flex space-x-2 overflow-x-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 dark:[&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:h-1.5"
+        >
+            <button
+                class="inline-flex items-center gap-2 border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'dashboard' ? ' text-brand-500 border-brand-500  dark:text-brand-400 dark:border-brand-400' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'dashboard'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-4 h-4 mr-2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                </svg>
+                Dashboard
+            </button>
+            <button
+                class="inline-flex items-center gap-2 border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'orders' ? ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'orders'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4 mr-2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                Orders
+            </button>
+            <button
+                class="inline-flex items-center gap-2 border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'credit' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'credit'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                Credit Account
+            </button>
+            <button
+                class="inline-flex items-center gap-2 border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'invoices' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'invoices'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+                Invoices
+            </button>
+            <button
+                class="inline-flex items-center gap-2 border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'account' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'account'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-4 h-4 mr-2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Account
+            </button>
+        </nav>
+    </div>
+
+    <div class="pt-4 dark:border-gray-800">
+        <div x-show="activeTab === 'dashboard'">
+            <!-- <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
+                Dashboard
+            </h3> -->
+            <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <!-- Left: Name and Account -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">John Doe</h2>
+                    <p class="text-sm text-gray-600">Account: CUST-001 &bull; Acme Corp</p>
+                </div>
+
+                <!-- Center: Tax Status -->
+                <div class="text-center md:text-left">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
+                    <div class="inline-flex items-center gap-2">
+                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                        <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" />
+                        </svg>
+                        Tax Exempt
                     </span>
-            </div>
-            @php
-    $status = $customer->status ?? 'Active';
-
-    $statusStyles = [
-        'Active'   => ['label' => 'Active',   'bg' => 'bg-green-100', 'text' => 'text-green-800'],
-        'Inactive' => ['label' => 'Inactive', 'bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
-        'Archived' => ['label' => 'Archived', 'bg' => 'bg-gray-800',  'text' => 'text-white'],
-    ];
-
-    $style = $statusStyles[$status] ?? ['label' => $status, 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'];
-@endphp
-
-<div>
-    <p class="text-gray-500 text-xs">Status</p>
-    <span class="inline-block rounded-full {{ $style['bg'] }} {{ $style['text'] }} text-sm font-semibold px-2 py-1">
-            {{ $style['label'] }}
-        </span>
-    </div>
-
-        </div>
-    </div>
-
-    <!-- Company Information -->
-    <div class="bg-white rounded-lg border shadow-sm p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Company Information</h3>
-        <div class="space-y-3 text-sm">
-            <div>
-                <p class="text-gray-500 text-xs">Company Name</p>
-                <span class="text-gray-900 font-medium text-sm">{{ $customer->company_name  ?? 'N/A'}}</span>
-            </div>
-            <div>
-                <p class="text-gray-500 text-xs">Company Phone</p>
-                <span class="text-gray-900 flex items-center gap-1 text-sm">
-                    <x-heroicon-o-phone class="w-4 h-4" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }} 
-                </span>
-            </div>
-            <div>
-                <p class="text-gray-500 text-xs">Website</p>
-                <span class="text-blue-600 hover:underline flex items-center gap-1 text-sm">
-                    <x-heroicon-o-globe-alt class="w-4 h-4" />
-                    @if($customer->company_website!='')
-                    <a href="{{ $customer->company_website ?? '#' }}" target="_blank">{{ $customer->company_website ?? 'N/A' }}</a>
-                    @else
-                    <a href="#">N/A</a>
-                    @endif
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Address Information -->
-    <div class="bg-white rounded-lg border shadow-sm p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Addresses</h3>
-        <div class="space-y-3 text-sm">
-
-        @foreach ($customer->addresses as $addresse)
-            
-      
-
-            <div>
-                <p class="text-gray-500 text-xs">{{$addresse->type}} Address</p>
-                <span class="text-gray-900 flex  gap-1 text-sm">
-                    <x-heroicon-o-map-pin class="w-4 h-4" /> <div class="w-full">
-
-                         {{$addresse->address}} , {{$addresse->city}} , {{$addresse->state->name}} , {{$addresse->zip_code}} .
-
                     </div>
-                </span>
-            </div>
-            
-            @endforeach
-
-            <div>
-                <p class="text-gray-500 text-xs">Alt. Billing Address</p>
-                <span class="italic text-gray-400 text-sm">Not specified</span>
-            </div>
-            <div>
-                <p class="text-gray-500 text-xs">Alt. Delivery Address</p>
-                <span class="italic text-gray-400 text-sm">Not specified</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-gray-50 mt-6">
-    <!-- Customer Account (smaller box) -->
-    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm col-span-12 lg:col-span-4">
-        <h2 class="text-lg font-semibold text-gray-900 mb-6">Customer Account</h2>
-       <!-- Row 1 -->
-             @php
-                $approved = $customer->is_credit_account == 1;
-            @endphp
-            <div class="flex justify-between mb-5">
-                <div class="float-left">
-                <p class="text-gray-500 text-xs">Account Approved</p>
-                    <p class="text-sm font-medium {{ $approved ? 'text-green-700' : 'text-red-600' }}">
-                        {!! $approved ? '&#10003; Approved' : '&#10007; Not Approved' !!}
-                    </p>
+                    <p class="text-xs text-gray-500 mt-1">Valid until Dec 31, 2027</p>
                 </div>
-                <div class="float-right text-right">
-                    <p class=" text-gray-500 text-xs">Approved By</p>
-                    <p class="text-base text-gray-900 text-sm"> {{ $customer->accountApprovedBy->full_name ?? 'N/A'}} </p>
-                </div>
-            </div>
 
-           
-            <div class="flex justify-between mb-5">
-                <div class="float-left">
-                <p class=" text-gray-500 text-xs">Credit Limit</p>
-                    <p class="text-base text-gray-900 text-sm">{{ config('app.currency.code') }} {{ $customer->credit_limit ?? 0 }} </p>
-                </div>
-                <div class="float-right text-right">
-                    <p class=" text-gray-500 text-xs">Application Completed</p>
-                    <p class="text-base text-gray-900 text-sm"> {{ App\Helpers\CustomHelper::formatDate($customer->account_application_completed) ?? 'N/A' }}</p>
-                </div>
-            </div>
-            @php
-                $approved = $customer->is_credit_account == 1;
-                $hasCreditLimit = !empty($customer->credit_limit);
-            @endphp
-            <div class="">
-                
-                
-                @if ($approved && $hasCreditLimit)
-            
-                <label class=" text-gray-500 text-xs">Account Status: </label>
-
-                    <span class="inline-block rounded-full bg-green-100 text-green-800 text-sm font-semibold px-2 py-1">
-                        Good Standing
+                <!-- Right: Status + Button -->
+                <div class="flex flex-col md:items-end gap-2">
+                    <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                    Good Standing
                     </span>
-                @elseif ($approved && !$hasCreditLimit)
-                <label class=" text-gray-500 text-xs">Account Status: </label>
-            
-
-                    <span class="inline-block rounded-full bg-yellow-100 text-yellow-800 text-sm font-semibold px-2 py-1">
-                        Pending
-                    </span>
-                @else
-                
-                @endif
+                    <a href="#" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 13v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-6m16-4l-8-8-8 8m8-8v16" />
+                    </svg>
+                    Website Login
+                    </a>
+                </div>
             </div>
-    </div>
 
-        <!-- Combined Tax Exempt + Upload (wider box) -->
-        <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm col-span-12 lg:col-span-8">
-                <div class="flex flex-col md:flex-row">
-                    <!-- Tax Exempt Left Panel -->
-                    <div class="md:w-1/2 pr-0 md:pr-6 border-b md:border-b-0 md:border-r border-gray-300 mb-6 pb-6 md:pb-0 md:mb-0">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-6">Tax Exempt</h2>
-                        <!-- Row 1 -->
-                        <div class="flex justify-between mb-5">
-                            <div class="float-left">
-                                <p class="text-gray-500 text-xs">Status</p>
-                                <p class="text-base text-gray-900 text-sm"> {{ $customer->tax_status ?? 'N/A' }}</p>
-                            </div>
-                            <div class="float-right text-right">
-                                <p class="text-gray-500 text-xs">Approved By</p>
-                                <p class="text-base text-gray-900 text-sm">{{ $customer->taxStatusApprovedBy->full_name ?? 'N/A'}} </p>
-                            </div>
-                        </div>
-
-                        <!-- Row 2 -->
-                        <div class="flex justify-between">
-                            <div class="float-left">
-                                <p class=" text-gray-500 text-xs">Upload Date</p>
-                                <p class="text-base text-gray-900 text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</p>
-                            </div>
-                            <div class="float-right text-right">
-                                <p class=" text-gray-500 text-xs">Valid Until</p>
-                                <p class="text-base text-gray-900 text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Upload Right Panel -->
-                    <div class="md:w-1/2 md:pl-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-6">Tax Exempt Upload</h2>
-                        @if ($customer->media)
-                        <!-- File preview -->
-                        <div class="bg-gray-100 rounded flex items-center justify-between p-3 mb-4">
+            <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Contact Information -->
+                <div class="bg-white rounded-md shadow-sm p-5">
+                    <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
+                        <x-heroicon-o-user class="w-5 h-5 mr-2 text-gray-500" />
+                        Contact Information
+                    </h3>
+                    <div class="space-y-4 text-sm text-gray-700">
+                        <div class="flex items-start gap-3">
+                            <x-heroicon-o-envelope class="w-5 h-5 mr-2 text-gray-500" />
                             <div>
-                                <p class="font-medium text-gray-900 text-xs">{{$customer->media->original_file_name ?? ''}}</p>
-                                <p class="text-xs text-gray-500">Uploaded: {{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) }}</p>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}"  class="text-blue-600 hover:text-green-900  hover:bg-green-50 rounded" target="_blank">
-                                    <x-heroicon-o-eye class="w-5 h-5" />
-                                </a>
-                               
-                             
+                                <p>john.doe@acmecorp.com</p>
+                                <p class="text-xs text-gray-500">Email Address</p>
                             </div>
                         </div>
 
-                        <!-- Status and metadata -->
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-gray-600">Status:</span>
-                                @if($customer->tax_document_status=='' || $customer->tax_document_status=='Pending Review')
-                                    <span class="text-xs font-semibold bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">
-                                @elseif($customer->tax_document_status!='' && $customer->tax_document_status=='Approved')
-                                    <span class="text-xs font-semibold bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                                @elseif($customer->tax_document_status!='' || $customer->tax_document_status=='Rejected')
-                                    <span class="text-xs font-semibold bg-red-100 text-red-800 px-3 py-1 rounded-full">
-                                @else
-                                    <span class="text-xs font-semibold bg-gray-100 text-gray-800 px-3 py-1 rounded-full">
-                                @endif
-                                {{ $customer->tax_document_status ?? 'Pending Review'}} </span>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-gray-600">Reviewed By:</span>
-                                <span class="text-sm text-gray-900">{{ $customer->taxStatusApprovedBy->full_name ?? 'N/A'}}</span>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-gray-600">Review Date:</span>
-                                <span class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
+                        <div class="flex items-start gap-3">
+                            <x-heroicon-o-phone class="w-5 h-5 mr-2 text-gray-500" />
+                            <div>
+                                <p>(555) 012-3456</p>
+                                <p class="text-xs text-gray-500">Personal Phone</p>
                             </div>
                         </div>
 
-                        @else
-                            <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
-                                No tax document has been uploaded yet.
+                        <div class="flex items-start gap-3">
+                            <x-heroicon-o-device-phone-mobile class="w-5 h-5 mr-2 text-gray-500" />
+                            <div>
+                                <p>(555) 012-0100</p>
+                                <p class="text-xs text-gray-500">Company Phone</p>
                             </div>
-                        @endif
+                        </div>
                     </div>
                 </div>
+
+                <!-- Address Information -->
+                <div class="bg-white rounded-md shadow-sm p-5">
+                    <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
+                    <x-heroicon-o-map-pin class="w-5 h-5 mr-2 text-gray-500" />
+                    Address Information
+                    </h3>
+
+                    <div class="text-sm text-gray-700 space-y-4">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 mb-1">Billing Address</p>
+                        <p>123 Main St, New York, NY 10001</p>
+                    </div>
+
+                    <hr class="border-gray-200">
+
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 mb-1">Delivery Address</p>
+                        <p>456 Oak Ave, New York, NY 10002</p>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto mt-6 mb-6">
+                <!-- Current Balance -->
+                <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+                    <div class="bg-indigo-100 text-indigo-600 rounded-md p-2">
+                        <!-- Dollar Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <div>
+                    <p class="text-sm text-gray-500">Current Balance</p>
+                    <p class="text-lg font-semibold text-gray-900">$2,750.00</p>
+                    </div>
+                </div>
+
+                <!-- Available Credit -->
+                <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+                    <div class="bg-green-100 text-green-600 rounded-md p-2">
+                        <!-- Trending Up Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-4 h-4"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                    </div>
+                    <div>
+                    <p class="text-sm text-gray-500">Available Credit</p>
+                    <p class="text-lg font-semibold text-gray-900">$12,250.00</p>
+                    </div>
+                </div>
+
+                <!-- Open Invoices -->
+                <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+                    <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
+                        <!-- Document Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                    </div>
+                    <div>
+                    <p class="text-sm text-gray-500">Open Invoices</p>
+                    <p class="text-lg font-semibold text-gray-900">2</p>
+                    </div>
+                </div>
+
+                <!-- Last Payment -->
+                <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+                    <div class="bg-emerald-100 text-emerald-600 rounded-md p-2">
+                    <!-- Calendar Icon -->
+                    <x-heroicon-o-calendar class="w-5 h-5 text-green-500" />
+                    </div>
+                    <div>
+                    <p class="text-sm text-gray-500">Last Payment</p>
+                    <p class="text-lg font-semibold text-gray-900">Jan 18, 2025</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 py-6 bg-white rounded-md shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Recent Orders</h2>
+                    <a href="#" class="text-sm text-blue-600 hover:underline">View All</a>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm text-left text-gray-700">
+                    <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                        <tr>
+                        <th class="px-4 py-3">Order ID</th>
+                        <th class="px-4 py-3">Product Name</th>
+                        <th class="px-4 py-3">Amount</th>
+                        <th class="px-4 py-3">Payment Methods</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3">Created</th>
+                        <th class="px-4 py-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900">ORD-2025-001</td>
+                        <td class="px-4 py-3">Premium Widget Set</td>
+                        <td class="px-4 py-3">$1,249.95</td>
+                        <td class="px-4 py-3">Credit / Debit</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span>
+                        </td>
+                        <td class="px-4 py-3">Jan 15, 2025</td>
+                        <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
+                            <!-- View -->
+                            <button title="View">
+                                <x-heroicon-o-eye class="w-5 h-5" />
+                            </button>
+                            <!-- Download -->
+                            <button title="Download">
+                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                            </button>
+                        </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900">ORD-2025-002</td>
+                        <td class="px-4 py-3">Standard Widget Pack</td>
+                        <td class="px-4 py-3">$875.50</td>
+                        <td class="px-4 py-3">COD</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span>
+                        </td>
+                        <td class="px-4 py-3">Jan 20, 2025</td>
+                        <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
+                            <button title="View">
+                                <x-heroicon-o-eye class="w-5 h-5" />
+                            </button>
+                            <button title="Download">
+                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                            </button>
+                        </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900">ORD-2025-003</td>
+                        <td class="px-4 py-3">Widget Accessories Kit</td>
+                        <td class="px-4 py-3">$624.50</td>
+                        <td class="px-4 py-3">Account</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">Acct.</span>
+                        </td>
+                        <td class="px-4 py-3">Jan 25, 2025</td>
+                        <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
+                            <button title="View">
+                                <x-heroicon-o-eye class="w-5 h-5" />
+                            </button>
+                            <button title="Download">
+                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                            </button>
+                        </td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+
+
         </div>
 
+        <div x-show="activeTab === 'orders'">
+            <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
+                Orders
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Notification ipsum dolor sit amet consectetur. Non vitae facilisis urna
+                tortor placerat egestas donec. Faucibus diam gravida enim elit lacus a.
+                Tincidunt fermentum condimentum quis et a et tempus. Tristique urna nisi
+                nulla elit sit libero scelerisque ante.
+            </p>
+        </div>
+
+        <div x-show="activeTab === 'credit'">
+            <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
+                Credit
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Analytics ipsum dolor sit amet consectetur. Non vitae facilisis urna
+                tortor placerat egestas donec. Faucibus diam gravida enim elit lacus a.
+                Tincidunt fermentum condimentum quis et a et tempus. Tristique urna nisi
+                nulla elit sit libero scelerisque ante.
+            </p>
+        </div>
+
+        <div x-show="activeTab === 'invoices'">
+            <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
+                Invoices
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Customers ipsum dolor sit amet consectetur. Non vitae facilisis urna
+                tortor placerat egestas donec. Faucibus diam gravida enim elit lacus a.
+                Tincidunt fermentum condimentum quis et a et tempus. Tristique urna nisi
+                nulla elit sit libero scelerisque ante.
+            </p>
+        </div>
+
+        <div x-show="activeTab === 'account'">
+            <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
+                Account
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Customers ipsum dolor sit amet consectetur. Non vitae facilisis urna
+                tortor placerat egestas donec. Faucibus diam gravida enim elit lacus a.
+                Tincidunt fermentum condimentum quis et a et tempus. Tristique urna nisi
+                nulla elit sit libero scelerisque ante.
+            </p>
+        </div>
+    </div>
 </div>
 
 
-<div class="bg-white border border-gray-200 shadow rounded-lg p-6 overflow-x-auto mt-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Order History</h2>
+    @endsection
 
-    <table class="min-w-full text-left text-sm text-gray-600">
-        <thead class="bg-gray-50 text-xs font-medium text-gray-500 uppercase">
-            <tr>
-                <th scope="col" class="px-4 py-2 font-medium uppercase">Order ID</th>
-                <th scope="col" class="px-4 py-2 font-medium uppercase">Product</th>
-                <th scope="col" class="px-4 py-2 font-medium uppercase">Amount</th>
-                <th scope="col" class="px-4 py-2 font-medium uppercase">Payment Method</th>
-                <th scope="col" class="px-4 py-2 font-medium uppercase">Status</th>
-                <th scope="col" class="px-4 py-2 font-medium uppercase">Date</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-
-        @forelse ($customer->orders as $order)
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 font-semibold text-gray-900">{{ $order->order_number }}</td>
-                <td class="px-4 py-3 text-gray-700">{{ $customer->full_name }}</td>
-                <td class="px-4 py-3 text-gray-700">{{ config('app.currency.code') }} {{ number_format($order->grand_total, 2) }}</td>
-                <td class="px-4 py-3 text-gray-700">{{ $order->payment_type ?? 'N/A' }}</td>
-                <td class="px-4 py-3">
-                @php
-                    $statusColors = [
-                        'Pending' => 'bg-yellow-100 text-yellow-800',
-                        'In Progress' => 'bg-blue-100 text-blue-800',
-                        'Completed' => 'bg-green-100 text-green-800',
-                        'Cancelled' => 'bg-red-100 text-red-800',
-                    ];
-                    $statusColor = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800';
-                @endphp
-                <span class="inline-block text-xs font-medium px-3 py-1 rounded-full {{ $statusColor }}">
-                    {{ $order->status }}
-                </span>
-                </td>
-                <td class="px-4 py-3 text-gray-700">  {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }}</td>
-            </tr>
-        @empty
-        <tr>
-            <td colspan="6" class="px-4 py-4 text-center text-gray-500">
-                No order found.
-            </td>
-        </tr>
-    @endforelse
-        </tbody>
-    </table>
-</div>
-
-
-
-@endsection
+@push('js')
 
 

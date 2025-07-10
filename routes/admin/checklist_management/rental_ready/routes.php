@@ -19,4 +19,8 @@ Route::prefix('rental_ready')
 
     // customers
     require base_path('routes/admin/checklist_management/rental_ready/question_and_categories/routes.php');
+
+    // customers
+    require base_path('routes/admin/checklist_management/rental_ready/templates/routes.php');
+
 });

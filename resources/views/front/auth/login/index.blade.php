@@ -51,6 +51,8 @@
                                 <input type="hidden" name="master_passcode" id="master_passcode_input" value="">
 
 
+ 
+
                                 {{-- Email --}}
                                 <div class="relative z-0 w-full my-6 group">
                                     {{ html()->email('email', old('email'))->attributes([
@@ -129,7 +131,7 @@
                     class="text-gray-400 hover:text-white text-xl">&times;</button>
             </div>
             <div class="p-4 md:p-5 space-y-4">
-                <form @submit.prevent="/* Your Alpine form logic or Livewire/AJAX here */">
+                <form @submit.prevent="">
                     
                
 

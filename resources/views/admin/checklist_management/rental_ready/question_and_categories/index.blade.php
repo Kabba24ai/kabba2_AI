@@ -45,18 +45,13 @@
                             <!-- Header -->
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h2 class="text-2xl font-semibold text-gray-900">Questions</h2>
+                                    <h2 class="text-xl font-semibold text-gray-900">Questions</h2>
                                     <p class="text-gray-600">Create and manage inspection questions and answer options</p>
                                 </div>
                                 <a href="javascript:void(0)" id="openQuestionModal"
                                     class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                                    + New Category
-                                </a>
-                               <!-- <a href="javascript:void(0)"
-                                    @click="window.dispatchEvent(new CustomEvent('open-question-modal'))"
-                                    class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
                                     + New Question
-                                </a> -->
+                                </a>
                             </div>
 
                             <!-- Parent wrapper -->
@@ -116,11 +111,6 @@
                                             </button>
                                         </div>
                                     </div>
-
-                                    <!-- Show/Hide All Answers -->
-                                    <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        
-                                    </div> -->
                                 </div>
 
                                 <!-- QUESTION CARD START -->
@@ -154,7 +144,8 @@
                                     </div>
 
                                     <!-- Answers -->
-                                    <div x-show="showAnswers" x-transition class="mt-5">
+                                    <div x-show="showAnswers" x-transition>
+                                        <div class="border-t border-gray-300 mt-5 mb-5"></div>
                                         <h4 class="text-sm font-semibold text-gray-800">Answer Options:</h4>
                                         <div class="grid sm:grid-cols-2 gap-3">
                                             <!-- Option 1 -->
@@ -248,14 +239,15 @@
                                                 <x-heroicon-o-pencil class="w-5 h-5" />
                                             </button>
                                             <!-- Delete -->
-                                             <button class="text-red-600 hover:text-red-800" title="Delete">
+                                            <button class="text-red-600 hover:text-red-800" title="Delete">
                                                 <x-heroicon-o-trash class="w-5 h-5" />
                                             </button>
                                         </div>
                                     </div>
 
                                     <!-- Answers -->
-                                    <div x-show="showAnswers" x-transition class="mt-5">
+                                    <div x-show="showAnswers" x-transition>
+                                        <div class="border-t border-gray-300 mt-5 mb-5"></div>
                                         <h4 class="text-sm font-semibold text-gray-800">Answer Options:</h4>
                                         <div class="grid sm:grid-cols-2 gap-3">
                                             <!-- Option 1 -->
@@ -324,7 +316,7 @@
                             <!-- Header -->
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                                 <div>
-                                    <h2 class="text-2xl font-semibold text-gray-800">Categories</h2>
+                                    <h2 class="text-xl font-semibold text-gray-800">Categories</h2>
                                     <p class="text-sm text-gray-500">Organize questions into logical categories</p>
                                 </div>
                                 <a href="javascript:void(0)" id="openAddressModal"
@@ -594,7 +586,7 @@
 
     </div>
 
- <div x-data="{ showQuestionModal: false }" x-ref="questionRoot" x-init="window.addEventListener('open-question-modal', () => showQuestionModal = true)">
+<div x-data="{ showQuestionModal: false }" x-ref="questionRoot" x-init="window.addEventListener('open-question-modal', () => showQuestionModal = true)">
     <!-- Modal -->  
     <div
         x-show="showQuestionModal"
@@ -604,14 +596,15 @@
         <div class="modal-scrollable w-full mx-auto">
             <div
                 @click.away="showQuestionModal = false"
-                class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto  max-w-xl  space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col" >
-                <div class="flex justify-between items-center  px-6 pt-4 ">
+                class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-xl space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full" >
+                <div class="flex justify-between items-center px-6 pt-4 ">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Question</h3>
                     <button @click="showQuestionModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
                 </div>
-                <div x-data="questionForm()" class="max-w-3xl p-6 space-y-6 bg-white rounded-lg ">
+                <div x-data="questionForm()" class="max-w-3xl px-6 space-y-6 bg-white rounded-lg overflow-y-auto">
                     <div>
-
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Question Name *</label>
+                        <input type="text" class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <!-- Category -->
                     <div>
@@ -645,12 +638,10 @@
                         <div id="sortable-list" class="space-y-3">
                             <template x-for="(option, index) in answerOptions" :key="option.id">
                                 <div class="bg-white border border-gray-300 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                                    <!-- Sort No + Drag Icon -->
-                                    <div class="flex items-center gap-2 mb-2 sm:mb-0">
-                                        <span class="w-6 h-6 flex items-center justify-center bg-gray-200 rounded-full text-sm font-semibold text-gray-800" x-text="index + 1">
-                                        </span>
-                                        <span class="drag-handle w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-gray-500 cursor-move">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <!-- Drag Icon Only (No Number) -->
+                                    <div class="flex items-center mb-2 sm:mb-0">
+                                        <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
                                             </svg>
@@ -664,7 +655,8 @@
                                         class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
                                     <!-- Dropdown -->
-                                    <select x-model="option.status" class="mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <select x-model="option.status"
+                                        class="mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option>Rental Ready</option>
                                         <option>Maint. Hold</option>
                                         <option>Damaged</option>
@@ -672,20 +664,19 @@
 
                                     <!-- Delete -->
                                     <button @click="removeOption(index)"
-                                            class="mt-2 sm:mt-0 sm:ml-2 text-red-600 hover:bg-red-50 rounded-full w-8 h-8 flex items-center justify-center transition"
-                                            title="Delete">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                        class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center transition hover:text-red-800"
+                                        title="Delete">
+                                        <x-heroicon-o-trash class="w-4 h-4" />
                                     </button>
                                 </div>
                             </template>
                         </div>
+
                     </div>
                 </div>
-                <div class="flex justify-end gap-2 px-6  pb-4">
+                <div class="flex justify-end gap-2 px-6 pb-4">
                     <button type="button" @click="showQuestionModal = false" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
-                    <button type="button" id="submitQuestionBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-blue-700"> Save Question </button>
+                    <button type="button" id="submitQuestionBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600"> Save Question </button>
                 </div>
             </div>
         </div>
@@ -730,18 +721,14 @@
 @endsection
 
 @push('js')
-<!-- Alpine.js -->
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<!-- Sortable.js -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+
 
 <script>
 document.addEventListener('alpine:init', () => {
   Alpine.data('sortableAnswers', () => ({
     answerOptions: [
-      { id: 1, text: '', status: 'Rental Ready' },
-      { id: 2, text: '', status: 'Maint. Hold' },
-      { id: 3, text: '', status: 'Rental Ready' },
+        { id: 1, text: '', status: 'Rental Ready' },
     ],
     nextId: 4,
 
@@ -770,24 +757,6 @@ document.addEventListener('alpine:init', () => {
 });
 </script>
 
-
-
-
-<!-- <script>
-  function questionForm() {
-    return {
-      answerOptions: [
-        { text: '', status: 'Rental Ready' }
-      ],
-      addOption() {
-        this.answerOptions.push({ text: '', status: 'Rental Ready' });
-      },
-      removeOption(index) {
-        this.answerOptions.splice(index, 1);
-      }
-    };
-  }
-</script> -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('openAddressModal').addEventListener('click', () => {

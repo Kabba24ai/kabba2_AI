@@ -179,6 +179,15 @@
 
                     $rentalReadyActive = Route::is([
                         'admin.checklist_management.rental_ready.question_and_categories.*',
+                        'admin.checklist_management.rental_ready.templates.*',
+                    ]);
+
+                    $rentalReadyquestion = Route::is([
+                        'admin.checklist_management.rental_ready.question_and_categories.*',
+                    ]);
+
+                     $rentalReadytemplates = Route::is([
+                         'admin.checklist_management.rental_ready.templates.*',
                     ]);
 
                     $customerChecklistActive = Route::is([
@@ -266,7 +275,7 @@
 
                                 <!-- Rental Ready (Level 2) -->
                                 <li x-data="{ subOpen: {{ $rentalReadyActive ? 'true' : 'false' }} }" >
-                                <a href="#" @click.prevent="subOpen = !subOpen"
+                                    <a href="#" @click.prevent="subOpen = !subOpen"
                                         class="menu-dropdown-item group flex items-center justify-between gap-2
                                                 {{ $rentalReadyActive ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                             <div class="flex items-center gap-2">
@@ -281,15 +290,24 @@
                                     </a>
 
                                     <!-- Level 3 Dropdown -->
-                                    <ul x-show="subOpen" x-transition class="mt-1 pl-5 space-y-1 text-sm text-gray-600 menu-dropdown-item-inactive">
+                                    <ul x-show="subOpen" x-transition class="mt-1 pl-5 space-y-1 text-sm text-gray-600 ">
                                         <li>
-                                        <a href="{{ route('admin.checklist_management.rental_ready.question_and_categories.index') }}"
-                                        class="block px-2 py-1 hover:text-black {{ $rentalReadyActive ? 'text-brand-600 font-semibold' : '' }}">
-                                        Question & Categories
-                                        </a>
+                                            <a href="{{ route('admin.checklist_management.rental_ready.question_and_categories.index') }}"
+                                            class="block px-2 py-1 menu-dropdown-item-inactive hover:text-black {{ $rentalReadyquestion ? 'text-brand-600 font-semibold' : '' }}">
+                                            Question & Categories
+                                            </a>
 
                                         </li>
-                                        <!-- <li><a href="#" class="block px-2 py-1 hover:text-black">Templates</a></li> -->
+
+                                         <li>
+                                            <a href="{{ route('admin.checklist_management.rental_ready.templates.index') }}"
+                                            class="block px-2 py-1 menu-dropdown-item-inactive hover:text-black {{ $rentalReadytemplates ? 'text-brand-600 font-semibold' : '' }}">
+                                            Templates
+                                            </a>
+
+                                        </li>
+
+                                       
                                     </ul>
                                 </li>
                               

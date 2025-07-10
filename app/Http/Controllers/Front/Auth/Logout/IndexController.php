@@ -19,8 +19,6 @@ class IndexController extends Controller
         Session::flush();
         Session::regenerate();
 
-        flash('Logout Successfully')->success();
-
-        return redirect(route('front.auth.login.index'));
+        return redirect(route('front.auth.login.index'))->with('success', 'Logout Successfully');
     }
 }

@@ -48,7 +48,7 @@ class PostController extends Controller
 
             // flash('Account registered successfully.')->success();
 
-            return redirect()->route('front.customer.dashboard.index');
+            return redirect()->route('front.customer.dashboard.index')->with('success', 'Account registered successfully.');
 
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -59,7 +59,7 @@ class PostController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->withErrors(['error' => 'Something went wrong during registration.']);
+                ->with('error' , 'Something went wrong during registration: ' . $e->getMessage());
         }
     }
 }

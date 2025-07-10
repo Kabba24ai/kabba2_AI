@@ -19,8 +19,6 @@ class IndexController extends Controller
      
         $customer->load('addresses.state');
 
-        // dd($customer);
-
         return view('front.customer.dashboard.index', [
             'title' => 'Home - Customer Dashboard',
             'customer' => $customer,

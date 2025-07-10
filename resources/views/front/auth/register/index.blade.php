@@ -57,21 +57,40 @@
                             ])->open() }}
                                 @csrf
 
+                                <div class="flex flex-col md:flex-row gap-4">
                                 {{-- Name --}}
-                                <div class="relative z-0 w-full my-6 group">
+                                <div class="relative z-0 w-full md:w-1/2 group">
                                     {{ html()->text('first_name')->attributes([
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,
                                         'id' => 'first_name',
                                         'maxlength' => 100,
                                     ])->placeholder('') }}
-                                    <label for="first_name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black ">
+                                    <label for="first_name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
                                     First Name
                                     </label>
                                     @error('first_name')
                                         <p class="text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
+
+                                {{-- last_name --}}
+                                <div class="relative z-0 w-full md:w-1/2 group">
+                                    {{ html()->text('last_name')->attributes([
+                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
+                                        'required' => true,
+                                        'id' => 'last_name',
+                                        'maxlength' => 100,
+                                    ])->placeholder('') }}
+                                    <label for="last_name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
+                                    Last Name
+                                    </label>
+                                    @error('last_name')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
 
                                 {{-- last_name --}}
                                 <div class="relative z-0 w-full my-6 group">
@@ -104,7 +123,7 @@
                                         'data-parsley-remote-validator' => 'customemailcheck',
                                         'data-parsley-remote-message' => 'This email is already taken.',
                                     ])->placeholder('') }}
-                                    <label for="email" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
+                                    <label for="email" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
                                         Email
                                     </label>
                                     @error('email')
@@ -120,7 +139,7 @@
                                         'id' => 'password',
                                         'data-parsley-errors-container' => '#password-errors',
                                     ])->placeholder('') }}
-                                    <label for="password" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
+                                    <label for="password" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
                                         Password
                                     </label>
                                     <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
@@ -137,12 +156,9 @@
                                         'id' => 'password_confirmation',
                                         'data-parsley-equalto' => '#password',
                                     ])->placeholder('') }}
-                                    <label for="password_confirmation" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black">
+                                    <label for="password_confirmation" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
                                         Password Confirmation
                                     </label>
-                                    @error('password_confirmation')
-                                        <p class="text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
                                 </div>
 
                                 {{-- Policy Notice --}}
@@ -193,6 +209,60 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        document.querySelectorAll('input').forEach(input => {
+            if (input.value) {
+                input.classList.add('not-empty');
+            }
+        });
+    });
+</script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('password_confirmation');
+    const passwordError = document.getElementById('password-errors');
 
+    // Live check: Password length
+    passwordInput.addEventListener('input', function () {
+        const password = passwordInput.value;
+        if (password.length < 6) {
+            passwordError.textContent = 'Password must be at least 6 characters long.';
+        } else {
+            passwordError.textContent = '';
+        }
+
+        // Also recheck confirm password if already typed
+        validateConfirmPassword();
+    });
+
+    // Live check: Confirm password matches
+    confirmInput.addEventListener('input', function () {
+        validateConfirmPassword();
+    });
+
+    function validateConfirmPassword() {
+        const confirmErrorId = 'confirm-password-error';
+        const existingError = document.getElementById(confirmErrorId);
+        const password = passwordInput.value;
+        const confirm = confirmInput.value;
+
+        if (confirm && confirm !== password) {
+            if (!existingError) {
+                const error = document.createElement('p');
+                error.id = confirmErrorId;
+                error.className = 'text-sm text-red-600 mt-1';
+                error.textContent = 'Passwords do not match.';
+                confirmInput.insertAdjacentElement('afterend', error);
+            }
+        } else {
+            if (existingError) {
+                existingError.remove();
+            }
+        }
+    }
+});
+</script>
 @endpush

@@ -97,12 +97,7 @@
                             $primaryAddress = null;
                         @endphp
                     @endauth
-                    <!-- Tax Exempt -->
-                    <div class="flex items-center gap-2">
-                        <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4" />
-                        <label for="taxExempt" class="text-sm">Tax Exempt</label>
-                    </div>
-
+                    
                     <div id="billingDiv" class="space-y-4 {{ $primaryAddress ? 'hidden' : '' }}">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 ">
                             <div>

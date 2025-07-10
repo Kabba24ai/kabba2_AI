@@ -22,6 +22,7 @@ class SettingSeeder extends Seeder
         $this->addProductSettings();
         $this->addContactUsSettings();
         $this->addSocialMediaSettings();
+        $this->addAdminSettings();
     }
 
     private function addEmailSettings()
@@ -265,6 +266,18 @@ class SettingSeeder extends Seeder
                 'setting_name' => 'twitter_page_link',
                 'setting_title' => 'Twitter Page Link',
                 'sort_order' => 3,
+            ],
+        ];
+    }
+    private function addAdminSettings()
+    {
+        $this->settings['Admin Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'master_passcode',
+                'setting_title' => 'Master Passcode',
+                'default_value' => 12345678,
+                'sort_order' => 0,
             ],
         ];
     }

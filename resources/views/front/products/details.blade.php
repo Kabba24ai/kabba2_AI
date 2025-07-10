@@ -134,33 +134,34 @@
                     </div>
 
                     <div class="my-5">
-                        <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
                             <!-- Calendar icon button -->
                             <a href="javascript:void(0);" id="openDatePicker">
-                                <img src="{{ asset('storage/front/images/calendar_icon.png') }}" alt="Calendar"
-                                    class="w-[52px]">
+                                <x-heroicon-o-calendar-days class="w-[52px] h-[52px] text-yellow-400" />
                             </a>
+
+                            <!-- Right side: date display + qty controls, spaced out -->
+                            <div class="flex items-center space-x-4">
+                                <!-- Show selected date here -->
+                                <span id="selectedDateText" class="text-gray-700 text-base">Select Start Date</span>
+                                <!-- Quantity controls unchanged -->
+                                <button type="button"
+                                    class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
+                                    onclick="changeQty(-1)">−</button>
+
+                                <input type="number" id="qty" name="qty" value="1" min="1" max="1000"
+                                    class="w-16 text-center border border-gray-300 rounded" />
+
+                                <button type="button"
+                                    class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
+                                    onclick="changeQty(1)">+</button>
+                            </div>
+
+                            <!-- Hidden input stays outside for accessibility/JS -->
                             <input type="text" name="schedule_start_date" id="scheduleStartDateInput"
                                 data-format="{{ config('app.date.js_date_format') }}"
-                                data-min-date="{{ now()->format(config('app.date.db_date_format')) }}" class="sr-only" readonly
-                                placeholder="Select Start Date" />
-
-
-                            <!-- Show selected date here -->
-                            <span id="selectedDateText" class="text-gray-700 text-base">Select Start Date</span>
-                            <!-- Quantity controls unchanged -->
-
-                            <button type="button"
-                                class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
-                                onclick="changeQty(-1)">−</button>
-
-                            <input type="number" id="qty" name="qty" value="1" min="1" max="1000"
-                                class="w-16 text-center border border-gray-300 rounded" />
-
-                            <button type="button"
-                                class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
-                                onclick="changeQty(1)">+</button>
-
+                                data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                class="sr-only" readonly placeholder="Select Start Date" />
                         </div>
                         <!-- Optional: error message -->
                         <div id="dateError" class="text-red-600 text-sm hidden mt-1"></div>

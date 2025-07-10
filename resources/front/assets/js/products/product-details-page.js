@@ -47,4 +47,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initDatepicker();
     initProductOptions();
     initAddToCart(context);
+
+    // --- Here: Update product form from cart, if present ---
+    if (window.CartStorage && typeof window.CartStorage.updateProductFormFromCart === 'function') {
+        window.CartStorage.updateProductFormFromCart();
+    }
+
 });

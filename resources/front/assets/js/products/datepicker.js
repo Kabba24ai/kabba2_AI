@@ -51,4 +51,6 @@ export function initDatepicker() {
     if (scheduleStartDateInput.value) {
         selectedDateText.textContent = scheduleStartDateInput.value;
     }
+
+    scheduleStartDateInput._airPicker = picker;
 }

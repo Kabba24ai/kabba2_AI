@@ -43,13 +43,13 @@
                     <div x-show="selected === 'daily'" class="space-y-4">
                         <div class="max-w-6xl mx-auto p-6 space-y-6">
                             <!-- Header -->
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                                 <div>
                                     <h2 class="text-xl font-semibold text-gray-900">Questions</h2>
                                     <p class="text-gray-600">Create and manage inspection questions and answer options</p>
                                 </div>
                                 <a href="javascript:void(0)" id="openQuestionModal"
-                                    class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                                    class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 mt-3">
                                     + New Question
                                 </a>
                             </div>
@@ -129,9 +129,21 @@
                                         </div>
 
                                         <div class="flex items-center gap-4 mt-3 md:mt-0 text-gray-600 text-sm">
-                                            <button @click="showAnswers = !showAnswers" class="text-blue-600 hover:underline">
-                                                <span x-text="showAnswers ? 'Hide Answers' : 'Show Answers (5)'"></span>
+                                            <button @click="showAnswers = !showAnswers" class="text-blue-600 hover:underline flex items-center gap-1">
+                                                <!-- Right-side Arrow Icon -->
+                                                <svg class="w-4 h-4 transform transition-transform duration-200"
+                                                    :class="showAnswers ? 'rotate-90' : 'rotate-0'"
+                                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                                </svg>
+
+                                                <!-- Text -->
+                                                <span x-text="showAnswers ? 'Hide Questions' : 'Show Questions (5)'"></span>
                                             </button>
+
+                                            <!-- <button @click="showAnswers = !showAnswers" class="text-blue-600 hover:underline">
+                                                <span x-text="showAnswers ? 'Hide Answers' : 'Show Answers (5)'"></span>
+                                            </button> -->
                                             <!-- Edit -->
                                             <button class="text-green-600 hover:text-green-800" title="Edit">
                                                 <x-heroicon-o-pencil class="w-5 h-5" />
@@ -231,9 +243,20 @@
                                         </div>
 
                                         <div class="flex items-center gap-4 mt-3 md:mt-0 text-gray-600 text-sm">
-                                            <button @click="showAnswers = !showAnswers" class="text-blue-600 hover:underline">
-                                                <span x-text="showAnswers ? 'Hide Answers' : 'Show Answers (4)'"></span>
+                                            <button @click="showAnswers = !showAnswers" class="text-blue-600 hover:underline flex items-center gap-1">
+                                                <!-- Right-side Arrow Icon -->
+                                                <svg class="w-4 h-4 transform transition-transform duration-200"
+                                                    :class="showAnswers ? 'rotate-90' : 'rotate-0'"
+                                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                                </svg>
+
+                                                <!-- Text -->
+                                                <span x-text="showAnswers ? 'Hide Questions' : 'Show Questions (5)'"></span>
                                             </button>
+                                            <!-- <button @click="showAnswers = !showAnswers" class="text-blue-600 hover:underline">
+                                                <span x-text="showAnswers ? 'Hide Answers' : 'Show Answers (4)'"></span>
+                                            </button> -->
                                             <!-- Edit -->
                                             <button class="text-green-600 hover:text-green-800" title="Edit">
                                                 <x-heroicon-o-pencil class="w-5 h-5" />
@@ -312,7 +335,7 @@
 
                     <!-- Categories  -->
                     <div x-show="selected === 'online'" class="space-y-4">
-                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <div class="max-w-6xl mx-auto p-6 space-y-6">
                             <!-- Header -->
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                                 <div>
@@ -320,7 +343,7 @@
                                     <p class="text-sm text-gray-500">Organize questions into logical categories</p>
                                 </div>
                                 <a href="javascript:void(0)" id="openAddressModal"
-                                    class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                                    class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 mt-3">
                                     + New Category
                                 </a>
                             </div>

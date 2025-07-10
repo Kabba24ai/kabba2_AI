@@ -6,7 +6,7 @@
     <section class="bg-white py-10 px-4 md:px-10 pt-130 pb-60">
         <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
             <!-- LEFT SECTION: Confirmation + Customer Info -->
-            <div class="lg:w-2/3 space-y-6">
+            <div class="w-full md:w-1/2 md:border-r px-4 md:pr-8 pb-12 space-y-6">
                 <!-- Confirmation Box -->
                 <div class="flex items-center gap-4 pt-6">
                     <div class="text-green-500 text-4xl">
@@ -21,24 +21,40 @@
                 <!-- Customer Info -->
                 <div class="space-y-2">
                     <h3 class="text-lg font-semibold">Customer information</h3>
-                    <p><span class="font-normal">Full name:</span> <span class="text-custom-blue ml-5">{{ $order->customer_name ?? '' }}</span></p>
-                    <p><span class="font-normal">Phone:</span> <span class="text-custom-blue ml-5">{{ $order->customer_phone ?? '' }}</span></p>
-                    <p><span class="font-normal">Email:</span> <span class="text-custom-blue ml-5">{{ $order->customer_email ?? '' }}</span></p>
-                    <p><span class="font-normal">Address:</span>
-                        <span class="text-custom-blue ml-5">
-                            {{ $order->shippingAddress->address ?? '' }},
+                    <div class="flex">
+                        <span class="font-normal w-40 flex-shrink-0">Full name:</span>
+                        <span class="text-custom-blue">{{ $order->customer_name ?? '' }}</span>
+                    </div>
+                    <div class="flex">
+                        <span class="font-normal w-40 flex-shrink-0">Phone:</span>
+                        <span class="text-custom-blue">{{ $order->customer_phone ?? '' }}</span>
+                    </div>
+                    <div class="flex">
+                        <span class="font-normal w-40 flex-shrink-0">Email:</span>
+                        <span class="text-custom-blue">{{ $order->customer_email ?? '' }}</span>
+                    </div>
+                    <div class="flex">
+                        <span class="font-normal w-40 flex-shrink-0">Address:</span>
+                        <span class="text-custom-blue text-justify">
+                            {{ $order->shippingAddress->address ?? '' }}<br>
                             {{ $order->shippingAddress->city ?? '' }},
-                            {{ $order->shippingAddress->state ?? '' }},
+                            {{ $order->shippingAddress->state ?? '' }}<br>
                             {{ $order->shippingAddress->zip_code ?? '' }}
                         </span>
-                    </p>
-                    <p><span class="font-normal">Payment method:</span> <span class="text-custom-blue ml-5">{{ $order->payment_type ?? '' }}</span></p>
-                    <p><span class="font-normal">Payment status:</span>
-                        <span class="@if(($order->status ?? '') === 'PENDING') text-yellow-500 font-semibold @elseif(($order->status ?? '') === 'PAID') text-green-600 font-semibold @else text-gray-500 @endif ml-5">
+                    </div>
+                    <div class="flex">
+                        <span class="font-normal w-40 flex-shrink-0">Payment method:</span>
+                        <span class="text-custom-blue">{{ $order->payment_type ?? '' }}</span>
+                    </div>
+                    <div class="flex">
+                        <span class="font-normal w-40 flex-shrink-0">Payment status:</span>
+                        <span
+                            class="@if (($order->status ?? '') === 'PENDING') text-yellow-500 font-semibold @elseif(($order->status ?? '') === 'PAID') text-green-600 font-semibold @else text-gray-500 @endif">
                             {{ strtoupper($order->status ?? '') }}
                         </span>
-                    </p>
+                    </div>
                 </div>
+
                 <!-- Button -->
                 <div>
                     <a href="/"
@@ -48,34 +64,18 @@
                 </div>
             </div>
 
-            <!-- Cart Summary -->
-            <div id="cartSummary" class="w-1/3 mt-10 pl-6">
-                <div class="border-b pb-4 mb-6">
-                    <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
-                    <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
-                </div>
-                <div class="border-b pb-6">
-                    <ul class="flex flex-col">
-                        <li class="flex justify-between mb-1">
-                            <span class="">Subtotal:</span>
-                            <span class=" font-bold">+ $0.00</span>
-                        </li>
-                        <li class="flex justify-between mb-1">
-                            <span class="">Tax</span>
-                            <span class=" font-bold">+ $0.00</span>
-                        </li>
-                        <li class="flex justify-between mb-1">
-                            <span class=" font-bold">Total</span>
-                            <span class=" font-bold">+ $0.00</span>
-                        </li>
-                    </ul>
-                </div>
+            <!-- Order Summary -->
+            <div id="orderSummary" class="w-full md:w-1/2 mt-10 pl-6">
+                {!! $thankYouComponent !!}
             </div>
     </section>
 @endsection
 
 @push('js')
     <script>
-        window.CartStorage.clearCart();
+        // Clear the cart storage after order completion
+        document.addEventListener('DOMContentLoaded', function() {
+            window.CartStorage.clearCart();
+        });
     </script>
 @endpush

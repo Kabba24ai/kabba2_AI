@@ -19,9 +19,6 @@ class IndexController extends Controller
             $user = auth()->user();
             return redirect(route('admin.dashboard.index'));
         }
-
-       
-
         return view('admin.auth.login.index', []);
     }
 }

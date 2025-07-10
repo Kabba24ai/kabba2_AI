@@ -10,6 +10,11 @@ class CartHelper
 {
     public static function buildCartSummary(array $input): array
     {
+        // --- Require cart_items ---
+        if (!isset($input['cart_items']) || !is_array($input['cart_items']) || empty($input['cart_items'])) {
+            throw new \InvalidArgumentException('The "cart_items" key is required.');
+        }
+
         // --- Global/Config Settings ---
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
         $taxRate = floatval($productSettings['sales_tax'] ?? 0);
@@ -23,7 +28,8 @@ class CartHelper
         $discount = floatval($input['discount'] ?? 0);
 
         // --- Prepare Cart Data ---
-        $cartData = $input['cart_items'] ?? [];
+        $cartData = $input['cart_items'];
+
         // Support: If single product, wrap in array
         if (!isset($cartData[0]) && is_array($cartData)) {
             $cartData = [$cartData];

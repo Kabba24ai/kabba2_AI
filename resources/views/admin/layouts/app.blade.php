@@ -78,5 +78,11 @@
     </div>
     <!-- ===== Page Wrapper End ===== -->
     @stack('js')
+    <script>
+        window.Laravel = {
+            success: @json(session('success')),
+            error: @json(session('error'))
+        };
+    </script>
 </body>
 </html>

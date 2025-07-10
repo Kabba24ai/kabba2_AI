@@ -12,6 +12,4 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::post('/', PostController::class);
 
     Route::get('/thank-you/{order}', ThankYouController::class)->name('thank-you')->middleware('signed');
-
-
 });

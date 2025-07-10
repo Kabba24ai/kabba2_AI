@@ -164,5 +164,11 @@ $watch('darkMode', value => {
             </div>
         </div>
     </div>
+    <script>
+        window.Laravel = {
+            success: @json(session('success')),
+            error: @json(session('error'))
+        };
+    </script>
 </body>
 </html>

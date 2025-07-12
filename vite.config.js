@@ -1,17 +1,24 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
-import autoprefixer from 'autoprefixer';
+import 'dotenv/config'; // Loads .env automatically
 
 export default defineConfig(() => {
-    const hmrHost = process.env.VITE_HMR_HOST || 'kabba.local';
+    const hmrHost = process.env.FRONT_DOMAIN  || 'kabba.local';
+    const originProtocol = process.env.VITE_ORIGIN_PROTOCOL || 'https';
 
     return {
         server: {
+            https: process.env.VITE_SSL_KEY && process.env.VITE_SSL_CERT
+            ? {
+                key: process.env.VITE_SSL_KEY,
+                cert: process.env.VITE_SSL_CERT,
+            }
+            : false,
             host: '0.0.0.0',
             port: 8000,
             strictPort: true,
-            origin: `http://${hmrHost}:8000`,
+            origin: `${originProtocol}://${hmrHost}:8000`,
             cors: true,
             hmr: {
                 host: hmrHost,

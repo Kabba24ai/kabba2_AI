@@ -17,6 +17,7 @@ use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 use App\Models\Locations\State;
 use App\Models\ProductManagement\Product;
+use App\Services\AuthorizeNetService;
 
 class PostController extends Controller
 {
@@ -27,6 +28,7 @@ class PostController extends Controller
     {
         DB::beginTransaction();
         $validated = $request->validated();
+
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
 
@@ -177,9 +179,7 @@ class PostController extends Controller
             ]);
 
             foreach ($cartSummary['cart_items'] as $item) {
-
                 if ($product = Product::where('unique_id', $item['product_unique_id'])->first()) {
-                    // Save order product
                     $order->products()->create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
@@ -201,6 +201,56 @@ class PostController extends Controller
                 }
             }
 
+            // If payment type is card, process payment using AuthorizeNetService
+            if (strtolower($validated['payment']) === 'card') {
+                $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
+                $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
+                $amount = $order->grand_total;
+                if (!$opaqueDataValue || !$opaqueDataDescriptor) {
+                    DB::rollback();
+                    return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
+                }
+                $authorizeNetService = new AuthorizeNetService();
+                if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
+                    DB::rollback();
+                    return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
+                }
+                $paymentResult = $authorizeNetService->createOpaqueDataTransaction(
+                    $opaqueDataValue,
+                    $amount,
+                    ['order_number' => $order->order_number, 'customer'=>$customer->toArray()]
+                );
+                if ($paymentResult['status'] !== 'success') {
+                    DB::rollback();
+                    return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                }
+                $order->payments()->create([
+                    'payment_datetime' => now(),
+                    'payment_method' => $validated['payment'],
+                    'amount' => $amount,
+                    'transaction_id' => $paymentResult['transaction_id'] ?? null,
+                    'auth_code' => $paymentResult['auth_code'] ?? null,
+                    'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
+                    'payment_profile_id' => $paymentResult['payment_profile_id'] ?? null,
+                    'card_number' => $paymentResult['card_number'] ?? null,
+                    'card_first_name' => $validated['firstName'] ?? null,
+                    'card_last_name' => $validated['lastName'] ?? null,
+                    'status' => $paymentResult['payment_status'] ?? 'Pending',
+                    'created_by_id' => $customer->id,
+                    'created_by_type' => Customer::class,
+                ]);
+            }else{
+                // If payment type is not card, just create a pending payment record
+                $order->payments()->create([
+                    'payment_datetime' => now(),
+                    'payment_method' => $validated['payment'],
+                    'amount' => $order->grand_total,
+                    'status' => 'Pending',
+                    'created_by_id' => $customer->id,
+                    'created_by_type' => Customer::class,
+                ]);
+            }
+
             DB::commit();
 
             // Generate a signed URL for the thank you page with order unique id
@@ -210,7 +260,7 @@ class PostController extends Controller
             return redirect($signedUrl);
         } catch (\Exception $e) {
             DB::rollback();
-            dd($e);
+            //dd($e);
             // Log the error if needed: logger($e);
             return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
         }

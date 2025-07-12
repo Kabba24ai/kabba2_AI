@@ -85,9 +85,11 @@ class PostRequest extends FormRequest
             $rules = array_merge($rules, [
                 'firstName' => ['required', 'string', 'max:50'],
                 'lastName' => ['required', 'string', 'max:50'],
-                'cardNumber' => ['required', 'digits_between:13,19'],
+                'cardNumber' => ['required'],
                 'expiry' => ['required', 'regex:/^(0[1-9]|1[0-2])\/?([0-9]{2})$/'],
                 'cvc' => ['required', 'digits_between:3,4'],
+                'opaqueDataValue' => ['nullable', 'string', 'max:255'],
+                'opaqueDataDescriptor' => ['nullable', 'string', 'max:255'],
             ]);
         }
 

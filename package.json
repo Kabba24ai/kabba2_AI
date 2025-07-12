@@ -26,6 +26,7 @@
         "@fortawesome/fontawesome-free": "^6.7.2",
         "air-datepicker": "^3.6.0",
         "choices.js": "^11.1.0",
+        "dotenv": "^17.2.0",
         "flatpickr": "^4.6.13",
         "flowbite": "^3.1.2",
         "glightbox": "^3.3.1",

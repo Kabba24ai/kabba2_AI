@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Locations\State;
 use Illuminate\Http\Request;
 
+use App\Helpers\ConfigurationHelper;
+
 class IndexController extends Controller
 {
     /**
@@ -15,9 +17,12 @@ class IndexController extends Controller
     {
         $states = State::select('id', 'name')->pluck('name', 'id');
 
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+
         return view('front.checkout.index',[
             'title'=> 'Checkout',
-            'states'=> $states
+            'states'=> $states,
+            'paymentSetting' => $paymentSetting
         ]);
     }
 }

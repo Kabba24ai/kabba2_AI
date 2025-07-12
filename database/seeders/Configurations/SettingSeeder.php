@@ -23,6 +23,7 @@ class SettingSeeder extends Seeder
         $this->addContactUsSettings();
         $this->addSocialMediaSettings();
         $this->addAdminSettings();
+        $this->addPaymentSettings();
     }
 
     private function addEmailSettings()
@@ -269,6 +270,7 @@ class SettingSeeder extends Seeder
             ],
         ];
     }
+
     private function addAdminSettings()
     {
         $this->settings['Admin Settings'] = [
@@ -278,6 +280,47 @@ class SettingSeeder extends Seeder
                 'setting_title' => 'Master Passcode',
                 'default_value' => 12345678,
                 'sort_order' => 0,
+            ],
+        ];
+    }
+
+    private function addPaymentSettings()
+    {
+        $this->settings['Payment Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'payment_gateway',
+                'setting_title' => 'Payment Gateway',
+                'default_value' => 'Authorize.Net',
+                'sort_order' => 1,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'payment_api_public_key',
+                'setting_title' => 'Payment Api Public Key',
+                'default_value' => '2BPBatfc47rsUN2za54WjY48Bc3395AemHWDSL86zbbUyuvhHcQ9LVXw873HYV5D',
+                'sort_order' => 2,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'payment_api_key',
+                'setting_title' => 'Payment API Key',
+                'default_value' => '2Y7eAt88',
+                'sort_order' => 2,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'payment_api_secret',
+                'setting_title' => 'Payment API Secret',
+                'default_value' => '6X2E6Xk46bK7c9xP',
+                'sort_order' => 3,
+            ],
+            [
+                'value_type' => 'boolean',
+                'setting_name' => 'payment_test_mode',
+                'setting_title' => 'Payment Test Mode',
+                'default_value' => true,
+                'sort_order' => 4,
             ],
         ];
     }

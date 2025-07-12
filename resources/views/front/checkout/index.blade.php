@@ -158,16 +158,25 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <div>
                                 <label for="billingEmail" class="block text-sm text-gray-600 mb-1">Email</label>
-                                {{ html()->email('billingEmail', auth('customer')->check() ? auth('customer')->user()->email : old('billingEmail', $primaryAddress ? $primaryAddress->email : null))->class(
+                                {{ html()->email(
+                                        'billingEmail',
+                                        auth('customer')->check()
+                                            ? auth('customer')->user()->email
+                                            : old('billingEmail', $primaryAddress ? $primaryAddress->email : null),
+                                    )->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
-                                    )->attributes(array_merge([
-                                        'maxlength' => 240,
-                                        'data-parsley-type' => 'email',
-                                        'placeholder' => 'Email',
-                                        'autocomplete' => 'off',
-                                        'id' => 'billingEmail',
-                                    ], auth('customer')->check() ? ['readonly' => 'readonly'] : []))
-                                    ->required() }}
+                                    )->attributes(
+                                        array_merge(
+                                            [
+                                                'maxlength' => 240,
+                                                'data-parsley-type' => 'email',
+                                                'placeholder' => 'Email',
+                                                'autocomplete' => 'off',
+                                                'id' => 'billingEmail',
+                                            ],
+                                            auth('customer')->check() ? ['readonly' => 'readonly'] : [],
+                                        ),
+                                    )->required() }}
                                 @error('billingEmail')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
@@ -208,8 +217,7 @@
                                     class="w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none">
                                     <option disabled value="">Select State...</option>
                                     @foreach ($states as $id => $name)
-                                        <option value="{{ $id }}"
-                                            @selected(old('billingState', $primaryAddress ? $primaryAddress->state_id : null) == $id)>
+                                        <option value="{{ $id }}" @selected(old('billingState', $primaryAddress ? $primaryAddress->state_id : null) == $id)>
                                             {{ $name }}
                                         </option>
                                     @endforeach
@@ -444,18 +452,20 @@
                         <div class="space-y-4">
 
                             <!-- Credit/Debit -->
-                            <div class="border-2 rounded-lg p-4 payment-option" data-value="Card">
+                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'Card' ? 'border-blue-500' : '' }}"
+                                data-value="Card">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="payment" value="Card" />
+                                    <input type="radio" name="payment" value="Card"
+                                        {{ old('payment') == 'Card' ? 'checked' : '' }} />
                                     <span>Pay Using Credit or Debit</span>
                                 </label>
-
-                                <div id="cardSection" class="block">
+                                <div id="cardSection" class="{{ old('payment') == 'Card' ? 'block' : 'hidden' }}">
                                     <!-- Card Visual -->
                                     <div class="relative h-52 w-full max-w-md  mt-4 card-container">
                                         <!-- Card Front -->
                                         <div id="cardFront"
-                                            class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front">
+                                            class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front"
+                                            style="{{ old('payment') == 'Card' ? '' : 'display:block' }}">
                                             <div
                                                 class="w-10 h-7 relative bg-gray-400 rounded mt-5 before:w-[70%] before:content-[''] before:h-[60%] before:bg-gray-300 before:top-[20%] before:rounded-r before:absolute">
                                             </div>
@@ -485,30 +495,56 @@
                                     </div>
                                     <!-- Card Inputs -->
                                     <div class="grid md:grid-cols-2 gap-4 mt-4">
-                                        <input type="text" placeholder="First name" id="firstName"
+                                        <input type="text" placeholder="First name" id="firstName" name="firstName"
+                                            value="{{ old('firstName') }}"
                                             class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
-                                        <input type="text" placeholder="Last name" id="lastName"
+                                        @error('firstName')
+                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                        @enderror
+                                        <input type="text" placeholder="Last name" id="lastName" name="lastName"
+                                            value="{{ old('lastName') }}"
                                             class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                        @error('lastName')
+                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                        @enderror
                                         <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
+                                            name="cardNumber" value="{{ old('cardNumber') }}"
                                             class="border border-gray-300 rounded-md py-2 px-3 text-sm md:col-span-2 focus:border-blue-500" />
+                                        @error('cardNumber')
+                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                        @enderror
                                         <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
+                                            name="expiry" value="{{ old('expiry') }}"
                                             class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                        @error('expiry')
+                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                        @enderror
                                         <input type="text" placeholder="CVC" maxlength="4" id="cvc"
+                                            name="cvc" value="{{ old('cvc') }}"
                                             class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                        @error('cvc')
+                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                        @enderror
+                                        <input type="hidden" name="opaqueDataValue" id="opaqueDataValue" />
+                                        <input type="hidden" name="opaqueDataDescriptor" id="opaqueDataDescriptor" />
                                     </div>
                                 </div>
                             </div>
                             <!-- Cash On Delivery -->
-                            <div class="border-2 rounded-lg p-4 payment-option" data-value="COD">
+                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'COD') == 'COD' ? 'border-blue-500' : '' }}"
+                                data-value="COD">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="payment" value="COD" checked />
+                                    <input type="radio" name="payment" value="COD"
+                                        {{ old('payment', 'COD') == 'COD' ? 'checked' : '' }} />
                                     <span>Cash on delivery (COD)</span>
                                 </label>
                             </div>
                             <!-- Add Account -->
-                            <div class="border-2 rounded-lg p-4 payment-option" data-value="Account">
+                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'Account' ? 'border-blue-500' : '' }}"
+                                data-value="Account">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="payment" value="Account" />
+                                    <input type="radio" name="payment" value="Account"
+                                        {{ old('payment') == 'Account' ? 'checked' : '' }} />
                                     <span>Add Account</span>
                                 </label>
                             </div>
@@ -525,9 +561,12 @@
                             </svg>
                             Back
                         </a>
-                        <button type="submit"
-                            class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition">
-                            Checkout
+                        <button type="submit" id="checkoutBtn"
+                            class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
+                            <span id="checkoutBtnText">Checkout</span>
+                            <span id="checkoutBtnLoader" class="hidden">
+                                <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
+                            </span>
                         </button>
                     </div>
                     {{ html()->form()->close() }}
@@ -593,18 +632,156 @@
 @endsection
 
 @push('js')
+    @if ($paymentSetting['payment_test_mode'] ?? false)
+        <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js"></script>
+    @else
+        <script type="text/javascript" src="https://js.authorize.net/v1/Accept.js"></script>
+    @endif
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            document.getElementById('checkout-form').addEventListener('submit', function(e) {
+            const form = document.getElementById('checkout-form');
+            if (!form) return;
+
+            var checkoutBtn = document.getElementById('checkoutBtn');
+            var checkoutBtnText = document.getElementById('checkoutBtnText');
+            var checkoutBtnLoader = document.getElementById('checkoutBtnLoader');
+            form.addEventListener('submit', function(e) {
+                // 1. Cart validation
                 let cart = window.CartStorage.getCart();
                 if (!cart || cart.length === 0) {
                     e.preventDefault();
                     notyf.error('Your cart is empty. Please add items before checking out.');
                     return;
                 }
-                // Convert cart to JSON string and store in hidden input
                 document.getElementById('cart-input').value = JSON.stringify(cart);
+
+                // 2. Only process credit card fields if "Card" payment is selected
+                const paymentType = document.querySelector('input[name="payment"]:checked');
+                if (paymentType && paymentType.value === 'Card') {
+                    e.preventDefault(); // Pause form submit until Accept.js finishes
+                    // Disable button and show loader
+                    if (checkoutBtn) {
+                        checkoutBtn.disabled = true;
+                        checkoutBtnText.classList.add('hidden');
+                        checkoutBtnLoader.classList.remove('hidden');
+                    }
+
+                    // Card fields
+                    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                    const expiry = document.getElementById('expiry').value.trim();
+                    const cvc = document.getElementById('cvc').value.trim();
+
+                    // Basic validation
+                    function luhnCheck(num) {
+                        let arr = (num + '').split('').reverse().map(x => parseInt(x));
+                        let sum = arr.reduce((acc, val, idx) => {
+                            if (idx % 2) {
+                                val *= 2;
+                                if (val > 9) val -= 9;
+                            }
+                            return acc + val;
+                        }, 0);
+                        return sum % 10 === 0;
+                    }
+
+                    if (!/^\d{13,19}$/.test(cardNumber) || !luhnCheck(cardNumber)) {
+                        notyf.error('Invalid card number.');
+                        if (checkoutBtn) {
+                            checkoutBtn.disabled = false;
+                            checkoutBtnText.classList.remove('hidden');
+                            checkoutBtnLoader.classList.add('hidden');
+                        }
+                        return false;
+                    }
+
+                    if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+                        notyf.error('Invalid expiry date. Use MM/YY.');
+                        if (checkoutBtn) {
+                            checkoutBtn.disabled = false;
+                            checkoutBtnText.classList.remove('hidden');
+                            checkoutBtnLoader.classList.add('hidden');
+                        }
+                        return false;
+                    }
+                    const [mm, yy] = expiry.split('/');
+                    const now = new Date();
+                    const expiryYear = 2000 + parseInt(yy, 10);
+                    const expiryMonth = parseInt(mm, 10);
+
+                    if (
+                        expiryMonth < 1 || expiryMonth > 12 ||
+                        expiryYear < now.getFullYear() ||
+                        (expiryYear === now.getFullYear() && expiryMonth < (now.getMonth() + 1))
+                    ) {
+                        notyf.error('Card expiry is in the past.');
+                        if (checkoutBtn) {
+                            checkoutBtn.disabled = false;
+                            checkoutBtnText.classList.remove('hidden');
+                            checkoutBtnLoader.classList.add('hidden');
+                        }
+                        return false;
+                    }
+
+                    if (!/^\d{3,4}$/.test(cvc)) {
+                        notyf.error('Invalid CVC code.');
+                        if (checkoutBtn) {
+                            checkoutBtn.disabled = false;
+                            checkoutBtnText.classList.remove('hidden');
+                            checkoutBtnLoader.classList.add('hidden');
+                        }
+                        return false;
+                    }
+
+                    // 3. If validation passes, use Accept.js to tokenize the card
+                    const [expMonth, expYearShort] = expiry.split('/');
+                    const expYear = '20' + expYearShort;
+
+                    // Fill in your actual config values here (best: pass from Blade using Laravel config)
+                    const authData = {
+                        clientKey: '{{ $paymentSetting['payment_api_public_key'] ?? '' }}',
+                        apiLoginID: '{{ $paymentSetting['payment_api_key'] ?? '' }}'
+                    };
+                    const cardData = {
+                        cardNumber: cardNumber,
+                        month: expMonth,
+                        year: expYear,
+                        cardCode: cvc
+                    };
+                    const secureData = {
+                        authData: authData,
+                        cardData: cardData
+                    };
+
+                    Accept.dispatchData(secureData, function(response) {
+                        if (response.messages.resultCode === "Error") {
+                            let errorMsg = response.messages.message.map(m => m.text).join(', ');
+                            notyf.error('Card Error: ' + errorMsg);
+                            if (checkoutBtn) {
+                                checkoutBtn.disabled = false;
+                                checkoutBtnText.classList.remove('hidden');
+                                checkoutBtnLoader.classList.add('hidden');
+                            }
+                        } else {
+                            document.getElementById('opaqueDataValue').value = response.opaqueData
+                                .dataValue;
+                            document.getElementById('opaqueDataDescriptor').value = response
+                                .opaqueData.dataDescriptor;
+                            form.submit(); // Now actually submit the form
+                        }
+                    });
+
+                    // Don't submit until Accept.js finishes
+                    return false;
+                } else {
+                    // If not "Card", just continue normal submit
+                    if (checkoutBtn) {
+                        checkoutBtn.disabled = true;
+                        checkoutBtnText.classList.add('hidden');
+                        checkoutBtnLoader.classList.remove('hidden');
+                    }
+                }
             });
 
             // ================================
@@ -789,15 +966,23 @@
             // Helper to fill billing fields from address object
             function fillBillingFields(addr) {
                 if (!addr) return;
-                if (document.getElementById('billingFirstName')) document.getElementById('billingFirstName').value = addr.first_name || '';
-                if (document.getElementById('billingLastName')) document.getElementById('billingLastName').value = addr.last_name || '';
-                if (document.getElementById('billingCompany')) document.getElementById('billingCompany').value = addr.company || '';
+                if (document.getElementById('billingFirstName')) document.getElementById('billingFirstName').value =
+                    addr.first_name || '';
+                if (document.getElementById('billingLastName')) document.getElementById('billingLastName').value =
+                    addr.last_name || '';
+                if (document.getElementById('billingCompany')) document.getElementById('billingCompany').value =
+                    addr.company || '';
                 // if (document.getElementById('billingEmail')) document.getElementById('billingEmail').value = addr.email || '';
-                if (document.getElementById('billingPhone')) document.getElementById('billingPhone').value = addr.phone || '';
-                if (document.getElementById('billingAddress')) document.getElementById('billingAddress').value = addr.address || '';
-                if (document.getElementById('billingState')) document.getElementById('billingState').value = addr.state_id || '';
-                if (document.getElementById('billingCity')) document.getElementById('billingCity').value = addr.city || '';
-                if (document.getElementById('billingZip')) document.getElementById('billingZip').value = addr.zip_code || '';
+                if (document.getElementById('billingPhone')) document.getElementById('billingPhone').value = addr
+                    .phone || '';
+                if (document.getElementById('billingAddress')) document.getElementById('billingAddress').value =
+                    addr.address || '';
+                if (document.getElementById('billingState')) document.getElementById('billingState').value = addr
+                    .state_id || '';
+                if (document.getElementById('billingCity')) document.getElementById('billingCity').value = addr
+                    .city || '';
+                if (document.getElementById('billingZip')) document.getElementById('billingZip').value = addr
+                    .zip_code || '';
             }
 
             function updateAddressPreview() {

@@ -63,6 +63,11 @@ class Order extends Model
         return $this->hasMany(OrderProduct::class, 'order_id');
     }
 
+    public function payments()
+    {
+        return $this->hasMany(OrderPayment::class, 'order_id');
+    }
+
     // Polymorphic relations for created_by and updated_by
     public function createdBy()
     {

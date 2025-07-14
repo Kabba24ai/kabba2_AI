@@ -400,7 +400,14 @@
         <p class="text-blue-600 font-semibold truncate">
             {{ old('seo_title', $objProduct->seo_title ?? 'Sample Category Title') }}</p>
         <p class="text-green-700 text-xs truncate">
-            {{ url('/product-categories') }}/{{ old('slug', $objProduct->slug ?? 'Sample Category Slug') }}
+        @php
+            $seoSlug = isset($objProduct) ? ($objProduct->slug ?? '') : '';
+            $seoType = old('product_type', (isset($objProduct) && $objProduct->product_type == "Rental" ? 'daily' : 'retail'));
+            $seoUrl = $seoSlug ? route('front.products.details', ['slug' => $seoSlug, 'productVariant' => $seoType]) : '#';
+        @endphp
+        <a href="{{ $seoUrl }}" target="_blank" rel="noopener">
+            {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
+        </a>
         </p>
         <p class="text-gray-700 dark:text-gray-300 mt-1">
             {{ old('seo_description', $objProduct->seo_description ?? 'Product Description') }}

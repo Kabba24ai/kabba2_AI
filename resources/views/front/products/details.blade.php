@@ -27,7 +27,7 @@
                                 <!-- Only display child categories that are linked to the product -->
                                 @foreach ($childCategories as $child)
                                     <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                        <a href="{{ route('front.categories.index', $child->slug) }}">
+                                        <a href="{{ route('front.categories.sub-category', ['slug' => $parentCategory->slug, 'childCategorySlug' => $child->slug]) }}">
                                             {{ $child->title }}
                                         </a>
                                     </li>

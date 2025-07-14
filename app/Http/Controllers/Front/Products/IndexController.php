@@ -37,7 +37,9 @@ class IndexController extends Controller
                 // Find children of this parent that are linked to the product and published
                 $childCategories = $productDetail->categories
                     ->where('parent_id', $category->id)
-                    ->where('is_published', true)
+                    ->filter(function ($cat) {
+                        return $cat->published();
+                    })
                     ->values();
             } else {
                 // If it's a child, find its parent (must also be linked and published)

@@ -24,14 +24,14 @@
                             <span
                                 class="font-bold ml-auto">{{ App\Helpers\CustomHelper::formatCurrency($item['product_price'] ?? 0) }}</span>
                         </h4>
-                        @if (!empty($item['store_address']))
+                        @if (!empty($item['store_name']))
                             <div class="flex flex-col gap-y-1">
                                 <div class="text-xs underline">
                                     Store:
                                 </div>
                                 <ul class="flex flex-col">
                                     <li class="text-xs before:content-['-'] before:pr-1">
-                                        {{ ucfirst($item['store_address']) }}</li>
+                                        {{ ucfirst($item['store_name']) }}</li>
                                 </ul>
                             </div>
                         @endif
@@ -72,7 +72,7 @@
                                 $name = ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
                                 $optionRows[] = [
                                     'name' =>
-                                        $name . ' (' . App\Helpers\CustomHelper::formatCurrency($optPrice) . 'x1)',
+                                        $name . ' ' . App\Helpers\CustomHelper::formatCurrency($optPrice) . ' (x1)',
                                     'price' => App\Helpers\CustomHelper::formatCurrency($optPrice),
                                 ];
                             }
@@ -82,18 +82,15 @@
                                 $optionsTotal += $opt['price'] ?? 0;
                                 if (!empty($opt['name'])) {
                                     $multiplier =
-                                        ' (' . App\Helpers\CustomHelper::formatCurrency($opt['price']) . 'x1)';
+                                        App\Helpers\CustomHelper::formatCurrency($opt['price']) . '(x1)';
                                     if (!empty($opt['charged']) && $opt['charged'] === 'Unlimited') {
                                         $multiplier =
-                                            ' (' .
                                             App\Helpers\CustomHelper::formatCurrency($opt['price']) .
-                                            'x' .
-                                            ($item['quantity'] ?? 1) .
-                                            ')';
+                                            ' (x'.($item['quantity'] ?? 1) .')';
                                         $opt['price'] = $opt['price'] * ($item['quantity'] ?? 1);
                                     }
                                     $optionRows[] = [
-                                        'name' => $opt['name'] . $multiplier,
+                                        'name' => $opt['name'] . ' ' . $multiplier,
                                         'price' => App\Helpers\CustomHelper::formatCurrency($opt['price']),
                                     ];
                                 }
@@ -122,18 +119,15 @@
             <ul class="flex flex-col">
                 <li class="flex justify-between mb-1">
                     <span>Subtotal:</span>
-                    <span class="font-bold">+
-                        {{ App\Helpers\CustomHelper::formatCurrency($cart['sub_total'] ?? 0) }}</span>
+                    <span class="font-bold">{{ App\Helpers\CustomHelper::formatCurrency($cart['sub_total'] ?? 0) }}</span>
                 </li>
                 <li class="flex justify-between mb-1">
                     <span>Tax</span>
-                    <span class="font-bold">+
-                        {{ App\Helpers\CustomHelper::formatCurrency($cart['tax_total'] ?? 0) }}</span>
+                    <span class="font-bold">{{ App\Helpers\CustomHelper::formatCurrency($cart['tax_total'] ?? 0) }}</span>
                 </li>
                 <li class="flex justify-between mb-1">
                     <span class="font-bold">Total</span>
-                    <span class="font-bold">+
-                        {{ App\Helpers\CustomHelper::formatCurrency($cart['grand_total'] ?? 0) }}</span>
+                    <span class="font-bold">{{ App\Helpers\CustomHelper::formatCurrency($cart['grand_total'] ?? 0) }}</span>
                 </li>
             </ul>
         </div>
@@ -146,15 +140,15 @@
             <ul class="flex flex-col">
                 <li class="flex justify-between mb-1">
                     <span class="">Subtotal:</span>
-                    <span class=" font-bold">+ $0.00</span>
+                    <span class=" font-bold">$0.00</span>
                 </li>
                 <li class="flex justify-between mb-1">
                     <span class="">Tax</span>
-                    <span class=" font-bold">+ $0.00</span>
+                    <span class=" font-bold">$0.00</span>
                 </li>
                 <li class="flex justify-between mb-1">
                     <span class=" font-bold">Total</span>
-                    <span class=" font-bold">+ $0.00</span>
+                    <span class=" font-bold">$0.00</span>
                 </li>
             </ul>
         </div>

@@ -81,10 +81,10 @@
 
             {{-- Delete Button --}}
             <div class="ml-auto">
-                <button type="button"
+                <button type="button" id="delete-selected-btn"
                     class="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition">
                     <x-heroicon-o-trash class="w-4 h-4" />
-                    Delete Selected (0)
+                    Delete Selected (<span id="delete-selected-count">0</span>)
                 </button>
             </div>
 
@@ -95,44 +95,48 @@
         <table class="min-w-full text-sm text-left whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
                 <tr>
-                    <th class="px-4 py-3"><input type="checkbox" /></th>
+                    <th class="px-4 py-3"><input type="checkbox" id="select-all-checkbox" /></th>
                     <th class="px-4 py-3 text-left">OrderNumber</th>
                     <th class="px-4 py-3 text-left">Customer</th>
                     <th class="px-4 py-3 text-center">Product</th>
-                    <th class="px-4 py-3 ">Address</th>
+                    <th class="px-4 py-3">Address</th>
                     <th class="px-4 py-3 text-left">Phone</th>
                     <th class="px-4 py-3 text-right">Amount</th>
                     <th class="px-4 py-3 text-left">Payment</th>
                     <th class="px-4 py-3 text-center">Status</th>
                     {{-- <th class="px-4 py-3 text-center">Delivery</th>
-                    <th class="px-4 py-3 text-center">Return</th> --}}
+                <th class="px-4 py-3 text-center">Return</th> --}}
                     <th class="px-4 py-3 text-center">Created</th>
                     <th class="px-4 py-3 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
                 @forelse ($orders as $order)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3"><input type="checkbox" /></td>
+                    <tr id="order-row-{{ $order->unique_id }}" class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" class="order-checkbox" value="{{ $order->unique_id }}" />
+                        </td>
                         <td class="px-4 py-3 text-left">{{ $order->order_number }}</td>
                         <td class="px-4 py-3 text-left">{{ $order->customer_name }}</td>
                         <td class="px-4 py-3 truncate max-w-xs text-center">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
                         <td class="px-4 py-3 truncate max-w-xs ">{{ $order->shippingAddress->address }}</td>
-                        <td class="px-4 py-3 text-left ">{{ $order->customer_phone  }}</td>
-                        <td class="px-4 py-3 font-semibold text-right">{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
+                        <td class="px-4 py-3 text-left ">{{ $order->customer_phone }}</td>
+                        <td class="px-4 py-3 font-semibold text-right">
+                            {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
                         <td class="px-4 py-3 text-center">{{ $order->payment_type }}</td>
                         <td class="px-4 py-3 text-center">
                             <span
                                 class="text-xs font-semibold px-2 py-1 rounded-full
-                            {{ $order->status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                    {{ $order->status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
                                 {{ $order->status }}
                             </span>
                         </td>
-                        <td class="px-4 py-3 text-center">{{ $order->created_at->format(config('app.date.date_format')) }}</td>
+                        <td class="px-4 py-3 text-center">{{ $order->created_at->format(config('app.date.date_format')) }}
+                        </td>
                         <td class="px-4 py-3">
                             <div class="flex gap-2 items-center justify-center">
-                                <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" class="text-sky-600 hover:text-sky-800"
-                                    title="View">
+                                <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"
+                                    class="text-sky-600 hover:text-sky-800" title="View">
                                     <x-heroicon-o-eye class="w-4 h-4" />
                                 </a>
                             </div>
@@ -148,8 +152,102 @@
             </tbody>
         </table>
     </div>
+    {{-- Pagination --}}
+    <div class="mt-6">
+        {{ $orders->links('vendor.pagination.tailwind') }}
+    </div>
+
 
 @endsection
 
 @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            const deleteCountSpan = document.getElementById('delete-selected-count');
+
+            // Select all functionality
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    orderCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+                    updateDeleteBtnCount();
+                });
+            }
+            // Update 'Select All' checkbox if any item is unchecked
+            orderCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    selectAllCheckbox.checked = [...orderCheckboxes].every(cb => cb.checked);
+                    updateDeleteBtnCount();
+                });
+            });
+
+            function updateDeleteBtnCount() {
+                const count = [...orderCheckboxes].filter(cb => cb.checked).length;
+                deleteCountSpan.textContent = count;
+            }
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    const ids = [...orderCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
+
+                    if (ids.length === 0) {
+                        if (window.showError) {
+                            window.showError('Please select at least one order to delete.',
+                                'No orders selected!');
+                        } else {
+                            alert('Please select at least one order to delete.');
+                        }
+                        return;
+                    }
+
+                    window.showConfirm(
+                        `Delete ${ids.length} order(s)? This action cannot be undone!`,
+                        'Delete Orders'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch("{{ route('admin.order-management.orders.bulk-delete') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute(
+                                            'content')
+                                    },
+                                    body: JSON.stringify({
+                                        unique_ids: ids
+                                    })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success || (data.message && data.message
+                                            .toLowerCase().includes('deleted'))) {
+                                        notyf.success('Selected orders have been deleted.',
+                                            'Deleted!');
+                                        // Remove rows
+                                        ids.forEach(function(id) {
+                                            const row = document.getElementById(
+                                                'order-row-' + id);
+                                            if (row) row.remove();
+                                        });
+                                        // Reset select all and count
+                                        if (selectAllCheckbox) selectAllCheckbox.checked =
+                                        false;
+                                        updateDeleteBtnCount();
+                                    } else {
+                                        notyf.error(data.message ||
+                                            'Could not delete selected orders.', 'Failed!');
+                                    }
+                                }).catch(() => {
+                                    notyf.error('Something went wrong. Please try again.',
+                                        'Error!');
+                                });
+                        }
+                    });
+                });
+            }
+
+        });
+    </script>
 @endpush

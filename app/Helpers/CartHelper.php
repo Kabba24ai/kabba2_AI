@@ -79,7 +79,7 @@ class CartHelper
         if (!empty($validated['store_id'])) {
             $store = Store::find($validated['store_id']);
             $storeAddress = $store ? $store->getFullAddress() : null;
-            $storeName = $store ? $store->name : null;
+            $storeName = $store ? $store->store_name : null;
         }
 
         // Add distance_range from product settings based on distance_type

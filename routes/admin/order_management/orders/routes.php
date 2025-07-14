@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 // Controllers
 use App\Http\Controllers\Admin\OrderManagement\Orders\IndexController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\EditController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\BulkDeleteController;
 
 Route::prefix('orders')
 ->name('orders.')
@@ -25,5 +26,6 @@ Route::prefix('orders')
     // Route::post('/reorder', IndexController::class);
 
     // // Delete
-    // Route::delete('/{unique_id}', IndexController::class)->name('delete');
+    //Route::delete('/{unique_id}', IndexController::class)->name('delete');
+    Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');
 });

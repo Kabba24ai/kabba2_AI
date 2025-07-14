@@ -6,7 +6,7 @@
 
     @if (!empty($cart['cart_items']))
         @foreach ($cart['cart_items'] as $item)
-            <div class="flex items-start gap-3 mb-4">
+            <div class="flex items-start gap-4 mb-4">
 
                 <img src="{{ $item['product_image_url'] }}" alt="Product" class="w-14 h-14 object-cover rounded border border-yellow-400">
                 <div class="flex-1 flex flex-col gap-y-1">
@@ -42,10 +42,10 @@
                         </div>
                     @endif --}}
 
-                    @if (!empty($item['store_address']))
+                    @if (!empty($item['store_name']))
                         <div class="text-sm text-gray-700">
                             <span class="font-semibold">Store:</span>
-                            <span>{{ ucfirst($item['store_address']) }}</span>
+                            <span>{{ ucfirst($item['store_name']) }}</span>
                         </div>
                     @endif
 
@@ -79,16 +79,16 @@
                             $optionsTotal += $optPrice ?? 0;
                             $name = ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
                             // Always x1 for rental items
-                            $optionNames[] = $name .' ('. App\Helpers\CustomHelper::formatCurrency($optPrice).'x1)';
+                            $optionNames[] = $name .' '. App\Helpers\CustomHelper::formatCurrency($optPrice).' (x1)';
                         }
 
                         // Product options (x{quantity} if charged == Unlimited, else no multiplier)
                         foreach ($item['product_option_items'] ?? [] as $opt) {
                             $optionsTotal += $opt['price'] ?? 0;
                             if (!empty($opt['name'])) {
-                                $multiplier = ' ('.  App\Helpers\CustomHelper::formatCurrency($opt['price']).'x1)';
+                                $multiplier = ' '.  App\Helpers\CustomHelper::formatCurrency($opt['price']).' (x1)';
                                 if (!empty($opt['charged']) && $opt['charged'] === 'Unlimited') {
-                                    $multiplier = ' ('. App\Helpers\CustomHelper::formatCurrency($opt['price']).'x' . ($item['quantity'] ?? 1) .')';
+                                    $multiplier = ' '. App\Helpers\CustomHelper::formatCurrency($opt['price']).' (x' . ($item['quantity'] ?? 1) .')';
                                 }
                                 $optionNames[] = $opt['name'].$multiplier;
                             }

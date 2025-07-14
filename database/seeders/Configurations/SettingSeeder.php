@@ -127,50 +127,7 @@ class SettingSeeder extends Seeder
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => 11,
             ],
-            // --- Fuel Gallons ---
-            [
-                'value_type' => 'textarea',
-                'setting_name' => 'fuel_gallons_info',
-                'setting_title' => 'Fuel Gallons Information',
-                'default_value' => 'This includes a set number of fuel gallons in your rental package.',
-                'sort_order' => 12,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'fuel_gallons_decline_label',
-                'setting_title' => 'Fuel Gallons Decline Label',
-                'default_value' => self::DECLINE_LABEL,
-                'sort_order' => 13,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'fuel_gallons_approve_label',
-                'setting_title' => 'Fuel Gallons Approve Label',
-                'default_value' => self::APPROVE_LABEL,
-                'sort_order' => 14,
-            ],
-            // --- Def Gallons ---
-            [
-                'value_type' => 'textarea',
-                'setting_name' => 'def_gallons_info',
-                'setting_title' => 'Def Gallons Information',
-                'default_value' => 'This includes a set number of DEF gallons in your rental package.',
-                'sort_order' => 15,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'def_gallons_decline_label',
-                'setting_title' => 'Def Gallons Decline Label',
-                'default_value' => self::DECLINE_LABEL,
-                'sort_order' => 16,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'def_gallons_approve_label',
-                'setting_title' => 'Def Gallons Approve Label',
-                'default_value' => self::APPROVE_LABEL,
-                'sort_order' => 17,
-            ],
+
             // --- Damage Waiver ---
             [
                 'value_type' => 'textarea',

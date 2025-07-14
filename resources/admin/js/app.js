@@ -3,9 +3,10 @@ import persist from "@alpinejs/persist";
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Sortable from 'sortablejs';
 
-import '../../shared/js/app.js'; // Import the Notyf setup
+import '../../shared/js/app.js';
 import '../../shared/js/notif.js'; // Import the Notyf setup
-// import '../../admin/js/calendar-init.js'; 
+import '../../shared/js/swal.js'; // Import SweetAlert setup
+// import '../../admin/js/calendar-init.js';
 
 import AirDatepicker from "air-datepicker";
 

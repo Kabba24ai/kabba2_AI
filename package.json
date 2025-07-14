@@ -35,6 +35,7 @@
         "notyf": "^3.10.0",
         "parsleyjs": "^2.9.2",
         "signature_pad": "^5.0.9",
-        "sortablejs": "^1.15.6"
+        "sortablejs": "^1.15.6",
+        "sweetalert2": "^11.22.2"
     }
 }

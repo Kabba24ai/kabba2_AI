@@ -32,7 +32,13 @@
             <div class="flex flex-col md:flex-row gap-2">
                 <div class="w-full md:w-1/2 md:border-r px-4 md:pr-8 pb-12">
                     <!-- Billing Info -->
-                    <h2 class="text-2xl font-bold mt-2">Billing information</h2>
+                    <div class="flex items-center justify-between mt-2 mb-2">
+                        <h2 class="text-2xl font-bold m-0">Billing information</h2>
+                        <div class="flex items-center gap-x-2">
+                            <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4 align-middle" />
+                            <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
+                        </div>
+                    </div>
 
                     {{ html()->form()->attributes([
                             'autocomplete' => 'off',
@@ -88,20 +94,18 @@
                             </div>
                         </div>
                     @else
-                        <div class="mb-6 text-sm text-gray-600">
-                            Already have an account?
-                            <a href="{{ route('front.auth.login.index') }}"
-                                class="text-blue-600 hover:underline ml-1">Login</a>
+                        <div class="mb-6 text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <div class="flex items-center gap-x-2">
+                                <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create Account</a>
+                                <span class="mx-1">|</span>
+                                <a href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To Account</a>
+                            </div>
                         </div>
                         @php
                             $primaryAddress = null;
                         @endphp
                     @endauth
                     <!-- Tax Exempt -->
-                    <div class="flex items-center gap-2">
-                        <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4" />
-                        <label for="taxExempt" class="text-sm">Tax Exempt</label>
-                    </div>
 
                     <div id="billingDiv" class="space-y-4 {{ $primaryAddress ? 'hidden' : '' }}">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 ">
@@ -457,11 +461,11 @@
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="Card"
                                         {{ old('payment') == 'Card' ? 'checked' : '' }} />
-                                    <span>Pay Using Credit or Debit</span>
+                                    <span>Credit or Debit</span>
                                 </label>
                                 <div id="cardSection" class="{{ old('payment') == 'Card' ? 'block' : 'hidden' }}">
                                     <!-- Card Visual -->
-                                    <div class="relative h-52 w-full max-w-md  mt-4 card-container">
+                                    <div class="relative h-52 w-full max-w-sm  mt-4 card-container">
                                         <!-- Card Front -->
                                         <div id="cardFront"
                                             class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front"
@@ -494,7 +498,7 @@
                                         </div>
                                     </div>
                                     <!-- Card Inputs -->
-                                    <div class="grid md:grid-cols-2 gap-4 mt-4">
+                                    <div class="grid md:grid-cols-2 gap-4 mt-4 max-w-sm">
                                         <input type="text" placeholder="First name" id="firstName" name="firstName"
                                             value="{{ old('firstName') }}"
                                             class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
@@ -536,7 +540,7 @@
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="COD"
                                         {{ old('payment', 'COD') == 'COD' ? 'checked' : '' }} />
-                                    <span>Cash on delivery (COD)</span>
+                                    <span>Cash on Delivery (COD)</span>
                                 </label>
                             </div>
                             <!-- Add Account -->
@@ -545,7 +549,7 @@
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="Account"
                                         {{ old('payment') == 'Account' ? 'checked' : '' }} />
-                                    <span>Add Account</span>
+                                    <span>Add to Account</span>
                                 </label>
                             </div>
                         </div>
@@ -582,15 +586,15 @@
                         <ul class="flex flex-col">
                             <li class="flex justify-between mb-1">
                                 <span class="">Subtotal:</span>
-                                <span class=" font-bold">+ $0.00</span>
+                                <span class=" font-bold">$0.00</span>
                             </li>
                             <li class="flex justify-between mb-1">
                                 <span class="">Tax</span>
-                                <span class=" font-bold">+ $0.00</span>
+                                <span class=" font-bold">$0.00</span>
                             </li>
                             <li class="flex justify-between mb-1">
                                 <span class=" font-bold">Total</span>
-                                <span class=" font-bold">+ $0.00</span>
+                                <span class=" font-bold">$0.00</span>
                             </li>
                         </ul>
                     </div>
@@ -878,10 +882,10 @@
                 ['billingLastName', 'deliveryLastName'],
                 // ['billingEmail', 'deliveryEmail'], // deliveryEmail should always match billingEmail, not editable
                 ['billingPhone', 'deliveryPhone'],
-                ['billingAddress', 'deliveryAddress'],
+                //['billingAddress', 'deliveryAddress'],
                 ['billingState', 'deliveryState'],
-                ['billingCity', 'deliveryCity'],
-                ['billingZip', 'deliveryZip'],
+                // ['billingCity', 'deliveryCity'],
+                // ['billingZip', 'deliveryZip'],
             ];
 
             // Always keep deliveryEmail in sync with billingEmail

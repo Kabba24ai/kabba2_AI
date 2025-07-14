@@ -560,7 +560,6 @@ body {
     font-size: 2rem;
     font-weight: bold;
     text-align: center;
-    margin-bottom: 40px;
 }
 
 .bg-gray-900.bg-opacity-50.dark\:bg-opacity-80.fixed.inset-0.z-40 {
@@ -606,7 +605,7 @@ body {
 }
 
 .banner {
-    height: 730px;
+    height: 430px;
 }
 
 .category-product {

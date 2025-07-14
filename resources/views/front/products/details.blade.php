@@ -329,32 +329,6 @@
                                 </label>
                             @endif
 
-                            @if ($productDetail->rental_fuel_gallons !== null)
-                                <!-- Prepaid Fuel Gallons -->
-                                <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelGallonsCheckbox"
-                                        data-charged="1 Time Max" data-name="rental_fuel_gallons"
-                                        data-keep="{{ $productSettings['fuel_gallons_approve_label'] }}"
-                                        data-discard="{{ $productSettings['fuel_gallons_decline_label'] }}"
-                                        data-message="{{ $productSettings['fuel_gallons_info'] }}" />
-                                    <span>Fuel Gallons <span class="font-medium">+
-                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_fuel_gallons) }}</span></span>
-                                </label>
-                            @endif
-
-                            @if ($productDetail->rental_def_gallons !== null)
-                                <!-- DEF Gallons -->
-                                <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="defGallonsCheckbox"
-                                        data-charged="1 Time Max" data-name="rental_def_gallons"
-                                        data-keep="{{ $productSettings['def_gallons_approve_label'] }}"
-                                        data-discard="{{ $productSettings['def_gallons_decline_label'] }}"
-                                        data-message="{{ $productSettings['def_gallons_info'] }}" />
-                                    <span>DEF Gallons <span class="font-medium">+
-                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_def_gallons) }}</span></span>
-                                </label>
-                            @endif
-
                             @if (
                                 $productDetail->rental_damage_waiver_daily !== null ||
                                     $productDetail->rental_damage_waiver_weekend !== null ||

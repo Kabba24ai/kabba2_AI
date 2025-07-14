@@ -16,9 +16,20 @@
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
-                            <li>
-                                <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
-                            </li>
+                            @if ($category->isParentCategory())
+                                <li>
+                                    <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
+                                </li>
+                            @else
+                                <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
+                                    <a href="{{ route('front.categories.index', ['slug' => $category->parentCategory->slug]) }}" class="opacity-75">
+                                        {{ $category->parentCategory->title }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
+                                </li>
+                            @endif
                         </ul>
                     </div>
                 </div>

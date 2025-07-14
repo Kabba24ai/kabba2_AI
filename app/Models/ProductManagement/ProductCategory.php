@@ -75,6 +75,11 @@ class ProductCategory extends Model
         return $query->where('status', 'Published');
     }
 
+    public function isParentCategory(): bool
+    {
+        return $this->parent_id === null;
+    }
+
     public function media(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'media_id', 'id');

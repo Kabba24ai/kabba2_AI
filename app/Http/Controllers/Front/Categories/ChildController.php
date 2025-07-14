@@ -23,7 +23,7 @@ class ChildController extends Controller
 
         return view('front.categories.index', [
             'title' => $category->title,
-            'category'=> $category ,
+            'category'=> $category,
             'products' => $products
         ]);
     }

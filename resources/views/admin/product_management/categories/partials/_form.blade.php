@@ -60,10 +60,18 @@
     <div class="mb-8">
         <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Permalink</label>
         <div class="flex items-center text-sm">
-            <a href="{{ url('/product-category/' . $objProductCategory->slug) }}"
-               class="text-blue-600 hover:underline break-all"
-               target="_blank">
-                {{ url('/product-category/' . $objProductCategory->slug) }}
+            @php
+                if ($objProductCategory->parentCategory) {
+                    $categoryUrl = route('front.categories.sub-category', [
+                        'slug' => $objProductCategory->parentCategory->slug,
+                        'childCategorySlug' => $objProductCategory->slug
+                    ]);
+                } else {
+                    $categoryUrl = route('front.categories.index', ['slug' => $objProductCategory->slug]);
+                }
+            @endphp
+            <a href="{{ $categoryUrl }}" class="text-blue-600 hover:underline break-all" target="_blank">
+                {{ $categoryUrl }}
             </a>
         </div>
         <small class="text-gray-500 dark:text-gray-400">This is the public URL for this category.</small>
@@ -168,7 +176,19 @@
     <div class="text-sm text-gray-800 dark:text-white">
         <p class="text-blue-600 font-semibold truncate">{{ old('seo_title', $objProductCategory->seo_title ?? 'Sample Category Title') }}</p>
         <p class="text-green-700 text-xs truncate">
-            {{ url('/product-categories') }}/{{ old('slug', $objProductCategory->slug ?? 'Sample Category Slug') }}
+             @php
+                if ($objProductCategory->parentCategory) {
+                    $categoryUrl = route('front.categories.sub-category', [
+                        'slug' => $objProductCategory->parentCategory->slug,
+                        'childCategorySlug' => $objProductCategory->slug
+                    ]);
+                } else {
+                    $categoryUrl = route('front.categories.index', ['slug' => $objProductCategory->slug]);
+                }
+            @endphp
+            <a href="{{ $categoryUrl }}" class="text-blue-600 hover:underline break-all" target="_blank">
+                {{ $categoryUrl }}
+            </a>
         </p>
         <p class="text-gray-700 dark:text-gray-300 mt-1">
             {{ old('seo_description',  $objProductCategory->seo_description ?? 'Product Description') }}

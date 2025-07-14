@@ -172,7 +172,7 @@
                 </div>
 
                 <!-- Address Information -->
-                <div class="bg-white rounded-md shadow-sm p-5">
+                <div class="bg-white rounded-md shadow-sm p-5 h-[250px] overflow-y-scroll overflow-x-hidden">
                     <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
                     <x-heroicon-o-map-pin class="w-5 h-5 mr-2 text-gray-500" />
                     Address Information
@@ -1102,19 +1102,371 @@
         </div>
 
         <div x-show="activeTab === 'account'">
-            <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
-                Account
-            </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Customers ipsum dolor sit amet consectetur. Non vitae facilisis urna
-                tortor placerat egestas donec. Faucibus diam gravida enim elit lacus a.
-                Tincidunt fermentum condimentum quis et a et tempus. Tristique urna nisi
-                nulla elit sit libero scelerisque ante.
-            </p>
+            <div class="bg-white p-4 rounded shadow-md mb-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <!-- Title and Description -->
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Customer Account Management</h2>
+                        <p class="text-sm text-gray-500">Manage customer account information and administrative settings</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                        <span class="text-sm text-gray-700 mr-2 sm:mr-0 sm:mb-1">Admin Actions:</span>
+                        <div class="flex items-center gap-2">
+                            <button class="bg-red-600 text-white px-3 py-1 rounded text-sm">Suspend Account</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded text-sm">Reset Password</button>
+                            <button id="editBtn" class="bg-blue-600 text-white px-3 py-1 rounded text-sm">Edit Information</button>
+                            <button id="saveBtn" style="display:none;" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Save Changes</button>
+                            <button id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-3 py-1 rounded text-sm">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Personal Information -->
+                <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+                    <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
+                        <x-heroicon-o-user class="w-5 h-5 mr-2 text-gray-500" /> Personal Information
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+                        <div>
+                            <label class="text-gray-700 mb-1">First Name</label>
+                            <div class="static-view">John</div>
+                             <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="John" />
+                        </div>
+
+                        <div>
+                            <label class="text-gray-700 mb-1">Last Name</label>
+                            <div class="static-view">Doe</div>
+                            <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="Doe" />
+                        </div>
+
+                        <div class="col-span-2">
+                            <label class="text-gray-700 text-sm mb-1 block">Email Address</label>
+                            <div class=" static-view">
+                                <p class="text-gray-900 flex items-center gap-2">
+                                    <x-heroicon-o-envelope class="w-4 h-4 mr-2 text-gray-500" />john.doe@acmecorp.com
+                                </p>
+                            </div>
+                            <!-- Edit View -->
+                            <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" type="email" value="john.doe@acmecorp.com" />
+                        </div>
+
+                        <div class="col-span-2">
+                            <label class="text-gray-700 text-sm mb-1 block">Phone Number</label>
+                            <div class=" static-view">
+                                <p class="text-gray-900 flex items-center gap-2">
+                                    <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-500" />(555) 012-3456
+                                </p>
+                            </div>
+                            <!-- Edit View -->
+                            <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="(555) 012-3456" />
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Company Information -->
+                <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+                    <h3 class="text-md font-semibold mb-4 flex items-center gap-2">
+                        <x-heroicon-o-building-office class="w-5 h-5 text-gray-500" /> Company Information
+                    </h3>
+                    <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                        <div>
+                            <label class="text-sm text-gray-700 mb-1">Company Name</label>
+                            <div class="static-view">Acme Corp</div>
+                            <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="Acme Corp" />
+                        </div>
+                        
+                        <div class="col-span-2">
+                            <label class="text-gray-700 text-sm mb-1 block">Company Phone</label>
+                            <div class=" static-view">
+                                <p class="text-gray-900 flex items-center gap-2">
+                                    <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-500" />(555) 012-3456
+                                </p>
+                            </div>
+                            <!-- Edit View -->
+                            <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="(555) 012-3456" />
+                        </div>
+
+                        <div class="col-span-2">
+                            <label class="text-gray-700 text-sm mb-1 block">Website</label>
+                            <div class=" static-view">
+                                <p class="text-gray-900 flex items-center gap-2">
+                                      <x-heroicon-o-globe-alt class="w-4 h-4 mr-2 text-gray-500" /><a class="text-blue-600" href="https://acme-corp.com">https://acme-corp.com</a>
+                                </p>
+                            </div>
+                            <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="https://acme-corp.com" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <!-- Billing Address -->
+                <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 ">
+                    <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
+                        <x-heroicon-o-map-pin class="w-5 h-5 mr-2 text-gray-500" />
+                        Billing Address
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm text-gray-700 mb-1 edit-view">Address</label>
+                            <div class="static-view text-gray-900 whitespace-pre-line text-sm">123 Main St, New York, NY 10001</div>
+                            <input type="text" value="123 Main St" class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="edit-view">
+                                <label class="text-sm text-gray-700 mb-1">City</label>
+                                <input type="text" value="New York" class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
+                            </div>
+                            <div class="edit-view">
+                                <label class="text-sm text-gray-700 mb-1">Zip Code</label>
+                                <input type="text" value="10001" class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
+                            </div>
+                        </div>
+                        <div class="edit-view">
+                            <label class="text-sm text-gray-700 mb-1">State</label>
+                            <select class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm">
+                                <option selected>New York</option>
+                                <option>California</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Address -->
+                <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+                    <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
+                        <x-heroicon-o-map-pin class="w-5 h-5 mr-2 text-gray-500" />
+                        Delivery Address
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm text-gray-700 mb-1 edit-view">Address</label> 
+                            <div class="static-view text-gray-900 whitespace-pre-line text-sm">456 Oak Ave, New York, NY 10002</div>
+                            <input type="text" value="456 Oak Ave" class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="edit-view">
+                                <label class="text-sm text-gray-700 mb-1">City</label>
+                                <input type="text" value="New York" class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
+                            </div>
+                            <div class="edit-view">
+                                <label class="text-sm text-gray-700 mb-1">Zip Code</label>
+                                <input type="text" value="10002" class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
+                            </div>
+                        </div>
+                        <div class="edit-view">
+                            <label class="text-sm text-gray-700 mb-1">State</label>
+                            <select class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm">
+                                <option selected>New York</option>
+                                <option>California</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <!-- Account Status -->
+                <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                    <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                     Account Status
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Account Status:</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">Good Standing</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Account Approved:</span>
+                            <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
+                                <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
+                                Approved
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Customer Since:</span>
+                            <span class="text-xs">Jan 15, 2024</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Customer ID:</span>
+                            <span class="text-xs">CUST-001</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Credit Information -->
+                <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                    <div class="flex gap-2 items-start mb-4">
+                        <h3 class="text-base font-semibold flex items-center gap-2">
+                            <x-heroicon-o-credit-card class="w-5 h-5 text-gray-600" />
+                            Credit Information
+                        </h3>
+                        <span class="text-xs text-red-800 bg-red-100 px-2 py-0.5 rounded">Admin View</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Credit Limit:</span>
+                            <span class="text-right">
+                                <span class="text-gray-900 font-semibold">$15,000.00</span>
+                                <a href="#" class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /></a>
+                            </span>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Current Balance:</span>
+                            <span class="font-medium">$2,750.00 <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Available Credit:</span>
+                            <span class="text-green-600 font-medium">$12,250.00</span>
+                        </div>
+                        <div>
+                            <label class="text-gray-700 mb-1 text-sm">Credit Utilization</label>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 18%;"></div>
+                            </div>
+                            <div class="text-right text-xs text-gray-500 mt-0.5">18%</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                    <div class="flex items-center gap-2">
+                        <x-heroicon-o-document class="w-5 h-5 text-gray-500" />
+                        <h2 class="text-base font-semibold text-gray-800">Tax Exempt Status</h2>
+                        <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">Admin Control</span>
+                    </div>
+                    <a href="javascript:void(0)" id="opentaxdocModal" class="px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                        Manage Tax Documents
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Left: Tax Info -->
+                    <div class="space-y-2 text-sm text-gray-700">
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Tax Status:</span>
+                            <span class="text-green-700 bg-green-100 px-2 py-0.5 rounded-full text-xs font-medium">Tax Exempt</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Valid Until:</span>
+                            <span class="text-sm">Dec 31, 2027</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-700 mb-1">Uploaded:</span>
+                            <span class="text-sm">Mar 3, 2025</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: File Card -->
+                   <div class="border border-gray-200 rounded-lg p-4 text-sm bg-white w-full">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+                            <!-- Left Side: Icon + File Info -->
+                            <div class="flex items-start gap-3 flex-1 min-w-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 7h10M7 11h10M7 15h10M5 19h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <div class="min-w-0">
+                                <div class="font-medium text-gray-800 truncate">acme_corp_tax_exempt_2025.pdf</div>
+                                <div class="text-gray-500 text-xs">
+                                Status: <span class="text-green-600 font-medium">Approved</span>
+                                </div>
+                            </div>
+                            </div>
+
+                            <!-- Right Side: Actions -->
+                            <div class="flex gap-4 text-sm justify-end sm:justify-start">
+                                <a href="#" class="text-blue-600">View</a>
+                                <a href="#" class="text-green-600">Approve</a>
+                                <a href="#" class="text-red-600">Reject</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Record Payment Wrapper -->
+<div id="taxdocModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-medium text-gray-900">Upload Tax Exempt Document</h2>
+                </div>
+                <button id="closetaxdocBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+            </div>
+            <div class=" p-6 overflow-y-auto">
+                <div class="max-w-md mx-auto">
+                    <!-- Upload Box -->
+                    <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
+                        <div id="uploadUI" class="flex flex-col items-center justify-center">
+                            <!-- Icon -->
+                            <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
+                            </svg>
+                            <!-- Text -->
+                            <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
+                            <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
+
+                            <!-- File input -->
+                            <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
+                                <input type="file" id="fileInput" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
+                                <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
+                            </label>
+                        </div>
+
+                        <!-- File Display After Selection -->
+                         <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                            <!-- File Name -->
+                            <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
+
+                            <!-- Buttons: View & Close -->
+                            <div class="flex justify-center sm:justify-start gap-2">
+                                <a id="viewFileLink" href="#" target="_blank"
+                                class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">View</a>
+                                <button onclick="clearFile()" class="px-3 py-1.5 text-sm rounded bg-red-600 text-white">✕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Document Type Dropdown -->
+                    <div class="mt-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                        <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                        <option>Tax Exempt Certificate</option>
+                        <option>Resale Certificate</option>
+                        <option>Non-Profit Exemption</option>
+                        </select>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="mt-5 flex justify-end gap-2">
+                        <button id="cancelBtntaxdoc" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
+                        <button class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Record Payment Wrapper -->
 <div id="templatesModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
@@ -1170,7 +1522,7 @@
                     </div>
 
                     <div class="flex justify-end gap-2 pb-4">
-                        <button type="button" id="cancelBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                        <button type="button" id="canceltempBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
                         <button type="submit" id="submitTemplatesBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
@@ -1483,7 +1835,112 @@
 
 
 @endsection
+
+<script>
+  function handleFileChange(event) {
+    const file = event.target.files[0];
+    const fileNameDisplay = document.getElementById("fileNameDisplay");
+    const fileActions = document.getElementById("fileActions");
+    const viewLink = document.getElementById("viewFileLink");
+    const uploadUI = document.getElementById("uploadUI");
+
+    if (file) {
+      fileNameDisplay.textContent = file.name;
+      fileActions.style.display = "flex";
+      uploadUI.style.display = "none";
+
+      // Show file in new tab (temporary blob link)
+      const objectUrl = URL.createObjectURL(file);
+      viewLink.href = objectUrl;
+    }
+  }
+
+  function clearFile() {
+    const fileInput = document.getElementById("fileInput");
+    const fileActions = document.getElementById("fileActions");
+    const uploadUI = document.getElementById("uploadUI");
+    const fileNameDisplay = document.getElementById("fileNameDisplay");
+
+    fileInput.value = "";
+    fileActions.style.display = "none";
+    uploadUI.style.display = "flex";
+    fileNameDisplay.textContent = "";
+  }
+</script>
     
+<script>
+  function initializeEditUI() {
+    const editBtn = document.getElementById("editBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const staticFields = document.querySelectorAll(".static-view");
+    const editFields = document.querySelectorAll(".edit-view");
+
+    // Always start in view mode
+    staticFields.forEach(el => el.style.display = "block");
+    editFields.forEach(el => el.style.display = "none");
+    editBtn.style.display = "inline-block";
+    saveBtn.style.display = "none";
+    cancelBtn.style.display = "none";
+
+    if (editBtn && cancelBtn && saveBtn) {
+      editBtn.onclick = () => {
+        staticFields.forEach(el => el.style.display = "none");
+        editFields.forEach(el => el.style.display = "block");
+        editBtn.style.display = "none";
+        saveBtn.style.display = "inline-block";
+        cancelBtn.style.display = "inline-block";
+      };
+
+      cancelBtn.onclick = () => {
+        staticFields.forEach(el => el.style.display = "block");
+        editFields.forEach(el => el.style.display = "none");
+        editBtn.style.display = "inline-block";
+        saveBtn.style.display = "none";
+        cancelBtn.style.display = "none";
+      };
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", initializeEditUI);
+
+  // Also re-run when the tab becomes visible (you must trigger this yourself)
+  document.querySelectorAll('[data-tab]').forEach(tab => {
+    tab.addEventListener('click', function () {
+      setTimeout(initializeEditUI, 100); // slight delay to allow DOM to render tab
+    });
+  });
+</script>
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalWrapper = document.getElementById('taxdocModalWrapper');
+        const openBtn = document.getElementById('opentaxdocModal');
+        const closeBtn = document.getElementById('closetaxdocBtn');
+        const cancelBtn = document.getElementById('cancelBtntaxdoc');
+
+        openBtn.addEventListener('click', () => {
+            modalWrapper.style.display = 'flex';
+        });
+
+        const closeModal = () => {
+            modalWrapper.style.display = 'none';
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // Optional: Close when clicking outside the modal
+        modalWrapper.addEventListener('click', (e) => {
+            if (e.target === modalWrapper) {
+                closeModal();
+            }
+        });
+    });
+</script>
+
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const viewAllLink = document.getElementById("viewAllOrdersLink");
@@ -1658,7 +2115,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const modalWrapper = document.getElementById('templatesModalWrapper');
         const openBtn = document.getElementById('openTemplatesModal');
         const closeBtn = document.getElementById('closeModalBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
+        const cancelBtn = document.getElementById('canceltempBtn');
 
         openBtn.addEventListener('click', () => {
             modalWrapper.style.display = 'flex';

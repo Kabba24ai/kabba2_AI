@@ -281,12 +281,11 @@
                                 Choose Store Location
                             </label>
                             <select id="storeSelect"
-                                class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
+                                class="block w-4/12 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
                                 <option disabled selected value="">Select Store Location</option>
                                 @foreach ($stores as $store)
                                     <option value="{{ $store->id }}">
-                                        {{ $store->address }}, {{ $store->city }}, {{ $store->state->abbreviation }} ,
-                                        {{ $store->zip_code ?? '' }}
+                                        {{ $store->store_name}}
                                     </option>
                                 @endforeach
                             </select>

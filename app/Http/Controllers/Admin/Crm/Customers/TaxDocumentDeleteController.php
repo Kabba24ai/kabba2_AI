@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 // Models
 use App\Models\Customers\Customer;
 use App\Helpers\MediaHelper;
+use Illuminate\Support\Facades\Log;
 
 
 class TaxDocumentDeleteController extends Controller
@@ -21,6 +22,9 @@ class TaxDocumentDeleteController extends Controller
     public function __invoke(string $unique_id): RedirectResponse
     {
         $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
+
+        Log::info('Customer media info', ['media' => $customer->media]);
+
         $mediaId = $customer->media;
         if ($mediaId) {
             MediaHelper::removeFile($customer->media);
@@ -32,6 +36,6 @@ class TaxDocumentDeleteController extends Controller
 
         flash('Tax document deleted successfully.')->success();
 
-        return redirect()->route('admin.crm.customers.edit', ['unique_id' => $customer->unique_id]);
+        return redirect()->back();
     }
 }

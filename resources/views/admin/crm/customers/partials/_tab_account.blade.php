@@ -25,8 +25,12 @@
                     <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                         <span class="text-sm text-gray-700 mr-2 sm:mr-0 sm:mb-1 mb-1">Admin Actions:</span>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button  type="button" class="bg-red-600 text-white px-3 py-1 rounded text-sm">Suspend Account</button>
-                            <button type="button" class="bg-yellow-500 text-white px-3 py-1 rounded text-sm">Reset Password</button>
+                            @if($customer->status!='Inactive')
+                                <button onclick="confirmAndSuspend({{ $customer->id }})"  type="button" class="bg-red-600 text-white px-3 py-1 rounded text-sm static-view">Suspend Account</button>
+                            @elseif($customer->status!='Active')
+                                <button onclick="confirmAndActive({{ $customer->id }})"  type="button" class="bg-green-600 text-white px-3 py-1 rounded text-sm static-view">Active Account</button>
+                            @endif
+                            <button type="button" id="openResetPasswordModal" class="bg-yellow-500 text-white px-3 py-1 rounded text-sm static-view">Reset Password</button>
                             <button id="editBtn" type="button" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"> Edit Information</button>    
                             <button  type="submit" id="saveBtn" style="display:none;" class="saveBtn bg-green-600 text-white px-3 py-1 rounded text-sm">Save Changes</button>
                             <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-3 py-1 rounded text-sm">Cancel</button>
@@ -35,7 +39,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-0">
                 <!-- Personal Information -->
                 <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
                     <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
@@ -209,9 +213,51 @@
                                       <x-heroicon-o-globe-alt class="w-4 h-4 mr-2 text-gray-500" /><a class="text-blue-600" href="{{ $customer->company_website ?? 'javascript:void(0)' }}">{{ $customer->company_website ?? 'N/A'}}</a>
                                 </p>
                             </div>
+                            <div class="flex gap-2 mb-4">
+
+                                {{-- Protocol --}}
+                                {!! html()->select('website_protocol', [
+                                        'https://' => 'https://',
+                                        'http://' => 'http://',
+                                    ], old('website_protocol', $website_protocol ?? null))
+                                    ->class([
+                                        'edit-view w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                                        'border-red-500' => $errors->has('website_protocol'),
+                                        'border-gray-300' => !$errors->has('website_protocol'),
+                                    ])
+                                    ->id('website_protocol') !!}
+                                    
+
+                                {{-- Website Name --}}
+                                {!! html()->text('company_website', old('company_website',$company_website ?? null))
+                                    ->class([
+                                        'edit-view w-4/6 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                                        'border-red-500' => $errors->has('company_website'),
+                                        'border-gray-300' => !$errors->has('company_website'),
+                                    ])
+                                    ->placeholder('example')
+                                    ->id('company_website') !!}
+
+                                {{-- Extension --}}
+                                {!! html()->select('website_extension', [
+                                        '.com' => '.com',
+                                        '.org' => '.org',
+                                        '.net' => '.net',
+                                        '.in' => '.in',
+                                        '.edu' => '.edu',
+                                        '.gov' => '.gov',
+                                    ], old('website_extension', $website_extension ?? null))
+                                    ->class([
+                                        'edit-view w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                                        'border-red-500' => $errors->has('website_extension'),
+                                        'border-gray-300' => !$errors->has('website_extension'),
+                                    ])
+                                    ->id('website_extension') !!}
+
+                            </div>
                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_website  }}" /> -->
 
-                            {!! html()->text('company_website', old('company_website', $customer->company_website ?? ''))
+                            <!-- {!! html()->text('company_website', old('company_website', $customer->company_website ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                                 'border-red-500' => $errors->has('company_website'),
@@ -219,14 +265,20 @@
                             ->attributes([
                                 'placeholder' => 'https://example.com',
                                 'id' => 'company_website',
-                            ]) !!}
+                            ]) !!} -->
 
 
                         </div>
                     </div>
                 </div>
             </div>
+@php
+    $hasAddresses = $customer->addresses->filter(function($addresse) {
+        return !empty($addresse->address) || !empty($addresse->city) || !empty($addresse->zip_code) || !empty($addresse->state_id);
+    });
+@endphp
 
+@if ($hasAddresses->isNotEmpty())
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           @foreach ($customer->addresses as $index => $addresse)
             <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
@@ -305,8 +357,8 @@
           @endforeach
 
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+@endif
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-0">
                 <!-- Account Status -->
                 <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
                     <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
@@ -320,9 +372,9 @@
                             <span class="text-gray-700 mb-1">Account Status:</span>
 
                              @php
-                $approved = $customer->is_credit_account == 1;
-                $hasCreditLimit = !empty($customer->credit_limit);
-            @endphp
+                                $approved = $customer->is_credit_account == 1;
+                                $hasCreditLimit = !empty($customer->credit_limit);
+                            @endphp
 
                              @if ($approved && $hasCreditLimit)
                                         <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good Standing</span>
@@ -334,9 +386,11 @@
                 @endif
                             
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between items-center">
                             <span class="text-gray-700 mb-1">Account Approved:</span>
+                            <div class="static-view">
                             @if($customer->is_credit_account == 1)
+                              
                                 <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
                                     <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
                                     Approved
@@ -347,6 +401,19 @@
                                     Not Approved
                                 </span>
                             @endif
+ </div>
+
+                        {!! html()
+                            ->select('is_credit_account', [
+                                '0' => 'Not Approved',
+                                '1' => 'Approved',
+                            ], old('is_credit_account', $customer->is_credit_account ?? ''))
+                            ->id('is_credit_account')
+                            ->class([
+                                'edit-view border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 ',
+                            ])
+                        !!}
+
 
                         </div>
                         <div class="flex justify-between">
@@ -370,28 +437,74 @@
                         <span class="text-xs text-red-800 bg-red-100 px-2 py-1 rounded">Admin View</span>
                     </div>
                     <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-700 mb-1">Credit Limit:</span>
-                            <span class="text-right">
-                                <span class="text-gray-900 font-semibold">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</span>
-                                <a href="#" class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /></a>
-                            </span>
+                        <div class="flex justify-between ">
+
+                          
+
+                                <span class="text-gray-700 mb-1">Credit Limit:</span>
+                                <span class="text-right static-view">
+                                    <span class="text-gray-900 font-semibold">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</span>
+                                    <a href="#" class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /></a>
+                                </span>
+
+                           
+
+                              
+                        @php
+                            $creditOptions = collect(range(1000, 20000, 1000))->mapWithKeys(function ($value) {
+                                return [$value => number_format($value)];
+                            });
+                        @endphp
+
+                        {!! html()
+                            ->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
+                            ->id('credit_limit')
+                            ->class([
+                                'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300  edit-view',
+                            ])->placeholder('Select Credit Limit')
+                        !!}
+
                         </div>
 
                         <div class="flex justify-between">
                             <span class="text-gray-700 mb-1">Current Balance:</span>
-                            <span class="font-medium">$2,750.00 <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
+
+                            <span class="font-medium static-view">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
+                            
+                            {!! html()
+                            ->select('Current_Balance', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
+                            ->id('Current_Balance')
+                            ->class([
+                                'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300  edit-view',
+                            ])->placeholder('Select Credit Limit')
+                        !!}
+                         
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-700 mb-1">Available Credit:</span>
-                            <span class="text-green-600 font-medium">$12,250.00</span>
+                            <span class="text-green-600 font-medium static-view">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</span>
+                            {!! html()
+                            ->select('Available_Credit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
+                            ->id('Available_Credit')
+                            ->class([
+                                'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300  edit-view',
+                            ])->placeholder('Select Credit Limit')
+                        !!}
+
+                        
+                        
                         </div>
-                        <div>
+                        <div class="static-view">
+                            @php
+                            $climit=$customer->credit_limit;
+                            $available=$customer->credit_limit;
+                            $per=(($available/$climit) * 100)
+                            @endphp
                             <label class="text-gray-700 mb-1 text-sm">Credit Utilization</label>
                             <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                <div class="bg-blue-500 h-2 rounded-full" style="width: 18%;"></div>
+                                <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%;"></div>
                             </div>
-                            <div class="text-right text-xs text-gray-500 mt-0.5">18%</div>
+                            <div class="text-right text-xs text-gray-500 mt-0.5">{{round($per)}}%</div>
                         </div>
                     </div>
                 </div>
@@ -413,17 +526,74 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Left: Tax Info -->
                     <div class="space-y-2 text-sm text-gray-700">
-                        <div class="flex justify-between">
+                        <div class="flex justify-between items-center">
                             <span class="text-gray-700 mb-1">Tax Status:</span>
-                            <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $customer->tax_status ?? 'N/A' }}</span>
+                            <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $customer->tax_status ?? 'N/A' }}</span> -->
+
+                             <div class="static-view">
+                            <span class="inline-flex items-center gap-2 text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">
+                                @if ($customer->tax_status === 'Exempt')
+                                    <x-heroicon-o-shield-check class="w-4 h-4 text-green-500" />
+                                @else
+                                    <x-heroicon-o-shield-check class="w-4 h-4 text-gray-500" />
+                                @endif
+                                {{ $customer->tax_status ?? 'N/A' }}
+                            </span>
+                            </div>
+
+                             {!! html()
+                                ->select('tax_status', [
+                                    'Taxable' => 'Taxable',
+                                    'Exempt' => 'Exempt',
+                                ], old('tax_status', $customer->tax_status ?? ''))
+                                ->id('tax_status')
+                                ->class([
+                                    'edit-view border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300',
+                                ])
+                            !!}
+
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between items-center">
                             <span class="text-gray-700 mb-1">Valid Until:</span>
-                            <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</span>
+
+
+                              <div class="static-view">
+                              <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</span>
+                            </div>
+
+                            <div class="edit-view">
+                            <input
+                                class="w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                                value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) }}"
+                                type="text"
+                                name="tax_document_valid_until"
+                                id="tax_document_valid_until"
+                                placeholder="MM-DD-YYYY"
+                                autocomplete="off"
+                            />                            </div>
+
+
+
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between items-center">
                             <span class="text-gray-700 mb-1">Uploaded:</span>
-                            <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
+
+                            <div class="static-view">
+                              <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
+                            </div>
+                            <div class="edit-view">
+
+<input
+    class="w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+    type="text"
+    value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) }}"
+    name="tax_document_upload_date"
+    id="tax_document_upload_date"
+    placeholder="MM-DD-YYYY"
+    autocomplete="off"
+/>                            </div>
+
+                            <!-- <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span> -->
                         </div>
                     </div>
 
@@ -440,6 +610,9 @@
                                     <div class="min-w-0">
                                         <div class="font-medium text-gray-800 truncate">{{$customer->media->original_file_name ?? ''}}</div>
                                         <div class="text-gray-500 text-xs">
+                                    Type: <span class="text-grey-500 text-xs">{{$customer->tax_document_type ?? 'N/A'}}</span>
+                                  </div>
+                                        <div class="text-gray-500 text-xs">
                                         Status: 
                                         <span id="tax-status-{{ $customer->id }}" class="font-medium
                                             {{ $customer->tax_document_status === 'Rejected' ? 'text-red-600' :
@@ -453,26 +626,25 @@
 
                                     <!-- Right Side: Actions -->
                                     <div class="flex gap-4 text-sm justify-end sm:justify-start">
-                                        <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" class="text-blue-600">View</a>
+                                        <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" @if(isset($customer->media)) target="_blank" @endif class="text-blue-600">View</a>
 
-                                        <button 
-            class="text-green-600 tax-status-btn" 
-            data-id="{{ $customer->id }}" 
-            data-status="Approved">Approve</button>
-        <button 
-            class="text-red-600 tax-status-btn" 
-            data-id="{{ $customer->id }}" 
-            data-status="Rejected">Reject</button>
+                                        <!-- <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" class="text-red-600 tax-status-btn">Delete</a> -->
 
-                                        <!-- <a href="#" class="text-green-600">Approve</a>
-                                        <a href="#" class="text-red-600">Reject</a> -->
-
+                                        
+                                 <!-- Delete Button -->
+    <button type="button"
+        class="text-red-600"
+        onclick="confirmAndDelete({{ $customer->id }})"
+    >
+        Delete
+    </button>
+                                   
 
                                     </div>
                                 </div>
                         </div>
                           @else
-                           <div class="flex justify-center items-center ">
+                           <div class="flex justify-end items-center ">
                                 <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
                                     No tax document has been uploaded yet.
                                 </div>
@@ -553,11 +725,283 @@
     </div>
 </div>
 
+
+
+
+
+
+
+
   {{ html()->form()->close() }}
+
+
+<!-- Reset Password Modal Wrapper -->
+<div id="resetPasswordModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center gap-2">
+                    <div class="text-yellow-500 rounded-md p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             class="lucide lucide-lock w-4 h-4 mr-2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900">Reset Password</h2>
+                </div>
+                <button id="closeResetPasswordModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto">
+                
+             
+                   {{ html()->form()->attributes([
+    'class' => 'space-y-5',
+    'method' => 'POST',
+    'id' => 'resetPasswordForm',
+    'autocomplete' => 'off',
+    'data-parsley-validate' => true,
+])->open() }}
+
+    @csrf
+    @method('POST')
+
+    {{ html()->hidden('customer_id', $customer->id) }}
+
+    <div>
+        <label class="text-gray-700 mb-2">New Password</label>
+        {{ html()->password('password')->attributes([
+            'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+            'required' => true,
+            'id' => 'password',
+            'data-parsley-errors-container' => '#password-errors',
+        ])->placeholder('') }}
+        <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
+                                    @error('password')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+    </div>
+
+    <div>
+        <label class="text-gray-700 mb-2">Password Confirmation</label>
+        {{ html()->password('password_confirmation')->attributes([
+            'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+            'required' => true,
+            'id' => 'password_confirmation',
+            'data-parsley-equalto' => '#password',
+        ])->placeholder('') }}
+    </div>
+
+    <div class="flex justify-end gap-2 pb-4">
+        <button type="button" id="cancelResetPasswordBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
+            Cancel
+        </button>
+        <button type="submit" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+            Update Password
+        </button>
+    </div>
+
+{{ html()->form()->close() }}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- Hidden Delete Form -->
+<form id="delete-media-form-{{ $customer->id }}"
+    method="POST"
+    action="{{ route('admin.crm.customers.tax-document.delete', $customer->unique_id) }}"
+    style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+<form id="suspend-customer-form-{{ $customer->id }}"
+    method="POST"
+    action="{{ route('admin.crm.customers.status-update.customer', $customer->unique_id) }}"
+    style="display: none;">
+    <input type="hidden" name="cstatus" id="cstatus" value="">
+    @csrf
+    @method('POST')
+</form>
+
 
 
 
 @push('js')
+<script>
+    function confirmAndDelete(id) {
+        if (confirm("Are you sure you want to delete this document?")) {
+            document.getElementById(`delete-media-form-${id}`).submit();
+        }
+    }
+    function confirmAndSuspend(id) {
+        if (confirm("Are you sure you want to suspend this customer?")) {
+            document.getElementById(`cstatus`).value="Inactive";
+            document.getElementById(`suspend-customer-form-${id}`).submit();
+        }
+    }
+    function confirmAndActive(id) {
+        if (confirm("Are you sure you want to activate this customer?")) {
+            document.getElementById(`cstatus`).value="Active";
+            document.getElementById(`suspend-customer-form-${id}`).submit();
+        }
+    }
+    
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const resetModal = document.getElementById('resetPasswordModalWrapper');
+        const openBtn = document.getElementById('openResetPasswordModal');
+        const closeBtn = document.getElementById('closeResetPasswordModalBtn');
+        const cancelBtn = document.getElementById('cancelResetPasswordBtn');
+
+        const openModal = () => resetModal.style.display = 'flex';
+        const closeModal = () => resetModal.style.display = 'none';
+
+        openBtn?.addEventListener('click', openModal);
+        closeBtn?.addEventListener('click', closeModal);
+        cancelBtn?.addEventListener('click', closeModal);
+
+        resetModal?.addEventListener('click', (e) => {
+            if (e.target === resetModal) closeModal();
+        });
+    });
+</script>
+
+<script>
+    $('#resetPasswordForm').parsley();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('password_confirmation');
+    const passwordError = document.getElementById('password-errors');
+
+    // Password length check
+    passwordInput.addEventListener('input', function () {
+        const password = passwordInput.value;
+        if (password.length < 6) {
+            passwordError.textContent = 'Password must be at least 6 characters long.';
+        } else {
+            passwordError.textContent = '';
+        }
+        validateConfirmPassword();
+    });
+
+    // Confirm password match check
+    confirmInput.addEventListener('input', function () {
+        validateConfirmPassword();
+    });
+
+    function validateConfirmPassword() {
+        const password = passwordInput.value;
+        const confirm = confirmInput.value;
+        const existingError = document.getElementById('confirm-password-error');
+
+        if (confirm && confirm !== password) {
+            if (!existingError) {
+                const error = document.createElement('p');
+                error.id = 'confirm-password-error';
+                error.className = 'text-sm text-red-600 mt-1';
+                error.textContent = 'Passwords do not match.';
+                confirmInput.insertAdjacentElement('afterend', error);
+            }
+        } else {
+            if (existingError) {
+                existingError.remove();
+            }
+        }
+    }
+});
+</script>
+
+<script>
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
+    // Expecting { valid: true/false }
+    const response = xhr.responseJSON || {};
+    return response.valid === true;
+});
+
+
+    const dateInputs = document.querySelectorAll('input.datepicker');
+
+    const jsFormat = @json(config('app.date.js_date_format'));
+    dateInputs.forEach(input => {
+        new AirDatepicker(input, {
+            autoClose: true,
+            dateFormat: jsFormat,
+            minDate: new Date(),
+            locale: {
+                days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                daysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                months: [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ],
+                monthsShort: [
+                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                ],
+                today: 'Today',
+                clear: 'Clear',
+                dateFormat: jsFormat,
+                timeFormat: 'hh:mm aa',
+                firstDay: 0
+            }
+        });
+    });
+});
+
+</script>
+
+
+
+<script>
+document.getElementById('resetPasswordForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+   fetch("{{ route('admin.crm.customers.password.update') }}", {
+        method: "POST",
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            notyf.success(data.message || "Password updated.");
+            document.getElementById('resetPasswordModalWrapper').style.display = 'none';
+        } else {
+            notyf.error(data.message || "Password reset failed.");
+        }
+    })
+    .catch(error => {
+        console.error("AJAX error:", error);
+        notyf.error("Something went wrong.");
+    });
+});
+</script>
+
+
+
 
 <script>
     document.querySelectorAll('.tax-status-btn').forEach(button => {

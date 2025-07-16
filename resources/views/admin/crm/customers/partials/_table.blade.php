@@ -1,13 +1,13 @@
 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
             <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
             <tr>
-                <th class="px-4 py-3 text-left font-semibold">Customer</th>
-                <th class="px-4 py-3 text-left font-semibold">Company</th>
-                <th class="px-4 py-3 text-left font-semibold">Contact</th>
-                <th class="px-4 py-3 text-left font-semibold">Status</th>
-                <th class="px-4 py-3 text-left font-semibold">Orders</th>
-                <th class="px-4 py-3 text-left font-semibold">Total Spent</th>
-                <th class="px-4 py-3 text-left font-semibold">Actions</th>
+                <th class="w-45 px-4 py-3 text-left font-semibold">Customer</th>
+                <th class="w-40 px-4 py-3 text-left font-semibold">Company</th>
+                <th class="w-45 px-4 py-3 text-left font-semibold">Contact</th>
+                <th class="w-45 px-4 py-3 text-left font-semibold">Status</th>
+                <th class="w-40 px-4 py-3 text-left font-semibold">Orders</th>
+                <th class="w-35 px-4 py-3 text-left font-semibold">Total Spent</th>
+                <th class="w-35 px-4 py-3 text-left font-semibold">Actions</th>
             </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-900 dark:text-gray-100">
@@ -59,11 +59,20 @@
                 $style = $statusStyles[$status] ?? ['label' => $status, 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'];
             @endphp
 
+            
 
-            <td class="px-4 py-3">
-                <span class="inline-block rounded-full {{ $style['bg'] }} {{ $style['text'] }} px-2 py-0.5 text-xs font-medium">
-                    {{ $style['label'] }}
+
+            <td class="px-4 py-3 inline-flex ">
+                <span class="items-center gap-2 px-2 py-1 text-xs font-medium rounded-full {{ $style['bg'] }} {{ $style['text'] }} px-2 py-0.5 text-xs font-medium">
+                      {{ $style['label'] }}
                 </span>
+                @if ($customer->tax_status === 'Exempt')
+                   <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check class="w-4 h-4 text-green-500" /></span>
+                @else
+                   <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check class="w-4 h-4 text-gray-500" /></span>
+                @endif
+
+
             </td>
 
                 <td class="px-4 py-3">
@@ -73,7 +82,7 @@
                 {{ \App\Helpers\CustomHelper::formatCurrency($customer->total_order_amount) }}
                 </td>
                 <td class="px-4 py-3 space-x-2">
-                   <a href="{{ route('admin.crm.customers.view', $customer->unique_id) }}">
+                   <a href="{{ route('admin.crm.customers.view', $customer->unique_id) }}" target="_blank">
 
                     <button class="text-blue-600 hover:text-blue-800" title="View">
                         <x-heroicon-o-eye class="w-5 h-5" />

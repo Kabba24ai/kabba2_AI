@@ -24,17 +24,31 @@ class ViewUpdateController extends Controller
         $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
 
         DB::beginTransaction();
-        // dd($validated);
+      
         try {
+
+                $fullWebsite = trim(($validated['website_protocol'] ?? '') . ($validated['company_website'] ?? '') . ($validated['website_extension'] ?? ''));
+           $customerData['company_website'] = $fullWebsite;
+
+
             $customerData = [
                 'first_name' => $validated['first_name'] ?? null,
                 'last_name' => $validated['last_name'] ?? null,
                 'company_name' => $validated['company_name'] ?? null,
                 'email' => $validated['email'] ?? null,
-                'company_website' => $validated['company_website'] ?? null,
+              
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
+
+                'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
+                'tax_document_upload_date' => CustomHelper::parseDateFromInput($validated['tax_document_upload_date'] ?? null),
+                'is_credit_account' => $validated['is_credit_account'] ?? false,
+                 'tax_status' => $validated['tax_status'] ?? 'Taxable',
+
+                    'credit_limit' => $validated['credit_limit'] ?? null,
             ];
+
+               $customerData['company_website'] = $fullWebsite;
 
             $customer->update($customerData);
 

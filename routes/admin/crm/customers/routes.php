@@ -14,6 +14,10 @@ use App\Http\Controllers\Admin\Crm\Customers\CheckEmailController;
 use App\Http\Controllers\Admin\Crm\Customers\ViewController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentDeleteController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxStatusUpdateController;
+use App\Http\Controllers\Admin\Crm\Customers\CustomerStatusUpdateController;
+
+use App\Http\Controllers\Admin\Crm\Customers\PasswordResetController;
+
 use App\Http\Controllers\Admin\Crm\Customers\LoginController;
 
 
@@ -48,4 +52,8 @@ Route::prefix('customers')
 
     Route::delete('/tax-document/{unique_id}', TaxDocumentDeleteController::class)->name('tax-document.delete');
     Route::get('/{unique_id}/login', LoginController::class)->name('login');
+
+    Route::post('/password/update', PasswordResetController::class)->name('password.update');
+
+   Route::post('/status-update/{unique_id}', CustomerStatusUpdateController::class)->name('status-update.customer');
 });

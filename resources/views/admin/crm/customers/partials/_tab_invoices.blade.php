@@ -6,11 +6,11 @@
                         <p class="text-sm text-gray-600">Manage customer invoices, payments, and billing administration</p>
                     </div>
 
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                         <button class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md font-medium">
                             + Create Invoice
                         </button>
-                        <div class="md:text-right text-left">
+                        <div class="text-left sm:text-right">
                             <p class="text-sm text-gray-600">Current Balance</p>
                             <p class="text-lg font-bold text-gray-900">$2,750.00</p>
                         </div>

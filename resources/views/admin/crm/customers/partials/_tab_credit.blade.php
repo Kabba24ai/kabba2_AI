@@ -15,7 +15,7 @@
                     </div>
                     <div>
                     <p class="text-sm text-gray-500">Current Balance</p>
-                    <p class="text-lg font-semibold text-gray-900">$2,750.00</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -27,7 +27,7 @@
                     </div>
                     <div>
                     <p class="text-sm text-gray-500">Available Credit</p>
-                    <p class="text-lg font-semibold text-gray-900">$12,250.00</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -58,7 +58,7 @@
                     </div>
                     <div>
                     <p class="text-sm text-gray-500">Last Payment Date</p>
-                    <p class="text-lg font-semibold text-gray-900">Jan 18, 2025</p>
+                    <p class="text-lg font-semibold text-gray-900">Not Applicable </p>
                     </div>
                 </div>
             </div>

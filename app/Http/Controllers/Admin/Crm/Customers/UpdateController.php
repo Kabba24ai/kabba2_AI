@@ -42,7 +42,6 @@ class UpdateController extends Controller
                 'tax_status' => $validated['tax_status'] ?? 'Taxable',
                 //'tax_document_media_id' => $validated['tax_document_media_id'] ?? null,
                
-              
                 'is_credit_account' => $validated['is_credit_account'] ?? false,
                 'credit_limit' => $validated['credit_limit'] ?? null,
                
@@ -51,8 +50,6 @@ class UpdateController extends Controller
                 'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
                 'tax_document_upload_date' => CustomHelper::parseDateFromInput($validated['tax_document_upload_date'] ?? null),
                 'account_application_completed' => CustomHelper::parseDateFromInput($validated['account_application_completed'] ?? null),
-
-
 
                 'tax_document_status' => $validated['tax_document_review_status'] ?? '',
 

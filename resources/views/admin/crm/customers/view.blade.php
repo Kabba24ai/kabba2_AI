@@ -393,30 +393,10 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 
-<!-- <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const filter = document.getElementById('statusFilter');
-    const rows = document.querySelectorAll('.order-row');
-
-    filter.addEventListener('change', function () {
-      const value = this.value;
-
-      rows.forEach(row => {
-        const rowStatus = row.getAttribute('data-status');
-        if (value === 'all' || rowStatus === value) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
-      });
-    });
-  });
-</script> -->
-
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const creditUsed = 5050;
+    const creditUsed = 0;
     const creditLimit = {{ $customer->credit_limit ?? 0 }} ;
     const available = creditLimit - creditUsed;
     const percentUsed = (creditUsed / creditLimit) * 100;

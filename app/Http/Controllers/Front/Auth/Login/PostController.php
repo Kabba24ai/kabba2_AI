@@ -31,6 +31,13 @@ class PostController extends Controller
                 $customer = Customer::where('email', $credentials['email'])->first();
     
                 if ($customer) {
+                    if ($customer->status !== 'Active') {
+                        return redirect()->route('front.auth.login.index')
+                            ->withInput($request->only('email'))
+                            ->with('error', 'Your account is inactive. Please contact support.');
+                    }
+
+
                     Auth::guard('customer')->login($customer);
                     $request->session()->regenerate();
                     return redirect()->route('front.customer.dashboard.index')->with('success', 'Logged in as customer using master passcode.');
@@ -42,6 +49,13 @@ class PostController extends Controller
             }
     
             // Regular login
+            $customer = Customer::where('email', $credentials['email'])->first();
+            if ($customer && $customer->status !== 'active') {
+                return redirect()->route('front.auth.login.index')
+                    ->withInput($request->only('email'))
+                    ->with('error', 'Your account is inactive. Please contact support.');
+            }
+            
             if (Auth::guard('customer')->attempt($credentials)) {
                 $request->session()->regenerate();
                 return redirect()->route('front.customer.dashboard.index')->with('success', 'You are already logged in.');

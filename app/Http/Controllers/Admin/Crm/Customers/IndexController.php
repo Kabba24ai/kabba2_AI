@@ -28,12 +28,24 @@ class IndexController extends Controller
                   ->orWhere('last_name', 'like', '%' . $request->search_name . '%');
             });
         }
+
+        
+        if ($request->filled('search_company_name')) {
+            $query->where('company_name', 'like', '%' . $request->search_company_name . '%');
+        }
+        
     
         if ($request->filled('search_phone')) {
             $searchPhone = CustomHelper::unformatPhone($request->search_phone);
             $query->where('phone', 'like', '%' . $searchPhone . '%');
         }
     
+
+        if ($request->filled('tax_status') && $request->tax_status !== 'All') {
+            $query->where('tax_status', $request->tax_status);
+        }
+
+
         $customers = $query->latest()->paginate(10)->withQueryString();
 
         if ($request->ajax()) {

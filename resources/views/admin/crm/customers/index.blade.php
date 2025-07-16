@@ -21,7 +21,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-3 sm:space-y-0 mb-6">
 
         <!-- Search by name -->
-        <div class="relative w-full sm:w-64">
+        <div class="relative w-full sm:w-48">
             <input type="text" name="search_name" placeholder="Search by name..." value="{{ request('search_name') }}"
                 class="w-full h-10 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -33,10 +33,23 @@
             </div>
         </div>
 
-        <!-- Search by phone -->
-        <div class="relative w-full sm:w-64">
-            <input type="text" name="search_phone" placeholder="Search by phone..." value="{{ request('search_phone') }}"
+         <!-- Search by company -->
+        <div class="relative w-full sm:w-48">
+            <input type="text" name="search_company_name" placeholder="Search by company..." value="{{ request('search_company_name') }}"
                 class="w-full h-10 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
+            <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Search by phone -->
+        <div class="relative w-full sm:w-48">
+            <input type="text" name="search_phone" placeholder="(xxx) xxx-xxxx" value="{{ request('search_phone') }}"
+                class="masked-phone w-full h-10 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -48,6 +61,22 @@
                 </svg>
             </div>
         </div>
+        <div>
+
+        <select class="w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300" name="tax_status" id="tax_status">
+            <option value="All" {{ request('status') === 'All' ? 'selected' : '' }}>All</option>
+            <option value="Exempt" {{ request('status') === 'Exempt' ? 'selected' : '' }}>Exempt</option>
+            <option value="Taxable" {{ request('status') === 'Taxable' ? 'selected' : '' }}>Taxable</option>
+        </select>
+
+
+            <!-- <select class="w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300" name="status" id="status" required="">
+                <option value="All">All</option>
+                <option value="Exempt">Exempt</option>
+                <option value="Taxable">Taxable</option>
+            </select> -->
+        </div>
+        
 
         <!-- Total count -->
         <div class="w-full sm:w-auto px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
@@ -70,19 +99,27 @@
 
 @push('js')
 <script>
+
 document.addEventListener("DOMContentLoaded", function () {
     let nameInput = document.querySelector('input[name="search_name"]');
     let phoneInput = document.querySelector('input[name="search_phone"]');
+    let company_name = document.querySelector('input[name="search_company_name"]');
+    let statusSelect = document.querySelector('select[name="tax_status"]');
     let wrapper = document.querySelector('#customer-table-wrapper');
+
     let timeout = null;
 
     function fetchCustomers() {
         const name = nameInput.value;
         const phone = phoneInput.value;
+        const company = company_name.value;
+        const tax_status = statusSelect.value;
 
         const params = new URLSearchParams();
         if (name.length >= 3 || name.length === 0) params.append('search_name', name);
         if (phone.length >= 3 || phone.length === 0) params.append('search_phone', phone);
+        if (company.length >= 3 || company.length === 0) params.append('search_company_name', company);
+        if (tax_status !== 'All') params.append('tax_status', tax_status);
 
         fetch("{{ route('admin.crm.customers.index') }}?" + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -97,6 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Delayed filters
     nameInput.addEventListener('input', function () {
         clearTimeout(timeout);
         timeout = setTimeout(fetchCustomers, 400);
@@ -106,8 +144,17 @@ document.addEventListener("DOMContentLoaded", function () {
         clearTimeout(timeout);
         timeout = setTimeout(fetchCustomers, 400);
     });
-});
 
+    company_name.addEventListener('input', function () {
+        clearTimeout(timeout);
+        timeout = setTimeout(fetchCustomers, 400);
+    });
+
+    // Immediate filter for tax_status
+    statusSelect.addEventListener('change', function () {
+        fetchCustomers(); // no timeout
+    });
+});
 </script>
 
 @endpush

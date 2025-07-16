@@ -38,8 +38,8 @@ class UpdateRequest extends FormRequest
             'is_guest' => ['boolean'],
             'tax_status' => ['required', Rule::in(['Taxable', 'Exempt'])],
             'tax_document_media_id' => ['nullable'],
-            'tax_document_upload_date' => ['nullable', 'date'],
-            'tax_document_valid_until' => ['nullable', 'date'],
+            'tax_document_upload_date' => ['nullable'],
+            'tax_document_valid_until' => ['nullable'],
 
             
             'account_approved_by' => ['nullable'],
@@ -54,7 +54,7 @@ class UpdateRequest extends FormRequest
             'company_phone' => ['nullable'],
             
             'billing_address' => ['nullable', 'string'],
-            'account_application_completed' => ['nullable', 'date'],
+            'account_application_completed' => ['nullable'],
 
             'alladdresslist'=>['nullable'],
             'website_protocol' => ['nullable', 'string'],

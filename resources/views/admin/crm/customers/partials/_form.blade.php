@@ -352,7 +352,7 @@
                 <div class="w-full">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Completed On</label>
 
-                        {!! html()->text('account_application_completed', old('account_application_completed', $customer->account_application_completed ?? ''))->class([
+                        {!! html()->text('account_application_completed', old('account_application_completed', \App\Helpers\CustomHelper::formatDate($customer->account_application_completed ?? null) ?? null))->class([
                             'w-full border datepicker unded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white',
                             'border-red-500' => $errors->has('account_application_completed'),
                             'border-gray-300' => !$errors->has('account_application_completed'),
@@ -440,7 +440,7 @@
                     <div class="w-full">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Upload Date</label>
 
-                        {!! html()->text('tax_document_upload_date', old('tax_document_upload_date', $customer->tax_document_upload_date ?? null))->class([
+                        {!! html()->text('tax_document_upload_date', old('tax_document_upload_date', \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) ?? null))->class([
                             'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker',
                             'border-red-500' => $errors->has('tax_document_upload_date'),
                             'border-gray-300' => !$errors->has('tax_document_upload_date'),
@@ -458,7 +458,7 @@
                     <div class="w-full">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
 
-                        {!! html()->text('tax_document_valid_until', old('tax_document_valid_until', $customer->tax_document_valid_until ?? null))->class([
+                        {!! html()->text('tax_document_valid_until', old('tax_document_valid_until', \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) ?? null))->class([
                             'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker',
                             'border-red-500' => $errors->has('tax_document_valid_until'),
                             'border-gray-300' => !$errors->has('tax_document_valid_until'),

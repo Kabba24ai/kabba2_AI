@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 // Models
+use App\Models\Locations\State;
 use App\Models\Customers\Customer;
 
 class ViewController extends Controller
@@ -24,8 +25,13 @@ class ViewController extends Controller
         ->where('unique_id', $unique_id)
         ->firstOrFail();
 
+         $states = State::get();
+
+
         return view('admin.crm.customers.view', [
             'customer' => $customer,
+            'states' => $states,
+
         ]);
     }
 }

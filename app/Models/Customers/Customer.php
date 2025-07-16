@@ -45,7 +45,8 @@ class Customer extends Authenticatable
         'credit_limit',
         'account_approved_by',
         'account_application_completed',
-        'tax_status_approved_by'
+        'tax_status_approved_by',
+        'tax_document_type'
     ];
 
     protected $appends = [

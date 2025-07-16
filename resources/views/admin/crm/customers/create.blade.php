@@ -16,8 +16,6 @@
         </a>
     </div> -->
 
-
-
                 @include('flash::message')
                 @include('admin.partials.formErrors')
 
@@ -72,7 +70,6 @@
                         @include('admin.crm.customers.partials._form')
 
                    
-
                     {{ html()->form()->close() }}
 
                     

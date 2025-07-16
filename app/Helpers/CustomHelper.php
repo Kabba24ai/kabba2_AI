@@ -23,7 +23,17 @@ class CustomHelper
         return Carbon::parse($date)->format($format);
     }
 
+    public static function parseDateFromInput($date)
+    {
+        if (empty($date)) {
+            return null;
+        }
 
+        $inputFormat = config('app.date.date_format', 'd/m/Y'); 
+        $dbFormat = config('app.date.db_date_format', 'Y-m-d'); 
+
+        return Carbon::createFromFormat($inputFormat, $date)->format($dbFormat);
+    }
    
     public static function unformatPhone(string $formattedPhone): string
     {

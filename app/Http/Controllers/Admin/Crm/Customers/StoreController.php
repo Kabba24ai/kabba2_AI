@@ -10,7 +10,7 @@ use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 
 // Request
-use App\Http\Requests\Admin\CRM\Customers\StoreRequest;
+use App\Http\Requests\Admin\Crm\Customers\StoreRequest;
 use Illuminate\Support\Carbon;
 use App\Helpers\CustomHelper;
 
@@ -48,19 +48,30 @@ class StoreController extends Controller
                 'is_guest' => $validated['is_guest'] ?? false,
                 'tax_status' => $validated['tax_status'] ?? 'Taxable',
                 'tax_document_media_id' => $validated['tax_document_media_id'] ?? null,
-                'tax_document_upload_date' => !empty($validated['tax_document_upload_date'])
-                    ? Carbon::createFromFormat('m/d/Y', $validated['tax_document_upload_date'])->format('Y-m-d')
-                    : null,
-                'tax_document_valid_until' => !empty($validated['tax_document_valid_until'])
-                    ? Carbon::createFromFormat('m/d/Y', $validated['tax_document_valid_until'])->format('Y-m-d')
-                    : null,
+
+                 
+                'tax_document_upload_date' => CustomHelper::parseDateFromInput($validated['tax_document_upload_date'] ?? null),
+            'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
+            'account_application_completed' => CustomHelper::parseDateFromInput($validated['account_application_completed'] ?? null),
+
+
+
+                // 'tax_document_upload_date' => !empty($validated['tax_document_upload_date'])
+                //     ? Carbon::createFromFormat('m/d/Y', $validated['tax_document_upload_date'])->format('Y-m-d')
+                //     : null,
+                // 'tax_document_valid_until' => !empty($validated['tax_document_valid_until'])
+                //     ? Carbon::createFromFormat('m/d/Y', $validated['tax_document_valid_until'])->format('Y-m-d')
+                //     : null,
+
                     'tax_status_approved_by' => $validated['tax_status_approved_by'] ?? null,
                     'account_approved_by' => $validated['account_approved_by'] ?? null,
                 'is_credit_account' => $validated['is_credit_account'] ?? false,
                 'credit_limit' => $validated['credit_limit'] ?? null,
-                'account_application_completed' => !empty($validated['account_application_completed'])
-                ? Carbon::createFromFormat('m/d/Y', $validated['account_application_completed'])->format('Y-m-d')
-                : null,
+
+                // 'account_application_completed' => !empty($validated['account_application_completed'])
+                // ? Carbon::createFromFormat('m/d/Y', $validated['account_application_completed'])->format('Y-m-d')
+                // : null,
+                
                 'tax_status' => $validated['tax_status'] ?? null,
             ];
 

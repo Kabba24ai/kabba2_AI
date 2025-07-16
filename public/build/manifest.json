@@ -1,6 +1,6 @@
 {
-  "_air-datepicker-CiI0Us0J.js": {
-    "file": "assets/air-datepicker-CiI0Us0J.js",
+  "_air-datepicker-DtYvX2mR.js": {
+    "file": "assets/air-datepicker-DtYvX2mR.js",
     "name": "air-datepicker",
     "css": [
       "assets/air-datepicker-jshjrsWp.css"
@@ -43,49 +43,49 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-BfDIRO6A.css",
+    "file": "assets/app-PCt101Zd.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-BPPxtl1d.js",
+    "file": "assets/app-CEyemfwO.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_air-datepicker-CiI0Us0J.js"
+      "_air-datepicker-DtYvX2mR.js"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app--BtbNQtG.css",
+    "file": "assets/app-D9e0Y7Ng.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-DTCNfdIY.css",
+    "file": "assets/app-CxPq1ArG.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-CYf2qvhH.js",
+    "file": "assets/app-CWNgOl43.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_air-datepicker-CiI0Us0J.js"
+      "_air-datepicker-DtYvX2mR.js"
     ],
     "css": [
       "assets/app-Bt149cem.css"
     ]
   },
   "resources/front/assets/js/products/product-details-page.js": {
-    "file": "assets/product-details-page-DRfyU43G.js",
+    "file": "assets/product-details-page-Dfe11GdU.js",
     "name": "product-details-page",
     "src": "resources/front/assets/js/products/product-details-page.js",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-43T2tYNv.js",
+    "file": "assets/app-DrBeKiNS.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

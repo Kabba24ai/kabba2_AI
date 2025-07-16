@@ -29,9 +29,9 @@
                     </button>
 
                     <button
-                        class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                        class="inline-flex items-center border-b-2 whitespace-nowrap px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'credit' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
-                        x-on:click="activeTab = 'creditt'">
+                        x-on:click="activeTab = 'credit'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                         Credit Account
                     </button>
@@ -39,7 +39,7 @@
                     <button
                         class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'invoices' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
-                        x-on:click="activeTab = 'invoicess'">
+                        x-on:click="activeTab = 'invoices'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
                         Invoices
                     </button>
@@ -47,7 +47,7 @@
                     <button
                         class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'account' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
-                        x-on:click="activeTab = 'accountt'">
+                        x-on:click="activeTab = 'account'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-4 h-4 mr-2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         Account
                     </button>
@@ -144,7 +144,7 @@
                         </div>
                     </div>
 
-                    <div class=" mx-auto px-4 py-6 bg-white rounded-md shadow-sm border border-gray-200">
+                    <div class=" mx-auto px-4 py-6 bg-white rounded-md shadow-sm border border-gray-200 mb-6">
                         <div class="flex items-center justify-between  border-b border-gray-200">
                             <h2 class="text-base font-semibold text-gray-800 mb-6">Recent Orders</h2>
                             <a href="#" class="text-sm text-blue-600 mb-6" id="viewAllOrdersLink">View All</a>
@@ -269,15 +269,7 @@
                     <div class="bg-white rounded-md shadow-sm p-6  mt-6 mb-6 border border-gray-200">
                         <!-- Header with Filter -->
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200">
-                            <h2 class="text-base font-semibold text-gray-800 mb-4">All Customer Orders</h2>
-                            <div class="mb-6">
-                                <label for="statusFilter" class="text-sm font-medium text-gray-700 mr-2">Filter by Status:</label>
-                                <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
-                                    <option value="all">All Orders</option>
-                                    <option value="paid">paid</option>
-                                    <option value="acct">Acct.</option>
-                                </select>
-                            </div>
+                            <h2 class="text-base font-semibold text-gray-800 mb-4">Your Orders</h2>
                         </div>
 
                         <!-- Table -->
@@ -449,7 +441,7 @@
                         <p class="text-sm text-center text-gray-500 mt-2"> Credit Limit: <span id="limitAmount">$0.00</span> </p>
                     </div>
 
-                    <div class=" mx-auto bg-white shadow rounded-md p-6 border border-gray-200">
+                    <div class=" mx-auto bg-white shadow rounded-md p-6 border border-gray-200 mb-6">
                         <!-- Header and Filter -->
                         <div class="border-b border-gray-200">
                             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
@@ -688,7 +680,7 @@
 
                             <div class="flex items-center gap-4">
                                
-                                <div class="text-right">
+                                <div class="text-left md:text-right">
                                     <p class="text-sm text-gray-600">Current Balance</p>
                                     <p class="text-lg font-bold text-gray-900">$2,750.00</p>
                                 </div>
@@ -750,7 +742,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-md shadow-sm p-6 border border-gray-200">
+                    <div class="bg-white rounded-md shadow-sm p-6 border border-gray-200 mb-6">
                         <!-- Header with Filter -->
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200">
                             <h2 class="text-base font-semibold text-gray-800 mb-4">Invoices</h2>
@@ -784,10 +776,6 @@
                                             </button>
                                             <button class="text-green-600 hover:text-green-900 inline-flex items-center">
                                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
-                                            </button>
-                                            
-                                            <button class="text-purple-600 hover:text-purple-900 inline-flex items-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg> Pay
                                             </button>
                                         </td>
                                     </tr>
@@ -855,8 +843,8 @@
                             <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                                 <div class="flex items-center gap-2">
                                     <button id="editBtn" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition">Edit Information</button>
-                                    <button id="saveBtn" style="display:none;" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Save Changes</button>
-                                    <button id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-3 py-1 rounded text-sm">Cancel</button>
+                                    <button id="saveBtn" style="display:none;" class="bg-green-600 text-white px-4 py-2 rounded text-sm">Save Changes</button>
+                                    <button id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Cancel</button>
                                 </div>
                             </div>
                         </div>
@@ -868,7 +856,7 @@
                             <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
                                 <x-heroicon-o-user class="w-5 h-5 mr-2 text-gray-500" /> Personal Information
                             </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+                            <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 text-sm text-gray-700">
                                 <div>
                                     <label class="text-gray-700 mb-1">First Name</label>
                                     <div class="static-view">John</div>
@@ -909,11 +897,11 @@
                         <!-- Company Information -->
                         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
                             <h3 class="text-md font-semibold mb-4 flex items-center gap-2">
-                                <x-heroicon-o-building-office class="w-5 h-5 text-gray-500" /> Company Information
+                                <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 mr-2" /> Company Information
                             </h3>
                             <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
-                                <div>
-                                    <label class="text-sm text-gray-700 mb-1">Company Name</label>
+                                <div class="col-span-2">
+                                    <label class="text-sm text-gray-700 mb-1 block">Company Name</label>
                                     <div class="static-view">Acme Corp</div>
                                     <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="Acme Corp" />
                                 </div>
@@ -1077,7 +1065,7 @@
 
                     </div>
 
-                    <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6">
+                    <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
                             <div class="flex items-center gap-2">
                                 <x-heroicon-o-document class="w-5 h-5 text-gray-500" />
@@ -1371,44 +1359,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const filter = document.getElementById('statusFilter');
-    const rows = document.querySelectorAll('.order-row');
 
-    // Count statuses
-    const statusCounts = {};
-
-    rows.forEach(row => {
-      const status = row.getAttribute('data-status');
-      statusCounts[status] = (statusCounts[status] || 0) + 1;
-    });
-
-    // Add counters to select options
-    Array.from(filter.options).forEach(option => {
-      const value = option.value;
-      if (value === 'all') {
-        option.textContent = `All Orders (${rows.length})`;
-      } else if (statusCounts[value] !== undefined) {
-        option.textContent = `${value.charAt(0).toUpperCase() + value.slice(1)} (${statusCounts[value]})`;
-      }
-    });
-
-    // Filter rows on change
-    filter.addEventListener('change', function () {
-      const value = this.value;
-
-      rows.forEach(row => {
-        const rowStatus = row.getAttribute('data-status');
-        if (value === 'all' || rowStatus === value) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
-      });
-    });
-  });
-</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

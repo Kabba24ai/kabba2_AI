@@ -495,10 +495,13 @@
                         
                         </div>
                         <div class="static-view">
+                            
+                           
                             @php
-                            $climit=$customer->credit_limit;
-                            $available=$customer->credit_limit;
-                            $per=(($available/$climit) * 100)
+                                $climit = $customer->credit_limit ?? 0;
+                                $available = $customer->available_credit ?? 0;
+
+                                $per = $climit > 0 ? (($available / $climit) * 100) : 0;
                             @endphp
                             <label class="text-gray-700 mb-1 text-sm">Credit Utilization</label>
                             <div class="w-full bg-gray-200 rounded-full h-2 mt-1">

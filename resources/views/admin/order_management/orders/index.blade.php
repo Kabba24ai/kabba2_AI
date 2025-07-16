@@ -123,7 +123,7 @@
                         <td class="px-4 py-3 text-left ">{{ $order->customer_phone }}</td>
                         <td class="px-4 py-3 font-semibold text-right">
                             {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
-                        <td class="px-4 py-3 text-center">{{ $order->payment_type }}</td>
+                        <td class="px-4 py-3 text-center">{{ $order->last_payment_type }}</td>
                         <td class="px-4 py-3 text-center">
                             <span
                                 class="text-xs font-semibold px-2 py-1 rounded-full

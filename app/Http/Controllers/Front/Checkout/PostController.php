@@ -143,7 +143,6 @@ class PostController extends Controller
                 'coupon_code' => null,
                 'discount_amount' => $cartSummary['discount'],
                 'grand_total' => $cartSummary['grand_total'],
-                'payment_type' => $validated['payment'],
                 'order_note' => $validated['orderNotes'] ?? null,
                 'status' => 'Pending',
                 'cart_data' => $cart,

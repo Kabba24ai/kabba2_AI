@@ -17,6 +17,7 @@ class Order extends Model
         'unique_id',
         'order_number',
         'order_date',
+        'order_time', // New column for order time
         'customer_id',
         'customer_name',
         'customer_email',
@@ -26,7 +27,6 @@ class Order extends Model
         'coupon_code',
         'discount_amount',
         'grand_total',
-        'payment_type', // COD*, Account, Card
         'order_note',
         'status', // Pending, In Progress, Completed, Cancelled
         'cart_data', // JSON data of cart items
@@ -35,6 +35,11 @@ class Order extends Model
 
     protected $casts = [
         'cart_data' => 'array',
+    ];
+
+    protected $appends = [
+        'view_link', // For generating view link in schedules
+        'last_payment_type',
     ];
 
     // Customer relationship (if you want)
@@ -92,7 +97,22 @@ class Order extends Model
 
             // Format: ORD-00001
             $model->order_number = '#' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-            $model->order_date = Carbon::now()->format(config('app.date.db_date_format'));
+            // Set current date and time
+            $currentDateTime = Carbon::now();
+            $model->order_date = $currentDateTime->format(config('app.date.db_date_format'));
+            $model->order_time = $currentDateTime->format('H:i:s');
         });
+    }
+
+    public function getViewLinkAttribute()
+    {
+        $url = route('admin.order-management.orders.edit', ['unique_id' => $this->unique_id]);
+        return '<a href="' . $url . '" class="text-brand-500 underline font-bold">' . $this->order_number . '</a>';
+    }
+
+    public function getLastPaymentTypeAttribute()
+    {
+        $lastPayment = $this->payments()->latest('id')->first();
+        return $lastPayment ? $lastPayment->payment_method : null;
     }
 }

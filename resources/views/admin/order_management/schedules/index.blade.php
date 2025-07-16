@@ -15,7 +15,8 @@
             <x-heroicon-o-calendar-days class="w-6 h-6 text-blue-600" />
             Schedule Management
         </h1>
-        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
+        <button onclick="location.reload()"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
             <x-heroicon-o-arrow-path class="w-5 h-5" />
             Reload
         </button>
@@ -114,124 +115,63 @@
                 </select>
             </div>
         </div>
+   </div>
+
+   <div class="mx-auto py-6">
+       <div class="bg-white shadow-sm rounded-lg overflow-x-auto">
+           <table class="min-w-full text-sm text-left whitespace-nowrap">
+               <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
+                   <tr>
+                       <th class="px-4 py-3 text-center">Product Name</th>
+                       <th class="px-4 py-3 text-center">OrderNumber</th>
+                       <th class="px-4 py-3 text-left">Customer</th>
+                       <th class="px-4 py-3 text-left">Delivery Address</th>
+                       <th class="px-4 py-3 text-left">Phone</th>
+                       <th class="px-4 py-3 text-left">Equipment</th>
+                       <th class="px-4 py-3 text-center">Delivery Date</th>
+                       <th class="px-4 py-3 text-center">Return Date</th>
+                       <th class="px-4 py-3 text-center">Payment</th>
+                       <th class="px-4 py-3 text-center">Actions</th>
+                   </tr>
+               </thead>
+               <tbody class="divide-y">
+                   @forelse ($orderProducts as $orderProduct)
+                       <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
+                           <td class="px-4 py-3 text-left">{{ $orderProduct->product_name }}</td>
+                           <td class="px-4 py-3 text-center">
+                             {!! $orderProduct->order->view_link !!}
+                           </td>
+                           <td class="px-4 py-3 text-left">{{ $orderProduct->order->customer_name }}</td>
+                           <td class="px-4 py-3 truncate max-w-xs ">{{ $orderProduct->order->shippingAddress->full_address }}</td>
+                           <td class="px-4 py-3 text-left ">{{ $orderProduct->order->customer_phone }}</td>
+                           <td class="px-4 py-3 text-left">{{ $orderProduct->equipment ?? 'N/A' }}</td>
+                           <td class="px-4 py-3 text-center">{{ $orderProduct->schedule_start_date ? $orderProduct->schedule_start_date : 'N/A' }}</td>
+                           <td class="px-4 py-3 text-center">{{ $orderProduct->schedule_end_date ? $orderProduct->schedule_end_date : 'N/A' }}</td>
+                           <td class="px-4 py-3 text-center">{{ $orderProduct->order->payment_status }}</td>
+                           <td class="px-4 py-3">
+                               <div class="flex gap-2 items-center justify-center">
+                                   <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
+                                       class="text-sky-600 hover:text-sky-800" title="View">
+                                       <x-heroicon-o-eye class="w-4 h-4" />
+                                   </a>
+                               </div>
+                           </td>
+                       </tr>
+                   @empty
+                       <tr>
+                           <td colspan="10" class="text-center text-sm text-gray-500 px-4 py-6">
+                               No orders found.
+                           </td>
+                       </tr>
+                   @endforelse
+               </tbody>
+           </table>
+       </div>
+       {{-- Pagination --}}
+       <div class="mt-6">
+           {{ $orderProducts->links('vendor.pagination.tailwind') }}
+       </div>
     </div>
-
-    <div class="mx-auto py-6">
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full divide-y divide-gray-200" style="min-width: 1800px;">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                                Product Name</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                                ID</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                                Customer Name</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                style="width: 175px;">Delivery Address</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
-                                Phone</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                                Equip. ID</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                                Equip. Name</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                                Delivery Date</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                                Return Date</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                                Payment</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                                Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach ($schedules as $index => $item)
-                            <tr class="{{ $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }} hover:bg-gray-50">
-                                <td class="px-4 py-4 w-40 text-sm font-medium text-gray-900">{{ $item->product_name }}</td>
-                                <td class="px-4 py-4 w-20 text-sm text-blue-600 font-medium">{{ substr($item->id, -4) }}
-                                </td>
-                                <td class="px-4 py-4 w-32 text-sm text-gray-900">{{ $item->customer_name }}</td>
-                                <td class="px-4 py-4 text-sm text-gray-900" style="width: 175px;">
-                                    <div class="truncate" title="{{ $item->delivery_address }}">
-                                        {{ $item->delivery_address }}</div>
-                                </td>
-                                <td class="px-4 py-4 w-28 text-sm text-gray-900">{{ $item->phone }}</td>
-                                <td class="px-4 py-4 w-24 text-sm text-gray-900">{{ $item->equip_id }}</td>
-                                <td class="px-4 py-4 w-32 text-sm text-gray-900">{{ $item->equip_name }}</td>
-
-                                <!-- Delivery Date with Icon -->
-                                <td class="px-4 py-4 w-32 text-sm text-gray-900">
-                                    <div class="flex items-center space-x-2">
-                                        @if ($item->delivery_mode === 'truck')
-                                            <x-heroicon-o-truck
-                                                class="w-5 h-5 {{ $item->delivery_status === 'completed' ? 'text-blue-600' : 'text-yellow-500' }}" />
-                                        @else
-                                            <x-heroicon-o-building-storefront
-                                                class="w-5 h-5 {{ $item->delivery_status === 'completed' ? 'text-blue-600' : 'text-yellow-500' }}" />
-                                        @endif
-                                        <span>{{ $item->delivery_date }} - {{ $item->delivery_time }}</span>
-                                    </div>
-                                </td>
-
-                                <!-- Return Date with Icon -->
-                                <td class="px-4 py-4 w-32 text-sm text-gray-900">
-                                    <div class="flex items-center space-x-2">
-                                        @if ($item->return_mode === 'truck')
-                                            <x-heroicon-o-truck
-                                                class="w-5 h-5 {{ $item->return_status === 'completed' ? 'text-blue-600' : 'text-yellow-500' }}" />
-                                        @else
-                                            <x-heroicon-o-building-storefront
-                                                class="w-5 h-5 {{ $item->return_status === 'completed' ? 'text-blue-600' : 'text-yellow-500' }}" />
-                                        @endif
-                                        <span>{{ $item->return_date }} - {{ $item->return_time }}</span>
-                                    </div>
-                                </td>
-
-                                <!-- Payment Status -->
-                                <td class="px-4 py-4 w-24">
-                                    <span
-                                        class="inline-flex px-2 py-1 text-xs font-medium rounded-full
-                                    {{ $item->payment_status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                        {{ strtoupper($item->payment_status) }}
-                                    </span>
-                                </td>
-
-                                <!-- Actions -->
-                                <td class="px-4 py-4 w-24 text-sm font-medium">
-                                    <div class="flex items-center space-x-2">
-                                        <a href="#"
-                                            class="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
-                                            title="Edit / Notes">
-                                            <x-heroicon-o-pencil class="w-4 h-4" />
-                                        </a>
-                                        <button onclick="confirm('Are you sure?')"
-                                            class="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                                            title="Delete Order">
-                                            <x-heroicon-o-trash class="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                <div class="text-sm text-gray-700">
-                    Showing {{ $schedules->firstItem() }} to {{ $schedules->lastItem() }} of {{ $schedules->total() }}
-                    records
-                </div>
-                <div>
-                    {{ $schedules->links() }}
-                </div>
-            </div>
-        </div>
-    </div>
-
 @endsection
 
 @push('js')

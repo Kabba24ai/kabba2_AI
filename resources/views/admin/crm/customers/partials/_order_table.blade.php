@@ -18,11 +18,11 @@
     @forelse ($customer->orders as $order)
         <tr class="border-b last:border-0">
             <td class="px-4 py-3 font-semibold text-gray-900">{{ $order->order_number }}</td>
-            <td class="px-4 py-3 text-gray-700"> {{ $customer->full_name }}</td> 
+            <td class="px-4 py-3 text-gray-700"> {{ $customer->full_name }}</td>
             <td class="px-4 py-3 text-gray-700">
                 {{ config('app.currency.code') }} {{ number_format($order->grand_total, 2) }}
             </td>
-            <td class="px-4 py-3 text-gray-700">{{ $order->payment_type ?? 'N/A' }}</td>
+            <td class="px-4 py-3 text-gray-700">{{ $order->last_payment_type ?? 'N/A' }}</td>
             <td class="px-4 py-3">
                 @php
                     $statusColors = [
@@ -38,7 +38,7 @@
                 </span>
             </td>
             <td class="px-4 py-3 text-gray-700">
-      
+
                 {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }}
 
             </td>

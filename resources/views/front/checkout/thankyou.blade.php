@@ -44,7 +44,7 @@
                     </div>
                     <div class="flex">
                         <span class="font-normal w-40 flex-shrink-0">Payment method:</span>
-                        <span class="text-custom-blue">{{ $order->payment_type ?? '' }}</span>
+                        <span class="text-custom-blue">{{ $order->last_payment_type ?? '' }}</span>
                     </div>
                     <div class="flex">
                         <span class="font-normal w-40 flex-shrink-0">Payment status:</span>

@@ -54,9 +54,9 @@
                 </nav>
             </div>
 
-            <div class="pt-4 dark:border-gray-800">
+            <div class=" dark:border-gray-800">
                 <div x-show="activeTab === 'dashboard'">
-                    <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
+                    <div class="bg-white mt-6 rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
                         <!-- Left: Name and Account -->
                         <div class="text-left">
                             <h2 class="text-lg font-semibold text-gray-900">John Doe</h2>
@@ -65,11 +65,11 @@
 
                         <!-- Center: Tax Status (Responsive) -->
                         <div class="text-left md:text-center w-full md:w-auto">
-                            <p class="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
+                            <p class="text-xs tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
                             <div class="inline-flex items-center gap-2">
-                                <span class="inline-flex items-center gap-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                    <x-heroicon-o-document-text class="w-4 h-4 text-green-500" />
-                                    Tax Exempt
+                                <span class="inline-flex items-center px-2 gap-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                    <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
+                                    <span class="leading-[1.2]">Tax Exempt</span>
                                 </span>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Valid until Dec 31, 2027</p>
@@ -94,15 +94,15 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4  mx-auto mt-6 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4  mx-auto mt-6">
                         <!-- Current Balance -->
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                                 <!-- Dollar Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500">Current Balance</p>
+                                <p class="text-sm font-medium text-gray-500">Current Balance</p>
                                 <p class="text-lg font-semibold text-gray-900">$2,750.00</p>
                             </div>
                         </div>
@@ -111,10 +111,10 @@
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-green-100 text-green-600 rounded-md p-2">
                                 <!-- Trending Up Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-4 h-4"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500">Available Credit</p>
+                                <p class="text-sm font-medium text-gray-500">Available Credit</p>
                                 <p class="text-lg font-semibold text-gray-900">$12,250.00</p>
                             </div>
                         </div>
@@ -123,10 +123,10 @@
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
                                 <!-- Document Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-6 h-6"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500">Open Invoices</p>
+                                <p class="text-sm font-medium text-gray-500">Open Invoices</p>
                                 <p class="text-lg font-semibold text-gray-900">2</p>
                             </div>
                         </div>
@@ -135,19 +135,19 @@
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-green-100 text-green-600 rounded-md p-2">
                                 <!-- Calendar Icon -->
-                                <x-heroicon-o-calendar class="w-5 h-5 text-green-500" />
+                                <x-heroicon-o-calendar class="w-6 h-6 text-green-500" />
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500">Last Payment</p>
+                                <p class="text-sm font-medium text-gray-500">Last Payment</p>
                                 <p class="text-lg font-semibold text-gray-900">Jan 18, 2025</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class=" mx-auto px-4 py-6 bg-white rounded-md shadow-sm border border-gray-200 mb-6">
-                        <div class="flex items-center justify-between  border-b border-gray-200">
-                            <h2 class="text-base font-semibold text-gray-800 mb-6">Recent Orders</h2>
-                            <a href="#" class="text-sm text-blue-600 mb-6" id="viewAllOrdersLink">View All</a>
+                    <div class=" mx-auto bg-white rounded-md shadow-sm border border-gray-200 mt-6 mb-6">
+                        <div class="flex items-center justify-between p-5 border-b border-gray-200">
+                            <h2 class="text-base font-semibold text-gray-800">Recent Orders</h2>
+                            <a href="#" class="text-sm text-blue-600" id="viewAllOrdersLink">View All</a>
                         </div>
 
                         <div class="overflow-x-auto">
@@ -176,11 +176,11 @@
                                         <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
                                             <!-- View -->
                                             <button title="View">
-                                                <x-heroicon-o-eye class="w-5 h-5" />
+                                                <x-heroicon-o-eye class="w-5 h-5 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -196,10 +196,10 @@
                                         <td class="px-4 py-3">Jan 20, 2025</td>
                                         <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
                                             <button title="View">
-                                                <x-heroicon-o-eye class="w-5 h-5" />
+                                                <x-heroicon-o-eye class="w-5 h-5 cursor-pointer" />
                                             </button>
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -215,10 +215,10 @@
                                         <td class="px-4 py-3">Jan 25, 2025</td>
                                         <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
                                             <button title="View">
-                                                <x-heroicon-o-eye class="w-5 h-5" />
+                                                <x-heroicon-o-eye class="w-5 h-5 cursor-pointer" />
                                             </button>
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -229,7 +229,7 @@
                 </div>
 
                 <div x-show="activeTab === 'orders'">
-                    <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
+                    <div class="bg-white mt-6 rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
                         <!-- Left: Name and Account -->
                         <div class="text-left ">
                             <h2 class="text-lg font-semibold text-gray-900">John Doe</h2>
@@ -238,11 +238,11 @@
 
                         <!-- Center: Tax Status (Responsive) -->
                         <div class="text-left md:text-center w-full md:w-auto">
-                            <p class="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
+                            <p class="text-xs tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
                             <div class="inline-flex items-center gap-2">
-                                <span class="inline-flex items-center gap-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                    <x-heroicon-o-document-text class="w-4 h-4 text-green-500" />
-                                    Tax Exempt
+                                <span class="inline-flex items-center px-2 gap-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                    <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
+                                    <span class="leading-[1.2]">Tax Exempt</span>
                                 </span>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Valid until Dec 31, 2027</p>
@@ -266,10 +266,10 @@
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-md shadow-sm p-6  mt-6 mb-6 border border-gray-200">
+                    <div class="bg-white rounded-md shadow-sm mt-6 mb-6 border border-gray-200">
                         <!-- Header with Filter -->
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200">
-                            <h2 class="text-base font-semibold text-gray-800 mb-4">Your Orders</h2>
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between p-4 gap-4 border-b border-gray-200">
+                            <h2 class="text-base font-semibold text-gray-800">Your Orders</h2>
                         </div>
 
                         <!-- Table -->
@@ -287,7 +287,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="ordersTable" class="divide-y divide-gray-200">
-                                    <tr class="order-row" data-status="paid">
+                                    <tr class="order-row">
                                         <td class="px-4 py-3 font-medium text-gray-900">ORD-2025-001</td>
                                         <td class="px-4 py-3">Premium Widget Set</td>
                                         <td class="px-4 py-3">$1,249.95</td>
@@ -298,17 +298,17 @@
                                         <td class="px-4 py-3">Jan 15, 2025</td>
                                         <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
                                             <!-- View -->
-                                            <button title="View">
-                                                <x-heroicon-o-eye class="w-5 h-5" />
+                                            <button title="View" id="openOrderModal">
+                                                <x-heroicon-o-eye class="w-5 h-5 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
 
-                                    <tr class="order-row" data-status="paid">
+                                    <tr class="order-row">
                                         <td class="px-4 py-3 font-medium text-gray-900">ORD-2025-002</td>
                                         <td class="px-4 py-3">Standard Widget Pack</td>
                                         <td class="px-4 py-3">$875.50</td>
@@ -319,17 +319,17 @@
                                         <td class="px-4 py-3">Jan 20, 2025</td>
                                         <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
                                             <!-- View -->
-                                            <button title="View">
-                                                <x-heroicon-o-eye class="w-5 h-5" />
+                                            <button title="View" id="openOrderModal">
+                                                <x-heroicon-o-eye class="w-5 h-5 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
 
-                                    <tr class="order-row" data-status="acct">
+                                    <tr class="order-row">
                                         <td class="px-4 py-3 font-medium text-gray-900">ORD-2025-003</td>
                                         <td class="px-4 py-3">Widget Accessories Kit</td>
                                         <td class="px-4 py-3">$624.50</td>
@@ -340,12 +340,12 @@
                                         <td class="px-4 py-3">Jan 25, 2025</td>
                                         <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
                                             <!-- View -->
-                                            <button title="View">
-                                                <x-heroicon-o-eye class="w-5 h-5" />
+                                            <button title="View" id="openOrderModal">
+                                                <x-heroicon-o-eye class="w-5 h-5 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -356,7 +356,7 @@
                 </div>
 
                 <div x-show="activeTab === 'credit'">
-                    <div class="bg-white rounded-md shadow-sm p-6 md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
+                    <div class="bg-white rounded-md shadow-sm p-6 md:flex-row md:items-center md:justify-between gap-4 border border-gray-200  mt-6">
                         <!-- Left: Name and Account -->
                         <div class="text-left">
                             <h2 class="text-lg font-semibold text-gray-900">Credit Account</h2>
@@ -364,15 +364,15 @@
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto mt-6 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto mt-6 ">
                         <!-- Current Balance -->
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4  border border-gray-200">
                             <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                                 <!-- Dollar Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                             </div>
                             <div>
-                            <p class="text-sm text-gray-500">Current Balance</p>
+                            <p class="text-sm font-medium text-gray-500">Current Balance</p>
                             <p class="text-lg font-semibold text-gray-900">$2,750.00</p>
                             </div>
                         </div>
@@ -381,10 +381,10 @@
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-green-100 text-green-600 rounded-md p-2">
                                 <!-- Trending Up Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-4 h-4"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                             </div>
                             <div>
-                            <p class="text-sm text-gray-500">Available Credit</p>
+                            <p class="text-sm font-medium text-gray-500">Available Credit</p>
                             <p class="text-lg font-semibold text-gray-900">$12,250.00</p>
                             </div>
                         </div>
@@ -396,14 +396,14 @@
                                     width="20" height="20" viewBox="0 0 24 24" 
                                     fill="none" stroke="currentColor" 
                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                                    class="lucide lucide-alert-circle w-4 h-4">
+                                    class="lucide lucide-alert-circle w-6 h-6">
                                     <circle cx="12" cy="12" r="10" />
                                     <line x1="12" y1="8" x2="12" y2="12" />
                                     <line x1="12" y1="16" x2="12.01" y2="16" />
                                 </svg>
                             </div>
                             <div>
-                            <p class="text-sm text-gray-500">Credit Limit</p>
+                            <p class="text-sm font-medium text-gray-500">Credit Limit</p>
                             <p class="text-lg font-semibold text-gray-900">$15,000.00</p>
                             </div>
                         </div>
@@ -412,16 +412,16 @@
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-purple-100 text-purple-600 rounded-md p-2">
                                 <!-- Calendar Icon -->
-                                <x-heroicon-o-calendar class="w-5 h-5" />
+                                <x-heroicon-o-calendar class="w-6 h-6" />
                             </div>
                             <div>
-                            <p class="text-sm text-gray-500">Last Payment Date</p>
+                            <p class="text-sm font-medium text-gray-500">Last Payment Date</p>
                             <p class="text-lg font-semibold text-gray-900">Jan 18, 2025</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="p-6 bg-white rounded-md shadow-sm mb-6 border border-gray-200">
+                    <div class="p-6 bg-white rounded-md shadow-sm mb-6 border border-gray-200  mt-6">
                         <div class="flex justify-between items-center mb-2">
                             <h2 class="text-base font-semibold text-gray-800">Credit Utilization</h2>
                         </div>
@@ -441,13 +441,13 @@
                         <p class="text-sm text-center text-gray-500 mt-2"> Credit Limit: <span id="limitAmount">$0.00</span> </p>
                     </div>
 
-                    <div class=" mx-auto bg-white shadow rounded-md p-6 border border-gray-200 mb-6">
+                    <div class=" mx-auto bg-white shadow rounded-md border border-gray-200  mt-6 mb-6">
                         <!-- Header and Filter -->
                         <div class="border-b border-gray-200">
-                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 p-4">
                                 
                                 <!-- Title -->
-                                <h2 class="text-lg font-semibold text-gray-800">Transaction History</h2>
+                                <h2 class="text-base font-semibold text-gray-800">Transaction History</h2>
 
                                 <!-- Buttons and Filter -->
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full lg:w-auto">
@@ -500,17 +500,17 @@
                                             <div class="flex items-center justify-center space-x-2">
                                                 <!-- View -->
                                                 <button title="View">
-                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
+                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-600 cursor-pointer" />
                                                 </button>
 
                                                 <!-- Download -->
                                                 <button title="Download">
-                                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
+                                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 cursor-pointer" />
                                                 </button>
 
                                                 <!-- Note -->
                                                 <a href="javascript:void(0)" id="openNoteModal">
-                                                    <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
+                                                    <x-heroicon-o-document-text class="w-4 h-4 text-purple-600 cursor-pointer" />
                                                 </a>
                                             </div>
                                         </td>
@@ -537,11 +537,11 @@
                                         <td class="px-3 py-3 text-right">$1,500.00</td>
                                         <td class="px-3 py-3 text-blue-600 text-center">
                                             <button title="View">
-                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -564,15 +564,15 @@
                                         <td class="px-3 py-3 text-blue-600 text-center">
                                             <!-- View -->
                                             <button title="View">
-                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1 cursor-pointer" />
                                             </button>
                                             <!-- Note -->
                                             <button title="note">
-                                                <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
+                                                <x-heroicon-o-document-text class="w-4 h-4 text-purple-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -595,11 +595,11 @@
                                         <td class="px-3 py-3 text-blue-600 text-center">
                                             <!-- View -->
                                             <button title="View">
-                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -624,11 +624,11 @@
                                         <td class="px-4 py-3 text-blue-600 text-center">
                                             <!-- View -->
                                             <button title="View">
-                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -651,15 +651,15 @@
                                         <td class="px-3 py-3 text-blue-600 text-center">
                                             <!-- View -->
                                             <button title="View">
-                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
                                             </button>
                                             <!-- Download -->
                                             <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1 cursor-pointer" />
                                             </button>
                                             <!-- Note -->
                                             <button title="note">
-                                                <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
+                                                <x-heroicon-o-document-text class="w-4 h-4 text-purple-600 cursor-pointer" />
                                             </button>
                                         </td>
                                     </tr>
@@ -670,7 +670,7 @@
                 </div>
 
                 <div x-show="activeTab === 'invoices'">
-                    <div class="bg-white p-6 rounded shadow-sm space-y-6 border border-gray-200">
+                    <div class="bg-white mt-6 p-6 rounded shadow-sm space-y-6 border border-gray-200">
                         <!-- Header -->
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
@@ -686,15 +686,14 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                     
                     <!-- Invoice Status Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                         <!-- Paid -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm ">
                             <div>
-                                <p class="text-sm text-gray-600">Paid Invoices</p>
+                                <p class="text-sm font-medium text-gray-500">Paid Invoices</p>
                                 <p class="text-xl font-bold text-gray-900">$1,250.00</p>
                             </div>
                             <div class="bg-green-100 p-2 rounded-md">
@@ -712,7 +711,7 @@
                         <!-- Pending -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
                             <div>
-                                <p class="text-sm text-gray-600">Pending Invoices</p>
+                                <p class="text-sm font-medium text-gray-500">Pending Invoices</p>
                                 <p class="text-xl font-bold text-gray-900">$624.50</p>
                             </div>
                             <div class="bg-yellow-100 p-2 rounded-md">
@@ -725,7 +724,7 @@
                         <!-- Overdue -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm ">
                             <div>
-                                <p class="text-sm text-gray-600">Overdue Invoices</p>
+                                <p class="text-sm font-medium text-gray-500">Overdue Invoices</p>
                                 <p class="text-xl font-bold text-gray-900">$875.50</p>
                             </div>
                             <div class="bg-red-100 p-2 rounded-md  text-red-500">
@@ -742,10 +741,10 @@
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-md shadow-sm p-6 border border-gray-200 mb-6">
+                    <div class="bg-white rounded-md shadow-sm border border-gray-200 mt-6 mb-6">
                         <!-- Header with Filter -->
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200">
-                            <h2 class="text-base font-semibold text-gray-800 mb-4">Invoices</h2>
+                        <div class="flex flex-col p-4 md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200">
+                            <h2 class="text-base font-semibold text-gray-800">Invoices</h2>
                         </div>
 
                         <!-- Table -->
@@ -771,10 +770,10 @@
                                             <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <button class="text-blue-600 hover:text-blue-900 inline-flex items-center">
+                                            <button class="text-blue-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
                                             </button>
-                                            <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                            <button class="text-green-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
                                             </button>
                                         </td>
@@ -789,14 +788,14 @@
                                             <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">overdue</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <button class="text-blue-600 hover:text-blue-900 inline-flex items-center">
+                                            <button class="text-blue-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
                                             </button>
-                                            <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                            <button class="text-green-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
                                             </button>
                                             
-                                            <button class="text-purple-600 hover:text-purple-900 inline-flex items-center">
+                                            <button class="text-purple-600 inline-flex items-center cursor-pointer">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg> Pay
                                             </button>
                                         </td>
@@ -811,14 +810,14 @@
                                             <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">pending</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <button class="text-blue-600 hover:text-blue-900 inline-flex items-center">
+                                            <button class="text-blue-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
                                             </button>
-                                            <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                            <button class="text-green-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
                                             </button>
                                           
-                                            <button class="text-purple-600 hover:text-purple-900 inline-flex items-center">
+                                            <button class="text-purple-600 inline-flex items-center cursor-pointer">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg> Pay
                                             </button>
                                         </td>
@@ -831,7 +830,7 @@
                 </div>
 
                 <div x-show="activeTab === 'account'">
-                    <div class="bg-white p-6 rounded shadow mb-4 border border-gray-200">
+                    <div class="bg-white p-6 rounded shadow mb-4 border border-gray-200 mt-6">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <!-- Title and Description -->
                             <div>
@@ -858,19 +857,19 @@
                             </h3>
                             <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 text-sm text-gray-700">
                                 <div>
-                                    <label class="text-gray-700 mb-1">First Name</label>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">First Name</label>
                                     <div class="static-view">John</div>
                                     <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="John" />
                                 </div>
 
                                 <div>
-                                    <label class="text-gray-700 mb-1">Last Name</label>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Last Name</label>
                                     <div class="static-view">Doe</div>
                                     <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="Doe" />
                                 </div>
 
                                 <div class="col-span-2">
-                                    <label class="text-gray-700 text-sm mb-1 block">Email Address</label>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-2">
                                             <x-heroicon-o-envelope class="w-4 h-4 mr-2 text-gray-500" />john.doe@acmecorp.com
@@ -881,7 +880,7 @@
                                 </div>
 
                                 <div class="col-span-2">
-                                    <label class="text-gray-700 text-sm mb-1 block">Phone Number</label>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-2">
                                             <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-500" />(555) 012-3456
@@ -901,13 +900,13 @@
                             </h3>
                             <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
                                 <div class="col-span-2">
-                                    <label class="text-sm text-gray-700 mb-1 block">Company Name</label>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Company Name</label>
                                     <div class="static-view">Acme Corp</div>
                                     <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="Acme Corp" />
                                 </div>
                                 
                                 <div class="col-span-2">
-                                    <label class="text-gray-700 text-sm mb-1 block">Company Phone</label>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Company Phone</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-2">
                                             <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-500" />(555) 012-3456
@@ -918,7 +917,7 @@
                                 </div>
 
                                 <div class="col-span-2">
-                                    <label class="text-gray-700 text-sm mb-1 block">Website</label>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Website</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-2">
                                             <x-heroicon-o-globe-alt class="w-4 h-4 mr-2 text-gray-500" /><a class="text-blue-600" href="https://acme-corp.com">https://acme-corp.com</a>
@@ -1000,29 +999,29 @@
                         <!-- Account Status -->
                         <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
                             <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                            </svg>
-                            Account Status
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>
+                                Account Status
                             </h3>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Account Status:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Account Status:</span>
                                     <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good Standing</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Account Approved:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Account Approved:</span>
                                     <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
                                         <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
                                         Approved
                                     </span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Customer Since:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Customer Since:</span>
                                     <span class="text-xs">Jan 15, 2024</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Customer ID:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Customer ID:</span>
                                     <span class="text-xs">CUST-001</span>
                                 </div>
                             </div>
@@ -1031,34 +1030,34 @@
                         <!-- Credit Information -->
                         <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
                             <div class="flex gap-2 items-start mb-4">
-                                <h3 class="text-base font-semibold flex items-center gap-2">
+                                <h3 class="text-base font-semibold flex items-center gap-2"> 
                                     <x-heroicon-o-credit-card class="w-5 h-5 text-gray-600" />
                                     Credit Information
                                 </h3>
-                                <span class="text-xs text-red-800 bg-red-100 px-2 py-1 rounded">Admin View</span>
+                                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span>
                             </div>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Credit Limit:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Credit Limit:</span>
                                     <span class="text-right">
                                         <span class="text-gray-900 font-semibold">$15,000.00</span>
                                     </span>
                                 </div>
 
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Current Balance:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Current Balance:</span>
                                     <span class="font-medium">$2,750.00 </span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Available Credit:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Available Credit:</span>
                                     <span class="text-green-600 font-medium">$12,250.00</span>
                                 </div>
-                                <div>
-                                    <label class="text-gray-700 mb-1 text-sm">Credit Utilization</label>
-                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                        <div class="bg-blue-500 h-2 rounded-full" style="width: 18%;"></div>
-                                    </div>
+                                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                    <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
                                     <div class="text-right text-xs text-gray-500 mt-0.5">18%</div>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 18%;"></div>
                                 </div>
                             </div>
                         </div>
@@ -1078,15 +1077,21 @@
                             <!-- Left: Tax Info -->
                             <div class="space-y-2 text-sm text-gray-700">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Tax Status:</span>
-                                    <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">Tax Exempt</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Tax Status:</span>
+                                    <div class="inline-flex items-center gap-2">
+                                        <span class="inline-flex items-center px-2 gap-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                            <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
+                                            <span class="leading-[1.2]">Tax Exempt</span>
+                                        </span>
+                                    </div>
+                                    <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">Tax Exempt</span> -->
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Valid Until:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Valid Until:</span>
                                     <span class="text-sm">Dec 31, 2027</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-700 mb-1">Uploaded:</span>
+                                    <span class="block text-sm font-medium text-gray-500 mb-1">Uploaded:</span> 
                                     <span class="text-sm">Mar 3, 2025</span>
                                 </div>
                             </div>
@@ -1201,7 +1206,7 @@
                 </div>
                 <button id="closeNoteModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
             </div>
-            <div class="p-6 overflow-y-auto">
+            <div class=" px-6 overflow-y-auto">
                 <div class="bg-gray-50 rounded-lg mb-4 text-sm space-y-1">
                     <div class="flex justify-between">
                         <span class="text-gray-500 font-medium">Transaction:</span>
@@ -1225,8 +1230,79 @@
                 </div>
 
                  <!-- Footer -->
-                <div id="actionButtons" class="flex justify-end gap-2 py-4 border-t">
+                <div id="actionButtons" class="flex justify-end gap-2 py-4">
                     <button id="cancelNoteBtn" class="px-4 py-2 border border-gray-300 rounded text-sm">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Wrapper -->
+<div id="orderWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-medium text-gray-900">Order Details</h2>
+                </div>
+                <button id="closeOrderModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+            </div>
+            <div class="px-6 overflow-y-auto">              
+                <div class="mx-auto bg-white rounded-md text-sm text-gray-800">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 sm:gap-x-10">
+
+                        <!-- Order Number -->
+                        <div class="mt-3">
+                            <p class="text-gray-500 mb-2">Order Number</p>
+                            <p class="font-semibold">ORD-2025-001</p>
+                        </div>
+
+                        <!-- Order Date -->
+                        <div class="mt-3">
+                            <p class="text-gray-500 mb-2">Order Date</p>
+                            <p>Jan 15, 2025</p>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mt-3">
+                            <p class="text-gray-500 mb-2">Status</p>
+                            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                delivered
+                            </span>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="mt-3">
+                            <p class="text-gray-500 mb-2">Payment Method</p>
+                            <p>Credit / Debit</p>
+                        </div>
+
+                        <!-- Total Amount -->
+                        <div class="mt-3">
+                            <p class="text-gray-500 mb-2">Total Amount</p>
+                            <p class="font-semibold">$1,249.95</p>
+                        </div>
+
+                        <!-- Tracking Number -->
+                        <div class="mt-3">
+                            <p class="text-gray-500 mb-2">Tracking Number</p>
+                            <p>TRK123456789</p>
+                        </div>
+
+                        <!-- Primary Product -->
+                        <div class="sm:col-span-2 mt-3">
+                            <p class="text-gray-500 mb-2">Primary Product</p>
+                            <p class="font-medium text-gray-900">Premium Widget Set</p>
+                            <p class="text-gray-600 text-sm mt-1">+5 additional items</p>
+                        </div>
+
+                    </div>
+                </div>
+                 <!-- Footer -->
+                <div id="actionButtons" class="flex justify-end gap-2 py-4">
+                    <button id="cancelOrderBtn" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
                 </div>
 
             </div>
@@ -1236,9 +1312,34 @@
 
 
 
-
 @push('js')
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalWrapper = document.getElementById('orderWrapper');
+        const openBtn = document.getElementById('openOrderModal');
+        const closeBtn = document.getElementById('closeOrderModalBtn');
+        const cancelBtn = document.getElementById('cancelOrderBtn');
+
+        openBtn.addEventListener('click', () => {
+            modalWrapper.style.display = 'flex';
+        });
+
+        const closeModal = () => {
+            modalWrapper.style.display = 'none';
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // Optional: Close when clicking outside the modal
+        modalWrapper.addEventListener('click', (e) => {
+            if (e.target === modalWrapper) {
+                closeModal();
+            }
+        });
+    });
+</script>
 
 <script>
   function handleFileChange(event) {
@@ -1359,8 +1460,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const creditUsed = 5050;
@@ -1415,116 +1514,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 </script>
 
-<!-- JavaScript -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('templatesModalWrapper');
-        const openBtn = document.getElementById('openTemplatesModal');
-        const closeBtn = document.getElementById('closeModalBtn');
-        const cancelBtn = document.getElementById('canceltempBtn');
-
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script>
-
-<!-- JavaScript -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('refundModalWrapper');
-        const openBtn = document.getElementById('openRefundModal');
-        const closeBtn = document.getElementById('closeRefundModalBtn');
-        const cancelBtn = document.getElementById('cancelRefundBtn');
-
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('discountModalWrapper');
-        const openBtn = document.getElementById('openDiscountModal');
-        const closeBtn = document.getElementById('closeDiscountModalBtn');
-        const cancelBtn = document.getElementById('cancelDiscountBtn');
-
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('chargeModalWrapper');
-        const openBtn = document.getElementById('openChargeModal');
-        const closeBtn = document.getElementById('closeChargeModalBtn');
-        const cancelBtn = document.getElementById('cancelChargeBtn');
-
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script>
-
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const modalWrapper = document.getElementById('noteModalWrapper');
@@ -1551,14 +1540,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 </script>
-
-<script>
-    function closeModal() {
-    document.getElementById('noteModalWrapper').style.display = 'none';
-    cancelEdit(); // reset state if in edit mode
-    }
-</script>
-
 
 @endpush
 @endsection

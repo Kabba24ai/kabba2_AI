@@ -1,4 +1,7 @@
-<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+
+<div class="overflow-x-auto rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
+    
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
             <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
             <tr>
                 <th class="w-45 px-4 py-3 text-left font-semibold">Customer</th>
@@ -82,7 +85,7 @@
                 {{ \App\Helpers\CustomHelper::formatCurrency($customer->total_order_amount) }}
                 </td>
                 <td class="px-4 py-3 space-x-2">
-                   <a href="{{ route('admin.crm.customers.view', $customer->unique_id) }}" target="_blank">
+                   <a href="{{ route('admin.crm.customers.view', $customer->unique_id) }}" >
 
                     <button class="text-blue-600 hover:text-blue-800" title="View">
                         <x-heroicon-o-eye class="w-5 h-5" />
@@ -122,6 +125,11 @@
             
 
             </tbody>
-        </table>
+    </table>
+</div>
 
 
+    {{-- Pagination --}}
+    <div class="mt-6">
+        {{ $customers->links() }}
+    </div>

@@ -32,6 +32,8 @@ class TaxDocumentDeleteController extends Controller
         $customer->update([
             'tax_document_media_id' => null,
             'tax_document_upload_date' => null,
+            'tax_document_status' =>  '',
+
         ]);
 
         flash('Tax document deleted successfully.')->success();

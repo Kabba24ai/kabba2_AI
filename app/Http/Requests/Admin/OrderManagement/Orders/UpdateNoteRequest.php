@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests\Admin\OrderManagement\Orders;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\ApiBaseFormRequest;
 
 // Helpers
 use App\Helpers\PurifyHelper;
 
-class EditRequest extends FormRequest
+class UpdateNoteRequest extends ApiBaseFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,15 +24,12 @@ class EditRequest extends FormRequest
         $this->merge(PurifyHelper::purify([$this->all()],[]));
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
-     */
-    public function rules(): array
+    public function rules()
     {
         return [
-            'unique_id' => ['required', 'max:50', 'exists:orders,unique_id'],
+            'order_note' => 'nullable|string|max:500',
         ];
     }
+
+    // failedValidation now inherited from ApiBaseFormRequest
 }

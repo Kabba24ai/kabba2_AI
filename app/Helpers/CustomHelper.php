@@ -23,24 +23,33 @@ class CustomHelper
         return Carbon::parse($date)->format($format);
     }
 
+    public static function formatTime($time, $format = 'H:i A')
+    {
+        if (empty($time)) {
+            return null;
+        }
+
+        return Carbon::parse($time)->format($format);
+    }
+
     public static function parseDateFromInput($date)
     {
         if (empty($date)) {
             return null;
         }
 
-        $inputFormat = config('app.date.date_format', 'd/m/Y'); 
-        $dbFormat = config('app.date.db_date_format', 'Y-m-d'); 
+        $inputFormat = config('app.date.date_format', 'd/m/Y');
+        $dbFormat = config('app.date.db_date_format', 'Y-m-d');
 
         return Carbon::createFromFormat($inputFormat, $date)->format($dbFormat);
     }
-   
+
     public static function unformatPhone(string $formattedPhone): string
     {
         return preg_replace('/[^0-9]/', '', $formattedPhone); // remove non-digits
     }
 
-   
+
     public static function formatPhone(?string $rawPhone): string
     {
 

@@ -51,4 +51,25 @@ class OrderPayment extends Model
         return $this->morphTo();
     }
 
+    // Scopes
+    public function scopePending($query)
+    {
+        return $query->where('status', 'Pending');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'Completed');
+    }
+
+    public function scopeFailed($query)
+    {
+        return $query->where('status', 'Failed');
+    }
+
+    public function scopeCod($query)
+    {
+        return $query->where('payment_method', 'COD');
+    }
+
 }

@@ -1,4 +1,6 @@
 import Swal from 'sweetalert2'
+// Import SweetAlert2 styles
+import '../css/swal.css';
 
 // Example: Custom function to show a success alert
 export function showSuccess(message, title = 'Success') {
@@ -32,6 +34,23 @@ export function showConfirm(message, title = 'Are you sure?') {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33'
     });
+
+    // return Swal.fire({
+    //     title: title,
+    //     html: `<p class="swal2-custom-text">${message}</p>`,
+    //     showCancelButton: true,
+    //     confirmButtonText: 'Yes',
+    //     cancelButtonText: 'No',
+    //     focusCancel: true,
+    //     buttonsStyling: false, // so we can use our custom CSS
+    //     customClass: {
+    //         popup: 'confirm-modal-popup',
+    //         title: 'confirm-modal-title',
+    //         actions: 'confirm-modal-actions',
+    //         confirmButton: 'confirm-btn',
+    //         cancelButton: 'cancel-btn'
+    //     }
+    // });
 }
 
 // Expose to window for global access
@@ -45,3 +64,4 @@ if (typeof window !== 'undefined') {
     style.innerHTML = `div:where(.swal2-container) { z-index: 99999 !important; }`;
     document.head.appendChild(style);
 }
+

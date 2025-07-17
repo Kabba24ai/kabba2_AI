@@ -154,10 +154,10 @@
                             <td class="px-4 py-3 text-left ">{{ $orderProduct->order->customer_phone }}</td>
                             <td class="px-4 py-3 text-center">{{ $orderProduct->equipment ?? 'N/A' }}</td>
                             <td class="px-4 py-3 text-center">
-                                {{ $orderProduct->delivery_date ? CustomHelper::formatDate($orderProduct->delivery_date) : 'N/A' }}
+                                {{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date) : 'N/A' }}
                             </td>
                             <td class="px-4 py-3 text-center">
-                                {{ $orderProduct->pickup_date ? CustomHelper::formatDate($orderProduct->pickup_date) : 'N/A' }}
+                                {{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date) : 'N/A' }}
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @php

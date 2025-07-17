@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 
 // Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\EditRequest;
-
+use App\Models\Iam\Personnel\User;
 // Models
 use App\Models\Orders\Order;
+use App\Models\Stores\Store;
 use Request;
 
 class EditController extends Controller
@@ -22,6 +23,9 @@ class EditController extends Controller
     public function __invoke($uniqueid)
     {
         $order = Order::with(['products.product', 'billingAddress', 'shippingAddress'])->where('unique_id', $uniqueid)->firstOrFail();
-        return view('admin.order_management.orders.edit', compact('order'));
+
+        $stores = Store::orderBy('store_name')->get();
+        $employees = User::orderBy('first_name')->get();
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees'));
     }
 }

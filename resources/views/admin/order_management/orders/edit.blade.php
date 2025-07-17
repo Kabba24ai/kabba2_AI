@@ -64,11 +64,14 @@
                             PENDING PAYMENT
                         </span>
                         <!-- Add to Account -->
-                        <button class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
+                        <button
+                            class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
                             Add to Account
                         </button>
                         <!-- Confirm Payment -->
-                        <button class="px-4 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700">
+                        <button
+                            id="confirmPaymentBtn"
+                            class="px-4 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700">
                             Confirm payment
                         </button>
                     @else
@@ -102,7 +105,7 @@
                     <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Invoice
                 </button>
                 <button
-                    class="inline-flex items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600">
+                    class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
                     <x-heroicon-o-check class="w-4 h-4 mr-1" /> Save
                 </button>
             </div>
@@ -175,7 +178,6 @@
         </div>
 
         {{-- Delivery Info --}}
-
         <div class="bg-white rounded-lg border border-gray-200">
             <div class="px-4 py-4 rounded-lg border-b border-gray-200">
                 <div class="flex items-center justify-between">
@@ -277,7 +279,6 @@
                             <span>Product Cost(x{{ $orderProduct->quantity ?? 1 }})</span>
                             <span>{{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->price) }}</span>
                         </div>
-
 
                         @if (!empty($orderProduct->service_method))
                             <div class="flex flex-col gap-y-1">
@@ -386,6 +387,8 @@
                             <div class="flex items-center justify-between">
                                 <h3 class="text-lg font-semibold text-gray-800 under">{{ $orderProduct->product_name }}
                                 </h3>
+                                <input type="hidden" class="order-product-unique-id"
+                                    value="{{ $orderProduct->unique_id }}">
                             </div>
                         </div>
                         <div class="p-4">
@@ -400,29 +403,34 @@
                                     <div class="flex flex-nowrap items-center gap-2 w-full mb-1">
                                         <!-- Date -->
                                         <div class="flex flex-col items-start min-w-[100px] max-w-[120px] flex-[0.9]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="delivery-date">Date</label>
-                                            <input id="delivery-date" type="text"
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="delivery_date_{{ $orderProduct->unique_id }}">Date</label>
+                                            <input type="text" id="delivery_date_{{ $orderProduct->unique_id }}"
                                                 data-format="{{ config('app.date.js_date_format') }}"
+                                                value="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date) : '' }}"
                                                 placeholder="Select date"
-                                                class="datepicker border rounded px-1.5 py-1 text-xs w-full" />
+                                                class="datepicker delivery_date border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
                                         <!-- Time -->
                                         <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="delivery-time">Time</label>
-                                            <input id="delivery-time" type="text"
-                                                placeholder="Select time"
-                                                class="timepicker border rounded px-1.5 py-1 text-xs w-full" />
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="delivery_time_{{ $orderProduct->unique_id }}">Time</label>
+                                            <input type="text" placeholder="Select time" id="delivery_time_{{ $orderProduct->unique_id }}"
+                                                value="{{ $orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->delivery_time) : '' }}"
+                                                class="timepicker delivery_time border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
                                         <!-- Type (fixed width, non-stretch) -->
                                         <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="delivery-type">Type</label>
-                                            <div x-data="{ selected: 'store', open: false }" class="relative w-full">
-                                                <button id="delivery-type" type="button" @click="open = !open"
-                                                    class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none">
-                                                    <template x-if="selected === 'store'">
-                                                        <x-heroicon-o-building-storefront class="w-4 h-4 text-yellow-600" />
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="delivery_type-btn-{{ $orderProduct->unique_id }}">Type</label>
+                                            <div id="delivery_type-{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->delivery_type ?? 'Store' }}', open: false }" class="relative w-full">
+                                                <button id="delivery_type-btn-{{ $orderProduct->unique_id }}" type="button" @click="open = !open"
+                                                    class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_type">
+                                                    <template x-if="selected === 'Store'">
+                                                        <x-heroicon-o-building-storefront
+                                                            class="w-4 h-4 text-yellow-600" />
                                                     </template>
-                                                    <template x-if="selected === 'truck'">
+                                                    <template x-if="selected === 'Truck'">
                                                         <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
                                                     </template>
                                                 </button>
@@ -431,44 +439,69 @@
                                                     <ul>
                                                         <li>
                                                             <button type="button"
-                                                                @click="selected = 'store'; open = false"
+                                                                @click="selected = 'Store'; open = false;  $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                 class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                <x-heroicon-o-building-storefront class="w-4 h-4 text-yellow-600" />
+                                                                <x-heroicon-o-building-storefront
+                                                                    class="w-4 h-4 text-yellow-600" />
                                                             </button>
                                                         </li>
                                                         <li>
                                                             <button type="button"
-                                                                @click="selected = 'truck'; open = false"
+                                                                @click="selected = 'Truck'; open = false; $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                 class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
                                                                 <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
                                                             </button>
                                                         </li>
                                                     </ul>
                                                 </div>
-                                                <input type="hidden" name="type" :value="selected">
+                                                <input type="hidden" name="type" class="delivery_type" :value="selected" x-ref="deliveryTypeInput">
                                             </div>
                                         </div>
                                         <!-- Status -->
                                         <div class="flex flex-col items-start min-w-[70px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="delivery-status">Status</label>
-                                            <select id="delivery-status" class="border rounded px-1.5 py-1 text-xs w-full">
-                                                <option value="Pending" selected>Pending</option>
-                                                <option value="Completed">Completed</option>
-                                                <option value="Reschedule">Reschedule</option>
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="delivery_status_{{ $orderProduct->unique_id }}">Status</label>
+                                            <select id="delivery_status_{{ $orderProduct->unique_id }}"
+                                                class="delivery_status border rounded px-1.5 py-1 text-xs w-full">
+                                                <option value="Pending"
+                                                    {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
+                                                    Pending</option>
+                                                <option value="Completed"
+                                                    {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}>
+                                                    Completed</option>
+                                                <option value="Reschedule"
+                                                    {{ ($orderProduct->delivery_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
+                                                    Reschedule</option>
                                             </select>
                                         </div>
                                         <!-- Location -->
                                         <div class="flex flex-col items-start min-w-[70px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="delivery-location">Location</label>
-                                            <select id="delivery-location" class="border rounded px-1.5 py-1 text-xs w-full">
-                                                <option selected>Bon Aqua</option>
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="delivery_store_id_{{ $orderProduct->unique_id }}">Location</label>
+                                            <select id="delivery_store_id_{{ $orderProduct->unique_id }}"
+                                                class="delivery_store_id border rounded px-1.5 py-1 text-xs w-full">
+                                                <option value="">Select Location</option>
+                                                @foreach ($stores as $storeItem)
+                                                    <option value="{{ $storeItem->id }}"
+                                                        {{ $orderProduct->delivery_store_id == $storeItem->id ? 'selected' : '' }}>
+                                                        {{ $storeItem->store_name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         <!-- Technician -->
                                         <div class="flex flex-col items-start min-w-[90px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="delivery-technician">Technician</label>
-                                            <select id="delivery-technician" class="border rounded px-1.5 py-1 text-xs w-full">
-                                                <option selected>Select Technician</option>
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="delivery_by_{{ $orderProduct->unique_id }}">Technician</label>
+                                            <select id="delivery_by_{{ $orderProduct->unique_id }}"
+                                                class="delivery_by border rounded px-1.5 py-1 text-xs w-full">
+                                                <option value="">Select Technician</option>
+                                                @foreach ($employees as $employee)
+                                                    <option value="{{ $employee->id }}"
+                                                        {{ $orderProduct->delivery_by == $employee->id ? 'selected' : '' }}>
+                                                        {{ $employee->first_name }} {{ $employee->last_name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>
@@ -484,29 +517,35 @@
                                     <div class="flex flex-wrap items-center gap-2 w-full">
                                         <!-- Date -->
                                         <div class="flex flex-col items-start min-w-[100px] max-w-[120px] flex-[0.9]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="return-date">Date</label>
-                                            <input id="return-date" type="text"
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="pickup_date_{{ $orderProduct->unique_id }}">Date</label>
+                                            <input type="text" id="pickup_date_{{ $orderProduct->unique_id }}"
                                                 data-format="{{ config('app.date.js_date_format') }}"
                                                 placeholder="Select date"
-                                                class="datepicker border rounded px-1.5 py-1 text-xs w-full" />
+                                                value="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date) : '' }}"
+                                                class="datepicker pickup_date border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
                                         <!-- Time -->
                                         <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="return-time">Time</label>
-                                            <input id="return-time" type="text"
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="pickup_time_{{ $orderProduct->unique_id }}">Time</label>
+                                            <input type="text" id="pickup_time_{{ $orderProduct->unique_id }}"
                                                 placeholder="Select time"
-                                                class="timepicker border rounded px-1.5 py-1 text-xs w-full" />
+                                                value="{{ $orderProduct->pickup_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->pickup_time) : '' }}"
+                                                class="timepicker pickup_time border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
                                         <!-- Type (fixed width, non-stretch) -->
                                         <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="return-type">Type</label>
-                                            <div x-data="{ selected: 'store', open: false }" class="relative w-full">
-                                                <button id="return-type" type="button" @click="open = !open"
-                                                    class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none">
-                                                    <template x-if="selected === 'store'">
-                                                        <x-heroicon-o-building-storefront class="w-4 h-4 text-yellow-600" />
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="pickup_type-btn-{{ $orderProduct->unique_id }}">Type</label>
+                                            <div id="pickup_type_{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->pickup_type ?? 'Store' }}', open: false }" class="relative w-full">
+                                                <button id="pickup_type-btn-{{ $orderProduct->unique_id }}" type="button" @click="open = !open"
+                                                    class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_type">
+                                                    <template x-if="selected === 'Store'">
+                                                        <x-heroicon-o-building-storefront
+                                                            class="w-4 h-4 text-yellow-600" />
                                                     </template>
-                                                    <template x-if="selected === 'truck'">
+                                                    <template x-if="selected === 'Truck'">
                                                         <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
                                                     </template>
                                                 </button>
@@ -515,44 +554,69 @@
                                                     <ul>
                                                         <li>
                                                             <button type="button"
-                                                                @click="selected = 'store'; open = false"
+                                                                @click="selected = 'Store'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                 class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                <x-heroicon-o-building-storefront class="w-4 h-4 text-yellow-600" />
+                                                                <x-heroicon-o-building-storefront
+                                                                    class="w-4 h-4 text-yellow-600" />
                                                             </button>
                                                         </li>
                                                         <li>
                                                             <button type="button"
-                                                                @click="selected = 'truck'; open = false"
+                                                                @click="selected = 'Truck'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                 class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
                                                                 <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
                                                             </button>
                                                         </li>
                                                     </ul>
                                                 </div>
-                                                <input type="hidden" name="type" :value="selected">
+                                                <input type="hidden" name="type" class="pickup_type" :value="selected" x-ref="pickupTypeInput">
                                             </div>
                                         </div>
                                         <!-- Status -->
                                         <div class="flex flex-col items-start min-w-[70px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="return-status">Status</label>
-                                            <select id="return-status" class="border rounded px-1.5 py-1 text-xs w-full">
-                                                <option value="Pending" selected>Pending</option>
-                                                <option value="Completed">Completed</option>
-                                                <option value="Reschedule">Reschedule</option>
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="pickup_status_{{ $orderProduct->unique_id }}">Status</label>
+                                            <select id="pickup_status_{{ $orderProduct->unique_id }}"
+                                                class="pickup_status border rounded px-1.5 py-1 text-xs w-full">
+                                                <option value="Pending"
+                                                    {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}>
+                                                    Pending</option>
+                                                <option value="Completed"
+                                                    {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}>
+                                                    Completed</option>
+                                                <option value="Reschedule"
+                                                    {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
+                                                    Reschedule</option>
                                             </select>
                                         </div>
                                         <!-- Location -->
                                         <div class="flex flex-col items-start min-w-[70px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="return-location">Location</label>
-                                            <select id="return-location" class="border rounded px-1.5 py-1 text-xs w-full">
-                                                <option selected>Bon Aqua</option>
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="pickup_store_id_{{ $orderProduct->unique_id }}">Location</label>
+                                            <select id="pickup_store_id_{{ $orderProduct->unique_id }}"
+                                                class="pickup_store_id border rounded px-1.5 py-1 text-xs w-full">
+                                                <option value="">Select Location</option>
+                                                @foreach ($stores as $storeItem)
+                                                    <option value="{{ $storeItem->id }}"
+                                                        {{ $orderProduct->pickup_store_id == $storeItem->id ? 'selected' : '' }}>
+                                                        {{ $storeItem->store_name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         <!-- Technician -->
                                         <div class="flex flex-col items-start min-w-[90px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5" for="return-technician">Technician</label>
-                                            <select id="return-technician" class="border rounded px-1.5 py-1 text-xs w-full">
-                                                <option selected>Select Technician</option>
+                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                for="pickup_by_{{ $orderProduct->unique_id }}">Technician</label>
+                                            <select id="pickup_by_{{ $orderProduct->unique_id }}"
+                                                class="pickup_by border rounded px-1.5 py-1 text-xs w-full">
+                                                <option value="">Select Technician</option>
+                                                @foreach ($employees as $employee)
+                                                    <option value="{{ $employee->id }}"
+                                                        {{ $orderProduct->pickup_by == $employee->id ? 'selected' : '' }}>
+                                                        {{ $employee->first_name }} {{ $employee->last_name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>
@@ -566,24 +630,30 @@
                                     <div class="flex flex-col items-center">
                                         <div>Checklist</div>
                                         <div class="flex justify-center gap-2 mb-1">
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
                                         </div>
                                     </div>
                                     <!-- Machine Hours -->
                                     <div class="flex flex-col items-center">
                                         <div>Machine Hours</div>
                                         <div class="flex justify-center gap-2 mb-1">
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
                                         </div>
                                     </div>
                                     <!-- Video -->
                                     <div class="flex flex-col items-center">
                                         <div>Video</div>
                                         <div class="flex justify-center gap-2 mb-1">
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
                                         </div>
                                     </div>
                                 </div>
@@ -705,11 +775,12 @@
                 </div>
             </div>
             <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col">
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Order Notes:</label>
-                <input type="text" value="{{ $order->order_note }}"
+                <label for="order_note" class="block text-sm font-semibold text-gray-700 mb-1">Order Notes:</label>
+                <input type="text" value="{{ $order->order_note }}" name="order_note" id="order_note"
                     class="w-full border rounded px-3 py-2 text-sm text-gray-800" />
                 <div class="flex justify-end">
-                    <button class="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+                    <button class="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                        id="saveNoteBtn">
                         Save Note
                     </button>
                 </div>
@@ -721,5 +792,208 @@
 @endsection
 
 @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the order id (replace with actual variable)
+            const orderUniqueId = '{{ $order->unique_id }}';
 
+            // Confirm payment button
+            const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
+            if (confirmPaymentBtn) {
+                confirmPaymentBtn.addEventListener('click', function() {
+                    showConfirm('Do you want to confirm this payment?', 'Are you sure?').then((result) => {
+                        if (result.isConfirmed) {
+                            confirmPaymentBtn.disabled = true;
+                            confirmPaymentBtn.textContent = 'Processing...';
+                            let url = '{{ route('admin.order-management.orders.confirm-payment', ':unique_id') }}';
+                            url = url.replace(':unique_id', orderUniqueId);
+                            apiFetch(url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                },
+                                body: JSON.stringify({ _method: 'PUT' })
+                            })
+                            .then(res => {
+                                if (res && res.success) {
+                                    notyf.success('Payment confirmed!');
+                                    setTimeout(() => window.location.reload(), 800);
+                                } else {
+                                    notyf.error(res && res.message ? res.message : 'Failed to confirm payment.');
+                                }
+                            })
+                            .catch(() => {
+                                notyf.error('Failed to confirm payment.');
+                            })
+                            .finally(() => {
+                                confirmPaymentBtn.disabled = false;
+                                confirmPaymentBtn.textContent = 'Confirm payment';
+                            });
+                        }
+                    });
+                });
+            }
+            const saveBtn = document.getElementById('saveNoteBtn');
+            const noteInput = document.getElementById('order_note');
+
+            saveBtn.addEventListener('click', function() {
+                const note = noteInput.value;
+
+                // UI: Disable and show saving...
+                saveBtn.disabled = true;
+                const originalText = saveBtn.textContent;
+                saveBtn.textContent = 'Saving...';
+
+                url = '{{ route('admin.order-management.orders.update-note', ':unique_id') }}';
+                url = url.replace(':unique_id', orderUniqueId);
+
+                let data = {
+                    order_note: note,
+                    _method: 'PUT'
+                };
+
+                apiFetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(resData => {
+                        notyf.success('Order note updated successfully!');
+                    })
+                    .finally(() => {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = originalText;
+                    });
+            });
+
+            document.querySelectorAll('.order-product-unique-id').forEach(function(hiddenInput, idx) {
+                const container = hiddenInput.closest('.bg-white.rounded-lg.border');
+                if (!container) return;
+
+                const orderProductId = hiddenInput.value;
+
+                // Delivery fields
+                const deliveryDate = container.querySelector('.delivery_date');
+                const deliveryTime = container.querySelector('.delivery_time');
+                const deliveryType = container.querySelector('input[type=hidden].delivery_type');
+                const deliveryStatus = container.querySelector('.delivery_status');
+                const deliveryLocation = container.querySelector('.delivery_store_id');
+                const deliveryTechnician = container.querySelector('.delivery_by');
+
+                // Return fields
+                const returnDate = container.querySelector('.pickup_date');
+                const returnTime = container.querySelector('.pickup_time');
+                const returnType = container.querySelector('input[type=hidden].pickup_type');
+                const returnStatus = container.querySelector('.pickup_status');
+                const returnLocation = container.querySelector('.pickup_store_id');
+                const returnTechnician = container.querySelector('.pickup_by');
+
+                // Helper to update only the changed field for delivery/return
+                function updateScheduleField(type, field, value) {
+                    let url =
+                        '{{ route('admin.order-management.orders.update-product-schedule', [':order_unique_id', ':product_unique_id']) }}';
+                    url = url.replace(':order_unique_id', orderUniqueId).replace(':product_unique_id', orderProductId);
+
+                    // Map field to DB column
+                    let dbField = '';
+                    if (type === 'delivery') {
+                        dbField = field;
+                    } else if (type === 'return') {
+                        dbField = field;
+                    }
+
+                    let data = {
+                        _method: 'PUT',
+                        type: type
+                    };
+                    data[dbField] = value;
+
+                    apiFetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(() => {
+                        notyf.success('Schedule updated!');
+                    })
+                    .catch(() => {
+                        notyf.error('Failed to update schedule.');
+                    });
+                }
+
+                // Delivery listeners
+                if (deliveryDate) {
+                    deliveryDate.addEventListener('change', function() {
+                        updateScheduleField('delivery', 'delivery_date', deliveryDate.value);
+                    });
+                }
+                if (deliveryTime) {
+                    deliveryTime.addEventListener('change', function() {
+                        updateScheduleField('delivery', 'delivery_time', deliveryTime.value);
+                    });
+                }
+                if (deliveryType) {
+                    deliveryType.addEventListener('change', function() {
+                         console.log('Delivery type changed to', deliveryType.value);
+                        updateScheduleField('delivery', 'delivery_type', deliveryType.value);
+                    });
+                }
+                if (deliveryStatus) {
+                    deliveryStatus.addEventListener('change', function() {
+                        updateScheduleField('delivery', 'delivery_status', deliveryStatus.value);
+                    });
+                }
+                if (deliveryLocation) {
+                    deliveryLocation.addEventListener('change', function() {
+                        updateScheduleField('delivery', 'delivery_store_id', deliveryLocation.value);
+                    });
+                }
+                if (deliveryTechnician) {
+                    deliveryTechnician.addEventListener('change', function() {
+                        updateScheduleField('delivery', 'delivery_by', deliveryTechnician.value);
+                    });
+                }
+
+                // Return listeners
+                if (returnDate) {
+                    returnDate.addEventListener('change', function() {
+                        updateScheduleField('return', 'pickup_date', returnDate.value);
+                    });
+                }
+                if (returnTime) {
+                    returnTime.addEventListener('change', function() {
+                        updateScheduleField('return', 'pickup_time', returnTime.value);
+                    });
+                }
+                if (returnType) {
+                    returnType.addEventListener('change', function() {
+                        updateScheduleField('return', 'pickup_type', returnType.value);
+                    });
+                }
+                if (returnStatus) {
+                    returnStatus.addEventListener('change', function() {
+                        updateScheduleField('return', 'pickup_status', returnStatus.value);
+                    });
+                }
+                if (returnLocation) {
+                    returnLocation.addEventListener('change', function() {
+                        updateScheduleField('return', 'pickup_store_id', returnLocation.value);
+                    });
+                }
+                if (returnTechnician) {
+                    returnTechnician.addEventListener('change', function() {
+                        updateScheduleField('return', 'pickup_by', returnTechnician.value);
+                    });
+                }
+            });
+        });
+    </script>
 @endpush

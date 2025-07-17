@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\OrderManagement\Orders\IndexController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\EditController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BulkDeleteController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\ConfirmPaymentController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateNoteController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleController;
 
 Route::prefix('orders')
 ->name('orders.')
@@ -18,8 +21,10 @@ Route::prefix('orders')
     // Route::post('/create', IndexController::class);
 
     // Edit
-    Route::get('edit/{unique_id}', EditController::class)->name('edit');
-    // Route::put('/{unique_id}/edit', IndexController::class);
+    Route::get('{unique_id}/edit', EditController::class)->name('edit');
+    Route::put('/{unique_id}/update-note', UpdateNoteController::class)->name('update-note');
+    Route::put('/{unique_id}/{product_unique_id}/update-product-schedule', UpdateProductScheduleController::class)->name('update-product-schedule');
+    Route::put('/{unique_id}/confirm-payment', ConfirmPaymentController::class)->name('confirm-payment');
 
     // // Reorder
     // Route::get('/reorder', IndexController::class)->name('reorder');

@@ -4,11 +4,24 @@ namespace App\Http\Requests\Admin\OrderManagement\Orders;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+// Helpers
+use App\Helpers\PurifyHelper;
+
 class BulkDeleteRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
     public function authorize()
     {
-        return true; // Add authorization logic if needed
+        return true;
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge(PurifyHelper::purify([$this->all()],[]));
     }
 
     public function rules()

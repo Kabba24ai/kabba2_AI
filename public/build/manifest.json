@@ -1,14 +1,14 @@
 {
-  "_air-datepicker-DtYvX2mR.js": {
-    "file": "assets/air-datepicker-DtYvX2mR.js",
+  "_air-datepicker-5xSxkQ0G.js": {
+    "file": "assets/air-datepicker-5xSxkQ0G.js",
     "name": "air-datepicker",
     "css": [
-      "assets/air-datepicker-jshjrsWp.css"
+      "assets/air-datepicker-DVkapAgo.css"
     ]
   },
-  "_air-datepicker-jshjrsWp.css": {
-    "file": "assets/air-datepicker-jshjrsWp.css",
-    "src": "_air-datepicker-jshjrsWp.css"
+  "_air-datepicker-DVkapAgo.css": {
+    "file": "assets/air-datepicker-DVkapAgo.css",
+    "src": "_air-datepicker-DVkapAgo.css"
   },
   "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-D1LuMI3I.ttf",
@@ -43,53 +43,52 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-CAjQk91F.css",
-
-    "file": "assets/app-VU1B0z2e.css",
+    "file": "assets/app-BsYMFf9Y.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-CEyemfwO.js",
+    "file": "assets/app-DNN1-BvH.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_air-datepicker-DtYvX2mR.js"
+      "_air-datepicker-5xSxkQ0G.js"
+    ],
+    "css": [
+      "assets/app-LKV0RsUX.css"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-0b1QLGGd.css",
-    "file": "assets/app-DCbR_akM.css",
+    "file": "assets/app-OQahPXcE.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-EqhhBGaf.css",
-    "file": "assets/app-qLNfkvJP.css",
+    "file": "assets/app-Cs6m1nWC.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-CWNgOl43.js",
+    "file": "assets/app-BOY75U9l.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_air-datepicker-DtYvX2mR.js"
+      "_air-datepicker-5xSxkQ0G.js"
     ],
     "css": [
-      "assets/app-Bt149cem.css"
+      "assets/app-Ce1H3Bte.css"
     ]
   },
   "resources/front/assets/js/products/product-details-page.js": {
-    "file": "assets/product-details-page-Dfe11GdU.js",
+    "file": "assets/product-details-page-DRfyU43G.js",
     "name": "product-details-page",
     "src": "resources/front/assets/js/products/product-details-page.js",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DrBeKiNS.js",
+    "file": "assets/app-43T2tYNv.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

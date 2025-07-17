@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Crm\Customers;
+namespace App\Http\Requests\Admin\CRM\Customers;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -21,7 +21,7 @@ class UpdateRequest extends FormRequest
 
     public function rules(): array
     {
-      
+
         return [
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
@@ -31,9 +31,9 @@ class UpdateRequest extends FormRequest
                 'email'
             ],
             'phone' => ['required', 'string', 'max:30'],
-            
+
             'tax_document_review_status' => ['nullable'],
-           
+
             'status' => ['required', Rule::in(['Active', 'Inactive', 'Archived'])],
             'is_guest' => ['boolean'],
             'tax_status' => ['required', Rule::in(['Taxable', 'Exempt'])],
@@ -41,18 +41,18 @@ class UpdateRequest extends FormRequest
             'tax_document_upload_date' => ['nullable'],
             'tax_document_valid_until' => ['nullable'],
 
-            
+
             'account_approved_by' => ['nullable'],
             'tax_status_approved_by' => ['nullable'],
-           
+
 
 
             'is_credit_account' => ['boolean'],
             'credit_limit' => ['nullable'],
-           
+
             'company_website' => ['nullable'],
             'company_phone' => ['nullable'],
-            
+
             'billing_address' => ['nullable', 'string'],
             'account_application_completed' => ['nullable'],
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Crm\Customers;
+namespace App\Http\Requests\Admin\CRM\Customers;
 use Illuminate\Validation\Rule;
 use App\Helpers\PurifyHelper;
 use Illuminate\Foundation\Http\FormRequest;
@@ -41,7 +41,7 @@ class StoreRequest extends FormRequest
             'company_name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:customers,email'],
             'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
-            'dob' => ['nullable', 'date'],  
+            'dob' => ['nullable', 'date'],
             'status' => ['required', Rule::in(['Active', 'Inactive', 'Archived'])],
             'is_guest' => ['boolean'],
             'tax_status' => ['required', Rule::in(['Taxable', 'Exempt'])],
@@ -50,8 +50,8 @@ class StoreRequest extends FormRequest
             'tax_document_valid_until' => ['nullable', 'date'],
 
             'tax_document_review_status' => ['nullable'],
-        
-        
+
+
             'account_approved_by' => ['nullable', 'sometimes', 'integer', 'min:0'],
             'tax_status_approved_by' => ['nullable', 'sometimes', 'integer', 'min:0'],
 

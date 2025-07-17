@@ -57,120 +57,145 @@
                 <option>Paid</option>
                 <option>Pending</option>
             </select>
+
+            <!-- Date Dropdown -->
+            <select
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option>All Dates</option>
+                <option>Today</option>
+                <option>This Week</option>
+                <option>This Month</option>
+            </select>
         </div>
 
         <!-- Row 2: Checkboxes & Date Filter -->
-        <div class="flex flex-wrap items-center gap-6 text-sm text-gray-700">
-            <!-- Show Filter -->
-            <div class="flex items-center gap-2">
-                <span class="font-medium">Show:</span>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                    Delivery
-                </label>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                    Return
-                </label>
-            </div>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div class="flex flex-wrap items-center gap-6">
+                <!-- Schedule Type -->
+                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border">
+                    <x-heroicon-o-calendar class="w-5 h-5 text-blue-500" />
+                    <span class="font-medium">Schedule Type</span>
+                    <label class="flex items-center gap-1 ml-2">
+                        <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
+                        Delivery
+                    </label>
+                    <label class="flex items-center gap-1">
+                        <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
+                        Return
+                    </label>
+                </div>
 
-            <!-- Mode Filter -->
-            <div class="flex items-center gap-2">
-                <span class="font-medium">Mode:</span>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                    Truck
-                </label>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                    In Store
-                </label>
-            </div>
-
-            <!-- Store Filter -->
-            <div class="flex items-center gap-2">
-                <span class="font-medium">Stores:</span>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                    Charlotte
-                </label>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                    Bon Aqua
-                </label>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                    Rescheduled
-                </label>
-            </div>
-
-            <!-- Date Dropdown -->
-            <div>
-                <select
-                    class="border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option>All Dates</option>
-                    <option>Today</option>
-                    <option>This Week</option>
-                    <option>This Month</option>
-                </select>
+                <!-- Transport Mode -->
+                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border">
+                    <x-heroicon-o-truck class="w-5 h-5 text-green-500" />
+                    <span class="font-medium">Transport Mode</span>
+                    <label class="flex items-center gap-1 ml-2">
+                        <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
+                        Truck
+                    </label>
+                    <label class="flex items-center gap-1">
+                        <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
+                        In Store
+                    </label>
+                </div>
+                <!-- Store Locations -->
+                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border">
+                    <x-heroicon-o-map-pin class="w-5 h-5 text-purple-500" />
+                    <span class="font-medium">Store Locations</span>
+                    <label class="flex items-center gap-1 ml-2">
+                        <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
+                        Charlotte
+                    </label>
+                    <label class="flex items-center gap-1">
+                        <input type="checkbox" checked class="text-blue-600 focus:ring-blue-500 rounded border-gray-300">
+                        Bon Aqua
+                    </label>
+                </div>
+                <!-- Special Filters -->
+                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border">
+                    <x-heroicon-o-funnel class="w-5 h-5 text-orange-500" />
+                    <span class="font-medium text-gray-700">Special Filters</span>
+                    <label class="flex items-center gap-1 ml-2">
+                        <input type="checkbox" class="text-red-600 focus:ring-red-500 rounded border-gray-300">
+                        <span class="text-red-500 font-medium">Rescheduled Only</span>
+                    </label>
+                </div>
             </div>
         </div>
-   </div>
+    </div>
 
-   <div class="mx-auto py-6">
-       <div class="bg-white shadow-sm rounded-lg overflow-x-auto">
-           <table class="min-w-full text-sm text-left whitespace-nowrap">
-               <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
-                   <tr>
-                       <th class="px-4 py-3 text-center">Product Name</th>
-                       <th class="px-4 py-3 text-center">OrderNumber</th>
-                       <th class="px-4 py-3 text-left">Customer</th>
-                       <th class="px-4 py-3 text-left">Delivery Address</th>
-                       <th class="px-4 py-3 text-left">Phone</th>
-                       <th class="px-4 py-3 text-left">Equipment</th>
-                       <th class="px-4 py-3 text-center">Delivery Date</th>
-                       <th class="px-4 py-3 text-center">Return Date</th>
-                       <th class="px-4 py-3 text-center">Payment</th>
-                       <th class="px-4 py-3 text-center">Actions</th>
-                   </tr>
-               </thead>
-               <tbody class="divide-y">
-                   @forelse ($orderProducts as $orderProduct)
-                       <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
-                           <td class="px-4 py-3 text-left">{{ $orderProduct->product_name }}</td>
-                           <td class="px-4 py-3 text-center">
-                             {!! $orderProduct->order->view_link !!}
-                           </td>
-                           <td class="px-4 py-3 text-left">{{ $orderProduct->order->customer_name }}</td>
-                           <td class="px-4 py-3 truncate max-w-xs ">{{ $orderProduct->order->shippingAddress->full_address }}</td>
-                           <td class="px-4 py-3 text-left ">{{ $orderProduct->order->customer_phone }}</td>
-                           <td class="px-4 py-3 text-left">{{ $orderProduct->equipment ?? 'N/A' }}</td>
-                           <td class="px-4 py-3 text-center">{{ $orderProduct->schedule_start_date ? $orderProduct->schedule_start_date : 'N/A' }}</td>
-                           <td class="px-4 py-3 text-center">{{ $orderProduct->schedule_end_date ? $orderProduct->schedule_end_date : 'N/A' }}</td>
-                           <td class="px-4 py-3 text-center">{{ $orderProduct->order->payment_status }}</td>
-                           <td class="px-4 py-3">
-                               <div class="flex gap-2 items-center justify-center">
-                                   <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
-                                       class="text-sky-600 hover:text-sky-800" title="View">
-                                       <x-heroicon-o-eye class="w-4 h-4" />
-                                   </a>
-                               </div>
-                           </td>
-                       </tr>
-                   @empty
-                       <tr>
-                           <td colspan="10" class="text-center text-sm text-gray-500 px-4 py-6">
-                               No orders found.
-                           </td>
-                       </tr>
-                   @endforelse
-               </tbody>
-           </table>
-       </div>
-       {{-- Pagination --}}
-       <div class="mt-6">
-           {{ $orderProducts->links('vendor.pagination.tailwind') }}
-       </div>
+    <div class="mx-auto py-6">
+        <div class="bg-white shadow-sm rounded-lg overflow-x-auto">
+            <table class="min-w-full text-sm text-left whitespace-nowrap">
+                <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
+                    <tr>
+                        <th class="px-4 py-3 text-center">Product Name</th>
+                        <th class="px-4 py-3 text-center">OrderNumber</th>
+                        <th class="px-4 py-3 text-left">Customer</th>
+                        <th class="px-4 py-3 text-left">Delivery Address</th>
+                        <th class="px-4 py-3 text-left">Phone</th>
+                        <th class="px-4 py-3 text-center">Equipment</th>
+                        <th class="px-4 py-3 text-center">Delivery Date</th>
+                        <th class="px-4 py-3 text-center">Return Date</th>
+                        <th class="px-4 py-3 text-center">Payment</th>
+                        <th class="px-4 py-3 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @forelse ($orderProducts as $orderProduct)
+                        <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-left">{{ $orderProduct->product_name }}</td>
+                            <td class="px-4 py-3 text-center">
+                                {!! $orderProduct->order->view_link !!}
+                            </td>
+                            <td class="px-4 py-3 text-left">{{ $orderProduct->order->customer_name }}</td>
+                            <td class="px-4 py-3 truncate max-w-xs ">
+                                {{ $orderProduct->order->shippingAddress->full_address }}</td>
+                            <td class="px-4 py-3 text-left ">{{ $orderProduct->order->customer_phone }}</td>
+                            <td class="px-4 py-3 text-center">{{ $orderProduct->equipment ?? 'N/A' }}</td>
+                            <td class="px-4 py-3 text-center">
+                                {{ $orderProduct->delivery_date ? CustomHelper::formatDate($orderProduct->delivery_date) : 'N/A' }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                {{ $orderProduct->pickup_date ? CustomHelper::formatDate($orderProduct->pickup_date) : 'N/A' }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @php
+                                    $status = strtolower($orderProduct->order->last_payment_status);
+                                    $badgeClasses = [
+                                        'pending' => 'bg-yellow-100 text-yellow-800',
+                                        'completed' => 'bg-green-100 text-green-800',
+                                        'failed' => 'bg-red-100 text-red-800',
+                                    ];
+                                    $class = $badgeClasses[$status] ?? 'bg-gray-100 text-gray-800';
+                                @endphp
+                                <span class="px-2 py-1 rounded text-xs font-semibold {{ $class }}">
+                                    {{ ucfirst($orderProduct->order->last_payment_status) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex gap-2 items-center justify-center">
+                                    <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
+                                        class="text-sky-600 hover:text-sky-800" title="View">
+                                        <x-heroicon-o-eye class="w-4 h-4" />
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="10" class="text-center text-sm text-gray-500 px-4 py-6">
+                                No orders found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        {{-- Pagination --}}
+        <div class="mt-6">
+            {{ $orderProducts->links('vendor.pagination.tailwind') }}
+        </div>
     </div>
 @endsection
 

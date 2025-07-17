@@ -4,6 +4,9 @@ namespace App\Models\Orders;
 
 use Illuminate\Database\Eloquent\Model;
 
+// Helpers
+use App\Helpers\ModelHelper;
+
 // Models
 use App\Models\ProductManagement\Product;
 use App\Models\Stores\Store;
@@ -11,6 +14,7 @@ use App\Models\Stores\Store;
 class OrderProduct extends Model
 {
     protected $fillable = [
+        'unique_id',
         'order_id',
         'product_id',
         'product_name',
@@ -27,6 +31,23 @@ class OrderProduct extends Model
         'store_id',
         'distance_type', // 'Standard', 'Extended', 'Custom'
         'distance_range',
+
+        'is_delivery',
+        'delivery_status',
+        'delivery_type',
+        'delivery_store_id',
+        'delivery_by',
+        'delivery_date',
+        'delivery_time',
+        'is_pickup_return',
+        'pickup_status',
+        'pickup_type',
+        'pickup_store_id',
+        'pickup_date',
+        'pickup_time',
+        'pickup_by',
+
+
     ];
 
     // In your OrderProduct.php model
@@ -59,4 +80,14 @@ class OrderProduct extends Model
     {
         return $this->belongsTo(Store::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->unique_id = ModelHelper::generateUniqueID($model, 'ORD-SCH');
+        });
+    }
+
 }

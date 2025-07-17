@@ -30,6 +30,16 @@ class AppServiceProvider extends ServiceProvider
         if(config('app.env') !== 'local') {
             \URL::forceScheme('https');
             $this->app['request']->server->set('HTTPS', 'on');
+        }else{
+            if (env('VITE_ORIGIN_PROTOCOL') === 'https') {
+                \URL::forceScheme('https');
+                if (!$this->app['request']->isSecure()) {
+                    $request = $this->app['request'];
+                    $httpsUrl = 'https://' . $request->getHttpHost() . $request->getRequestUri();
+                    header('Location: ' . $httpsUrl, true, 301);
+                    exit;
+                }
+            }
         }
     }
 

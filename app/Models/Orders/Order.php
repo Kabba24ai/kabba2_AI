@@ -40,6 +40,7 @@ class Order extends Model
     protected $appends = [
         'view_link', // For generating view link in schedules
         'last_payment_type',
+        'last_payment_status',
     ];
 
     // Customer relationship (if you want)
@@ -110,9 +111,20 @@ class Order extends Model
         return '<a href="' . $url . '" class="text-brand-500 underline font-bold">' . $this->order_number . '</a>';
     }
 
+    protected function getLastPayment()
+    {
+        return $this->payments()->latest('id')->first();
+    }
+
     public function getLastPaymentTypeAttribute()
     {
-        $lastPayment = $this->payments()->latest('id')->first();
+        $lastPayment = $this->getLastPayment();
         return $lastPayment ? $lastPayment->payment_method : null;
+    }
+
+    public function getLastPaymentStatusAttribute()
+    {
+        $lastPayment = $this->getLastPayment();
+        return $lastPayment ? $lastPayment->status : null;
     }
 }

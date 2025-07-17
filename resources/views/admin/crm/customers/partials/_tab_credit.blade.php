@@ -177,22 +177,109 @@
                             </tr>
                         </thead>
                         <tbody id="transactionTable">
+
+                        @php
+    $typeStyles = [
+        'charge' => [
+            'bg' => 'bg-red-100',
+            'text' => 'text-red-800',
+            'amount' => 'text-red-600',
+            'sign' => '+',
+            'icon' => 'plus',
+        ],
+        'payment' => [
+            'bg' => 'bg-green-100',
+            'text' => 'text-green-800',
+            'amount' => 'text-green-600',
+            'sign' => '-',
+            'icon' => 'credit-card',
+        ],
+        'discount' => [
+            'bg' => 'bg-purple-100',
+            'text' => 'text-purple-800',
+            'amount' => 'text-green-600',
+            'sign' => '-',
+            'icon' => 'award',
+        ],
+        'credit' => [
+            'bg' => 'bg-yellow-100',
+            'text' => 'text-yellow-800',
+            'amount' => 'text-green-600',
+            'sign' => '-',
+            'icon' => 'arrow-down-left',
+        ],
+        'debit' => [
+            'bg' => 'bg-orange-100',
+            'text' => 'text-orange-800',
+            'amount' => 'text-red-600',
+            'sign' => '+',
+            'icon' => 'arrow-up-right',
+        ],
+        'refund' => [
+            'bg' => 'bg-blue-100',
+            'text' => 'text-blue-800',
+            'amount' => 'text-red-600',
+            'sign' => '+',
+            'icon' => 'trending-up',
+        ],
+    ];
+@endphp
+
+                            @foreach ($customer->accounts as $transaction)
+                                @php
+                                $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
+                            @endphp
+
+                                                    
                             <tr data-status="charge" class="border-b status-row">
-                                <td class="px-3 py-3">Jan 15, 2025</td>
+                                <td class="px-3 py-3"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
                                 <td class="px-3 py-3 text-red-600 ">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
-                                        <span class="ml-1 capitalize">charge</span>
-                                    </span>
-                                    <div class="text-xs text-gray-500 mt-1">Sarah Johnson</div>
+                                    
+
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $style['bg'] }} {{ $style['text'] }}">
+        @if ($style['icon'] === 'plus')
+            <svg class="lucide w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        @elseif ($style['icon'] === 'credit-card')
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        class="lucide lucide-credit-card w-4 h-4 mr-2">
+                                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                                        <line x1="2" x2="22" y1="10" y2="10" />
+                                    </svg>
+     @elseif ($style['icon'] === 'award')
+            <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+        @elseif ($style['icon'] === 'arrow-down-left')
+            <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7L7 17"/><path d="M17 17H7V7"/></svg>
+        @elseif ($style['icon'] === 'arrow-up-right')
+                       <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+
+        @elseif ($style['icon'] === 'trending-up')
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        class="lucide lucide-trending-up w-4 h-4 mr-2">
+                                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                        <polyline points="16 7 22 7 22 13" />
+                                    </svg>
+        @endif
+        <span class="ml-1 capitalize">{{ $transaction->type }}</span>
+    </span>
+
+                                        <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsibleUser->full_name  }}
+</div>
                                 </td>
                                 <td class="px-3 py-3 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate text-gray-700">Premium Widget Set - New Rental</div>
-                                    <div class="text-xs text-gray-500">Ref: ORD-2025-001</div>
+                                    <div class="max-w-xs truncate text-gray-700">{{ $transaction->notes ?? 'N/A' }}</div>
+                                    <div class="text-xs text-gray-500">Ref: {{ $transaction->unique_id }}</div>
                                 </td>
-                                <td class="px-3 py-3 text-right">$999.95</td>
-                                <td class="px-3 py-3 text-right">$97.49</td>
-                                <td class="px-3 py-3 text-right text-red-600">+$1,097.44</td>
-                                <td class="px-3 py-3 text-right">$2,750.00</td>
+                                <td class="px-3 py-3 text-right">  {{ config('app.currency.code') }}{{ number_format($transaction->amount, 2) }}</td>
+                                <td class="px-3 py-3 text-right">$0</td>
+                                <td class="px-3 py-3 text-right {{ $style['amount'] }}">
+                                    {{ $style['sign'] }}${{ number_format($transaction->amount, 2) }}
+                                </td>
+                                <td class="px-3 py-3 text-right">$10000</td>
                                 <td class="px-3 py-3 text-blue-600 text-center">
                                     <div class="flex items-center justify-center space-x-2">
                                         <!-- View -->
@@ -212,159 +299,8 @@
                                     </div>
                                 </td>
                             </tr>
-                            
-                            <tr data-status="payment" class="border-b status-row">
-                                <td class="px-3 py-3">Jan 18, 2025</td>
-                                <td class="px-3 py-3 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4">
-                                            <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-                                            <line x1="2" x2="22" y1="10" y2="10"></line>
-                                        </svg>
-                                        <span class="ml-1 capitalize">payment</span>
-                                    </span>
-                                    <div class="text-xs text-gray-500 mt-1">System</div>
-                                </td>
-                                <td class="px-3 py-3 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate">Credit Card Payment</div>
-                                    <div class="text-xs text-gray-500">Ref: PAY-2025-001</div>
-                                </td>
-                                <td class="px-3 py-3 text-right">$1,250.00</td>
-                                <td class="px-3 py-3 text-right">$0.00</td>
-                                <td class="px-3 py-3 text-right text-green-600">-$1,250.00</td>
-                                <td class="px-3 py-3 text-right">$1,500.00</td>
-                                <td class="px-3 py-3 text-blue-600 text-center">
-                                    <button title="View">
-                                        <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                                    </button>
-                                    <!-- Download -->
-                                    <button title="Download">
-                                        <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <tr data-status="charge" class="border-b status-row">
-                                <td class="px-3 py-3">Jan 15, 2025</td>
-                                <td class="px-3 py-3 text-red-600 ">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
-                                        <span class="ml-1 capitalize">charge</span>
-                                    </span>
-                                    <div class="text-xs text-gray-500 mt-1">Michael Chen</div>
-                                </td>
-                                <td class="px-3 py-3 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate text-gray-700">Standard Widget Pack - Rental Extension</div>
-                                    <div class="text-xs text-gray-500">Ref: ORD-2025-002</div>
-                                </td>
-                                <td class="px-3 py-3 text-right">$449.97</td>
-                                <td class="px-3 py-3 text-right">$43.87</td>
-                                <td class="px-3 py-3 text-right text-red-600">+$493.84</td>
-                                <td class="px-3 py-3 text-right">$1,993.84</td>
-                                <td class="px-3 py-3 text-blue-600 text-center">
-                                    <!-- View -->
-                                    <button title="View">
-                                        <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                                    </button>
-                                    <!-- Download -->
-                                    <button title="Download">
-                                        <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                                    </button>
-                                    <!-- Note -->
-                                    <button title="note">
-                                        <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <tr data-status="discount" class="border-b status-row">
-                                <td class="px-3 py-3">Jan 22, 2025</td>
-                                <td class="px-3 py-3 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award w-4 h-4"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>
-                                        <span class="ml-1 capitalize">discount</span>
-                                    </span>
-                                    <div class="text-xs text-gray-500 mt-1">Emily Rodriguez</div>
-                                </td>
-                                <td class="px-3 py-3 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate">Volume Discount - Repeat Customer</div>
-                                    <div class="text-xs text-gray-500">Ref: DISC-2025-001</div>
-                                </td>
-                                <td class="px-3 py-3 text-right">$100.00</td>
-                                <td class="px-3 py-3 text-right">$9.75</td>
-                                <td class="px-3 py-3 text-right text-green-600">-$109.75</td>
-                                <td class="px-3 py-3 text-right">$1,884.09</td>
-                                <td class="px-3 py-3 text-blue-600 text-center">
-                                    <!-- View -->
-                                    <button title="View">
-                                        <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                                    </button>
-                                    <!-- Download -->
-                                    <button title="Download">
-                                        <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <tr data-status="charge" class="border-b status-row">
-                                <td class="px-4 py-3">Jan 25, 2025</td>
-                                <td class="px-4 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-4 h-4">
-                                        <path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
-                                        <span class="ml-1 capitalize">charge</span>
-                                    </span>
-                                    <div class="text-xs text-gray-500 mt-1">David Thompson</div>
-                                </td>
-                                <td class="px-4 py-4 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate">Widget Accessories Kit - Product Purchase</div>
-                                    <div class="text-xs text-gray-500">Ref: ORD-2025-003</div>
-                                </td>
-                                <td class="px-4 py-3 text-right">$199.98</td>
-                                <td class="px-4 py-3 text-right">$19.50</td>
-                                <td class="px-4 py-3 text-right text-red-600">+$219.48</td>
-                                <td class="px-4 py-3 text-right">$2,103.57</td>
-                                <td class="px-4 py-3 text-blue-600 text-center">
-                                    <!-- View -->
-                                    <button title="View">
-                                        <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                                    </button>
-                                    <!-- Download -->
-                                    <button title="Download">
-                                        <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <tr data-status="refund" class="border-b status-row">
-                                <td class="px-3 py-3">Jan 28, 2025</td>
-                                <td class="px-3 py-3 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-4 h-4"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
-                                    <span class="ml-1 capitalize">refund</span>
-                                    </span>
-                                    <div class="text-xs text-gray-500 mt-1">Sarah Johnson</div>
-                                </td>
-                                <td class="px-3 py-3 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate">Damaged Item Refund</div>
-                                    <div class="text-xs text-gray-500">Ref: REF-2025-001</div>
-                                </td>
-                                <td class="px-3 py-3 text-right">$50.00</td>
-                                <td class="px-3 py-3 text-right">$4.88</td>
-                                <td class="px-3 py-3 text-right text-green-600">-$54.88</td>
-                                <td class="px-3 py-3 text-right">$2,048.69</td>
-                                <td class="px-3 py-3 text-blue-600 text-center">
-                                    <!-- View -->
-                                    <button title="View">
-                                        <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                                    </button>
-                                    <!-- Download -->
-                                    <button title="Download">
-                                        <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                                    </button>
-                                    <!-- Note -->
-                                    <button title="note">
-                                        <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
-                                    </button>
-                                </td>
-                            </tr>
+                            @endforeach
+                           
                         </tbody>
                     </table>
                 </div>
@@ -386,43 +322,93 @@
                 <button id="closeModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
             </div>
             <div class=" p-6 overflow-y-auto">
-                <form>
+                <!-- <form> -->
+
+                
+                         {{ html()->form('POST', route('admin.crm.customers.customeraccount.paymentstore'))->id('recordpayment')->attributes([
+                            'autocomplete' => 'off',
+                            'data-parsley-validate' => true,
+                            'class' => 'space-y-8',
+                        ])->open() }}
+
+                        
+                        
+            {!! html()->text('customer_id', $customer->id ?? '')->class('hidden')->attributes([
+                    'id' => 'customer_id',
+                    'autocomplete' => 'off'
+                ]) !!}
+
+
                     <!-- Payment Amount -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
                         <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                        <input type="number" placeholder="0.00"
-                                class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/>
+
+
+                        <!-- <input type="number" placeholder="0.00"
+                                class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
+
+                                  {!! html()->number('amount', old('amount'))
+            ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+            ->placeholder('0.00')->required() !!}
+
+
+    
                         </div>
                     </div>
                     <!-- Payment Method -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700  ">
-                            <option>Select payment method</option>
-                            <option>Credit / Debit Card</option>
-                            <option>Cash</option>
-                            <option>Check</option>
-                            <option>Bank Transfer</option>
-                            <option>Other</option>
-                        </select>
+                       
+
+
+                        {!! html()->select('payment_type', [
+            '' => 'Select payment method',
+            'CreditCard' => 'Credit / Debit Card',
+            'Cash' => 'Cash',
+            'Cheque' => 'Check',
+            'BankTransfer' => 'Bank Transfer',
+            'Other' => 'Other',
+        ], old('payment_type'))
+        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
+
+
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 ">
-                        <option>Select person responsible</option>
-                        <option>John Doe</option>
-                        <option>Jane Smith</option>
-                        </select>
+
+                       
+
+                        {!! html()
+                        ->select('responsible_person',
+                            $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
+                            old('responsible_person')
+                        )
+                        ->id('responsible_person')
+                        ->class([
+                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                            'border-red-500' => $errors->has('responsible_person'),
+                        ])
+                        ->required()
+                    !!}
+
+
                     </div>
 
                     <!-- Notes -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                        <textarea rows="3" placeholder="Enter any additional notes..."
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></textarea>
+                        <!-- <textarea rows="3" placeholder="Enter any additional notes..."
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></textarea> -->
+
+                            {!! html()->textarea('notes', old('notes'))
+        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+        ->rows(3)
+        ->placeholder('Enter any additional notes...') !!}
+
+
                     </div>
 
                     <div class="flex justify-end gap-2 pb-4">
@@ -433,13 +419,11 @@
                             Record Payment
                         </button>
                     </div>
-                </form>
+
+  {{ html()->form()->close() }}
             
             </div>
-            <!-- <div class="flex justify-end gap-2 px-6 pb-4">
-                <button type="button" id="cancelBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">Cancel</button>
-                <button type="button" id="submitTemplatesBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-blue-700"> Record Payment</button>
-            </div> -->
+           
         </div>
     </div>
 </div>
@@ -463,43 +447,79 @@
                 <button id="closeRefundModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
             </div>
             <div class=" p-6 overflow-y-auto">
-                <form>
+                <!-- <form> -->
+
+                 {{ html()->form('POST', route('admin.crm.customers.customeraccount.refundstore'))->id('processRefund')->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'space-y-8',
+                ])->open() }}
+
+
+                 {!! html()->hidden('customer_id', $customer->id ?? '') !!}
                     <!-- Payment Amount -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                            <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/>
+                            <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
+
+                            {!! html()->number('amount', old('amount'))
+                            ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                            ->placeholder('0.00')->required() !!}
+
                         </div>
                     </div>
                     <!-- Payment Method -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason</label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700  ">
-                            <option value="">Select refund reason</option>
-                            <option value="damaged-item">Damaged Item</option>
-                            <option value="wrong-item">Wrong Item Shipped</option>
-                            <option value="customer-cancellation">Customer Cancellation</option>
-                            <option value="overcharge">Billing Overcharge</option>
-                            <option value="duplicate-charge">Duplicate Charge</option>
-                            <option value="other">Other</option>
-                        </select>
+                        
+
+                        {!! html()->select('reason', [
+                        '' => 'Select refund reason',
+                        'Damaged Item' => 'Damaged Item',
+                        'Wrong Item Shipped' => 'Wrong Item Shipped',
+                        'Customer Cancellation' => 'Customer Cancellation',
+                        'Billing Overcharge' => 'Billing Overcharge',
+                        'Duplicate Charge' => 'Duplicate Charge',
+                        'Other' => 'Other',
+                    ], old('reason'))
+                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
+
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 ">
+                        <!-- <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 ">
                         <option>Select person responsible</option>
                         <option>John Doe</option>
                         <option>Jane Smith</option>
-                        </select>
+                        </select> -->
+
+                        {!! html()
+                        ->select('responsible_person',
+                            $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
+                            old('responsible_person')
+                        )
+                        ->id('responsible_person')
+                        ->class([
+                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                            'border-red-500' => $errors->has('responsible_person'),
+                        ])
+                        ->required()
+                    !!}
                     </div>
 
                     <!-- Notes -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                        <textarea rows="3" placeholder="Describe the reason for this refund..."
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></textarea>
+                        <!-- <textarea rows="3" placeholder="Describe the reason for this refund..."
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></textarea> -->
+
+                            {!! html()->textarea('notes', old('notes'))
+                        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                        ->rows(3)
+                        ->placeholder('Describe the reason for this refund...') !!}
                     </div>
 
                     <div class="flex justify-end gap-2 pb-4">
@@ -510,7 +530,7 @@
                             Process Refund
                         </button>
                     </div>
-                </form>
+             {{ html()->form()->close() }}
             
             </div>
             <!-- <div class="flex justify-end gap-2 px-6 pb-4">

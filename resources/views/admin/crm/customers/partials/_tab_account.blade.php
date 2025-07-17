@@ -13,7 +13,7 @@
 
 
 
-            <div class="bg-white p-6 rounded shadow mb-4">
+            <div class="bg-white p-6 rounded shadow mt-6 mb-0">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Title and Description -->
                     <div>
@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-0">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
                 <!-- Personal Information -->
                 <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
                     <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
@@ -48,7 +48,7 @@
                     <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 text-sm text-gray-700">
 
                         <div>
-                            <label class="text-gray-700 mb-1">First Name</label>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">First Name</label>
                             <div class="static-view">{{ $customer->first_name ?? '' }}</div>
                              <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
 
@@ -69,7 +69,7 @@
                         </div>
 
                         <div>
-                            <label class="text-gray-700 mb-1">Last Name</label>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Last Name</label>
                             <div class="static-view">{{ $customer->last_name ?? '' }}</div>
                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
 
@@ -89,7 +89,7 @@
                         </div>
 
                         <div class="col-span-2">
-                            <label class="text-gray-700 text-sm mb-1 block">Email Address</label>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-2">
                                     <x-heroicon-o-envelope class="w-4 h-4 mr-2 text-gray-500" />{{ $customer->email ?? '' }}
@@ -121,7 +121,7 @@
                         </div>
 
                         <div class="col-span-2">
-                            <label class="text-gray-700 text-sm mb-1 block">Phone Number</label>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-2">
                                     <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-500" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
@@ -158,8 +158,8 @@
                     </h3>
                     <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
                         <div class="col-span-2">
-                            <label class="text-sm text-gray-700 mb-1">Company Name</label>
-                            <div class="static-view">{{ $customer->company_name ?? '' }}</div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Company Name</label>
+                            <div class="static-view">{{ $customer->company_name ?? 'N/A' }}</div>
                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
 
                             {!! html()->text('company_name', old('company_name', $customer->company_name ?? ''))
@@ -178,7 +178,7 @@
                         </div>
                         
                         <div class="col-span-2">
-                            <label class="text-gray-700 text-sm mb-1 block">Company Phone</label>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Company Phone</label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-2">
                                     <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-500" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}
@@ -207,7 +207,7 @@
                         </div>
 
                         <div class="col-span-2">
-                            <label class="text-gray-700 text-sm mb-1 block">Website</label>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Website</label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-2">
                                       <x-heroicon-o-globe-alt class="w-4 h-4 mr-2 text-gray-500" /><a class="text-blue-600" href="{{ $customer->company_website ?? 'javascript:void(0)' }}">{{ $customer->company_website ?? 'N/A'}}</a>
@@ -255,18 +255,7 @@
                                     ->id('website_extension') !!}
 
                             </div>
-                            <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_website  }}" /> -->
-
-                            <!-- {!! html()->text('company_website', old('company_website', $customer->company_website ?? ''))
-                            ->class([
-                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has('company_website'),
-                            ])
-                            ->attributes([
-                                'placeholder' => 'https://example.com',
-                                'id' => 'company_website',
-                            ]) !!} -->
-
+                          
 
                         </div>
                     </div>
@@ -279,7 +268,7 @@
 @endphp
 
 @if ($hasAddresses->isNotEmpty())
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
           @foreach ($customer->addresses as $index => $addresse)
             <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
                 <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id }}" class="address_id">
@@ -350,7 +339,7 @@
                                 'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
                                 'border-red-500' => $errors->has("addresses.$index.state_id"),
                             ])
-                            ->required() !!}
+                             !!}
                     </div>
                 </div>
             </div>
@@ -358,7 +347,7 @@
 
             </div>
 @endif
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-0">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
                 <!-- Account Status -->
                 <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
                     <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
@@ -369,7 +358,7 @@
                     </h3>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
-                            <span class="text-gray-700 mb-1">Account Status:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Account Status:</span>
 
                              @php
                                 $approved = $customer->is_credit_account == 1;
@@ -387,7 +376,7 @@
                             
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-700 mb-1">Account Approved:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Account Approved:</span>
                             <div class="static-view">
                             @if($customer->is_credit_account == 1)
                               
@@ -417,11 +406,11 @@
 
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-700 mb-1">Customer Since:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Customer Since:</span>
                             <span class="text-xs">{{ App\Helpers\CustomHelper::formatDate($customer->created_at) ?? 'N/A' }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-700 mb-1">Customer ID:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Customer ID:</span>
                             <span class="text-xs">{{ $customer->unique_id }}</span>
                         </div>
                     </div>
@@ -434,14 +423,14 @@
                             <x-heroicon-o-credit-card class="w-5 h-5 text-gray-600" />
                             Credit Information
                         </h3>
-                        <span class="text-xs text-red-800 bg-red-100 px-2 py-1 rounded">Admin View</span>
+                        <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span>
                     </div>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between ">
 
                           
 
-                                <span class="text-gray-700 mb-1">Credit Limit:</span>
+                                <span class="block text-sm font-medium text-gray-500 mb-1">Credit Limit:</span>
                                 <span class="text-right static-view">
                                     <span class="text-gray-900 font-semibold">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</span>
                                     <a href="#" class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /></a>
@@ -467,13 +456,13 @@
                         </div>
 
                         <div class="flex justify-between">
-                            <span class="text-gray-700 mb-1">Current Balance:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Current Balance:</span>
 
                             <span class="font-medium static-view">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
                             
-                            {!! html()
-                            ->select('Current_Balance', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
-                            ->id('Current_Balance')
+                              
+
+                             {!! html()->text('Current_Balance', old('credit_limit', $customer->credit_limit ?? ''))
                             ->class([
                                 'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300  edit-view',
                             ])->placeholder('Select Credit Limit')
@@ -481,11 +470,11 @@
                          
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-700 mb-1">Available Credit:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Available Credit:</span>
                             <span class="text-green-600 font-medium static-view">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</span>
-                            {!! html()
-                            ->select('Available_Credit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
-                            ->id('Available_Credit')
+                               
+
+                            {!! html()->text('Available_Credit', old('credit_limit', $customer->credit_limit ?? ''))
                             ->class([
                                 'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300  edit-view',
                             ])->placeholder('Select Credit Limit')
@@ -503,18 +492,21 @@
 
                                 $per = $climit > 0 ? (($available / $climit) * 100) : 0;
                             @endphp
-                            <label class="text-gray-700 mb-1 text-sm">Credit Utilization</label>
+                            <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
+                                <div class="text-right text-xs text-gray-500 mt-0.5">{{round($per)}}%</div>
+                            </div>
                             <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
                                 <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%;"></div>
                             </div>
-                            <div class="text-right text-xs text-gray-500 mt-0.5">{{round($per)}}%</div>
+                            
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6">
+            <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-0">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
                     <div class="flex items-center gap-2">
                         <x-heroicon-o-document class="w-5 h-5 text-gray-500" />
@@ -530,18 +522,22 @@
                     <!-- Left: Tax Info -->
                     <div class="space-y-2 text-sm text-gray-700">
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-700 mb-1">Tax Status:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Tax Status:</span>
                             <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $customer->tax_status ?? 'N/A' }}</span> -->
 
                              <div class="static-view">
-                            <span class="inline-flex items-center gap-2 text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">
-                                @if ($customer->tax_status === 'Exempt')
-                                    <x-heroicon-o-shield-check class="w-4 h-4 text-green-500" />
-                                @else
-                                    <x-heroicon-o-shield-check class="w-4 h-4 text-gray-500" />
-                                @endif
-                                {{ $customer->tax_status ?? 'N/A' }}
-                            </span>
+                                <div class="inline-flex items-center gap-2">
+                                    <span class="text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                        <span class="leading-[1.2] inline-flex items-center gap-2 px-2 py-1">
+                                            @if ($customer->tax_status === 'Exempt')
+                                                <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
+                                            @else
+                                                <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
+                                            @endif
+                                            {{ $customer->tax_status ?? 'N/A' }}
+                                        </span>
+                                    </span>
+                                </div>
                             </div>
 
                              {!! html()
@@ -557,7 +553,7 @@
 
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-700 mb-1">Valid Until:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Valid Until:</span>
 
 
                               <div class="static-view">
@@ -579,7 +575,7 @@
 
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-700 mb-1">Uploaded:</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-1">Uploaded:</span>
 
                             <div class="static-view">
                               <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
@@ -620,7 +616,7 @@
                                         <span id="tax-status-{{ $customer->id }}" class="font-medium
                                             {{ $customer->tax_document_status === 'Rejected' ? 'text-red-600' :
                                             ($customer->tax_document_status === 'Approved' ? 'text-green-600' : 'text-yellow-600') }}">
-                                            {{ $customer->tax_document_status ?? 'Pending Review' }}
+                                                {{ $customer->tax_document_status ?: 'Pending Review' }}
                                         </span>
 
                                         </div>
@@ -635,13 +631,30 @@
 
                                         
                                  <!-- Delete Button -->
-    <button type="button"
-        class="text-red-600"
-        onclick="confirmAndDelete({{ $customer->id }})"
-    >
-        Delete
-    </button>
+                                <button type="button"
+                                    class="text-red-600"
+                                    onclick="confirmAndDelete({{ $customer->id }})"
+                                >
+                                    Delete
+                                </button>
                                    
+
+                               <!-- Approve Button -->
+                                <button type="button"
+                                    class="text-green-600 approve-btn"
+                                    data-customer-id="{{ $customer->id }}"
+                                    style="{{ $customer->tax_document_status === 'Approved' ? 'display: none;' : '' }}">
+                                    Approve
+                                </button>
+
+                                <!-- Reject Button -->
+                                <button type="button"
+                                    class="text-red-600 reject-btn"
+                                    data-customer-id="{{ $customer->id }}"
+                                    style="{{ $customer->tax_document_status === 'Approved' ? 'display: none;' : '' }}">
+                                    Reject
+                                </button>
+
 
                                     </div>
                                 </div>
@@ -743,8 +756,8 @@
     <div class="modal-scrollable w-full mx-auto">
         <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
-                <div class="flex items-center gap-2">
-                    <div class="text-yellow-500 rounded-md p-2">
+                <div class="flex items-center">
+                    <div class="text-yellow-500 rounded-md">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                              viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -758,7 +771,7 @@
                 <button id="closeResetPasswordModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
             </div>
 
-            <div class="p-6 overflow-y-auto">
+            <div class="px-6 overflow-y-auto">
                 
              
                    {{ html()->form()->attributes([
@@ -775,12 +788,14 @@
     {{ html()->hidden('customer_id', $customer->id) }}
 
     <div>
-        <label class="text-gray-700 mb-2">New Password</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
         {{ html()->password('password')->attributes([
             'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
             'required' => true,
             'id' => 'password',
-            'data-parsley-errors-container' => '#password-errors',
+            'data-parsley-minlength' => '6',
+            'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
+            
         ])->placeholder('') }}
         <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
                                     @error('password')
@@ -789,7 +804,7 @@
     </div>
 
     <div>
-        <label class="text-gray-700 mb-2">Password Confirmation</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Password Confirmation</label>
         {{ html()->password('password_confirmation')->attributes([
             'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
             'required' => true,
@@ -878,54 +893,6 @@
     });
 </script>
 
-<script>
-    $('#resetPasswordForm').parsley();
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    const passwordInput = document.getElementById('password');
-    const confirmInput = document.getElementById('password_confirmation');
-    const passwordError = document.getElementById('password-errors');
-
-    // Password length check
-    passwordInput.addEventListener('input', function () {
-        const password = passwordInput.value;
-        if (password.length < 6) {
-            passwordError.textContent = 'Password must be at least 6 characters long.';
-        } else {
-            passwordError.textContent = '';
-        }
-        validateConfirmPassword();
-    });
-
-    // Confirm password match check
-    confirmInput.addEventListener('input', function () {
-        validateConfirmPassword();
-    });
-
-    function validateConfirmPassword() {
-        const password = passwordInput.value;
-        const confirm = confirmInput.value;
-        const existingError = document.getElementById('confirm-password-error');
-
-        if (confirm && confirm !== password) {
-            if (!existingError) {
-                const error = document.createElement('p');
-                error.id = 'confirm-password-error';
-                error.className = 'text-sm text-red-600 mt-1';
-                error.textContent = 'Passwords do not match.';
-                confirmInput.insertAdjacentElement('afterend', error);
-            }
-        } else {
-            if (existingError) {
-                existingError.remove();
-            }
-        }
-    }
-});
-</script>
 
 <script>
 
@@ -1003,6 +970,56 @@ document.getElementById('resetPasswordForm').addEventListener('submit', function
 });
 </script>
 
+<script>
+document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+    button.addEventListener('click', function () {
+        const customerId = this.getAttribute('data-customer-id');
+        const status = this.classList.contains('approve-btn') ? 'Approved' : 'Rejected';
+
+        fetch("{{ route('admin.crm.customers.tax_status.update') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: JSON.stringify({
+                customer_id: customerId,
+                status: status,
+            }),
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Network response was not ok");
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Update status label
+                const statusSpan = document.getElementById(`tax-status-${customerId}`);
+                statusSpan.textContent = status;
+                statusSpan.className = `font-medium ${
+                    status === 'Approved' ? 'text-green-600' :
+                    status === 'Rejected' ? 'text-red-600' :
+                    'text-yellow-600'
+                }`;
+
+                // Hide buttons if approved
+                if (status === 'Approved') {
+                    document.querySelectorAll(`[data-customer-id="${customerId}"].approve-btn`).forEach(btn => btn.style.display = 'none');
+                    document.querySelectorAll(`[data-customer-id="${customerId}"].reject-btn`).forEach(btn => btn.style.display = 'none');
+                }
+
+                notyf.success(data.message || "Status updated successfully.");
+            } else {
+                notyf.error(data.message || "Failed to update status.");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            notyf.error("Something went wrong while updating status.");
+        });
+    });
+});
+</script>
 
 
 

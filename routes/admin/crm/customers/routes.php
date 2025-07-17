@@ -56,4 +56,11 @@ Route::prefix('customers')
     Route::post('/password/update', PasswordResetController::class)->name('password.update');
 
    Route::post('/status-update/{unique_id}', CustomerStatusUpdateController::class)->name('status-update.customer');
+
+
+
+    // customeraccount
+    require base_path('routes/admin/crm/customers/customeraccount/routes.php');
+
+
 });

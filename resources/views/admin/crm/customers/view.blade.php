@@ -104,7 +104,7 @@
         </nav>
     </div>
 
-    <div class="pt-4 dark:border-gray-800">
+    <div class="dark:border-gray-800">
         <div x-show="activeTab === 'dashboard'">
             @include('admin.crm.customers.partials._tab_dashboard')
 
@@ -138,10 +138,13 @@
 
 
 @endsection
+
+@push('js')
+  
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('customerForm');
-    const saveBtn = document.getElementsByClassName('.saveBtn');
+    const saveBtn = document.querySelector('.saveBtn');
     const addressListInput = document.getElementById('alladdresslist');
 
     let allowSubmit = false;
@@ -574,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
+        cancelBtn?.addEventListener('click', closeModal);
 
         // Optional: Close when clicking outside the modal
         modalWrapper.addEventListener('click', (e) => {
@@ -646,26 +649,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 </script>
 
-<!-- <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const filter = document.getElementById('typeFilters');
-    const rows = document.querySelectorAll('.status-row');
 
-    filter.addEventListener('change', function () {
-      const value = this.value;
-
-      rows.forEach(row => {
-        const rowStatus = row.getAttribute('data-status');
-        if (value === 'all' || rowStatus === value) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
-      });
-    });
-  });
-</script> -->
-
-@push('js')
-
+@endpush
 

@@ -8,7 +8,7 @@ use Illuminate\View\View;
 // Models
 use App\Models\Locations\State;
 use App\Models\Customers\Customer;
-
+use App\Models\Iam\Personnel\User ;
 class ViewController extends Controller
 {
     
@@ -21,7 +21,7 @@ class ViewController extends Controller
     public function __invoke(string $unique_id): View
     {
         
-        $customer = Customer::with('orders','accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','media')
+        $customer = Customer::with('orders','accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();
 
@@ -47,7 +47,8 @@ class ViewController extends Controller
                 }
             }
         }
-        
+
+        $users = User::where('status','Active')->get();
 
 
         return view('admin.crm.customers.view', [
@@ -56,6 +57,7 @@ class ViewController extends Controller
             'website_protocol'=> $protocol,
             'company_website'=> $domain,
             'website_extension'=> $extension,
+            'users'=>$users,
         ]);
     }
 }

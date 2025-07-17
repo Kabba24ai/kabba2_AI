@@ -1,4 +1,4 @@
- <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+ <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6">
                 <!-- Left: Name and Account -->
                 <div class="text-left">
                     <h2 class="text-lg font-semibold text-gray-900">{{ $customer->full_name }}</h2>
@@ -7,18 +7,17 @@
 
                 <!-- Center: Tax Status (Responsive) -->
                 <div class="text-left md:text-center w-full md:w-auto">
-                    <p class="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
+                    <p class="text-xs tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
                     <div class="inline-flex items-center gap-2">
-                        <span 
-                        class="inline-flex items-center gap-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                        <span class="text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            <span class="leading-[1.2] inline-flex items-center gap-2 px-2 py-1">
                             @if ($customer->tax_status === 'Exempt')
-                                    <x-heroicon-o-shield-check class="w-4 h-4 text-green-500" />
+                                    <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
                                 @else
-                                    <x-heroicon-o-shield-check class="w-4 h-4 text-gray-500" />
+                                    <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
                                 @endif
-
-                           
-                          {{ $customer->tax_status }} 
+                            {{ $customer->tax_status }} 
+                          </span>
                         </span>
                     </div>
                     <p class="text-xs text-gray-500 mt-1"> Valid until  {{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}  </p>
@@ -44,7 +43,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto mt-6 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto mt-6">
                 <!-- Paid Sales -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-green-100 text-green-600 rounded-md p-2">
@@ -53,14 +52,14 @@
                             width="20" height="20" viewBox="0 0 24 24" 
                             fill="none" stroke="currentColor" 
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                            class="lucide lucide-check-circle w-4 h-4">
+                            class="lucide lucide-check-circle w-6 h-6">
                             <path d="M9 12l2 2l4 -4"></path>
                             <circle cx="12" cy="12" r="10"></circle>
                         </svg>
                     </div>
                     <div>
-                    <p class="text-sm text-gray-500">Paid Sales</p>
-                    <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
+                        <p class="text-sm font-medium text-gray-500">Paid Sales</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -71,26 +70,26 @@
                             width="20" height="20" viewBox="0 0 24 24" 
                             fill="none" stroke="currentColor" 
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                            class="lucide lucide-alert-circle w-4 h-4">
+                            class="lucide lucide-alert-circle w-6 h-6">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="8" x2="12" y2="12" />
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                     </div>
                     <div>
-                    <p class="text-sm text-gray-500">Pending Sales</p>
-                    <p class="text-lg font-semibold text-gray-900">$0.00</p>
+                        <p class="text-sm font-medium text-gray-500">Pending Sales</p>
+                        <p class="text-lg font-semibold text-gray-900">$0.00</p>
                     </div>
                 </div>
 
                 <!-- Account Balance -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-blue-100 text-blue-600 rounded-md p-2">
-                        <x-heroicon-o-calendar class="w-5 h-5 " />
+                        <x-heroicon-o-calendar class="w-6 h-6 " />
                     </div>
                     <div>
-                    <p class="text-sm text-gray-500">Account Balance</p>
-                    <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
+                        <p class="text-sm font-medium text-gray-500">Account Balance</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -101,24 +100,24 @@
                             width="20" height="20" viewBox="0 0 24 24" 
                             fill="none" stroke="currentColor" 
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                            class="lucide lucide-alert-circle w-4 h-4">
+                            class="lucide lucide-alert-circle w-6 h-6">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="8" x2="12" y2="12" />
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                     </div>
                     <div>
-                    <p class="text-sm text-gray-500">Open Invoices</p>
-                    <p class="text-lg font-semibold text-gray-900">$0</p>
+                        <p class="text-sm font-medium text-gray-500">Open Invoices</p>
+                        <p class="text-lg font-semibold text-gray-900">$0</p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-md shadow-sm p-6">
+            <div class="bg-white rounded-md shadow-sm  mt-6">
                 <!-- Header with Filter -->
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200">
-                    <h2 class="text-base font-semibold text-gray-800  mb-4 ">All Customer Orders</h2>
-                    <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200 p-4">
+                    <h2 class="text-base font-semibold text-gray-800">All Customer Orders</h2>
+                    <div>
                         <label for="statusFilter" class="text-sm font-medium text-gray-700 mr-2">Filter by Status:</label>
                         <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
                             <option value="all">All Orders</option>

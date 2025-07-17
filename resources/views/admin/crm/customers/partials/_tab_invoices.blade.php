@@ -1,4 +1,4 @@
- <div class="bg-white p-6 rounded shadow-sm space-y-6 " >
+ <div class="bg-white p-6 rounded shadow-sm space-y-6 mt-6" >
                 <!-- Header -->
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
@@ -20,11 +20,11 @@
             </div>
             
             <!-- Invoice Status Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 <!-- Paid -->
                 <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
                     <div>
-                        <p class="text-sm text-gray-600">Paid Invoices</p>
+                        <p class="text-sm font-medium text-gray-500">Paid Invoices</p>
                         <p class="text-xl font-bold text-gray-900">$1,250.00</p>
                     </div>
                     <div class="bg-green-100 p-2 rounded-md">
@@ -42,7 +42,7 @@
                 <!-- Pending -->
                 <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
                     <div>
-                        <p class="text-sm text-gray-600">Pending Invoices</p>
+                        <p class="text-sm font-medium text-gray-500">Pending Invoices</p>
                         <p class="text-xl font-bold text-gray-900">$624.50</p>
                     </div>
                     <div class="bg-yellow-100 p-2 rounded-md">
@@ -55,7 +55,7 @@
                 <!-- Overdue -->
                 <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm ">
                     <div>
-                        <p class="text-sm text-gray-600">Overdue Invoices</p>
+                        <p class="text-sm font-medium text-gray-500">Overdue Invoices</p>
                         <p class="text-xl font-bold text-gray-900">$875.50</p>
                     </div>
                     <div class="bg-red-100 p-2 rounded-md  text-red-500">
@@ -72,11 +72,11 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-md shadow-sm p-6">
+            <div class="bg-white rounded-md shadow-sm mt-6">
                 <!-- Header with Filter -->
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200">
-                    <h2 class="text-base font-semibold text-gray-800 mb-4">Invoices</h2>
-                    <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200 p-4">
+                    <h2 class="text-base font-semibold text-gray-800">Invoices</h2>
+                    <div>
                         <label for="invoiceFilter" class="text-sm font-medium text-gray-700 mr-2">Filter by Status:</label>
                         <select id="invoiceFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
                             <option value="all">All Orders</option>
@@ -104,27 +104,27 @@
                         <tbody id="invoiceTable" class="divide-y divide-gray-200">
                             <tr class="invoice-row" data-status="paid">
                                 <td class="px-4 py-3 font-medium text-gray-900">INV-2025-001</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm"><div class="font-medium text-gray-900">Acme Corp</div>
                                     <div class="text-gray-500">John Doe</div></div>
                                 </td>
                                 <td class="px-4 py-3">Jan 15, 2025</td>
                                 <td class="px-4 py-3">Feb 14, 2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-500">$1,250.00</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-500">$1,250.00</td>
                                 <td class="px-4 py-3">
                                     <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                    <button class="text-blue-600 hover:text-blue-900 inline-flex items-center">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
+                                    <button class="text-blue-600 inline-flex items-center">
                                         <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
                                     </button>
-                                    <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                    <button class="text-green-600 inline-flex items-center">
                                         <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
                                     </button>
-                                    <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                    <button class="text-green-600 inline-flex items-center">
                                         <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />Edit
                                     </button>
-                                    <button class="text-purple-600 hover:text-purple-900 inline-flex items-center">
+                                    <button class="text-purple-600 inline-flex items-center">
                                         <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" /> Send
                                     </button>
                                 </td>
@@ -132,27 +132,27 @@
 
                             <tr class="invoice-row" data-status="overdue">
                                 <td class="px-4 py-3 font-medium text-gray-900">INV-2025-002</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm"><div class="font-medium text-gray-900">Acme Corp</div>
                                     <div class="text-gray-500">John Doe</div></div>
                                 </td>
                                 <td class="px-4 py-3">Jan 20, 2025</td>
                                 <td class="px-4 py-3">Feb 19, 2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-500">$875.50</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-500">$875.50</td>
                                 <td class="px-4 py-3">
                                     <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">overdue</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                     <button class="text-blue-600 hover:text-blue-900 inline-flex items-center">
                                         <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
                                     </button>
-                                    <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                    <button class="text-green-600 inline-flex items-center">
                                         <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
                                     </button>
-                                    <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                    <button class="text-green-600 inline-flex items-center">
                                         <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />Edit
                                     </button>
-                                    <button class="text-purple-600 hover:text-purple-900 inline-flex items-center">
+                                    <button class="text-purple-600 inline-flex items-center">
                                         <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" /> Send
                                     </button>
                                 </td>
@@ -160,27 +160,27 @@
 
                             <tr class="invoice-row" data-status="pending">
                                 <td class="px-4 py-3 font-medium text-gray-900">INV-2025-003</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm"><div class="font-medium text-gray-900">Acme Corp</div>
                                     <div class="text-gray-500">John Doe</div></div>
                                 </td>
                                 <td class="px-4 py-3">Jan 25, 2025</td>
                                 <td class="px-4 py-3">Feb 24, 2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-500">$624.50</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-500">$624.50</td>
                                 <td class="px-4 py-3">
                                     <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">pending</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
                                     <button class="text-blue-600 hover:text-blue-900 inline-flex items-center">
                                         <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
                                     </button>
-                                    <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                    <button class="text-green-600 inline-flex items-center">
                                         <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
                                     </button>
-                                    <button class="text-green-600 hover:text-green-900 inline-flex items-center">
+                                    <button class="text-green-600 inline-flex items-center">
                                         <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />Edit
                                     </button>
-                                    <button class="text-purple-600 hover:text-purple-900 inline-flex items-center">
+                                    <button class="text-purple-600 inline-flex items-center">
                                         <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" /> Send
                                     </button>
                                 </td>

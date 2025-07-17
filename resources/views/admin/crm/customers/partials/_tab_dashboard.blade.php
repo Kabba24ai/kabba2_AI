@@ -1,4 +1,4 @@
-            <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6">
                 <!-- Left: Name and Account -->
                 <div class="text-left">
                     <h2 class="text-lg font-semibold text-gray-900">{{ $customer->full_name }}</h2>
@@ -7,20 +7,20 @@
 
                 <!-- Center: Tax Status (Responsive) -->
                 <div class="text-left md:text-center w-full md:w-auto">
-                    <p class="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
+                    <p class="text-xs tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
                     <div class="inline-flex items-center gap-2">
-                        <span class="inline-flex items-center gap-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-
-                         @if ($customer->tax_status === 'Exempt')
-                                    <x-heroicon-o-shield-check class="w-4 h-4 text-green-500" />
+                        <span class="text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            <span class="leading-[1.2] inline-flex items-center gap-2 px-2 py-1">
+                                @if ($customer->tax_status === 'Exempt')
+                                    <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
                                 @else
-                                    <x-heroicon-o-shield-check class="w-4 h-4 text-gray-500" />
+                                    <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
                                 @endif
+                                {{ $customer->tax_status }} 
+                           </span>
 
-                           
 
-
-                            {{ $customer->tax_status }} 
+                            
                         </span>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">Valid until {{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}  </p>
@@ -64,7 +64,7 @@
                 </div>
             </div>
 
-            <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Contact Information -->
                 <div class="bg-white rounded-md shadow-sm p-5">
                     <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
@@ -72,26 +72,26 @@
                         Contact Information
                     </h3>
                     <div class="space-y-4 text-sm text-gray-700">
-                        <div class="flex items-start gap-3">
+                        <div class="flex items-center gap-3 ">
                             <x-heroicon-o-envelope class="w-5 h-5 mr-2 text-gray-500" />
                             <div>
-                                <p>   {{ $customer->email ?? 'N/A' }}</p>
+                                <p class="text-sm text-gray-900">   {{ $customer->email ?? 'N/A' }}</p>
                                 <p class="text-xs text-gray-500">Email Address</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3">
+                        <div class="flex items-center gap-3">
                             <x-heroicon-o-phone class="w-5 h-5 mr-2 text-gray-500" />
                             <div>
-                                <p>{{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}</p>
+                                <p class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}</p>
                                 <p class="text-xs text-gray-500">Personal Phone</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3">
+                        <div class="flex items-center gap-3">
                             <x-heroicon-o-device-phone-mobile class="w-5 h-5 mr-2 text-gray-500" />
                             <div>
-                                <p>{{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}</p>
+                                <p class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}</p>
                                 <p class="text-xs text-gray-500">Company Phone</p>
                             </div>
                         </div>
@@ -101,8 +101,8 @@
                 <!-- Address Information -->
                 <div class="bg-white rounded-md shadow-sm p-5 h-[250px] overflow-y-scroll overflow-x-hidden">
                     <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
-                    <x-heroicon-o-map-pin class="w-5 h-5 mr-2 text-gray-500" />
-                    Address Information
+                        <x-heroicon-o-map-pin class="w-5 h-5 mr-2 text-gray-500" />
+                        Address Information
                     </h3>
 
                     <div class="text-sm text-gray-700 space-y-4">
@@ -112,8 +112,8 @@
                     @endphp
 
                     @foreach ($customer->addresses as $addresse)  
-                                      <div>
-                    <p class="text-xs font-medium text-gray-500 mb-1">{{ ucfirst($addresse->type) }} Address</p>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">{{ ucfirst($addresse->type) }} Address</p>
                             <p>{{ $addresse->address }} , {{ $addresse->city }} , {{ $addresse->state->name }} , {{ $addresse->zip_code }}.</p>
                     </div>
                     <hr class="border-gray-200">
@@ -122,16 +122,16 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4  mx-auto mt-6 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4  mx-auto mt-6">
                 <!-- Current Balance -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                         <!-- Dollar Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                     </div>
                     <div>
-                    <p class="text-sm text-gray-500">Current Balance</p>
-                    <p class="text-lg font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} </p>
+                        <p class="text-sm font-medium text-gray-500">Current Balance</p>
+                        <p class="text-lg font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} </p>
                     </div>
                 </div>
 
@@ -139,11 +139,11 @@
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-green-100 text-green-600 rounded-md p-2">
                         <!-- Trending Up Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-4 h-4"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                     </div>
                     <div>
-                    <p class="text-sm text-gray-500">Available Credit</p>
-                    <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
+                        <p class="text-sm font-medium text-gray-500">Available Credit</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -151,31 +151,31 @@
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
                         <!-- Document Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-6 h-6"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
                     </div>
                     <div>
-                    <p class="text-sm text-gray-500">Open Invoices</p>
-                    <p class="text-lg font-semibold text-gray-900">0</p>
+                        <p class="text-sm font-medium text-gray-500">Open Invoices</p>
+                        <p class="text-lg font-semibold text-gray-900">0</p>
                     </div>
                 </div>
 
                 <!-- Last Payment -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-green-100 text-green-600 rounded-md p-2">
-                    <!-- Calendar Icon -->
-                    <x-heroicon-o-calendar class="w-5 h-5 text-green-500" />
+                        <!-- Calendar Icon -->
+                        <x-heroicon-o-calendar class="w-6 h-6 text-green-500" />
                     </div>
                     <div>
-                    <p class="text-sm text-gray-500">Last Payment</p>
-                    <p class="text-lg font-semibold text-gray-900">Not Applicable </p>
+                        <p class="text-sm font-medium text-gray-500">Last Payment</p>
+                        <p class="text-lg font-semibold text-gray-900">Not Applicable </p>
                     </div>
                 </div>
             </div>
 
-            <div class=" mx-auto px-4 py-6 bg-white rounded-md shadow-sm">
-                <div class="flex items-center justify-between border-b border-gray-200">
-                    <h2 class="text-base font-semibold text-gray-800 mb-6">Recent Orders</h2>
-                    <a href="#" class="text-sm text-blue-600 mb-6" id="viewAllOrdersLink">View All</a>
+            <div class=" mx-auto  bg-white rounded-md shadow-sm mt-6">
+                <div class="flex items-center p-4 justify-between border-b border-gray-200">
+                    <h2 class="text-base font-semibold text-gray-800">Recent Orders</h2>
+                    <a href="#" class="text-sm text-blue-600" id="viewAllOrdersLink">View All</a>
                 </div>
 
                 <div class="overflow-x-auto">

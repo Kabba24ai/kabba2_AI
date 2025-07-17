@@ -140,4 +140,12 @@ public function taxStatusApprovedBy()
     {
         return $this->hasOne(CustomerAddress::class)->where('type', 'Shipping');
     }
+
+public function accounts()
+{
+    return $this->hasMany(CustomerAccount::class);
+}
+
+
+
 }

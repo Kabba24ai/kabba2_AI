@@ -18,6 +18,7 @@
         </a>
     </div>
 
+    
     <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-3 sm:space-y-0 mb-6">
 
         <!-- Search by name -->
@@ -70,31 +71,21 @@
         </select>
 
 
-            <!-- <select class="w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300" name="status" id="status" required="">
-                <option value="All">All</option>
-                <option value="Exempt">Exempt</option>
-                <option value="Taxable">Taxable</option>
-            </select> -->
         </div>
         
 
         <!-- Total count -->
         <div class="w-full sm:w-auto px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
-        Total: {{ $customers->total() }}
+      Total: <span id="customer-total-count">{{ $customers->total() }}</span>
         </div>
     </div>
 
-    <div class="overflow-x-auto rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
     <div id="customer-table-wrapper">
-    @include('admin.crm.customers.partials._table', ['customers' => $customers])
-    </div>
 
+   
+        @include('admin.crm.customers.partials._table', ['customers' => $customers])
+        
     </div>
-    {{-- Pagination --}}
-    <div class="mt-6">
-        {{ $customers->links() }}
-    </div>
-
 @endsection
 
 @push('js')
@@ -124,10 +115,12 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("{{ route('admin.crm.customers.index') }}?" + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(response => response.text())
-        .then(html => {
-            wrapper.innerHTML = html;
+       .then(response => response.json())
+        .then(data => {
+            document.querySelector('#customer-table-wrapper').innerHTML = data.html;
+            document.querySelector('#customer-total-count').textContent = data.total;
         })
+
         .catch(err => {
             wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading customers.</div>';
             console.error(err);

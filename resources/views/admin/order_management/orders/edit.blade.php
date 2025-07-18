@@ -23,71 +23,41 @@
 
             {{-- Payment Status + Refund Button --}}
             <div class="flex flex-wrap items-center gap-2">
-                @if ($order->last_payment_type === 'Card')
-                    @switch($order->last_payment_status)
-                        @case('Completed')
-                            <span
-                                class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
-                                <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                                Paid In Full Via - Credit/Debit Card
-                            </span>
-                            <button
-                                class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition rounded-lg">
-                                <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
-                                Refund
-                            </button>
-                        @break
-
-                        @case('Pending')
-                            <span
-                                class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
-                                <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                                PENDING PAYMENT
-                            </span>
-                        @break
-
-                        @case('Failed')
-                            <span
-                                class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
-                                <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                                PAYMENT FAILED
-                            </span>
-                        @break
-
-                        @default
-                    @endswitch
-                @else
-                    @if ($order->last_payment_status === 'Pending')
-                        <span
-                            class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
-                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                            PENDING PAYMENT
-                        </span>
-                        <!-- Add to Account -->
+                @if ($order->last_payment_status === 'Pending')
+                    <span
+                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
+                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                        PENDING PAYMENT
+                    </span>
+                    @if ($order->last_payment_type !== 'Card')
                         <button
                             class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
                             Add to Account
                         </button>
-                        <!-- Confirm Payment -->
-                        <button
-                            id="confirmPaymentBtn"
+                        <button id="confirmPaymentBtn"
                             class="px-4 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700">
                             Confirm payment
                         </button>
-                    @else
-                        <span
-                            class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
-                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                            Paid In Full Via - {{ $order->last_payment_type }}
-                        </span>
-                        <button
-                            class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition rounded-lg">
-                            <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
-                            Refund
-                        </button>
                     @endif
+                @elseif ($order->last_payment_status === 'Completed')
+                    <span
+                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
+                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                        Paid In Full Via -
+                        {{ $order->last_payment_type === 'Card' ? 'Credit/Debit Card' : $order->last_payment_type }}
+                    </span>
+                    <button
+                        class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition rounded-lg">
+                        <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
+                        Refund
+                    </button>
+                @elseif ($order->last_payment_status === 'Failed')
+                    <span
+                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
+                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                        PAYMENT FAILED
+                    </span>
                 @endif
-
             </div>
 
             {{-- Action Buttons --}}
@@ -104,8 +74,7 @@
                     class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
                     <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Invoice
                 </button>
-                <button
-                    class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
+                <button class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
                     <x-heroicon-o-check class="w-4 h-4 mr-1" /> Save
                 </button>
             </div>
@@ -114,11 +83,12 @@
         {{-- Sub-links under customer --}}
         <div class="mt-2 flex gap-4 text-sm text-blue-600">
             <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}"
+                target="_blank"
                 class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
                 @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                 <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
             </a>
-            <a href="#" class="inline-flex items-center hover:underline">
+            <a href="javascript:void(0);" class="inline-flex items-center hover:underline">
                 <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
             </a>
         </div>
@@ -131,18 +101,33 @@
             <div class="px-4 py-4 rounded-t-lg border-b border-gray-200">
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-semibold text-gray-800">Billing Information</h3>
-                    <x-heroicon-o-pencil-square class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer" />
+                    <x-heroicon-o-pencil-square class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer"
+                        id="editBillingBtn" data-billing="@json($order->billingAddress ?? [])" />
                 </div>
             </div>
             <div class="p-6">
-                <div class="text-sm text-gray-700 space-y-2">
+                <div class="text-sm text-gray-700 space-y-2 billing-address-section">
+                    <input type="hidden" id="billing_first_name_input"
+                        data-first-name="{{ $order->billingAddress->first_name ?? '' }}">
+                    <input type="hidden" id="billing_last_name_input"
+                        data-last-name="{{ $order->billingAddress->last_name ?? '' }}">
+                    <input type="hidden" id="billing_email_input" data-email="{{ $order->billingAddress->email ?? '' }}">
+                    <input type="hidden" id="billing_phone_input" data-phone="{{ $order->billingAddress->phone ?? '' }}">
+                    <input type="hidden" id="billing_address_input"
+                        data-address="{{ $order->billingAddress->address ?? '' }}">
+                    <input type="hidden" id="billing_state_input"
+                        data-state="{{ $order->billingAddress->state_id ?? '' }}">
+                    <input type="hidden" id="billing_city_input" data-city="{{ $order->billingAddress->city ?? '' }}">
+                    <input type="hidden" id="billing_zip_code_input"
+                        data-zip-code="{{ $order->billingAddress->zip_code ?? '' }}">
                     <div class="grid grid-cols-3">
                         <span class="font-medium">Customer Name:</span>
-                        <span class="col-span-2 text-right">{{ $order->billingAddress->full_name ?? 'N/A' }}</span>
+                        <span class="col-span-2 text-right"
+                            id="billing_name">{{ $order->billingAddress->full_name ?? 'N/A' }}</span>
                     </div>
                     <div class="grid grid-cols-3">
                         <span class="font-medium">Email:</span>
-                        <span class="col-span-2 text-right">
+                        <span class="col-span-2 text-right" id="billing_email">
                             @if ($order->billingAddress->email ?? false)
                                 <a href="mailto:{{ $order->billingAddress->email }}"
                                     class="text-blue-600 hover:underline">{{ $order->billingAddress->email }}</a>
@@ -153,11 +138,12 @@
                     </div>
                     <div class="grid grid-cols-3">
                         <span class="font-medium">Phone:</span>
-                        <span class="col-span-2 text-right">{{ $order->billingAddress->phone ?? 'N/A' }}</span>
+                        <span class="col-span-2 text-right"
+                            id="billing_phone">{{ $order->billingAddress->phone ?? 'N/A' }}</span>
                     </div>
                     <div class="grid grid-cols-3">
                         <span class="font-medium">Billing Address:</span>
-                        <span class="col-span-2 text-right">
+                        <span class="col-span-2 text-right" id="billing_address">
                             @if ($order->billingAddress && $order->billingAddress->full_address)
                                 {{ $order->billingAddress->full_address }}
                             @else
@@ -166,7 +152,7 @@
                         </span>
                     </div>
                     @if ($order->billingAddress && $order->billingAddress->full_address)
-                        <div class="grid grid-cols-3">
+                        <div class="grid grid-cols-3" id="billing_map_link">
                             <span></span>
                             <a href="https://maps.google.com/?q={{ urlencode($order->billingAddress->full_address) }}"
                                 target="_blank" class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
@@ -177,44 +163,75 @@
             </div>
         </div>
 
-        {{-- Delivery Info --}}
+        {{-- Shipping Info --}}
         <div class="bg-white rounded-lg border border-gray-200">
-            <div class="px-4 py-4 rounded-lg border-b border-gray-200">
+            <div class="px-4 py-4 rounded-t-lg border-b border-gray-200">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-gray-800">Delivery Information</h3>
-                    <x-heroicon-o-pencil-square class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer" />
+                    <h3 class="text-sm font-semibold text-gray-800">Shipping Information</h3>
+                    <x-heroicon-o-pencil-square class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer"
+                        id="editShippingBtn" />
                 </div>
             </div>
             <div class="p-6">
-                @if ($order->deliveryAddress && !$order->deliveryAddress->isSameAs($order->billingAddress))
-                    <div class="text-sm text-gray-700 space-y-1">
-                        <p><span class="font-medium">Customer Name:</span>
-                            {{ $order->deliveryAddress->full_name ?? 'N/A' }}
-                        </p>
-                        <p><span class="font-medium">Email:</span>
-                            @if ($order->deliveryAddress->email ?? false)
-                                <a href="mailto:{{ $order->deliveryAddress->email }}"
-                                    class="text-blue-600 hover:underline">{{ $order->deliveryAddress->email }}</a>
+                <input type="hidden" id="shipping_first_name_input"
+                    data-first-name="{{ $order->shippingAddress->first_name ?? '' }}">
+                <input type="hidden" id="shipping_last_name_input"
+                    data-last-name="{{ $order->shippingAddress->last_name ?? '' }}">
+                <input type="hidden" id="shipping_email_input" data-email="{{ $order->shippingAddress->email ?? '' }}">
+                <input type="hidden" id="shipping_phone_input" data-phone="{{ $order->shippingAddress->phone ?? '' }}">
+                <input type="hidden" id="shipping_address_input"
+                    data-address="{{ $order->shippingAddress->address ?? '' }}">
+                <input type="hidden" id="shipping_state_input"
+                    data-state="{{ $order->shippingAddress->state_id ?? '' }}">
+                <input type="hidden" id="shipping_city_input" data-city="{{ $order->shippingAddress->city ?? '' }}">
+                <input type="hidden" id="shipping_zip_code_input"
+                    data-zip-code="{{ $order->shippingAddress->zip_code ?? '' }}">
+
+                <div
+                    class="text-sm text-gray-700 space-y-1 shipping-address-section {{ $order->shippingAddress->isSameAs($order->billingAddress) ? 'hidden' : '' }}">
+                    <div class="grid grid-cols-3">
+                        <span class="font-medium">Customer Name:</span>
+                        <span class="col-span-2 text-right"
+                            id="shipping_name">{{ $order->shippingAddress->full_name ?? 'N/A' }}</span>
+                    </div>
+                    <div class="grid grid-cols-3">
+                        <span class="font-medium">Email:</span>
+                        <span class="col-span-2 text-right" id="shipping_email">
+                            @if ($order->shippingAddress->email ?? false)
+                                <a href="mailto:{{ $order->shippingAddress->email }}"
+                                    class="text-blue-600 hover:underline">{{ $order->shippingAddress->email }}</a>
                             @else
                                 <span class="text-gray-500">N/A</span>
                             @endif
-                        </p>
-                        <p><span class="font-medium">Phone:</span> {{ $order->deliveryAddress->phone ?? 'N/A' }}</p>
-                        <p><span class="font-medium">Delivery Address:</span>
-                            @if ($order->deliveryAddress && $order->deliveryAddress->full_address)
-                                {{ $order->deliveryAddress->full_address }}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-3">
+                        <span class="font-medium">Phone:</span>
+                        <span class="col-span-2 text-right"
+                            id="shipping_phone">{{ $order->shippingAddress->phone ?? 'N/A' }}</span>
+                    </div>
+                    <div class="grid grid-cols-3">
+                        <span class="font-medium">Shipping Address:</span>
+                        <span class="col-span-2 text-right" id="shipping_address">
+                            @if ($order->shippingAddress && $order->shippingAddress->full_address)
+                                {{ $order->shippingAddress->full_address }}
                             @else
                                 N/A
                             @endif
-                        </p>
-                        @if ($order->deliveryAddress && $order->deliveryAddress->full_address)
-                            <a href="https://maps.google.com/?q={{ urlencode($order->deliveryAddress->full_address) }}"
-                                target="_blank" class="text-blue-600 text-xs hover:underline">See on maps</a>
-                        @endif
+                        </span>
                     </div>
-                @else
-                    <p class="text-sm text-blue-600">Same as billing</p>
-                @endif
+                    @if ($order->shippingAddress && $order->shippingAddress->full_address)
+                        <div class="grid grid-cols-3" id="shipping_map_link">
+                            <span></span>
+                            <a href="https://maps.google.com/?q={{ urlencode($order->shippingAddress->full_address) }}"
+                                target="_blank" class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                maps</a>
+                        </div>
+                    @endif
+                </div>
+                <p class="text-sm text-blue-600 shipping-address-section {{ $order->shippingAddress->isSameAs($order->billingAddress) ? '' : 'hidden' }}"
+                    id="shipping_same_as_billing">Same as billing</p>
+
             </div>
         </div>
 
@@ -266,7 +283,7 @@
                             @endif
                         </div>
                         <div>
-                            <a href="#" class="text-blue-600 font-semibold hover:underline">
+                            <a href="javascript:void(0);" class="text-blue-600 font-semibold hover:underline">
                                 {{ $orderProduct->product_name }} -
                                 {{ ucwords($orderProduct->product_data['product_variant'] ?? '') }}
                             </a>
@@ -415,7 +432,8 @@
                                         <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
                                             <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                 for="delivery_time_{{ $orderProduct->unique_id }}">Time</label>
-                                            <input type="text" placeholder="Select time" id="delivery_time_{{ $orderProduct->unique_id }}"
+                                            <input type="text" placeholder="Select time"
+                                                id="delivery_time_{{ $orderProduct->unique_id }}"
                                                 value="{{ $orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->delivery_time) : '' }}"
                                                 class="timepicker delivery_time border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
@@ -423,8 +441,10 @@
                                         <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
                                             <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                 for="delivery_type-btn-{{ $orderProduct->unique_id }}">Type</label>
-                                            <div id="delivery_type-{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->delivery_type ?? 'Store' }}', open: false }" class="relative w-full">
-                                                <button id="delivery_type-btn-{{ $orderProduct->unique_id }}" type="button" @click="open = !open"
+                                            <div id="delivery_type-{{ $orderProduct->unique_id }}"
+                                                x-data="{ selected: '{{ $orderProduct->delivery_type ?? 'Store' }}', open: false }" class="relative w-full">
+                                                <button id="delivery_type-btn-{{ $orderProduct->unique_id }}"
+                                                    type="button" @click="open = !open"
                                                     class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_type">
                                                     <template x-if="selected === 'Store'">
                                                         <x-heroicon-o-building-storefront
@@ -454,7 +474,8 @@
                                                         </li>
                                                     </ul>
                                                 </div>
-                                                <input type="hidden" name="type" class="delivery_type" :value="selected" x-ref="deliveryTypeInput">
+                                                <input type="hidden" name="type" class="delivery_type"
+                                                    :value="selected" x-ref="deliveryTypeInput">
                                             </div>
                                         </div>
                                         <!-- Status -->
@@ -538,8 +559,10 @@
                                         <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
                                             <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                 for="pickup_type-btn-{{ $orderProduct->unique_id }}">Type</label>
-                                            <div id="pickup_type_{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->pickup_type ?? 'Store' }}', open: false }" class="relative w-full">
-                                                <button id="pickup_type-btn-{{ $orderProduct->unique_id }}" type="button" @click="open = !open"
+                                            <div id="pickup_type_{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->pickup_type ?? 'Store' }}', open: false }"
+                                                class="relative w-full">
+                                                <button id="pickup_type-btn-{{ $orderProduct->unique_id }}"
+                                                    type="button" @click="open = !open"
                                                     class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_type">
                                                     <template x-if="selected === 'Store'">
                                                         <x-heroicon-o-building-storefront
@@ -569,7 +592,8 @@
                                                         </li>
                                                     </ul>
                                                 </div>
-                                                <input type="hidden" name="type" class="pickup_type" :value="selected" x-ref="pickupTypeInput">
+                                                <input type="hidden" name="type" class="pickup_type"
+                                                    :value="selected" x-ref="pickupTypeInput">
                                             </div>
                                         </div>
                                         <!-- Status -->
@@ -788,6 +812,150 @@
         </div>
     </div>
 
+    <!-- Address Edit Modal (Reusable for Billing & Delivery) -->
+    <div id="addressModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="addressModalTitle" class="text-lg font-semibold">Edit Address</h2>
+                <button type="button" onclick="closeModal()"
+                    class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <!-- Body -->
+            {{ html()->form()->attributes([
+                    'data-parsley-validate' => true,
+                    'class' => 'flex-1',
+                    'id' => 'addressForm',
+                ])->open() }}
+
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- First Name -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-700" for="first_name">First name</label>
+                        {!! html()->text('first_name', old('first_name'))->class([
+                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'border-red-500' => $errors->has('first_name'),
+                            ])->attributes([
+                                'placeholder' => 'Enter first name',
+                                'id' => 'first_name',
+                                'autocomplete' => 'given-name',
+                            ])->required() !!}
+                    </div>
+                    <!-- Last Name -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-700" for="last_name">Last name</label>
+                        {!! html()->text('last_name', old('last_name'))->class([
+                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'border-red-500' => $errors->has('last_name'),
+                            ])->attributes([
+                                'placeholder' => 'Enter last name',
+                                'id' => 'last_name',
+                                'autocomplete' => 'family-name',
+                            ])->required() !!}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Email -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+                        {!! html()->email('email', old('email'))->class([
+                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'border-red-500' => $errors->has('email'),
+                            ])->attributes([
+                                'placeholder' => 'Enter email',
+                                'id' => 'email',
+                                'autocomplete' => 'email',
+                            ])->required() !!}
+                    </div>
+                    <!-- Phone -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-700" for="phone">Phone</label>
+                        {!! html()->text('phone', old('phone'))->class([
+                                'masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'border-red-500' => $errors->has('phone'),
+                            ])->attributes([
+                                'placeholder' => '(xxx) xxx-xxxx',
+                                'id' => 'phone',
+                                'autocomplete' => 'tel',
+                            ])->required() !!}
+                    </div>
+                    <!-- Type (hidden, set by JS) -->
+                    <input type="hidden" name="type" id="type" value="{{ old('type') }}">
+                </div>
+
+                <!-- Address -->
+                <div>
+                    <label class="text-sm font-medium text-gray-700" for="address">Address</label>
+                    {!! html()->text('address', old('address'))->class([
+                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                            'border-red-500' => $errors->has('address'),
+                        ])->attributes([
+                            'placeholder' => 'Enter address',
+                            'id' => 'address',
+                            'autocomplete' => 'street-address',
+                        ])->required() !!}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- State -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-700" for="state">State</label>
+                        {!! html()->select(
+                                'state_id',
+                                $states->mapWithKeys(fn($state) => [$state->id => $state->name])->toArray(),
+                                old('state', $customer->state_id ?? ''),
+                            )->id('state')->class([
+                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                                'border-red-500' => $errors->has('state'),
+                            ])->required() !!}
+                    </div>
+                    <!-- City -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-700" for="city">City</label>
+                        {!! html()->text('city', old('city'))->class([
+                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'border-red-500' => $errors->has('city'),
+                            ])->attributes([
+                                'placeholder' => 'Enter city',
+                                'id' => 'city',
+                                'autocomplete' => 'address-level2',
+                            ])->required() !!}
+                    </div>
+                    <!-- Zip Code -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-700" for="zip_code">Zip code</label>
+                        {!! html()->number('zip_code', old('zip_code'))->class([
+                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'border-red-500' => $errors->has('zip_code'),
+                            ])->attributes([
+                                'placeholder' => 'Enter zip code',
+                                'id' => 'zip_code',
+                                'autocomplete' => 'postal-code',
+                            ])->required() !!}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button" onclick="closeModal()"
+                    class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    Save
+                </button>
+            </div>
+            </form>
+        </div>
+    </div>
+
 
 @endsection
 
@@ -805,35 +973,42 @@
                         if (result.isConfirmed) {
                             confirmPaymentBtn.disabled = true;
                             confirmPaymentBtn.textContent = 'Processing...';
-                            let url = '{{ route('admin.order-management.orders.confirm-payment', ':unique_id') }}';
+                            let url =
+                                '{{ route('admin.order-management.orders.confirm-payment', ':unique_id') }}';
                             url = url.replace(':unique_id', orderUniqueId);
                             apiFetch(url, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                },
-                                body: JSON.stringify({ _method: 'PUT' })
-                            })
-                            .then(res => {
-                                if (res && res.success) {
-                                    notyf.success('Payment confirmed!');
-                                    setTimeout(() => window.location.reload(), 800);
-                                } else {
-                                    notyf.error(res && res.message ? res.message : 'Failed to confirm payment.');
-                                }
-                            })
-                            .catch(() => {
-                                notyf.error('Failed to confirm payment.');
-                            })
-                            .finally(() => {
-                                confirmPaymentBtn.disabled = false;
-                                confirmPaymentBtn.textContent = 'Confirm payment';
-                            });
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute(
+                                            'content')
+                                    },
+                                    body: JSON.stringify({
+                                        _method: 'PUT'
+                                    })
+                                })
+                                .then(res => {
+                                    if (res && res.success) {
+                                        notyf.success('Payment confirmed!');
+                                        setTimeout(() => window.location.reload(), 800);
+                                    } else {
+                                        notyf.error(res && res.message ? res.message :
+                                            'Failed to confirm payment.');
+                                    }
+                                })
+                                .catch(() => {
+                                    notyf.error('Failed to confirm payment.');
+                                })
+                                .finally(() => {
+                                    confirmPaymentBtn.disabled = false;
+                                    confirmPaymentBtn.textContent = 'Confirm payment';
+                                });
                         }
                     });
                 });
             }
+
             const saveBtn = document.getElementById('saveNoteBtn');
             const noteInput = document.getElementById('order_note');
 
@@ -897,7 +1072,8 @@
                 function updateScheduleField(type, field, value) {
                     let url =
                         '{{ route('admin.order-management.orders.update-product-schedule', [':order_unique_id', ':product_unique_id']) }}';
-                    url = url.replace(':order_unique_id', orderUniqueId).replace(':product_unique_id', orderProductId);
+                    url = url.replace(':order_unique_id', orderUniqueId).replace(':product_unique_id',
+                        orderProductId);
 
                     // Map field to DB column
                     let dbField = '';
@@ -914,19 +1090,20 @@
                     data[dbField] = value;
 
                     apiFetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify(data)
-                    })
-                    .then(() => {
-                        notyf.success('Schedule updated!');
-                    })
-                    .catch(() => {
-                        notyf.error('Failed to update schedule.');
-                    });
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: JSON.stringify(data)
+                        })
+                        .then(res => {
+                            notyf.success(res && res.message ? res.message : 'Schedule updated!');
+                        })
+                        .catch(() => {
+                            notyf.error('Failed to update schedule.');
+                        });
                 }
 
                 // Delivery listeners
@@ -942,7 +1119,7 @@
                 }
                 if (deliveryType) {
                     deliveryType.addEventListener('change', function() {
-                         console.log('Delivery type changed to', deliveryType.value);
+                        console.log('Delivery type changed to', deliveryType.value);
                         updateScheduleField('delivery', 'delivery_type', deliveryType.value);
                     });
                 }
@@ -953,7 +1130,8 @@
                 }
                 if (deliveryLocation) {
                     deliveryLocation.addEventListener('change', function() {
-                        updateScheduleField('delivery', 'delivery_store_id', deliveryLocation.value);
+                        updateScheduleField('delivery', 'delivery_store_id', deliveryLocation
+                            .value);
                     });
                 }
                 if (deliveryTechnician) {
@@ -994,6 +1172,229 @@
                     });
                 }
             });
+
+            // Keep track of what type of address we're editing
+            let currentEditType = null; // 'Billing' or 'Shipping'
+            let currentAddressData = {}; // will hold current address info
+
+            // Open modal and fill data
+            function openAddressModal(type, addressData = {}) {
+                currentEditType = type; // "Billing" or "Shipping"
+                currentAddressData = addressData || {};
+
+                // Set the modal title
+                document.getElementById('addressModalTitle').textContent = `Edit ${type} Address`;
+
+                // Set the type select field
+                document.getElementById('type').value = type;
+
+                // Fill the fields
+                document.getElementById('first_name').value = addressData.first_name || '';
+                document.getElementById('last_name').value = addressData.last_name || '';
+                document.getElementById('email').value = addressData.email || '';
+                document.getElementById('phone').value = addressData.phone || '';
+                document.getElementById('address').value = addressData.address || '';
+                document.getElementById('state').value = addressData.state || '';
+                document.getElementById('city').value = addressData.city || '';
+                document.getElementById('zip_code').value = addressData.zip_code || '';
+
+                // Show modal
+                document.getElementById('addressModal').classList.remove('hidden');
+            }
+
+            window.closeModal = function() {
+                document.getElementById('addressModal').classList.add('hidden');
+            }
+
+            // Hook up the edit buttons (set IDs on your edit icons!)
+            document.getElementById('editBillingBtn').addEventListener('click', function() {
+                // Get current values from the billing info section
+                const billingData = {
+                    first_name: document.getElementById('billing_first_name_input')?.dataset
+                        .firstName || '',
+                    last_name: document.getElementById('billing_last_name_input')?.dataset.lastName ||
+                        '',
+                    email: document.getElementById('billing_email_input')?.dataset.email || '',
+                    phone: document.getElementById('billing_phone_input')?.dataset.phone || '',
+                    address: document.getElementById('billing_address_input')?.dataset.address || '',
+                    state: document.getElementById('billing_state_input')?.dataset.state || '',
+                    city: document.getElementById('billing_city_input')?.dataset.city || '',
+                    zip_code: document.getElementById('billing_zip_code_input')?.dataset.zipCode || ''
+                };
+                openAddressModal('Billing', billingData);
+            });
+            document.getElementById('editShippingBtn').addEventListener('click', function() {
+                // Get current values from the shipping info section
+                const shippingData = {
+                    first_name: document.getElementById('shipping_first_name_input')?.dataset
+                        .firstName || '',
+                    last_name: document.getElementById('shipping_last_name_input')?.dataset.lastName ||
+                        '',
+                    email: document.getElementById('shipping_email_input')?.dataset.email || '',
+                    phone: document.getElementById('shipping_phone_input')?.dataset.phone || '',
+                    address: document.getElementById('shipping_address_input')?.dataset.address || '',
+                    state: document.getElementById('shipping_state_input')?.dataset.state || '',
+                    city: document.getElementById('shipping_city_input')?.dataset.city || '',
+                    zip_code: document.getElementById('shipping_zip_code_input')?.dataset.zipCode || ''
+                };
+                openAddressModal('Shipping', shippingData);
+            });
+
+            // Form submit
+
+            document.getElementById('addressForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const form = e.target;
+
+                if (!$(form).parsley().isValid()) {
+                    $(form).parsley().validate();
+                    return;
+                }
+                const formData = new FormData(form);
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+
+                // Ensure type field matches currentEditType
+                formData.set('type', currentEditType);
+
+                // Find selected state name and add to formData
+                const stateSelect = form.querySelector('#state');
+                if (stateSelect) {
+                    const selectedStateName = stateSelect.options[stateSelect.selectedIndex].text;
+                    formData.set('state', selectedStateName);
+                }
+
+                // Unified endpoint
+                const endpoint =
+                    '{{ route('admin.order-management.orders.update-address', ['unique_id' => $order->unique_id]) }}';
+
+                apiFetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: formData
+                    })
+                    .then(res => {
+                        if (res && res.success) {
+                            notyf.success(res.message);
+                            closeModal();
+                            const addressData = res.data?.address || {};
+
+                            if (res.data?.same_as_billing) {
+                                document.querySelectorAll('.shipping-address-section').forEach(el => el
+                                    .classList.add('hidden'));
+                                document.getElementById('shipping_same_as_billing').classList.remove(
+                                    'hidden');
+                            } else {
+                                document.querySelectorAll('.shipping-address-section').forEach(el => el
+                                    .classList.remove('hidden'));
+                                document.getElementById('shipping_same_as_billing').classList.add(
+                                    'hidden');
+                            }
+                            // Update the address section in the UI without reload
+                            if (currentEditType === 'Billing') {
+
+                                document.getElementById('billing_first_name_input').dataset.firstName =
+                                    addressData.first_name || '';
+                                document.getElementById('billing_last_name_input').dataset.lastName =
+                                    addressData.last_name || '';
+                                document.getElementById('billing_email_input').dataset.email =
+                                    addressData.email || '';
+                                document.getElementById('billing_phone_input').dataset.phone =
+                                    addressData.phone || '';
+                                document.getElementById('billing_address_input').dataset.address =
+                                    addressData.address || '';
+                                document.getElementById('billing_state_input').dataset.state =
+                                    addressData.state_id || '';
+                                document.getElementById('billing_city_input').dataset.city = addressData
+                                    .city || '';
+                                document.getElementById('billing_zip_code_input').dataset.zipCode =
+                                    addressData.zip_code || '';
+
+                                document.getElementById('billing_name').textContent = addressData
+                                    .full_name || '';
+                                document.getElementById('billing_email').innerHTML = addressData.email ?
+                                    `<a href="mailto:${addressData.email}" class="text-blue-600 hover:underline">${addressData.email}</a>` :
+                                    '<span class="text-gray-500">N/A</span>';
+                                document.getElementById('billing_phone').textContent = addressData
+                                    .phone || '';
+                                document.getElementById('billing_address').textContent = addressData
+                                    .full_address || '';
+                                const mapLink = document.getElementById('billing_map_link')
+                                    ?.querySelector('a');
+                                if (mapLink && addressData.full_address) {
+                                    mapLink.href =
+                                        `https://maps.google.com/?q=${encodeURIComponent(addressData.full_address)}`;
+                                    mapLink.classList.remove('hidden');
+                                } else if (mapLink) {
+                                    mapLink.href = '#';
+                                    mapLink.classList.add('hidden');
+                                }
+                            } else if (currentEditType === 'Shipping') {
+                                document.getElementById('shipping_name').textContent = addressData
+                                    .full_name || '';
+                                document.getElementById('shipping_email').innerHTML = addressData
+                                    .email ?
+                                    `<a href="mailto:${addressData.email}" class="text-blue-600 hover:underline">${addressData.email}</a>` :
+                                    '<span class="text-gray-500">N/A</span>';
+                                document.getElementById('shipping_phone').textContent = addressData
+                                    .phone || '';
+                                document.getElementById('shipping_address').textContent = addressData
+                                    .full_address || '';
+                                const mapLink = document.getElementById('shipping_map_link')
+                                    ?.querySelector('a');
+                                if (mapLink && addressData.full_address) {
+                                    mapLink.href =
+                                        `https://maps.google.com/?q=${encodeURIComponent(addressData.full_address)}`;
+                                    mapLink.classList.remove('hidden');
+                                } else if (mapLink) {
+                                    mapLink.href = '#';
+                                    mapLink.classList.add('hidden');
+                                }
+
+                                document.getElementById('shipping_first_name_input').dataset.firstName =
+                                    addressData.first_name || '';
+                                document.getElementById('shipping_last_name_input').dataset.lastName =
+                                    addressData.last_name || '';
+                                document.getElementById('shipping_email_input').dataset.email =
+                                    addressData.email || '';
+                                document.getElementById('shipping_phone_input').dataset.phone =
+                                    addressData.phone || '';
+                                document.getElementById('shipping_address_input').dataset.address =
+                                    addressData.address || '';
+                                document.getElementById('shipping_state_input').dataset.state =
+                                    addressData.state_id || '';
+                                document.getElementById('shipping_city_input').dataset.city =
+                                    addressData.city || '';
+                                document.getElementById('shipping_zip_code_input').dataset.zipCode =
+                                    addressData.zip_code || '';
+                            }
+                        } else {
+                            notyf.error(res && res.message);
+                        }
+                    })
+                    .catch((err) => {
+                        console.error('Error updating address:', err);
+                        notyf.error('Something went wrong.');
+                    }).finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    });
+            });
+
+            // Optionally: Allow closing modal with Esc key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Escape") {
+                    closeModal();
+                }
+            });
+
+
         });
     </script>
 @endpush

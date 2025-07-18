@@ -52,7 +52,7 @@ class UpdateProductScheduleController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Product schedule updated successfully.'
+            'message' => 'Schedule updated successfully.'
         ]);
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 // Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\EditRequest;
 use App\Models\Iam\Personnel\User;
+use App\Models\Locations\State;
 // Models
 use App\Models\Orders\Order;
 use App\Models\Stores\Store;
@@ -26,6 +27,7 @@ class EditController extends Controller
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::orderBy('first_name')->get();
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees'));
+        $states = State::orderBy('name')->get();
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states'));
     }
 }

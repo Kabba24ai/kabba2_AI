@@ -255,11 +255,11 @@
                                             Delivery + Pick Up (To/From My Job Site)
                                             [<span id="DeliveryPickupPrice"></span>]
                                         </option>
-                                        <option data-id="2" value="Delivery + Return">
+                                        <option data-id="2" value="Delivery Only">
                                             Delivery but I'll Return to Store
                                             [<span id="DeliveryReturnPrice"></span>]
                                         </option>
-                                        <option data-id="3" value="Pickup + Return">
+                                        <option data-id="3" value="Return Only">
                                             I'll Pick Up In-Store but Need Return Service Pick Up
                                             [<span id="PickupReturnPrice"></span>]
                                         </option>

@@ -82,8 +82,7 @@
 
         {{-- Sub-links under customer --}}
         <div class="mt-2 flex gap-4 text-sm text-blue-600">
-            <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}"
-                target="_blank"
+            <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" target="_blank"
                 class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
                 @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                 <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
@@ -428,6 +427,7 @@
                                                 placeholder="Select date"
                                                 class="datepicker delivery_date border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
+
                                         <!-- Time -->
                                         <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
                                             <label class="block text-xs font-medium text-gray-500 mb-0.5"
@@ -435,7 +435,7 @@
                                             <input type="text" placeholder="Select time"
                                                 id="delivery_time_{{ $orderProduct->unique_id }}"
                                                 value="{{ $orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->delivery_time) : '' }}"
-                                                class="timepicker delivery_time border rounded px-1.5 py-1 text-xs w-full" />
+                                                class="delivery_time border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
                                         <!-- Type (fixed width, non-stretch) -->
                                         <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
@@ -553,7 +553,7 @@
                                             <input type="text" id="pickup_time_{{ $orderProduct->unique_id }}"
                                                 placeholder="Select time"
                                                 value="{{ $orderProduct->pickup_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->pickup_time) : '' }}"
-                                                class="timepicker pickup_time border rounded px-1.5 py-1 text-xs w-full" />
+                                                class="pickup_time border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
                                         <!-- Type (fixed width, non-stretch) -->
                                         <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
@@ -1113,8 +1113,34 @@
                     });
                 }
                 if (deliveryTime) {
-                    deliveryTime.addEventListener('change', function() {
-                        updateScheduleField('delivery', 'delivery_time', deliveryTime.value);
+                    // Try to parse the initial value as a Date (if it exists)
+                    let lastValue = deliveryTime.value
+                        ? flatpickr.parseDate(deliveryTime.value, "h:i K")
+                        : null;
+
+                    flatpickr(deliveryTime, {
+                        enableTime: true,
+                        noCalendar: true,
+                        dateFormat: "h:i K",
+                        time_24hr: false,
+                        onClose: function(selectedDates, dateStr) {
+                            // Parse dateStr to a Date object (or null)
+                            const newValue = dateStr
+                                ? flatpickr.parseDate(dateStr, "h:i K")
+                                : null;
+
+                            // Only call if both are valid dates and times are different
+                            // Or if lastValue was null but now we have a value
+                            const changed = (
+                                (lastValue && newValue && newValue.getTime() !== lastValue.getTime()) ||
+                                (!lastValue && newValue)
+                            );
+
+                            if (changed) {
+                                updateScheduleField('delivery', 'delivery_time', dateStr);
+                                lastValue = newValue;
+                            }
+                        }
                     });
                 }
                 if (deliveryType) {
@@ -1147,8 +1173,33 @@
                     });
                 }
                 if (returnTime) {
-                    returnTime.addEventListener('change', function() {
-                        updateScheduleField('return', 'pickup_time', returnTime.value);
+                    // Store the initial value as a Date object (if possible)
+                    let lastValue = returnTime.value
+                        ? flatpickr.parseDate(returnTime.value, "h:i K")
+                        : null;
+
+                    flatpickr(returnTime, {
+                        enableTime: true,
+                        noCalendar: true,
+                        dateFormat: "h:i K", // 12-hour format
+                        time_24hr: false,
+                        onClose: function(selectedDates, dateStr) {
+                            // Parse the new value as a Date object
+                            const newValue = dateStr
+                                ? flatpickr.parseDate(dateStr, "h:i K")
+                                : null;
+
+                            // Only trigger if the date/time actually changed
+                            const changed = (
+                                (lastValue && newValue && newValue.getTime() !== lastValue.getTime()) ||
+                                (!lastValue && newValue)
+                            );
+
+                            if (changed) {
+                                updateScheduleField('return', 'pickup_time', dateStr);
+                                lastValue = newValue; // Save new value for next comparison
+                            }
+                        }
                     });
                 }
                 if (returnType) {

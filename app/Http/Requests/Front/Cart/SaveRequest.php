@@ -53,7 +53,7 @@ class SaveRequest extends FormRequest
             'schedule_start_date' => ['required'],
             'service_method' => ['nullable', 'in:In Store Pickup,Delivery'],
             'distance_type'  => ['nullable','required_if:service_method,Delivery', 'in:Standard,Extended,Custom'],
-            'service_option' => ['nullable', 'in:Delivery + Pickup,Delivery + Return,Pickup + Return'],
+            'service_option' => ['nullable', 'in:Delivery + Pickup,Delivery Only,Return Only'],
             'store_id' => ['nullable', 'integer', 'exists:stores,id'],
             'product_option_items' => ['nullable', 'array'],
             'product_option_items.*.unique_id' => ['required_with:product_option_items', 'string', 'exists:product_option_items,unique_id'],
@@ -74,7 +74,7 @@ class SaveRequest extends FormRequest
                 return true;
             }
             // If delivery, only certain options need a store
-            if ($input->service_method === 'Delivery' && in_array($input->service_option, ['Delivery + Return', 'Pickup + Return'])) {
+            if ($input->service_method === 'Delivery' && in_array($input->service_option, ['Delivery Only', 'Return Only'])) {
                 return true;
             }
             return false;

@@ -196,6 +196,19 @@ class PostController extends Controller
                         'store_id' => $item['store_id'] ?? null,
                         'distance_type' => $item['distance_type'] ?? null,
                         'distance_range' => $item['distance_range'] ?? null,
+
+                        'is_delivery' => $item['is_delivery'] ?? null,
+                        'delivery_type' => $item['delivery_type'] ?? null,
+                        'delivery_store_id' => $item['delivery_store_id'] ?? null,
+                        'delivery_date' => !empty($item['delivery_date']) ? Carbon::parse($item['delivery_date'])->format(config('app.date.db_date_format')) : null,
+                        'delivery_time' => !empty($item['delivery_time']) ? Carbon::parse($item['delivery_time'])->format(config('app.date.db_time_format')) : null,
+
+                        'is_pickup_return' => $item['is_pickup_return'] ?? null,
+                        'pickup_type' => $item['pickup_type'] ?? null,
+                        'pickup_store_id' => $item['pickup_store_id'] ?? null,
+                        'pickup_date' => !empty($item['pickup_date']) ? Carbon::parse($item['pickup_date'])->format(config('app.date.db_date_format')) : null,
+                        'pickup_time' => !empty($item['pickup_time']) ? Carbon::parse($item['pickup_time'])->format(config('app.date.db_time_format')) : null,
+
                     ]);
                 }
             }

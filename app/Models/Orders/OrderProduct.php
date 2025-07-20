@@ -27,7 +27,7 @@ class OrderProduct extends Model
         'schedule_end_date',
         'product_data', // json
         'service_method', // 'In Store Pickup', 'Delivery'
-        'service_option', // 'Delivery + Pickup', 'Delivery + Return', 'Pickup + Return'
+        'service_option', // 'Delivery + Pickup', 'Delivery Only', 'Return Only'
         'store_id',
         'distance_type', // 'Standard', 'Extended', 'Custom'
         'distance_range',
@@ -46,8 +46,6 @@ class OrderProduct extends Model
         'pickup_date',
         'pickup_time',
         'pickup_by',
-
-
     ];
 
     // In your OrderProduct.php model

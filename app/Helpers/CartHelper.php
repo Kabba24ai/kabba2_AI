@@ -114,6 +114,60 @@ class CartHelper
         $itemTax = $itemSubTotal * $taxRate;
         $itemTotal = $itemSubTotal + $itemTax;
 
+        $addDays = 1; // Default to 1 day per item
+        $deliveryTime = null;
+        $pickupTime = null;
+        switch ($variant) {
+            case 'weekend':
+                $addDays = 3;
+                $deliveryTime = '14:00:00';
+                $pickupTime = '09:00:00';
+                break;
+            case 'weekly':
+                $addDays = 7;
+                $deliveryTime = '09:00:00';
+                $pickupTime = '09:00:00';
+                break;
+            case 'monthly':
+                $addDays = 30;
+                $deliveryTime = '09:00:00';
+                $pickupTime = '09:00:00';
+                break;
+            default:
+                $addDays = 1;
+                $deliveryTime = '09:00:00';
+                $pickupTime = '09:00:00';
+                break;
+        }
+
+        $startDate = !empty($validated['schedule_start_date']) ? \Carbon\Carbon::parse($validated['schedule_start_date']) : null;
+        $endDate = $startDate ? $startDate->copy()->addDays($addDays) : null;
+
+        $isDelivery = null;
+        $isPickupReturn = null;
+        if($validated['service_method'] === "In Store Pickup") {
+            $isPickupReturn = 0;
+            $isDelivery = 0;
+        } elseif ($validated['service_method'] === "Delivery") {
+            switch ($validated['service_option']) {
+                case 'Delivery + Pickup':
+                    $isPickupReturn = 1;
+                    $isDelivery = 1;
+                    break;
+                case 'Delivery Only':
+                    $isPickupReturn = 0;
+                    $isDelivery = 1;
+                    break;
+                case 'Return Only':
+                    $isPickupReturn = 1;
+                    $isDelivery = 0;
+                    break;
+                default:
+                    $isPickupReturn = 0;
+                    $isDelivery = 0;
+            }
+        }
+
         return [
             'product_unique_id' => $product->unique_id,
             'product_slug' => $product->slug,
@@ -125,6 +179,7 @@ class CartHelper
             'product_price' => $price,
             'quantity' => $quantity,
             'schedule_start_date' => $validated['schedule_start_date'] ?? null,
+            'schedule_end_date' => $endDate->format(config('app.date.date_format')) ?? null,
             'service_method' => $validated['service_method'] ?? null,
             'distance_type' => $validated['distance_type'] ?? null,
             'distance_range' => $distanceRange,
@@ -133,6 +188,19 @@ class CartHelper
             'store_id' => $validated['store_id'] ?? null,
             'store_address' => $storeAddress ?? null,
             'store_name' => $storeName ?? null,
+
+            'is_delivery' => $isDelivery ?? null,
+            'delivery_type' => ($isDelivery ? 'Truck' : 'Store') ?? null,
+            'delivery_store_id' => $validated['store_id'] ?? null,
+            'delivery_date' => $validated['schedule_start_date'] ?? null,
+            'delivery_time' => $deliveryTime,
+
+            'is_pickup_return' => $isPickupReturn ?? null,
+            'pickup_type' => ($isPickupReturn ? 'Truck' : 'Store') ?? null,
+            'pickup_store_id' => $validated['store_id'] ?? null,
+            'pickup_date' => $endDate->format(config('app.date.date_format')) ?? null,
+            'pickup_time' => $pickupTime ?? null,
+
             'product_option_items' => $resolvedOptions,
             'product_rental_items' => $validated['product_rental_items'],
             'product_rental_items_prices' => $selectedRentalItemsWithPrices,
@@ -178,8 +246,8 @@ class CartHelper
                 case 'Delivery + Pickup':
                     $serviceOptionPrice = $deliveryFee * 2;
                     break;
-                case 'Delivery + Return':
-                case 'Pickup + Return':
+                case 'Delivery Only':
+                case 'Return Only':
                     $serviceOptionPrice = $deliveryFee;
                     break;
                 default:
@@ -240,7 +308,7 @@ class CartHelper
                 'service_method' => 'In Store Pickup/Delivery', // nullable
                 'distance_type' => 'Standard/Extended/Custom', // nullable
                 'distance_range' => '15 (Miles/Kilometers)/30 (Miles/Kilometers)', // nullable
-                'service_option' => 'Delivery + Pickup/Delivery + Return/Pickup + Return', // nullable
+                'service_option' => 'Delivery + Pickup/Delivery Only/Return Only', // nullable
                 'store_id' => '1', // nullable
                 'product_option_items' => [
                     [

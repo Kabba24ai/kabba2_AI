@@ -136,7 +136,7 @@
                         <td class="px-4 py-3">
                             <div class="flex gap-2 items-center justify-center">
                                 <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"
-                                    class="text-sky-600 hover:text-sky-800" title="View">
+                                    class="text-sky-600 hover:text-sky-800" title="View" target="_blank">
                                     <x-heroicon-o-eye class="w-4 h-4" />
                                 </a>
                             </div>

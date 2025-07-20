@@ -191,7 +191,7 @@
                                         'masked-phone w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 240,
-                                        'placeholder' => 'Phone',
+                                        'placeholder' => '(xxx) xxx-xxxx',
                                         'autocomplete' => 'off',
                                         'id' => 'billingPhone',
                                     ])->required() }}
@@ -362,7 +362,7 @@
                                         'masked-phone w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
                                             ($errors->has('deliveryPhone') ? ' border-red-400' : ''),
                                     )->attributes([
-                                        'placeholder' => 'Phone',
+                                        'placeholder' => '(xxx) xxx-xxxx',
                                         'autocomplete' => 'off',
                                         'id' => 'deliveryPhone',
                                     ]) }}

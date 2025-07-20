@@ -8,6 +8,7 @@ import '../../shared/js/notif.js'; // Import the Notyf setup
 import '../../shared/js/swal.js'; // Import SweetAlert setup
 import '../../shared/js/air-datepicker.js'; // Import datepicker setup
 import '../../shared/js/api.js';
+import '../../shared/js/flatpickr.js';
 
 import AirDatepicker from "air-datepicker";
 

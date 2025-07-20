@@ -7,8 +7,6 @@ import Sortable from 'sortablejs';
 window.$ = jQuery;
 window.jQuery = jQuery;
 
-import "flowbite";
-
 // Make Alpine globally available
 Alpine.plugin(persist);
 window.Alpine = Alpine;

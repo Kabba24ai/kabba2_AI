@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (storeSelect) {
                 storeSelect.selectedIndex = 0;
             }
-            if (value === "Delivery + Return" || value === "Pickup + Return") {
+            if (value === "Delivery Only" || value === "Return Only") {
                 storeDiv.classList.remove('hidden');
             } else {
                 storeDiv.classList.add('hidden');

@@ -73,7 +73,6 @@ $watch('darkMode', value => {
                         @include('flash::message')
                         {{-- Login Form --}}
                         {{ html()->form()->attributes([
-                            'class' => 'form w-100 module_form',
                             'id' => 'signInForm',
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,

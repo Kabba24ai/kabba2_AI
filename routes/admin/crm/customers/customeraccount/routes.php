@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\PaymentStoreControl
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\RefundStoreController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\DiscountStoreController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\ChargeStoreController;
+use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\UpdateNoteController;
 
 
 
@@ -26,6 +27,7 @@ Route::prefix('customeraccount')
 
     Route::post('/charge-store', ChargeStoreController::class)->name('chargestore');
 
+    Route::post('/update-note', UpdateNoteController::class)->name('update_note');
     
 
 

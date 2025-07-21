@@ -25,11 +25,18 @@ class ViewController extends Controller
         ->where('unique_id', $unique_id)
         ->firstOrFail();
 
-        // dd( $customer);
+        $lastpaymentdate = $customer->accounts()
+    ->where('type', 'payment')
+    ->orderByDesc('date')
+    ->value('date');
 
-         $states = State::get();
 
-           $protocol = '';
+
+        // dd($customer->total_order_amount);
+        
+        $states = State::get();
+
+        $protocol = '';
         $domain = '';
         $extension = '';
 
@@ -60,6 +67,7 @@ class ViewController extends Controller
             'company_website'=> $domain,
             'website_extension'=> $extension,
             'users'=>$users,
+            'lastpaymentdate'=> $lastpaymentdate,
         ]);
     }
 }

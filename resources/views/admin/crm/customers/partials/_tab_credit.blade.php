@@ -1,7 +1,7 @@
    <div class="bg-white rounded-md shadow-sm p-6 md:flex-row md:items-center md:justify-between gap-4  mt-6">
                 <!-- Left: Name and Account -->
                 <div class="text-left">
-                    <h2 class="text-2xl font-semibold text-gray-900">Customer Credit Account Management</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">Customer Credit Account Management</h2>
                     <p class="text-sm text-gray-600">Manage customer credit account transactions and balance</p>
                 </div>
             </div>
@@ -15,7 +15,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Current Balance</p>
-                        <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -27,7 +27,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Available Credit</p>
-                        <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_order_amount ?? 0), 2) }}</p>
                     </div>
                 </div>
 
@@ -46,7 +46,7 @@
                     </div>
                     <div>
                     <p class="text-sm text-gray-500">Credit Limit</p>
-                    <p class="text-lg font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} </p>
+                    <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} </p>
                     </div>
                 </div>
 
@@ -58,7 +58,7 @@
                     </div>
                     <div>
                     <p class="text-sm text-gray-500">Last Payment Date</p>
-                    <p class="text-lg font-semibold text-gray-900">Not Applicable </p>
+                    <p class="text-xl font-semibold text-gray-900"> {{ App\Helpers\CustomHelper::formatDate($lastpaymentdate) ?? 'N/A' }}  </p>
                     </div>
                 </div>
             </div>
@@ -166,64 +166,64 @@
                     <table class="min-w-full text-sm text-left text-gray-700">
                         <thead class="bg-gray-50 text-gray-500 text-xs border-b uppercase">
                             <tr>
-                                <th class="px-3 py-2 font-medium">Date</th>
-                                <th class="px-3 py-2 font-medium">Type</th>
-                                <th class="px-3 py-2 font-medium">Description</th>
-                                <th class="px-3 py-3 text-right font-medium">Amount</th>
-                                <th class="px-3 py-3 text-right font-medium">Sales Tax</th>
-                                <th class="px-3 py-3 text-right font-medium">Balance Change</th>
-                                <th class="px-3 py-3 text-right font-medium">Running Balance</th>
-                                <th class="px-3 py-3 text-center font-medium">Actions</th>
+                                <th class="px-4 py-3 font-medium">Date</th>
+                                <th class="px-4 py-3 font-medium">Type</th>
+                                <th class="px-4 py-3 font-medium">Description</th>
+                                <th class="px-4 py-3 text-right font-medium">Amount</th>
+                                <th class="px-4 py-3 text-right font-medium">Sales Tax</th>
+                                <th class="px-4 py-3 text-right font-medium">Balance Change</th>
+                                <th class="px-4 py-3 text-right font-medium">Running Balance</th>
+                                <th class="px-4 py-3 text-center font-medium">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="transactionTable">
 
-                        @php
-    $typeStyles = [
-        'charge' => [
-            'bg' => 'bg-red-100',
-            'text' => 'text-red-800',
-            'amount' => 'text-red-600',
-            'sign' => '+',
-            'icon' => 'plus',
-        ],
-        'payment' => [
-            'bg' => 'bg-green-100',
-            'text' => 'text-green-800',
-            'amount' => 'text-green-600',
-            'sign' => '-',
-            'icon' => 'credit-card',
-        ],
-        'discount' => [
-            'bg' => 'bg-purple-100',
-            'text' => 'text-purple-800',
-            'amount' => 'text-green-600',
-            'sign' => '-',
-            'icon' => 'award',
-        ],
-        'credit' => [
-            'bg' => 'bg-yellow-100',
-            'text' => 'text-yellow-800',
-            'amount' => 'text-green-600',
-            'sign' => '-',
-            'icon' => 'arrow-down-left',
-        ],
-        'debit' => [
-            'bg' => 'bg-orange-100',
-            'text' => 'text-orange-800',
-            'amount' => 'text-red-600',
-            'sign' => '+',
-            'icon' => 'arrow-up-right',
-        ],
-        'refund' => [
-            'bg' => 'bg-blue-100',
-            'text' => 'text-blue-800',
-            'amount' => 'text-red-600',
-            'sign' => '+',
-            'icon' => 'trending-up',
-        ],
-    ];
-@endphp
+                             @php
+                                $typeStyles = [
+                                    'charge' => [
+                                        'bg' => 'bg-red-100',
+                                        'text' => 'text-red-800',
+                                        'amount' => 'text-red-600',
+                                        'sign' => '+',
+                                        'icon' => 'plus',
+                                    ],
+                                    'payment' => [
+                                        'bg' => 'bg-green-100',
+                                        'text' => 'text-green-800',
+                                        'amount' => 'text-green-600',
+                                        'sign' => '-',
+                                        'icon' => 'credit-card',
+                                    ],
+                                    'discount' => [
+                                        'bg' => 'bg-purple-100',
+                                        'text' => 'text-purple-800',
+                                        'amount' => 'text-green-600',
+                                        'sign' => '-',
+                                        'icon' => 'award',
+                                    ],
+                                    'credit' => [
+                                        'bg' => 'bg-yellow-100',
+                                        'text' => 'text-yellow-800',
+                                        'amount' => 'text-green-600',
+                                        'sign' => '-',
+                                        'icon' => 'arrow-down-left',
+                                    ],
+                                    'debit' => [
+                                        'bg' => 'bg-orange-100',
+                                        'text' => 'text-orange-800',
+                                        'amount' => 'text-red-600',
+                                        'sign' => '+',
+                                        'icon' => 'arrow-up-right',
+                                    ],
+                                    'refund' => [
+                                        'bg' => 'bg-blue-100',
+                                        'text' => 'text-blue-800',
+                                        'amount' => 'text-red-600',
+                                        'sign' => '+',
+                                        'icon' => 'trending-up',
+                                    ],
+                                ];
+                            @endphp
 
                             @foreach ($customer->accounts as $transaction)
                                 @php
@@ -237,38 +237,38 @@
                                     
 
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $style['bg'] }} {{ $style['text'] }}">
-        @if ($style['icon'] === 'plus')
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        class="lucide lucide-plus w-4 h-4 mr-2">
-                                        <path d="M5 12h14" />
-                                        <path d="M12 5v14" />
-                                    </svg>
-        @elseif ($style['icon'] === 'credit-card')
-           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        class="lucide lucide-credit-card w-4 h-4 mr-2">
-                                        <rect width="20" height="14" x="2" y="5" rx="2" />
-                                        <line x1="2" x2="22" y1="10" y2="10" />
-                                    </svg>
-         @elseif ($style['icon'] === 'award')
-           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                        @if ($style['icon'] === 'plus')
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                                        class="lucide lucide-plus w-4 h-4 mr-2">
+                                                                        <path d="M5 12h14" />
+                                                                        <path d="M12 5v14" />
+                                                                    </svg>
+                                        @elseif ($style['icon'] === 'credit-card')
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                                        class="lucide lucide-credit-card w-4 h-4 mr-2">
+                                                                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                                                                        <line x1="2" x2="22" y1="10" y2="10" />
+                                                                    </svg>
+                                        @elseif ($style['icon'] === 'award')
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                         class="lucide lucide-award w-4 h-4 mr-2">
                                         <circle cx="12" cy="8" r="6" />
                                         <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
                                     </svg>      
-        @elseif ($style['icon'] === 'arrow-down-left')
-            <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7L7 17"/><path d="M17 17H7V7"/></svg>
-        @elseif ($style['icon'] === 'arrow-up-right')
-                       <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                                        @elseif ($style['icon'] === 'arrow-down-left')
+                                            <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7L7 17"/><path d="M17 17H7V7"/></svg>
+                                        @elseif ($style['icon'] === 'arrow-up-right')
+                                                    <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
 
-        @elseif ($style['icon'] === 'trending-up')
+                                        @elseif ($style['icon'] === 'trending-up')
 
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                         class="lucide lucide-trending-up w-4 h-4 mr-2">
@@ -278,12 +278,12 @@
 
                                     
 
-        @endif
-        <span class="ml-1 capitalize">{{ $transaction->type }}</span>
-    </span>
+                                            @endif
+                                            <span class="ml-1 capitalize">{{ $transaction->type }}</span>
+                                        </span>
 
-                                        <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsibleUser->full_name  }}
-</div>
+                                                                            <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsibleUser->full_name  }}
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-900">
                                     <div class="max-w-xs truncate text-gray-700">{{ $transaction->notes ?? 'N/A' }}</div>
@@ -315,10 +315,12 @@
                                 <td class="px-4 py-3 text-right">{{ number_format($transaction->balance, 2) }}</td>
                                 <td class="px-4 py-3 text-blue-600 text-center">
                                     <div class="flex items-center justify-center space-x-2">
-                                        <!-- View -->
-                                        <button title="View">
-                                            <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
-                                        </button>
+                                      
+
+                                     <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)'    data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}" >
+                                        <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
+                                    </button>
+
 
                                         <!-- Download -->
                                         <button title="Download">
@@ -326,7 +328,9 @@
                                         </button>
 
                                         <!-- Note -->
-                                        <a href="javascript:void(0)" id="openNoteModal">
+                                      <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">
+
+
                                             <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
                                         </a>
                                     </div>
@@ -339,6 +343,24 @@
                 </div>
             </div>
 
+
+<!-- Single Transaction Modal -->
+<div id="transactionViewModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center gap-2">
+                    <x-heroicon-o-eye class="w-5 h-5 text-blue-600" />
+                    <h2 class="text-lg font-medium text-gray-900">Transaction Details</h2>
+                </div>
+                <button id="closeTransactionViewModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+            </div>
+            <div class="px-6 overflow-y-auto" id="transactionViewModalBody">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <!-- Record Payment Wrapper -->
@@ -376,7 +398,7 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
                         <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                        <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
 
                         <!-- <input type="number" placeholder="0.00"
@@ -461,10 +483,6 @@
     </div>
 </div>
 
-
-
-
-
 <!-- Process Refund Wrapper -->
 <div id="refundModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
@@ -494,7 +512,7 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                            <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
 
                             {!! html()->number('amount', old('amount'))
@@ -611,7 +629,7 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                            <span class="absolute inset-y-0 h-[35px] left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
 
                              {!! html()->number('amount', old('amount'))
@@ -730,7 +748,7 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount</label>
                          <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                            <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
 
                               {!! html()->number('amount', old('amount'))
@@ -845,18 +863,23 @@
             </div>
             <div class="px-6 overflow-y-auto">
                 <div class="bg-gray-50 rounded-lg mb-4 text-sm space-y-1">
+
+                    <input type="hidden" id="noteTransactionId">
+
+
                     <div class="flex justify-between">
-                    <span class="text-gray-500 font-medium">Transaction:</span>
-                    <span class="text-gray-700">ORD-2025-001</span>
+                        <span class="text-gray-500 font-medium">Transaction:</span>
+                        <span class="text-gray-700" data-note-field="id"></span>
                     </div>
                     <div class="flex justify-between">
-                    <span class="text-gray-500 font-medium">Date:</span>
-                    <span class="text-gray-700">Jan 15, 2025</span>
+                        <span class="text-gray-500 font-medium">Date:</span>
+                        <span class="text-gray-700" data-note-field="date"></span>
                     </div>
                     <div class="flex justify-between">
-                    <span class="text-gray-500 font-medium">Amount:</span>
-                    <span class="text-gray-700">$1,097.44</span>
+                        <span class="text-gray-500 font-medium">Amount:</span>
+                        <span class="text-gray-700" data-note-field="amount"></span>
                     </div>
+
                 </div>
 
                  <div class="mb-4">
@@ -876,3 +899,98 @@
         </div>
     </div>
 </div>
+
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modalWrapper = document.getElementById('transactionViewModalWrapper');
+    const closeBtn = document.getElementById('closeTransactionViewModalBtn');
+    const modalBody = document.getElementById('transactionViewModalBody');
+
+    document.querySelectorAll('.openTransactionViewModalBtn').forEach(button => {
+        button.addEventListener('click', () => {
+            const tx = JSON.parse(button.getAttribute('data-transaction') || '{}');
+            const txdate = button.getAttribute('data-date') || '' ;
+            modalBody.innerHTML = '';
+
+            if (!tx || !tx.amount) {
+                modalBody.innerHTML = `<p class="text-gray-500 text-sm">Transaction not found.</p>`;
+                return;
+            }
+
+            const taxAmount = tx.sales_tax_type === 'add' && tx.sales_tax > 0
+                ? parseFloat(tx.amount) * parseFloat(tx.sales_tax)
+                : 0;
+
+            const total = parseFloat(tx.amount) + taxAmount;
+
+            const html = `
+                <div class=" rounded-lg mb-4 text-sm space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Transaction:</span>
+                        <span class="text-gray-700">${tx.unique_id}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Date:</span>
+                        <span class="text-gray-700">${txdate} </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Type:</span>
+                        <span class="text-gray-700">${tx.type}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Amount:</span>
+                        <span class="text-gray-700">$${parseFloat(tx.amount).toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Sales Tax:</span>
+                        <span class="text-gray-700">$${taxAmount.toFixed(2)} (${(tx.sales_tax * 100).toFixed(2)}%)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Total With Tax:</span>
+                        <span class="text-gray-700">$${total.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Running Balance:</span>
+                        <span class="text-gray-700">$${tx.balance || '-'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Reason:</span>
+                        <span class="text-gray-700">${tx.reason || '-'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Responsible:</span>
+                        <span class="text-gray-700">${tx.responsible_person_name || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-sm font-medium text-gray-700 block mb-1">Note</label>
+                    <div id="noteContainer" class="border border-gray-300 rounded-md p-3 text-sm text-gray-700 bg-white">
+                        ${tx.notes || '—'}
+                    </div>
+                </div>
+
+                
+            `;
+
+            modalBody.innerHTML = html;
+            modalWrapper.style.display = 'flex';
+        });
+    });
+
+   
+    closeBtn.addEventListener('click', () => {
+        modalWrapper.style.display = 'none';
+    });
+
+  
+    modalWrapper.addEventListener('click', e => {
+        if (e.target === modalWrapper) {
+            modalWrapper.style.display = 'none';
+        }
+    });
+});
+</script>
+@endpush

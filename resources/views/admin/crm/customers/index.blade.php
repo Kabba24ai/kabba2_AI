@@ -80,7 +80,20 @@
         </div>
     </div>
 
+    <div id="customer-loader" class="hidden text-center py-4">
+        <svg class="animate-spin h-6 w-6 text-brand-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <p class="text-sm text-gray-500 mt-2">Loading customers...</p>
+    </div>
+
+
     <div id="customer-table-wrapper">
+
 
    
         @include('admin.crm.customers.partials._table', ['customers' => $customers])
@@ -112,6 +125,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (company.length >= 3 || company.length === 0) params.append('search_company_name', company);
         if (tax_status !== 'All') params.append('tax_status', tax_status);
 
+         // Show loader
+        document.querySelector('#customer-loader').classList.remove('hidden');
+    document.querySelector('#customer-table-wrapper').classList.add('hidden');
+
         fetch("{{ route('admin.crm.customers.index') }}?" + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
@@ -124,7 +141,13 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(err => {
             wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading customers.</div>';
             console.error(err);
+        }) .finally(() => {
+        // Hide loader
+            document.querySelector('#customer-loader').classList.add('hidden');
+                    document.querySelector('#customer-table-wrapper').classList.remove('hidden');
+
         });
+        
     }
 
     // Delayed filters

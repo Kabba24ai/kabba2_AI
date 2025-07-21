@@ -157,7 +157,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Available Credit</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
                     </div>
                 </div>
 

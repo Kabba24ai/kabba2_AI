@@ -20,13 +20,14 @@ class CustomerAccount extends Model
         'balance',
         'amount',
         'payment_type',
-        'responsible_person',
+        'responsible_person_id',
+        'responsible_person_name',
         'notes',
         'date',
         'payment_number_id',
         'reason',
         'sales_tax',
-      
+        'sales_tax_type',
         'type',
        
     ];
@@ -60,7 +61,7 @@ class CustomerAccount extends Model
 // in CustomerAccount
 public function responsibleUser()
 {
-    return $this->belongsTo(User::class, 'responsible_person');
+    return $this->belongsTo(User::class, 'responsible_person_id');
 }
 
 

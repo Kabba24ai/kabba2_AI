@@ -1,24 +1,25 @@
 <?php
+
 namespace App\Http\Controllers\Admin\Crm\Customers\CustomerAccount;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Crm\Customers\CustomerAccount\RefundStoreRequest;
+use App\Http\Requests\Admin\Crm\Customers\CustomerAccount\ChargeStoreRequest;
 use App\Models\Customers\CustomerAccount;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Iam\Personnel\User ;
+use App\Models\Configurations\Setting;
 use App\Helpers\CustomHelper;
 
-class RefundStoreController extends Controller
+class ChargeStoreController extends Controller
 {
-    /**
-     * Handle the incoming refund request.
-     */
-    public function __invoke(RefundStoreRequest $request)
+    public function __invoke(ChargeStoreRequest $request)
     {
         $validated = $request->validated();
 
         DB::beginTransaction();
+
+      
 
         try {
             $record = new CustomerAccount();
@@ -27,36 +28,52 @@ class RefundStoreController extends Controller
             $record->reason = $validated['reason'];
             // $record->responsible_person = $validated['responsible_person'];
 
+            
             // Fetch user and store both ID and full_name
                 $user = User::findOrFail($validated['responsible_person']);
                 $record->responsible_person_id = $user->id ?? '';
                 $record->responsible_person_name = $user->full_name ?? '';
 
+            // Set sales tax type
+            $record->sales_tax_type = $validated['sales_tax'] ?? null;
+
+            // Handle sales tax logic
+            if (($validated['sales_tax'] ?? null) === 'add') {
+                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+                $record->sales_tax = $salesTaxSetting?->setting_value ?? 0.00;
+            } else {
+                $record->sales_tax = 0.00;
+            }
+
+
             $record->notes = $validated['notes'] ?? null;
             $record->date = now();
-            $record->type = 'refund';
+            $record->type = 'charge';
 
             $record->save();
 
-            CustomHelper::updateCreditBalance($record);
+
+              
+             CustomHelper::updateCreditBalance($record);
 
             DB::commit();
 
-            flash('Refund processed successfully.')->success();
+            flash('Charge successfully added')->success();
             session()->flash('active_tab', 'credit');
 
             return redirect()->back();
+
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
-            flash('Something went wrong while processing the refund.')->error();
+            flash('Something went wrong adding charge. Please try again.')->error();
             session()->flash('active_tab', 'credit');
 
-            Log::error('Refund error: '.$e->getMessage());
+            Log::error($e);
 
             return redirect()->back()->withInput()->withErrors([
-                'error' => 'An error occurred while processing the refund.',
+                'error' => 'An error occurred while adding the charge. Please try again.',
             ]);
         }
     }

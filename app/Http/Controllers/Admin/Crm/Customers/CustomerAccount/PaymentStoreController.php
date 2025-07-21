@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Admin\Crm\Customers\CustomerAccount\PaymentStoreRequest;
 use Illuminate\Support\Carbon;
 use App\Helpers\CustomHelper;
+use App\Models\Iam\Personnel\User ;
 
 class PaymentStoreController extends Controller
 {
@@ -33,7 +34,14 @@ class PaymentStoreController extends Controller
             $record->balance = $validated['balance'] ?? 0;
             $record->amount = $validated['amount'];
             $record->payment_type = $validated['payment_type'];
-            $record->responsible_person = $validated['responsible_person'];
+
+            // $record->responsible_person = $validated['responsible_person'];
+
+              // Fetch user and store both ID and full_name
+                $user = User::findOrFail($validated['responsible_person']);
+                $record->responsible_person_id = $user->id ?? '';
+                $record->responsible_person_name = $user->full_name ?? '';
+
             $record->notes = $validated['notes'] ?? null;
             $record->date = now();
             $record->payment_number_id = $validated['payment_number_id'] ?? null;
@@ -42,6 +50,8 @@ class PaymentStoreController extends Controller
             $record->type = 'payment';
 
             $record->save();
+
+            CustomHelper::updateCreditBalance($record);
 
             DB::commit();
 

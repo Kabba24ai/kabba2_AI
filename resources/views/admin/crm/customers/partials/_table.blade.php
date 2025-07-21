@@ -70,9 +70,9 @@
                       {{ $style['label'] }}
                 </span>
                 @if ($customer->tax_status === 'Exempt')
-                   <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check class="w-4 h-4 text-green-500" /></span>
+                   <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" /></span>
                 @else
-                   <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check class="w-4 h-4 text-gray-500" /></span>
+                   <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" /></span>
                 @endif
 
 

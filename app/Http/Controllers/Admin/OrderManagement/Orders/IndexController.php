@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 
 // Models
 use App\Models\Orders\Order;
+use App\Models\ProductManagement\ProductCategory;
 
 class IndexController extends Controller
 {
@@ -23,8 +24,11 @@ class IndexController extends Controller
         // Fetch orders from the database, most recent first
         $orders = Order::orderByDesc('id')->paginate(10);
 
+        $categories = ProductCategory::orderByAdmin()->get();
+
         return view('admin.order_management.orders.index', [
-            'orders' => $orders
+            'orders' => $orders,
+            'categories' => $categories
         ]);
     }
 }

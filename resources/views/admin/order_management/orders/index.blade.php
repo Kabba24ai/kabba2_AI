@@ -39,8 +39,8 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Search Phone</label>
                 <div class="relative">
                     <x-heroicon-o-phone class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2" />
-                    <input type="text" placeholder="Phone number..."
-                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm w-48 focus:ring-blue-500 focus:border-blue-500" />
+                    <input type="text" placeholder="(xxx) xxx-xxxx"
+                        class="masked-phone pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm w-48 focus:ring-blue-500 focus:border-blue-500"/>
                 </div>
             </div>
 
@@ -49,9 +49,10 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select
                     class="border border-gray-300 rounded-md px-3 py-2 text-sm w-48 focus:ring-blue-500 focus:border-blue-500">
-                    <option>All Categories</option>
-                    <option>Excavators</option>
-                    <option>Generators</option>
+                    <option value="">All Categories</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}">{{ $category->title }}</option>
+                    @endforeach
                 </select>
             </div>
 

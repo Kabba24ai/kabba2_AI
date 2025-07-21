@@ -21,9 +21,11 @@ class ViewController extends Controller
     public function __invoke(string $unique_id): View
     {
         
-        $customer = Customer::with('orders','accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
+        $customer = Customer::with('orders.products','accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();
+
+        // dd( $customer);
 
          $states = State::get();
 

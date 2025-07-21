@@ -20,7 +20,7 @@ class IndexController extends Controller
      */ 
     public function __invoke(Request $request)
     {
-        $query = Customer::with('orders','addresses');
+        $query = Customer::with('orders','addresses')->whereIn('status', ['Active', 'Inactive']);
     
         if ($request->filled('search_name')) {
             $query->where(function ($q) use ($request) {

@@ -27,9 +27,6 @@ class ViewUpdateController extends Controller
       
         try {
 
-                $fullWebsite = trim(($validated['website_protocol'] ?? '') . ($validated['company_website'] ?? '') . ($validated['website_extension'] ?? ''));
-           $customerData['company_website'] = $fullWebsite;
-
 
             $customerData = [
                 'first_name' => $validated['first_name'] ?? null,
@@ -47,8 +44,20 @@ class ViewUpdateController extends Controller
                     'credit_limit' => $validated['credit_limit'] ?? null,
             ];
 
-               $customerData['company_website'] = $fullWebsite;
+            //    $customerData['company_website'] = $fullWebsite;
 
+            
+            // Only set company_website if it has a value
+            if (!empty($validated['company_website'])) {
+                $fullWebsite = trim(
+                    ($validated['website_protocol'] ?? '') .
+                    $validated['company_website'] .
+                    ($validated['website_extension'] ?? '')
+                );
+
+               
+            }
+                $customerData['company_website'] = $fullWebsite ?? '';
             $customer->update($customerData);
 
             // Process address list

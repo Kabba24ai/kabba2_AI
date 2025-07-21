@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 use Carbon\Carbon;
+use App\Models\Customers\CustomerAccount;
+use App\Models\Customers\Customer;
 
 class CustomHelper
 {
@@ -66,6 +68,41 @@ class CustomHelper
             substr($digits, 6, 4)
         );
     }
+
+
+       public static function updateCreditBalance(CustomerAccount $record): void
+    {
+        $customer = Customer::findOrFail($record->customer_id);
+        $currentBalance = $customer->available_credit_balance ?? 0;
+        $newBalance = $currentBalance;
+
+        switch ($record->type) {
+            case 'payment':
+            case 'discount':
+                $newBalance -= $record->amount;
+                break;
+
+            case 'refund':
+                $newBalance += $record->amount;
+                break;
+
+            case 'charge':
+                $chargeAmount = $record->amount;
+                if ($record->sales_tax_type === 'add') {
+                    $chargeAmount += ($record->amount * $record->sales_tax);
+                }
+                $newBalance += $chargeAmount;
+                break;
+        }
+
+        // Update both balances
+        $record->balance = $newBalance;
+        $record->save();
+
+        $customer->available_credit_balance = $newBalance;
+        $customer->save();
+    }
+
 
 
 }

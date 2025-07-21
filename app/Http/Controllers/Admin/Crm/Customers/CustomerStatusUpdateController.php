@@ -30,14 +30,14 @@ class CustomerStatusUpdateController extends Controller
             ]);
 
             flash('Status updated successfully.')->success();
-
+        session()->flash('active_tab', 'account');
             return redirect()->back();
 
         } catch (\Throwable $e) {
             report($e);
 
             flash('Status updation failed.')->error();
-
+        session()->flash('active_tab', 'account');
             return redirect()->back();
         }
     }

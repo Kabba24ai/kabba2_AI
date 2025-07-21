@@ -146,6 +146,17 @@ public function accounts()
     return $this->hasMany(CustomerAccount::class);
 }
 
-
+public function getPaidSalesAttribute()
+{
+    return $this->orders()
+        ->where('status', 'Completed')
+        ->sum('grand_total');
+}
+public function getPendingSalesAttribute()
+{
+    return $this->orders()
+        ->where('status', 'Pending')
+        ->sum('grand_total');
+}
 
 }

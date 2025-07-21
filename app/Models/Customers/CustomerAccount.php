@@ -58,14 +58,11 @@ class CustomerAccount extends Model
         return $this->belongsTo(Customer::class);
     }
 
-// in CustomerAccount
-public function responsibleUser()
-{
-    return $this->belongsTo(User::class, 'responsible_person_id');
-}
-
-
-    
+    // in CustomerAccount
+    public function responsibleUser()
+    {
+        return $this->belongsTo(User::class, 'responsible_person_id');
+    }
 
     /**
      * Relationship to the Order.

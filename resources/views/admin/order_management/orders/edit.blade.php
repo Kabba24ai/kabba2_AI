@@ -425,6 +425,7 @@
                                                 data-format="{{ config('app.date.js_date_format') }}"
                                                 value="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date) : '' }}"
                                                 placeholder="Select date"
+                                                data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
                                                 class="datepicker delivery_date border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
 
@@ -544,6 +545,7 @@
                                                 data-format="{{ config('app.date.js_date_format') }}"
                                                 placeholder="Select date"
                                                 value="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date) : '' }}"
+                                                data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
                                                 class="datepicker pickup_date border rounded px-1.5 py-1 text-xs w-full" />
                                         </div>
                                         <!-- Time -->
@@ -869,6 +871,8 @@
                                 'placeholder' => 'Enter email',
                                 'id' => 'email',
                                 'autocomplete' => 'email',
+                                'readonly' => 'readonly',
+                                'disabled' => 'disabled',
                             ])->required() !!}
                     </div>
                     <!-- Phone -->
@@ -1429,10 +1433,7 @@
                             notyf.error(res && res.message);
                         }
                     })
-                    .catch((err) => {
-                        console.error('Error updating address:', err);
-                        notyf.error('Something went wrong.');
-                    }).finally(() => {
+                    .finally(() => {
                         submitBtn.disabled = false;
                         submitBtn.textContent = originalText;
                     });

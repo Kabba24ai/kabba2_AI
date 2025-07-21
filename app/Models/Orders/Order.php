@@ -74,6 +74,11 @@ class Order extends Model
         return $this->hasMany(OrderPayment::class, 'order_id');
     }
 
+    public function lastPayment()
+    {
+        return $this->hasOne(OrderPayment::class, 'order_id')->latest('id');
+    }
+
     // Polymorphic relations for created_by and updated_by
     public function createdBy()
     {
@@ -111,20 +116,15 @@ class Order extends Model
         return '<a href="' . $url . '" class="text-brand-500 underline font-bold">' . $this->order_number . '</a>';
     }
 
-    protected function getLastPayment()
-    {
-        return $this->payments()->latest('id')->first();
-    }
-
     public function getLastPaymentTypeAttribute()
     {
-        $lastPayment = $this->getLastPayment();
+        $lastPayment = $this->lastPayment;
         return $lastPayment ? $lastPayment->payment_method : null;
     }
 
     public function getLastPaymentStatusAttribute()
     {
-        $lastPayment = $this->getLastPayment();
+        $lastPayment = $this->lastPayment;
         return $lastPayment ? $lastPayment->status : null;
     }
 }

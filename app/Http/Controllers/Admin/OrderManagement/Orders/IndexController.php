@@ -22,7 +22,40 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         // Fetch orders from the database, most recent first
-        $orders = Order::orderByDesc('id')->paginate(10);
+        $query = Order::query()->with('shippingAddress', 'products.product.categories', 'lastPayment');
+
+        if ($request->filled('customer_name')) {
+            $query->where('customer_name', 'like', '%' . $request->customer_name . '%');
+        }
+
+        if ($request->filled('customer_phone')) {
+            $query->where('customer_phone', 'like', '%' . $request->customer_phone . '%');
+        }
+
+        if ($request->filled('category')) {
+            $query->whereHas('products.product.categories', function ($q) use ($request) {
+                $q->where('product_categories.id', $request->category); // Fully qualified!
+            });
+        }
+
+        if ($request->filled('payment_method') && $request->payment_method != 'All Methods') {
+            $query->whereHas('payments', function ($q) use ($request) {
+                $q->where('payment_method', $request->payment_method);
+            });
+        }
+
+        if ($request->filled('payment_status') && $request->payment_status != 'All Status') {
+            $query->whereHas('payments', function ($q) use ($request) {
+                $q->where('status', $request->payment_status);
+            });
+        }
+
+        $orders = $query->latest()->paginate(10)->withQueryString(); // keeps filters in pagination links
+
+        // Return only the table partial if it's an AJAX request
+        if ($request->ajax()) {
+            return view('admin.order_management.orders.partials._table', compact('orders'))->render();
+        }
 
         $categories = ProductCategory::orderByAdmin()->get();
 

@@ -376,9 +376,9 @@
                                         <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good Standing</span>
 
                 @elseif ($approved && !$hasCreditLimit)
-                                           <span class="bg-green-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+                                           <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
                 @else
-                
+                            N/A
                 @endif
                             
                         </div>

@@ -12,6 +12,9 @@ use App\Helpers\CartHelper;
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
 
+use App\Models\Customers\CustomerAccount;
+use App\Helpers\CustomHelper;
+
 // Models
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
@@ -26,6 +29,7 @@ class PostController extends Controller
      */
     public function __invoke(PostRequest $request)
     {
+
         DB::beginTransaction();
         $validated = $request->validated();
 
@@ -196,19 +200,16 @@ class PostController extends Controller
                         'store_id' => $item['store_id'] ?? null,
                         'distance_type' => $item['distance_type'] ?? null,
                         'distance_range' => $item['distance_range'] ?? null,
-
                         'is_delivery' => $item['is_delivery'] ?? null,
                         'delivery_type' => $item['delivery_type'] ?? null,
                         'delivery_store_id' => $item['delivery_store_id'] ?? null,
                         'delivery_date' => !empty($item['delivery_date']) ? Carbon::parse($item['delivery_date'])->format(config('app.date.db_date_format')) : null,
                         'delivery_time' => !empty($item['delivery_time']) ? Carbon::parse($item['delivery_time'])->format(config('app.date.db_time_format')) : null,
-
                         'is_pickup_return' => $item['is_pickup_return'] ?? null,
                         'pickup_type' => $item['pickup_type'] ?? null,
                         'pickup_store_id' => $item['pickup_store_id'] ?? null,
                         'pickup_date' => !empty($item['pickup_date']) ? Carbon::parse($item['pickup_date'])->format(config('app.date.db_date_format')) : null,
                         'pickup_time' => !empty($item['pickup_time']) ? Carbon::parse($item['pickup_time'])->format(config('app.date.db_time_format')) : null,
-
                     ]);
                 }
             }
@@ -263,6 +264,22 @@ class PostController extends Controller
                 ]);
             }
 
+            if($validated['payment'] === 'Account'){
+
+            $record = new CustomerAccount();
+            $record->customer_id = $customer->id;
+            $record->order_id = $order->id;
+            $record->balance = $customer->available_credit_balance ?? 0;
+            $record->amount = $order->grand_total ;
+            $record->date = now();
+            $record->type = 'payment';
+
+            $record->save();
+
+              CustomHelper::updateCreditBalance($record);
+
+            }
+
             DB::commit();
 
             // Generate a signed URL for the thank you page with order unique id
@@ -274,6 +291,7 @@ class PostController extends Controller
             DB::rollback();
             //dd($e);
             // Log the error if needed: logger($e);
+            
             return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
         }
     }

@@ -4,13 +4,13 @@
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
             <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
             <tr>
-                <th class="w-45 px-4 py-3 text-left font-semibold">Customer</th>
-                <th class="w-40 px-4 py-3 text-left font-semibold">Company</th>
-                <th class="w-45 px-4 py-3 text-left font-semibold">Contact</th>
-                <th class="w-45 px-4 py-3 text-left font-semibold">Status</th>
-                <th class="w-40 px-4 py-3 text-left font-semibold">Orders</th>
-                <th class="w-35 px-4 py-3 text-left font-semibold">Total Spent</th>
-                <th class="w-35 px-4 py-3 text-left font-semibold">Actions</th>
+                <th class="w-45 px-4 py-3 text-left font-semibold w-64">Customer</th>
+                <th class="w-40 px-4 py-3 text-left font-semibold w-64">Company</th>
+                <th class="w-45 px-4 py-3 text-left font-semibold w-64">Contact</th>
+                <th class="w-45 px-4 py-3 text-left font-semibold w-48">Status</th>
+                <th class="w-40 px-4 py-3 text-left font-semibold w-24">Orders</th>
+                <th class="w-35 px-4 py-3 text-left font-semibold w-24">Total Spent</th>
+                <th class="w-35 px-4 py-3 text-left font-semibold w-24">Actions</th>
             </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-900 dark:text-gray-100">

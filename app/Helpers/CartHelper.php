@@ -15,6 +15,7 @@ class CartHelper
             throw new \InvalidArgumentException('The "cart_items" key is required.');
         }
 
+       
         // --- Global/Config Settings ---
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
         $taxRate = floatval($productSettings['sales_tax'] ?? 0);
@@ -26,6 +27,14 @@ class CartHelper
         $paymentMethod = $input['payment_method'] ?? null;
         $couponCode = $input['coupon_code'] ?? null;
         $discount = floatval($input['discount'] ?? 0);
+
+         // Determine tax exemption based on authenticated customer
+        $customer = auth('customer')->check() ? auth('customer')->user() : null;
+
+        // Override $taxExempt if customer is authenticated and marked as Exempt
+        if ($customer && method_exists($customer, 'getTaxStatus')) {
+            $taxExempt = $customer->getTaxStatus() !== 'Taxable';
+        }
 
         // --- Prepare Cart Data ---
         $cartData = $input['cart_items'];
@@ -49,8 +58,8 @@ class CartHelper
             $item = self::buildCartItem($product, $validated, $taxRate, $productSettings);
             $items[] = $item;
             $subTotal += $item['sub_total'];
-            $taxTotal += $item['tax'];
-            $grandTotal += $item['total'];
+        $taxTotal += $taxExempt ? 0 : $item['tax'];
+        $grandTotal += $taxExempt ? $item['sub_total'] : $item['total'];
         }
 
         $grandTotalAfterDiscount = $grandTotal - $discount;

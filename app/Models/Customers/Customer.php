@@ -159,4 +159,9 @@ public function getPendingSalesAttribute()
         ->sum('grand_total');
 }
 
+public function getTaxStatus(): string
+{
+    return $this->tax_status ?? 'Taxable';
+}
+
 }

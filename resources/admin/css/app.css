@@ -806,3 +806,22 @@ span.flatpickr-weekday,
 {
   height: 130px;
 }
+.billing-summary-w-16{
+  width: 16%;
+}
+.billing-summary-w-13{
+  width: 13%;
+}
+.billing-summary-w-15{
+  width: 15%;
+}
+@media screen and (max-width:699px) {
+  .billing-summary-w-16{width: 100%;}
+  .billing-summary-w-15{width: 100%;}
+  .billing-summary-w-13{width: 100%;}
+}
+@media screen and (min-width:768px) and (max-width:992px) {
+  .billing-summary-w-16{width: 30%;}
+  .billing-summary-w-15{width: 30%;}
+  .billing-summary-w-13{width: 30%;}
+}

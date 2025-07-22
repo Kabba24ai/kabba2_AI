@@ -21,16 +21,14 @@ class ViewController extends Controller
     public function __invoke(string $unique_id): View
     {
         
-        $customer = Customer::with('orders.products','accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
+        $customer = Customer::with('orders.products','orders.payments', 'accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();
 
         $lastpaymentdate = $customer->accounts()
-    ->where('type', 'payment')
-    ->orderByDesc('date')
-    ->value('date');
-
-
+            ->where('type', 'payment')
+            ->orderByDesc('date')
+            ->value('date');
 
         // dd($customer->total_order_amount);
         
@@ -58,7 +56,7 @@ class ViewController extends Controller
         }
 
         $users = User::where('status','Active')->get();
-
+        // dd($customer);
 
         return view('admin.crm.customers.view', [
             'customer' => $customer,

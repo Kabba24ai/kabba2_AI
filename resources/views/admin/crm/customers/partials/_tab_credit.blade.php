@@ -282,7 +282,7 @@
                                             <span class="ml-1 capitalize">{{ $transaction->type }}</span>
                                         </span>
 
-                                                                            <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsibleUser->full_name  }}
+                                                                            <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsibleUser->full_name ?? 'N/A'  }}
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-900">

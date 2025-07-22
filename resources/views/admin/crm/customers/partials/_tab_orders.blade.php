@@ -164,7 +164,7 @@
 
                     {{-- Payment Method --}}
                     <td class="px-4 py-3">
-                        {{ $order->payment_type ?? 'N/A' }}
+{{ $order->payments->first()->payment_method ?? 'N/A' }}
                     </td>
 
                     {{-- Order Status --}}

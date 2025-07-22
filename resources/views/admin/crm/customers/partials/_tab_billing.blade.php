@@ -75,49 +75,54 @@
                 </div>
             </div>
 
-            <!-- <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
-                <div class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6 3xl:grid-cols-6 md:grid-cols-6 gap-4">
+            <div class="bg-white border border-gray-200 shadow-sm rounded-md p-4 mt-6 w-full">
+                <div class="flex flex-wrap items-start gap-4 text-sm">
                     
-                    <div class="">
-                        <label class="text-gray-700 font-medium mb-1">Customer Name</label>
+                    <!-- Customer Name -->
+                    <div class="flex flex-col billing-summary-w-16">
+                        <label class="text-sm text-gray-500 mb-1">Customer Name</label>
                         <div class="relative">
-                            <input type="text" placeholder="Search customers..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md" />
-                            <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                            </div>
+                            <input type="text" placeholder="Search customers..." class="pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full " />
+                            <svg class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+                            </svg>
                         </div>
                     </div>
 
-                    <div class="">
-                        <label class="text-gray-700 font-medium mb-1">Company Name</label>
+                    <!-- Company Name -->
+                    <div class="flex flex-col billing-summary-w-16" >
+                        <label class="text-sm text-gray-500 mb-1">Company Name</label>
                         <div class="relative">
-                            <input type="text" placeholder="Search companies..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md" />
-                            <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                            </div>
+                            <input type="text" placeholder="Search companies..." class="pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full " />
+                            <svg class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+                            </svg>
                         </div>
                     </div>
 
-                    <div class="">
-                        <label class="text-gray-700 font-medium mb-1">Phone</label>
+                    <!-- Phone -->
+                    <div class="flex flex-col billing-summary-w-16" >
+                        <label class="text-sm text-gray-500 mb-1">Phone</label>
                         <div class="relative">
-                            <input type="text" placeholder="(555) 123-4567" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md" />
-                            <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012 6.11 2 2 0 014.11 4h3a2 2 0 012 1.72c.13.96.4 1.9.7 2.81a2 2 0 01-.45 2.11L8 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.3 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg>
-                            </div>
+                            <input type="text" placeholder="(555) 123-4567" class="pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full " />
+                            <svg class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
+                            </svg>
                         </div>
                     </div>
 
-                    <div class="">
-                        <label class="text-gray-700 font-medium mb-1">Alerts</label>
-                        <select class="w-full py-2 px-3 border border-gray-300 rounded-md">
+                    <!-- Alerts -->
+                    <div class="flex flex-col billing-summary-w-15" >
+                        <label class="text-sm text-gray-500 mb-1">Alerts</label>
+                        <select class="py-2 px-3 border border-gray-300 rounded-md w-full ">
                             <option>All Accounts</option>
                             <option>Alert Only</option>
                         </select>
                     </div>
 
-                    <div class="">
-                        <label class="text-gray-700 font-medium mb-1">Credit Type</label>
+                    <!-- Credit Type -->
+                    <div class="flex flex-col billing-summary-w-13">
+                        <label class="text-sm text-gray-500 mb-1">Credit Type</label>
                         <div class="flex flex-col space-y-1">
                             <label class="inline-flex items-center text-gray-700">
                                 <input type="checkbox" class="mr-2" /> Credit - Approved
@@ -129,84 +134,20 @@
                         </div>
                     </div>
 
-                    <div class="">
-                        <label class="text-gray-700 font-medium mb-1">Balance Sort</label>
-                        <select class="w-full py-2 px-3 border border-gray-300 rounded-md">
-                            <option>Highest to Lowest</option>
-                            <option>Lowest to Highest</option>
-                        </select>
-                    </div>
-                </div>
-            </div> -->
-
-            <div class="bg-white border border-gray-200 shadow-sm rounded-md p-4 mt-6 w-full">
-                <div class="flex flex-wrap items-start w-full gap-4 text-sm flex-row justify-between">
-                    <div class="flex flex-col w-full md:w-48">
-                        <label class="text-sm text-gray-500 mb-1">Customer Name</label>
-                        <div class="relative">
-                            <input type="text" placeholder="Search customers..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md" />
-                            <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col w-full md:w-48">
-                        <label class="text-sm text-gray-500 mb-1">Company Name</label>
-                        <div class="relative">
-                            <input type="text" placeholder="Search companies..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md" />
-                            <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col w-full md:w-40">
-                        <label class="text-sm text-gray-500 mb-1">Phone</label>
-                        <div class="relative">
-                            <input type="text" placeholder="(555) 123-4567" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md" />
-                            <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 
-                                19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 
-                                4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 
-                                2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27
-                                a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                            </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col w-full md:w-40">
-                        <label class="text-sm text-gray-500 mb-1">Alerts</label>
-                        <select class="w-full py-2 px-3 border border-gray-300 rounded-md">
-                            <option>All Accounts</option>
-                            <option>Alert Only</option>
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col w-full md:w-40">
-                        <label class="text-sm text-gray-500 mb-1">Credit Type</label>
-                        <div class="flex flex-col space-y-1">
-                            <label class="inline-flex items-center text-gray-700">
-                            <input type="checkbox" class="mr-2" /> Credit - Approved
-                            </label>
-                            <label class="inline-flex items-center text-gray-700">
-                            <input type="checkbox" class="mr-2" /> Credit - None
-                            </label>
-                            <p class="text-xs text-gray-500">Showing: All / Both</p>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col w-full md:w-40">  
+                    <!-- Balance Sort -->
+                    <div class="flex flex-col billing-summary-w-16">
                         <label class="text-sm text-gray-500 mb-1">Balance Sort</label>
-                        <select class="w-full py-2 px-3 border border-gray-300 rounded-md">
+                        <select class="py-2 px-3 border border-gray-300 rounded-md w-full ">
                             <option>Highest to Lowest</option>
                             <option>Lowest to Highest</option>
                         </select>
                     </div>
+
                 </div>
             </div>
+
+
+
 
             
             <!-- <div class="bg-white border border-gray-200 shadow-sm rounded-md p-4 mt-6 w-full">
@@ -358,7 +299,7 @@
                         <thead class="bg-gray-50 text-gray-500 text-xs border-b uppercase">
                             <tr>
                                 <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(0, 'string')">Customer Name <span id="icon-0" class="ml-1"></span></th>
-                                <th class="px-4 py-3 font-medium cursor-pointer whitespace-nowrap" onclick="sortTable(1, 'string')">Company Name <span id="icon-1" class="ml-1"></span></th>
+                                <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(1, 'string')">Company Name <span id="icon-1" class="ml-1"></span></th>
                                 <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Phone</th>
                                 <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Phone - Company</th>
                                 <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(2, 'number')">Balance <span id="icon-2" class="ml-1"></span></th>

@@ -212,9 +212,10 @@
                                 @foreach ($order->products as $product)
 
                                   @if ($rowCount >= 5)
-            @break(2) 
-        @endif
-        @php $rowCount++; @endphp
+                                    @break(2) 
+                                  @endif
+
+                                    @php $rowCount++; @endphp
 
                                     <tr class="hover:bg-gray-50" data-status="{{ strtolower($order->status) }}">
                                         {{-- Order Number --}}
@@ -234,7 +235,7 @@
 
                                         {{-- Payment Type --}}
                                         <td class="px-4 py-3">
-                                            {{ $order->payment_type ?? 'N/A' }}
+                                {{ $order->payments->first()->payment_method ?? 'N/A' }}
                                         </td>
 
                                         {{-- Status Badge --}}

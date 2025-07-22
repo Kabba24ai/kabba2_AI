@@ -398,312 +398,320 @@
             {{-- Schedule Panels --}}
             <div class="space-y-6">
                 @foreach ($order->products as $orderProduct)
-                    <div class="bg-white rounded-lg border border-gray-200">
-                        <div class="px-2 py-2 rounded-t-lg border-b border-gray-200">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-gray-800 under">{{ $orderProduct->product_name }}
-                                </h3>
-                                <input type="hidden" class="order-product-unique-id"
-                                    value="{{ $orderProduct->unique_id }}">
-                            </div>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex items-center justify-between">
-                            </div>
-                            {{-- Delivery Schedule --}}
-                            <div class="space-y-2 mb-4">
-                                <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-                                    <x-heroicon-s-truck class="w-5 h-5 text-red-500 mr-1" /> Delivery Schedule
-                                </div>
-                                <div class="bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
-                                    <div class="flex flex-nowrap items-center gap-2 w-full mb-1">
-                                        <!-- Date -->
-                                        <div class="flex flex-col items-start min-w-[100px] max-w-[120px] flex-[0.9]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="delivery_date_{{ $orderProduct->unique_id }}">Date</label>
-                                            <input type="text" id="delivery_date_{{ $orderProduct->unique_id }}"
-                                                data-format="{{ config('app.date.js_date_format') }}"
-                                                value="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date) : '' }}"
-                                                placeholder="Select date"
-                                                data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                class="datepicker delivery_date border rounded px-1.5 py-1 text-xs w-full" />
-                                        </div>
 
-                                        <!-- Time -->
-                                        <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="delivery_time_{{ $orderProduct->unique_id }}">Time</label>
-                                            <input type="text" placeholder="Select time"
-                                                id="delivery_time_{{ $orderProduct->unique_id }}"
-                                                value="{{ $orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->delivery_time) : '' }}"
-                                                class="delivery_time border rounded px-1.5 py-1 text-xs w-full" />
-                                        </div>
-                                        <!-- Type (fixed width, non-stretch) -->
-                                        <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="delivery_type-btn-{{ $orderProduct->unique_id }}">Type</label>
-                                            <div id="delivery_type-{{ $orderProduct->unique_id }}"
-                                                x-data="{ selected: '{{ $orderProduct->delivery_type ?? 'Store' }}', open: false }" class="relative w-full">
-                                                <button id="delivery_type-btn-{{ $orderProduct->unique_id }}"
-                                                    type="button" @click="open = !open"
-                                                    class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_type">
-                                                    <template x-if="selected === 'Store'">
-                                                        <x-heroicon-o-building-storefront
-                                                            class="w-4 h-4 text-yellow-600" />
-                                                    </template>
-                                                    <template x-if="selected === 'Truck'">
-                                                        <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
-                                                    </template>
-                                                </button>
-                                                <div x-show="open" @click.away="open = false"
-                                                    class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg">
-                                                    <ul>
-                                                        <li>
-                                                            <button type="button"
-                                                                @click="selected = 'Store'; open = false;  $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
-                                                                class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                <x-heroicon-o-building-storefront
-                                                                    class="w-4 h-4 text-yellow-600" />
-                                                            </button>
-                                                        </li>
-                                                        <li>
-                                                            <button type="button"
-                                                                @click="selected = 'Truck'; open = false; $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
-                                                                class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
-                                                            </button>
-                                                        </li>
-                                                    </ul>
+                        <div class="bg-white rounded-lg border border-gray-200">
+                            <div class="px-2 py-2 rounded-t-lg border-b border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold text-gray-800 under">{{ $orderProduct->product_name }}
+                                    </h3>
+                                    <input type="hidden" class="order-product-unique-id"
+                                        value="{{ $orderProduct->unique_id }}">
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                @if ($orderProduct->product_data['product_type'] === 'Rental')
+                                <div class="flex items-center justify-between">
+                                </div>
+                                {{-- Delivery Schedule --}}
+                                <div class="space-y-2 mb-4">
+                                    <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                        <x-heroicon-s-truck class="w-5 h-5 text-red-500 mr-1" /> Delivery Schedule
+                                    </div>
+                                    <div class="bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
+                                        <div class="flex flex-nowrap items-center gap-2 w-full mb-1">
+                                            <!-- Date -->
+                                            <div class="flex flex-col items-start min-w-[100px] max-w-[120px] flex-[0.9]">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="delivery_date_{{ $orderProduct->unique_id }}">Date</label>
+                                                <input type="text" id="delivery_date_{{ $orderProduct->unique_id }}"
+                                                    data-format="{{ config('app.date.js_date_format') }}"
+                                                    value="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date) : '' }}"
+                                                    placeholder="Select date"
+                                                    data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                                    class="datepicker delivery_date border rounded px-1.5 py-1 text-xs w-full" />
+                                            </div>
+
+                                            <!-- Time -->
+                                            <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="delivery_time_{{ $orderProduct->unique_id }}">Time</label>
+                                                <input type="text" placeholder="Select time"
+                                                    id="delivery_time_{{ $orderProduct->unique_id }}"
+                                                    value="{{ $orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->delivery_time) : '' }}"
+                                                    class="delivery_time border rounded px-1.5 py-1 text-xs w-full" />
+                                            </div>
+                                            <!-- Type (fixed width, non-stretch) -->
+                                            <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="delivery_type-btn-{{ $orderProduct->unique_id }}">Type</label>
+                                                <div id="delivery_type-{{ $orderProduct->unique_id }}"
+                                                    x-data="{ selected: '{{ $orderProduct->delivery_type ?? 'Store' }}', open: false }" class="relative w-full">
+                                                    <button id="delivery_type-btn-{{ $orderProduct->unique_id }}"
+                                                        type="button" @click="open = !open"
+                                                        class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_type">
+                                                        <template x-if="selected === 'Store'">
+                                                            <x-heroicon-o-building-storefront
+                                                                class="w-4 h-4 text-yellow-600" />
+                                                        </template>
+                                                        <template x-if="selected === 'Truck'">
+                                                            <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
+                                                        </template>
+                                                    </button>
+                                                    <div x-show="open" @click.away="open = false"
+                                                        class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg">
+                                                        <ul>
+                                                            <li>
+                                                                <button type="button"
+                                                                    @click="selected = 'Store'; open = false;  $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
+                                                                    class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
+                                                                    <x-heroicon-o-building-storefront
+                                                                        class="w-4 h-4 text-yellow-600" />
+                                                                </button>
+                                                            </li>
+                                                            <li>
+                                                                <button type="button"
+                                                                    @click="selected = 'Truck'; open = false; $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
+                                                                    class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
+                                                                    <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
+                                                                </button>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <input type="hidden" name="type" class="delivery_type"
+                                                        :value="selected" x-ref="deliveryTypeInput">
                                                 </div>
-                                                <input type="hidden" name="type" class="delivery_type"
-                                                    :value="selected" x-ref="deliveryTypeInput">
+                                            </div>
+                                            <!-- Status -->
+                                            <div class="flex flex-col items-start min-w-[70px] flex-1">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="delivery_status_{{ $orderProduct->unique_id }}">Status</label>
+                                                <select id="delivery_status_{{ $orderProduct->unique_id }}"
+                                                    class="delivery_status border rounded px-1.5 py-1 text-xs w-full">
+                                                    <option value="Pending"
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
+                                                        Pending</option>
+                                                    <option value="Completed"
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}>
+                                                        Completed</option>
+                                                    <option value="Reschedule"
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
+                                                        Reschedule</option>
+                                                </select>
+                                            </div>
+                                            <!-- Location -->
+                                            <div class="flex flex-col items-start min-w-[70px] flex-1">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="delivery_store_id_{{ $orderProduct->unique_id }}">Location</label>
+                                                <select id="delivery_store_id_{{ $orderProduct->unique_id }}"
+                                                    class="delivery_store_id border rounded px-1.5 py-1 text-xs w-full">
+                                                    <option value="">Select Location</option>
+                                                    @foreach ($stores as $storeItem)
+                                                        <option value="{{ $storeItem->id }}"
+                                                            {{ $orderProduct->delivery_store_id == $storeItem->id ? 'selected' : '' }}>
+                                                            {{ $storeItem->store_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <!-- Technician -->
+                                            <div class="flex flex-col items-start min-w-[90px] flex-1">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="delivery_by_{{ $orderProduct->unique_id }}">Technician</label>
+                                                <select id="delivery_by_{{ $orderProduct->unique_id }}"
+                                                    class="delivery_by border rounded px-1.5 py-1 text-xs w-full">
+                                                    <option value="">Select Technician</option>
+                                                    @foreach ($employees as $employee)
+                                                        <option value="{{ $employee->id }}"
+                                                            {{ $orderProduct->delivery_by == $employee->id ? 'selected' : '' }}>
+                                                            {{ $employee->first_name }} {{ $employee->last_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                         </div>
-                                        <!-- Status -->
-                                        <div class="flex flex-col items-start min-w-[70px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="delivery_status_{{ $orderProduct->unique_id }}">Status</label>
-                                            <select id="delivery_status_{{ $orderProduct->unique_id }}"
-                                                class="delivery_status border rounded px-1.5 py-1 text-xs w-full">
-                                                <option value="Pending"
-                                                    {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
-                                                    Pending</option>
-                                                <option value="Completed"
-                                                    {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}>
-                                                    Completed</option>
-                                                <option value="Reschedule"
-                                                    {{ ($orderProduct->delivery_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
-                                                    Reschedule</option>
-                                            </select>
-                                        </div>
-                                        <!-- Location -->
-                                        <div class="flex flex-col items-start min-w-[70px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="delivery_store_id_{{ $orderProduct->unique_id }}">Location</label>
-                                            <select id="delivery_store_id_{{ $orderProduct->unique_id }}"
-                                                class="delivery_store_id border rounded px-1.5 py-1 text-xs w-full">
-                                                <option value="">Select Location</option>
-                                                @foreach ($stores as $storeItem)
-                                                    <option value="{{ $storeItem->id }}"
-                                                        {{ $orderProduct->delivery_store_id == $storeItem->id ? 'selected' : '' }}>
-                                                        {{ $storeItem->store_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <!-- Technician -->
-                                        <div class="flex flex-col items-start min-w-[90px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="delivery_by_{{ $orderProduct->unique_id }}">Technician</label>
-                                            <select id="delivery_by_{{ $orderProduct->unique_id }}"
-                                                class="delivery_by border rounded px-1.5 py-1 text-xs w-full">
-                                                <option value="">Select Technician</option>
-                                                @foreach ($employees as $employee)
-                                                    <option value="{{ $employee->id }}"
-                                                        {{ $orderProduct->delivery_by == $employee->id ? 'selected' : '' }}>
-                                                        {{ $employee->first_name }} {{ $employee->last_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {{-- Return Schedule --}}
-                            <div class="space-y-2 mb-4">
-                                <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-                                    <x-heroicon-s-cube class="w-5 h-5 text-[#BB9167] mr-1" /> Return Schedule
-                                </div>
-                                <div class="bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
-                                    <div class="flex flex-wrap items-center gap-2 w-full">
-                                        <!-- Date -->
-                                        <div class="flex flex-col items-start min-w-[100px] max-w-[120px] flex-[0.9]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="pickup_date_{{ $orderProduct->unique_id }}">Date</label>
-                                            <input type="text" id="pickup_date_{{ $orderProduct->unique_id }}"
-                                                data-format="{{ config('app.date.js_date_format') }}"
-                                                placeholder="Select date"
-                                                value="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date) : '' }}"
-                                                data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                class="datepicker pickup_date border rounded px-1.5 py-1 text-xs w-full" />
-                                        </div>
-                                        <!-- Time -->
-                                        <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="pickup_time_{{ $orderProduct->unique_id }}">Time</label>
-                                            <input type="text" id="pickup_time_{{ $orderProduct->unique_id }}"
-                                                placeholder="Select time"
-                                                value="{{ $orderProduct->pickup_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->pickup_time) : '' }}"
-                                                class="pickup_time border rounded px-1.5 py-1 text-xs w-full" />
-                                        </div>
-                                        <!-- Type (fixed width, non-stretch) -->
-                                        <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="pickup_type-btn-{{ $orderProduct->unique_id }}">Type</label>
-                                            <div id="pickup_type_{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->pickup_type ?? 'Store' }}', open: false }"
-                                                class="relative w-full">
-                                                <button id="pickup_type-btn-{{ $orderProduct->unique_id }}"
-                                                    type="button" @click="open = !open"
-                                                    class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_type">
-                                                    <template x-if="selected === 'Store'">
-                                                        <x-heroicon-o-building-storefront
-                                                            class="w-4 h-4 text-yellow-600" />
-                                                    </template>
-                                                    <template x-if="selected === 'Truck'">
-                                                        <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
-                                                    </template>
-                                                </button>
-                                                <div x-show="open" @click.away="open = false"
-                                                    class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg">
-                                                    <ul>
-                                                        <li>
-                                                            <button type="button"
-                                                                @click="selected = 'Store'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
-                                                                class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                <x-heroicon-o-building-storefront
-                                                                    class="w-4 h-4 text-yellow-600" />
-                                                            </button>
-                                                        </li>
-                                                        <li>
-                                                            <button type="button"
-                                                                @click="selected = 'Truck'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
-                                                                class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
-                                                            </button>
-                                                        </li>
-                                                    </ul>
+                                {{-- Return Schedule --}}
+                                <div class="space-y-2 mb-4">
+                                    <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                        <x-heroicon-s-cube class="w-5 h-5 text-[#BB9167] mr-1" /> Return Schedule
+                                    </div>
+                                    <div class="bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
+                                        <div class="flex flex-wrap items-center gap-2 w-full">
+                                            <!-- Date -->
+                                            <div class="flex flex-col items-start min-w-[100px] max-w-[120px] flex-[0.9]">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="pickup_date_{{ $orderProduct->unique_id }}">Date</label>
+                                                <input type="text" id="pickup_date_{{ $orderProduct->unique_id }}"
+                                                    data-format="{{ config('app.date.js_date_format') }}"
+                                                    placeholder="Select date"
+                                                    value="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date) : '' }}"
+                                                    data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                                    class="datepicker pickup_date border rounded px-1.5 py-1 text-xs w-full" />
+                                            </div>
+                                            <!-- Time -->
+                                            <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="pickup_time_{{ $orderProduct->unique_id }}">Time</label>
+                                                <input type="text" id="pickup_time_{{ $orderProduct->unique_id }}"
+                                                    placeholder="Select time"
+                                                    value="{{ $orderProduct->pickup_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->pickup_time) : '' }}"
+                                                    class="pickup_time border rounded px-1.5 py-1 text-xs w-full" />
+                                            </div>
+                                            <!-- Type (fixed width, non-stretch) -->
+                                            <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="pickup_type-btn-{{ $orderProduct->unique_id }}">Type</label>
+                                                <div id="pickup_type_{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->pickup_type ?? 'Store' }}', open: false }"
+                                                    class="relative w-full">
+                                                    <button id="pickup_type-btn-{{ $orderProduct->unique_id }}"
+                                                        type="button" @click="open = !open"
+                                                        class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_type">
+                                                        <template x-if="selected === 'Store'">
+                                                            <x-heroicon-o-building-storefront
+                                                                class="w-4 h-4 text-yellow-600" />
+                                                        </template>
+                                                        <template x-if="selected === 'Truck'">
+                                                            <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
+                                                        </template>
+                                                    </button>
+                                                    <div x-show="open" @click.away="open = false"
+                                                        class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg">
+                                                        <ul>
+                                                            <li>
+                                                                <button type="button"
+                                                                    @click="selected = 'Store'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
+                                                                    class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
+                                                                    <x-heroicon-o-building-storefront
+                                                                        class="w-4 h-4 text-yellow-600" />
+                                                                </button>
+                                                            </li>
+                                                            <li>
+                                                                <button type="button"
+                                                                    @click="selected = 'Truck'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
+                                                                    class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
+                                                                    <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
+                                                                </button>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <input type="hidden" name="type" class="pickup_type"
+                                                        :value="selected" x-ref="pickupTypeInput">
                                                 </div>
-                                                <input type="hidden" name="type" class="pickup_type"
-                                                    :value="selected" x-ref="pickupTypeInput">
+                                            </div>
+                                            <!-- Status -->
+                                            <div class="flex flex-col items-start min-w-[70px] flex-1">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="pickup_status_{{ $orderProduct->unique_id }}">Status</label>
+                                                <select id="pickup_status_{{ $orderProduct->unique_id }}"
+                                                    class="pickup_status border rounded px-1.5 py-1 text-xs w-full">
+                                                    <option value="Pending"
+                                                        {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}>
+                                                        Pending</option>
+                                                    <option value="Completed"
+                                                        {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}>
+                                                        Completed</option>
+                                                    <option value="Reschedule"
+                                                        {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
+                                                        Reschedule</option>
+                                                </select>
+                                            </div>
+                                            <!-- Location -->
+                                            <div class="flex flex-col items-start min-w-[70px] flex-1">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="pickup_store_id_{{ $orderProduct->unique_id }}">Location</label>
+                                                <select id="pickup_store_id_{{ $orderProduct->unique_id }}"
+                                                    class="pickup_store_id border rounded px-1.5 py-1 text-xs w-full">
+                                                    <option value="">Select Location</option>
+                                                    @foreach ($stores as $storeItem)
+                                                        <option value="{{ $storeItem->id }}"
+                                                            {{ $orderProduct->pickup_store_id == $storeItem->id ? 'selected' : '' }}>
+                                                            {{ $storeItem->store_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <!-- Technician -->
+                                            <div class="flex flex-col items-start min-w-[90px] flex-1">
+                                                <label class="block text-xs font-medium text-gray-500 mb-0.5"
+                                                    for="pickup_by_{{ $orderProduct->unique_id }}">Technician</label>
+                                                <select id="pickup_by_{{ $orderProduct->unique_id }}"
+                                                    class="pickup_by border rounded px-1.5 py-1 text-xs w-full">
+                                                    <option value="">Select Technician</option>
+                                                    @foreach ($employees as $employee)
+                                                        <option value="{{ $employee->id }}"
+                                                            {{ $orderProduct->pickup_by == $employee->id ? 'selected' : '' }}>
+                                                            {{ $employee->first_name }} {{ $employee->last_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                         </div>
-                                        <!-- Status -->
-                                        <div class="flex flex-col items-start min-w-[70px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="pickup_status_{{ $orderProduct->unique_id }}">Status</label>
-                                            <select id="pickup_status_{{ $orderProduct->unique_id }}"
-                                                class="pickup_status border rounded px-1.5 py-1 text-xs w-full">
-                                                <option value="Pending"
-                                                    {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}>
-                                                    Pending</option>
-                                                <option value="Completed"
-                                                    {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}>
-                                                    Completed</option>
-                                                <option value="Reschedule"
-                                                    {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
-                                                    Reschedule</option>
-                                            </select>
-                                        </div>
-                                        <!-- Location -->
-                                        <div class="flex flex-col items-start min-w-[70px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="pickup_store_id_{{ $orderProduct->unique_id }}">Location</label>
-                                            <select id="pickup_store_id_{{ $orderProduct->unique_id }}"
-                                                class="pickup_store_id border rounded px-1.5 py-1 text-xs w-full">
-                                                <option value="">Select Location</option>
-                                                @foreach ($stores as $storeItem)
-                                                    <option value="{{ $storeItem->id }}"
-                                                        {{ $orderProduct->pickup_store_id == $storeItem->id ? 'selected' : '' }}>
-                                                        {{ $storeItem->store_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <!-- Technician -->
-                                        <div class="flex flex-col items-start min-w-[90px] flex-1">
-                                            <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                for="pickup_by_{{ $orderProduct->unique_id }}">Technician</label>
-                                            <select id="pickup_by_{{ $orderProduct->unique_id }}"
-                                                class="pickup_by border rounded px-1.5 py-1 text-xs w-full">
-                                                <option value="">Select Technician</option>
-                                                @foreach ($employees as $employee)
-                                                    <option value="{{ $employee->id }}"
-                                                        {{ $orderProduct->pickup_by == $employee->id ? 'selected' : '' }}>
-                                                        {{ $employee->first_name }} {{ $employee->last_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {{-- Status Checklist --}}
-                            <div class="border rounded-xl p-4 bg-white">
-                                <div class="grid grid-cols-3 gap-8 text-center text-xs font-medium text-gray-700 mb-2">
-                                    <!-- Checklist -->
-                                    <div class="flex flex-col items-center">
-                                        <div>Checklist</div>
-                                        <div class="flex justify-center gap-2 mb-1">
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                {{-- Status Checklist --}}
+                                <div class="border rounded-xl p-4 bg-white">
+                                    <div class="grid grid-cols-3 gap-8 text-center text-xs font-medium text-gray-700 mb-2">
+                                        <!-- Checklist -->
+                                        <div class="flex flex-col items-center">
+                                            <div>Checklist</div>
+                                            <div class="flex justify-center gap-2 mb-1">
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                            </div>
+                                        </div>
+                                        <!-- Machine Hours -->
+                                        <div class="flex flex-col items-center">
+                                            <div>Machine Hours</div>
+                                            <div class="flex justify-center gap-2 mb-1">
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                            </div>
+                                        </div>
+                                        <!-- Video -->
+                                        <div class="flex flex-col items-center">
+                                            <div>Video</div>
+                                            <div class="flex justify-center gap-2 mb-1">
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <!-- Machine Hours -->
-                                    <div class="flex flex-col items-center">
-                                        <div>Machine Hours</div>
-                                        <div class="flex justify-center gap-2 mb-1">
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                        </div>
-                                    </div>
-                                    <!-- Video -->
-                                    <div class="flex flex-col items-center">
-                                        <div>Video</div>
-                                        <div class="flex justify-center gap-2 mb-1">
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                        </div>
+                                    <!-- Legend -->
+                                    <div class="flex items-center justify-center gap-4 text-xs mt-2">
+                                        <span class="flex items-center">
+                                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
+                                        </span>
+                                        <span class="font-semibold">|</span>
+                                        <span class="flex items-center">
+                                            <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Pending
+                                        </span>
+                                        <span class="font-semibold">|</span>
+                                        <span class="flex items-center">
+                                            <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>N/A
+                                        </span>
+                                        <span class="font-semibold">|</span>
+                                        <span>D=Delivery</span>
+                                        <span class="font-semibold">|</span>
+                                        <span>R=Return</span>
                                     </div>
                                 </div>
-                                <!-- Legend -->
-                                <div class="flex items-center justify-center gap-4 text-xs mt-2">
-                                    <span class="flex items-center">
-                                        <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
-                                    </span>
-                                    <span class="font-semibold">|</span>
-                                    <span class="flex items-center">
-                                        <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Pending
-                                    </span>
-                                    <span class="font-semibold">|</span>
-                                    <span class="flex items-center">
-                                        <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>N/A
-                                    </span>
-                                    <span class="font-semibold">|</span>
-                                    <span>D=Delivery</span>
-                                    <span class="font-semibold">|</span>
-                                    <span>R=Return</span>
-                                </div>
+                                @else
+                                    <div class="text-gray-500 text-sm">
+                                        <p>No delivery or return schedules available for this product.</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
-                    </div>
+
                 @endforeach
 
                 {{-- Status Checklist --}}

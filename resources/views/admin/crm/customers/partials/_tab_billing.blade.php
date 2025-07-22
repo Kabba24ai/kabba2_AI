@@ -104,7 +104,7 @@
                     <div class="flex flex-col billing-summary-w-16" >
                         <label class="text-sm text-gray-500 mb-1">Phone</label>
                         <div class="relative">
-                            <input type="text" placeholder="(555) 123-4567" class="pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full " />
+                            <input type="text" placeholder="(xxx) xxx-xxxx" class="pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full " />
                             <svg class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
                             </svg>
@@ -326,13 +326,13 @@
                                 </td>
                                 <td class="px-4 py-4 whitespace-nowrap">
                                     <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-4 h-4 text-gray-400 mr-2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                        <div class="text-sm text-gray-700">(555) 567-8901</div>
+                                        <div class="text-sm text-gray-700">(xxx) xxx-xxxx</div>
                                     </div>
                                 </td>
 
                                 <td class="px-4 py-4 whitespace-nowrap">
                                     <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building w-4 h-4 text-gray-400 mr-2"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
-                                        <div class="text-sm text-gray-700">(555) 567-0500</div>
+                                        <div class="text-sm text-gray-700">(xxx) xxx-xxxx</div>
                                     </div>
                                 </td>
 

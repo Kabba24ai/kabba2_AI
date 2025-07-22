@@ -33,10 +33,17 @@
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
                     <td class="px-4 py-3 text-center">{{ $order->last_payment_type }}</td>
                     <td class="px-4 py-3 text-center">
-                        <span
-                            class="text-xs font-semibold px-2 py-1 rounded-full
-                    {{ $order->last_payment_status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                            {{ $order->last_payment_status === 'Completed' ? 'Paid' : $order->last_payment_status }}
+                        @php
+                            $status = strtolower($order->last_payment_status);
+                            $badgeClasses = [
+                                'pending' => 'bg-yellow-100 text-yellow-800',
+                                'completed' => 'bg-green-100 text-green-800',
+                                'failed' => 'bg-red-100 text-red-800',
+                            ];
+                            $class = $badgeClasses[$status] ?? 'bg-gray-100 text-gray-800';
+                        @endphp
+                        <span class="px-2 py-1 rounded text-xs font-semibold {{ $class }}">
+                            {{ ucfirst($order->last_payment_status) }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-center">{{ $order->created_at->format(config('app.date.date_format')) }}

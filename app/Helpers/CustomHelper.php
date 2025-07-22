@@ -25,7 +25,7 @@ class CustomHelper
         return Carbon::parse($date)->format($format);
     }
 
-    public static function formatTime($time, $format = 'H:i A')
+    public static function formatTime($time, $format = 'h:i A')
     {
         if (empty($time)) {
             return null;

@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 
 // Models
 use App\Models\Orders\Order;
@@ -39,13 +37,13 @@ class IndexController extends Controller
         }
 
         if ($request->filled('payment_method') && $request->payment_method != 'All Methods') {
-            $query->whereHas('payments', function ($q) use ($request) {
+            $query->whereHas('lastPayment', function ($q) use ($request) {
                 $q->where('payment_method', $request->payment_method);
             });
         }
 
         if ($request->filled('payment_status') && $request->payment_status != 'All Status') {
-            $query->whereHas('payments', function ($q) use ($request) {
+            $query->whereHas('lastPayment', function ($q) use ($request) {
                 $q->where('status', $request->payment_status);
             });
         }

@@ -59,7 +59,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Paid Sales</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->paid_sales ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -78,7 +78,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Pending Sales</p>
-                        <p class="text-lg font-semibold text-gray-900">$0.00</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->pending_sales ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -89,7 +89,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Account Balance</p>
-                        <p class="text-lg font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }}</p>
                     </div>
                 </div>
 

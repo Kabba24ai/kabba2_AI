@@ -19,6 +19,9 @@ class ViewUpdateController extends Controller
     public function __invoke(ViewUpdateRequest $request, string $unique_id)
     {
         
+        // dd($request->all());
+        // die();
+
         $validated = $request->validated();
 
         $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
@@ -64,27 +67,26 @@ class ViewUpdateController extends Controller
                 if (!empty($validated['alladdresslist'])) {
                     $submittedAddresses = collect(json_decode($validated['alladdresslist'], true));
 
-                    $existingIds = $submittedAddresses
-                        ->filter(fn($addr) => !empty($addr['address_id']))
-                        ->pluck('address_id')
-                        ->toArray();
+                     $typesToUpdate = $submittedAddresses->pluck('type')->unique();
 
-                    // Delete removed addresses
-                    CustomerAddress::where('customer_id', $customer->id)
-                        ->whereNotIn('id', $existingIds)
-                        ->delete();
+                     // Set is_primary = 0 for all existing addresses of the submitted types
+                        CustomerAddress::where('customer_id', $customer->id)
+                            ->update(['is_primary' => 0]);
+                   
 
                     //  Loop through submitted and update/create
                     foreach ($submittedAddresses as $address) {
                         $data = [
                             'first_name'    => $address['first_name'] ?? null,
                             'last_name'     => $address['last_name'] ?? null,
+                            'type' => $address['type'] ?? null,
                             'phone'         => $address['phone'] ?? null,
                             'address'       => $address['address'] ?? null,
                             'city'          => $address['city'] ?? null,
                             'state_id'      => $address['state_id'] ?? null,
                             'zip_code'      => $address['zip_code'] ?? null,
                             'customer_id'   => $customer->id,
+                             'is_primary'  => 1 ,
                         ];
 
                         if (!empty($address['address_id'])) {

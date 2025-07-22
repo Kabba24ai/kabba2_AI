@@ -145,7 +145,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Current Balance</p>
-                        <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} </p>
+                        <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }} </p>
                     </div>
                 </div>
 
@@ -157,7 +157,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Available Credit</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }} {{ number_format(($customer->credit_limit ?? 0) - ($customer->total_order_amount ?? 0), 2) }} </p>
                     </div>
                 </div>
 
@@ -181,14 +181,14 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Last Payment</p>
-                        <p class="text-xl font-semibold text-gray-900">Not Applicable </p>
+                        <p class="text-xl font-semibold text-gray-900">{{ App\Helpers\CustomHelper::formatDate($lastpaymentdate) ?? 'N/A' }} </p>
                     </div>
                 </div>
             </div>
 
             <div class=" mx-auto  bg-white rounded-md shadow-sm mt-6">
                 <div class="flex items-center p-4 justify-between border-b border-gray-200">
-                    <h2 class="text-base font-semibold text-gray-800">Recent Orders</h2>
+                    <h2 class="text-base font-semibold text-gray-900">Recent Orders</h2>
                     <a href="#" class="text-sm text-blue-600" id="viewAllOrdersLink">View All</a>
                 </div>
 

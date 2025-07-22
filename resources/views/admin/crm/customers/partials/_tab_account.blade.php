@@ -17,7 +17,7 @@
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Title and Description -->
                     <div>
-                        <h2 class="text-xl font-bold text-gray-900">Customer Account Management</h2>
+                        <h2 class="text-2xl font-bold text-gray-900">Customer Account Management</h2>
                         <p class="text-sm text-gray-500">Manage customer account information and administrative settings</p>
                     </div>
 
@@ -264,91 +264,96 @@
                 </div>
             </div>
 @php
-    $hasAddresses = $customer->addresses->filter(function($addresse) {
-        return !empty($addresse->address) || !empty($addresse->city) || !empty($addresse->zip_code) || !empty($addresse->state_id);
-    });
+    $billingAddress = $customer->addresses->firstWhere(fn ($a) => $a->type === 'Billing' );
+    $shippingAddress = $customer->addresses->firstWhere(fn ($a) => $a->type === 'Shipping');
+
+    $defaultAddresses = [
+        ['label' => 'Billing', 'data' => $billingAddress],
+        ['label' => 'Shipping', 'data' => $shippingAddress],
+    ];
 @endphp
 
-@if ($hasAddresses->isNotEmpty())
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
-          @foreach ($customer->addresses->where('is_primary', 1) as $index => $addresse)
-            <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
-                <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id }}" class="address_id">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
+    @foreach ($defaultAddresses as $index => $addressItem)
+        @php $addresse = $addressItem['data']; @endphp
+        <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
+            <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id ?? '' }}" class="address_id">
+            <input type="hidden" name="addresses[{{ $index }}][type]" value="{{ $addressItem['label'] }}" class="type">
+            
+            
+        <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
 
-                <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
-                    <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
-                    {{ $addresse->type }} Address
-                    @if ($addresse->is_primary)
-                        - <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Default Address</span>  
-                    @endif
-                </h3>
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-sm text-gray-700 mb-1 edit-view">Address</label>
-                        <div class="static-view text-gray-900  text-sm">
-                            {{ $addresse->address }} , {{ $addresse->city }} , {{ $addresse->state->name }} , {{ $addresse->zip_code }}.
-                        </div>
+            <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
+                <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
+                {{ $addressItem['label'] }} Address
+                @if ($addresse && $addresse->is_primary)
+                    - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>  
+                @endif
+            </h3>
 
-                        {!! html()->text("addresses[$index][address]", old("addresses.$index.address",    $addresse->address ?? ''))
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm text-gray-700 mb-1 edit-view">Address</label>
+                    <div class="static-view text-gray-900 text-sm">
+                        {{ $addresse?->address ?? '' }} {{ $addresse?->city ? ', ' . $addresse->city : '' }} {{ $addresse?->state?->name ? ', ' . $addresse->state->name : '' }} {{ $addresse?->zip_code ? ', ' . $addresse->zip_code : '' }}
+                    </div>
+                    {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
+                        ->class([
+                            'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                            'border-red-500' => $errors->has("addresses.$index.address"),
+                        ])
+                        ->attributes([
+                            'placeholder' => 'Enter Address',
+                            'class' => 'address'
+                        ]) !!}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="edit-view">
+                        <label class="text-sm text-gray-700 mb-1">City</label>
+                        {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has("addresses.$index.address"),
+                                'border-red-500' => $errors->has("addresses.$index.city"),
                             ])
                             ->attributes([
-                                'placeholder' => 'Enter Address',
-                                'class' => 'address'
+                                'placeholder' => 'Enter City',
+                                'class' => 'city'
                             ]) !!}
-                            
                     </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="edit-view">
-                            <label class="text-sm text-gray-700 mb-1">City</label>
-                            {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
-                                ->class([
-                                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                    'border-red-500' => $errors->has("addresses.$index.city"),
-                                ])
-                                ->attributes([
-                                    'placeholder' => 'Enter City',
-                                    'class' => 'city'
-                                ]) !!}
-                        </div>
-                        <div class="edit-view">
-                            <label class="text-sm text-gray-700 mb-1">Zip Code</label>
-                            {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
-                                ->class([
-                                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                    'border-red-500' => $errors->has("addresses.$index.zip_code"),
-                                ])
-                                ->attributes([
-                                    'maxlength' => 10,
-                                    'placeholder' => 'ZIP Code',
-                                    'class' => 'zip_code'
-                                ]) !!}
-                        </div>
-                    </div>
-
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">State</label>
-                        {!! html()
-                            ->select("addresses[$index][state_id]",
-                                $states->pluck('name', 'id')->toArray(),
-                                old("addresses.$index.state_id", $addresse->state_id ?? '')
-                            )
+                        <label class="text-sm text-gray-700 mb-1">Zip Code</label>
+                        {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                             ->class([
-                                'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
-                                'border-red-500' => $errors->has("addresses.$index.state_id"),
+                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                'border-red-500' => $errors->has("addresses.$index.zip_code"),
                             ])
-                             !!}
+                            ->attributes([
+                                'maxlength' => 10,
+                                'placeholder' => 'ZIP Code',
+                                'class' => 'zip_code'
+                            ]) !!}
                     </div>
                 </div>
-            </div>
-          @endforeach
 
+                <div class="edit-view">
+                    <label class="text-sm text-gray-700 mb-1">State</label>
+                    {!! html()
+                        ->select("addresses[$index][state_id]",
+                            $states->pluck('name', 'id')->toArray(),
+                            old("addresses.$index.state_id", $addresse->state_id ?? '')
+                        )
+                        ->class([
+                            'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
+                            'border-red-500' => $errors->has("addresses.$index.state_id"),
+                        ]) !!}
+                </div>
             </div>
-@endif
+        </div>
+    @endforeach
+</div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
                 <!-- Account Status -->
                 <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
@@ -460,27 +465,17 @@
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 font-medium">Current Balance:</span>
 
-                            <span class="font-medium ">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
+                            <span class="font-medium ">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }} <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
                             
                               
 
-                             <!-- {!! html()->text('Current_Balance', old('credit_limit', $customer->credit_limit ?? ''))
-                            ->class([
-                                'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300  ',
-                            ])->placeholder('Select Credit Limit')
-                        !!} -->
                          
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
-                            <span class="text-green-600 font-medium ">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }}</span>
+                            <span class="text-green-600 font-medium ">{{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_order_amount ?? 0), 2) }}</span>
                                
 
-                            <!-- {!! html()->text('Available_Credit', old('credit_limit', $customer->credit_limit ?? ''))
-                            ->class([
-                                'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300  ',
-                            ])->placeholder('Select Credit Limit')
-                        !!} -->
 
                         
                         
@@ -490,7 +485,7 @@
                            
                             @php
                                 $climit = $customer->credit_limit ?? 0;
-                                $available = $customer->available_credit_balance ?? 0;
+                                $available = $customer->total_order_amount ?? 0 ;
 
                                 $per = $climit > 0 ? (($available / $climit) * 100) : 0;
                             @endphp
@@ -509,20 +504,25 @@
             </div>
 
             <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-0">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                    <div class="flex items-center gap-1">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <!-- <div class="flex items-center gap-1">
                         <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
                         <h2 class="text-base font-semibold text-gray-800">Tax Exempt Status</h2>
                         <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
-                    </div>
-                    <a href="javascript:void(0)" id="opentaxdocModal" class="px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                    </div> -->
+                    <!-- <a href="javascript:void(0)" id="opentaxdocModal" class="px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
                         Manage Tax Documents
-                    </a>
+                    </a> -->
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Left: Tax Info -->
-                    <div class="space-y-2 text-sm text-gray-700">
+                        <!-- Left: Tax Info -->
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <div class="flex items-center gap-1">
+                            <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
+                            <h2 class="text-base font-semibold text-gray-800">Tax Exempt Status</h2>
+                            <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
+                        </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 font-medium">Tax Status:</span>
                             <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $customer->tax_status ?? 'N/A' }}</span> -->
@@ -564,14 +564,15 @@
 
                             <div class="edit-view">
                             <input
-                                class="w-24 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                                class="w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
                                 value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) }}"
                                 type="text"
                                 name="tax_document_valid_until"
                                 id="tax_document_valid_until"
                                 placeholder="MM-DD-YYYY"
                                 autocomplete="off"
-                            />                            </div>
+                            />                            
+                        </div>
 
 
 
@@ -583,27 +584,32 @@
                               <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
                             </div>
                             <div class="edit-view">
-
-<input
-    class="w-24 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
-    type="text"
-    value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) }}"
-    name="tax_document_upload_date"
-    id="tax_document_upload_date"
-    placeholder="MM-DD-YYYY"
-    autocomplete="off"
-/>                            </div>
-
+                                <input
+                                    class="w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                                    type="text"
+                                    value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) }}"
+                                    name="tax_document_upload_date"
+                                    id="tax_document_upload_date"
+                                    placeholder="MM-DD-YYYY"
+                                    autocomplete="off"
+                                />                           
+                            </div>
                             <!-- <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span> -->
                         </div>
                     </div>
 
                      @if ($customer->media)
-                            <!-- Right: File Card -->
+                    <!-- Right: File Card -->
+                     <div class="flex flex-col items-start md:items-end gap-2 text-left w-auto">
+                        <div class="md:text-right mb-4">
+                            <a href="javascript:void(0)" id="opentaxdocModal" class="px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                                Manage Tax Documents
+                            </a>
+                        </div>
                         <div class="border border-gray-200 rounded-lg p-4 text-sm bg-white w-full">
-                                <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-                                    <!-- Left Side: Icon + File Info -->
-                                    <div class="flex items-start gap-3 flex-1 min-w-0">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+                                <!-- Left Side: Icon + File Info -->
+                                <div class="flex items-start gap-3 flex-1 min-w-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M7 7h10M7 11h10M7 15h10M5 19h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -611,62 +617,57 @@
                                     <div class="min-w-0">
                                         <div class="font-medium text-gray-800 truncate">{{$customer->media->original_file_name ?? ''}}</div>
                                         <div class="text-gray-500 text-xs">
-                                    Type: <span class="text-grey-500 text-xs">{{$customer->tax_document_type ?? 'N/A'}}</span>
-                                  </div>
+                                            Type: <span class="text-grey-500 text-xs">{{$customer->tax_document_type ?? 'N/A'}}</span>
+                                        </div>
                                         <div class="text-gray-500 text-xs">
-                                        Status: 
-                                        <span id="tax-status-{{ $customer->id }}" class="font-medium
-                                            {{ $customer->tax_document_status === 'Rejected' ? 'text-red-600' :
-                                            ($customer->tax_document_status === 'Approved' ? 'text-green-600' : 'text-yellow-600') }}">
-                                                {{ $customer->tax_document_status ?: 'Pending Review' }}
-                                        </span>
-
+                                            Status: 
+                                            <span id="tax-status-{{ $customer->id }}" class="font-medium
+                                                {{ $customer->tax_document_status === 'Rejected' ? 'text-red-600' :
+                                                ($customer->tax_document_status === 'Approved' ? 'text-green-600' : 'text-yellow-600') }}">
+                                                    {{ $customer->tax_document_status ?: 'Pending Review' }}
+                                            </span>
                                         </div>
                                     </div>
-                                    </div>
-
-                                    <!-- Right Side: Actions -->
-                                    <div class="flex gap-4 text-sm justify-end sm:justify-start">
-                                        <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" @if(isset($customer->media)) target="_blank" @endif class="text-blue-600">View</a>
-
-                                        <!-- <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" class="text-red-600 tax-status-btn">Delete</a> -->
-
-                                        
-                                 <!-- Delete Button -->
-                                <button type="button"
-                                    class="text-red-600"
-                                    onclick="confirmAndDelete({{ $customer->id }})"
-                                >
-                                    Delete
-                                </button>
-                                   
-
-                               <!-- Approve Button -->
-                                <button type="button"
-                                    class="text-green-600 approve-btn"
-                                    data-customer-id="{{ $customer->id }}"
-                                    style="{{ $customer->tax_document_status === 'Approved' ? 'display: none;' : '' }}">
-                                    Approve
-                                </button>
-
-                                <!-- Reject Button -->
-                                <button type="button"
-                                    class="text-red-600 reject-btn"
-                                    data-customer-id="{{ $customer->id }}"
-                                    style="{{ $customer->tax_document_status === 'Approved' ? 'display: none;' : '' }}">
-                                    Reject
-                                </button>
-
-
-                                    </div>
                                 </div>
-                        </div>
-                          @else
-                           <div class="flex justify-end items-center ">
-                                <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
-                                    No tax document has been uploaded yet.
+                                <!-- Right Side: Actions -->
+                                <div class="flex gap-4 text-sm justify-end sm:justify-start">
+                                    <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" @if(isset($customer->media)) target="_blank" @endif class="text-blue-600">View</a>
+                                    <!-- <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" class="text-red-600 tax-status-btn">Delete</a> -->
+                                    <!-- Delete Button -->
+                                    <button type="button" class="text-red-600" onclick="confirmAndDelete({{ $customer->id }})" >
+                                        Delete
+                                    </button>
+
+                                    <!-- Approve Button -->
+                                    <button type="button"
+                                        class="text-green-600 approve-btn"
+                                        data-customer-id="{{ $customer->id }}"
+                                        style="{{ $customer->tax_document_status === 'Approved' ? 'display: none;' : '' }}">
+                                        Approve
+                                    </button>
+
+                                    <!-- Reject Button -->
+                                    <button type="button"
+                                        class="text-red-600 reject-btn"
+                                        data-customer-id="{{ $customer->id }}"
+                                        style="{{ $customer->tax_document_status === 'Approved' ? 'display: none;' : '' }}">
+                                        Reject
+                                    </button>
                                 </div>
                             </div>
+                        </div>
+                        </div>
+                        @else
+                        <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
+                            <div class="mb-4">
+                                <a href="javascript:void(0)" id="opentaxdocModal" class="px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                                    Manage Tax Documents
+                                </a>
+                            </div>
+                            <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
+                                No tax document has been uploaded yet.
+                            </div>
+                        </div>
 
                     @endif
 

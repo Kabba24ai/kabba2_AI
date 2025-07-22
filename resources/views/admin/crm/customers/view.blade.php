@@ -102,6 +102,13 @@
                 Account
             </button>
 
+            <button
+                class="whitespace-nowrap inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'billing' ? ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'billing'" id="tab-billing">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4 mr-1"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                Billing Summary
+            </button>
          
         </nav>
     </div>
@@ -134,7 +141,10 @@
 
              @include('admin.crm.customers.partials._tab_account')
         </div>
-  
+        <div x-show="activeTab === 'billing'">
+
+             @include('admin.crm.customers.partials._tab_billing')
+        </div>
     </div>
 </div>
 
@@ -205,9 +215,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const addressBlocks = document.querySelectorAll('.address-block');
         const data = [];
 
+        
+
         addressBlocks.forEach((block, index) => {
             data.push({
                 address_id: block.querySelector('.address_id')?.value || null,
+                type: block.querySelector('.type')?.value || null,
                 address: block.querySelector('.address')?.value || '',
                 city: block.querySelector('.city')?.value || '',
                 zip_code: block.querySelector('.zip_code')?.value || '',
@@ -449,18 +462,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const creditUsed = 0;
-    const creditLimit = {{ $customer->credit_limit ?? 0 }} ;
-    const available = creditLimit - creditUsed;
-    const percentUsed = (creditUsed / creditLimit) * 100;
+  document.addEventListener('DOMContentLoaded', function () {
+      const creditUsed = {{ $customer->total_order_amount ?? 0 }};
+      const creditLimit = {{ $customer->credit_limit ?? 0 }} ;
+      const available = creditLimit - creditUsed;
+      const percentUsed = (creditUsed / creditLimit) * 100;
 
-    document.getElementById("usedAmount").textContent = `{{ config('app.currency.code') }}${creditUsed.toLocaleString()}`;
-    document.getElementById("limitAmount").textContent = `{{ config('app.currency.code') }}${creditLimit.toLocaleString()}`;
-    document.getElementById("availableAmount").textContent = `{{ config('app.currency.code') }}${available.toLocaleString()}`;
+      document.getElementById("usedAmount").textContent = `{{ config('app.currency.code') }}${creditUsed.toLocaleString()}`;
+      document.getElementById("limitAmount").textContent = `{{ config('app.currency.code') }}${creditLimit.toLocaleString()}`;
+      document.getElementById("availableAmount").textContent = `{{ config('app.currency.code') }}${available.toLocaleString()}`;
 
-    document.getElementById("progressBar").style.width = `${percentUsed}%`;
-});
+      document.getElementById("progressBar").style.width = `${percentUsed}%`;
+  });
 </script>
 
 <script>
@@ -611,32 +624,46 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 </script>
-
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('noteModalWrapper');
-        const openBtn = document.getElementById('openNoteModal');
-        const closeBtn = document.getElementById('closeNoteModalBtn');
-        const cancelBtn = document.getElementById('cancelNoteBtn');
+document.addEventListener('DOMContentLoaded', () => {
+    const modalWrapper = document.getElementById('noteModalWrapper');
+    const closeBtn = document.getElementById('closeNoteModalBtn');
+    const cancelBtn = document.getElementById('cancelNoteBtn');
+    const noteContainer = document.getElementById('noteContainer');
 
-        openBtn.addEventListener('click', () => {
+    const transactionIdInput = document.getElementById('noteTransactionId');
+
+
+    const closeModal = () => {
+        modalWrapper.style.display = 'none';
+    };
+
+    // Add listener to each note button
+    document.querySelectorAll('.openNoteModalBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const note = btn.getAttribute('data-note') || '—';
+            const id = btn.getAttribute('data-id') || '';
+            const date = btn.getAttribute('data-date') || '';
+            const amount = parseFloat(btn.getAttribute('data-amount')).toFixed(2);
+
+            transactionIdInput.value = id; 
+
+            noteContainer.innerText = note;
+            modalWrapper.querySelector('[data-note-field="id"]').innerText = id;
+            modalWrapper.querySelector('[data-note-field="date"]').innerText = date;
+            modalWrapper.querySelector('[data-note-field="amount"]').innerText = `$${amount}`;
+
             modalWrapper.style.display = 'flex';
         });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn?.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
     });
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', closeModal);
+
+    modalWrapper.addEventListener('click', e => {
+        if (e.target === modalWrapper) closeModal();
+    });
+});
 </script>
 
 <script>
@@ -678,11 +705,33 @@ document.addEventListener('DOMContentLoaded', function () {
   function saveNote() {
     const noteContainer = document.getElementById('noteContainer');
     const newNote = document.getElementById('noteTextarea').value;
+    const transactionId = document.getElementById('noteTransactionId').value;
 
-    noteContainer.innerText = newNote;
-    noteContainer.classList.remove('p-0', 'border-0');
 
-    restoreButtons();
+    fetch(`{{ route('admin.crm.customers.customeraccount.update_note') }}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: JSON.stringify({
+            id: transactionId,
+            note: newNote
+        }),
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            notyf.success(data.message || "Note updated successfully.");
+            document.getElementById('noteContainer').innerText = newNote;
+            restoreButtons();
+        } else {
+            notyf.error(data.message || "Failed to update note.");
+        }
+    })
+    .catch(error => {
+        console.error(error);
+    });
   }
 
   function restoreButtons() {

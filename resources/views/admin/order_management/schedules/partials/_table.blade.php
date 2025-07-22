@@ -3,7 +3,7 @@
         <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
             <tr>
                 <th class="px-4 py-3 text-center">Product Name</th>
-                <th class="px-4 py-3 text-center">OrderNumber</th>
+                <th class="px-4 py-3 text-center">Order</th>
                 <th class="px-4 py-3 text-left">Customer</th>
                 <th class="px-4 py-3 text-left">Delivery Address</th>
                 <th class="px-4 py-3 text-left">Phone</th>
@@ -41,7 +41,7 @@
                                     @endif
                                 @endif
                                 <span>
-                                    {{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d') : 'N/A' }}
+                                    {{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d, y') : 'N/A' }}
                                 </span>
                             </div>
                             <span class="text-xs text-gray-500 mt-1">
@@ -63,7 +63,7 @@
                                     @endif
                                 @endif
                                 <span>
-                                    {{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d') : 'N/A' }}
+                                    {{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d, y') : 'N/A' }}
                                 </span>
                             </div>
                             <span class="text-xs text-gray-500 mt-1">
@@ -77,7 +77,7 @@
                             $status = strtolower($orderProduct->order->last_payment_status);
                             $badgeClasses = [
                                 'pending' => 'bg-yellow-100 text-yellow-800',
-                                'completed' => 'bg-green-100 text-green-800',
+                                'paid' => 'bg-green-100 text-green-800',
                                 'failed' => 'bg-red-100 text-red-800',
                             ];
                             $class = $badgeClasses[$status] ?? 'bg-gray-100 text-gray-800';

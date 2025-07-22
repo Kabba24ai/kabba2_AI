@@ -72,4 +72,8 @@ class OrderPayment extends Model
         return $query->where('payment_method', 'COD');
     }
 
+    public function getStatusAttribute($value)
+    {
+        return $value === 'Completed' ? 'Paid' : $value;
+    }
 }

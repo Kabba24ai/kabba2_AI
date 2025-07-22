@@ -69,12 +69,15 @@ class IndexController extends Controller
                 (array) $request->input('schedule_type', []),
                 function($v) { return $v !== '' && $v !== 'false'; }
             );
-
-            if (in_array('Delivery', $scheduleTypes)) {
-                $query->where('is_delivery', 1);
-            }
-            if (in_array('Return', $scheduleTypes)) {
-                $query->orWhere('is_pickup_return', 1);
+            if(!empty($scheduleTypes)) {
+                $query->where(function ($q) use ($scheduleTypes) {
+                    if (in_array('Delivery', $scheduleTypes)) {
+                        $q->where('is_delivery', 1);
+                    }
+                    if (in_array('Return', $scheduleTypes)) {
+                        $q->orWhere('is_pickup_return', 1);
+                    }
+                });
             }
         } else {
             $query->where(function ($q) {
@@ -99,7 +102,7 @@ class IndexController extends Controller
             }
         } else {
             $query->where(function ($q) {
-                $q->where('delivery_type', 'Truck')->orWhere('pickup_type', 'Truck');
+                $q->whereIn('delivery_type', ['Truck','Store'])->orWhereIn('pickup_type', ['Truck','Store']);
             });
         }
 

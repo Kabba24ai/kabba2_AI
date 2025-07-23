@@ -41,6 +41,7 @@ class Order extends Model
         'view_link', // For generating view link in schedules
         'last_payment_type',
         'last_payment_status',
+        'last_payment_badge',
     ];
 
     // Customer relationship (if you want)
@@ -126,5 +127,18 @@ class Order extends Model
     {
         $lastPayment = $this->lastPayment;
         return $lastPayment ? $lastPayment->status : null;
+    }
+
+
+    public function getLastPaymentBadgeAttribute()
+    {
+        $status = strtolower($this->last_payment_status);
+        $badgeClasses = [
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'paid' => 'bg-green-100 text-green-800',
+            'failed' => 'bg-red-100 text-red-800',
+        ];
+        $class = $badgeClasses[$status] ?? 'bg-gray-100 text-gray-800';
+        return '<span class="' . $class . ' px-2 py-1 rounded text-xs font-semibold">' . ucfirst($status) . '</span>';
     }
 }

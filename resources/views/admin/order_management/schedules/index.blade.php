@@ -24,35 +24,43 @@
 
     <div class="bg-white p-4 rounded-md shadow-sm space-y-4">
         <!-- Row 1: Inputs & Selects -->
-        <div class="flex flex-wrap gap-4 items-center">
-            {{-- Search Name --}}
-            <div>
-                <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-1">Search Name</label>
-                <div class="relative">
-                    <x-heroicon-o-magnifying-glass
-                        class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2" />
-                    <input type="text" id="customer_name" placeholder="Customer name..." name="customer_name"
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="w-full sm:w-48">
+                <div class="relative bg-white">
+                    <input type="text" id="customer_name" placeholder="Customer name" name="customer_name"
                         value="{{ request('customer_name') }}"
-                        class="pl-10 pr-4 py-2 h-11 border border-gray-300 rounded-md text-sm w-48 focus:ring-blue-500 focus:border-blue-500" />
+                        class="pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                    <x-heroicon-o-magnifying-glass
+                        class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
+                </div>
+            </div>
+
+            <div class="w-full sm:w-48">
+                <div class="relative bg-white">
+                    <input type="text" id="customer_company_name" placeholder="Customer company" name="customer_company_name"
+                        value="{{ request('customer_company_name') }}"
+                        class="pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                    <x-heroicon-o-magnifying-glass
+                        class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
             </div>
 
             {{-- Search Phone --}}
             <div>
-                <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-1">Search Phone</label>
-                <div class="relative">
-                    <x-heroicon-o-phone class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2" />
+                {{-- <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-1">Search Phone</label> --}}
+                <div class="relative bg-white">
                     <input type="text" id="customer_phone" placeholder="(xxx) xxx-xxxx" name="customer_phone"
-                        value="{{ request('customer_phone') }}"
-                        class="masked-phone pl-10 pr-4 py-2 h-11 border border-gray-300 rounded-md text-sm w-48 focus:ring-blue-500 focus:border-blue-500" />
+                    value="{{ request('customer_phone') }}"
+                    class="masked-phone pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-38 focus:ring-blue-500 focus:border-blue-500" />
+                    <x-heroicon-o-phone class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
             </div>
 
             {{-- Category --}}
             <div class="w-full sm:w-48">
-                <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                {{-- <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label> --}}
                 <select name="category"
-                    class="choices-select w-full  rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                    class="choices-select w-full  rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                     <option value="">Select Category</option>
                     @foreach ($categories as $category)
                         <option value="{{ $category->id }}" @selected(request('category') == $category->id)>
@@ -64,21 +72,35 @@
 
             {{-- Payment Method --}}
             <div>
-                <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                {{-- <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label> --}}
                 <select id="payment_method" name="payment_method"
-                    class="h-11 border border-gray-300 rounded-md px-3 py-2 text-sm w-48 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-                    <option value="">All Methods</option>
+                    class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-38 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Payment Types</option>
                     <option value="Card" @selected(request('payment_method') == 'Card')>Card</option>
-                    <option value="COD" @selected(request('payment_method') == 'COD')>Cash</option>
+                    <option value="COD" @selected(request('payment_method') == 'COD')>COD</option>
                     <option value="Account" @selected(request('payment_method') == 'Account')>Account</option>
+                </select>
+            </div>
+
+            {{-- Payment Status --}}
+            <div>
+                {{-- <label for="payment_status" class="block text-sm font-medium text-gray-700 mb-1">Payment</label> --}}
+                <select id="payment_status" name="payment_status"
+                    class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-34 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Payments</option>
+                    <option value="Completed" @selected(request('payment_status') == 'Completed')>Paid</option>
+                    <option value="Pending" @selected(request('payment_status') == 'Pending')>Pending</option>
+                    <option value="Refund" @selected(request('payment_status') == 'Refund')>Refund</option>
+                    <option value="Refund" @selected(request('payment_status') == 'Refund')>Refund</option>
+                    <option value="Failed" @selected(request('payment_status') == 'Failed')>Failed</option>
                 </select>
             </div>
 
             <!-- Date Dropdown -->
             <div>
-                <label for="date_filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
+                {{-- <label for="date_filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label> --}}
                 <select name="date_filter" id="date_filter"
-                    class="h-11 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                    class="h-11 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                     <option value="">All Dates</option>
                     <option value="today" @selected(request('date_filter') == 'today')>Today</option>
                     <option value="week" @selected(request('date_filter') == 'week')>This Week</option>
@@ -103,7 +125,7 @@
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" value="Delivery" name="schedule_type[]"
                             class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" @checked(is_array($scheduleType) ? in_array('Delivery', $scheduleType) : true)>
-                        Delivery
+                        Deliver
                     </label>
                     <label class="flex items-center gap-1">
                         <input type="checkbox" value="Return" name="schedule_type[]"
@@ -149,7 +171,7 @@
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" name="rescheduled_only" value="Reschedule" id="rescheduled_only"
                             class="text-red-600 focus:ring-red-500 rounded border-gray-300" @checked(request('rescheduled_only') == 'Reschedule')>
-                        <span class="text-red-500 font-medium">Rescheduled Only</span>
+                        <span class="font-medium">Rescheduled Only</span>
                     </label>
                 </div>
             </div>
@@ -169,6 +191,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             let customerNameInput = document.querySelector('input[name="customer_name"]');
+            let customerCompanyNameInput = document.querySelector('input[name="customer_company_name"]');
             let customerPhoneInput = document.querySelector('input[name="customer_phone"]');
             let categoryInput = document.querySelector('select[name="category"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
@@ -188,6 +211,8 @@
                 params.set('page', 1);
                 if (customerNameInput && (customerNameInput.value.length >= 3 || customerNameInput.value.length ===
                         0)) params.append('customer_name', customerNameInput.value);
+                if (customerCompanyNameInput && (customerCompanyNameInput.value.length >= 3 || customerCompanyNameInput.value
+                        .length === 0)) params.append('customer_company_name', customerCompanyNameInput.value);
                 if (customerPhoneInput && (customerPhoneInput.value.length >= 3 || customerPhoneInput.value
                         .length === 0)) params.append('customer_phone', customerPhoneInput.value);
                 if (categoryInput && categoryInput.value) params.append('category', categoryInput.value);
@@ -199,6 +224,7 @@
 
                 // --- START: Handle schedule_type[] checkboxes ---
                 let anyScheduleTypeChecked = false;
+
                 scheduleTypeInputs.forEach(input => {
                     if (input.checked) {
                         params.append('schedule_type[]', input.value);
@@ -261,6 +287,10 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchSchedules, 400);
             });
+            if (customerCompanyNameInput) customerCompanyNameInput.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(fetchSchedules, 400);
+            });
             if (customerPhoneInput) customerPhoneInput.addEventListener('input', function() {
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchSchedules, 400);
@@ -270,8 +300,33 @@
             if (dateFilterInput) dateFilterInput.addEventListener('change', fetchSchedules);
             storeLocationInputs.forEach(input => input.addEventListener('change', fetchSchedules));
             if (rescheduledOnlyInput) rescheduledOnlyInput.addEventListener('change', fetchSchedules);
-            transportModeInputs.forEach(input => input.addEventListener('change', fetchSchedules));
-            scheduleTypeInputs.forEach(input => input.addEventListener('change', fetchSchedules));
+
+            transportModeInputs.forEach(input => {
+                input.addEventListener('change', function (e) {
+                    let checked = Array.from(transportModeInputs).filter(i => i.checked);
+                    if (checked.length === 0) {
+                        e.preventDefault();
+                        input.checked = true;
+                    } else {
+                        fetchSchedules();
+                    }
+                });
+            });
+
+            scheduleTypeInputs.forEach(input => {
+                input.addEventListener('change', function (e) {
+                    // Collect all checked checkboxes
+                    let checked = Array.from(scheduleTypeInputs).filter(i => i.checked);
+                    // If this action would uncheck the last one, prevent it
+                    if (checked.length === 0) {
+                        // Prevent unchecking the last one
+                        e.preventDefault();
+                        input.checked = true;
+                    } else {
+                        fetchSchedules();
+                    }
+                });
+            });
         });
     </script>
 @endpush

@@ -35,6 +35,12 @@ class IndexController extends Controller
             });
         }
 
+        if ($request->filled('customer_company_name')) {
+            $query->whereHas('order.customer', function ($q) use ($request) {
+                $q->where('company_name', 'like', '%' . $request->customer_company_name . '%');
+            });
+        }
+
         if ($request->filled('customer_phone')) {
             $query->whereHas('order', function ($q) use ($request) {
                 $q->where('customer_phone', 'like', '%' . $request->customer_phone . '%');
@@ -80,6 +86,7 @@ class IndexController extends Controller
                 });
             }
         } else {
+            // Default to showing all transport modes
             $query->where(function ($q) {
                 $q->where('is_delivery', 1)->orWhere('is_pickup_return', 1);
             });
@@ -92,15 +99,17 @@ class IndexController extends Controller
             );
             if (!empty($transportModes)) {
                 $query->where(function ($q) use ($transportModes) {
-                    if (in_array('Truck', $transportModes)) {
-                        $q->orWhere('delivery_type', 'Truck')->orWhere('pickup_type', 'Truck');
-                    }
-                    if (in_array('Store', $transportModes)) {
-                        $q->orWhere('delivery_type', 'Store')->orWhere('pickup_type', 'Store');
+                    if (in_array('Truck', $transportModes) && in_array('Store', $transportModes)) {
+                        // BOTH: Truck and Store checked
+                        $q->whereIn('delivery_type', ['Truck', 'Store'])
+                        ->orWhereIn('pickup_type', ['Truck', 'Store']);
+                    } else  {
+                        $q->whereIn('delivery_type', $transportModes)->whereIn('pickup_type', $transportModes);
                     }
                 });
             }
         } else {
+            // Default to showing all transport modes
             $query->where(function ($q) {
                 $q->whereIn('delivery_type', ['Truck','Store'])->orWhereIn('pickup_type', ['Truck','Store']);
             });
@@ -112,8 +121,11 @@ class IndexController extends Controller
             });
             if (!empty($storeLocations)) {
                 $query->whereIn('store_id', $storeLocations);
+            }else {
+                $query->whereNull('store_id');
             }
         } else {
+            // Default to showing all transport modes
             $query->where(function ($q) {
                 $q->where('store_id', '!=', null);
             });

@@ -2,9 +2,10 @@
     <table class="min-w-full text-sm text-left whitespace-nowrap">
         <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
             <tr>
-                <th class="px-4 py-3 text-center">Product Name</th>
+                <th class="px-4 py-3 text-center">Product</th>
                 <th class="px-4 py-3 text-center">Order</th>
                 <th class="px-4 py-3 text-left">Customer</th>
+                <th class="px-4 py-3 text-left">Company</th>
                 <th class="px-4 py-3 text-left">Delivery Address</th>
                 <th class="px-4 py-3 text-left">Phone</th>
                 <th class="px-4 py-3 text-center">Equipment</th>
@@ -22,7 +23,26 @@
                     <td class="px-4 py-3 text-center">
                         {!! $orderProduct->order->view_link !!}
                     </td>
-                    <td class="px-4 py-3 text-left">{{ $orderProduct->order->customer_name }}</td>
+                    <td class="px-4 py-3 text-left">
+                        <div class="font-medium">{{ $orderProduct->order->customer_name }}</div>
+                        <div class="text-gray-500 text-xs">{{ $orderProduct->order->customer?->unique_id ?? '-' }}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        {{ $orderProduct->order->customer->company_name }}
+                            <a
+                            @if (!empty($orderProduct->order->customer->company_website)) href="{{ $orderProduct->order->customer->company_website ?? 'javascript:void(0)' }}"  target="_blank" @endif>
+                            <div class="text-sm text-gray-500 flex items-center gap-1">
+                                <x-heroicon-o-globe-alt class="w-4 h-4 text-gray-400" />
+                                <span>
+                                    @if (!empty($order->customer->company_website))
+                                        {{ $order->customer->company_website }}
+                                    @else
+                                        -
+                                    @endif
+                                </span>
+                            </div>
+                        </a>
+                    </td>
                     <td class="px-4 py-3 truncate max-w-xs ">
                         {{ $orderProduct->order->shippingAddress->full_address }}</td>
                     <td class="px-4 py-3 text-left ">{{ $orderProduct->order->customer_phone }}</td>

@@ -26,6 +26,12 @@ class IndexController extends Controller
             $query->where('customer_name', 'like', '%' . $request->customer_name . '%');
         }
 
+        if ($request->filled('customer_company_name')) {
+            $query->whereHas('customer', function ($q) use ($request) {
+                $q->where('company_name', 'like', '%' . $request->customer_company_name . '%');
+            });
+        }
+
         if ($request->filled('customer_phone')) {
             $query->where('customer_phone', 'like', '%' . $request->customer_phone . '%');
         }
@@ -52,7 +58,11 @@ class IndexController extends Controller
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {
-            return view('admin.order_management.orders.partials._table', compact('orders'))->render();
+            $html = view('admin.order_management.orders.partials._table', compact('orders'))->render();
+            return response()->json([
+                'success' => true,
+                'html' => $html,
+            ]);
         }
 
         $categories = ProductCategory::orderByAdmin()->get();

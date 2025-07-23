@@ -15,7 +15,7 @@ class CartHelper
             throw new \InvalidArgumentException('The "cart_items" key is required.');
         }
 
-       
+
         // --- Global/Config Settings ---
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
         $taxRate = floatval($productSettings['sales_tax'] ?? 0);
@@ -138,7 +138,7 @@ class CartHelper
                 $pickupTime = '09:00:00';
                 break;
             case 'monthly':
-                $addDays = 30;
+                $addDays = 28;
                 $deliveryTime = '09:00:00';
                 $pickupTime = '09:00:00';
                 break;

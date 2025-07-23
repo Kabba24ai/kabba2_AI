@@ -210,7 +210,7 @@
                             id="shipping_phone">{{ $order->shippingAddress->phone ?? 'N/A' }}</span>
                     </div>
                     <div class="grid grid-cols-3">
-                        <span class="font-medium">Shipping Address:</span>
+                        <span class="font-medium">Delivery Address:</span>
                         <span class="col-span-2 text-right" id="shipping_address">
                             @if ($order->shippingAddress && $order->shippingAddress->full_address)
                                 {{ $order->shippingAddress->full_address }}

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\CRM\Customers;
+namespace App\Http\Requests\Admin\Crm\Customers;
 use Illuminate\Validation\Rule;
 use App\Helpers\PurifyHelper;
 use Illuminate\Foundation\Http\FormRequest;

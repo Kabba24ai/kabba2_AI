@@ -217,7 +217,7 @@
                 allAddresses.forEach((addr, i) => renderAddressBlock(addr, i));
 
                 function renderAddressBlock(addressObj, index) {
-                    const label = addressObj.type === 'Billing' ? 'Billing Address' : 'Shipping Address';
+                    const label = addressObj.type === 'Billing' ? 'Billing Address' : 'Delivery Address';
                     const fullText = `${addressObj.address}, ${addressObj.city}, ${addressObj.state} - ${addressObj.zip_code}`;
 
                     const addressBlock = document.createElement('div');
@@ -297,7 +297,7 @@
                     const zip = document.getElementById('add_zip_code').value;
                     const state = document.getElementById('add_state').selectedOptions[0]?.text || '';
                     const state_id = document.getElementById('add_state').value;
-                    const label = type === 'Billing' ? 'Billing Address' : 'Shipping Address';
+                    const label = type === 'Billing' ? 'Billing Address' : 'Delivery Address';
 
                     const addressObj = {
                         first_name: firstName,

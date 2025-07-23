@@ -126,6 +126,17 @@ public function taxStatusApprovedBy()
         return $this->orders()->sum('grand_total');
     }
 
+    public function getTotalAccountOrderAmountAttribute()
+        {
+            return $this->orders()
+                ->whereHas('payments', function ($query) {
+                    $query->where('payment_method', 'Account')
+                        ->whereRaw('id = (SELECT MIN(id) FROM order_payments WHERE order_id = orders.id)');
+                })
+                ->sum('grand_total');
+        }
+
+
     public function addresses()
     {
         return $this->hasMany(CustomerAddress::class);

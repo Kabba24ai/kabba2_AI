@@ -2,7 +2,7 @@
     <table class="min-w-full text-sm text-left whitespace-nowrap">
         <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
             <tr>
-                <th class="px-4 py-3 text-center">Product</th>
+                <th class="px-4 py-3 text-left">Product</th>
                 <th class="px-4 py-3 text-center">Order</th>
                 <th class="px-4 py-3 text-left">Customer</th>
                 <th class="px-4 py-3 text-left">Company</th>
@@ -19,7 +19,7 @@
         <tbody class="divide-y">
             @forelse ($orderProducts as $orderProduct)
                 <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-left">{{ $orderProduct->product_name }}</td>
+                    <td class="px-4 py-3 text-left min-w-3xs max-w-3xs">{{ $orderProduct->product_name }}</td>
                     <td class="px-4 py-3 text-center">
                         {!! $orderProduct->order->view_link !!}
                     </td>
@@ -38,7 +38,7 @@
                             </a>
                         @endif
                     </td>
-                    <td class="px-4 py-3 truncate max-w-xs ">
+                    <td class="px-4 py-3 truncate min-w-xs max-w-xs">
                         {{ $orderProduct->order->shippingAddress->full_address }}</td>
                     <td class="px-4 py-3 text-left ">{{ $orderProduct->order->customer_phone }}</td>
                     <td class="px-4 py-3 text-center">{{ $orderProduct->equipment ?? 'N/A' }}</td>

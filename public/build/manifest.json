@@ -43,7 +43,7 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-DfYDOfrK.css",
+    "file": "assets/app-BbpRYdMR.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
@@ -60,12 +60,12 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-Bs4YG1x6.css",
+    "file": "assets/app-D-hdpVOZ.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-Cf1BdiLv.css",
+    "file": "assets/app-oYdTvJiL.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },

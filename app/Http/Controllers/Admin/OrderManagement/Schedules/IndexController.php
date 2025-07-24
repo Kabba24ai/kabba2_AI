@@ -82,11 +82,6 @@ class IndexController extends Controller
         //             }
         //         });
         //     }
-        // } else {
-        //     // Default to showing all transport modes
-        //     $query->where(function ($q) {
-        //         $q->where('is_delivery', 1)->orWhere('is_pickup_return', 1);
-        //     });
         // }
 
         if ($request->filled('transport_mode')) {

@@ -286,7 +286,7 @@
 
             <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
                 <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
-                {{ $addressItem['label'] }} Address
+                {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
                 @if ($addresse && $addresse->is_primary)
                     - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>  
                 @endif
@@ -473,7 +473,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
-                            <span class="text-green-600 font-medium ">{{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_order_amount ?? 0), 2) }}</span>
+                            <span class="text-green-600 font-medium ">{{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0), 2) }}</span>
                                
 
 
@@ -485,7 +485,7 @@
                            
                             @php
                                 $climit = $customer->credit_limit ?? 0;
-                                $available = $customer->total_order_amount ?? 0 ;
+                                $available = $customer->total_account_order_amount ?? 0 ;
 
                                 $per = $climit > 0 ? (($available / $climit) * 100) : 0;
                             @endphp

@@ -9,6 +9,9 @@ use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\RefundStoreControll
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\DiscountStoreController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\ChargeStoreController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\UpdateNoteController;
+use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\DownloadPdfController;
+
+
 
 
 
@@ -29,6 +32,5 @@ Route::prefix('customeraccount')
 
     Route::post('/update-note', UpdateNoteController::class)->name('update_note');
     
-
-
+    Route::get('/{id}/download', DownloadPdfController::class)->name('download');
 });

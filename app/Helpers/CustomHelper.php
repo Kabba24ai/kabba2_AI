@@ -4,6 +4,7 @@ namespace App\Helpers;
 use Carbon\Carbon;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Customers\Customer;
+use App\Models\Configurations\Setting;
 
 class CustomHelper
 {
@@ -25,7 +26,7 @@ class CustomHelper
         return Carbon::parse($date)->format($format);
     }
 
-    public static function formatTime($time, $format = 'h:i A')
+    public static function formatTime($time, $format = 'H:i A')
     {
         if (empty($time)) {
             return null;
@@ -69,39 +70,49 @@ class CustomHelper
         );
     }
 
+    public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.00): void
+{
+    $customer = Customer::findOrFail($record->customer_id);
+    $currentBalance = $customer->available_credit_balance ?? 0;
+    $newBalance = $currentBalance;
 
-       public static function updateCreditBalance(CustomerAccount $record): void
-    {
-        $customer = Customer::findOrFail($record->customer_id);
-        $currentBalance = $customer->available_credit_balance ?? 0;
-        $newBalance = $currentBalance;
-
-        switch ($record->type) {
-            case 'payment':
-            case 'discount':
-                $newBalance -= $record->amount;
-                break;
-
-            case 'refund':
-                $newBalance += $record->amount;
-                break;
-
-            case 'charge':
-                $chargeAmount = $record->amount;
-                if ($record->sales_tax_type === 'add') {
-                    $chargeAmount += ($record->amount * $record->sales_tax);
-                }
-                $newBalance += $chargeAmount;
-                break;
+    switch ($record->type) {
+        case 'payment':
+            // Apply tax only if customer is taxable
+            $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+                 if ($customer->getTaxStatus() === 'Taxable') {
+            $record->sales_tax = $salesTaxSetting?->setting_value ?? 0.00;
         }
+            if ($customer->getTaxStatus() === 'Taxable') {
+                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+            } else {
+                $amountWithTax = $record->amount;
+            }
 
-        // Update both balances
-        $record->balance = $newBalance;
-        $record->save();
+            $newBalance -= $amountWithTax;
+            break;
 
-        $customer->available_credit_balance = $newBalance;
-        $customer->save();
+        case 'discount':
+        case 'refund':
+            $newBalance -= $record->amount;
+            break;
+
+        case 'order':
+        case 'charge':
+            // Use amount as-is. Tax is already included elsewhere.
+            $newBalance += $record->amount + $externalTaxAmount;
+            break;
+
     }
+
+    // Save updated balance to the record
+    $record->balance = $newBalance;
+    $record->save();
+
+    // Update customer's credit balance
+    $customer->available_credit_balance = $newBalance;
+    $customer->save();
+}
 
 
 

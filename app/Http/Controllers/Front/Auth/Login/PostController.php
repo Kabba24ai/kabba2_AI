@@ -50,7 +50,7 @@ class PostController extends Controller
     
             // Regular login
             $customer = Customer::where('email', $credentials['email'])->first();
-            if ($customer && $customer->status !== 'active') {
+            if ($customer && $customer->status !== 'Active') {
                 return redirect()->route('front.auth.login.index')
                     ->withInput($request->only('email'))
                     ->with('error', 'Your account is inactive. Please contact support.');

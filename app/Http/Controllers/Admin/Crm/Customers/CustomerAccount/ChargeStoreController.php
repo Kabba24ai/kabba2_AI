@@ -37,13 +37,9 @@ class ChargeStoreController extends Controller
             // Set sales tax type
             $record->sales_tax_type = $validated['sales_tax'] ?? null;
 
-            // Handle sales tax logic
-            if (($validated['sales_tax'] ?? null) === 'add') {
-                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-                $record->sales_tax = $salesTaxSetting?->setting_value ?? 0.00;
-            } else {
+            
                 $record->sales_tax = 0.00;
-            }
+           
 
 
             $record->notes = $validated['notes'] ?? null;

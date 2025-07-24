@@ -463,7 +463,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-      const creditUsed = {{ $customer->total_order_amount ?? 0 }};
+      const creditUsed = {{ $customer->total_account_order_amount ?? 0 }};
       const creditLimit = {{ $customer->credit_limit ?? 0 }} ;
       const available = creditLimit - creditUsed;
       const percentUsed = (creditUsed / creditLimit) * 100;

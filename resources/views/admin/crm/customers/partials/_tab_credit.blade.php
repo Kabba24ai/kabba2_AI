@@ -27,7 +27,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Available Credit</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_order_amount ?? 0), 2) }}</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0), 2) }}</p>
                     </div>
                 </div>
 
@@ -194,6 +194,13 @@
                                         'sign' => '-',
                                         'icon' => 'credit-card',
                                     ],
+                                    'order' => [
+                                        'bg' => 'bg-red-100',
+                                        'text' => 'text-red-800',
+                                        'amount' => 'text-red-600',
+                                        'sign' => '+',
+                                        'icon' => 'credit-card',
+                                    ],
                                     'discount' => [
                                         'bg' => 'bg-purple-100',
                                         'text' => 'text-purple-800',
@@ -218,8 +225,8 @@
                                     'refund' => [
                                         'bg' => 'bg-blue-100',
                                         'text' => 'text-blue-800',
-                                        'amount' => 'text-red-600',
-                                        'sign' => '+',
+                                        'amount' => 'text-green-600',
+                                        'sign' => '-',
                                         'icon' => 'trending-up',
                                     ],
                                 ];
@@ -282,7 +289,8 @@
                                             <span class="ml-1 capitalize">{{ $transaction->type }}</span>
                                         </span>
 
-                                                                            <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsibleUser->full_name ?? 'N/A'  }}
+                                                                            <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsible_person_name ?? ''  }}
+                                                                                
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-900">
@@ -292,7 +300,7 @@
                                 <td class="px-4 py-3 text-right">  {{ config('app.currency.code') }}{{ number_format($transaction->amount, 2) }}</td>
                                {{-- Sales Tax Column --}}
                                     <td class="px-4 py-3 text-right">
-                                        @if($transaction->sales_tax > 0 && $transaction->sales_tax_type === 'add')
+                                        @if($transaction->sales_tax > 0 )
                                             {{ config('app.currency.code') }}{{ number_format($transaction->amount * $transaction->sales_tax, 2) }}
                                         @else
                                             {{ config('app.currency.code') }}0.00
@@ -304,7 +312,7 @@
                                         @php
                                             $totalWithTax = $transaction->amount;
 
-                                            if ($transaction->sales_tax_type === 'add' && $transaction->sales_tax > 0) {
+                                            if ($transaction->sales_tax > 0) {
                                                 $totalWithTax += ($transaction->amount * $transaction->sales_tax);
                                             }
                                         @endphp
@@ -323,9 +331,11 @@
 
 
                                         <!-- Download -->
-                                        <button title="Download">
-                                            <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
-                                        </button>
+                                        <form method="GET" action="{{ route('admin.crm.customers.customeraccount.download', $transaction->id) }}" target="_blank" style="display:inline;">
+                                            <button title="Download" type="submit">
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
+                                            </button>
+                                        </form>
 
                                         <!-- Note -->
                                       <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">

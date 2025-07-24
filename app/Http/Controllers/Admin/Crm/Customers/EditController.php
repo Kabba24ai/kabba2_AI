@@ -67,7 +67,7 @@ class EditController extends Controller
             'state' => $address->state->name ?? '',
             'state_id' => $address->state_id ?? '',
             'zip_code' => $address->zip_code ?? '',
-            'label' => $address->type === 'Billing' ? 'Billing Address' : 'Shipping Address',
+            'label' => $address->type === 'Billing' ? 'Billing Address' : 'Delivery Address',
         ];
     })->values()->toJson();
 

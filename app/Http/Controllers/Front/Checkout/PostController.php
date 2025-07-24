@@ -21,6 +21,7 @@ use App\Models\Customers\CustomerAddress;
 use App\Models\Locations\State;
 use App\Models\ProductManagement\Product;
 use App\Services\AuthorizeNetService;
+use App\Models\Configurations\Setting;
 
 class PostController extends Controller
 {
@@ -33,6 +34,8 @@ class PostController extends Controller
         DB::beginTransaction();
         $validated = $request->validated();
 
+        logger($validated);
+        
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
 
@@ -264,19 +267,25 @@ class PostController extends Controller
                 ]);
             }
 
+             $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+         
+
             if($validated['payment'] === 'Account'){
 
             $record = new CustomerAccount();
             $record->customer_id = $customer->id;
             $record->order_id = $order->id;
             $record->balance = $customer->available_credit_balance ?? 0;
-            $record->amount = $order->grand_total ;
+            $record->amount = $order->subtotal ;
+
+            $record->sales_tax = ($order->tax_amount > 0) ? $salesTaxSetting?->setting_value : 0.00;
+
             $record->date = now();
-            $record->type = 'payment';
+            $record->type = 'order';
 
             $record->save();
 
-              CustomHelper::updateCreditBalance($record);
+            CustomHelper::updateCreditBalance($record , $order->tax_amount);
 
             }
 
@@ -292,6 +301,8 @@ class PostController extends Controller
             //dd($e);
             // Log the error if needed: logger($e);
             
+            logger($e);
+
             return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
         }
     }

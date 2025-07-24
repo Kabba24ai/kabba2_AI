@@ -15,7 +15,7 @@
                         class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'dashboard' ? ' text-brand-500 border-brand-500  dark:text-brand-400 dark:border-brand-400' : 'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
                         x-on:click="activeTab = 'dashboard'" id="tab-dashboard" >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-4 h-4 mr-2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-4 h-4 mr-1"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                         </svg>
                         Dashboard
                     </button>
@@ -24,7 +24,7 @@
                         class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'orders' ? ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
                         x-on:click="activeTab = 'orders'" id="tab-orders">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4 mr-2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4 mr-1"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
                         Orders
                     </button>
 
@@ -32,7 +32,7 @@
                         class="inline-flex items-center border-b-2 whitespace-nowrap px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'credit' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
                         x-on:click="activeTab = 'credit'">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-1"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                         Credit Account
                     </button>
 
@@ -40,7 +40,7 @@
                         class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'invoices' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
                         x-on:click="activeTab = 'invoices'">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-1"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
                         Invoices
                     </button>
 
@@ -48,7 +48,7 @@
                         class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'account' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
                         x-on:click="activeTab = 'account'">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-4 h-4 mr-2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-4 h-4 mr-1"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         Account
                     </button>
                 </nav>
@@ -59,7 +59,7 @@
                     <div class="bg-white mt-6 rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
                         <!-- Left: Name and Account -->
                         <div class="text-left">
-                            <h2 class="text-lg font-semibold text-gray-900">John Doe</h2>
+                            <h2 class="text-2xl font-bold text-gray-900">John Doe</h2>
                             <p class="text-sm text-gray-600">Account: CUST-001 &bull; Acme Corp</p>
                         </div>
 
@@ -84,7 +84,7 @@
                             </span>
 
                             <!-- Visit Website Button -->
-                            <a href="#" class="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 w-auto">
+                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 w-auto">
                                 <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
@@ -102,8 +102,8 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-500">Current Balance</p>
-                                <p class="text-lg font-semibold text-gray-900">$2,750.00</p>
+                                <p class="text-sm text-gray-500">Current Balance</p>
+                                <p class="text-xl font-semibold text-gray-900">$2,750.00</p>
                             </div>
                         </div>
 
@@ -114,8 +114,8 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-500">Available Credit</p>
-                                <p class="text-lg font-semibold text-gray-900">$12,250.00</p>
+                                <p class="text-sm text-gray-500">Available Credit</p>
+                                <p class="text-xl font-semibold text-gray-900">$12,250.00</p>
                             </div>
                         </div>
 
@@ -127,7 +127,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Open Invoices</p>
-                                <p class="text-lg font-semibold text-gray-900">2</p>
+                                <p class="text-xl font-semibold text-gray-900">2</p>
                             </div>
                         </div>
 
@@ -138,21 +138,21 @@
                                 <x-heroicon-o-calendar class="w-6 h-6 text-green-500" />
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-500">Last Payment</p>
-                                <p class="text-lg font-semibold text-gray-900">Jan 18, 2025</p>
+                                <p class="text-sm text-gray-500">Last Payment</p>
+                                <p class="text-xl font-semibold text-gray-900">Jan 18, 2025</p>
                             </div>
                         </div>
                     </div>
 
                     <div class=" mx-auto bg-white rounded-md shadow-sm border border-gray-200 mt-6 mb-6">
-                        <div class="flex items-center justify-between p-5 border-b border-gray-200">
+                        <div class="flex items-center justify-between p-4 border-b border-gray-200">
                             <h2 class="text-base font-semibold text-gray-800">Recent Orders</h2>
                             <a href="#" class="text-sm text-blue-600" id="viewAllOrdersLink">View All</a>
                         </div>
 
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm text-left text-gray-700">
-                                <thead class="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
+                                <thead class="bg-gray-50 text-gray-500 text-xs border-b border-gray-200">
                                     <tr>
                                         <th class="px-4 py-3 font-medium uppercase">Order ID</th>
                                         <th class="px-4 py-3 font-medium uppercase">Product Name</th>
@@ -232,7 +232,7 @@
                     <div class="bg-white mt-6 rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
                         <!-- Left: Name and Account -->
                         <div class="text-left ">
-                            <h2 class="text-lg font-semibold text-gray-900">John Doe</h2>
+                            <h2 class="text-2xl font-bold text-gray-900">John Doe</h2>
                             <p class="text-sm text-gray-600">Account: CUST-001 &bull; Acme Corp</p>
                         </div>
 
@@ -256,7 +256,7 @@
                             </span>
 
                             <!-- Visit Website Button -->
-                            <a href="#" class="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 w-auto">
+                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 w-auto">
                                 <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
@@ -275,7 +275,7 @@
                         <!-- Table -->
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm text-left text-gray-700">
-                                <thead class="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
+                                <thead class="bg-gray-50 text-gray-500 text-xs border-b border-gray-200">
                                     <tr>
                                         <th class="px-4 py-3 font-medium uppercase">Order ID</th>
                                         <th class="px-4 py-3 font-medium uppercase">Product Name</th>
@@ -359,7 +359,7 @@
                     <div class="bg-white rounded-md shadow-sm p-6 md:flex-row md:items-center md:justify-between gap-4 border border-gray-200  mt-6">
                         <!-- Left: Name and Account -->
                         <div class="text-left">
-                            <h2 class="text-lg font-semibold text-gray-900">Credit Account</h2>
+                            <h2 class="text-2xl font-bold text-gray-900">Credit Account</h2>
                             <p class="text-sm text-gray-600">View your credit account balance and transaction history</p>
                         </div>
                     </div>
@@ -372,8 +372,8 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                             </div>
                             <div>
-                            <p class="text-sm font-medium text-gray-500">Current Balance</p>
-                            <p class="text-lg font-semibold text-gray-900">$2,750.00</p>
+                            <p class="text-sm text-gray-500">Current Balance</p>
+                            <p class="text-xl font-semibold text-gray-900">$2,750.00</p>
                             </div>
                         </div>
 
@@ -384,8 +384,8 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                             </div>
                             <div>
-                            <p class="text-sm font-medium text-gray-500">Available Credit</p>
-                            <p class="text-lg font-semibold text-gray-900">$12,250.00</p>
+                            <p class="text-sm text-gray-500">Available Credit</p>
+                            <p class="text-xl font-semibold text-gray-900">$12,250.00</p>
                             </div>
                         </div>
 
@@ -403,8 +403,8 @@
                                 </svg>
                             </div>
                             <div>
-                            <p class="text-sm font-medium text-gray-500">Credit Limit</p>
-                            <p class="text-lg font-semibold text-gray-900">$15,000.00</p>
+                            <p class="text-sm text-gray-500">Credit Limit</p>
+                            <p class="text-xl font-semibold text-gray-900">$15,000.00</p>
                             </div>
                         </div>
 
@@ -415,8 +415,8 @@
                                 <x-heroicon-o-calendar class="w-6 h-6" />
                             </div>
                             <div>
-                            <p class="text-sm font-medium text-gray-500">Last Payment Date</p>
-                            <p class="text-lg font-semibold text-gray-900">Jan 18, 2025</p>
+                            <p class="text-sm text-gray-500">Last Payment Date</p>
+                            <p class="text-xl font-semibold text-gray-900">Jan 18, 2025</p>
                             </div>
                         </div>
                     </div>
@@ -468,7 +468,7 @@
                         <!-- Table -->
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm text-left text-gray-700">
-                                <thead class="bg-gray-50 text-gray-500 text-sm divide-y divide-gray-200 uppercase border-b border-gray-200">
+                                <thead class="bg-gray-50 text-gray-500 text-xs divide-y divide-gray-200 uppercase border-b border-gray-200">
                                     <tr>
                                         <th class="px-3 py-3 font-medium">Date</th>
                                         <th class="px-3 py-3 font-medium">Type</th>
@@ -674,7 +674,7 @@
                         <!-- Header -->
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
-                                <h2 class="text-xl font-bold text-gray-900">Invoices</h2>
+                                <h2 class="text-2xl font-bold text-gray-900">Invoices</h2>
                                 <p class="text-sm text-gray-600">View and manage your invoices and payment methods</p>
                             </div>
 
@@ -693,8 +693,8 @@
                         <!-- Paid -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm ">
                             <div>
-                                <p class="text-sm font-medium text-gray-500">Paid Invoices</p>
-                                <p class="text-xl font-bold text-gray-900">$1,250.00</p>
+                                <p class="text-sm text-gray-500">Paid Invoices</p>
+                                <p class="text-xl font-semibold text-gray-900">$1,250.00</p>
                             </div>
                             <div class="bg-green-100 p-2 rounded-md">
                                 <svg xmlns="http://www.w3.org/2000/svg" 
@@ -711,8 +711,8 @@
                         <!-- Pending -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
                             <div>
-                                <p class="text-sm font-medium text-gray-500">Pending Invoices</p>
-                                <p class="text-xl font-bold text-gray-900">$624.50</p>
+                                <p class="text-sm text-gray-500">Pending Invoices</p>
+                                <p class="text-xl font-semibold text-gray-900">$624.50</p>
                             </div>
                             <div class="bg-yellow-100 p-2 rounded-md">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -724,8 +724,8 @@
                         <!-- Overdue -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm ">
                             <div>
-                                <p class="text-sm font-medium text-gray-500">Overdue Invoices</p>
-                                <p class="text-xl font-bold text-gray-900">$875.50</p>
+                                <p class="text-sm text-gray-500">Overdue Invoices</p>
+                                <p class="text-xl font-semibold text-gray-900">$875.50</p>
                             </div>
                             <div class="bg-red-100 p-2 rounded-md  text-red-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" 
@@ -750,7 +750,7 @@
                         <!-- Table -->
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm text-left text-gray-700">
-                                <thead class="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
+                                <thead class="bg-gray-50 text-gray-500 text-xs border-b border-gray-200">
                                     <tr>
                                         <th class="px-4 py-3 font-medium uppercase">Invoice</th>
                                         <th class="px-4 py-3 font-medium uppercase">Date</th>
@@ -771,10 +771,10 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button class="text-blue-600 inline-flex items-center cursor-pointer">
-                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />
                                             </button>
                                             <button class="text-green-600 inline-flex items-center cursor-pointer">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                                             </button>
                                         </td>
                                     </tr>
@@ -789,14 +789,14 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button class="text-blue-600 inline-flex items-center cursor-pointer">
-                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />
                                             </button>
                                             <button class="text-green-600 inline-flex items-center cursor-pointer">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                                             </button>
                                             
                                             <button class="text-purple-600 inline-flex items-center cursor-pointer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg> Pay
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg> 
                                             </button>
                                         </td>
                                     </tr>
@@ -811,14 +811,14 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button class="text-blue-600 inline-flex items-center cursor-pointer">
-                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />View
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1" />
                                             </button>
                                             <button class="text-green-600 inline-flex items-center cursor-pointer">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />Download
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                                             </button>
                                           
                                             <button class="text-purple-600 inline-flex items-center cursor-pointer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg> Pay
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>  
                                             </button>
                                         </td>
                                     </tr>
@@ -834,7 +834,7 @@
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <!-- Title and Description -->
                             <div>
-                                <h2 class="text-xl font-bold text-gray-900">Account Settings</h2>
+                                <h2 class="text-2xl font-bold text-gray-900">Account Settings</h2>
                                 <p class="text-sm text-gray-500">Manage your account information and preferences</p>
                             </div>
 
@@ -852,27 +852,27 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <!-- Personal Information -->
                         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
-                            <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
-                                <x-heroicon-o-user class="w-5 h-5 mr-2 text-gray-500" /> Personal Information
+                            <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
+                                <x-heroicon-o-user class="w-5 h-5 text-gray-900" /> Personal Information
                             </h3>
                             <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 text-sm text-gray-700">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-500 mb-1">First Name</label>
-                                    <div class="static-view">John</div>
+                                    <label class="text-xs text-gray-500 font-medium">First Name</label>
+                                    <div class="static-view text-sm text-gray-900">John</div>
                                     <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="John" />
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-500 mb-1">Last Name</label>
-                                    <div class="static-view">Doe</div>
+                                    <label class="text-xs text-gray-500 font-medium">Last Name</label>
+                                    <div class="static-view text-sm text-gray-900">Doe</div>
                                     <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="Doe" />
                                 </div>
 
                                 <div class="col-span-2">
-                                    <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                                    <label class="text-xs text-gray-500 font-medium">Email Address</label>
                                     <div class=" static-view">
-                                        <p class="text-gray-900 flex items-center gap-2">
-                                            <x-heroicon-o-envelope class="w-4 h-4 mr-2 text-gray-500" />john.doe@acmecorp.com
+                                        <p class="text-gray-900 flex items-center gap-1 text-sm">
+                                            <x-heroicon-o-envelope class="w-4 h-4 text-gray-900" />john.doe@acmecorp.com
                                         </p>
                                     </div>
                                     <!-- Edit View -->
@@ -880,10 +880,10 @@
                                 </div>
 
                                 <div class="col-span-2">
-                                    <label class="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
+                                    <label class="text-xs text-gray-500 font-medium">Phone Number</label>
                                     <div class=" static-view">
-                                        <p class="text-gray-900 flex items-center gap-2">
-                                            <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-500" />(555) 012-3456
+                                        <p class="text-gray-900 flex items-center gap-1 text-sm">
+                                            <x-heroicon-o-phone class="w-4 h-4 text-gray-900" />(555) 012-3456
                                         </p>
                                     </div>
                                     <!-- Edit View -->
@@ -895,21 +895,21 @@
 
                         <!-- Company Information -->
                         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
-                            <h3 class="text-md font-semibold mb-4 flex items-center gap-2">
-                                <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 mr-2" /> Company Information
+                            <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
+                                <x-heroicon-o-building-office class="w-5 h-5 text-gray-900" /> Company Information
                             </h3>
                             <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
                                 <div class="col-span-2">
-                                    <label class="block text-sm font-medium text-gray-500 mb-1">Company Name</label>
-                                    <div class="static-view">Acme Corp</div>
+                                    <label class="text-xs text-gray-500 font-medium">Company Name</label>
+                                    <div class="static-view text-sm text-gray-900">Acme Corp</div>
                                     <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="Acme Corp" />
                                 </div>
                                 
                                 <div class="col-span-2">
-                                    <label class="block text-sm font-medium text-gray-500 mb-1">Company Phone</label>
+                                    <label class="text-xs text-gray-500 font-medium">Company Phone</label>
                                     <div class=" static-view">
-                                        <p class="text-gray-900 flex items-center gap-2">
-                                            <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-500" />(555) 012-3456
+                                        <p class=" text-gray-500 text-sm text-gray-900 flex items-center gap-1">
+                                            <x-heroicon-o-phone class="w-4 h-4 text-gray-900" />(555) 012-3456
                                         </p>
                                     </div>
                                     <!-- Edit View -->
@@ -917,10 +917,10 @@
                                 </div>
 
                                 <div class="col-span-2">
-                                    <label class="block text-sm font-medium text-gray-500 mb-1">Website</label>
+                                    <label class="text-xs text-gray-500 font-medium">Website</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-2">
-                                            <x-heroicon-o-globe-alt class="w-4 h-4 mr-2 text-gray-500" /><a class="text-blue-600" href="https://acme-corp.com">https://acme-corp.com</a>
+                                            <a class="text-blue-600 hover:text-blue-800 flex items-center gap-1" href="https://acme-corp.com"><x-heroicon-o-globe-alt class="w-4 h-4" /> https://acme-corp.com</a>
                                         </p>
                                     </div>
                                     <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="https://acme-corp.com" />
@@ -932,28 +932,28 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <!-- Billing Address -->
                         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 ">
-                            <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
-                                <x-heroicon-o-map-pin class="w-5 h-5 mr-2 text-gray-500" />
+                            <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
+                                <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
                                 Billing Address
                             </h3>
                             <div class="space-y-4">
                                 <div>
-                                    <label class="text-sm text-gray-700 mb-1 edit-view">Address</label>
+                                    <label class="text-xs text-gray-500 font-medium edit-view">Address</label>
                                     <div class="static-view text-gray-900 whitespace-pre-line text-sm">123 Main St, New York, NY 10001</div>
                                     <input type="text" value="123 Main St" class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="edit-view">
-                                        <label class="text-sm text-gray-700 mb-1">City</label>
+                                        <label class="text-xs text-gray-500 font-medium mb-1">City</label>
                                         <input type="text" value="New York" class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
                                     </div>
                                     <div class="edit-view">
-                                        <label class="text-sm text-gray-700 mb-1">Zip Code</label>
+                                        <label class="text-xs text-gray-500 font-medium mb-1">Zip Code</label>
                                         <input type="text" value="10001" class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
                                     </div>
                                 </div>
                                 <div class="edit-view">
-                                    <label class="text-sm text-gray-700 mb-1">State</label>
+                                    <label class="text-xs text-gray-500 font-medium mb-1">State</label>
                                     <select class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm">
                                         <option selected>New York</option>
                                         <option>California</option>
@@ -964,28 +964,28 @@
 
                         <!-- Delivery Address -->
                         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
-                            <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
-                                <x-heroicon-o-map-pin class="w-5 h-5 mr-2 text-gray-500" />
+                            <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
+                                <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
                                 Delivery Address
                             </h3>
                             <div class="space-y-4">
                                 <div>
-                                    <label class="text-sm text-gray-700 mb-1 edit-view">Address</label> 
+                                    <label class="text-xs text-gray-500 font-medium edit-view">Address</label> 
                                     <div class="static-view text-gray-900 whitespace-pre-line text-sm">456 Oak Ave, New York, NY 10002</div>
                                     <input type="text" value="456 Oak Ave" class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="edit-view">
-                                        <label class="text-sm text-gray-700 mb-1">City</label>
+                                        <label class="text-xs text-gray-500 font-medium mb-1">City</label>
                                         <input type="text" value="New York" class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
                                     </div>
                                     <div class="edit-view">
-                                        <label class="text-sm text-gray-700 mb-1">Zip Code</label>
+                                        <label class="text-xs text-gray-500 font-medium mb-1">Zip Code</label>
                                         <input type="text" value="10002" class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" />
                                     </div>
                                 </div>
                                 <div class="edit-view">
-                                    <label class="text-sm text-gray-700 mb-1">State</label>
+                                    <label class="text-xs text-gray-500 font-medium mb-1">State</label>
                                     <select class="pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm">
                                         <option selected>New York</option>
                                         <option>California</option>
@@ -998,30 +998,30 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <!-- Account Status -->
                         <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-                            <h3 class="text-base font-semibold mb-4 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
+                                <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                                 </svg>
                                 Account Status
                             </h3>
                             <div class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Account Status:</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-gray-500 font-medium">Account Status:</span>
                                     <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good Standing</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Account Approved:</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-gray-500 font-medium">Account Approved:</span>
                                     <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
                                         <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
                                         Approved
                                     </span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Customer Since:</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-gray-500 font-medium">Customer Since:</span>
                                     <span class="text-xs">Jan 15, 2024</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Customer ID:</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-gray-500 font-medium">Customer ID:</span>
                                     <span class="text-xs">CUST-001</span>
                                 </div>
                             </div>
@@ -1030,30 +1030,30 @@
                         <!-- Credit Information -->
                         <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
                             <div class="flex gap-2 items-start mb-4">
-                                <h3 class="text-base font-semibold flex items-center gap-2"> 
-                                    <x-heroicon-o-credit-card class="w-5 h-5 text-gray-600" />
+                                <h3 class="text-base font-semibold flex items-center gap-1"> 
+                                    <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
                                     Credit Information
                                 </h3>
                                 <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span>
                             </div>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Credit Limit:</span>
+                                    <span class="text-xs text-gray-500 font-medium">Credit Limit:</span>
                                     <span class="text-right">
                                         <span class="text-gray-900 font-semibold">$15,000.00</span>
                                     </span>
                                 </div>
 
                                 <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Current Balance:</span>
+                                    <span class="text-xs text-gray-500 font-medium">Current Balance:</span>
                                     <span class="font-medium">$2,750.00 </span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Available Credit:</span>
+                                    <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
                                     <span class="text-green-600 font-medium">$12,250.00</span>
                                 </div>
                                 <div class="flex justify-between text-xs text-gray-500 mb-1">
-                                    <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
+                                    <label class="text-xs text-gray-500 font-medium">Credit Utilization</label>
                                     <div class="text-right text-xs text-gray-500 mt-0.5">18%</div>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
@@ -1066,9 +1066,9 @@
 
                     <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                            <div class="flex items-center gap-2">
-                                <x-heroicon-o-document class="w-5 h-5 text-gray-500" />
-                                <h2 class="text-base font-semibold text-gray-800">Tax Exempt Status</h2>
+                            <div class="flex items-center gap-1">
+                                <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
+                                <h2 class="text-base font-semibold flex items-center gap-1">Tax Exempt Status</h2>
                                 <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
                             </div>
                         </div>
@@ -1076,8 +1076,8 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Left: Tax Info -->
                             <div class="space-y-2 text-sm text-gray-700">
-                                <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Tax Status:</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-gray-500 font-medium">Tax Status:</span>
                                     <div class="inline-flex items-center gap-2">
                                         <span class="inline-flex items-center px-2 gap-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                                             <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
@@ -1086,12 +1086,12 @@
                                     </div>
                                     <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">Tax Exempt</span> -->
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Valid Until:</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-gray-500 font-medium">Valid Until:</span>
                                     <span class="text-sm">Dec 31, 2027</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="block text-sm font-medium text-gray-500 mb-1">Uploaded:</span> 
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-gray-500 font-medium">Uploaded:</span> 
                                     <span class="text-sm">Mar 3, 2025</span>
                                 </div>
                             </div>

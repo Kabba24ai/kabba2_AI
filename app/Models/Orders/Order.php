@@ -40,7 +40,6 @@ class Order extends Model
         'view_link', // For generating view link in schedules
         'last_payment_type',
         'last_payment_status',
-        'last_payment_badge',
     ];
 
     // Customer relationship (if you want)
@@ -101,8 +100,8 @@ class Order extends Model
             $latestOrder = self::latest('id')->first();
             $nextId = $latestOrder ? $latestOrder->id + 1 : 1;
 
-            // Format: ORD-00001
-            $model->order_number = '#' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+            // Format: ORD-0001
+            $model->order_number = '#' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
             // Set current date and time
             $currentDateTime = Carbon::now();
             $model->order_date = $currentDateTime->format(config('app.date.db_date_format'));
@@ -128,19 +127,4 @@ class Order extends Model
         return $lastPayment ? $lastPayment->status : null;
     }
 
-
-    public function getLastPaymentBadgeAttribute()
-    {
-        $status = strtolower($this->last_payment_status);
-        $badgeClasses = [
-            'pending' => 'bg-yellow-100 text-yellow-800',
-            'account' => 'bg-blue-100 text-blue-800',
-            'partial refund' => 'bg-orange-100 text-orange-800',
-            'refunded' => 'bg-purple-100 text-purple-800',
-            'paid' => 'bg-green-100 text-green-800',
-            'failed' => 'bg-red-100 text-red-800',
-        ];
-        $class = $badgeClasses[$status] ?? 'bg-gray-100 text-gray-800';
-        return '<span class="' . $class . ' px-2 py-1 rounded text-xs font-semibold">' . ucfirst($status) . '</span>';
-    }
 }

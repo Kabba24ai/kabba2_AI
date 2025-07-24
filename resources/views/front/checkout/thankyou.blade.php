@@ -48,7 +48,7 @@
                     </div>
                     <div class="flex">
                         <span class="font-normal w-40 flex-shrink-0">Payment status:</span>
-                        {!! $order->last_payment_badge !!}
+                        {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
                     </div>
                 </div>
 

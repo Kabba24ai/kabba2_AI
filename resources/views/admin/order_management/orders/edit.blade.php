@@ -354,7 +354,12 @@
                                 @foreach ($orderProduct->product_data['product_rental_items_prices'] as $rentalKey => $rentalPrice)
                                     <li class="flex justify-between">
                                         <span>
-                                            {{ ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
+                                            @if ($rentalKey === 'rental_damage_waiver')
+                                                Damage Waiver Protection
+                                            @else
+                                                {{-- Check if rental key is a damage waiver --}}
+                                                {{ ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
+                                            @endif
                                             <span
                                                 class="text-xs text-gray-400">(x{{ $orderProduct->quantity ?? 1 }})</span>
                                         </span>

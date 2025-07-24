@@ -61,7 +61,8 @@
 
             <!-- ===== Main Content Start ===== -->
             <main>
-                <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+                {{-- //max-w-(--breakpoint-2xl) --}}
+                <div class="p-4 mx-auto md:p-6">
                     <!-- Breadcrumb Start -->
                     {{-- <div x-data="{ pageName: `Blank Page` }">
                         @include('admin.partials.breadcrumb')

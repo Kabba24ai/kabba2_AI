@@ -52,68 +52,81 @@ class CustomHelper
         return preg_replace('/[^0-9]/', '', $formattedPhone); // remove non-digits
     }
 
-
     public static function formatPhone(?string $rawPhone): string
     {
-
         if (empty($rawPhone)) {
             return 'N/A'; // or return ''; or return $rawPhone; based on your needs
         }
 
         $digits = preg_replace('/[^0-9]/', '', $rawPhone);
-        if (strlen($digits) !== 10) return $rawPhone; // fallback
+        if (strlen($digits) !== 10) {
+            return $rawPhone;
+        } // fallback
 
-        return sprintf('(%s) %s-%s',
-            substr($digits, 0, 3),
-            substr($digits, 3, 3),
-            substr($digits, 6, 4)
-        );
+        return sprintf('(%s) %s-%s', substr($digits, 0, 3), substr($digits, 3, 3), substr($digits, 6, 4));
     }
 
-    public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.00): void
-{
-    $customer = Customer::findOrFail($record->customer_id);
-    $currentBalance = $customer->available_credit_balance ?? 0;
-    $newBalance = $currentBalance;
+    public static function statusBadge(string $status): string
+    {
+        $classes = [
+            'active'    => 'bg-green-100 text-green-800',
+            'inactive'  => 'bg-red-100 text-red-800',
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'account' => 'bg-blue-100 text-blue-800',
+            'partial refund' => 'bg-orange-100 text-orange-800',
+            'refunded' => 'bg-purple-100 text-purple-800',
+            'paid' => 'bg-green-100 text-green-800',
+            'failed' => 'bg-red-100 text-red-800',
+        ];
 
-    switch ($record->type) {
-        case 'payment':
-            // Apply tax only if customer is taxable
-            $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-                 if ($customer->getTaxStatus() === 'Taxable') {
-            $record->sales_tax = $salesTaxSetting?->setting_value ?? 0.00;
+        $class = $classes[strtolower($status)] ?? 'bg-gray-200 text-gray-800';
+
+        return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">'
+            . ucfirst($status) .
+            '</span>';
+    }
+
+
+    public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.0): void
+    {
+        $customer = Customer::findOrFail($record->customer_id);
+        $currentBalance = $customer->available_credit_balance ?? 0;
+        $newBalance = $currentBalance;
+
+        switch ($record->type) {
+            case 'payment':
+                // Apply tax only if customer is taxable
+                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+                if ($customer->getTaxStatus() === 'Taxable') {
+                    $record->sales_tax = $salesTaxSetting?->setting_value ?? 0.0;
+                }
+                if ($customer->getTaxStatus() === 'Taxable') {
+                    $amountWithTax = $record->amount + $record->amount * $record->sales_tax;
+                } else {
+                    $amountWithTax = $record->amount;
+                }
+
+                $newBalance -= $amountWithTax;
+                break;
+
+            case 'discount':
+            case 'refund':
+                $newBalance -= $record->amount;
+                break;
+
+            case 'order':
+            case 'charge':
+                // Use amount as-is. Tax is already included elsewhere.
+                $newBalance += $record->amount + $externalTaxAmount;
+                break;
         }
-            if ($customer->getTaxStatus() === 'Taxable') {
-                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
-            } else {
-                $amountWithTax = $record->amount;
-            }
 
-            $newBalance -= $amountWithTax;
-            break;
+        // Save updated balance to the record
+        $record->balance = $newBalance;
+        $record->save();
 
-        case 'discount':
-        case 'refund':
-            $newBalance -= $record->amount;
-            break;
-
-        case 'order':
-        case 'charge':
-            // Use amount as-is. Tax is already included elsewhere.
-            $newBalance += $record->amount + $externalTaxAmount;
-            break;
-
+        // Update customer's credit balance
+        $customer->available_credit_balance = $newBalance;
+        $customer->save();
     }
-
-    // Save updated balance to the record
-    $record->balance = $newBalance;
-    $record->save();
-
-    // Update customer's credit balance
-    $customer->available_credit_balance = $newBalance;
-    $customer->save();
-}
-
-
-
 }

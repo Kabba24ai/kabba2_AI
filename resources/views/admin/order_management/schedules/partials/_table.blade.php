@@ -29,19 +29,14 @@
                     </td>
                     <td class="px-4 py-3">
                         {{ $orderProduct->order->customer->company_name }}
-                            <a
-                            @if (!empty($orderProduct->order->customer->company_website)) href="{{ $orderProduct->order->customer->company_website ?? 'javascript:void(0)' }}"  target="_blank" @endif>
-                            <div class="text-sm text-gray-500 flex items-center gap-1">
-                                <x-heroicon-o-globe-alt class="w-4 h-4 text-gray-400" />
-                                <span>
-                                    @if (!empty($order->customer->company_website))
-                                        {{ $order->customer->company_website }}
-                                    @else
-                                        -
-                                    @endif
-                                </span>
-                            </div>
-                        </a>
+                        @if (!empty($orderProduct->order->customer->company_website))
+                            <a href="{{ $orderProduct->order->customer->company_website }}" target="_blank">
+                                <div class="text-sm text-brand-500 flex items-center gap-1">
+                                    <x-heroicon-o-globe-alt class="w-4 h-4 text-brand-400" />
+                                    <span>{{ $orderProduct->order->customer->company_website }}</span>
+                                </div>
+                            </a>
+                        @endif
                     </td>
                     <td class="px-4 py-3 truncate max-w-xs ">
                         {{ $orderProduct->order->shippingAddress->full_address }}</td>
@@ -93,7 +88,7 @@
                     </td>
 
                     <td class="px-4 py-3 text-center">
-                        {!! $orderProduct->order->last_payment_badge !!}
+                        {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order->last_payment_status) !!}
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex gap-2 items-center justify-center">

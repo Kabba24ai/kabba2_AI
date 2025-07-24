@@ -7,8 +7,8 @@
                 <th class="px-4 py-3 text-left">Order ID</th>
                 <th class="px-4 py-3 text-left">Customer</th>
                 <th class="px-4 py-3 text-left">Company</th>
-                <th class="px-4 py-3 text-center">Product</th>
-                <th class="px-4 py-3">Delivery Address</th>
+                <th class="px-4 py-3 text-left">Product</th>
+                <th class="px-4 py-3 text-left">Delivery Address</th>
                 <th class="px-4 py-3 text-left">Phone</th>
                 <th class="px-4 py-3 text-right">Amount</th>
                 <th class="px-4 py-3 text-left">Payment Type</th>
@@ -36,22 +36,17 @@
                     <td class="px-4 py-3">
                         {{ $order->customer->company_name }}
 
-                        <a
-                            @if (!empty($order->customer->company_website)) href="{{ $order->customer->company_website ?? 'javascript:void(0)' }}"  target="_blank" @endif>
-                            <div class="text-sm text-gray-500 flex items-center gap-1">
-                                <x-heroicon-o-globe-alt class="w-4 h-4 text-gray-400" />
-                                <span>
-                                    @if (!empty($order->customer->company_website))
-                                        {{ $order->customer->company_website }}
-                                    @else
-                                        -
-                                    @endif
-                                </span>
-                            </div>
-                        </a>
+                        @if (!empty($order->customer->company_website))
+                            <a href="{{ $order->customer->company_website }}" target="_blank">
+                                <div class="text-sm text-brand-500 flex items-center gap-1">
+                                    <x-heroicon-o-globe-alt class="w-4 h-4 text-brand-400" />
+                                    <span>{{ $order->customer->company_website }}</span>
+                                </div>
+                            </a>
+                        @endif
                     </td>
-                    <td class="px-4 py-3 truncate max-w-xs text-center">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
-                    <td class="px-4 py-3 truncate max-w-xs ">{{ $order->shippingAddress->address }}</td>
+                    <td class="px-4 py-3 truncate min-w-3xs max-w-3xs text-left">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
+                    <td class="px-4 py-3 truncate min-w-xs max-w-xs ">{{ $order->shippingAddress->address }}</td>
                     <td class="px-4 py-3 text-left ">{{ $order->customer_phone }}</td>
                     <td class="px-4 py-3 font-semibold text-right">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
@@ -59,7 +54,7 @@
                         {{ $order->last_payment_type }}
                     </td>
                     <td class="px-4 py-3 text-center">
-                        {!! $order->last_payment_badge !!}
+                        {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
                     </td>
                     <td class="px-4 py-3 text-center">{{ $order->created_at->format(config('app.date.date_format')) }}
                     </td>

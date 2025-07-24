@@ -213,7 +213,7 @@ class AuthorizeNetService
             // Return known profile/payment ids or extract from response
             return [
                 'status' => 'success',
-                'payment_status' => 'Completed',
+                'payment_status' => 'Paid',
                 'message' => 'Payment successful',
                 'transaction_id' => $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null,
                 'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,

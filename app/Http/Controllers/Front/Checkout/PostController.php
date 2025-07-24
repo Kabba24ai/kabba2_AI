@@ -30,11 +30,8 @@ class PostController extends Controller
      */
     public function __invoke(PostRequest $request)
     {
-
         DB::beginTransaction();
         $validated = $request->validated();
-
-        logger($validated);
 
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
@@ -228,12 +225,9 @@ class PostController extends Controller
                     DB::rollback();
                     return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
                 }
-                $paymentResult = $authorizeNetService->createOpaqueDataTransaction(
-                    $opaqueDataValue,
-                    $amount,
-                    ['order_number' => $order->order_number, 'customer'=>$customer->toArray()]
-                );
+                $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
                 if ($paymentResult['status'] !== 'success') {
+                    logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
                     DB::rollback();
                     return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
                 }
@@ -252,44 +246,41 @@ class PostController extends Controller
                     'created_by_id' => $customer->id,
                     'created_by_type' => Customer::class,
                 ]);
-            }else{
+            } else {
                 // If payment type is not card, just create a pending payment record
                 $order->payments()->create([
                     'payment_datetime' => now(),
                     'payment_method' => $validated['payment'],
                     'amount' => $order->grand_total,
-                    'status' => 'Pending',
+                    'status' => ($validated['payment'] === 'Account') ? 'Account' : 'Pending',
                     'created_by_id' => $customer->id,
                     'created_by_type' => Customer::class,
                 ]);
             }
 
-             $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+            $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
 
+            if ($validated['payment'] === 'Account') {
+                $record = new CustomerAccount();
+                $record->customer_id = $customer->id;
+                $record->order_id = $order->id;
+                $record->balance = $customer->available_credit_balance ?? 0;
+                $record->amount = $order->subtotal;
 
-            if($validated['payment'] === 'Account'){
+                $record->sales_tax = $order->tax_amount > 0 ? $salesTaxSetting?->setting_value : 0.0;
 
-            $record = new CustomerAccount();
-            $record->customer_id = $customer->id;
-            $record->order_id = $order->id;
-            $record->balance = $customer->available_credit_balance ?? 0;
-            $record->amount = $order->subtotal ;
+                $record->date = now();
+                $record->type = 'order';
 
-            $record->sales_tax = ($order->tax_amount > 0) ? $salesTaxSetting?->setting_value : 0.00;
+                $record->save();
 
-            $record->date = now();
-            $record->type = 'order';
-
-            $record->save();
-
-            CustomHelper::updateCreditBalance($record , $order->tax_amount);
-
+                CustomHelper::updateCreditBalance($record, $order->tax_amount);
             }
 
             DB::commit();
 
             // Generate a signed URL for the thank you page with order unique id
-            $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you',now()->addMinutes(5),['order' => $order->unique_id]);
+            $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
 
             // Success: redirect to signed thank you page with order id
             return redirect($signedUrl);

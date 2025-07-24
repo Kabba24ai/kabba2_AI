@@ -35,7 +35,7 @@ class PostController extends Controller
         $validated = $request->validated();
 
         logger($validated);
-        
+
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
 
@@ -151,7 +151,6 @@ class PostController extends Controller
                 'discount_amount' => $cartSummary['discount'],
                 'grand_total' => $cartSummary['grand_total'],
                 'order_note' => $validated['orderNotes'] ?? null,
-                'status' => 'Pending',
                 'cart_data' => $cart,
                 'platform' => 'Web',
             ]);
@@ -195,21 +194,19 @@ class PostController extends Controller
                         'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],
                         'total' => $item['total'],
-                        'schedule_start_date' => !empty($item['schedule_start_date']) ? Carbon::parse($item['schedule_start_date'])->format(config('app.date.db_date_format')) : null,
-                        'schedule_end_date' => !empty($item['schedule_end_date']) ? Carbon::parse($item['schedule_end_date'])->format(config('app.date.db_date_format')) : null,
                         'product_data' => $item,
                         'service_method' => $item['service_method'] ?? null,
                         'service_option' => $item['service_option'] ?? null,
                         'store_id' => $item['store_id'] ?? null,
                         'distance_type' => $item['distance_type'] ?? null,
                         'distance_range' => $item['distance_range'] ?? null,
-                        'is_delivery' => $item['is_delivery'] ?? null,
-                        'delivery_type' => $item['delivery_type'] ?? null,
+
+                        'delivery_transport_mode' => $item['delivery_transport_mode'] ?? null,
                         'delivery_store_id' => $item['delivery_store_id'] ?? null,
                         'delivery_date' => !empty($item['delivery_date']) ? Carbon::parse($item['delivery_date'])->format(config('app.date.db_date_format')) : null,
                         'delivery_time' => !empty($item['delivery_time']) ? Carbon::parse($item['delivery_time'])->format(config('app.date.db_time_format')) : null,
-                        'is_pickup_return' => $item['is_pickup_return'] ?? null,
-                        'pickup_type' => $item['pickup_type'] ?? null,
+
+                        'pickup_transport_mode' => $item['pickup_transport_mode'] ?? null,
                         'pickup_store_id' => $item['pickup_store_id'] ?? null,
                         'pickup_date' => !empty($item['pickup_date']) ? Carbon::parse($item['pickup_date'])->format(config('app.date.db_date_format')) : null,
                         'pickup_time' => !empty($item['pickup_time']) ? Carbon::parse($item['pickup_time'])->format(config('app.date.db_time_format')) : null,
@@ -268,7 +265,7 @@ class PostController extends Controller
             }
 
              $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-         
+
 
             if($validated['payment'] === 'Account'){
 
@@ -300,7 +297,7 @@ class PostController extends Controller
             DB::rollback();
             //dd($e);
             // Log the error if needed: logger($e);
-            
+
             logger($e);
 
             return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');

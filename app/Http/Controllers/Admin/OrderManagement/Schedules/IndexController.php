@@ -24,9 +24,6 @@ class IndexController extends Controller
         $query = OrderProduct::query()
             ->with('order', 'order.customer', 'order.shippingAddress', 'order.lastPayment')
             ->where('product_data->product_type', 'Rental')
-            ->whereHas('order', function ($query) {
-                $query->whereIn('status', ['Pending', 'In Progress']);
-            })
             ->whereNotNull('delivery_date');
 
         if ($request->filled('customer_name')) {
@@ -70,27 +67,27 @@ class IndexController extends Controller
             }
         }
 
-        if ($request->filled('schedule_type')) {
-            $scheduleTypes = array_filter(
-                (array) $request->input('schedule_type', []),
-                function($v) { return $v !== '' && $v !== 'false'; }
-            );
-            if(!empty($scheduleTypes)) {
-                $query->where(function ($q) use ($scheduleTypes) {
-                    if (in_array('Delivery', $scheduleTypes)) {
-                        $q->where('is_delivery', 1);
-                    }
-                    if (in_array('Return', $scheduleTypes)) {
-                        $q->orWhere('is_pickup_return', 1);
-                    }
-                });
-            }
-        } else {
-            // Default to showing all transport modes
-            $query->where(function ($q) {
-                $q->where('is_delivery', 1)->orWhere('is_pickup_return', 1);
-            });
-        }
+        // if ($request->filled('schedule_type')) {
+        //     $scheduleTypes = array_filter(
+        //         (array) $request->input('schedule_type', []),
+        //         function($v) { return $v !== '' && $v !== 'false'; }
+        //     );
+        //     if(!empty($scheduleTypes)) {
+        //         $query->where(function ($q) use ($scheduleTypes) {
+        //             if (in_array('Delivery', $scheduleTypes)) {
+        //                 $q->where('is_delivery', 1);
+        //             }
+        //             if (in_array('Return', $scheduleTypes)) {
+        //                 $q->orWhere('is_pickup_return', 1);
+        //             }
+        //         });
+        //     }
+        // } else {
+        //     // Default to showing all transport modes
+        //     $query->where(function ($q) {
+        //         $q->where('is_delivery', 1)->orWhere('is_pickup_return', 1);
+        //     });
+        // }
 
         if ($request->filled('transport_mode')) {
             $transportModes = array_filter(
@@ -101,17 +98,17 @@ class IndexController extends Controller
                 $query->where(function ($q) use ($transportModes) {
                     if (in_array('Truck', $transportModes) && in_array('Store', $transportModes)) {
                         // BOTH: Truck and Store checked
-                        $q->whereIn('delivery_type', ['Truck', 'Store'])
-                        ->orWhereIn('pickup_type', ['Truck', 'Store']);
+                        $q->whereIn('delivery_transport_mode', ['Truck', 'Store'])
+                        ->orWhereIn('pickup_transport_mode', ['Truck', 'Store']);
                     } else  {
-                        $q->whereIn('delivery_type', $transportModes)->whereIn('pickup_type', $transportModes);
+                        $q->whereIn('delivery_transport_mode', $transportModes)->whereIn('pickup_transport_mode', $transportModes);
                     }
                 });
             }
         } else {
             // Default to showing all transport modes
             $query->where(function ($q) {
-                $q->whereIn('delivery_type', ['Truck','Store'])->orWhereIn('pickup_type', ['Truck','Store']);
+                $q->whereIn('delivery_transport_mode', ['Truck','Store'])->orWhereIn('pickup_transport_mode', ['Truck','Store']);
             });
         }
 

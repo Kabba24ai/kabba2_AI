@@ -53,8 +53,8 @@
                         @endphp
                         <div class="flex flex-col items-center">
                             <div class="flex items-center justify-center gap-1">
-                                @if (!empty($orderProduct->delivery_type))
-                                    @if ($orderProduct->delivery_type === 'Truck')
+                                @if (!empty($orderProduct->delivery_transport_mode))
+                                    @if ($orderProduct->delivery_transport_mode === 'Truck')
                                         <x-heroicon-o-truck class="w-4 h-4 {{ $iconColor }}" />
                                     @else
                                         <x-heroicon-o-building-storefront class="w-4 h-4 {{ $iconColor }}" />
@@ -75,8 +75,8 @@
                         @endphp
                         <div class="flex flex-col items-center">
                             <div class="flex items-center justify-center gap-1">
-                                @if (!empty($orderProduct->pickup_type))
-                                    @if ($orderProduct->pickup_type === 'Truck')
+                                @if (!empty($orderProduct->pickup_transport_mode))
+                                    @if ($orderProduct->pickup_transport_mode === 'Truck')
                                         <x-heroicon-o-truck class="w-4 h-4 {{ $iconColor }}" />
                                     @else
                                         <x-heroicon-o-building-storefront class="w-4 h-4 {{ $iconColor }}" />
@@ -93,18 +93,7 @@
                     </td>
 
                     <td class="px-4 py-3 text-center">
-                        @php
-                            $status = strtolower($orderProduct->order->last_payment_status);
-                            $badgeClasses = [
-                                'pending' => 'bg-yellow-100 text-yellow-800',
-                                'paid' => 'bg-green-100 text-green-800',
-                                'failed' => 'bg-red-100 text-red-800',
-                            ];
-                            $class = $badgeClasses[$status] ?? 'bg-gray-100 text-gray-800';
-                        @endphp
-                        <span class="px-2 py-1 rounded text-xs font-semibold {{ $class }}">
-                            {{ ucfirst($orderProduct->order->last_payment_status) }}
-                        </span>
+                        {!! $orderProduct->order->last_payment_badge !!}
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex gap-2 items-center justify-center">

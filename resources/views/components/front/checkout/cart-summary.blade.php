@@ -111,7 +111,7 @@
                         </ul>
                     </div>
                 </div>
-                <h4 class="mt-3 text-[15px]">Schedule Date: {{ $item['schedule_start_date'] ?? '-' }}</h4>
+                <h4 class="mt-3 text-[15px]">Schedule Date: {{ $item['delivery_date'] ?? '-' }}</h4>
             </div>
         @endforeach
 

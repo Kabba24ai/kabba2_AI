@@ -149,7 +149,7 @@ class CartHelper
                 break;
         }
 
-        $startDate = !empty($validated['schedule_start_date']) ? \Carbon\Carbon::parse($validated['schedule_start_date']) : null;
+        $startDate = !empty($validated['delivery_date']) ? \Carbon\Carbon::parse($validated['delivery_date']) : null;
         $endDate = $startDate ? $startDate->copy()->addDays($addDays) : null;
 
         $isDelivery = null;
@@ -187,8 +187,6 @@ class CartHelper
             'product_sale_active' => $isSale ? true : false,
             'product_price' => $price,
             'quantity' => $quantity,
-            'schedule_start_date' => $validated['schedule_start_date'] ?? null,
-            'schedule_end_date' => $endDate->format(config('app.date.date_format')) ?? null,
             'service_method' => $validated['service_method'] ?? null,
             'distance_type' => $validated['distance_type'] ?? null,
             'distance_range' => $distanceRange,
@@ -198,14 +196,12 @@ class CartHelper
             'store_address' => $storeAddress ?? null,
             'store_name' => $storeName ?? null,
 
-            'is_delivery' => $isDelivery ?? null,
-            'delivery_type' => ($isDelivery ? 'Truck' : 'Store') ?? null,
+            'delivery_transport_mode' => ($isDelivery ? 'Truck' : 'Store') ?? null,
             'delivery_store_id' => $validated['store_id'] ?? null,
-            'delivery_date' => $validated['schedule_start_date'] ?? null,
+            'delivery_date' => $validated['delivery_date'] ?? null,
             'delivery_time' => $deliveryTime,
 
-            'is_pickup_return' => $isPickupReturn ?? null,
-            'pickup_type' => ($isPickupReturn ? 'Truck' : 'Store') ?? null,
+            'pickup_transport_mode' => ($isPickupReturn ? 'Truck' : 'Store') ?? null,
             'pickup_store_id' => $validated['store_id'] ?? null,
             'pickup_date' => $endDate->format(config('app.date.date_format')) ?? null,
             'pickup_time' => $pickupTime ?? null,

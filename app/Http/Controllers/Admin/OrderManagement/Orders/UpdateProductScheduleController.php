@@ -23,9 +23,8 @@ class UpdateProductScheduleController extends Controller
 
         // Only update the single field passed for delivery or pickup/return using $validatedData
         if ($validatedData['type'] === 'delivery') {
-            $orderProduct->is_delivery = true;
             $deliveryFields = [
-                'delivery_date', 'delivery_time', 'delivery_type', 'delivery_status', 'delivery_store_id', 'delivery_by'
+                'delivery_date', 'delivery_time', 'delivery_transport_mode', 'delivery_status', 'delivery_store_id', 'delivery_by'
             ];
             foreach ($deliveryFields as $field) {
                 if (array_key_exists($field, $validatedData)) {
@@ -36,9 +35,8 @@ class UpdateProductScheduleController extends Controller
         }
 
         if ($validatedData['type'] === 'return') {
-            $orderProduct->is_pickup_return = true;
             $pickupFields = [
-                'pickup_date', 'pickup_time', 'pickup_type', 'pickup_status', 'pickup_store_id', 'pickup_by'
+                'pickup_date', 'pickup_time', 'pickup_transport_mode', 'pickup_status', 'pickup_store_id', 'pickup_by'
             ];
             foreach ($pickupFields as $field) {
                 if (array_key_exists($field, $validatedData)) {

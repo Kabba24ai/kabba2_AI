@@ -32,7 +32,7 @@
 
                     <div class="text-sm text-black">
                         <span class="font-semibold">Schedule Date :</span>
-                        <span>{{ $item['schedule_start_date'] }}</span>
+                        <span>{{ $item['delivery_date'] }}</span>
                     </div>
 
                     {{-- @if (!empty($item['service_method']))

@@ -62,16 +62,16 @@ window.CartStorage = (function(){
         if (qtyInput && cartItem.quantity != null) qtyInput.value = cartItem.quantity;
 
         // Update Schedule Start Date
-        if (cartItem.schedule_start_date) {
+        if (cartItem.delivery_date) {
            const dateInput = document.getElementById('scheduleStartDateInput');
             const dateText = document.getElementById('selectedDateText');
             if (dateInput) {
-                dateInput.value = cartItem.schedule_start_date;
+                dateInput.value = cartItem.delivery_date;
                 if (dateInput._airPicker && typeof dateInput._airPicker.selectDate === 'function') {
-                    dateInput._airPicker.selectDate(new Date(cartItem.schedule_start_date));
+                    dateInput._airPicker.selectDate(new Date(cartItem.delivery_date));
                 }
             }
-            if (dateText) dateText.textContent = cartItem.schedule_start_date;
+            if (dateText) dateText.textContent = cartItem.delivery_date;
         }
 
         // Product Options (checkboxes)

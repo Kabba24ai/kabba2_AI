@@ -443,12 +443,12 @@
                                             <!-- Type (fixed width, non-stretch) -->
                                             <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                    for="delivery_type-btn-{{ $orderProduct->unique_id }}">Type</label>
-                                                <div id="delivery_type-{{ $orderProduct->unique_id }}"
-                                                    x-data="{ selected: '{{ $orderProduct->delivery_type ?? 'Store' }}', open: false }" class="relative w-full">
-                                                    <button id="delivery_type-btn-{{ $orderProduct->unique_id }}"
+                                                    for="delivery_transport_mode-btn-{{ $orderProduct->unique_id }}">Type</label>
+                                                <div id="delivery_transport_mode-{{ $orderProduct->unique_id }}"
+                                                    x-data="{ selected: '{{ $orderProduct->delivery_transport_mode ?? 'Store' }}', open: false }" class="relative w-full">
+                                                    <button id="delivery_transport_mode-btn-{{ $orderProduct->unique_id }}"
                                                         type="button" @click="open = !open"
-                                                        class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_type">
+                                                        class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront
                                                                 class="w-4 h-4 text-yellow-600" />
@@ -477,7 +477,7 @@
                                                             </li>
                                                         </ul>
                                                     </div>
-                                                    <input type="hidden" name="type" class="delivery_type"
+                                                    <input type="hidden" name="type" class="delivery_transport_mode"
                                                         :value="selected" x-ref="deliveryTypeInput">
                                                 </div>
                                             </div>
@@ -562,12 +562,12 @@
                                             <!-- Type (fixed width, non-stretch) -->
                                             <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                    for="pickup_type-btn-{{ $orderProduct->unique_id }}">Type</label>
-                                                <div id="pickup_type_{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->pickup_type ?? 'Store' }}', open: false }"
+                                                    for="pickup_transport_mode-btn-{{ $orderProduct->unique_id }}">Type</label>
+                                                <div id="pickup_transport_mode_{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->pickup_transport_mode ?? 'Store' }}', open: false }"
                                                     class="relative w-full">
-                                                    <button id="pickup_type-btn-{{ $orderProduct->unique_id }}"
+                                                    <button id="pickup_transport_mode-btn-{{ $orderProduct->unique_id }}"
                                                         type="button" @click="open = !open"
-                                                        class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_type">
+                                                        class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront
                                                                 class="w-4 h-4 text-yellow-600" />
@@ -596,7 +596,7 @@
                                                             </li>
                                                         </ul>
                                                     </div>
-                                                    <input type="hidden" name="type" class="pickup_type"
+                                                    <input type="hidden" name="type" class="pickup_transport_mode"
                                                         :value="selected" x-ref="pickupTypeInput">
                                                 </div>
                                             </div>
@@ -1067,7 +1067,7 @@
                 // Delivery fields
                 const deliveryDate = container.querySelector('.delivery_date');
                 const deliveryTime = container.querySelector('.delivery_time');
-                const deliveryType = container.querySelector('input[type=hidden].delivery_type');
+                const deliveryType = container.querySelector('input[type=hidden].delivery_transport_mode');
                 const deliveryStatus = container.querySelector('.delivery_status');
                 const deliveryLocation = container.querySelector('.delivery_store_id');
                 const deliveryTechnician = container.querySelector('.delivery_by');
@@ -1075,7 +1075,7 @@
                 // Return fields
                 const returnDate = container.querySelector('.pickup_date');
                 const returnTime = container.querySelector('.pickup_time');
-                const returnType = container.querySelector('input[type=hidden].pickup_type');
+                const returnType = container.querySelector('input[type=hidden].pickup_transport_mode');
                 const returnStatus = container.querySelector('.pickup_status');
                 const returnLocation = container.querySelector('.pickup_store_id');
                 const returnTechnician = container.querySelector('.pickup_by');
@@ -1158,7 +1158,7 @@
                 if (deliveryType) {
                     deliveryType.addEventListener('change', function() {
                         console.log('Delivery type changed to', deliveryType.value);
-                        updateScheduleField('delivery', 'delivery_type', deliveryType.value);
+                        updateScheduleField('delivery', 'delivery_transport_mode', deliveryType.value);
                     });
                 }
                 if (deliveryStatus) {
@@ -1216,7 +1216,7 @@
                 }
                 if (returnType) {
                     returnType.addEventListener('change', function() {
-                        updateScheduleField('return', 'pickup_type', returnType.value);
+                        updateScheduleField('return', 'pickup_transport_mode', returnType.value);
                     });
                 }
                 if (returnStatus) {

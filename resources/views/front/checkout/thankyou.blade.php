@@ -48,10 +48,7 @@
                     </div>
                     <div class="flex">
                         <span class="font-normal w-40 flex-shrink-0">Payment status:</span>
-                        <span
-                            class="@if (($order->status ?? '') === 'PENDING') text-yellow-500 font-semibold @elseif(($order->status ?? '') === 'PAID') text-green-600 font-semibold @else text-gray-500 @endif">
-                            {{ strtoupper($order->status ?? '') }}
-                        </span>
+                        {!! $order->last_payment_badge !!}
                     </div>
                 </div>
 

@@ -23,8 +23,6 @@ class OrderProduct extends Model
         'sub_total',
         'tax',
         'total',
-        'schedule_start_date',
-        'schedule_end_date',
         'product_data', // json
         'service_method', // 'In Store Pickup', 'Delivery'
         'service_option', // 'Delivery + Pickup', 'Delivery Only', 'Return Only'
@@ -32,16 +30,15 @@ class OrderProduct extends Model
         'distance_type', // 'Standard', 'Extended', 'Custom'
         'distance_range',
 
-        'is_delivery',
         'delivery_status',
-        'delivery_type',
+        'delivery_transport_mode',
         'delivery_store_id',
         'delivery_by',
         'delivery_date',
         'delivery_time',
-        'is_pickup_return',
+
         'pickup_status',
-        'pickup_type',
+        'pickup_transport_mode',
         'pickup_store_id',
         'pickup_date',
         'pickup_time',

@@ -53,7 +53,7 @@ export function initAddToCart(context) {
             product_type: context.productType,
             product_variant: context.productVariant,
             quantity: qty,
-            schedule_start_date: scheduleDate,
+            delivery_date: scheduleDate,
             service_method: serviceMethod,
             distance_type: distanceType,
             distance_range: distanceRange,

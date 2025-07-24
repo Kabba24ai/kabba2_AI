@@ -88,10 +88,11 @@
                 <select id="payment_status" name="payment_status"
                     class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-34 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Payments</option>
-                    <option value="Completed" @selected(request('payment_status') == 'Completed')>Paid</option>
+                    <option value="Paid" @selected(request('payment_status') == 'Paid')>Paid</option>
                     <option value="Pending" @selected(request('payment_status') == 'Pending')>Pending</option>
-                    <option value="Refund" @selected(request('payment_status') == 'Refund')>Refund</option>
-                    <option value="Refund" @selected(request('payment_status') == 'Refund')>Refund</option>
+                    <option value="Account" @selected(request('payment_status') == 'Account')>Account</option>
+                    <option value="Partial Refund" @selected(request('payment_status') == 'Partial Refund')>Partial Refund</option>
+                    <option value="Refunded" @selected(request('payment_status') == 'Refunded')>Refunded</option>
                     <option value="Failed" @selected(request('payment_status') == 'Failed')>Failed</option>
                 </select>
             </div>

@@ -34,7 +34,7 @@ class ConfirmPaymentController extends Controller
                 ], 404);
             }
 
-            $lastPayment->status = 'Completed';
+            $lastPayment->status = 'Paid';
             $lastPayment->save();
 
             return response()->json([

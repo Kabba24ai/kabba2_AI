@@ -28,7 +28,6 @@ class Order extends Model
         'discount_amount',
         'grand_total',
         'order_note',
-        'status', // Pending, In Progress, Completed, Cancelled
         'cart_data', // JSON data of cart items
         'platform', // Web*, Android, iOS
     ];
@@ -135,6 +134,9 @@ class Order extends Model
         $status = strtolower($this->last_payment_status);
         $badgeClasses = [
             'pending' => 'bg-yellow-100 text-yellow-800',
+            'account' => 'bg-blue-100 text-blue-800',
+            'partial refund' => 'bg-orange-100 text-orange-800',
+            'refunded' => 'bg-purple-100 text-purple-800',
             'paid' => 'bg-green-100 text-green-800',
             'failed' => 'bg-red-100 text-red-800',
         ];

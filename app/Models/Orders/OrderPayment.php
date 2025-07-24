@@ -22,7 +22,7 @@ class OrderPayment extends Model
         'payment_profile_id',
         'payment_note',
         'amount',
-        'status',   // e.g., 'Pending', 'Completed', 'Failed'
+        'status',   // e.g., 'Pending', 'Paid', 'Account', 'Partial Refund', 'Refunded', 'Failed'
         'refunded_amount',
         'refund_note',
         'created_by_id',
@@ -57,9 +57,9 @@ class OrderPayment extends Model
         return $query->where('status', 'Pending');
     }
 
-    public function scopeCompleted($query)
+    public function scopePaid($query)
     {
-        return $query->where('status', 'Completed');
+        return $query->where('status', 'Paid');
     }
 
     public function scopeFailed($query)
@@ -70,10 +70,5 @@ class OrderPayment extends Model
     public function scopeCod($query)
     {
         return $query->where('payment_method', 'COD');
-    }
-
-    public function getStatusAttribute($value)
-    {
-        return $value === 'Completed' ? 'Paid' : $value;
     }
 }

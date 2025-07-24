@@ -158,7 +158,7 @@
                             </div>
 
                             <!-- Hidden input stays outside for accessibility/JS -->
-                            <input type="text" name="schedule_start_date" id="scheduleStartDateInput"
+                            <input type="text" name="delivery_date" id="scheduleStartDateInput"
                                 data-format="{{ config('app.date.js_date_format') }}"
                                 data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
                                 class="sr-only" readonly placeholder="Select Start Date" />

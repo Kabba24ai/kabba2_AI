@@ -25,9 +25,9 @@ class SaveRequest extends FormRequest
 
         // Normalize fields based on service_method
         if (($data['service_method'] ?? null) === 'Delivery') {
-            // For Delivery, store_id should be blank if service_option is "Delivery + Pickup"
+            // For Delivery, delivery_store_id should be blank if service_option is "Delivery + Pickup"
             if (($data['service_option'] ?? null) === 'Delivery + Pickup') {
-                $data['store_id'] = null;
+                $data['delivery_store_id'] = null;
             }
         } else {
             // For In Store Pickup or no service_method, delivery-related fields should be blank
@@ -54,7 +54,7 @@ class SaveRequest extends FormRequest
             'service_method' => ['nullable', 'in:In Store Pickup,Delivery'],
             'distance_type'  => ['nullable','required_if:service_method,Delivery', 'in:Standard,Extended,Custom'],
             'service_option' => ['nullable', 'in:Delivery + Pickup,Delivery Only,Return Only'],
-            'store_id' => ['nullable', 'integer', 'exists:stores,id'],
+            'delivery_store_id' => ['nullable', 'integer', 'exists:stores,id'],
             'product_option_items' => ['nullable', 'array'],
             'product_option_items.*.unique_id' => ['required_with:product_option_items', 'string', 'exists:product_option_items,unique_id'],
             'product_rental_items' => ['nullable', 'array'],
@@ -68,7 +68,7 @@ class SaveRequest extends FormRequest
             return $input->product_type === 'Rental';
         });
 
-        $validator->sometimes('store_id', 'required', function ($input) {
+        $validator->sometimes('delivery_store_id', 'required', function ($input) {
             // In store pickup always needs a store
             if ($input->service_method === 'In Store Pickup') {
                 return true;
@@ -125,9 +125,9 @@ class SaveRequest extends FormRequest
             'distance_type.in'             => 'Distance type must be Standard, Extended, or Custom.',
             'service_option.required'      => 'Delivery option is required for rental delivery.',
             'service_option.in'            => 'Please select a valid Delivery option.',
-            'store_id.required'            => 'Please select a store location.',
-            'store_id.exists'              => 'The selected store does not exist.',
-            'store_id.integer'             => 'Store ID must be a valid number.',
+            'delivery_store_id.required'   => 'Please select a store location.',
+            'delivery_store_id.exists'     => 'The selected store does not exist.',
+            'delivery_store_id.integer'    => 'Store ID must be a valid number.',
             'product_option_items.array'   => 'Product options must be a list.',
             'product_option_items.*.unique_id.required_with' => 'Every selected product option must have a unique ID.',
             'product_option_items.*.unique_id.exists'        => 'One or more selected options are invalid.',

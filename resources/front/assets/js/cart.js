@@ -119,9 +119,9 @@ window.CartStorage = (function(){
         }
 
         // Store Location Select
-        if (cartItem.store_id && document.getElementById('storeSelect')) {
+        if (cartItem.delivery_store_id && document.getElementById('storeSelect')) {
             const select = document.getElementById('storeSelect');
-            select.value = cartItem.store_id;
+            select.value = cartItem.delivery_store_id;
             // Optional: fire change event if you have listeners
             select.dispatchEvent(new Event('change', { bubbles: true }));
         }

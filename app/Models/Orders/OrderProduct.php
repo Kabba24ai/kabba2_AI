@@ -26,19 +26,18 @@ class OrderProduct extends Model
         'product_data', // json
         'service_method', // 'In Store Pickup', 'Delivery'
         'service_option', // 'Delivery + Pickup', 'Delivery Only', 'Return Only'
-        'store_id',
         'distance_type', // 'Standard', 'Extended', 'Custom'
         'distance_range',
 
-        'delivery_status',
-        'delivery_transport_mode',
+        'delivery_status', // 'Pending',  'Completed', 'Reschedule'
+        'delivery_transport_mode', // 'Store', 'Truck'
         'delivery_store_id',
         'delivery_by',
         'delivery_date',
         'delivery_time',
 
-        'pickup_status',
-        'pickup_transport_mode',
+        'pickup_status', // 'Pending',  'Completed', 'Reschedule'
+        'pickup_transport_mode', // 'Store', 'Truck'
         'pickup_store_id',
         'pickup_date',
         'pickup_time',
@@ -68,14 +67,6 @@ class OrderProduct extends Model
         return $this->belongsTo(Product::class);
     }
 
-    /**
-     * Get the store associated with the order product
-     */
-    public function store()
-    {
-        return $this->belongsTo(Store::class);
-    }
-
     protected static function boot()
     {
         parent::boot();
@@ -84,5 +75,41 @@ class OrderProduct extends Model
             $model->unique_id = ModelHelper::generateUniqueID($model, 'ORD-SCH');
         });
     }
+
+    /**
+     * Reverse mapping: from transport modes to service_method and service_option.
+     *
+     * @return array
+     */
+    public function getServiceMethodFromTransportMode()
+    {
+        $deliveryTransportMode = $this->delivery_transport_mode;
+        $pickupTransportMode = $this->pickup_transport_mode;
+
+        $serviceMethod = 'In Store Pickup';
+        $serviceOption = null;
+
+        if ($deliveryTransportMode === 'Store' && $pickupTransportMode === 'Store') {
+            $serviceMethod = 'In Store Pickup';
+        } elseif ($deliveryTransportMode === 'Truck' && $pickupTransportMode === 'Truck') {
+            $serviceMethod = 'Delivery';
+            $serviceOption = 'Delivery + Pickup';
+        } elseif ($deliveryTransportMode === 'Truck' && $pickupTransportMode === 'Store') {
+            $serviceMethod = 'Delivery';
+            $serviceOption = 'Delivery Only';
+        } elseif ($deliveryTransportMode === 'Store' && $pickupTransportMode === 'Truck') {
+            $serviceMethod = 'Delivery';
+            $serviceOption = 'Return Only';
+        } else {
+            $serviceMethod = null;
+            $serviceOption = null;
+        }
+
+        return [
+            'service_method' => $serviceMethod,
+            'service_option' => $serviceOption,
+        ];
+    }
+
 
 }

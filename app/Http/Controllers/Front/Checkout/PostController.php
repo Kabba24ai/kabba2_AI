@@ -194,7 +194,6 @@ class PostController extends Controller
                         'product_data' => $item,
                         'service_method' => $item['service_method'] ?? null,
                         'service_option' => $item['service_option'] ?? null,
-                        'store_id' => $item['store_id'] ?? null,
                         'distance_type' => $item['distance_type'] ?? null,
                         'distance_range' => $item['distance_range'] ?? null,
 

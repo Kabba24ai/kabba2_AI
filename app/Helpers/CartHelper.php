@@ -85,8 +85,8 @@ class CartHelper
 
         $storeAddress = null;
         $storeName = null;
-        if (!empty($validated['store_id'])) {
-            $store = Store::find($validated['store_id']);
+        if (!empty($validated['delivery_store_id'])) {
+            $store = Store::find($validated['delivery_store_id']);
             $storeAddress = $store ? $store->getFullAddress() : null;
             $storeName = $store ? $store->store_name : null;
         }
@@ -152,28 +152,28 @@ class CartHelper
         $startDate = !empty($validated['delivery_date']) ? \Carbon\Carbon::parse($validated['delivery_date']) : null;
         $endDate = $startDate ? $startDate->copy()->addDays($addDays) : null;
 
-        $isDelivery = null;
-        $isPickupReturn = null;
+        $deliveryTransportMode = 'Store';
+        $pickupTransportMode = 'Store';
         if($validated['service_method'] === "In Store Pickup") {
-            $isPickupReturn = 0;
-            $isDelivery = 0;
+            $deliveryTransportMode = 'Store';
+            $pickupTransportMode = 'Store';
         } elseif ($validated['service_method'] === "Delivery") {
             switch ($validated['service_option']) {
                 case 'Delivery + Pickup':
-                    $isPickupReturn = 1;
-                    $isDelivery = 1;
+                    $deliveryTransportMode = 'Truck';
+                    $pickupTransportMode = 'Truck';
                     break;
                 case 'Delivery Only':
-                    $isPickupReturn = 0;
-                    $isDelivery = 1;
+                    $deliveryTransportMode = 'Truck';
+                    $pickupTransportMode = 'Store';
                     break;
                 case 'Return Only':
-                    $isPickupReturn = 1;
-                    $isDelivery = 0;
+                    $deliveryTransportMode = 'Store';
+                    $pickupTransportMode = 'Truck';
                     break;
                 default:
-                    $isPickupReturn = 0;
-                    $isDelivery = 0;
+                    $pickupTransportMode = 'Store';
+                    $deliveryTransportMode = 'Store';
             }
         }
 
@@ -192,17 +192,16 @@ class CartHelper
             'distance_range' => $distanceRange,
             'service_option' => $validated['service_option'] ?? null,
             'service_option_price' => round($serviceOptionPrice, 2),
-            'store_id' => $validated['store_id'] ?? null,
             'store_address' => $storeAddress ?? null,
             'store_name' => $storeName ?? null,
 
-            'delivery_transport_mode' => ($isDelivery ? 'Truck' : 'Store') ?? null,
-            'delivery_store_id' => $validated['store_id'] ?? null,
+            'delivery_transport_mode' => ($deliveryTransportMode ?? null),
+            'delivery_store_id' => $validated['delivery_store_id'] ?? null,
             'delivery_date' => $validated['delivery_date'] ?? null,
             'delivery_time' => $deliveryTime,
 
-            'pickup_transport_mode' => ($isPickupReturn ? 'Truck' : 'Store') ?? null,
-            'pickup_store_id' => $validated['store_id'] ?? null,
+            'pickup_transport_mode' => ($pickupTransportMode ?? null),
+            'pickup_store_id' => $validated['delivery_store_id'] ?? null,
             'pickup_date' => $endDate->format(config('app.date.date_format')) ?? null,
             'pickup_time' => $pickupTime ?? null,
 

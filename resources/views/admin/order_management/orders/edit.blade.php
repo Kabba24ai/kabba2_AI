@@ -296,7 +296,7 @@
                             <span>{{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->price) }}</span>
                         </div>
 
-                        @if (!empty($orderProduct->service_method))
+                        {{-- @if (!empty($orderProduct->service_method))
                             <div class="flex flex-col gap-y-1">
                                 <div class="text-xs flex justify-between items-center">
                                     <span class="underline">Service:</span>
@@ -305,30 +305,6 @@
                                     <li class="text-xs before:content-['-'] before:pr-1">
                                         {{ $orderProduct->service_method }}
                                     </li>
-                                </ul>
-                            </div>
-                        @endif
-
-                        @if (!empty($orderProduct->store))
-                            <div class="flex flex-col gap-y-1">
-                                <div class="text-xs underline">
-                                    Store:
-                                </div>
-                                <ul class="flex flex-col">
-                                    <li class="text-xs before:content-['-'] before:pr-1">
-                                        {{ ucfirst($orderProduct->store->store_name) }}</li>
-                                </ul>
-                            </div>
-                        @endif
-
-                        @if (!empty($orderProduct->distance_range))
-                            <div class="flex flex-col gap-y-1">
-                                <div class="text-xs underline">
-                                    Distance Range:
-                                </div>
-                                <ul class="flex flex-col">
-                                    <li class="text-xs before:content-['-'] before:pr-1">
-                                        {{ ucfirst($orderProduct->distance_range) }}</li>
                                 </ul>
                             </div>
                         @endif
@@ -344,7 +320,21 @@
                                     </li>
                                 </ul>
                             </div>
+                        @endif --}}
+
+                        @if (!empty($orderProduct->distance_range))
+                            <div class="flex flex-col gap-y-1">
+                                <div class="text-xs underline">
+                                    Distance Range:
+                                </div>
+                                <ul class="flex flex-col">
+                                    <li class="text-xs before:content-['-'] before:pr-1">
+                                        {{ ucfirst($orderProduct->distance_range) }}</li>
+                                </ul>
+                            </div>
                         @endif
+
+
 
                         @if ($orderProduct->product_data && count($orderProduct->product_data))
                             <div class="flex justify-between">
@@ -617,9 +607,9 @@
                                                     <option value="Completed"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}>
                                                         Completed</option>
-                                                    <option value="Reschedule"
+                                                    {{-- <option value="Reschedule"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
-                                                        Reschedule</option>
+                                                        Reschedule</option> --}}
                                                 </select>
                                             </div>
                                             <!-- Location -->

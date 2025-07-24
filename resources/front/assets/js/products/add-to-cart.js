@@ -58,7 +58,7 @@ export function initAddToCart(context) {
             distance_type: distanceType,
             distance_range: distanceRange,
             service_option: serviceOption,
-            store_id: storeId,
+            delivery_store_id: storeId,
             product_option_items: productOptionItems,
             product_rental_items: productRentalItems
         };

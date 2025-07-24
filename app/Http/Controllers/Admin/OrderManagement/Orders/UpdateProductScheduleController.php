@@ -21,14 +21,22 @@ class UpdateProductScheduleController extends Controller
             return response()->json(['message' => 'Order product not found.'], 404);
         }
 
+        $deliveryChanged = false;
+        $pickupChanged = false;
+
         // Only update the single field passed for delivery or pickup/return using $validatedData
         if ($validatedData['type'] === 'delivery') {
+
             $deliveryFields = [
                 'delivery_date', 'delivery_time', 'delivery_transport_mode', 'delivery_status', 'delivery_store_id', 'delivery_by'
             ];
             foreach ($deliveryFields as $field) {
                 if (array_key_exists($field, $validatedData)) {
                     $orderProduct->$field = $validatedData[$field];
+                    // Track if mode was changed
+                    if ($field === 'delivery_transport_mode') {
+                        $deliveryChanged = true;
+                    }
                     break;
                 }
             }
@@ -41,9 +49,20 @@ class UpdateProductScheduleController extends Controller
             foreach ($pickupFields as $field) {
                 if (array_key_exists($field, $validatedData)) {
                     $orderProduct->$field = $validatedData[$field];
+                    // Track if mode was changed
+                    if ($field === 'pickup_transport_mode') {
+                        $pickupChanged = true;
+                    }
                     break;
                 }
             }
+        }
+
+        // If either transport mode changed, update service_method and service_option
+        if ($deliveryChanged || $pickupChanged) {
+            $serviceData = $orderProduct->getServiceMethodFromTransportMode();
+            $orderProduct->service_method = $serviceData['service_method'];
+            $orderProduct->service_option = $serviceData['service_option'];
         }
 
         $orderProduct->save();

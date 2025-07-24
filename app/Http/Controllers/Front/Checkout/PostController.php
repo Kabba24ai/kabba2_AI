@@ -12,16 +12,17 @@ use App\Helpers\CartHelper;
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
 
-use App\Models\Customers\CustomerAccount;
 use App\Helpers\CustomHelper;
+use App\Services\AuthorizeNetService;
 
 // Models
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
-use App\Models\Locations\State;
+use App\Models\Customers\CustomerAccount;
 use App\Models\ProductManagement\Product;
-use App\Services\AuthorizeNetService;
 use App\Models\Configurations\Setting;
+use App\Models\Locations\State;
+use App\Models\Stores\Store;
 
 class PostController extends Controller
 {
@@ -180,6 +181,8 @@ class PostController extends Controller
                 'zip_code' => $deliveryAddress->zip_code,
             ]);
 
+            $primaryStoreId = Store::primary()->value('id');
+
             foreach ($cartSummary['cart_items'] as $item) {
                 if ($product = Product::where('unique_id', $item['product_unique_id'])->first()) {
                     $order->products()->create([
@@ -197,12 +200,12 @@ class PostController extends Controller
                         'distance_type' => $item['distance_type'] ?? null,
                         'distance_range' => $item['distance_range'] ?? null,
 
-                        'delivery_transport_mode' => $item['delivery_transport_mode'] ?? null,
+                        'delivery_transport_mode' => $item['delivery_transport_mode'] ?? $primaryStoreId,
                         'delivery_store_id' => $item['delivery_store_id'] ?? null,
                         'delivery_date' => !empty($item['delivery_date']) ? Carbon::parse($item['delivery_date'])->format(config('app.date.db_date_format')) : null,
                         'delivery_time' => !empty($item['delivery_time']) ? Carbon::parse($item['delivery_time'])->format(config('app.date.db_time_format')) : null,
 
-                        'pickup_transport_mode' => $item['pickup_transport_mode'] ?? null,
+                        'pickup_transport_mode' => $item['pickup_transport_mode'] ?? $primaryStoreId,
                         'pickup_store_id' => $item['pickup_store_id'] ?? null,
                         'pickup_date' => !empty($item['pickup_date']) ? Carbon::parse($item['pickup_date'])->format(config('app.date.db_date_format')) : null,
                         'pickup_time' => !empty($item['pickup_time']) ? Carbon::parse($item['pickup_time'])->format(config('app.date.db_time_format')) : null,

@@ -35,6 +35,11 @@ class Store extends Model
         return $query->where('status', 'Active');
     }
 
+    public function scopePrimary($query)
+    {
+        return $query->where('is_primary', 'Yes');
+    }
+
     public function state()
     {
         return $this->belongsTo(\App\Models\Locations\State::class);

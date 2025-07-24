@@ -815,6 +815,9 @@ span.flatpickr-weekday,
 .billing-summary-w-15{
   width: 15%;
 }
+.bg-pink-100 {
+   background-color: #ffdff9;
+}
 @media screen and (max-width:699px) {
   .billing-summary-w-16{width: 100%;}
   .billing-summary-w-15{width: 100%;}

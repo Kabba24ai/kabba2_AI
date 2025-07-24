@@ -544,6 +544,9 @@
                                 </label>
                             </div>
                             <!-- Add Account -->
+
+
+                            @if (auth('customer')->check() && auth('customer')->user()->credit_limit > 0 && auth('customer')->user()->is_credit_account == 1)
                             <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'Account' ? 'border-blue-500' : '' }}"
                                 data-value="Account">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
@@ -552,6 +555,9 @@
                                     <span>Add to Account</span>
                                 </label>
                             </div>
+                            @endif
+
+
                         </div>
                     </div>
 

@@ -15,20 +15,24 @@ class CartHelper
             throw new \InvalidArgumentException('The "cart_items" key is required.');
         }
 
-
         // --- Global/Config Settings ---
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
         $taxRate = floatval($productSettings['sales_tax'] ?? 0);
 
+        // --- Check session for tax exemption ---
+        if (session()->has('tax_exempt')) {
+            $taxExempt = session('tax_exempt');
+        } else {
+            $taxExempt = $input['tax_exempt'] ?? false; // Thank you page required $input['tax_exempt'] pass manually
+        }
         // --- Cart-level meta ---
         $cartId = $input['cart_id'] ?? null;
-        $taxExempt = $input['tax_exempt'] ?? false;
         $orderNotes = $input['order_notes'] ?? null;
         $paymentMethod = $input['payment_method'] ?? null;
         $couponCode = $input['coupon_code'] ?? null;
         $discount = floatval($input['discount'] ?? 0);
 
-         // Determine tax exemption based on authenticated customer
+        // Determine tax exemption based on authenticated customer
         $customer = auth('customer')->check() ? auth('customer')->user() : null;
 
         // Override $taxExempt if customer is authenticated and marked as Exempt
@@ -55,14 +59,15 @@ class CartHelper
                 continue;
             }
 
-            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings);
+            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt);
             $items[] = $item;
             $subTotal += $item['sub_total'];
-        $taxTotal += $taxExempt ? 0 : $item['tax'];
-        $grandTotal += $taxExempt ? $item['sub_total'] : $item['total'];
+            $taxTotal += $taxExempt ? 0 : $item['tax'];
+            $grandTotal += $taxExempt ? $item['sub_total'] : $item['total'];
         }
 
         $grandTotalAfterDiscount = $grandTotal - $discount;
+
 
         return [
             'cart_id' => $cartId,
@@ -78,7 +83,7 @@ class CartHelper
         ];
     }
 
-    private static function buildCartItem($product, $validated, $taxRate, $productSettings)
+    private static function buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt)
     {
         $quantity = $validated['quantity'];
         $variant = $validated['product_variant'] ?? null;
@@ -120,7 +125,7 @@ class CartHelper
         $rentalItemsTotal = array_sum($selectedRentalItemsWithPrices);
 
         $itemSubTotal = $price * $quantity + $optionsTotal + $serviceOptionPrice + $rentalItemsTotal;
-        $itemTax = $itemSubTotal * $taxRate;
+        $itemTax = $taxExempt ? 0 : $itemSubTotal * $taxRate;
         $itemTotal = $itemSubTotal + $itemTax;
 
         $addDays = 1; // Default to 1 day per item
@@ -154,10 +159,10 @@ class CartHelper
 
         $deliveryTransportMode = 'Store';
         $pickupTransportMode = 'Store';
-        if($validated['service_method'] === "In Store Pickup") {
+        if ($validated['service_method'] === 'In Store Pickup') {
             $deliveryTransportMode = 'Store';
             $pickupTransportMode = 'Store';
-        } elseif ($validated['service_method'] === "Delivery") {
+        } elseif ($validated['service_method'] === 'Delivery') {
             switch ($validated['service_option']) {
                 case 'Delivery + Pickup':
                     $deliveryTransportMode = 'Truck';
@@ -195,12 +200,12 @@ class CartHelper
             'store_address' => $storeAddress ?? null,
             'store_name' => $storeName ?? null,
 
-            'delivery_transport_mode' => ($deliveryTransportMode ?? null),
+            'delivery_transport_mode' => $deliveryTransportMode ?? null,
             'delivery_store_id' => $validated['delivery_store_id'] ?? null,
             'delivery_date' => $validated['delivery_date'] ?? null,
             'delivery_time' => $deliveryTime,
 
-            'pickup_transport_mode' => ($pickupTransportMode ?? null),
+            'pickup_transport_mode' => $pickupTransportMode ?? null,
             'pickup_store_id' => $validated['delivery_store_id'] ?? null,
             'pickup_date' => $endDate->format(config('app.date.date_format')) ?? null,
             'pickup_time' => $pickupTime ?? null,

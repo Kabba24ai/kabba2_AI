@@ -17,7 +17,10 @@ class ThankYouController extends Controller
         // Find order by unique id (or fail if not found)
         $order = Order::where('unique_id', $order)->firstOrFail();
 
-        $cartSummary = CartHelper::buildCartSummary(['cart_items' => $order->cart_data]);
+        $cartSummary = CartHelper::buildCartSummary([
+            'tax_exempt' => $order->is_tax_exempt == "Yes" ? true : false,
+            'cart_items' => $order->cart_data
+        ]);
 
         // Render a component (for example, a Blade component)
         $thankYouComponent = view('components.front.checkout.cart-summary', [

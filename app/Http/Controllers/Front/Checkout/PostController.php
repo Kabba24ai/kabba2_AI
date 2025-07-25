@@ -37,6 +37,8 @@ class PostController extends Controller
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
 
+
+
         try {
             // 1. Find or create customer
             $customer = Customer::firstOrCreate(
@@ -150,6 +152,7 @@ class PostController extends Controller
                 'grand_total' => $cartSummary['grand_total'],
                 'order_note' => $validated['orderNotes'] ?? null,
                 'cart_data' => $cart,
+                'is_tax_exempt' => $cartSummary['tax_exempt'] ? 'Yes' : 'No',
                 'platform' => 'Web',
             ]);
 
@@ -277,6 +280,10 @@ class PostController extends Controller
                 $record->save();
 
                 CustomHelper::updateCreditBalance($record, $order->tax_amount);
+            }
+
+            if(session()->has('tax_exempt')) {
+                session()->forget('tax_exempt'); // Clear tax exempt session if already set
             }
 
             DB::commit();

@@ -20,6 +20,7 @@ import "@fortawesome/fontawesome-free/js/all.js"; // Import Font Awesome JS
 import '../../../shared/js/app.js'; // Import the Notyf setup
 import '../../../shared/js/notif.js'; // Import the Notyf setup
 import '../../../shared/js/air-datepicker.js';
+import '../../../shared/js/api.js';
 import "./custom.js";
 import "./cart.js";
 import "./glightbox.js";

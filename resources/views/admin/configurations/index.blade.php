@@ -105,6 +105,14 @@
                                                                 'rows' => 4,
                                                             ]);
                                                         break;
+                                                    case 'password':
+                                                        $input = html()
+                                                            ->password("settings[{$setting->id}]")
+                                                            ->value($inputValue)
+                                                            ->class($inputClasses)
+                                                            ->id("setting_{$setting->id}")
+                                                            ->attributes(['placeholder' => 'Enter Here']);
+                                                        break;
                                                     default:
                                                         $input = html()
                                                             ->text("settings[{$setting->id}]")

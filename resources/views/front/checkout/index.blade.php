@@ -35,7 +35,8 @@
                     <div class="flex items-center justify-between mt-2 mb-2">
                         <h2 class="text-2xl font-bold m-0">Billing information</h2>
                         <div class="flex items-center gap-x-2">
-                            <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4 align-middle" />
+                            <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4 align-middle"
+                                {{ old('taxExempt', session('tax_exempt', false)) ? 'checked' : '' }} />
                             <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
                         </div>
                     </div>
@@ -96,9 +97,11 @@
                     @else
                         <div class="mb-6 text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-2">
                             <div class="flex items-center gap-x-2">
-                                <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create Account</a>
+                                <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create
+                                    Account</a>
                                 <span class="mx-1">|</span>
-                                <a href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To Account</a>
+                                <a href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To
+                                    Account</a>
                             </div>
                         </div>
                         @php
@@ -296,7 +299,6 @@
                                             </div> --}}
                     </div>
 
-
                     <!-- Delivery Info -->
                     <h4 class="text-lg font-semibold">Delivery information</h4>
                     <div class="flex items-center gap-2 mb-4">
@@ -431,7 +433,6 @@
                         </div>
                     </div>
 
-
                     <!-- Order Notes -->
                     <div>
                         <h4 class="text-lg font-semibold mb-1">Order notes</h4>
@@ -447,8 +448,6 @@
                             <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-
-
 
                     <!-- Payment Method -->
                     <div class="mx-auto" id="paymentForm">
@@ -617,26 +616,41 @@
                 <h5 class="text-lg text-white">Enter Admin Code</h5>
                 <button onclick="cancelModal()" class="px-4 py-2 text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            {{ html()->form()->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'space-y-4',
+                    'id' => 'taxForm',
+                ])->open() }}
+            @csrf
             <div class="p-6 py-4">
                 <span class="font-medium">Note: </span>
                 <p class="text-gray-700 mb-4 inline text-sm italic">Tax Exempt sales must be pre-approved with
                     documentation on file prior to placing the order. Call if you need assistance with placing an order with
                     Tax Exempt status.</p>
-                <form action="#">
-                    <input type="password" name="name" id="name"
-                        class="form-input mt-1 block w-full px-4 py-2 rounded-md border border-gray-300 shadow-sm "
-                        placeholder=" Admin Code" />
-                </form>
+                <input type="password" name="admin_code" id="admin_code"
+                    class="form-input mt-1 block w-full px-4 py-2 rounded-md border border-gray-300 shadow-sm"
+                    placeholder="Admin Code" required data-parsley-type="digits" data-parsley-minlength="6"
+                    data-parsley-required-message="Please enter the admin code"
+                    data-parsley-type-message="Admin code must be numeric"
+                    data-parsley-minlength-message="Admin code must be at least 6 digits" />
+
             </div>
 
             <div class="border-t p-6 py-4">
                 <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-end gap-3">
-                    <button onclick="cancelModal()"
+                    <button type="button" onclick="cancelModal()"
                         class="bg-gray-600 hover:bg-gray-700 text-white text-base font-medium rounded px-8 py-3 ">Cancel</button>
-                    <button onclick="confirmModal()"
-                        class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 ">Submit</button>
+                    <button type="submit" id="taxSubmitBtn"
+                        class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3">
+                        <span id="taxSubmitText">Submit</span>
+                        <span id="taxSubmitLoader" class="hidden">
+                            <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
+                        </span>
+                    </button>
                 </div>
             </div>
+            {{ html()->form()->close() }}
         </div>
     </div>
 @endsection
@@ -657,7 +671,34 @@
             var checkoutBtn = document.getElementById('checkoutBtn');
             var checkoutBtnText = document.getElementById('checkoutBtnText');
             var checkoutBtnLoader = document.getElementById('checkoutBtnLoader');
+
+            function disableCheckoutButton() {
+                if (!checkoutBtn) return;
+                checkoutBtn.disabled = true;
+                checkoutBtnText.classList.add('hidden');
+                checkoutBtnLoader.classList.remove('hidden');
+            }
+
+            function enableCheckoutButton() {
+                if (!checkoutBtn) return;
+                checkoutBtn.disabled = false;
+                checkoutBtnText.classList.remove('hidden');
+                checkoutBtnLoader.classList.add('hidden');
+            }
+
             form.addEventListener('submit', function(e) {
+                const parsleyForm = $(form).parsley();
+
+                // Force Parsley to validate
+                if (!parsleyForm.isValid({
+                        force: true
+                    })) {
+                    // Stop everything: do not show loader
+                    e.preventDefault();
+                    enableCheckoutButton();
+                    return;
+                }
+
                 // 1. Cart validation
                 let cart = window.CartStorage.getCart();
                 if (!cart || cart.length === 0) {
@@ -670,127 +711,103 @@
                 // 2. Only process credit card fields if "Card" payment is selected
                 const paymentType = document.querySelector('input[name="payment"]:checked');
                 if (paymentType && paymentType.value === 'Card') {
+
                     e.preventDefault(); // Pause form submit until Accept.js finishes
-                    // Disable button and show loader
-                    if (checkoutBtn) {
-                        checkoutBtn.disabled = true;
-                        checkoutBtnText.classList.add('hidden');
-                        checkoutBtnLoader.classList.remove('hidden');
-                    }
+                    disableCheckoutButton();
+                    try {
 
-                    // Card fields
-                    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
-                    const expiry = document.getElementById('expiry').value.trim();
-                    const cvc = document.getElementById('cvc').value.trim();
+                        // Card fields
+                        const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                        const expiry = document.getElementById('expiry').value.trim();
+                        const cvc = document.getElementById('cvc').value.trim();
 
-                    // Basic validation
-                    function luhnCheck(num) {
-                        let arr = (num + '').split('').reverse().map(x => parseInt(x));
-                        let sum = arr.reduce((acc, val, idx) => {
-                            if (idx % 2) {
-                                val *= 2;
-                                if (val > 9) val -= 9;
+                        // Basic validation
+                        function luhnCheck(num) {
+                            let arr = (num + '').split('').reverse().map(x => parseInt(x));
+                            let sum = arr.reduce((acc, val, idx) => {
+                                if (idx % 2) {
+                                    val *= 2;
+                                    if (val > 9) val -= 9;
+                                }
+                                return acc + val;
+                            }, 0);
+                            return sum % 10 === 0;
+                        }
+
+                        if (!/^\d{13,19}$/.test(cardNumber) || !luhnCheck(cardNumber)) {
+                            throw new Error('Invalid card number.');
+                        }
+
+                        if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+                            throw new Error('Invalid expiry date. Use MM/YY.');
+                        }
+                        const [mm, yy] = expiry.split('/');
+                        const now = new Date();
+                        const expiryYear = 2000 + parseInt(yy, 10);
+                        const expiryMonth = parseInt(mm, 10);
+
+                        if (
+                            expiryMonth < 1 || expiryMonth > 12 ||
+                            expiryYear < now.getFullYear() ||
+                            (expiryYear === now.getFullYear() && expiryMonth < (now.getMonth() + 1))
+                        ) {
+                            throw new Error('Card expiry is in the past.');
+                        }
+
+                        if (!/^\d{3,4}$/.test(cvc)) {
+                            throw new Error('Invalid CVC code.');
+                        }
+
+                        // 3. If validation passes, use Accept.js to tokenize the card
+                        const [expMonth, expYearShort] = expiry.split('/');
+                        const expYear = '20' + expYearShort;
+
+                        // Fill in your actual config values here (best: pass from Blade using Laravel config)
+                        const authData = {
+                            clientKey: '{{ $paymentSetting['payment_api_public_key'] ?? '' }}',
+                            apiLoginID: '{{ $paymentSetting['payment_api_key'] ?? '' }}'
+                        };
+                        const cardData = {
+                            cardNumber: cardNumber,
+                            month: expMonth,
+                            year: expYear,
+                            cardCode: cvc
+                        };
+                        const secureData = {
+                            authData: authData,
+                            cardData: cardData
+                        };
+
+                        Accept.dispatchData(secureData, function(response) {
+                            if (response.messages.resultCode === "Error") {
+                                let errorMsg = response.messages.message.map(m => m.text).join(
+                                    ', ');
+                                notyf.error('Card Error: ' + errorMsg);
+                                enableCheckoutButton();
+                            } else {
+                                document.getElementById('opaqueDataValue').value = response
+                                    .opaqueData
+                                    .dataValue;
+                                document.getElementById('opaqueDataDescriptor').value = response
+                                    .opaqueData.dataDescriptor;
+                                form.submit(); // Now actually submit the form
                             }
-                            return acc + val;
-                        }, 0);
-                        return sum % 10 === 0;
+                        });
+                    } catch (error) {
+                        notyf.error(error.message);
+                        enableCheckoutButton();
                     }
-
-                    if (!/^\d{13,19}$/.test(cardNumber) || !luhnCheck(cardNumber)) {
-                        notyf.error('Invalid card number.');
-                        if (checkoutBtn) {
-                            checkoutBtn.disabled = false;
-                            checkoutBtnText.classList.remove('hidden');
-                            checkoutBtnLoader.classList.add('hidden');
-                        }
-                        return false;
-                    }
-
-                    if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-                        notyf.error('Invalid expiry date. Use MM/YY.');
-                        if (checkoutBtn) {
-                            checkoutBtn.disabled = false;
-                            checkoutBtnText.classList.remove('hidden');
-                            checkoutBtnLoader.classList.add('hidden');
-                        }
-                        return false;
-                    }
-                    const [mm, yy] = expiry.split('/');
-                    const now = new Date();
-                    const expiryYear = 2000 + parseInt(yy, 10);
-                    const expiryMonth = parseInt(mm, 10);
-
-                    if (
-                        expiryMonth < 1 || expiryMonth > 12 ||
-                        expiryYear < now.getFullYear() ||
-                        (expiryYear === now.getFullYear() && expiryMonth < (now.getMonth() + 1))
-                    ) {
-                        notyf.error('Card expiry is in the past.');
-                        if (checkoutBtn) {
-                            checkoutBtn.disabled = false;
-                            checkoutBtnText.classList.remove('hidden');
-                            checkoutBtnLoader.classList.add('hidden');
-                        }
-                        return false;
-                    }
-
-                    if (!/^\d{3,4}$/.test(cvc)) {
-                        notyf.error('Invalid CVC code.');
-                        if (checkoutBtn) {
-                            checkoutBtn.disabled = false;
-                            checkoutBtnText.classList.remove('hidden');
-                            checkoutBtnLoader.classList.add('hidden');
-                        }
-                        return false;
-                    }
-
-                    // 3. If validation passes, use Accept.js to tokenize the card
-                    const [expMonth, expYearShort] = expiry.split('/');
-                    const expYear = '20' + expYearShort;
-
-                    // Fill in your actual config values here (best: pass from Blade using Laravel config)
-                    const authData = {
-                        clientKey: '{{ $paymentSetting['payment_api_public_key'] ?? '' }}',
-                        apiLoginID: '{{ $paymentSetting['payment_api_key'] ?? '' }}'
-                    };
-                    const cardData = {
-                        cardNumber: cardNumber,
-                        month: expMonth,
-                        year: expYear,
-                        cardCode: cvc
-                    };
-                    const secureData = {
-                        authData: authData,
-                        cardData: cardData
-                    };
-
-                    Accept.dispatchData(secureData, function(response) {
-                        if (response.messages.resultCode === "Error") {
-                            let errorMsg = response.messages.message.map(m => m.text).join(', ');
-                            notyf.error('Card Error: ' + errorMsg);
-                            if (checkoutBtn) {
-                                checkoutBtn.disabled = false;
-                                checkoutBtnText.classList.remove('hidden');
-                                checkoutBtnLoader.classList.add('hidden');
-                            }
-                        } else {
-                            document.getElementById('opaqueDataValue').value = response.opaqueData
-                                .dataValue;
-                            document.getElementById('opaqueDataDescriptor').value = response
-                                .opaqueData.dataDescriptor;
-                            form.submit(); // Now actually submit the form
-                        }
-                    });
 
                     // Don't submit until Accept.js finishes
                     return false;
                 } else {
-                    // If not "Card", just continue normal submit
-                    if (checkoutBtn) {
-                        checkoutBtn.disabled = true;
-                        checkoutBtnText.classList.add('hidden');
-                        checkoutBtnLoader.classList.remove('hidden');
-                    }
+                    // For non-card payments: disable briefly
+                    disableCheckoutButton();
+
+                    // Restore button after 2 seconds (optional)
+                    setTimeout(() => {
+                        enableCheckoutButton();
+                    }, 2000);
                 }
             });
 
@@ -1064,9 +1081,11 @@
 
             function handleTaxExemptChange() {
                 if (taxExempt.checked) {
+                    document.getElementById('admin_code').value = '';
                     taxModal.classList.remove('hidden');
                 } else {
                     taxModal.classList.add('hidden');
+                    handleTaxExemptRequest(false);
                 }
             }
 
@@ -1079,13 +1098,69 @@
                 taxExempt.checked = false;
             };
 
-            // Optional: When submitted, also hide modal (customize as needed)
-            window.confirmModal = function() {
-                taxModal.classList.add('hidden');
-                // Optionally: keep checkbox checked
-                // Optionally: Add your validation or AJAX here
-            };
+            document.getElementById('taxForm').addEventListener('submit', function(e) {
+                e.preventDefault();
 
+                const form = this;
+                const parsleyForm = $(form).parsley();
+
+                // Validate with Parsley
+                if (!parsleyForm.isValid({
+                        force: true
+                    })) {
+                    return;
+                }
+
+                handleTaxExemptRequest();
+            });
+
+            function handleTaxExemptRequest(is_tax_exempt = true) {
+                const adminCode = document.getElementById('admin_code').value;
+                const submitButton = document.getElementById('taxSubmitBtn');
+                const submitText = document.getElementById('taxSubmitText');
+                const submitLoader = document.getElementById('taxSubmitLoader');
+
+                // Disable button & show loader
+                submitButton.disabled = true;
+                submitText.classList.add('hidden');
+                submitLoader.classList.remove('hidden');
+
+                const taxExemptUrl = '{{ route('front.checkout.tax-exempt') }}';
+                apiFetch(taxExemptUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            is_tax_exempt: is_tax_exempt,
+                            passcode: adminCode
+                        })
+                    })
+                    .then(response => {
+                        if (response.success) {
+                            notyf.success(response.message);
+                            window.loadCartSidebarPreview(); // Refresh cart preview
+                            if (is_tax_exempt) {
+                                cancelModal();
+                                // If tax exempt is enabled, check the box
+                                document.getElementById('taxExempt').checked = true;
+                            } else {
+                                // If tax exempt is disabled, uncheck the box
+                                document.getElementById('taxExempt').checked = false;
+                            }
+                        } else {
+                            notyf.error(response.message);
+                            document.getElementById('taxExempt').checked = false;
+                        }
+                    })
+                    .finally(() => {
+                        // Re-enable button & hide loader
+                        submitButton.disabled = false;
+                        submitText.classList.remove('hidden');
+                        submitLoader.classList.add('hidden');
+                    });
+            }
         });
     </script>
 @endpush

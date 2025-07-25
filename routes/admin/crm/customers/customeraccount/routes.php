@@ -11,9 +11,8 @@ use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\ChargeStoreControll
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\UpdateNoteController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\DownloadPdfController;
 
-
-
-
+use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\UpdateController;
+use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\DeleteController;
 
 
 Route::prefix('customeraccount')
@@ -33,4 +32,12 @@ Route::prefix('customeraccount')
     Route::post('/update-note', UpdateNoteController::class)->name('update_note');
     
     Route::get('/{id}/download', DownloadPdfController::class)->name('download');
+
+    Route::PUT('/{id}/transactionupdate', UpdateController::class)->name('transactionupdate');
+    
+    Route::delete('/{id}/delete', DeleteController::class)->name('transactiondelete');
+
+
+
+
 });

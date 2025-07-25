@@ -496,8 +496,8 @@
                                         <td class="px-3 py-3 text-right">$97.49</td>
                                         <td class="px-3 py-3 text-right text-red-600">+$1,097.44</td>
                                         <td class="px-3 py-3 text-right">$2,750.00</td>
-                                        <td class="px-3 py-3 text-blue-600 text-center">
-                                            <div class="flex items-center justify-center space-x-2">
+                                        <td class="px-3 py-3 text-blue-600 text-left">
+                                            <div class="flex items-center text-left space-x-2">
                                                 <!-- View -->
                                                 <button title="View">
                                                     <x-heroicon-o-eye class="w-4 h-4 text-blue-600 cursor-pointer" />
@@ -535,7 +535,7 @@
                                         <td class="px-3 py-3 text-right">$0.00</td>
                                         <td class="px-3 py-3 text-right text-green-600">-$1,250.00</td>
                                         <td class="px-3 py-3 text-right">$1,500.00</td>
-                                        <td class="px-3 py-3 text-blue-600 text-center">
+                                        <td class="px-3 py-3 text-blue-600 text-left">
                                             <button title="View">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
                                             </button>
@@ -561,7 +561,7 @@
                                         <td class="px-3 py-3 text-right">$43.87</td>
                                         <td class="px-3 py-3 text-right text-red-600">+$493.84</td>
                                         <td class="px-3 py-3 text-right">$1,993.84</td>
-                                        <td class="px-3 py-3 text-blue-600 text-center">
+                                        <td class="px-3 py-3 text-blue-600 text-left">
                                             <!-- View -->
                                             <button title="View">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
@@ -592,7 +592,7 @@
                                         <td class="px-3 py-3 text-right">$9.75</td>
                                         <td class="px-3 py-3 text-right text-green-600">-$109.75</td>
                                         <td class="px-3 py-3 text-right">$1,884.09</td>
-                                        <td class="px-3 py-3 text-blue-600 text-center">
+                                        <td class="px-3 py-3 text-blue-600 text-left">
                                             <!-- View -->
                                             <button title="View">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
@@ -621,7 +621,7 @@
                                         <td class="px-4 py-3 text-right">$19.50</td>
                                         <td class="px-4 py-3 text-right text-red-600">+$219.48</td>
                                         <td class="px-4 py-3 text-right">$2,103.57</td>
-                                        <td class="px-4 py-3 text-blue-600 text-center">
+                                        <td class="px-4 py-3 text-blue-600 text-left">
                                             <!-- View -->
                                             <button title="View">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
@@ -648,7 +648,7 @@
                                         <td class="px-3 py-3 text-right">$4.88</td>
                                         <td class="px-3 py-3 text-right text-green-600">-$54.88</td>
                                         <td class="px-3 py-3 text-right">$2,048.69</td>
-                                        <td class="px-3 py-3 text-blue-600 text-center">
+                                        <td class="px-3 py-3 text-blue-600 text-left">
                                             <!-- View -->
                                             <button title="View">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />

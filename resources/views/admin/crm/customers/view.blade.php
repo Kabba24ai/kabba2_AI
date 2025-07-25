@@ -463,7 +463,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-      const creditUsed = {{ $customer->total_account_order_amount ?? 0 }};
+      const creditUsed = {{ $customer->total_order_amount ?? 0 }};
       const creditLimit = {{ $customer->credit_limit ?? 0 }} ;
       const available = creditLimit - creditUsed;
       const percentUsed = (creditUsed / creditLimit) * 100;
@@ -514,6 +514,92 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 </script>
+
+<!-- edit  -->
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const typeToModalId = {
+        payment: 'templatesModalWrapper',
+        refund: 'refundModalWrapper',
+        discount: 'discountModalWrapper',
+        charge: 'chargeModalWrapper'
+    };
+
+    document.querySelectorAll('.openEditPaymentModalBtn').forEach(button => {
+        button.addEventListener('click', () => {
+            const type = button.dataset.type;
+            const modalId = typeToModalId[type];
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            // Show modal
+            modal.style.display = 'flex';
+
+            // Fill shared form fields
+            if (modal.querySelector('input[name="amount"]')) {
+                modal.querySelector('input[name="amount"]').value = button.dataset.amount || '';
+            }
+
+            if (modal.querySelector('select[name="payment_type"]')) {
+                modal.querySelector('select[name="payment_type"]').value = button.dataset.payment_type || '';
+            }
+
+            if (modal.querySelector('select[name="reason"]')) {
+                modal.querySelector('select[name="reason"]').value = button.dataset.reason || '';
+            }
+
+            if (modal.querySelector('select[name="responsible_person"]')) {
+                modal.querySelector('select[name="responsible_person"]').value = button.dataset.responsible_person || '';
+            }
+
+            if (modal.querySelector('textarea[name="notes"]')) {
+                modal.querySelector('textarea[name="notes"]').value = button.dataset.notes || '';
+            }
+
+            // Set sales_tax radio
+            if (button.dataset.sales_tax_type) {
+                const salesTaxInputs = modal.querySelectorAll('input[name="sales_tax"]');
+                salesTaxInputs.forEach(input => {
+                    input.checked = input.value === button.dataset.sales_tax_type;
+                });
+            }
+
+
+              // Update form action/method
+            const form = modal.querySelector('form');
+            if (form) {
+                form.action = button.dataset.action || '#';
+                const methodInput = modal.querySelector('input[name="_method"]');
+                if (methodInput) {
+                    methodInput.value = 'PUT';
+                } else {
+                    const hiddenMethod = document.createElement('input');
+                    hiddenMethod.setAttribute('type', 'hidden');
+                    hiddenMethod.setAttribute('name', '_method');
+                    hiddenMethod.setAttribute('value', 'PUT');
+                    form.appendChild(hiddenMethod);
+                }
+
+                //  Create or update 'type' field dynamically
+                let typeInput = form.querySelector('input[name="type"]');
+                if (!typeInput) {
+                    typeInput = document.createElement('input');
+                    typeInput.setAttribute('type', 'hidden');
+                    typeInput.setAttribute('name', 'type');
+                    form.appendChild(typeInput);
+                }
+                typeInput.value = type;
+
+            }
+        });
+    });
+});
+</script>
+
+<!-- edit  -->
+
+
 
 <!-- JavaScript -->
 <script>

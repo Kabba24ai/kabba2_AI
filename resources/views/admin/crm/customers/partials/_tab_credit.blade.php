@@ -199,7 +199,7 @@
                                         'text' => 'text-red-800',
                                         'amount' => 'text-red-600',
                                         'sign' => '+',
-                                        'icon' => 'credit-card',
+                                        'icon' => 'cart',
                                     ],
                                     'discount' => [
                                         'bg' => 'bg-purple-100',
@@ -248,7 +248,7 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                                        class="lucide lucide-plus w-4 h-4 mr-2">
+                                                                        class="lucide lucide-plus w-4 h-4">
                                                                         <path d="M5 12h14" />
                                                                         <path d="M12 5v14" />
                                                                     </svg>
@@ -256,7 +256,7 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                                        class="lucide lucide-credit-card w-4 h-4 mr-2">
+                                                                        class="lucide lucide-credit-card w-4 h-4">
                                                                         <rect width="20" height="14" x="2" y="5" rx="2" />
                                                                         <line x1="2" x2="22" y1="10" y2="10" />
                                                                     </svg>
@@ -264,7 +264,7 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        class="lucide lucide-award w-4 h-4 mr-2">
+                                        class="lucide lucide-award w-4 h-4">
                                         <circle cx="12" cy="8" r="6" />
                                         <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
                                     </svg>      
@@ -278,7 +278,7 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        class="lucide lucide-trending-up w-4 h-4 mr-2">
+                                        class="lucide lucide-trending-up w-4 h-4">
                                         <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
                                         <polyline points="16 7 22 7 22 13" />
                                     </svg>
@@ -308,7 +308,7 @@
                                     </td>
 
                                     {{-- Total Amount with Tax if Applicable --}}
-                                    <td class="px-4 py-3 text-right {{ $style['amount'] }}">
+                                    <td class="px-4 py-3 text-right whitespace-nowrap {{ $style['amount'] }}">
                                         @php
                                             $totalWithTax = $transaction->amount;
 
@@ -320,7 +320,7 @@
                                         {{ $style['sign'] }}{{ config('app.currency.code') }}{{ number_format($totalWithTax, 2) }}
                                     </td>
 
-                                <td class="px-4 py-3 text-right">{{ number_format($transaction->balance, 2) }}</td>
+                                <td class="px-4 py-3 text-right whitespace-nowrap">{{ number_format($transaction->balance, 2) }}</td>
                                 <td class="px-4 py-3 text-blue-600 text-center">
                                     <div class="flex items-center justify-center space-x-2">
                                       
@@ -329,9 +329,34 @@
                                         <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                                     </button>
 
+                                     @if ($transaction->type !== 'order')
+                                        
+                                        <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
+                                                data-type="{{ $transaction->type }}"
+                                                data-amount="{{ $transaction->amount }}"
+                                                data-payment_type="{{ $transaction->payment_type }}"
+                                                data-reason="{{ $transaction->reason }}"
+                                                data-responsible_person="{{ $transaction->responsible_person_id }}"
+                                                data-notes="{{ $transaction->notes }}"
+                                                data-sales_tax="{{ $transaction->sales_tax }}"
+                                                data-sales_tax_type="{{ $transaction->sales_tax_type }}"
+                                                data-action="{{ route('admin.crm.customers.customeraccount.transactionupdate', $transaction->id) }}"
+                                                title="Edit">
+                                            <x-heroicon-o-pencil class="w-4 h-4" />
+                                        </button>
+
+                                    
+                                        <button class="openDeleteTransactionBtn text-red-600 hover:text-red-800"
+                                                data-id="{{ $transaction->id }}"
+                                                data-type="{{ $transaction->type }}"
+                                                data-action="{{ route('admin.crm.customers.customeraccount.transactiondelete', $transaction->id) }}"
+                                                title="Delete">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                        </button>
+                                     @endif
 
                                         <!-- Download -->
-                                        <form method="GET" action="{{ route('admin.crm.customers.customeraccount.download', $transaction->id) }}" target="_blank" style="display:inline;">
+                                        <form method="GET" action="{{ route('admin.crm.customers.customeraccount.download', $transaction->id) }}" target="_blank" style="display:flex;">
                                             <button title="Download" type="submit">
                                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
                                             </button>
@@ -912,6 +937,41 @@
 
 
 @push('js')
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.openDeleteTransactionBtn').forEach(button => {
+        button.addEventListener('click', () => {
+            const type = button.dataset.type;
+            const id = button.dataset.id;
+            const action = button.dataset.action;
+
+            if (confirm(`Are you sure you want to delete this ${type} transaction?`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = action;
+
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_token';
+                csrfInput.value = '{{ csrf_token() }}';
+
+                const methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                methodInput.value = 'DELETE';
+
+                form.appendChild(csrfInput);
+                form.appendChild(methodInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const modalWrapper = document.getElementById('transactionViewModalWrapper');

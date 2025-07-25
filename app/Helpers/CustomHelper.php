@@ -87,46 +87,89 @@ class CustomHelper
     }
 
 
-    public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.0): void
-    {
-        $customer = Customer::findOrFail($record->customer_id);
-        $currentBalance = $customer->available_credit_balance ?? 0;
-        $newBalance = $currentBalance;
+    
+    public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.00): void
+{
+    $customer = Customer::findOrFail($record->customer_id);
+    $currentBalance = $customer->available_credit_balance ?? 0;
+    $newBalance = $currentBalance;
 
-        switch ($record->type) {
-            case 'payment':
-                // Apply tax only if customer is taxable
-                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-                if ($customer->getTaxStatus() === 'Taxable') {
-                    $record->sales_tax = $salesTaxSetting?->setting_value ?? 0.0;
-                }
-                if ($customer->getTaxStatus() === 'Taxable') {
-                    $amountWithTax = $record->amount + $record->amount * $record->sales_tax;
-                } else {
-                    $amountWithTax = $record->amount;
-                }
+    $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+    $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.00);
 
-                $newBalance -= $amountWithTax;
-                break;
+    switch ($record->type) {
+        case 'payment':
+        case 'refund':
+            if ($customer->getTaxStatus() === 'Taxable') {
+                $record->sales_tax = $salesTaxRate;
+                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+            } else {
+                $record->sales_tax = 0;
+                $amountWithTax = $record->amount;
+            }
 
-            case 'discount':
-            case 'refund':
-                $newBalance -= $record->amount;
-                break;
+            $newBalance -= $amountWithTax;
+            break;
 
-            case 'order':
-            case 'charge':
-                // Use amount as-is. Tax is already included elsewhere.
-                $newBalance += $record->amount + $externalTaxAmount;
-                break;
-        }
+        case 'discount':
+            $record->sales_tax = 0;
+            $newBalance -= $record->amount;
+            break;
 
-        // Save updated balance to the record
-        $record->balance = $newBalance;
-        $record->save();
+        case 'charge':
+            if (
+                $record->sales_tax_type === 'add'
+            ) {
+                $record->sales_tax = $salesTaxRate;
+                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+            } else {
+                $record->sales_tax = 0;
+                $amountWithTax = $record->amount;
+            }
 
-        // Update customer's credit balance
-        $customer->available_credit_balance = $newBalance;
-        $customer->save();
+            $newBalance += $amountWithTax;
+            break;
+
+        case 'order':
+            // $record->sales_tax = 0;
+            $newBalance += $record->amount + $externalTaxAmount;
+            break;
     }
+
+    $record->balance = $newBalance;
+    $record->save();
+
+    $customer->available_credit_balance = $newBalance;
+    $customer->save();
+}
+public static function reverseTransactionEffect(CustomerAccount $record): void
+{
+    $customer = Customer::findOrFail($record->customer_id);
+    $currentBalance = $customer->available_credit_balance ?? 0;
+    $adjustedBalance = $currentBalance;
+
+    $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+
+    switch ($record->type) {
+        case 'payment':
+        case 'refund':
+            $adjustedBalance += $record->amount + $salesTaxAmount;
+            break;
+
+        case 'discount':
+            $adjustedBalance += $record->amount;
+            break;
+
+        case 'charge':
+        case 'order':
+            $adjustedBalance -= $record->amount + $salesTaxAmount;
+            break;
+    }
+
+    $record->balance = $adjustedBalance;
+    $record->save();
+
+    $customer->available_credit_balance = $adjustedBalance;
+    $customer->save();
+}
 }

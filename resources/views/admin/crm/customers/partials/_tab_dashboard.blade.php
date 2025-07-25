@@ -240,7 +240,7 @@
 
                                         {{-- Status Badge --}}
                                         <td class="px-4 py-3">
-                                            @php
+                                            <!-- @php
                                                 $statusColors = [
                                                     'Pending' => 'bg-yellow-100 text-yellow-800',
                                                     'In Progress' => 'bg-blue-100 text-blue-800',
@@ -251,7 +251,11 @@
                                             @endphp
                                             <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full {{ $statusColor }}">
                                                 {{ $order->status }}
-                                            </span>
+                                            </span> -->
+
+                                  {!! \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') !!}
+
+
                                         </td>
 
                                         {{-- Order Date --}}

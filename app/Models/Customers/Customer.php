@@ -160,13 +160,21 @@ public function accounts()
 public function getPaidSalesAttribute()
 {
     return $this->orders()
-        ->where('status', 'Completed')
+        ->whereHas('payments', function ($query) {
+            $query->where('status', 'Paid')
+                  ->whereRaw('id = (SELECT MIN(id) FROM order_payments WHERE order_id = orders.id)');
+        })
         ->sum('grand_total');
 }
+
+// Total Pending Sales (via OrderPayment status)
 public function getPendingSalesAttribute()
 {
     return $this->orders()
-        ->where('status', 'Pending')
+        ->whereHas('payments', function ($query) {
+            $query->where('status', 'Pending')
+                  ->whereRaw('id = (SELECT MIN(id) FROM order_payments WHERE order_id = orders.id)');
+        })
         ->sum('grand_total');
 }
 

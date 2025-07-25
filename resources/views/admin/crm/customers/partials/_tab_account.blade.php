@@ -180,8 +180,8 @@
                         <div class="col-span-2">
                             <label class="text-xs text-gray-500 font-medium">Company Phone</label>
                             <div class=" static-view">
-                                <p class=" text-gray-500 font-medium text-sm text-gray-900 flex items-center gap-1">
-                                    <x-heroicon-o-phone class="w-4 h-4 text-gray-500" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}
+                                <p class=" text-gray-900 text-sm flex items-center gap-1">
+                                    <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}
                                 </p>
                             </div>
                             <!-- Edit View -->
@@ -494,7 +494,7 @@
                                 <div class="text-right text-xs text-gray-500 mt-0.5">{{round($per)}}%</div>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%;"></div>
+                                <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%; max-width: 100%;"></div>
                             </div>
                             
                         </div>

@@ -1,14 +1,14 @@
 {
-  "_air-datepicker-D-jiIjXK.js": {
-    "file": "assets/air-datepicker-D-jiIjXK.js",
-    "name": "air-datepicker",
+  "_api-C-ZALLuG.js": {
+    "file": "assets/api-C-ZALLuG.js",
+    "name": "api",
     "css": [
-      "assets/air-datepicker-DVkapAgo.css"
+      "assets/api-DVkapAgo.css"
     ]
   },
-  "_air-datepicker-DVkapAgo.css": {
-    "file": "assets/air-datepicker-DVkapAgo.css",
-    "src": "_air-datepicker-DVkapAgo.css"
+  "_api-DVkapAgo.css": {
+    "file": "assets/api-DVkapAgo.css",
+    "src": "_api-DVkapAgo.css"
   },
   "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-D1LuMI3I.ttf",
@@ -43,39 +43,39 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-BbpRYdMR.css",
+    "file": "assets/app-Bu0haiJh.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-PgXuAIzT.js",
+    "file": "assets/app-CEjwo8c-.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_air-datepicker-D-jiIjXK.js"
+      "_api-C-ZALLuG.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-D-hdpVOZ.css",
+    "file": "assets/app-DGs5r_sd.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-oYdTvJiL.css",
+    "file": "assets/app-CGBkO2HX.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-CKAIL1eE.js",
+    "file": "assets/app-_C0TrDfS.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_air-datepicker-D-jiIjXK.js"
+      "_api-C-ZALLuG.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"

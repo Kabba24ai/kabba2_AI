@@ -23,6 +23,9 @@
 
                     <!-- Product Form -->
                     {{ html()->form()->attributes([
+                            'action' => route('admin.product-management.products.create'),
+                            'id' => 'productForm',
+                            'method' => 'POST',
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
@@ -93,4 +96,98 @@
 @endsection
 
 @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('productForm');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const parsleyForm = $(form).parsley();
+
+                const isFormValid = parsleyForm.validate({
+                    force: true
+                });
+
+                if (!isFormValid) {
+                    const failedFields = parsleyForm.fields.filter(field => !field.isValid());
+
+                    failedFields.forEach(field => {
+                        console.log('Failed field:', field.$element.attr('name'));
+                    });
+
+                    e.preventDefault();
+                    return;
+                }
+
+                console.log('Form is valid, proceeding with submission');
+
+                const submitter = e.submitter;
+                const clickedButton = submitter ? submitter.value : null;
+
+                const submitButtons = form.querySelectorAll('button[type="submit"]');
+                // Store original button texts
+                const originalTexts = new Map();
+                submitButtons.forEach(btn => {
+                    originalTexts.set(btn, btn.innerHTML);
+                    btn.innerHTML = 'Saving...';
+                    btn.disabled = true;
+                });
+
+                const formData = new FormData(form);
+
+                // Include clicked button value
+                if (clickedButton) {
+                    formData.append('action', clickedButton);
+                }
+                const action = form.getAttribute('action');
+
+                try {
+
+                    apiFetch(action, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: formData
+                        })
+                        .then(res => {
+                            if (res && res.success) {
+                                notyf.success(res.message);
+
+                                // If redirect_url is provided by the backend, navigate there
+                                if (res.action === 'save_exit' || res.redirect_url) {
+                                    setTimeout(() => {
+                                        window.location.href = res.redirect_url;
+                                    }, 800);
+                                } else if (res.action === 'save_new') {
+                                    // If saving new, redirect to create page
+                                    window.location.href =
+                                        "{{ route('admin.product-management.products.create') }}";
+                                } else {
+                                    // Otherwise, stay on the edit page
+                                    window.location.reload();
+                                }
+
+                            } else {
+                                notyf.error(res.message);
+                            }
+
+                        })
+                        .finally(() => {
+                            // Restore buttons
+                            submitButtons.forEach(btn => {
+                                btn.disabled = false;
+                                btn.innerHTML = originalTexts.get(btn);
+                            });
+                        });
+
+
+                } catch (error) {
+                    console.error('Submission failed:', error);
+                }
+            });
+        });
+    </script>
 @endpush

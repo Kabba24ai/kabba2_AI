@@ -21,6 +21,8 @@
 
                     <!-- Product Form -->
                     {{ html()->modelForm($objProduct, 'PUT')->attributes([
+                            'action' => route('admin.product-management.products.edit', $objProduct->unique_id),
+                            'id' => 'productForm',
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
@@ -60,7 +62,7 @@
                             </div>
                         </div> --}}
 
-                         <!-- Save -->
+                        <!-- Save -->
                         <button type="submit" name="action" value="save"
                             class="inline-flex items-center px-6 py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-sm font-semibold shadow transition">
                             Save
@@ -91,4 +93,91 @@
 @endsection
 
 @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('productForm');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const parsleyForm = $(form).parsley();
+                // Force Parsley to validate
+                if (!parsleyForm.isValid({
+                        force: true
+                    })) {
+                    // Stop everything: do not show loader
+                    e.preventDefault();
+                    return;
+                }
+
+                const submitter = e.submitter;
+                const clickedButton = submitter ? submitter.value : null;
+
+                const submitButtons = form.querySelectorAll('button[type="submit"]');
+                // Store original button texts
+                const originalTexts = new Map();
+                submitButtons.forEach(btn => {
+                    originalTexts.set(btn, btn.innerHTML);
+                    btn.innerHTML = 'Saving...';
+                    btn.disabled = true;
+                });
+
+                const formData = new FormData(form);
+
+                formData.append('method', 'PUT'); // important
+
+                // Include clicked button value
+                if (clickedButton) {
+                    formData.append('action', clickedButton);
+                }
+
+                const action = form.getAttribute('action');
+
+                try {
+
+                    apiFetch(action, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: formData
+                        })
+                        .then(res => {
+                            if (res && res.success) {
+                                notyf.success(res.message);
+
+                                // If redirect_url is provided by the backend, navigate there
+                                if (res.action === 'save_exit' || res.redirect_url) {
+                                    setTimeout(() => {
+                                        window.location.href = res.redirect_url;
+                                    }, 800);
+                                } else if (res.action === 'save_new') {
+                                    // If saving new, redirect to create page
+                                    window.location.href = "{{ route('admin.product-management.products.create') }}";
+                                } else {
+                                    // Otherwise, stay on the edit page
+                                    window.location.reload();
+                                }
+
+                            } else {
+                                notyf.error(res.message);
+                            }
+
+                        })
+                        .finally(() => {
+                            // Restore buttons
+                            submitButtons.forEach(btn => {
+                                btn.disabled = false;
+                                btn.innerHTML = originalTexts.get(btn);
+                            });
+                        });
+
+
+                } catch (error) {
+                    console.error('Submission failed:', error);
+                }
+            });
+        });
+    </script>
 @endpush

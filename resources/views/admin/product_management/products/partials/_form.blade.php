@@ -237,12 +237,16 @@
                     'autocomplete' => 'off',
                     'id' => 'retail_price',
                     'data-digit-input' => 'true',
+                    'data-parsley-maxlength' => 8,
+                    'data-parsley-errors-container' => '#retail-price-errors',
+                    'maxlength' => 8,
                 ])->class([
                     'pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                     'border-red-500' => $errors->has('retail_price'),
                     'border-gray-300' => !$errors->has('retail_price'),
                 ]) !!}
         </div>
+        <div id="retail-price-errors"></div>
         @error('retail_price')
             <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
         @enderror
@@ -260,12 +264,16 @@
                     'autocomplete' => 'off',
                     'id' => 'retail_sale_price',
                     'data-digit-input' => 'true',
+                    'data-parsley-maxlength' => 8,
+                    'maxlength' => 8,
+                    'data-parsley-errors-container' => '#retail-sale-price-errors',
                 ])->class([
                     'pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                     'border-red-500' => $errors->has('retail_sale_price'),
                     'border-gray-300' => !$errors->has('retail_sale_price'),
                 ]) !!}
         </div>
+        <div id="retail-sale-price-errors"></div>
         @error('retail_sale_price')
             <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
         @enderror
@@ -284,12 +292,16 @@
                     'autocomplete' => 'off',
                     'id' => 'retail_product_cost',
                     'data-digit-input' => 'true',
+                    'data-parsley-maxlength' => 8,
+                    'maxlength' => 8,
+                    'data-parsley-errors-container' => '#retail-product-cost-errors',
                 ])->class([
                     'pl-6 w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                     'border-red-500' => $errors->has('retail_product_cost'),
                     'border-gray-300' => !$errors->has('retail_product_cost'),
                 ]) !!}
         </div>
+        <div id="retail-product-cost-errors"></div>
         @error('retail_product_cost')
             <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
         @enderror
@@ -440,6 +452,25 @@
 @push('js')
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            const productNameInput = document.getElementById("product_name");
+            const shortDescInput = document.getElementById("short_description");
+            const seoTitleInput = document.getElementById("seo_title");
+            const seoDescInput = document.getElementById("seo_description");
+
+            // Sync Product Name → SEO Title (only if SEO Title is blank)
+            if (productNameInput && seoTitleInput) {
+                productNameInput.addEventListener('input', () => {
+                    seoTitleInput.value = productNameInput.value;
+                });
+            }
+
+            // Sync Short Description → SEO Description (only if SEO Description is blank)
+            if (shortDescInput && seoDescInput) {
+                shortDescInput.addEventListener('input', () => {
+                    seoDescInput.value = shortDescInput.value;
+                });
+            }
+
             const mainImageInput = document.getElementById("mainImageInput");
             const mainImagePreview = document.getElementById("mainImagePreview");
 
@@ -538,25 +569,6 @@
                 const isRental = Alpine.store('productForm').selectedType === 'Rental';
                 // Your section
                 const rentalSection = document.querySelector('[x-show="$store.productForm.selectedType === \'Rental\'"]');
-                // The two delivery fee fields
-                const stdFee = document.querySelector('input[name="standard_delivery_fee"]');
-                const extFee = document.querySelector('input[name="extended_delivery_fee"]');
-                const inStore = document.querySelector('input[name="in_store_pickup"]');
-                const delivery = document.querySelector('input[name="delivery_and_pickup"]');
-
-
-                // Dynamically set or remove required
-                if (isRental) {
-                    stdFee && stdFee.setAttribute('required', 'required');
-                    extFee && extFee.setAttribute('required', 'required');
-                    inStore && inStore.setAttribute('required', 'required');
-                    delivery && delivery.setAttribute('required', 'required');
-                } else {
-                    stdFee && stdFee.removeAttribute('required');
-                    extFee && extFee.removeAttribute('required');
-                    inStore && inStore.removeAttribute('required');
-                    delivery && delivery.removeAttribute('required');
-                }
 
                 if (!isRental && rentalSection) {
                     rentalSection.querySelectorAll('input, select, textarea').forEach(el => {

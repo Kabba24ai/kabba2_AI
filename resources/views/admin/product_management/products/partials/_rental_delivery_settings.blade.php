@@ -11,11 +11,15 @@
                     {!! html()->text('rental_daily')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-daily-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
                 <p class="text-xs text-gray-500 mt-1">8 Hrs Allocated</p>
+                <div id="rental-daily-errors"></div>
             </div>
 
             <!-- Weekend Spcl. -->
@@ -26,11 +30,15 @@
                     {!! html()->text('rental_weekend')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-weekend-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
                 <p class="text-xs text-gray-500 mt-1">14 Hrs Allocated</p>
+                <div id="rental-weekend-errors"></div>
             </div>
 
             <!-- Weekly -->
@@ -41,11 +49,15 @@
                     {!! html()->text('rental_weekly')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-weekly-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
                 <p class="text-xs text-gray-500 mt-1">40 Hrs Allocated</p>
+                <div id="rental-weekly-errors"></div>
             </div>
 
             <!-- Monthly -->
@@ -56,11 +68,15 @@
                     {!! html()->text('rental_monthly')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-monthly-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
                 <p class="text-xs text-gray-500 mt-1">160 Hrs Allocated</p>
+                <div id="rental-monthly-errors"></div>
             </div>
         </div>
 
@@ -77,10 +93,14 @@
                     {!! html()->text('rental_damage_waiver_daily')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-damage-waiver-daily-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="rental-damage-waiver-daily-errors"></div>
             </div>
 
             <!-- Damage Waiver -->
@@ -92,10 +112,14 @@
                     {!! html()->text('rental_damage_waiver_weekend')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-damage-waiver-weekend-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="rental-damage-waiver-weekend-errors"></div>
             </div>
 
             <!-- Damage Waiver -->
@@ -107,10 +131,14 @@
                     {!! html()->text('rental_damage_waiver_weekly')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-damage-waiver-weekly-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="rental-damage-waiver-weekly-errors"></div>
             </div>
 
             <!-- Damage Waiver -->
@@ -122,10 +150,14 @@
                     {!! html()->text('rental_damage_waiver_monthly')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-damage-waiver-monthly-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="rental-damage-waiver-monthly-errors"></div>
             </div>
         </div>
 
@@ -143,10 +175,14 @@
                     {!! html()->text('rental_prepaid_cleaning')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-prepaid-cleaning-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="rental-prepaid-cleaning-errors"></div>
             </div>
 
             <!-- Prepaid Fuel -->
@@ -158,10 +194,14 @@
                     {!! html()->text('rental_prepaid_fuel')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-prepaid-fuel-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="rental-prepaid-fuel-errors"></div>
             </div>
 
             <!-- Gallons + Fuel Type -->
@@ -171,9 +211,13 @@
                 {!! html()->text('rental_fuel_gallons')->attributes([
                         'placeholder' => '0',
                         'data-digit-input' => 'true',
+                        'data-parsley-maxlength' => 8,
+                        'maxlength' => 8,
+                        'data-parsley-errors-container' => '#rental-fuel-gallons-errors',
                         'class' =>
                             'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                     ]) !!}
+                    <div id="rental-fuel-gallons-errors"></div>
                 @php
                     $selectedFuelType = old('rental_fuel_type', $objProduct->rental_fuel_type ?? 'Diesel');
                 @endphp
@@ -196,9 +240,13 @@
                 {!! html()->text('rental_def_gallons')->attributes([
                         'placeholder' => '0',
                         'data-digit-input' => 'true',
+                        'data-parsley-maxlength' => 8,
+                        'maxlength' => 8,
+                        'data-parsley-errors-container' => '#rental-def-gallons-errors',
                         'class' =>
                             'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                     ]) !!}
+                    <div id="rental-def-gallons-errors"></div>
             </div>
         </div>
 
@@ -219,10 +267,14 @@
                     {!! html()->text('sale_price_daily')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#sale-price-daily-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="sale-price-daily-errors"></div>
                 @error('sale_price_daily')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
@@ -236,10 +288,14 @@
                     {!! html()->text('sale_price_weekend')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#sale-price-weekend-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="sale-price-weekend-errors"></div>
                 @error('sale_price_weekend')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
@@ -253,10 +309,14 @@
                     {!! html()->text('sale_price_weekly')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#sale-price-weekly-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="sale-price-weekly-errors"></div>
                 @error('sale_price_weekly')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
@@ -270,10 +330,14 @@
                     {!! html()->text('sale_price_monthly')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#sale-price-monthly-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
+                <div id="sale-price-monthly-errors"></div>
                 @error('sale_price_monthly')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
@@ -392,9 +456,12 @@
                 <input type="text" name="hour_rate" placeholder="0" x-bind:disabled="!hourTracking"
                     x-bind:value="hourTracking ? '{{ old('hour_rate', $objProduct->hour_rate ?? '') }}' : ''"
                     data-digit-input="true"
+                    data-parsley-maxlength="8" maxlength="8"
+                    data-parsley-errors-container="#hour-rate-errors"
                     class="w-24 rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white" />
                 <span>Overage Rate / Hr.</span>
             </div>
+            <div id="hour-rate-errors"></div>
             @error('hour_rate')
                 <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
             @enderror

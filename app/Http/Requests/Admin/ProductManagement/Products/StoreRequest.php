@@ -3,9 +3,10 @@
 namespace App\Http\Requests\Admin\ProductManagement\Products;
 
 use App\Helpers\PurifyHelper;
+use App\Http\Requests\ApiBaseFormRequest;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreRequest extends FormRequest
+class StoreRequest extends ApiBaseFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -54,38 +55,38 @@ class StoreRequest extends FormRequest
             // Retail
             'sku' => ['nullable', 'string', 'max:255'],
             'barcode' => ['nullable', 'string', 'max:255'],
-            'retail_price' => ['nullable', 'numeric', 'min:0'],
-            'retail_sale_price' => ['nullable', 'numeric', 'min:0'],
-            'retail_product_cost' => ['nullable', 'numeric', 'min:0'],
+            'retail_price' => ['required_if:product_type,Retail', 'numeric', 'min:0', 'max:9999999'],
+            'retail_sale_price' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'retail_product_cost' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Rental pricing
-            'rental_daily' => ['nullable', 'numeric', 'min:0'],
-            'rental_weekend' => ['nullable', 'numeric', 'min:0'],
-            'rental_weekly' => ['nullable', 'numeric', 'min:0'],
-            'rental_monthly' => ['nullable', 'numeric', 'min:0'],
+            'rental_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Damage waivers
-            'rental_damage_waiver_daily' => ['nullable', 'numeric', 'min:0'],
-            'rental_damage_waiver_weekend' => ['nullable', 'numeric', 'min:0'],
-            'rental_damage_waiver_weekly' => ['nullable', 'numeric', 'min:0'],
-            'rental_damage_waiver_monthly' => ['nullable', 'numeric', 'min:0'],
+            'rental_damage_waiver_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_damage_waiver_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_damage_waiver_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_damage_waiver_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Prepaid options
-            'rental_prepaid_cleaning' => ['nullable', 'numeric', 'min:0'],
-            'rental_prepaid_fuel' => ['nullable', 'numeric', 'min:0'],
-            'rental_fuel_gallons' => ['nullable', 'numeric', 'min:0'],
+            'rental_prepaid_cleaning' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_prepaid_fuel' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_fuel_gallons' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_fuel_type' => ['nullable', 'in:Diesel,Gas'],
-            'rental_def_gallons' => ['nullable', 'numeric', 'min:0'],
+            'rental_def_gallons' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Sale prices
-            'sale_price_daily' => ['nullable', 'numeric', 'min:0'],
-            'sale_price_weekend' => ['nullable', 'numeric', 'min:0'],
-            'sale_price_weekly' => ['nullable', 'numeric', 'min:0'],
-            'sale_price_monthly' => ['nullable', 'numeric', 'min:0'],
+            'sale_price_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'sale_price_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'sale_price_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'sale_price_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Delivery
-            'standard_delivery_fee' => ['nullable', 'numeric', 'min:0'],
-            'extended_delivery_fee' => ['nullable', 'numeric', 'min:0'],
+            'standard_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'extended_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             'in_store_pickup' => ['nullable', 'in:Yes,No'],
             'delivery_and_pickup' => ['nullable', 'in:Yes,No'],
@@ -142,6 +143,13 @@ class StoreRequest extends FormRequest
             'terms.required_if' => 'You must select at least one term when using custom terms.',
             // 'terms.array' => 'The terms must be a valid list.',
             // 'terms.*.exists' => 'One or more selected terms are invalid or no longer exist.',
+            'related_products.*.exists' => 'One or more selected related products are invalid or no longer exist.',
+            'categories.*.exists' => 'One or more selected categories are invalid or no longer exist.',
+            'options.*.exists' => 'One or more selected options are invalid or no longer exist.',
+            'product_name.unique' => 'The product name must be unique. This name is already in use.',
+            'product_type.in' => 'The product type must be either "Rental" or "Retail".',
+            'is_general_term_type.boolean' => 'The general term type must be true or false.',
+            'is_custom_term_type.boolean' => 'The custom term type must be true or false.',
         ];
     }
 }

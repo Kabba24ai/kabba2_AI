@@ -32,7 +32,6 @@
         {!! html()->select('terms', $terms, old('terms', $selectedTerms ?? []))->class(
                 'choices-select mt-2 w-full rounded border-gray-300 text-sm dark:bg-gray-900 dark:text-white dark:border-gray-700'
             )->attribute('id', 'terms')
-            ->attribute('data-parsley-required', $isCustom ? 'true' : 'false')
             ->attribute('data-parsley-errors-container','#terms-errors')
             ->attributes($terms->isEmpty() ? ['disabled' => true] : []) !!}
         <div id="terms-errors"></div>
@@ -58,6 +57,7 @@
 @push('js')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
             const general = document.getElementById('is_general_term_type');
             const custom = document.getElementById('is_custom_term_type');
             const termsSelect = document.getElementById('termsSelect');

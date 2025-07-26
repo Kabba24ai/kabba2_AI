@@ -18,6 +18,7 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
+
         $product = Product::where('unique_id', $unique_id)->firstOrFail();
 
         DB::beginTransaction();
@@ -170,23 +171,45 @@ class UpdateController extends Controller
 
             DB::commit();
 
-            flash('Product updated successfully.')->success();
-
-            return match ($request->input('action')) {
-                'save' => redirect()->route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
-                'save_new' => redirect()->route('admin.product-management.products.create'),
-                default => redirect()->route('admin.product-management.products.index'),
+            // Determine redirect target
+            $action = $request->input('action', 'save');
+            $redirectUrl = match ($action) {
+                'save'      => route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
+                'save_new'  => route('admin.product-management.products.create'),
+                default     => route('admin.product-management.products.index'),
             };
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product updated successfully.',
+                'redirect_url' => $redirectUrl,
+                'action' => $action
+            ]);
+
+
+            // flash('Product updated successfully.')->success();
+
+            // return match ($request->input('action')) {
+            //     'save' => redirect()->route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
+            //     'save_new' => redirect()->route('admin.product-management.products.create'),
+            //     default => redirect()->route('admin.product-management.products.index'),
+            // };
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
-            flash('Something went wrong while updating the product.')->error();
+            // Handle error for AJAX
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating the product.'
+            ], 500);
 
-            return redirect()
-                ->back()
-                ->withInput()
-                ->withErrors(['error' => 'An error occurred while updating the product.']);
+            // flash('Something went wrong while updating the product.')->error();
+
+            // return redirect()
+            //     ->back()
+            //     ->withInput()
+            //     ->withErrors(['error' => 'An error occurred while updating the product.']);
         }
     }
 }

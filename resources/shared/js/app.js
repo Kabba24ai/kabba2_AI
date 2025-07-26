@@ -43,13 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
     inputs.forEach((input) => {
         let digits = "";
 
+        // Initialize digits from existing value
+        if (input.value) {
+            // Remove non-digits (keeps only numbers)
+            digits = input.value.replace(/\D/g, "");
+        }
+
         const updateInput = () => {
             let num = parseFloat(digits || "0") / 100;
             input.value = num.toFixed(2);
         };
 
+        // Update once at the beginning if there was a value
+        if (digits) {
+            updateInput();
+        }
+
         input.addEventListener("keydown", function (e) {
-            // Allow: Backspace, Tab, Arrow keys
             const allowedKeys = ["Backspace", "Tab", "ArrowLeft", "ArrowRight"];
             if (allowedKeys.includes(e.key)) {
                 if (e.key === "Backspace") {
@@ -68,14 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Block everything else
             e.preventDefault();
         });
 
         input.addEventListener("paste", (e) => e.preventDefault());
         input.addEventListener("input", (e) => e.preventDefault());
 
-        // Set initial display value
         input.placeholder = "0.00";
     });
+
 });

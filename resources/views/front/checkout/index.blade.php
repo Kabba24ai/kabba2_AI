@@ -546,14 +546,68 @@
 
 
                             @if (auth('customer')->check() && auth('customer')->user()->credit_limit > 0 && auth('customer')->user()->is_credit_account == 1)
-                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'Account' ? 'border-blue-500' : '' }}"
-                                data-value="Account">
-                                <label class="inline-flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="payment" value="Account"
-                                        {{ old('payment') == 'Account' ? 'checked' : '' }} />
+                                    
+                           
+
+
+                            @php
+                             $customer =  auth('customer')->user() ;
+                                $days = $customer->days_since_last_payment;
+                                $badge = $customer->payment_status_badge;
+                            @endphp
+
+                            @if($badge === 'safe')
+                                {{-- Green (1–30) --}}
+                                <div class="flex items-center justify-between border-2 rounded-lg p-4 payment-option " data-value="Account">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="payment" value="Account" {{ old('payment') == 'Account' ? 'checked' : '' }} />
                                     <span>Add to Account</span>
                                 </label>
+                                    <div class="bg-green-500 p-2 rounded-full inline-flex items-center justify-center">
+                                        <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+
+                            @elseif($badge === 'warning')
+                                {{-- Dark Yellow (31–45) --}}
+                                <div class="flex items-center justify-between border-2 rounded-lg p-4 payment-option " data-value="Account">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="payment" value="Account" {{ old('payment') == 'Account' ? 'checked' : '' }} />
+                                        <span>Add to Account</span>
+                                        <p>*Account has payments due - Management Approval Required</p>
+                                    </label>
+                                    <div class="bg-yellow-700 p-2 rounded-full inline-flex items-center justify-center">
+                                        <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+
+                            @elseif($badge === 'danger')
+                                {{-- Pink (46+) --}}
+                                <div class="flex items-center justify-between border-2 rounded-lg p-4 payment-option " data-value="Account">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="payment" value="Account" {{ old('payment') == 'Account' ? 'checked' : '' }} />
+                                        <span>Add to Account</span>
+                                        <p>*Account is Past Due • Management Approval Required</p>
+                                    </label>
+                                    <div class="bg-pink-500 p-2 rounded-full inline-flex items-center justify-center">
+                                        <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+
+                            @elseif($badge === 'no-payment')
+                                <div class="flex items-center justify-between border-2 rounded-lg p-4 payment-option " data-value="Account">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="payment" value="Account" {{ old('payment') == 'Account' ? 'checked' : '' }} />
+                                        <span>Add to Account</span>
+                                        <p>*Account is Current & in good standing!</p>
+                                    </label>
+                                    <div class="bg-green-500 p-2 rounded-full inline-flex items-center justify-center">
+                                        <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />
+                                    </div>
                             </div>
+                            @endif
+
+
                             @endif
 
 

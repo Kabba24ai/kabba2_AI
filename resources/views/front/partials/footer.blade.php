@@ -1,7 +1,7 @@
 
 <footer class=" bg-neutral-800 text-white py-8 border-t">
     <div class="container md:px-0">
-        <div class="mx-auto px-4 lg:flex lg:items-center flex flex-wrap gap-8 justify-between">
+        <div class="mx-auto px-0 lg:px-4 lg:flex lg:items-center flex flex-wrap gap-8 justify-between">
             <div class="lg:flex gap-4 w-5/5 md:w-2/5 lg:w-2/5 items-center">
                 <div class=" mt-4 lg:mt-0 leading-[1.6]">
                     <h3 class="font-bold text-white text-base mb-2 ">Contact Us</h3>

@@ -119,13 +119,25 @@
                     <h2 class="text-base font-semibold text-gray-800">All Customer Orders</h2>
                     <div>
                         <label for="statusFilter" class="text-sm font-medium text-gray-700 mr-2">Filter by Status:</label>
-                        <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+                        <!-- <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
                             <option value="all">All Orders</option>
                             <option value="pending">Pending</option>
                             <option value="in-progress">In Progress</option>
                             <option value="completed">Completed</option>
                             <option value="cancelled">Cancelled</option>
+                        </select> -->
+
+                        <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+                            <option value="all">All Orders</option>
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="account">Account</option>
+                            <option value="partial-refund">Partial Refund</option>
+                            <option value="refunded">Refunded</option>
+                            <option value="failed">Failed</option>
                         </select>
+
+
                     </div>
                 </div>
 
@@ -146,7 +158,7 @@
     <tbody id="ordersTable" class="divide-y divide-gray-200">
         @forelse ($customer->orders as $order)
             @foreach ($order->products as $product)
-                <tr class="order-row" data-status="{{ strtolower(str_replace(' ', '-', $order->status)) }}">
+                <tr class="order-row" data-status="{{ strtolower(str_replace(' ', '-', $order->payments->first()->status)) }}">
                     {{-- Order Number --}}
                     <td class="px-4 py-3 font-medium text-gray-900">
                         {{ $order->order_number }}

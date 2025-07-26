@@ -20,7 +20,7 @@
                 <h2 class="section-title">Featured Rentals</h2>
                 <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
                     <!-- Heading with phone link -->
-                    <h3 class="text-base md:text-lg font-semibold text-gray-700 whitespace-nowrap">
+                    <h3 class="text-base md:text-lg font-semibold text-gray-700">
                         Call For Live Assistance from a Real Person:
                         <a href="{{ route('front.contact-us.index') }}" class="text-yellow-600 hover:underline ml-1">(615)
                             815-6734</a>
@@ -67,7 +67,7 @@
         </div>
     </section>
 
-    <section class="pb-12 pt-12 bg-gray-2">
+    <section class="pb-20  bg-gray-2">
         <div class="container relative overflow-hidden">
             <h2 class="section-title">About Rent 'n King</h2>
             <!-- about content -->

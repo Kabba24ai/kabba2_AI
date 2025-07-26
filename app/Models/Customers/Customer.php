@@ -183,4 +183,44 @@ public function getTaxStatus(): string
     return $this->tax_status ?? 'Taxable';
 }
 
+public function getLastPaymentAttribute()
+{
+    return $this->accounts()
+        ->where('type', 'payment')
+         ->orderByDesc('date') 
+        ->first();
+}
+
+public function getDaysSinceLastPaymentAttribute()
+{
+    $lastPayment = $this->last_payment;
+
+    if (!$lastPayment || !$lastPayment->date) {
+        return null;
+    }
+
+    return Carbon::parse($lastPayment->date)->diffInDays(Carbon::now());
+}
+
+public function getPaymentStatusBadgeAttribute()
+{
+    $days = $this->days_since_last_payment;
+
+    if ($days === null) {
+        return 'no-payment'; // No payment yet
+    }
+
+    if ($days <= 30) {
+        return 'safe'; // Green
+    } elseif ($days <= 45) {
+        return 'warning'; // Dark Yellow
+    } else {
+        return 'danger'; // Pink
+    }
+}
+
+
+
+
+
 }

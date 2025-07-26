@@ -33,7 +33,7 @@
                                     </li>
                                 @endforeach
                             @endif
-                            <li class="tracking-[0] whitespace-nowrap">
+                            <li class="tracking-[0] ">
                                 <a href="javascript:void(0)"
                                     class="cursor-not-allowed">{{ $productDetail->product_name }}</a>
                             </li>

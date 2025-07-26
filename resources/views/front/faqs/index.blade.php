@@ -319,7 +319,7 @@
     </section>
 @endsection
 
-@push('js')
+<!-- @push('js')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const buttons = document.querySelectorAll('.faq-btn');
@@ -346,4 +346,35 @@
             });
         });
     </script>
+@endpush -->
+
+@push('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const buttons = document.querySelectorAll('.faq-btn');
+
+        buttons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const targetId = btn.getAttribute('data-accordion-target');
+                const body = document.querySelector(targetId);
+                const icon = btn.querySelector('.sb-plus-minus-toggle');
+
+                if (!body) return;
+
+                const isOpen = !body.classList.contains('hidden');
+
+                // Toggle body visibility
+                if (isOpen) {
+                    body.classList.add('hidden');
+                    body.classList.remove('max-h-[1000px]');
+                    icon?.classList.remove('rotate-180');
+                } else {
+                    body.classList.remove('hidden');
+                    body.classList.add('max-h-[1000px]');
+                    icon?.classList.add('rotate-180');
+                }
+            });
+        });
+    });
+</script>
 @endpush

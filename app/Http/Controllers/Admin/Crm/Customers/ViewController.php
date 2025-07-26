@@ -56,8 +56,17 @@ class ViewController extends Controller
         }
 
         $users = User::where('status','Active')->get();
-        // dd($customer);
+        // biling sumary 
 
+        $query = Customer::with('orders.payments','addresses','accounts')->whereIn('status', ['Active', 'Inactive']);
+
+          $customers = $query->latest()->paginate(10)->withQueryString();
+
+
+        // biling sumary 
+
+
+       
         return view('admin.crm.customers.view', [
             'customer' => $customer,
             'states' => $states,
@@ -66,6 +75,7 @@ class ViewController extends Controller
             'website_extension'=> $extension,
             'users'=>$users,
             'lastpaymentdate'=> $lastpaymentdate,
+            'customers'=>$customers,
         ]);
     }
 }

@@ -463,7 +463,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-      const creditUsed = {{ $customer->total_order_amount ?? 0 }};
+      const creditUsed = {{ $customer->total_account_order_amount ?? 0 }};
       const creditLimit = {{ $customer->credit_limit ?? 0 }} ;
       const available = creditLimit - creditUsed;
       const percentUsed = (creditUsed / creditLimit) * 100;
@@ -493,7 +493,7 @@ document.addEventListener("DOMContentLoaded", function () {
     Array.from(filter.options).forEach(option => {
       const value = option.value;
       if (value === 'all') {
-        option.textContent = `All Orders (${rows.length})`;
+        option.textContent = `All (${rows.length})`;
       } else if (statusCounts[value] !== undefined) {
         option.textContent = `${value.charAt(0).toUpperCase() + value.slice(1)} (${statusCounts[value]})`;
       }

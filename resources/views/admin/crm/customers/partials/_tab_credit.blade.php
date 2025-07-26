@@ -150,10 +150,14 @@
                                 <label for="typeFilters" class="text-sm text-gray-600">Filter by Type:</label>
                                 <select id="typeFilters" class="border border-gray-300 rounded px-3 py-1 text-sm">
                                 <option value="all">All Transactions</option>
-                                <option value="charge">Charge</option>
+                                <option value="order">Order</option>
+
                                 <option value="payment">Payment</option>
+                                 <option value="refund">Refund</option>
+                                
                                 <option value="discount">Discount</option>
-                                <option value="refund">Refund</option>
+                              
+                                 <option value="charge">Charge</option>
                                 </select>
                             </div>
                         </div>
@@ -272,7 +276,8 @@
                                             <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7L7 17"/><path d="M17 17H7V7"/></svg>
                                         @elseif ($style['icon'] === 'arrow-up-right')
                                                     <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-
+                                        @elseif ($style['icon'] === 'cart')
+<x-heroicon-o-shopping-cart class="h-4 w-4" /> 
                                         @elseif ($style['icon'] === 'trending-up')
 
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -345,14 +350,7 @@
                                             <x-heroicon-o-pencil class="w-4 h-4" />
                                         </button>
 
-                                    
-                                        <button class="openDeleteTransactionBtn text-red-600 hover:text-red-800"
-                                                data-id="{{ $transaction->id }}"
-                                                data-type="{{ $transaction->type }}"
-                                                data-action="{{ route('admin.crm.customers.customeraccount.transactiondelete', $transaction->id) }}"
-                                                title="Delete">
-                                            <x-heroicon-o-trash class="w-4 h-4" />
-                                        </button>
+                                
                                      @endif
 
                                         <!-- Download -->
@@ -363,11 +361,22 @@
                                         </form>
 
                                         <!-- Note -->
-                                      <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">
+                                        <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">
 
 
                                             <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
                                         </a>
+
+   @if ($transaction->type !== 'order')
+                                        <button class="openDeleteTransactionBtn text-red-600 hover:text-red-800"
+                                                data-id="{{ $transaction->id }}"
+                                                data-type="{{ $transaction->type }}"
+                                                data-action="{{ route('admin.crm.customers.customeraccount.transactiondelete', $transaction->id) }}"
+                                                title="Delete">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                        </button>
+@endif
+
                                     </div>
                                 </td>
                             </tr>

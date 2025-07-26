@@ -562,6 +562,8 @@
                                     <label class="cursor-pointer">
                                         <input type="radio" name="payment" value="Account" {{ old('payment') == 'Account' ? 'checked' : '' }} />
                                     <span>Add to Account</span>
+                                <p>*Account is Current & in good standing!</p>
+
                                 </label>
                                     <div class="bg-green-500 p-2 rounded-full inline-flex items-center justify-center">
                                         <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />

@@ -46,6 +46,16 @@
             </select>
         </div>
 
+        {{-- Select Price --}}
+        <div class="w-full sm:w-48">
+            <select name="price"
+                class="choices-select w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                <option value="">All Prices</option>
+                <option value="Sale Price">Sale Price</option>
+                <option value="Regular Price">Regular Price</option>
+            </select>
+        </div>
+
         {{-- Type Dropdown --}}
         <div class="w-full sm:w-48">
             <select name="type"
@@ -70,6 +80,7 @@
         document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');
             let categorySelect = document.querySelector('select[name="category"]');
+            let priceSelect = document.querySelector('select[name="price"]');
             let typeSelect = document.querySelector('select[name="type"]');
             let loader = document.querySelector('#product-loading');
             let wrapper = document.querySelector('#product-table-wrapper');
@@ -83,6 +94,7 @@
                 const params = new URLSearchParams();
                 if (search.length >= 3 || search.length === 0) params.append('search', search);
                 if (category) params.append('category', category);
+                if (priceSelect.value) params.append('price', priceSelect.value);
                 if (type) params.append('type', type);
 
                 // Show loader
@@ -117,6 +129,7 @@
 
             // Instant change on selects
             categorySelect.addEventListener('change', fetchProducts);
+            priceSelect.addEventListener('change', fetchProducts);
             typeSelect.addEventListener('change', fetchProducts);
         });
     </script>

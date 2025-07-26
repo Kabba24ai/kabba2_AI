@@ -10,6 +10,12 @@
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                     <td class="px-6 py-4">
                         <div class="font-medium text-gray-800 dark:text-gray-100">{{ $product->product_name }}</div>
+                        @if ($product->is_on_sale)
+                            <span
+                                class="ml-0 inline-block rounded bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 px-2 py-0.5 text-xs font-semibold align-middle">
+                                On Sale
+                            </span>
+                        @endif
                     </td>
                     <td class="px-6 py-4">
                         <span
@@ -21,16 +27,18 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($product->retail_price ?? $product->rental_daily) }}
+                        {{ \App\Helpers\CustomHelper::formatCurrency(
+                            $product->product_type === 'Retail' ? $product->getRetailPrice() : $product->getRentalPrice('daily'),
+                        ) }}
                     </td>
                     <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($product->rental_weekend) }}
+                        {{ \App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice('weekend')) }}
                     </td>
                     <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($product->rental_weekly) }}
+                        {{ \App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice('weekly')) }}
                     </td>
                     <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($product->rental_monthly) }}
+                        {{ \App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice('monthly')) }}
                     </td>
                     <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
                         @if ($product->categories && $product->categories->count())

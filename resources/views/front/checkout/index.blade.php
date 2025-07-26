@@ -546,8 +546,8 @@
 
 
                             @if (auth('customer')->check() && auth('customer')->user()->credit_limit > 0 && auth('customer')->user()->is_credit_account == 1)
-                                    
-                           
+
+
 
 
                             @php
@@ -745,10 +745,8 @@
             form.addEventListener('submit', function(e) {
                 const parsleyForm = $(form).parsley();
 
-                // Force Parsley to validate
-                if (!parsleyForm.isValid({
-                        force: true
-                    })) {
+                const isFormValid = parsleyForm.validate({ force: true });
+                if (!isFormValid) {
                     // Stop everything: do not show loader
                     e.preventDefault();
                     enableCheckoutButton();
@@ -1160,10 +1158,8 @@
                 const form = this;
                 const parsleyForm = $(form).parsley();
 
-                // Validate with Parsley
-                if (!parsleyForm.isValid({
-                        force: true
-                    })) {
+                const isFormValid = parsleyForm.validate({ force: true });
+                if (!isFormValid) {
                     return;
                 }
 

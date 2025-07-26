@@ -35,6 +35,10 @@ class IndexController extends Controller
             $query->where('product_type', $request->type);
         }
 
+        if ($request->filled('price')) {
+            $query->filterByPriceType($request->price);
+        }
+
         $products = $query->latest()->paginate(10)->withQueryString(); // keeps filters in pagination links
 
         // Return only the table partial if it's an AJAX request

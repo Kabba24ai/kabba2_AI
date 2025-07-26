@@ -218,26 +218,94 @@ class Product extends Model
         return $this->$saleField && $this->$saleField > 0;
     }
 
+    public function getIsOnSaleAttribute()
+    {
+        if ($this->product_type === 'Retail') {
+            return $this->isRetailOnSale();
+        }
+
+        if ($this->product_type === 'Rental') {
+            return $this->isRentalOnSale('daily') ||
+                   $this->isRentalOnSale('weekend') ||
+                   $this->isRentalOnSale('weekly') ||
+                   $this->isRentalOnSale('monthly');
+        }
+
+        return false;
+    }
+
+    public function scopeFilterByPriceType($query, $priceType)
+    {
+        if ($priceType === 'Sale Price') {
+            return $query->where(function ($q) {
+                $q->where(function ($retail) {
+                    // Retail products with a sale price
+                    $retail->where('product_type', 'Retail')->whereNotNull('retail_sale_price')->where('retail_sale_price', '>', 0);
+                })->orWhere(function ($rental) {
+                    // Rental products with any sale price field > 0
+                    $rental->where('product_type', 'Rental')->where(function ($inner) {
+                        $inner
+                            ->whereNotNull('sale_price_daily')
+                            ->where('sale_price_daily', '>', 0)
+                            ->orWhere(function ($inner2) {
+                                $inner2->whereNotNull('sale_price_weekend')->where('sale_price_weekend', '>', 0);
+                            })
+                            ->orWhere(function ($inner3) {
+                                $inner3->whereNotNull('sale_price_weekly')->where('sale_price_weekly', '>', 0);
+                            })
+                            ->orWhere(function ($inner4) {
+                                $inner4->whereNotNull('sale_price_monthly')->where('sale_price_monthly', '>', 0);
+                            });
+                    });
+                });
+            });
+        }
+
+        if ($priceType === 'Regular Price') {
+            return $query->where(function ($q) {
+                $q->where(function ($retail) {
+                    // Retail products with no sale price
+                    $retail->where('product_type', 'Retail')->where(function ($inner) {
+                        $inner->whereNull('retail_sale_price')->orWhere('retail_sale_price', 0);
+                    });
+                })->orWhere(function ($rental) {
+                    // Rental products with no sale price
+                    $rental
+                        ->where('product_type', 'Rental')
+                        ->where(function ($inner) {
+                            $inner->whereNull('sale_price_daily')->orWhere('sale_price_daily', 0);
+                        })
+                        ->where(function ($inner) {
+                            $inner->whereNull('sale_price_weekend')->orWhere('sale_price_weekend', 0);
+                        })
+                        ->where(function ($inner) {
+                            $inner->whereNull('sale_price_weekly')->orWhere('sale_price_weekly', 0);
+                        })
+                        ->where(function ($inner) {
+                            $inner->whereNull('sale_price_monthly')->orWhere('sale_price_monthly', 0);
+                        });
+                });
+            });
+        }
+
+        return $query;
+    }
+
     public function hasOptions()
     {
-        $optionFields = [
-            'rental_prepaid_fuel',
-            'rental_prepaid_cleaning',
-            'rental_fuel_gallons',
-            'rental_def_gallons',
-            'rental_damage_waiver_daily',
-            'rental_damage_waiver_weekend',
-            'rental_damage_waiver_weekly',
-            'rental_damage_waiver_monthly',
-        ];
+        $optionFields = ['rental_prepaid_fuel', 'rental_prepaid_cleaning', 'rental_fuel_gallons', 'rental_def_gallons', 'rental_damage_waiver_daily', 'rental_damage_waiver_weekend', 'rental_damage_waiver_weekly', 'rental_damage_waiver_monthly'];
 
-        $hasSettingOption = collect($optionFields)->contains(function($field) {
+        $hasSettingOption = collect($optionFields)->contains(function ($field) {
             return $this->{$field} !== null;
         });
 
-        $hasCustomOptions = $this->options && $this->options->filter(function ($option) {
-            return $option->items && $option->items->isNotEmpty();
-        })->isNotEmpty();
+        $hasCustomOptions =
+            $this->options &&
+            $this->options
+                ->filter(function ($option) {
+                    return $option->items && $option->items->isNotEmpty();
+                })
+                ->isNotEmpty();
 
         return $hasSettingOption || $hasCustomOptions;
     }

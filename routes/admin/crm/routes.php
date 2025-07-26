@@ -19,4 +19,7 @@ Route::prefix('crm')
 
     // customers
     require base_path('routes/admin/crm/customers/routes.php');
+
+    require base_path('routes/admin/crm/billingsummary/routes.php');
+
 });

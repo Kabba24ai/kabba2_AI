@@ -7,11 +7,11 @@
             </a>
             <div class="flex space-x-4 5/6 w-full items-center justify-end text-white">
                 <ul class="lg:flex hidden">
-                    <li class=" px-5 active group-[.active]:font-bold group">
+                    <li class=" px-5 {{ Route::is('front.home.index') ? 'active' : '' }}  group-[.active]:font-bold group">
                         <a href="{{ route('front.home.index') }}"
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Home</a>
                     </li>
-                    <li class="px-5 group">
+                    <li class="px-5 group ">
                         <a href="javascript:void(0)"
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">Equipment
                             Rentals</a>
@@ -48,13 +48,13 @@
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">How
                             It Works</a>
                     </li>
-                    <li class=" px-5">
+                    <li class=" px-5 {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group">
                         <a href="{{ route('front.faqs.index') }}"
-                            class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">Faq</a>
+                            class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Faq</a>
                     </li>
-                    <li class=" px-5">
+                    <li class=" px-5 {{ Route::is('front.contact-us.index') ? 'active' : '' }} group-[.active]:font-bold group">
                         <a href="{{ route('front.contact-us.index') }}"
-                            class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">Contact
+                            class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold ">Contact
                             Us</a>
                     </li>
 
@@ -114,7 +114,7 @@
             <div class="relative w-full h-full overflow-y-auto ">
                 <div class="py-4 md:px-4 h-[calc(100vh-80px)] overflow-y-auto">
                     <ul class="lg:hidden block text-center">
-                        <li class=" py-3 active group-[.active]:font-bold group">
+                        <li class=" py-3 {{ Route::is('front.home.index') ? 'active' : '' }} group-[.active]:font-bold group">
                             <a href="{{ route('front.home.index') }}"
                                 class="hover:text-yellow-400 px-5 text-sm group-[.active]:font-bold transition-all duration-300 ease-in-out">Home</a>
                         </li>
@@ -129,25 +129,25 @@
                                  grid gap-y-4">
 
                                 <li class="py-3 group relative">
-                                    <a href="javascript:void(0)"
+                                    <!-- <a href="javascript:void(0)"
                                         class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out">Equipment
-                                        Rentals</a>
+                                        Rentals</a> -->
                                     <ul
                                         class="bg-neutral-800 text-center transition-all duration-300 ease-in-out z-10 grid gap-y-4">
                                         @foreach ($frontCategoryTree as $category)
                                             <li
                                                 class="{{ $category->childCategories->isNotEmpty() ? 'group/item relative' : 'flex w-full whitespace-nowrap' }}">
-                                                <a href=""
+                                                <a href="{{ route('front.categories.index', $category->slug) }}"
                                                     class="hover:text-yellow-400 w-full px-5 text-sm transition-all duration-300 ease-in-out">
                                                     {{ $category->title }}
                                                 </a>
                                                 @if ($category->childCategories->isNotEmpty())
                                                     <ul
-                                                        class=" w-auto !pb-0 border translate-y-2 bg-black/60 invisible transition-all duration-300 ease-in-out z-10 grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-4 ">
+                                                        class=" w-auto !pb-0 border translate-y-2 bg-black/60 transition-all duration-300 ease-in-out z-10 grid grid-flow-col grid-rows-[repeat(4,_auto)] ">
                                                         @foreach ($category->childCategories as $child)
                                                             <li class="flex w-full whitespace-nowrap">
-                                                                <a href=""
-                                                                    class="hover:text-yellow-400 w-full px-5 text-sm transition-all duration-300 ease-in-out">
+                                                                <a href="{{ route('front.categories.sub-category', ['slug' => $category->slug, 'childCategorySlug' => $child->slug]) }}"
+                                                                    class="hover:text-yellow-400 w-full p-2 text-sm transition-all duration-300 ease-in-out">
                                                                     {{ $child->title }}
                                                                 </a>
                                                             </li>
@@ -162,13 +162,15 @@
                             </ul>
                         </li>
 
-                        <li class=" py-3">
-                            <a href="{{ route('front.contact-us.index') }}"
-                                class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out">Contact</a>
-                        </li>
-                        <li class=" py-3">
+                       
+                        <li class=" py-3 {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group">
                             <a href="{{ route('front.faqs.index') }}"
-                                class="hover:text-yellow-400 px-5text-sm transition-all duration-300 ease-in-out">FAQs</a>
+                                class="hover:text-yellow-400 px-5text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold ">Faqs</a>
+                        </li>
+
+                         <li class=" py-3 {{ Route::is('front.contact-us.index') ? 'active' : '' }} group-[.active]:font-bold group">
+                            <a href="{{ route('front.contact-us.index') }}"
+                                class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Contact</a>
                         </li>
                     </ul>
                 </div>

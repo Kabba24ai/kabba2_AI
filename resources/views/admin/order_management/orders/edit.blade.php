@@ -413,7 +413,7 @@
                                         <x-heroicon-s-truck class="w-5 h-5 text-red-500 mr-1" /> Delivery Schedule
                                     </div>
                                     <div class="bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
-                                        <div class="flex flex-nowrap items-center gap-2 w-full mb-1">
+                                        <div class="flex flex-wrap items-center gap-2 w-full">
                                             <!-- Date -->
                                             <div class="flex flex-col items-start min-w-[100px] max-w-[120px] flex-[0.9]">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
@@ -425,7 +425,6 @@
                                                     data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
                                                     class="datepicker delivery_date border rounded px-1.5 py-1 text-xs w-full" />
                                             </div>
-
                                             <!-- Time -->
                                             <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"

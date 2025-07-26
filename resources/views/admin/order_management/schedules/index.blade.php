@@ -219,6 +219,8 @@
                 if (categoryInput && categoryInput.value) params.append('category', categoryInput.value);
                 if (paymentStatusInput && paymentStatusInput.value) params.append('payment_status',
                     paymentStatusInput.value);
+                if (paymentMethodInput && paymentMethodInput.value) params.append('payment_method',
+                    paymentMethodInput.value);
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
                 if (rescheduledOnlyInput && rescheduledOnlyInput.checked) params.append('rescheduled_only',
                 rescheduledOnlyInput.value);
@@ -298,6 +300,7 @@
             });
             if (categoryInput) categoryInput.addEventListener('change', fetchSchedules);
             if (paymentStatusInput) paymentStatusInput.addEventListener('change', fetchSchedules);
+            if (paymentMethodInput) paymentMethodInput.addEventListener('change', fetchSchedules);
             if (dateFilterInput) dateFilterInput.addEventListener('change', fetchSchedules);
             storeLocationInputs.forEach(input => input.addEventListener('change', fetchSchedules));
             if (rescheduledOnlyInput) rescheduledOnlyInput.addEventListener('change', fetchSchedules);

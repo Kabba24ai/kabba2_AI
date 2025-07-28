@@ -92,7 +92,7 @@ class CartHelper
         $storeName = null;
         if (!empty($validated['delivery_store_id'])) {
             $store = Store::find($validated['delivery_store_id']);
-            $storeAddress = $store ? $store->getFullAddress() : null;
+            $storeAddress = $store ? $store->full_address : null;
             $storeName = $store ? $store->store_name : null;
         }
 

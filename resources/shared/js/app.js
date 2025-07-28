@@ -11,6 +11,32 @@ window.jQuery = $;
 
 window.Parsley = Parsley;
 
+window.Parsley.getHiddenFieldErrors = function (parsleyForm) {
+    let errors = [];
+
+    parsleyForm.fields.forEach(function (field) {
+        const fieldErrors = field.getErrorsMessages();
+        if (fieldErrors.length > 0) {
+            const $element = field.$element;
+
+            // Only collect errors for hidden fields
+            const isHidden = $element.is(':hidden');
+            if (isHidden) {
+                let fieldName = $element.attr('name') || 'Field';
+                const labelText = $(`label[for="${$element.attr('id')}"]`).text();
+                if (labelText) {
+                    fieldName = labelText.trim();
+                }
+
+                fieldErrors.forEach(function (msg) {
+                    errors.push(`${fieldName}: ${msg}`);
+                });
+            }
+        }
+    });
+
+    return errors;
+};
 
 
 // Initialize scripts on DOM ready
@@ -83,3 +109,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+

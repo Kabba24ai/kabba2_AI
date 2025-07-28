@@ -76,6 +76,7 @@ class PostController extends Controller
             }
 
             // 2. Add addresses (Billing & Delivery)
+            // Customer has only one address, update or create as 'Billing'
             $billingAddress = CustomerAddress::updateOrCreate(
                 [
                     'customer_id' => $customer->id,
@@ -96,7 +97,7 @@ class PostController extends Controller
 
             // Set primary billing address if not already set
             if (!$billingAddress->is_primary) {
-                CustomerAddress::setPrimaryBillingAddress($billingAddress);
+                CustomerAddress::setPrimaryAddress($billingAddress);
             }
 
             // 3. Add Delivery Address (Check if same as billing)
@@ -135,6 +136,9 @@ class PostController extends Controller
             }
 
             $deliveryAddress = CustomerAddress::updateOrCreate($deliveryAddressField, $deliveryData);
+            if (!$deliveryAddress->is_primary) {
+                CustomerAddress::setPrimaryAddress($deliveryAddress);
+            }
 
             $billingState = State::where('id', $billingAddress->state_id)->first();
             $deliveryState = State::where('id', $deliveryAddress->state_id)->first();
@@ -182,6 +186,15 @@ class PostController extends Controller
                 'state' => $deliveryState->name ?? null,
                 'state_id' => $deliveryAddress->state_id ?? null,
                 'zip_code' => $deliveryAddress->zip_code,
+            ]);
+
+            $order->history()->create([
+                'customer_id' => $customer->id,
+                'user_id' => null, // No user for front-end orders
+                'action_by' => 'Customer',
+                'action_date' => now(),
+                'action' => 'create_order',
+                'description' => "Order {$order->order_number} placed by {$customer->full_name}",
             ]);
 
             $primaryStoreId = Store::primary()->value('id');
@@ -251,6 +264,16 @@ class PostController extends Controller
                     'created_by_id' => $customer->id,
                     'created_by_type' => Customer::class,
                 ]);
+
+                $order->history()->create([
+                    'customer_id' => $customer->id,
+                    'user_id' => null, // No user for front-end orders
+                    'action_by' => 'Customer',
+                    'action_date' => now(),
+                    'action' => 'confirm_payment',
+                    'description' => "Paid In Full Via - Credit/Debit Card",
+                    'extras' => json_encode($paymentResult),
+                ]);
             } else {
                 // If payment type is not card, just create a pending payment record
                 $order->payments()->create([
@@ -260,6 +283,16 @@ class PostController extends Controller
                     'status' => ($validated['payment'] === 'Account') ? 'Account' : 'Pending',
                     'created_by_id' => $customer->id,
                     'created_by_type' => Customer::class,
+                ]);
+
+
+                $order->history()->create([
+                    'customer_id' => $customer->id,
+                    'user_id' => null, // No user for front-end orders
+                    'action_by' => 'Customer',
+                    'action_date' => now(),
+                    'action' => 'confirm_payment',
+                    'description' => "Payment initiated via {$validated['payment']}",
                 ]);
             }
 

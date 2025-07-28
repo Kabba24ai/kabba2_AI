@@ -1,6 +1,6 @@
 {
-  "_api-C-ZALLuG.js": {
-    "file": "assets/api-C-ZALLuG.js",
+  "_api-D5vZpw1z.js": {
+    "file": "assets/api-D5vZpw1z.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
@@ -43,39 +43,39 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-CpxHPKUA.css",
+    "file": "assets/app-DTgWgUUV.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-CEjwo8c-.js",
+    "file": "assets/app-70mzXdVD.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-C-ZALLuG.js"
+      "_api-D5vZpw1z.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-eWGneFbZ.css",
+    "file": "assets/app-zsdqJYj2.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-DnW2mk3C.css",
+    "file": "assets/app-Jaa0hTTF.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-_C0TrDfS.js",
+    "file": "assets/app-BydTqwAo.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-C-ZALLuG.js"
+      "_api-D5vZpw1z.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"

@@ -35,6 +35,16 @@ class CustomHelper
         return Carbon::parse($time)->format($format);
     }
 
+    public static function formatDateTime($dateTime, $format = 'd/m/Y H:i A')
+    {
+        if (empty($dateTime)) {
+            return null;
+        }
+
+        $format = $format ?? config('app.date.date_time_format', 'd/m/Y H:i A');
+        return Carbon::parse($dateTime)->format($format);
+    }
+
     public static function parseDateFromInput($date)
     {
         if (empty($date)) {

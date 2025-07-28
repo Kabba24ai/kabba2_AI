@@ -33,6 +33,11 @@ class CustomerAddress extends Model
         'email'
     ];
 
+    public function scopePrimary($query)
+    {
+        return $query->where('is_primary', true);
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);
@@ -71,18 +76,16 @@ class CustomerAddress extends Model
         return $this->customer ? $this->customer->email : null;
     }
 
-    public static function setPrimaryBillingAddress(CustomerAddress $address)
+    public static function setPrimaryAddress(CustomerAddress $address)
     {
-        // Unset previous primary billing addresses for this customer
+        // Unset previous primary addresses for this customer and type
         self::where('customer_id', $address->customer_id)
-            ->whereIn('type', ['Billing', 'Shipping'])
+            ->where('type', $address->type)
             ->where('is_primary', true)
             ->update(['is_primary' => false]);
 
-        // Set the given address as primary if it's a billing address
-        if ($address->type === 'Billing') {
-            $address->is_primary = true;
-            $address->save();
-        }
+        // Set the given address as primary
+        $address->is_primary = true;
+        $address->save();
     }
 }

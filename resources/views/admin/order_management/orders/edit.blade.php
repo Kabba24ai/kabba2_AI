@@ -242,23 +242,23 @@
                 </div>
             </div>
             <div class="p-6">
-                <ul class="text-sm text-gray-700 space-y-1">
-                    <li class="flex justify-between">
-                        <span>• New Order Placed: Sasha Hill</span>
-                        <span class="text-xs text-gray-500">5/16/2025 – 08:32 AM</span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>• Order Paid: Credit / Debit Card</span>
-                        <span class="text-xs text-gray-500">5/16/2025 – 08:32 AM</span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>• Terms Signed</span>
-                        <span class="text-xs text-gray-500">5/16/2025 – 08:35 AM</span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>• Order Delivered</span>
-                        <span class="text-xs text-gray-500">5/16/2025 – 03:43 AM</span>
-                    </li>
+                <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3 scroll-auto max-h-60">
+                    @forelse ($order->history as $history)
+                        <li >
+                            <span>
+                                {{ $history->description }}
+                                @if ($history->user)
+                                    <span class="text-xs text-gray-400">({{ $history->user->name }})</span>
+                                @endif
+                                <br>
+                                <span class="text-xs text-gray-500">
+                                    {{ \App\Helpers\CustomHelper::formatDateTime($history->created_at) }}
+                                </span>
+                            </span>
+                        </li>
+                    @empty
+                        <li class="text-gray-400 text-sm">No history available.</li>
+                    @endforelse
                 </ul>
             </div>
         </div>

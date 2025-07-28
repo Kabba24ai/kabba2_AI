@@ -79,6 +79,11 @@ class Order extends Model
         return $this->hasOne(OrderPayment::class, 'order_id')->latest('id');
     }
 
+    public function history()
+    {
+        return $this->hasMany(OrderHistory::class, 'order_id');
+    }
+
     // Polymorphic relations for created_by and updated_by
     public function createdBy()
     {

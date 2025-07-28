@@ -18,7 +18,6 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
-
         $product = Product::where('unique_id', $unique_id)->firstOrFail();
 
         DB::beginTransaction();

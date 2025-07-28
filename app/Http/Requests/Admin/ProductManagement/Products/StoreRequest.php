@@ -20,7 +20,7 @@ class StoreRequest extends ApiBaseFormRequest
 
     protected function prepareForValidation()
     {
-        $input = PurifyHelper::purify($this->all(), ['short_description', 'description']);
+        $input = PurifyHelper::purify($this->all(), ['description']);
 
         $this->merge($input);
 
@@ -55,7 +55,7 @@ class StoreRequest extends ApiBaseFormRequest
             // Retail
             'sku' => ['nullable', 'string', 'max:255'],
             'barcode' => ['nullable', 'string', 'max:255'],
-            'retail_price' => ['required_if:product_type,Retail', 'numeric', 'min:0', 'max:9999999'],
+            'retail_price' => ['required_if:product_type,Retail', 'numeric', 'min:0', 'max:9999999', 'nullable'],
             'retail_sale_price' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'retail_product_cost' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 

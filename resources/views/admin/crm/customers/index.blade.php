@@ -23,7 +23,7 @@
 
         <!-- Search by name -->
         <div class="relative w-full sm:w-48">
-            <input type="text" name="search_name" placeholder="Search by name..." value="{{ request('search_name') }}"
+            <input type="text" name="search_name" placeholder="Customer name" value="{{ request('search_name') }}"
                 class="w-full h-10 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -36,7 +36,7 @@
 
          <!-- Search by company -->
         <div class="relative w-full sm:w-48">
-            <input type="text" name="search_company_name" placeholder="Search by company..." value="{{ request('search_company_name') }}"
+            <input type="text" name="search_company_name" placeholder="Customer company" value="{{ request('search_company_name') }}"
                 class="w-full h-10 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"

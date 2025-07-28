@@ -102,13 +102,7 @@
                 Account
             </button>
 
-            <button
-                class="whitespace-nowrap inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
-                x-bind:class="activeTab === 'billing' ? ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
-                x-on:click="activeTab = 'billing'" id="tab-billing">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4 mr-1"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
-                Billing Summary
-            </button>
+           
          
         </nav>
     </div>
@@ -141,10 +135,7 @@
 
              @include('admin.crm.customers.partials._tab_account')
         </div>
-        <div x-show="activeTab === 'billing'">
-
-             @include('admin.crm.customers.partials._tab_billing')
-        </div>
+      
     </div>
 </div>
 

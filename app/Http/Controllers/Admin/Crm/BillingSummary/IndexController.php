@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Customers\Customer;
 use App\Helpers\CustomHelper;
+use Illuminate\Support\Facades\Log;
 
 // Models
 
@@ -19,8 +20,28 @@ class IndexController extends Controller
      */ 
     public function __invoke(Request $request)
     {
-        $query = Customer::with('orders.payments','addresses','accounts')->whereIn('status', ['Active', 'Inactive']);
-    
+         $query = Customer::with('orders.payments', 'addresses', 'accounts')
+        ->whereIn('status', ['Active', 'Inactive']);
+
+    // Clone the base query for total calculations (before filtering/pagination)
+    $baseQuery = clone $query;
+    $allCustomers = $baseQuery->get();
+
+    $totalOutstanding = $allCustomers->sum('available_credit_balance');
+
+    // Filter only overdue customers
+    $overdueCustomers = $allCustomers->filter(function ($customer) {
+        return $customer->credit_limit !== null &&
+               $customer->available_credit_balance > $customer->credit_limit;
+    });
+
+    Log::info('overdueCustomers :- ' . $overdueCustomers);
+
+    $overdueCustomerCount = $overdueCustomers->count();
+
+    $totalOverdueAmount = $overdueCustomers->sum(function ($customer) {
+        return $customer->credit_limit - $customer->available_credit_balance;
+    });
         if ($request->filled('search_name')) {
             $query->where(function ($q) use ($request) {
                 $q->where('first_name', 'like', '%' . $request->search_name . '%')
@@ -65,7 +86,7 @@ class IndexController extends Controller
         
         if ($request->ajax()) {
             
-            $tableView = view('admin.crm.customers.partials._table_billingsummary', compact('customers'))->render();
+            $tableView = view('admin.crm.billingsummary.partials._table', compact('customers'))->render();
 
             return response()->json([
                 'html' => $tableView,
@@ -73,7 +94,18 @@ class IndexController extends Controller
             ]);
 
         }
-    
+
+        $query = Customer::with('orders.payments','addresses','accounts')->whereIn('status', ['Active', 'Inactive']);
+
+        $customers = $query->latest()->paginate(10)->withQueryString();
+
+        return view('admin.crm.billingsummary.index', [
+            'customers'=>$customers,
+            'totalOutstanding'=>$totalOutstanding,
+            'overdueCustomerCount' => $overdueCustomerCount , 
+            'totalOverdueAmount' => $totalOverdueAmount
+        ]);
+
     }
     
 }

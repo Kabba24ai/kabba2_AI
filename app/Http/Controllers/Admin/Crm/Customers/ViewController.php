@@ -60,8 +60,7 @@ class ViewController extends Controller
 
         $query = Customer::with('orders.payments','addresses','accounts')->whereIn('status', ['Active', 'Inactive']);
 
-          $customers = $query->latest()->paginate(10)->withQueryString();
-
+        $customers = $query->latest()->paginate(10)->withQueryString();
 
         // biling sumary 
 

@@ -17,23 +17,24 @@
                 <tr>
                     <td class="px-4 py-3">
                         <div class="font-medium">{{ $customer->full_name }}</div>
-                        <div class="text-gray-500 text-xs">{{ $customer->unique_id }}</div>
+                        <!-- <div class="text-gray-500 text-xs">{{ $customer->unique_id }}</div> -->
                     </td>
                     <td class="px-4 py-3">
                         {{ $customer->company_name }}
 
                         <a
                             @if (!empty($customer->company_website)) href="{{ $customer->company_website ?? 'javascript:void(0)' }}"  target="_blank" @endif>
+                             @if (!empty($customer->company_website))
                             <div class="text-sm text-gray-500 flex items-center gap-1">
                                 <x-heroicon-o-globe-alt class="w-4 h-4 text-gray-400" />
                                 <span>
-                                    @if (!empty($customer->company_website))
-                                        {{ $customer->company_website }}
-                                    @else
-                                        -
-                                    @endif
+                                   
+        {{ preg_replace('#^https?://#', '', $customer->company_website) }}
+                                   
                                 </span>
-                            </div>
+                            </div>      
+                                    @endif
+
                         </a>
                     </td>
                     <td class="px-4 py-3">
@@ -42,9 +43,11 @@
                             <span> {{ \App\Helpers\CustomHelper::formatPhone($customer->phone ?? '') ?: 'N/A' }}
                             </span>
                         </div>
+                        @if(!empty($customer->company_phone))
                         <div class="text-xs text-gray-500">Company:
                             {{ \App\Helpers\CustomHelper::formatPhone($customer->company_phone ?? '') ?: 'N/A' }}
                         </div>
+                         @endif
                     </td>
                     @php
                         $status = $customer->customer_account_status ?? 'Good Standing';
@@ -104,13 +107,15 @@
                         </a>
 
 
-                        <a href="{{ route('admin.crm.customers.edit', $customer->unique_id) }}">
+                        <!-- <a href="{{ route('admin.crm.customers.edit', $customer->unique_id) }}">
 
                             <button class="text-green-600 hover:text-green-800" title="Edit">
                                 <x-heroicon-o-pencil class="w-5 h-5" />
                             </button>
 
-                        </a>
+                        </a> -->
+
+
                         {{-- Delete Button --}}
                         <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}" method="POST"
                             class="inline" onsubmit="return confirm('Are you sure you want to delete this Customer?');">

@@ -157,7 +157,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Available Credit</p>
-                        <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }} {{ number_format(($customer->credit_limit ?? 0) - ($customer->total_order_amount ?? 0), 2) }} </p>
+                        <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0), 2) }} </p>
                     </div>
                 </div>
 

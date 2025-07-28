@@ -15,7 +15,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $category_tree = ProductCategory::with('media')->whereNull('parent_id')->limit(8)->get();
+        $category_tree = ProductCategory::with('media')->whereNull('parent_id')->get();
 
         return view('front.home.index', [
             'title' => 'Home',

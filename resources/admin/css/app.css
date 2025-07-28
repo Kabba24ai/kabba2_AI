@@ -818,13 +818,19 @@ span.flatpickr-weekday,
 .bg-pink-100 {
    background-color: #ffdff9;
 }
-@media screen and (max-width:699px) {
-  .billing-summary-w-16{width: 100%;}
-  .billing-summary-w-15{width: 100%;}
-  .billing-summary-w-13{width: 100%;}
+@media screen and (min-width: 1000px) and (max-width: 1174px) {
+  .billing-summary-w-16{width: 15% !important;}
+  .billing-summary-w-15{width: 14% !important;}
+  .billing-summary-w-13{width: 12% !important;}
 }
 @media screen and (min-width:768px) and (max-width:992px) {
   .billing-summary-w-16{width: 30%;}
   .billing-summary-w-15{width: 30%;}
   .billing-summary-w-13{width: 30%;}
 }
+@media screen and (max-width:699px) {
+  .billing-summary-w-16{width: 100%;}
+  .billing-summary-w-15{width: 100%;}
+  .billing-summary-w-13{width: 100%;}
+} 
+

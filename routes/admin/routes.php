@@ -47,5 +47,8 @@ Route::name('admin.')->group(function ($router) {
 
         // checklist
         require base_path('routes/admin/checklist_management/routes.php');
+
+        // Stores
+        require base_path('routes/admin/stores/routes.php');
     });
 });

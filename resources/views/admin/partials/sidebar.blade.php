@@ -113,7 +113,7 @@
                                     </a>
                                 </li>
 
-                              
+
 
                             </ul>
                         </div>
@@ -163,9 +163,9 @@
                             </ul>
                         </div>
                     </li>
-                    
+
                     @php
-                    
+
                     $maintenanceActive = Route::is([
                         'admin.maintenance-management.equipments.*',
                         'admin.maintenance-management.parts.*',
@@ -194,13 +194,13 @@
                         // Add the correct route for customer checklist when ready
                         'admin.checklist_management.customer_checklist.*',
                     ]);
-                    
+
                     $crmActive = Route::is([
                         'admin.crm.customers.*',
                     ]);
-                      
+
                     @endphp
-                    
+
                     <!-- Maintenance -->
                     <li x-data="{ open: {{ $maintenanceActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
@@ -249,7 +249,7 @@
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Suppliers
                                     </a>
                                 </li>
-                               
+
                             </ul>
                         </div>
                     </li>
@@ -307,10 +307,10 @@
 
                                         </li>
 
-                                       
+
                                     </ul>
                                 </li>
-                              
+
                             </ul>
                         </div>
 
@@ -351,7 +351,7 @@
                     </li>
 
 
-                    
+
                     <!-- crm -->
                     <li x-data="{ open: {{ $crmActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
@@ -386,7 +386,7 @@
                                         <x-heroicon-o-users class="w-6 h-6" /> Customers
                                     </a>
                                 </li>
-                               
+
                             </ul>
                         </div>
                     </li>
@@ -394,6 +394,7 @@
                     @php
                     $settingsActive = Route::is([
                         'admin.terms-and-conditions.*',
+                        'admin.stores.*',
                         'admin.configurations.*',
                     ]);
 
@@ -430,6 +431,14 @@
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.terms-and-conditions.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-information-circle class="h-5 w-5" /> Terms & Conditions
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.stores.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.stores.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-home class="h-5 w-5" /> Stores
                                     </a>
                                 </li>
 

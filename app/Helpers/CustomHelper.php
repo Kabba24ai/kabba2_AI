@@ -77,6 +77,8 @@ class CustomHelper
             'refunded' => 'bg-purple-100 text-purple-800',
             'paid' => 'bg-green-100 text-green-800',
             'failed' => 'bg-red-100 text-red-800',
+            'yes' => 'bg-green-100 text-green-800',
+            'no' => 'bg-red-100 text-red-800',
         ];
 
         $class = $classes[strtolower($status)] ?? 'bg-gray-200 text-gray-800';
@@ -87,7 +89,7 @@ class CustomHelper
     }
 
 
-    
+
     public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.00): void
 {
     $customer = Customer::findOrFail($record->customer_id);

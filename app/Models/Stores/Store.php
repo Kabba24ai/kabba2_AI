@@ -25,6 +25,10 @@ class Store extends Model
         'updated_by',
     ];
 
+    protected $appends = [
+        'full_address',
+    ];
+
     public function scopeOrderByAdmin($query)
     {
         return $query->orderBy('title', 'asc');
@@ -45,7 +49,7 @@ class Store extends Model
         return $this->belongsTo(\App\Models\Locations\State::class);
     }
 
-    public function getFullAddress()
+    public function getFullAddressAttribute()
     {
         $parts = [
             $this->address,
@@ -67,6 +71,15 @@ class Store extends Model
             if (auth()->check()) {
                 $model->created_by = auth()->id();
             }
+
+        });
+
+        self::saving(function ($model) {
+            // Set updated_by
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
         });
     }
+
 }

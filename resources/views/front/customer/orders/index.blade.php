@@ -59,7 +59,7 @@
                                             <p>{{ App\Helpers\CustomHelper::formatCurrency($order->grand_total) }} </p>
                                         </td>
                                         <td class="border px-4 py-2">
-                                            <p>{{ $order->status }}</p>
+                                            <p>{{ $order->status->label() }}</p>
                                         </td>
                                         <td class="border px-4 py-2">
                                             <div class="flex gap-x-4">

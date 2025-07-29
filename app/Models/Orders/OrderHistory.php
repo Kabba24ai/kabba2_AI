@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 // Helpers
 use App\Helpers\ModelHelper;
 
+// enums
+use App\Enums\Orders\OrderHistoryAction;
+use App\Enums\Orders\OrderHistoryActionBy;
+
 // Models
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
@@ -20,10 +24,15 @@ class OrderHistory extends Model
         'customer_id',
         'user_id',
         'action_date',
-        'action_by',
-        'action',
+        'action_by', // Customer, User, System
+        'action', // create_order, payment_initiated, order_paid, order_refunded, etc.
         'description',
         'extras',
+    ];
+
+    protected $casts = [
+        'action_by' => OrderHistoryActionBy::class,
+        'action' => OrderHistoryAction::class,
     ];
 
     public function order()

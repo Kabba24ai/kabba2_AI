@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use DB;
 
+// Events
+use App\Events\Front\Checkout\OrderPlacedEvent;
+
 // Helpers
 use App\Helpers\CartHelper;
 
@@ -36,8 +39,6 @@ class PostController extends Controller
 
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
-
-
 
         try {
             // 1. Find or create customer
@@ -188,14 +189,6 @@ class PostController extends Controller
                 'zip_code' => $deliveryAddress->zip_code,
             ]);
 
-            $order->history()->create([
-                'customer_id' => $customer->id,
-                'user_id' => null, // No user for front-end orders
-                'action_by' => 'Customer',
-                'action_date' => now(),
-                'action' => 'create_order',
-                'description' => "Order {$order->order_number} placed by {$customer->full_name}",
-            ]);
 
             $primaryStoreId = Store::primary()->value('id');
 
@@ -246,10 +239,10 @@ class PostController extends Controller
                 $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
                 if ($paymentResult['status'] !== 'success') {
                     logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
-                    DB::rollback();
-                    return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    // DB::rollback();
+                    // return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
                 }
-                $order->payments()->create([
+                $payment = $order->payments()->create([
                     'payment_datetime' => now(),
                     'payment_method' => $validated['payment'],
                     'amount' => $amount,
@@ -265,34 +258,15 @@ class PostController extends Controller
                     'created_by_type' => Customer::class,
                 ]);
 
-                $order->history()->create([
-                    'customer_id' => $customer->id,
-                    'user_id' => null, // No user for front-end orders
-                    'action_by' => 'Customer',
-                    'action_date' => now(),
-                    'action' => 'confirm_payment',
-                    'description' => "Paid In Full Via - Credit/Debit Card",
-                    'extras' => json_encode($paymentResult),
-                ]);
             } else {
                 // If payment type is not card, just create a pending payment record
-                $order->payments()->create([
+                $payment =$order->payments()->create([
                     'payment_datetime' => now(),
                     'payment_method' => $validated['payment'],
                     'amount' => $order->grand_total,
                     'status' => ($validated['payment'] === 'Account') ? 'Account' : 'Pending',
                     'created_by_id' => $customer->id,
                     'created_by_type' => Customer::class,
-                ]);
-
-
-                $order->history()->create([
-                    'customer_id' => $customer->id,
-                    'user_id' => null, // No user for front-end orders
-                    'action_by' => 'Customer',
-                    'action_date' => now(),
-                    'action' => 'confirm_payment',
-                    'description' => "Payment initiated via {$validated['payment']}",
                 ]);
             }
 
@@ -312,6 +286,8 @@ class PostController extends Controller
 
                 $record->save();
 
+
+
                 CustomHelper::updateCreditBalance($record, $order->tax_amount);
             }
 
@@ -319,7 +295,11 @@ class PostController extends Controller
                 session()->forget('tax_exempt'); // Clear tax exempt session if already set
             }
 
+
             DB::commit();
+
+            // Fire OrderPlaced event
+            event(new OrderPlacedEvent($order, $customer, $payment));
 
             // Generate a signed URL for the thank you page with order unique id
             $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
@@ -327,11 +307,9 @@ class PostController extends Controller
             // Success: redirect to signed thank you page with order id
             return redirect($signedUrl);
         } catch (\Exception $e) {
-            DB::rollback();
-            //dd($e);
             // Log the error if needed: logger($e);
-
             logger($e);
+            DB::rollback();
 
             return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
         }

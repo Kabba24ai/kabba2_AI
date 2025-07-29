@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
+use App\Enums\Orders\OrderPaymentStatus;
 use App\Http\Controllers\Controller;
 
+// Events
+use App\Events\Admin\Orders\PaymentConfirmedEvent;
 
 // Models
 use App\Models\Orders\Order;
@@ -15,7 +18,7 @@ class ConfirmPaymentController extends Controller
      */
     public function __invoke($uniqueId)
     {
-
+        $user = auth()->user();
 
         $order = Order::where('unique_id', $uniqueId)->first();
         if (!$order) {
@@ -34,8 +37,10 @@ class ConfirmPaymentController extends Controller
                 ], 404);
             }
 
-            $lastPayment->status = 'Paid';
+            $lastPayment->status = OrderPaymentStatus::Paid;
             $lastPayment->save();
+
+            event(new PaymentConfirmedEvent($order, $user, $lastPayment));
 
             return response()->json([
                 'success' => true,

@@ -206,7 +206,7 @@ class AuthorizeNetService
 
         $controller = new AnetController\CreateTransactionController($request);
         $response = $controller->executeWithApiResponse($this->getApiEnvironment());
-
+        logger()->info('AuthorizeNet response: ' . json_encode($response));
         // ---- 5. Handle Response ----
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
             $transactionResponse = $response->getTransactionResponse();

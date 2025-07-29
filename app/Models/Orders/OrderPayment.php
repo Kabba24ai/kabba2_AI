@@ -5,13 +5,17 @@ namespace App\Models\Orders;
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Model;
 
+// enums
+use App\Enums\Orders\OrderPaymentMethod;
+use App\Enums\Orders\OrderPaymentStatus;
+
 class OrderPayment extends Model
 {
     // Allow mass assignment for these fields
     protected $fillable = [
         'unique_id',
         'order_id',
-        'payment_method',
+        'payment_method', // e.g., 'COD*', 'Account', 'Card'
         'payment_datetime',
         'transaction_id',
         'card_first_name',
@@ -29,6 +33,11 @@ class OrderPayment extends Model
         'created_by_type',
         'updated_by_id',
         'updated_by_type',
+    ];
+
+    protected $casts = [
+        'payment_method' => OrderPaymentMethod::class,
+        'status' => OrderPaymentStatus::class,
     ];
 
     protected static function boot()
@@ -54,21 +63,21 @@ class OrderPayment extends Model
     // Scopes
     public function scopePending($query)
     {
-        return $query->where('status', 'Pending');
+        return $query->where('status', OrderPaymentStatus::Pending);
     }
 
     public function scopePaid($query)
     {
-        return $query->where('status', 'Paid');
+        return $query->where('status', OrderPaymentStatus::Paid);
     }
 
     public function scopeFailed($query)
     {
-        return $query->where('status', 'Failed');
+        return $query->where('status', OrderPaymentStatus::Failed);
     }
 
     public function scopeCod($query)
     {
-        return $query->where('payment_method', 'COD');
+        return $query->where('payment_method', OrderPaymentMethod::COD);
     }
 }

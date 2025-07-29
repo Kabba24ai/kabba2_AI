@@ -241,15 +241,13 @@
                     <h3 class="text-sm font-semibold text-gray-800">History</h3>
                 </div>
             </div>
-            <div class="p-6">
-                <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3 scroll-auto max-h-60">
+            <div class="p-6 max-h-60 overflow-y-auto">
+                <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3 ">
                     @forelse ($order->history as $history)
                         <li >
                             <span>
                                 {{ $history->description }}
-                                @if ($history->user)
-                                    <span class="text-xs text-gray-400">({{ $history->user->name }})</span>
-                                @endif
+
                                 <br>
                                 <span class="text-xs text-gray-500">
                                     {{ \App\Helpers\CustomHelper::formatDateTime($history->created_at) }}

@@ -64,6 +64,9 @@
                                 class="text-sky-600 hover:text-sky-800" title="View" target="_blank">
                                 <x-heroicon-o-eye class="w-4 h-4" />
                             </a>
+                            <button class="delete-button text-red-600 hover:text-red-800" title="Delete" data-unique-id="{{ $order->unique_id }}">
+                                <x-heroicon-o-trash class="w-4 h-4" />
+                            </button>
                         </div>
                     </td>
                 </tr>

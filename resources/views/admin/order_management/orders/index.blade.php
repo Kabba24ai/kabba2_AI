@@ -32,8 +32,8 @@
             </div>
             <div class="w-full sm:w-48">
                 <div class="relative bg-white">
-                    <input type="text" id="customer_company_name" placeholder="Customer company" name="customer_company_name"
-                        value="{{ request('customer_company_name') }}"
+                    <input type="text" id="customer_company_name" placeholder="Customer company"
+                        name="customer_company_name" value="{{ request('customer_company_name') }}"
                         class="pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
                     <x-heroicon-o-magnifying-glass
                         class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
@@ -155,7 +155,7 @@
                         'Delete Orders'
                     ).then((result) => {
                         if (result.isConfirmed) {
-                            fetch("{{ route('admin.order-management.orders.bulk-delete') }}", {
+                            apiFetch("{{ route('admin.order-management.orders.bulk-delete') }}", {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -167,11 +167,10 @@
                                         unique_ids: ids
                                     })
                                 })
-                                .then(res => res.json())
                                 .then(data => {
                                     if (data.success || (data.message && data.message
                                             .toLowerCase().includes('deleted'))) {
-                                        notyf.success('Selected orders have been deleted.',
+                                        notyf.success(data.message,
                                             'Deleted!');
                                         // Remove rows
                                         ids.forEach(function(id) {
@@ -183,13 +182,9 @@
                                         if (selectAllCheckbox) selectAllCheckbox.checked = false;
                                         updateDeleteBtnCount();
                                     } else {
-                                        notyf.error(data.message ||
-                                            'Could not delete selected orders.', 'Failed!');
+                                        notyf.error(data.message);
                                     }
-                                }).catch(() => {
-                                    notyf.error('Something went wrong. Please try again.',
-                                        'Error!');
-                                });
+                                })
                         }
                     });
                 });
@@ -198,8 +193,52 @@
             updateDeleteBtnCount();
         }
 
+        function initSingleDeleteButtons() {
+            const singleDeleteButtons = document.querySelectorAll('.delete-button');
+
+            singleDeleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const uniqueId = this.dataset.uniqueId;
+
+                    window.showConfirm(
+                        `Delete this order? This action cannot be undone!`,
+                        'Delete Order'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch("{{ route('admin.order-management.orders.bulk-delete') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute(
+                                            'content')
+                                    },
+                                    body: JSON.stringify({
+                                        unique_ids: [uniqueId] // send as an array
+                                    })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success || (data.message && data.message
+                                            .toLowerCase().includes('deleted'))) {
+                                        notyf.success(data.message, 'Deleted!');
+                                        const row = document.getElementById('order-row-' +
+                                            uniqueId);
+                                        if (row) row.remove();
+                                    } else {
+                                        notyf.error(data.message);
+                                    }
+                                })
+                        }
+                    });
+                });
+            });
+        }
+
+
         document.addEventListener('DOMContentLoaded', function() {
             initOrderCheckboxes();
+            initSingleDeleteButtons();
 
             let customerNameInput = document.querySelector('input[name="customer_name"]');
             let customerCompanyNameInput = document.querySelector('input[name="customer_company_name"]');
@@ -224,7 +263,8 @@
                 params.set('page', 1); // Always reset to first page on filter
                 if (customerName.length >= 3 || customerName.length === 0) params.append('customer_name',
                     customerName);
-                if (customerCompany.length >= 3 || customerCompany.length === 0) params.append('customer_company_name',
+                if (customerCompany.length >= 3 || customerCompany.length === 0) params.append(
+                    'customer_company_name',
                     customerCompany);
                 if (customerPhone.length >= 3 || customerPhone.length === 0) params.append('customer_phone',
                     customerPhone);
@@ -244,6 +284,7 @@
                     .then(response => {
                         wrapper.innerHTML = response.html;
                         initOrderCheckboxes(); // Reinitialize checkboxes after new content
+                        initSingleDeleteButtons();
                     })
                     .finally(() => {
                         loader.classList.add('hidden');
@@ -273,6 +314,8 @@
             categoryInput.addEventListener('change', fetchOrders);
             paymentMethodInput.addEventListener('change', fetchOrders);
             paymentStatusInput.addEventListener('change', fetchOrders);
+
+
         });
     </script>
 @endpush

@@ -26,6 +26,9 @@ class BulkDeleteController extends Controller
             Order::whereIn('unique_id', $uniqueIds)->delete();
         });
 
-        return response()->json(['message' => 'Selected orders deleted successfully.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Order(s) deleted successfully.',
+        ], 200);
     }
 }

@@ -28,6 +28,5 @@ Route::prefix('orders')
         Route::post('/{unique_id}/update-address', UpdateOrderAddressController::class)->name('update-address');
 
         // // Delete
-        //Route::delete('/{unique_id}', IndexController::class)->name('delete');
         Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');
     });

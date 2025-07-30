@@ -5,6 +5,8 @@ use Carbon\Carbon;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Customers\Customer;
 use App\Models\Configurations\Setting;
+use App\Enums\Orders\OrderPaymentStatus;
+use App\Enums\Orders\OrderPaymentMethod;
 
 class CustomHelper
 {
@@ -76,29 +78,47 @@ class CustomHelper
         return sprintf('(%s) %s-%s', substr($digits, 0, 3), substr($digits, 3, 3), substr($digits, 6, 4));
     }
 
-    public static function statusBadge(string $status): string
-    {
-        $classes = [
-            'active'    => 'bg-green-100 text-green-800',
-            'inactive'  => 'bg-red-100 text-red-800',
-            'pending' => 'bg-yellow-100 text-yellow-800',
-            'account' => 'bg-blue-100 text-blue-800',
-            'partial refund' => 'bg-orange-100 text-orange-800',
-            'refunded' => 'bg-purple-100 text-purple-800',
-            'paid' => 'bg-green-100 text-green-800',
-            'failed' => 'bg-red-100 text-red-800',
-            'yes' => 'bg-green-100 text-green-800',
-            'no' => 'bg-red-100 text-red-800',
-        ];
-
-        $class = $classes[strtolower($status)] ?? 'bg-gray-200 text-gray-800';
-
-        return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">'
-            . ucfirst($status) .
-            '</span>';
+ public static function statusBadge(string|OrderPaymentStatus|null $status): string
+{
+    // Convert enum to string value if needed
+    if ($status instanceof OrderPaymentStatus) {
+        $status = $status->value;
     }
 
+    // Handle null fallback
+    $status ??= 'N/A';
 
+    // Normalize for matching (e.g., convert 'Paid' to 'paid')
+    $normalizedStatus = strtolower($status);
+
+    $classes = [
+        'active'          => 'bg-green-100 text-green-800',
+        'inactive'        => 'bg-red-100 text-red-800',
+        'pending'         => 'bg-yellow-100 text-yellow-800',
+        'account'         => 'bg-blue-100 text-blue-800',
+        'partial refund'  => 'bg-orange-100 text-orange-800',
+        'refunded'        => 'bg-purple-100 text-purple-800',
+        'paid'            => 'bg-green-100 text-green-800',
+        'failed'          => 'bg-red-100 text-red-800',
+        'yes'             => 'bg-green-100 text-green-800',
+        'no'              => 'bg-red-100 text-red-800',
+    ];
+
+    $class = $classes[$normalizedStatus] ?? 'bg-gray-200 text-gray-800';
+
+    return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">'
+        . ucfirst($status) .
+        '</span>';
+}
+
+public static function paymentMethodLabel(null|string|OrderPaymentMethod $method): string
+{
+    if ($method instanceof OrderPaymentMethod) {
+        return $method->label();
+    }
+
+    return OrderPaymentMethod::tryFrom($method)?->label() ?? 'N/A';
+}
 
     public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.00): void
 {

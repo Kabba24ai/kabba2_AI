@@ -11,8 +11,8 @@
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-[40px] tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
-                        <ul
-                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full font-medium items-center inline-flex gap-3 relative border-2">
+                        <ul  
+                            class="border-yellow-400 px-5 py-4 mt-4 lg:mt-0 text-sm font-medium border-2 max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
@@ -28,7 +28,7 @@
                                 </li>
                                 <li>
                                     <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
-                                </li>
+                                </li>      
                             @endif
                         </ul>
                     </div>

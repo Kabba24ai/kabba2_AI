@@ -15,7 +15,11 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Current Balance</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">
+
+                         {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}
+
+                    </p>
                     </div>
                 </div>
 
@@ -27,7 +31,11 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Available Credit</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0), 2) }}</p>
+                        <p class="text-xl font-semibold text-gray-900">
+                    
+                        {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0) ) }}
+                  
+                    </p>
                     </div>
                 </div>
 
@@ -46,7 +54,12 @@
                     </div>
                     <div>
                     <p class="text-sm text-gray-500">Credit Limit</p>
-                    <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }} </p>
+                    <p class="text-xl font-semibold text-gray-900"> 
+                
+                                                {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
+
+                
+                </p>
                     </div>
                 </div>
 
@@ -180,7 +193,7 @@
                                 <th class="px-4 py-3 text-center font-medium">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="transactionTable">
+                        <tbody id=" ">
 
                              @php
                                 $typeStyles = [
@@ -248,134 +261,154 @@
                                     
 
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $style['bg'] }} {{ $style['text'] }}">
-                                        @if ($style['icon'] === 'plus')
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                                        class="lucide lucide-plus w-4 h-4">
-                                                                        <path d="M5 12h14" />
-                                                                        <path d="M12 5v14" />
-                                                                    </svg>
-                                        @elseif ($style['icon'] === 'credit-card')
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                                        class="lucide lucide-credit-card w-4 h-4">
-                                                                        <rect width="20" height="14" x="2" y="5" rx="2" />
-                                                                        <line x1="2" x2="22" y1="10" y2="10" />
-                                                                    </svg>
-                                        @elseif ($style['icon'] === 'award')
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        class="lucide lucide-award w-4 h-4">
-                                        <circle cx="12" cy="8" r="6" />
-                                        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-                                    </svg>      
-                                        @elseif ($style['icon'] === 'arrow-down-left')
-                                            <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7L7 17"/><path d="M17 17H7V7"/></svg>
-                                        @elseif ($style['icon'] === 'arrow-up-right')
-                                                    <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-                                        @elseif ($style['icon'] === 'cart')
-<x-heroicon-o-shopping-cart class="h-4 w-4" /> 
-                                        @elseif ($style['icon'] === 'trending-up')
+                                                @if ($style['icon'] === 'plus')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                                                class="lucide lucide-plus w-4 h-4">
+                                                                                <path d="M5 12h14" />
+                                                                                <path d="M12 5v14" />
+                                                                            </svg>
+                                                @elseif ($style['icon'] === 'credit-card')
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                                                class="lucide lucide-credit-card w-4 h-4">
+                                                                                <rect width="20" height="14" x="2" y="5" rx="2" />
+                                                                                <line x1="2" x2="22" y1="10" y2="10" />
+                                                                            </svg>
+                                                @elseif ($style['icon'] === 'award')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="lucide lucide-award w-4 h-4">
+                                                    <circle cx="12" cy="8" r="6" />
+                                                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+                                                    </svg>      
+                                                @elseif ($style['icon'] === 'arrow-down-left')
+                                                    <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7L7 17"/><path d="M17 17H7V7"/></svg>
+                                                @elseif ($style['icon'] === 'arrow-up-right')
+                                                            <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                                                @elseif ($style['icon'] === 'cart')
+                                                            <x-heroicon-o-shopping-cart class="h-4 w-4" /> 
+                                                @elseif ($style['icon'] === 'trending-up')
 
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        class="lucide lucide-trending-up w-4 h-4">
-                                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-                                        <polyline points="16 7 22 7 22 13" />
-                                    </svg>
+                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                                                    class="lucide lucide-trending-up w-4 h-4">
+                                                                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                                                                    <polyline points="16 7 22 7 22 13" />
+                                                                                </svg>
 
-                                    
-
-                                            @endif
-                                            <span class="ml-1 capitalize">{{ $transaction->type }}</span>
-                                        </span>
-
-                                                                            <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsible_person_name ?? ''  }}
                                                                                 
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate text-gray-700">{{ $transaction->notes ?? 'N/A' }}</div>
-                                    <div class="text-xs text-gray-500">Ref: {{ $transaction->unique_id }}</div>
-                                </td>
-                                <td class="px-4 py-3 text-right">  {{ config('app.currency.code') }}{{ number_format($transaction->amount, 2) }}</td>
-                               {{-- Sales Tax Column --}}
-                                    <td class="px-4 py-3 text-right">
-                                        @if($transaction->sales_tax > 0 )
-                                            {{ config('app.currency.code') }}{{ number_format($transaction->amount * $transaction->sales_tax, 2) }}
-                                        @else
-                                            {{ config('app.currency.code') }}0.00
-                                        @endif
-                                    </td>
 
-                                    {{-- Total Amount with Tax if Applicable --}}
-                                    <td class="px-4 py-3 text-right whitespace-nowrap {{ $style['amount'] }}">
-                                        @php
-                                            $totalWithTax = $transaction->amount;
+                                                @endif
+                                              <span class="ml-1 capitalize">{{ $transaction->type }}</span>
+                                      </span>
 
-                                            if ($transaction->sales_tax > 0) {
-                                                $totalWithTax += ($transaction->amount * $transaction->sales_tax);
-                                            }
-                                        @endphp
+                                                                                                                <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsible_person_name ?? ''  }}
+                                                                                                                    
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                                                        <div class="max-w-xs truncate text-gray-700">{{ $transaction->notes ?? 'N/A' }}</div>
+                                                                        <div class="text-xs text-gray-500">Ref: {{ $transaction->unique_id }}</div>
+                                                                    </td>
+                                                                    <!-- Amount Without Tax -->
+                                                                        <td class="px-4 py-3 text-right"> 
 
-                                        {{ $style['sign'] }}{{ config('app.currency.code') }}{{ number_format($totalWithTax, 2) }}
-                                    </td>
+                                                                         @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
+                                                                                    {{-- Tax is included in the amount (payment or reverse charge) --}}
+                                                                                    {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) / (1 + $transaction->sales_tax)) }}
+                                                                                @else
+                                                                                    {{-- No tax or tax added on top --}}
+                                                                                    {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount ?? 0) }}
+                                                                                @endif
 
-                                <td class="px-4 py-3 text-right whitespace-nowrap">{{ number_format($transaction->balance, 2) }}</td>
-                                <td class="px-4 py-3 text-blue-600 text-center">
-                                    <div class="flex items-center justify-center space-x-2">
-                                      
+                                                                        </td>
+                                                                          {{-- Sales Tax Column --}}
+                                                                        <td class="px-4 py-3 text-right">
+                                                                            @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
+                                                                                {{-- Tax is included in the amount (payment or reverse charge) --}}
+                                                                                @php
+                                                                                    $taxAmount = ($transaction->amount ?? 0) - (($transaction->amount ?? 0) / (1 + $transaction->sales_tax));
+                                                                                @endphp
+                                                                                {{ \App\Helpers\CustomHelper::formatCurrency($taxAmount) }}
+                                                                            @elseif($transaction->sales_tax > 0)
+                                                                                {{-- Tax is added on top --}}
+                                                                                {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) * $transaction->sales_tax) }}
+                                                                            @else
+                                                                                {{ \App\Helpers\CustomHelper::formatCurrency(0) }}
+                                                                            @endif
+                                                                        </td>
 
-                                     <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)'    data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}" >
-                                        <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
-                                    </button>
+                                                                        {{-- Total Amount with Tax if Applicable --}}
+                                                                        <td class="px-4 py-3 text-right whitespace-nowrap {{ $style['amount'] }}">
+                                                                            @php
+                                                                                            $totalWithTax = $transaction->amount;
 
-                                     @if ($transaction->type !== 'order')
-                                        
-                                        <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
-                                                data-type="{{ $transaction->type }}"
-                                                data-amount="{{ $transaction->amount }}"
-                                                data-payment_type="{{ $transaction->payment_type }}"
-                                                data-reason="{{ $transaction->reason }}"
-                                                data-responsible_person="{{ $transaction->responsible_person_id }}"
-                                                data-notes="{{ $transaction->notes }}"
-                                                data-sales_tax="{{ $transaction->sales_tax }}"
-                                                data-sales_tax_type="{{ $transaction->sales_tax_type }}"
-                                                data-action="{{ route('admin.crm.customers.customeraccount.transactionupdate', $transaction->id) }}"
-                                                title="Edit">
-                                            <x-heroicon-o-pencil class="w-4 h-4" />
-                                        </button>
+                                                                                                if ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+                                                                                                    // Only add tax if it's NOT already included
+                                                                                                    $totalWithTax += ($transaction->amount * $transaction->sales_tax);
+                                                                                                }
+                                                                            @endphp
 
-                                
-                                     @endif
+                                                                                            {{ $style['sign'] }}
+                                                                                            {{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }}
+                                                                        </td>
 
-                                        <!-- Download -->
-                                        <form method="GET" action="{{ route('admin.crm.customers.customeraccount.download', $transaction->id) }}" target="_blank" style="display:flex;">
-                                            <button title="Download" type="submit">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
-                                            </button>
-                                        </form>
+                                                                    <td class="px-4 py-3 text-right whitespace-nowrap">{{ number_format($transaction->balance, 2) }}</td>
+                                                                    <td class="px-4 py-3 text-blue-600 text-center">
+                                                                        <div class="flex items-center justify-center space-x-2">
+                                                                        
 
-                                        <!-- Note -->
-                                        <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">
+                                                                        <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)'    data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}" >
+                                                                            <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
+                                                                        </button>
+
+                                                                        @if ($transaction->type !== 'order')
+                                                                            
+                                                                            <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
+                                                                                    data-type="{{ $transaction->type }}"
+                                                                                    data-amount="{{ $transaction->amount }}"
+                                                                                    data-payment_type="{{ $transaction->payment_type }}"
+                                                                                    data-reason="{{ $transaction->reason }}"
+                                                                                    data-responsible_person="{{ $transaction->responsible_person_id }}"
+                                                                                    data-notes="{{ $transaction->notes }}"
+                                                                                    data-sales_tax="{{ $transaction->sales_tax }}"
+                                                                                    data-sales_tax_type="{{ $transaction->sales_tax_type }}"
+                                                                                    data-action="{{ route('admin.crm.customers.customeraccount.transactionupdate', $transaction->id) }}"
+                                                                                    title="Edit">
+                                                                                <x-heroicon-o-pencil class="w-4 h-4" />
+                                                                            </button>
+
+                                                                    
+                                                                        @endif
+
+                                                                            <!-- Download -->
+                                                                            <form method="GET" action="{{ route('admin.crm.customers.customeraccount.download', $transaction->id) }}" target="_blank" style="display:flex;">
+                                                                                <button title="Download" type="submit">
+                                                                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
+                                                                                </button>
+                                                                            </form>
+
+                                                                            <!-- Note -->
+                                                                            <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">
 
 
-                                            <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
-                                        </a>
+                                                                                <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
+                                                                            </a>
 
-   @if ($transaction->type !== 'order')
-                                        <button class="openDeleteTransactionBtn text-red-600 hover:text-red-800"
-                                                data-id="{{ $transaction->id }}"
-                                                data-type="{{ $transaction->type }}"
-                                                data-action="{{ route('admin.crm.customers.customeraccount.transactiondelete', $transaction->id) }}"
-                                                title="Delete">
-                                            <x-heroicon-o-trash class="w-4 h-4" />
-                                        </button>
-@endif
+                                    @if ($transaction->type !== 'order')
+                                                                            <button class="openDeleteTransactionBtn text-red-600 hover:text-red-800"
+                                                                                    data-id="{{ $transaction->id }}"
+                                                                                    data-type="{{ $transaction->type }}"
+                                                                                    data-action="{{ route('admin.crm.customers.customeraccount.transactiondelete', $transaction->id) }}"
+                                                                                    title="Delete">
+                                                                                <x-heroicon-o-trash class="w-4 h-4" />
+                                                                            </button>
+                                    @endif
 
                                     </div>
                                 </td>

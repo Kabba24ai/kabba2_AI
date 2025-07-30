@@ -11,7 +11,7 @@ class CustomHelper
     public static function formatCurrency($value)
     {
         if (is_null($value)) {
-            return '-';
+            return '0';
         }
 
         return config('app.currency.code') . number_format($value, 2);
@@ -111,6 +111,24 @@ class CustomHelper
 
     switch ($record->type) {
         case 'payment':
+            
+            if ($customer->getTaxStatus() === 'Taxable') {
+
+                $record->sales_tax = $salesTaxRate;
+
+                $amountWithTax = $record->amount; 
+
+                // $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+
+            } else {
+                $record->sales_tax = 0;
+                $amountWithTax = $record->amount;
+            }
+
+            $newBalance -= $amountWithTax;
+            break;
+
+
         case 'refund':
             if ($customer->getTaxStatus() === 'Taxable') {
                 $record->sales_tax = $salesTaxRate;
@@ -132,9 +150,19 @@ class CustomHelper
             if (
                 $record->sales_tax_type === 'add'
             ) {
+
                 $record->sales_tax = $salesTaxRate;
                 $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
-            } else {
+
+            } elseif ($record->sales_tax_type === 'reverse'){
+
+                  $record->sales_tax = $salesTaxRate;
+
+                $amountWithTax = $record->amount; 
+
+            }
+        
+            else {
                 $record->sales_tax = 0;
                 $amountWithTax = $record->amount;
             }
@@ -159,12 +187,20 @@ public static function reverseTransactionEffect(CustomerAccount $record): void
     $customer = Customer::findOrFail($record->customer_id);
     $currentBalance = $customer->available_credit_balance ?? 0;
     $adjustedBalance = $currentBalance;
-
-    $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+ 
 
     switch ($record->type) {
         case 'payment':
+
+            // $salesTaxAmount = $record->sales_tax > 0 ? $record->amount - ($record->amount ?? 0) / (1 + $record->sales_tax) : 0;
+
+            $adjustedBalance += $record->amount ;
+            break;
+
         case 'refund':
+
+               $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+
             $adjustedBalance += $record->amount + $salesTaxAmount;
             break;
 
@@ -173,7 +209,24 @@ public static function reverseTransactionEffect(CustomerAccount $record): void
             break;
 
         case 'charge':
+            
+            if ($record->sales_tax_type === 'reverse'){
+
+            $adjustedBalance -= $record->amount ;
+            break;
+
+            }
+        
+            else {
+                $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+            $adjustedBalance -= $record->amount + $salesTaxAmount;
+            break;
+            }
+
         case 'order':
+
+               $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+
             $adjustedBalance -= $record->amount + $salesTaxAmount;
             break;
     }

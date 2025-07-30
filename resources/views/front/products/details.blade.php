@@ -12,8 +12,8 @@
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-4xl font-bold">
                             {{ $productDetail->product_name }}</h1>
-                        <ul
-                            class="border-yellow-400 px-[20px] py-4 max-w-full mt-4 lg:mt-0 text-sm font-medium items-center inline-flex gap-3 relative border-2">
+                        <ul 
+                            class="border-yellow-400 px-5 py-4 mt-4 lg:mt-0 text-sm font-medium border-2 max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
                             </li>
@@ -26,7 +26,7 @@
                                 </li>
                                 <!-- Only display child categories that are linked to the product -->
                                 @foreach ($childCategories as $child)
-                                    <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
+                                    <li class="tracking-[0] after:content-['/'] after:pl-[5px]">
                                         <a href="{{ route('front.categories.sub-category', ['slug' => $parentCategory->slug, 'childCategorySlug' => $child->slug]) }}">
                                             {{ $child->title }}
                                         </a>
@@ -90,7 +90,7 @@
                 </div>
 
                 <div>
-                    <div class="bg-gray-100 mb-4 flex flex-col lg:flex-row justify-between items-center pl-2">
+                    <div class="bg-gray-100 mb-4 flex flex-col lg:flex-row justify-between items-center pl-2 header-price">
                         <div>
                             <h3 class="font-bold text-2xl">{{ $productDetail->product_name }}
                             </h3>
@@ -98,7 +98,7 @@
                                 class="before:content-['('] before:text-gray-500 after:content-[')'] after:text-gray-500 text-green-600 ">
                                 In Stock</p>
                         </div>
-                        <div class="bg-yellow-400 text-xl h-[50px] lg:h-[70px] px-6 flex items-center font-medium">
+                        <div class="bg-yellow-400 text-xl h-[auto] md:h[auto] lg:h-[70px] px-6 flex items-center font-medium price-tag-box header-price">
                             <h4>
                                 @if ($productDetail->product_type == 'Rental')
                                     <span>
@@ -137,13 +137,13 @@
                         <div class="flex items-center">
                             <!-- Calendar icon button -->
                             <a href="javascript:void(0);" id="openDatePicker">
-                                <x-heroicon-o-calendar-days class="w-[52px] h-[52px] text-yellow-400" />
+                                <x-heroicon-o-calendar-days class="w-6 h-6 mr-2 md:w-[52px] h-[52px] text-yellow-400" />
                             </a>
 
                             <!-- Right side: date display + qty controls, spaced out -->
-                            <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-3 md:space-x-2 lg:space-x-4">
                                 <!-- Show selected date here -->
-                                <span id="selectedDateText" class="text-gray-700 text-base">Select Start Date</span>
+                                <span id="selectedDateText" class="text-sm md:text-base text-gray-700 ">Select Start Date</span>
                                 <!-- Quantity controls unchanged -->
                                 <button type="button"
                                     class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
@@ -249,7 +249,7 @@
                                         <span id="distanceTypeTitle"></span>
                                     </label>
                                     <select id="deliveryOptionSelect"
-                                        class="block w-100 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
+                                        class="block w-full md:w-8/12 lg:w-5/12  px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
                                         <option value="">Select Delivery Options</option>
                                         <option data-id="1" value="Delivery + Pickup">
                                             Delivery + Pick Up (To/From My Job Site)
@@ -267,7 +267,7 @@
                                 </div>
 
                                 <!-- Custom Option Text -->
-                                <div id="customServiceOption" class="hidden w-[80%] border-[5px] border-sky-400 p-2 mt-2">
+                                <div id="customServiceOption" class="hidden w-[100%] md:w-[100%] lg:w-[80%] border-[5px] border-sky-400 p-2 mt-2">
                                     <h4 class="text-center font-bold">Please Call / Text for Custom Solutions</h4>
                                     <h5 class="text-center text-red font-bold py-2">(615) 815-6734</h5>
                                     <p class="italic">Please reserve the item now, using the closest delivery range,
@@ -281,7 +281,7 @@
                                 Choose Store Location
                             </label>
                             <select id="storeSelect"
-                                class="block w-4/12 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
+                                class="block w-full md:w-8/12 lg:w-5/12 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
                                 <option disabled selected value="">Select Store Location</option>
                                 @foreach ($stores as $store)
                                     <option value="{{ $store->id }}">

@@ -59,7 +59,13 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Paid Sales</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->paid_sales ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">
+                            
+                        <!-- {{ config('app.currency.code') }}{{ $customer->paid_sales ?? 0 }} -->
+
+                        {{ \App\Helpers\CustomHelper::formatCurrency($customer->paid_sales ) }}
+
+                    </p>
                     </div>
                 </div>
 
@@ -78,7 +84,13 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Pending Sales</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->pending_sales ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">
+                    
+                         {{ \App\Helpers\CustomHelper::formatCurrency($customer->pending_sales ) }}
+                        
+                        <!-- {{ config('app.currency.code') }}{{ $customer->pending_sales ?? 0 }} -->
+                    
+                    </p>
                     </div>
                 </div>
 
@@ -89,7 +101,16 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Account Balance</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }}</p>
+                        <p class="text-xl font-semibold text-gray-900">
+                            
+                        {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance ) }}
+
+                        <!-- {{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }} -->
+                    
+                    
+                    </p>
+
+
                     </div>
                 </div>
 
@@ -171,12 +192,16 @@
 
                     {{-- Product Total --}}
                     <td class="px-4 py-3">
-                        {{ config('app.currency.code') }}{{ number_format($product->total, 2) }}
+
+                    {{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}
+
+                    <!-- {{ config('app.currency.code') }}{{ number_format($product->total, 2) }} -->
+
                     </td>
 
                     {{-- Payment Method --}}
                     <td class="px-4 py-3">
-{{ $order->payments->first()->payment_method ?? 'N/A' }}
+                        {{ $order->payments->first()->payment_method ?? 'N/A' }}
                     </td>
 
                     {{-- Order Status --}}

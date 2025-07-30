@@ -1,55 +1,48 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\Customers;
+namespace App\Http\Controllers\Front\Customer\Dashboard;
 
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Crm\Customers\ViewUpdateRequest;
+use App\Http\Requests\Front\Customer\Dashboard\UpdateRequest;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Carbon;
 
-class ViewUpdateController extends Controller
+class UpdateController extends Controller
 {
     /**
      * Handle the incoming request to update a customer.
      */
-    public function __invoke(ViewUpdateRequest $request, string $unique_id)
+    public function __invoke(UpdateRequest $request)
     {
-        
-        // dd($request->all());
-        // die();
 
         $validated = $request->validated();
 
-        $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
+        $customer = Customer::where('unique_id', $validated['unique_id'])->firstOrFail();
 
         DB::beginTransaction();
-      
+        
         try {
-
 
             $customerData = [
                 'first_name' => $validated['first_name'] ?? null,
                 'last_name' => $validated['last_name'] ?? null,
                 'company_name' => $validated['company_name'] ?? null,
                 'email' => $validated['email'] ?? null,
-    
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
                 'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
                 'tax_document_upload_date' => CustomHelper::parseDateFromInput($validated['tax_document_upload_date'] ?? null),
                 'is_credit_account' => $validated['is_credit_account'] ?? false,
-                 'tax_status' => $validated['tax_status'] ?? 'Taxable',
-
-                    'credit_limit' => $validated['credit_limit'] ?? null,
+                'tax_status' => $validated['tax_status'] ?? 'Taxable',
+                'credit_limit' => $validated['credit_limit'] ?? null,
             ];
 
-            //    $customerData['company_website'] = $fullWebsite;
-
-            
+           
             // Only set company_website if it has a value
             if (!empty($validated['company_website'])) {
                 $fullWebsite = trim(
@@ -57,10 +50,8 @@ class ViewUpdateController extends Controller
                     $validated['company_website'] .
                     ($validated['website_extension'] ?? '')
                 );
-
-               
             }
-                $customerData['company_website'] = $fullWebsite ?? '';
+            $customerData['company_website'] = $fullWebsite ?? '';
             $customer->update($customerData);
 
             // Process address list

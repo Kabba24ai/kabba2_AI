@@ -99,7 +99,7 @@
             </tr>
             <tr>
                 <th>Amount</th>
-                <td>{{ config('app.currency.code') }}{{ number_format($transaction->amount, 2) }}</td>
+                <td> {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount) }} </td>
             </tr>
             <tr>
                 <th>Sales Tax</th>
@@ -116,7 +116,8 @@
             <tr>
                 <th>Total (with Tax)</th>
                 <td>
-                    {{ config('app.currency.code') }}{{ number_format($totalWithTax, 2) }}
+                     {{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }} 
+                 
                 </td>
             </tr>
             <tr>
@@ -126,7 +127,11 @@
 
              <tr>
                 <th>Running Balance</th>
-                <td>{{ config('app.currency.code') }}{{ number_format($transaction->balance, 2) }}</td>
+                <td>
+            
+                     {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance) }} 
+            
+                 </td>
             </tr>
 
             <tr>

@@ -293,6 +293,35 @@
             </h3>
 
             <div class="space-y-4">
+
+            <div class="grid grid-cols-2 gap-4">
+                    <div class="edit-view">
+                        <label class="text-sm text-gray-700 mb-1">First Name</label>
+                        {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
+                            ->class([
+                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                'border-red-500' => $errors->has("addresses.$index.first_name"),
+                            ])
+                            ->attributes([
+                                'placeholder' => 'Enter First Name',
+                                'class' => 'first_name'
+                            ])->required() !!}
+                    </div>
+                    <div class="edit-view">
+                        <label class="text-sm text-gray-700 mb-1">Last Name </label>
+                        {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
+                            ->class([
+                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                'border-red-500' => $errors->has("addresses.$index.last_name"),
+                            ])
+                            ->attributes([
+                                'maxlength' => 10,
+                                'placeholder' => 'Last Name',
+                                'class' => 'last_name'
+                            ])->required() !!}
+                    </div>
+                </div>
+
                 <div>
                     <label class="text-sm text-gray-700 mb-1 edit-view">Address</label>
                     <div class="static-view text-gray-900 text-sm">
@@ -337,18 +366,41 @@
                     </div>
                 </div>
 
-                <div class="edit-view">
-                    <label class="text-sm text-gray-700 mb-1">State</label>
-                    {!! html()
-                        ->select("addresses[$index][state_id]",
-                            $states->pluck('name', 'id')->toArray(),
-                            old("addresses.$index.state_id", $addresse->state_id ?? '')
-                        )
-                        ->class([
-                            'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
-                            'border-red-500' => $errors->has("addresses.$index.state_id"),
-                        ]) !!}
-                </div>
+                <div class="grid grid-cols-2 gap-4">
+                            <div class="edit-view">
+                                <label class="text-sm text-gray-700 mb-1">State</label>
+                                {!! html()
+                                    ->select("addresses[$index][state_id]",
+                                        $states->pluck('name', 'id')->toArray(),
+                                        old("addresses.$index.state_id", $addresse->state_id ?? '')
+                                    )
+                                    ->class([
+                                        'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
+                                        'border-red-500' => $errors->has("addresses.$index.state_id"),
+                                    ]) !!}
+                            </div>
+
+                            <div class="edit-view">
+                                <label class="text-sm text-gray-700 mb-1">Phone Number</label>
+
+
+                                 {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
+                                    ->class([
+                                        'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                        'border-red-500' => $errors->has('phone'),
+                                    ])
+                                    ->attributes([
+                                        'maxlength' => 14,
+                                        'placeholder' => '(123) 456-7890',
+                                        'class' => 'phone',
+                                        'autocomplete' => 'tel',
+                                        'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                                        'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
+                                    ])->required() !!}
+
+                            </div>
+
+                </div>                       
             </div>
         </div>
     @endforeach
@@ -435,11 +487,14 @@
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between items-center">
 
-                          
-
+                        
                                 <span class="text-xs text-gray-500 font-medium">Credit Limit:</span>
                                 <span class="text-right static-view">
-                                    <span class="text-gray-900 font-semibold">{{ config('app.currency.code') }}{{ $customer->credit_limit ?? 0 }}</span>
+                                    <span class="text-gray-900 font-semibold">
+                                    
+            {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
+
+                                    </span>
                                     <a href="#" class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /></a>
                                 </span>
 
@@ -465,7 +520,13 @@
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 font-medium">Current Balance:</span>
 
-                            <span class="font-medium ">{{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }} <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
+                            <span class="font-medium ">
+                                
+                        
+            {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}
+
+
+                            <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
                             
                               
 
@@ -473,12 +534,14 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
-                            <span class="text-green-600 font-medium ">{{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0), 2) }}</span>
-                               
+                            <span class="text-green-600 font-medium ">
+                                
+                            
+
+                            {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0)) }}
 
 
-                        
-                        
+
                         </div>
                         <div class="static-view">
                             
@@ -486,6 +549,8 @@
                             @php
                                 $climit = $customer->credit_limit ?? 0;
                                 $available = $customer->total_account_order_amount ?? 0 ;
+
+                                $available = $available ;
 
                                 $per = $climit > 0 ? (($available / $climit) * 100) : 0;
                             @endphp

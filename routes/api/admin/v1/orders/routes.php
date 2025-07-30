@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 // Controllers
 use App\Http\Controllers\Api\Admin\V1\Orders\IndexController;
+use App\Http\Controllers\Api\Admin\V1\Orders\ShowController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,4 +19,5 @@ use App\Http\Controllers\Api\Admin\V1\Orders\IndexController;
 
 Route::group(['prefix' => 'orders'], function ($router) {
     Route::post('/', IndexController::class);
+    Route::post('/details', ShowController::class);
 });

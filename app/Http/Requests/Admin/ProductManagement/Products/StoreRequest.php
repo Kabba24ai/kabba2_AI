@@ -7,7 +7,7 @@ use App\Http\Requests\ApiBaseFormRequest;
 
 class StoreRequest extends ApiBaseFormRequest
 {
-    
+
     protected function prepareForValidation()
     {
         $input = PurifyHelper::purify($this->all(), ['description']);
@@ -137,6 +137,7 @@ class StoreRequest extends ApiBaseFormRequest
             'product_type.in' => 'The product type must be either "Rental" or "Retail".',
             'is_general_term_type.boolean' => 'The general term type must be true or false.',
             'is_custom_term_type.boolean' => 'The custom term type must be true or false.',
+            'categories.required' => 'You must select at least one category for the product.',
         ];
     }
 }

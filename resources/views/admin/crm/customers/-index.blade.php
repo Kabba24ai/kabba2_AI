@@ -80,7 +80,16 @@
         </div>
     </div>
 
-    
+    <div id="customer-loader" class="hidden text-center py-4">
+        <svg class="animate-spin h-6 w-6 text-brand-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <p class="text-sm text-gray-500 mt-2">Loading customers...</p>
+    </div>
 
 
     <div id="customer-table-wrapper">
@@ -101,8 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let company_name = document.querySelector('input[name="search_company_name"]');
     let statusSelect = document.querySelector('select[name="tax_status"]');
     let wrapper = document.querySelector('#customer-table-wrapper');
-    
-    let loader = document.querySelector('#customer-loader');
+
     let timeout = null;
 
     function fetchCustomers() {
@@ -118,13 +126,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (tax_status !== 'All') params.append('tax_status', tax_status);
 
          // Show loader
-        // document.querySelector('#customer-loader').classList.remove('hidden');
-    // document.querySelector('#customer-table-wrapper').classList.add('hidden');
-
-
-      loader.classList.remove('hidden');
-                wrapper.classList.add('opacity-50', 'pointer-events-none');
-
+        document.querySelector('#customer-loader').classList.remove('hidden');
+    document.querySelector('#customer-table-wrapper').classList.add('hidden');
 
         fetch("{{ route('admin.crm.customers.index') }}?" + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -140,8 +143,8 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error(err);
         }) .finally(() => {
         // Hide loader
-            loader.classList.add('hidden');
-                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
+            document.querySelector('#customer-loader').classList.add('hidden');
+                    document.querySelector('#customer-table-wrapper').classList.remove('hidden');
 
         });
         

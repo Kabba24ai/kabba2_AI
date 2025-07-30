@@ -9,8 +9,6 @@
 
     @include('flash::message')
 
-  
-
              <div class="bg-white rounded-md p-6 shadow-sm border border-gray-200 mt-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Left: Title & Description -->
@@ -162,7 +160,7 @@
                 </div>
             </div>
 
-            <div id="customer-loader" class="hidden text-center py-4">
+            <!-- <div id="customer-loader" class="hidden text-center py-4">
                 <svg class="animate-spin h-6 w-6 text-brand-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -171,12 +169,10 @@
                         d="M4 12a8 8 0 018-8v8z"></path>
                 </svg>
                 <p class="text-sm text-gray-500 mt-2">Loading customers...</p>
-            </div>
+            </div> -->
 
             <div id="customer-table-wrapper">
-
                 @include('admin.crm.billingsummary.partials._table', ['customers' => $customers])
-
             </div>
 
 @endsection
@@ -190,15 +186,15 @@
         let phoneInput = document.querySelector('input[name="b_search_phone"]');
         let company_name = document.querySelector('input[name="b_company_name"]');
         // let statusSelect = document.querySelector('select[name="tax_status"]');
-    const balanceSort = document.getElementById('balanceSortSelect').value;
+        const balanceSort = document.getElementById('balanceSortSelect').value;
 
         let alertStatusSelect = document.querySelector('select[name="alert_status"]');
 
         let creditCheckboxes = document.querySelectorAll('input[name="credit_types[]"]');
 
 
+        let loader = document.querySelector('#customer-loader');
         let wrapper = document.querySelector('#customer-table-wrapper');
-
         let timeout = null;
 
         function fetchCustomers() {
@@ -207,12 +203,7 @@
             const company = company_name.value;
             // const tax_status = statusSelect.value;
                 const alert_status = alertStatusSelect.value;
-
             // Get selected credit types
-            
-
-
-
             const params = new URLSearchParams();
             if (name.length >= 3 || name.length === 0) params.append('search_name', name);
             if (phone.length >= 3 || phone.length === 0) params.append('search_phone', phone);
@@ -228,8 +219,12 @@
             // if (tax_status !== 'All') params.append('tax_status', tax_status);
 
             // Show loader
-            document.querySelector('#customer-loader').classList.remove('hidden');
-            document.querySelector('#customer-table-wrapper').classList.add('hidden');
+            // document.querySelector('#customer-loader').classList.remove('hidden');
+            // document.querySelector('#customer-table-wrapper').classList.add('hidden');
+
+              // Show loader
+                loader.classList.remove('hidden');
+                wrapper.classList.add('opacity-50', 'pointer-events-none');
 
             fetch("{{ route('admin.crm.billingsummary.index') }}?" + params.toString(), {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -247,9 +242,8 @@
                 console.error(err);
             }) .finally(() => {
             // Hide loader
-                document.querySelector('#customer-loader').classList.add('hidden');
-                        document.querySelector('#customer-table-wrapper').classList.remove('hidden');
-
+                    loader.classList.add('hidden');
+                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
             });
             
         }

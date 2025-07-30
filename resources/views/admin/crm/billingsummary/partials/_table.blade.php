@@ -21,6 +21,8 @@
                                 <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
+                        <div id="customer-loader" class="hidden"></div>
+
                         <tbody class="text-gray-700">
                              @forelse($customers as $customer)
                             <tr class="border-t hover:bg-gray-50">
@@ -56,12 +58,12 @@
 
                                 <td class="px-4 py-4 whitespace-nowrap">
 
-@if(!empty($customer->company_phone))
+                                    @if(!empty($customer->company_phone))
                                     <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building w-4 h-4 text-gray-400 mr-2"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
                                         <div class="text-sm text-gray-700">{{ \App\Helpers\CustomHelper::formatPhone($customer->company_phone ?? '') ?: 'N/A' }}</div>
                                     </div>
 
-@endif
+                                    @endif
 
                                 </td>
 

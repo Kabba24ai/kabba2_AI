@@ -33,6 +33,7 @@
 
                 <!-- Right: Status + Button -->
                <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
+                
                     @if ($approved && $hasCreditLimit)  
                                       <!-- Status Badge -->
                     <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 w-auto">
@@ -145,7 +146,14 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Current Balance</p>
-                        <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }} </p>
+                        <p class="text-xl font-semibold text-gray-900">
+                    
+    {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance ) }}
+
+                        
+                        <!-- {{ config('app.currency.code') }}{{ $customer->available_credit_balance ?? 0 }} -->
+                    
+                    </p>
                     </div>
                 </div>
 
@@ -157,7 +165,14 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Available Credit</p>
-                        <p class="text-xl font-semibold text-gray-900"> {{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0), 2) }} </p>
+                        <p class="text-xl font-semibold text-gray-900"> 
+                           
+                        <!-- {{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0), 2) }}  -->
+
+                        {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0)) }}
+
+                    
+                    </p>
                     </div>
                 </div>
 
@@ -230,12 +245,16 @@
 
                                         {{-- Total (for this product) --}}
                                         <td class="px-4 py-3">
-                                            {{ config('app.currency.code') }}{{ number_format($product->total, 2) }}
+                                            <!-- {{ config('app.currency.code') }}{{ number_format($product->total, 2) }} -->
+
+                                                                    {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}
+
+
                                         </td>
 
                                         {{-- Payment Type --}}
                                         <td class="px-4 py-3">
-                                {{ $order->payments->first()->payment_method ?? 'N/A' }}
+                                        {{ $order->payments->first()->payment_method ?? 'N/A' }}
                                         </td>
 
                                         {{-- Status Badge --}}
@@ -253,7 +272,7 @@
                                                 {{ $order->status }}
                                             </span> -->
 
-                                  {!! \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') !!}
+                                        {!! \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') !!}
 
 
                                         </td>

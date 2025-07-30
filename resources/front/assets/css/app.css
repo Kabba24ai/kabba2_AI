@@ -705,6 +705,8 @@ input:-webkit-autofill ~ label{
     .faq-title {
         font-size: 26px;
     }
+    .header-price{padding: 15px;}
+    .price-tag-box{margin-top: 10px;}
 }
 
 @media screen and (max-width:699px) {
@@ -744,6 +746,8 @@ input:-webkit-autofill ~ label{
     .faq-title {
         font-size: 26px;
     }
+    .header-price{padding: 15px;}
+    .price-tag-box{margin-top: 10px;}
 }
 
 @media screen and (min-width:280px) and (max-width:350px) {}

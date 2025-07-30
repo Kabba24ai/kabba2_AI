@@ -20,7 +20,8 @@
             <td class="px-4 py-3 font-semibold text-gray-900">{{ $order->order_number }}</td>
             <td class="px-4 py-3 text-gray-700"> {{ $customer->full_name }}</td>
             <td class="px-4 py-3 text-gray-700">
-                {{ config('app.currency.code') }} {{ number_format($order->grand_total, 2) }}
+
+            {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
             </td>
             <td class="px-4 py-3 text-gray-700">{{ $order->last_payment_type ?? 'N/A' }}</td>
             <td class="px-4 py-3">

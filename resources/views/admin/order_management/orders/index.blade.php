@@ -314,8 +314,6 @@
             categoryInput.addEventListener('change', fetchOrders);
             paymentMethodInput.addEventListener('change', fetchOrders);
             paymentStatusInput.addEventListener('change', fetchOrders);
-
-
         });
     </script>
 @endpush

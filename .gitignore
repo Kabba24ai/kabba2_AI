@@ -2,6 +2,8 @@
 /node_modules
 /public/hot
 /public/storage
+/public/docs
+
 /storage/*.key
 /storage/pail
 /vendor
@@ -21,6 +23,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.scribe
 
 # 1) Ignore only top-level entries in storage
 /storage/*

@@ -23,10 +23,10 @@ return [
         [
             'match' => [
                 // Match only routes whose paths match this pattern (use * as a wildcard to match any characters). Example: 'users/*'.
-                'prefixes' => ['api/*'],
+                'prefixes' => ['*'],
 
                 // Match only routes whose domains match this pattern (use * as a wildcard to match any characters). Example: 'api.*'.
-                'domains' => ['*'],
+                'domains' => [config("app.domains.api")],
 
             ],
 

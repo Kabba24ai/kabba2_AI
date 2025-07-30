@@ -8,12 +8,6 @@ use App\Http\Requests\ApiBaseFormRequest;
 
 class UpdateProductScheduleRequest extends ApiBaseFormRequest
 {
-    public function authorize()
-    {
-        // Adjust authorization as needed
-        return true;
-    }
-
     protected function prepareForValidation()
     {
         // Purify all input data

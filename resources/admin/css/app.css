@@ -320,11 +320,11 @@
     -webkit-appearance: none;
   }
 
-  label.required::after {
+  .required::after {
     content: '*';
     color: theme('colors.red.500');
     margin-left: 0.25rem;
-    }
+  }
 
 }
 

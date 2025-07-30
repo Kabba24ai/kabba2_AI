@@ -96,11 +96,40 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('productForm');
+            // Live error clearing when user types
+            const stdInput = document.querySelector('input[name="standard_delivery_fee"]');
+            const extInput = document.querySelector('input[name="extended_delivery_fee"]');
+            const errorBox = document.getElementById('delivery-fee-error');
+
+            if (stdInput && extInput && errorBox) {
+                [stdInput, extInput].forEach(el => {
+                    el.addEventListener('input', () => {
+                        errorBox.textContent = '';
+                    });
+                });
+            }
 
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
                 const parsleyForm = $(form).parsley();
+
+                // --- CUSTOM COMMON VALIDATION FOR DELIVERY FEES ---
+                if (stdInput && extInput && errorBox) {
+                    const stdVal = parseFloat(stdInput.value || 0);
+                    const extVal = parseFloat(extInput.value || 0);
+
+                    if (stdVal <= 0 && extVal <= 0) {
+                        errorBox.textContent =
+                            'At least one delivery fee (standard or extended) must be greater than zero.';
+                        stdInput.focus();
+                        return; // Stop submission
+                    } else {
+                        errorBox.textContent = '';
+                    }
+                }
+                // --------------------------------------------------
+
                 // Force Parsley to validate
                 if (!parsleyForm.isValid({
                         force: true

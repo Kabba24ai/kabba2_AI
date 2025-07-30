@@ -66,13 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize digits from existing value
         if (input.value) {
-            // Remove non-digits (keeps only numbers)
             digits = input.value.replace(/\D/g, "");
         }
 
         const updateInput = () => {
             let num = parseFloat(digits || "0") / 100;
             input.value = num.toFixed(2);
+
+            // Manually trigger an input event so Parsley updates its validation
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
         };
 
         // Update once at the beginning if there was a value
@@ -103,10 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         input.addEventListener("paste", (e) => e.preventDefault());
-        input.addEventListener("input", (e) => e.preventDefault());
+
+        // REMOVE this line – don't block input event anymore!
+        // input.addEventListener("input", (e) => e.preventDefault());
 
         input.placeholder = "0.00";
     });
-
 });
 

@@ -36,7 +36,7 @@ class LoginController extends BaseController
             }
 
             // If the customer is found, continue with your logic
-            $user->tokens()->delete();
+            // $user->tokens()->delete();
             $user->token = $user->createToken('api_user')->plainTextToken;
 
             return response()->json([

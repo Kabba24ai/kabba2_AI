@@ -179,7 +179,7 @@
     <tbody id="ordersTable" class="divide-y divide-gray-200">
         @forelse ($customer->orders as $order)
             @foreach ($order->products as $product)
-                <tr class="order-row" data-status="{{ strtolower(str_replace(' ', '-', $order->payments->first()->status)) }}">
+            <tr class="order-row" data-status="{{ strtolower(str_replace(' ', '-', $order->payments->first()->status->value ?? 'n/a')) }}">
                     {{-- Order Number --}}
                     <td class="px-4 py-3 font-medium text-gray-900">
                         {{ $order->order_number }}
@@ -201,7 +201,7 @@
 
                     {{-- Payment Method --}}
                     <td class="px-4 py-3">
-                        {{ $order->payments->first()->payment_method ?? 'N/A' }}
+{!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}
                     </td>
 
                     {{-- Order Status --}}

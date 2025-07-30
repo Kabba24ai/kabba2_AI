@@ -151,7 +151,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900">  {{ $order->order_number }}</td>
                                         <td class="px-4 py-3">{{ $product->product_name ?? 'N/A' }}</td>
                                         <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}</td>
-                                        <td class="px-4 py-3"> {{ $order->payments->first()->payment_method ?? 'N/A' }}</td>
+                                        <td class="px-4 py-3"> {!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}</td>
                                         <td class="px-4 py-3">
                                             <!-- <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span> -->
 
@@ -162,7 +162,7 @@
                                         <td class="px-4 py-3">   {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }} </td>
                                         <td class="px-4 py-3 whitespace-nowrap items-center text-blue-600">
                                             <!-- View -->
-                                                  <button title="View" class="openOrderModalBtn" data-order="{{ $order->order_number }}" data-date="{{ App\Helpers\CustomHelper::formatDate($order->order_date) }}" data-status="{{ \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') }}" data-method="{{ $order->payments->first()->payment_method ?? 'N/A' }}" data-total="{{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}" data-product="{{ $product->product_name ?? 'N/A' }}">
+                                                  <button title="View" class="openOrderModalBtn" data-order="{{ $order->order_number }}" data-date="{{ App\Helpers\CustomHelper::formatDate($order->order_date) }}" data-status="{{ \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') }}" data-method="{!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}" data-total="{{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}" data-product="{{ $product->product_name ?? 'N/A' }}">
                                                                             <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
                                                                         </button>
                                             <!-- Download -->

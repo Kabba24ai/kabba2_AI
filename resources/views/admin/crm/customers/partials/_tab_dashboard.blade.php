@@ -254,7 +254,7 @@
 
                                         {{-- Payment Type --}}
                                         <td class="px-4 py-3">
-                                        {{ $order->payments->first()->payment_method ?? 'N/A' }}
+{!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}
                                         </td>
 
                                         {{-- Status Badge --}}

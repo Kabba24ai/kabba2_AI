@@ -84,8 +84,6 @@
 
 
     <div id="customer-table-wrapper">
-
-
    
         @include('admin.crm.customers.partials._table', ['customers' => $customers])
         

@@ -30,7 +30,7 @@
                         PENDING PAYMENT
                     </span>
                     @if ($order->last_payment_type !== 'Card')
-                        <button
+                        <button id="addToAccountBtn"
                             class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
                             Add to Account
                         </button>
@@ -1012,6 +1012,48 @@
                     });
                 });
             }
+
+            // Add To Account button
+            const addToAccountBtn = document.getElementById('addToAccountBtn');
+            if (addToAccountBtn) {
+                addToAccountBtn.addEventListener('click', function () {
+                    showConfirm('Do you want to add this to the account?', 'Are you sure?').then((result) => {
+                        if (result.isConfirmed) {
+                            addToAccountBtn.disabled = true;
+                            addToAccountBtn.textContent = 'Processing...';
+                            let url = '{{ route('admin.order-management.orders.add-to-account', ':unique_id') }}';
+                            url = url.replace(':unique_id', orderUniqueId);
+
+                            apiFetch(url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                },
+                                body: JSON.stringify({
+                                    _method: 'PUT'
+                                })
+                            })
+                            .then(res => {
+                                if (res && res.success) {
+                                    notyf.success('Added to account successfully!');
+                                    setTimeout(() => window.location.reload(), 800);
+                                } else {
+                                    notyf.error(res && res.message ? res.message : 'Failed to add to account.');
+                                }
+                            })
+                            .catch(() => {
+                                notyf.error('Failed to add to account.');
+                            })
+                            .finally(() => {
+                                addToAccountBtn.disabled = false;
+                                addToAccountBtn.textContent = 'Add to Account';
+                            });
+                        }
+                    });
+                });
+            }
+
 
             const saveBtn = document.getElementById('saveNoteBtn');
             const noteInput = document.getElementById('order_note');

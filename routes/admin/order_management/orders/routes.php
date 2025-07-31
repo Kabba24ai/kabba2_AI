@@ -10,6 +10,9 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\ConfirmPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateNoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateOrderAddressController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\AddToAccountPaymentController;
+
+
 
 Route::prefix('orders')
     ->name('orders.')
@@ -25,7 +28,14 @@ Route::prefix('orders')
         Route::put('/{unique_id}/update-note', UpdateNoteController::class)->name('update-note');
         Route::put('/{unique_id}/{product_unique_id}/update-product-schedule', UpdateProductScheduleController::class)->name('update-product-schedule');
         Route::put('/{unique_id}/confirm-payment', ConfirmPaymentController::class)->name('confirm-payment');
+
+        Route::put('/{unique_id}/add-to-account', AddToAccountPaymentController::class)->name('add-to-account');
+
+
         Route::post('/{unique_id}/update-address', UpdateOrderAddressController::class)->name('update-address');
+
+
+
 
         // // Delete
         Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');

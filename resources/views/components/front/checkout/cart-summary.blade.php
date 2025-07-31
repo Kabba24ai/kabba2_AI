@@ -2,7 +2,7 @@
     @if (!empty($cart['cart_items']))
         @foreach ($cart['cart_items'] as $item)
             <div class="border-b pb-4 mb-6">
-                <div class="flex items-start gap-3 py-2">
+                <div class=" flex flex-col sm:flex-row items-start gap-3 py-2">
                     <!-- Image Column -->
                     <div class="relative" style="min-width:80px;max-width:80px;">
                         <img src="{{ $item['product_image_url'] }}" alt="Product"
@@ -13,7 +13,7 @@
                         </span>
                     </div>
 
-                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                    <div class="flex-1 min-w-0 flex flex-col justify-center w-full">
                         <h4 class="text-sm flex items-center gap-2">
                             {{ $item['product_name'] }}
                             @if ($item['product_type'] === 'Rental' && !empty($item['product_variant']))

@@ -27,11 +27,38 @@ class IndexController extends Controller
 
          $states = State::get();
 
+         
+        $protocol = '';
+        $domain = '';
+        $extension = '';
+
+        if (!empty($customer->company_website)) {
+            $parsedUrl = parse_url($customer->company_website);
+
+            // Extract protocol
+            $protocol = isset($parsedUrl['scheme']) ? $parsedUrl['scheme'] . '://' : '';
+
+            // Extract host (domain + extension)
+            if (!empty($parsedUrl['host'])) {
+                $hostParts = explode('.', $parsedUrl['host']);
+
+                if (count($hostParts) >= 2) {
+                    $extension = '.' . array_pop($hostParts); // e.g. .com
+                    $domain = implode('.', $hostParts);       // e.g. example
+                }
+            }
+        }
+
+
         return view('front.customer.dashboard.index', [
             'title' => 'Home - Customer Dashboard',
             'customer' => $customer,
             'lastpaymentdate' => $lastpaymentdate ,
-               'states' => $states,
+            'states' => $states,
+            'website_protocol'=> $protocol,
+            'company_website'=> $domain,
+            'website_extension'=> $extension,
+
         ]);
     }
 }

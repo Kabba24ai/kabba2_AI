@@ -325,7 +325,11 @@
                 <div>
                     <label class="text-sm text-gray-700 mb-1 edit-view">Address</label>
                     <div class="static-view text-gray-900 text-sm">
-                        {{ $addresse?->address ?? '' }} {{ $addresse?->city ? ', ' . $addresse->city : '' }} {{ $addresse?->state?->name ? ', ' . $addresse->state->name : '' }} {{ $addresse?->zip_code ? ', ' . $addresse->zip_code : '' }}
+                      {{ $addresse?->full_name ?? '' }}<br>
+                                            {{ $addresse?->address ?? '' }}  {{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
+                                            {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}<br>
+
+                                            {{ App\Helpers\CustomHelper::formatPhone($addresse->phone) ?? ' ' }}
                     </div>
                     {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
                         ->class([
@@ -427,11 +431,11 @@
                              @if ($approved && $hasCreditLimit)
                                         <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good Standing</span>
 
-                @elseif ($approved && !$hasCreditLimit)
-                                           <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
-                @else
-                            N/A
-                @endif
+                            @elseif ($approved && !$hasCreditLimit)
+                                                    <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+                            @else
+                                        N/A
+                            @endif
                             
                         </div>
                         <div class="flex justify-between items-center">
@@ -1002,6 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
 });
 
 </script>

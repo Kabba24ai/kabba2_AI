@@ -66,33 +66,109 @@
                      -->
 
                      <li class="px-5 relative">
-                            @if(auth('customer')->check())
-                                @php
-                                    $user = auth('customer')->user();
-                                    $initial = strtoupper(substr($user->full_name, 0, 1));
-                                @endphp
+                        <!-- @if(auth('customer')->check())
+                            @php
+                                $user = auth('customer')->user();
+                                $initial = strtoupper(substr($user->full_name, 0, 1));
+                            @endphp
 
-                                <a href="{{ route('front.customer.dashboard.index') }}" class="flex items-center gap-2 group">
-                                    <div class="w-8 h-8 rounded-full bg-yellow-400 text-white font-bold flex items-center justify-center text-sm shadow">
-                                        {{ $initial }}
-                                    </div>
-                                    <span class="text-sm font-medium group-hover:text-yellow-400 transition-all duration-300">
-                                        {{ $user->full_name }}
-                                    </span>
-                                </a>
-                            @else
-                                <a href="{{ route('front.auth.login.index') }}"
-                                class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">
-                                    Log In
-                                </a>
-                            @endif
-                        </li>
+                            <a href="{{ route('front.customer.dashboard.index') }}" class="flex items-center gap-2 group">
+                                <div class="w-8 h-8 rounded-full bg-yellow-400 text-white font-bold flex items-center justify-center text-sm shadow">
+                                    {{ $initial }}
+                                </div>
+                                <span class="text-sm font-medium group-hover:text-yellow-400 transition-all duration-300">
+                                    {{ $user->full_name }}
+                                </span>
+                            </a>
+                        @else
+                            <a href="{{ route('front.auth.login.index') }}"
+                            class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">
+                                Log In
+                            </a>
+                        @endif -->
+                        @if(auth('customer')->check())
+                            @php
+                                $user = auth('customer')->user();
+                                $initial = strtoupper(substr($user->full_name, 0, 1));
+                            @endphp
 
+                        <!-- Profile trigger -->
+                        <a href="javascript:void(0)" class="flex items-center gap-2 group" onclick="toggleDropdown()">
+                            <div class="w-8 h-8 rounded-full bg-yellow-400 text-white font-bold flex items-center justify-center text-sm shadow">
+                            N
+                            </div>
+                            <!-- <span class="text-sm font-medium group-hover:text-yellow-400 transition-all duration-300">
+                            Nipa Patel
+                            </span> -->
+                        </a>
 
+                        <!-- Dropdown -->
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-md z-10">
+                            <a href="{{ route('front.customer.dashboard.index') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-900 hover:bg-gray-100">
+                                <!-- Account Icon -->
+                                <x-heroicon-o-user class="w-4 h-4 mr-2 text-gray-900" />
+                                Account
+                            </a>
+                            <form method="POST" action="{{ route('front.auth.logout.index') }}">
+                                @csrf
+                                <button type="submit" class="flex items-center gap-2 px-4 py-2 text-gray-900 text-sm w-full text-left hover:bg-gray-100">
+                                    <!-- Logout Icon -->
+                                    <x-heroicon-o-arrow-right-on-rectangle class="w-4 h-4 mr-2 text-gray-900" />
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+
+                         @else
+                            <a href="{{ route('front.auth.login.index') }}"
+                            class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">
+                                Log In
+                            </a>
+                        @endif 
+                    </li>
                 </ul>
             </div>
             <div>
                 <div class="flex items-center">
+                    @if(auth('customer')->check())
+                        @php
+                            $user = auth('customer')->user();
+                            $initial = strtoupper(substr($user->full_name, 0, 1));
+                        @endphp
+
+                    <!-- Profile trigger -->
+                    <a href="javascript:void(0)" class="flex items-center gap-2 group mobile-d-none" onclick="toggleDropdownmobile()">
+                        <div class="w-8 h-8 rounded-full bg-yellow-400 text-white font-bold flex items-center justify-center text-sm shadow">
+                        N
+                        </div>
+                        <!-- <span class="text-sm font-medium group-hover:text-yellow-400 transition-all duration-300">
+                        Nipa Patel
+                        </span> -->
+                    </a>
+
+                    <!-- Dropdown -->
+                    <div id="userDropdownmobile" class="hidden absolute right-[115px] top-[55px] sm:right-[80px] sm:top-[55px] md:right-[130px] md:top-[55px] mt-2 w-48 bg-white border rounded shadow-md z-10">
+                        <a href="{{ route('front.customer.dashboard.index') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-900 hover:bg-gray-100">
+                            <!-- Account Icon -->
+                            <x-heroicon-o-user class="w-4 h-4 mr-2 text-gray-900" />
+                            Account
+                        </a>
+                        <form method="POST" action="{{ route('front.auth.logout.index') }}">
+                            @csrf
+                            <button type="submit" class="flex items-center gap-2 px-4 py-2 text-gray-900 text-sm w-full text-left hover:bg-gray-100">
+                                <!-- Logout Icon -->
+                                <x-heroicon-o-arrow-right-on-rectangle class="w-4 h-4 mr-2 text-gray-900" />
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+
+                        @else
+                        <a href="{{ route('front.auth.login.index') }}"
+                        class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">
+                           <x-heroicon-o-arrow-right-on-rectangle class="w-6 h-6 mr-2 text-yellow-400" />
+                        </a>
+                    @endif 
                     <a href="javascript:void(0)" class="toggleCart px-3 py-2 rounded-full relative text-center me-5">
                         <i class="fa-solid fa-bag-shopping text-2xl text-white"></i>
                         <span id="cart-count"
@@ -192,3 +268,36 @@
         </div>
     </div>
 </nav>
+
+
+<script>
+  function toggleDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('hidden');
+  }
+
+  // Close the dropdown when clicking outside
+  document.addEventListener('click', function (e) {
+    const dropdown = document.getElementById('userDropdown');
+    const trigger = dropdown.previousElementSibling;
+    if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+</script>
+
+<script>
+  function toggleDropdownmobile() {
+    const dropdown = document.getElementById('userDropdownmobile');
+    dropdown.classList.toggle('hidden');
+  }
+
+  // Close the dropdown when clicking outside
+  document.addEventListener('click', function (e) {
+    const dropdown = document.getElementById('userDropdownmobile');
+    const trigger = dropdown.previousElementSibling;
+    if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+</script>

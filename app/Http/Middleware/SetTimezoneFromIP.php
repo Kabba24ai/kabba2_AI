@@ -18,7 +18,10 @@ class SetTimezoneFromIP
     {
         try {
             $location = geoip()->getLocation($request->ip());
-
+            logger()->info('Location from IP', [
+                'ip' => $request->ip(),
+                'location' => $location,
+            ]);
             if (!empty($location['timezone'])) {
                 Config::set('app.timezone', $location['timezone']);
             }

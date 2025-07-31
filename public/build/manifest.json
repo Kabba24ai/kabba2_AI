@@ -1,14 +1,14 @@
 {
-  "_api-CJAoUrCP.js": {
-    "file": "assets/api-CJAoUrCP.js",
+  "_api-DVkapAgo.css": {
+    "file": "assets/api-DVkapAgo.css",
+    "src": "_api-DVkapAgo.css"
+  },
+  "_api-DyU7QnOd.js": {
+    "file": "assets/api-DyU7QnOd.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
     ]
-  },
-  "_api-DVkapAgo.css": {
-    "file": "assets/api-DVkapAgo.css",
-    "src": "_api-DVkapAgo.css"
   },
   "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-D1LuMI3I.ttf",
@@ -48,12 +48,12 @@
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-CONElglO.js",
+    "file": "assets/app-BTqQ7asN.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-CJAoUrCP.js"
+      "_api-DyU7QnOd.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
@@ -70,12 +70,12 @@
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-DV_NqHcK.js",
+    "file": "assets/app-Cu_WYgaU.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-CJAoUrCP.js"
+      "_api-DyU7QnOd.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"

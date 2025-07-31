@@ -244,7 +244,7 @@
             <div class="p-6 max-h-60 overflow-y-auto">
                 <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3 ">
                     @forelse ($order->history as $history)
-                        <li >
+                        <li>
                             <span>
                                 {{ $history->description }}
 
@@ -391,18 +391,17 @@
             {{-- Schedule Panels --}}
             <div class="space-y-6">
                 @foreach ($order->products as $orderProduct)
-
-                        <div class="bg-white rounded-lg border border-gray-200">
-                            <div class="px-2 py-2 rounded-t-lg border-b border-gray-200">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="text-lg font-semibold text-gray-800 under">{{ $orderProduct->product_name }}
-                                    </h3>
-                                    <input type="hidden" class="order-product-unique-id"
-                                        value="{{ $orderProduct->unique_id }}">
-                                </div>
+                    <div class="bg-white rounded-lg border border-gray-200">
+                        <div class="px-2 py-2 rounded-t-lg border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800 under">{{ $orderProduct->product_name }}
+                                </h3>
+                                <input type="hidden" class="order-product-unique-id"
+                                    value="{{ $orderProduct->unique_id }}">
                             </div>
-                            <div class="p-4">
-                                @if ($orderProduct->product_data['product_type'] === 'Rental')
+                        </div>
+                        <div class="p-4">
+                            @if ($orderProduct->product_data['product_type'] === 'Rental')
                                 <div class="flex items-center justify-between">
                                 </div>
                                 {{-- Delivery Schedule --}}
@@ -438,7 +437,8 @@
                                                     for="delivery_transport_mode-btn-{{ $orderProduct->unique_id }}">Type</label>
                                                 <div id="delivery_transport_mode-{{ $orderProduct->unique_id }}"
                                                     x-data="{ selected: '{{ $orderProduct->delivery_transport_mode ?? 'Store' }}', open: false }" class="relative w-full">
-                                                    <button id="delivery_transport_mode-btn-{{ $orderProduct->unique_id }}"
+                                                    <button
+                                                        id="delivery_transport_mode-btn-{{ $orderProduct->unique_id }}"
                                                         type="button" @click="open = !open"
                                                         class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_transport_mode">
                                                         <template x-if="selected === 'Store'">
@@ -555,8 +555,8 @@
                                             <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="pickup_transport_mode-btn-{{ $orderProduct->unique_id }}">Type</label>
-                                                <div id="pickup_transport_mode_{{ $orderProduct->unique_id }}" x-data="{ selected: '{{ $orderProduct->pickup_transport_mode ?? 'Store' }}', open: false }"
-                                                    class="relative w-full">
+                                                <div id="pickup_transport_mode_{{ $orderProduct->unique_id }}"
+                                                    x-data="{ selected: '{{ $orderProduct->pickup_transport_mode ?? 'Store' }}', open: false }" class="relative w-full">
                                                     <button id="pickup_transport_mode-btn-{{ $orderProduct->unique_id }}"
                                                         type="button" @click="open = !open"
                                                         class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_transport_mode">
@@ -680,7 +680,8 @@
                                     <!-- Legend -->
                                     <div class="flex items-center justify-center gap-4 text-xs mt-2">
                                         <span class="flex items-center">
-                                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
+                                            <span
+                                                class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
                                         </span>
                                         <span class="font-semibold">|</span>
                                         <span class="flex items-center">
@@ -696,14 +697,13 @@
                                         <span>R=Return</span>
                                     </div>
                                 </div>
-                                @else
-                                    <div class="text-gray-500 text-sm">
-                                        <p>No delivery or return schedules available for this product.</p>
-                                    </div>
-                                @endif
-                            </div>
+                            @else
+                                <div class="text-gray-500 text-sm">
+                                    <p>No delivery or return schedules available for this product.</p>
+                                </div>
+                            @endif
                         </div>
-
+                    </div>
                 @endforeach
 
                 {{-- Status Checklist --}}
@@ -800,17 +800,60 @@
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</span>
                 </div>
             </div>
-            <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col">
-                <label for="order_note" class="block text-sm font-semibold text-gray-700 mb-1">Order Notes:</label>
-                <input type="text" value="{{ $order->order_note }}" name="order_note" id="order_note"
-                    class="w-full border rounded px-3 py-2 text-sm text-gray-800" />
-                <div class="flex justify-end">
-                    <button class="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                        id="saveNoteBtn">
-                        Save Note
-                    </button>
+            <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col relative">
+                <!-- Add Note Button -->
+                <button
+                    class="absolute top-4 right-4 flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    id="addNoteBtn">
+                    <x-heroicon-o-plus class="w-4 h-4" /> Add Note
+                </button>
+                <div class="p-6 max-h-60 overflow-y-auto mt-5" id="noteDiv">
+                    <x-admin.order-management.orders.order-notes-list :notes="$order->notes" />
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Note Modal -->
+    <div id="noteModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="noteModalTitle" class="text-lg font-semibold">Add Note</h2>
+                <button type="button" onclick="closeNoteModal()"
+                    class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <!-- Body -->
+            {{ html()->form()->attributes([
+                    'data-parsley-validate' => true,
+                    'class' => 'flex-1 flex flex-col justify-between',
+                    'id' => 'noteForm',
+                ])->open() }}
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required" for="user_id">User</label>
+                    {!! html()->select('user_id', $employees->pluck('full_name', 'id')->toArray())->id('user_id')->class([
+                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                        ])->required() !!}
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required" for="note_text">Note</label>
+                    {!! html()->textarea('note')->id('note_text')->class(['w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500'])->placeholder('Enter note...')->required() !!}
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button" onclick="closeNoteModal()"
+                    class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    Save
+                </button>
+            </div>
+            {{ html()->form()->close() }}
         </div>
     </div>
 
@@ -965,9 +1008,202 @@
 
 @push('js')
     <script>
+        // Get the order id (replace with actual variable)
+        const orderUniqueId = '{{ $order->unique_id }}';
+        // Note Modal logic
+        const noteModal = document.getElementById('noteModal');
+        const noteForm = document.getElementById('noteForm');
+        const noteText = document.getElementById('note_text');
+        const userIdInput = document.getElementById('user_id');
+        const addNoteBtn = document.getElementById('addNoteBtn');
+        const noteModalTitle = document.getElementById('noteModalTitle');
+        const noteDiv = document.getElementById('noteDiv');
+
+        // Fetch and refresh notes list
+        function fetchNotes() {
+            if (!noteDiv) return;
+            const fetchUrl = '{{ route('admin.order-management.orders.notes.index', [':unique_id']) }}'.replace(
+                ':unique_id', orderUniqueId);
+                apiFetch(fetchUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                }, {
+                    loaderSelector: '#note-loading',
+                    containerSelector: '#noteDiv'
+                })
+                .then(res => {
+                    if (res && res.success) {
+                        let html = '';
+                        noteDiv.innerHTML = res.html;
+                        notyf.success(res.message);
+                    } else {
+                        notyf.error(res.message);
+                    }
+                })
+        }
+
+        // Delete Note
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('button[title="Delete Note"]')) {
+                const btn = e.target.closest('button');
+                const noteId = btn.getAttribute('data-note-id');
+
+                showConfirm('Do you want to delete this note?', 'Are you sure?').then((result) => {
+                    if (result.isConfirmed) {
+                        const url =
+                            '{{ route('admin.order-management.orders.notes.delete', [':unique_id', ':noteId']) }}'
+                            .replace(':unique_id', orderUniqueId)
+                            .replace(':noteId', noteId);
+
+                        apiFetch(url, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'Accept': 'application/json'
+                            }
+                        }).then(res => {
+                            if (res && res.success) {
+                                notyf.success(res.message);
+                                fetchNotes(); // reload the notes list
+                            } else {
+                                notyf.error(res.message);
+                            }
+                        })
+                    }
+                });
+            }
+        });
+
+        // Delegated event: Edit Note
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('button[title="Edit Note"]');
+            if (!btn) return;
+
+            // Get data from attributes
+            const noteId = btn.dataset.noteId;
+            const noteText = btn.dataset.noteText;
+            const userId = btn.dataset.userId;
+
+            // Populate modal fields
+            document.getElementById('note_text').value = noteText;
+            document.getElementById('user_id').value = userId;
+            document.getElementById('noteModalTitle').textContent = 'Edit Note';
+
+            // Add hidden input to track edit mode
+            let hidden = document.getElementById('editNoteId');
+            if (!hidden) {
+                hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'note_id';
+                hidden.id = 'editNoteId';
+                document.getElementById('noteForm').appendChild(hidden);
+            }
+            hidden.value = noteId;
+
+            // Show modal
+            document.getElementById('noteModal').classList.remove('hidden');
+        });
+
+
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Get the order id (replace with actual variable)
-            const orderUniqueId = '{{ $order->unique_id }}';
+
+            window.closeNoteModal = function() {
+                noteModal.classList.add('hidden');
+                noteForm.reset();
+
+                const editField = document.getElementById('editNoteId');
+                if (editField) {
+                    editField.remove();
+                }
+            }
+
+            if (addNoteBtn) {
+                addNoteBtn.addEventListener('click', function() {
+                    noteModalTitle.textContent = 'Add Note';
+                    noteModal.classList.remove('hidden');
+                    noteText.value = '';
+                    noteText.focus();
+                });
+            }
+
+            // Optionally: Allow closing note modal with Esc key
+            document.addEventListener('keydown', function(event) {
+                if (!noteModal.classList.contains('hidden') && event.key === "Escape") {
+                    closeNoteModal();
+                }
+            });
+
+            // Handle note form submit (AJAX logic to be added as needed)
+            noteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (!$(noteForm).parsley().isValid()) {
+                    $(noteForm).parsley().validate();
+                    return;
+                }
+
+                let url;
+                let method = 'POST';
+                // Save note via AJAX using apiFetch
+                const note = noteText.value.trim();
+                const userId = userIdInput.value;
+                const editField = document.getElementById('editNoteId');
+
+                if (editField && editField.value) {
+                    // Editing existing note
+                    url =
+                        '{{ route('admin.order-management.orders.notes.update', [':unique_id', ':note_id']) }}'
+                        .replace(':unique_id', orderUniqueId)
+                        .replace(':note_id', editField.value);
+                    method = 'PUT';
+                } else {
+                    // Adding new note
+                    url = '{{ route('admin.order-management.orders.notes.store', [':unique_id']) }}'
+                        .replace(':unique_id', orderUniqueId);
+
+                }
+
+                const submitBtn = noteForm.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+
+                apiFetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            note: note,
+                            user_id: userId
+                        })
+                    })
+                    .then(res => {
+                        if (res && res.success) {
+                            notyf.success(res.message);
+                            closeNoteModal(); // Close modal after saving
+                            fetchNotes();
+                        } else {
+                            notyf.error(res && res.message ? res.message : '');
+                        }
+                    })
+                    .finally(() => {
+                        // After a successful update
+                        if (editField) {
+                            editField.remove(); // Remove the hidden input
+                        }
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    });
+            });
+
 
             // Confirm payment button
             const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
@@ -1013,42 +1249,42 @@
                 });
             }
 
-            const saveBtn = document.getElementById('saveNoteBtn');
-            const noteInput = document.getElementById('order_note');
+            // const saveBtn = document.getElementById('saveNoteBtn');
+            // const noteInput = document.getElementById('order_note');
 
-            saveBtn.addEventListener('click', function() {
-                const note = noteInput.value;
+            // saveBtn.addEventListener('click', function() {
+            //     const note = noteInput.value;
 
-                // UI: Disable and show saving...
-                saveBtn.disabled = true;
-                const originalText = saveBtn.textContent;
-                saveBtn.textContent = 'Saving...';
+            //     // UI: Disable and show saving...
+            //     saveBtn.disabled = true;
+            //     const originalText = saveBtn.textContent;
+            //     saveBtn.textContent = 'Saving...';
 
-                url = '{{ route('admin.order-management.orders.update-note', ':unique_id') }}';
-                url = url.replace(':unique_id', orderUniqueId);
+            //     url = '{{ route('admin.order-management.orders.update-note', ':unique_id') }}';
+            //     url = url.replace(':unique_id', orderUniqueId);
 
-                let data = {
-                    order_note: note,
-                    _method: 'PUT'
-                };
+            //     let data = {
+            //         order_note: note,
+            //         _method: 'PUT'
+            //     };
 
-                apiFetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                .getAttribute('content')
-                        },
-                        body: JSON.stringify(data)
-                    })
-                    .then(resData => {
-                        notyf.success('Order note updated successfully!');
-                    })
-                    .finally(() => {
-                        saveBtn.disabled = false;
-                        saveBtn.textContent = originalText;
-                    });
-            });
+            //     apiFetch(url, {
+            //             method: 'POST',
+            //             headers: {
+            //                 'Content-Type': 'application/json',
+            //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+            //                     .getAttribute('content')
+            //             },
+            //             body: JSON.stringify(data)
+            //         })
+            //         .then(resData => {
+            //             notyf.success('Order note updated successfully!');
+            //         })
+            //         .finally(() => {
+            //             saveBtn.disabled = false;
+            //             saveBtn.textContent = originalText;
+            //         });
+            // });
 
             document.querySelectorAll('.order-product-unique-id').forEach(function(hiddenInput, idx) {
                 const container = hiddenInput.closest('.bg-white.rounded-lg.border');
@@ -1118,9 +1354,9 @@
                 }
                 if (deliveryTime) {
                     // Try to parse the initial value as a Date (if it exists)
-                    let lastValue = deliveryTime.value
-                        ? flatpickr.parseDate(deliveryTime.value, "h:i K")
-                        : null;
+                    let lastValue = deliveryTime.value ?
+                        flatpickr.parseDate(deliveryTime.value, "h:i K") :
+                        null;
 
                     flatpickr(deliveryTime, {
                         enableTime: true,
@@ -1129,14 +1365,15 @@
                         time_24hr: false,
                         onClose: function(selectedDates, dateStr) {
                             // Parse dateStr to a Date object (or null)
-                            const newValue = dateStr
-                                ? flatpickr.parseDate(dateStr, "h:i K")
-                                : null;
+                            const newValue = dateStr ?
+                                flatpickr.parseDate(dateStr, "h:i K") :
+                                null;
 
                             // Only call if both are valid dates and times are different
                             // Or if lastValue was null but now we have a value
                             const changed = (
-                                (lastValue && newValue && newValue.getTime() !== lastValue.getTime()) ||
+                                (lastValue && newValue && newValue.getTime() !== lastValue
+                                    .getTime()) ||
                                 (!lastValue && newValue)
                             );
 
@@ -1150,7 +1387,8 @@
                 if (deliveryType) {
                     deliveryType.addEventListener('change', function() {
                         console.log('Delivery type changed to', deliveryType.value);
-                        updateScheduleField('delivery', 'delivery_transport_mode', deliveryType.value);
+                        updateScheduleField('delivery', 'delivery_transport_mode', deliveryType
+                            .value);
                     });
                 }
                 if (deliveryStatus) {
@@ -1178,9 +1416,9 @@
                 }
                 if (returnTime) {
                     // Store the initial value as a Date object (if possible)
-                    let lastValue = returnTime.value
-                        ? flatpickr.parseDate(returnTime.value, "h:i K")
-                        : null;
+                    let lastValue = returnTime.value ?
+                        flatpickr.parseDate(returnTime.value, "h:i K") :
+                        null;
 
                     flatpickr(returnTime, {
                         enableTime: true,
@@ -1189,13 +1427,14 @@
                         time_24hr: false,
                         onClose: function(selectedDates, dateStr) {
                             // Parse the new value as a Date object
-                            const newValue = dateStr
-                                ? flatpickr.parseDate(dateStr, "h:i K")
-                                : null;
+                            const newValue = dateStr ?
+                                flatpickr.parseDate(dateStr, "h:i K") :
+                                null;
 
                             // Only trigger if the date/time actually changed
                             const changed = (
-                                (lastValue && newValue && newValue.getTime() !== lastValue.getTime()) ||
+                                (lastValue && newValue && newValue.getTime() !== lastValue
+                                    .getTime()) ||
                                 (!lastValue && newValue)
                             );
 

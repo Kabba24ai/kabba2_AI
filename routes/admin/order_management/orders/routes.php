@@ -10,6 +10,10 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\ConfirmPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateNoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateOrderAddressController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\IndexController as NotesIndexController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\StoreController as NotesStoreController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\UpdateController as NotesUpdateController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\DeleteController as NotesDeleteController;
 
 Route::prefix('orders')
     ->name('orders.')
@@ -27,6 +31,15 @@ Route::prefix('orders')
         Route::put('/{unique_id}/confirm-payment', ConfirmPaymentController::class)->name('confirm-payment');
         Route::post('/{unique_id}/update-address', UpdateOrderAddressController::class)->name('update-address');
 
-        // // Delete
+        // Delete
         Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');
+
+        Route::prefix('notes')
+            ->name('notes.')
+            ->group(function () {
+                Route::get('/{unique_id}', NotesIndexController::class)->name('index');
+                Route::post('/{unique_id}', NotesStoreController::class)->name('store');
+                Route::put('/{unique_id}/{note_unique_id}/update', NotesUpdateController::class)->name('update');
+                Route::delete('/{unique_id}/{note_unique_id}', NotesDeleteController::class)->name('delete');
+            });
     });

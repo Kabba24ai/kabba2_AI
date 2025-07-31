@@ -1,6 +1,18 @@
-window.apiFetch = async function (input, init = {}) {
+window.apiFetch = async function (input, init = {}, uiOptions = {}) {
     let response;
     let resData;
+
+    // Get loader and container selectors (optional)
+    const loader = uiOptions.loaderSelector
+        ? document.querySelector(uiOptions.loaderSelector)
+        : null;
+    const container = uiOptions.containerSelector
+        ? document.querySelector(uiOptions.containerSelector)
+        : null;
+
+    // Show loader and disable UI
+    if (loader) loader.classList.remove('hidden');
+    if (container) container.classList.add('opacity-50', 'pointer-events-none');
 
     // Clear previous error messages
     const clearFieldErrors = () => {
@@ -11,7 +23,7 @@ window.apiFetch = async function (input, init = {}) {
     // Show error either inside container (if defined) or below field
     const showFieldError = (field, message) => {
         const fieldEl = document.querySelector(`[name="${field}"]`);
-        if (!fieldEl) return; // field not found
+        if (!fieldEl) return;
 
         fieldEl.classList.add('has-error');
 
@@ -19,7 +31,7 @@ window.apiFetch = async function (input, init = {}) {
         errorEl.className = 'field-error text-sm text-red-600 mt-1';
         errorEl.innerText = message;
 
-        // Check for data-parsley-errors-container
+        // If a custom error container is defined
         const customContainerSelector = fieldEl.getAttribute('data-parsley-errors-container');
         if (customContainerSelector) {
             const container = document.querySelector(customContainerSelector);
@@ -29,7 +41,7 @@ window.apiFetch = async function (input, init = {}) {
             }
         }
 
-        // Fallback: insert directly after the field
+        // Default: show error after the field
         fieldEl.insertAdjacentElement('afterend', errorEl);
     };
 
@@ -39,9 +51,13 @@ window.apiFetch = async function (input, init = {}) {
     } catch (error) {
         notyf.error('A network error occurred. Please try again.');
         throw error;
+    } finally {
+        // Always hide loader after request
+        if (loader) loader.classList.add('hidden');
+        if (container) container.classList.remove('opacity-50', 'pointer-events-none');
     }
 
-    // Always clear old errors before showing new ones
+    // Clear previous errors
     clearFieldErrors();
 
     if (response.ok && resData.success) {
@@ -49,10 +65,7 @@ window.apiFetch = async function (input, init = {}) {
     } else if (response.status === 422 && resData.errors) {
         // Handle Laravel validation errors
         Object.entries(resData.errors).forEach(([field, messages]) => {
-            // Show toast notifications
             messages.forEach(msg => notyf.error(msg));
-
-            // Show error message on the form
             showFieldError(field, messages[0]);
         });
 

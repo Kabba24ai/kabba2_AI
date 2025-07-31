@@ -31,6 +31,9 @@ class User extends Authenticatable
         'status', // 'Active' or 'Inactive'
     ];
 
+    protected $appends = [
+        'full_name',
+    ];
 
     /**
      * The attributes that should be hidden for serialization.

@@ -47,6 +47,7 @@ class Customer extends Authenticatable
     ];
 
     protected $appends = [
+        'full_name',
         'is_tax_exempt_valid', // true = Exempt, false = Taxable
     ];
 

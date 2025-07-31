@@ -811,7 +811,7 @@
                     id="addNoteBtn">
                     <x-heroicon-o-plus class="w-4 h-4" /> Add Note
                 </button>
-                <div class="p-6 max-h-60 overflow-y-auto mt-5" id="noteDiv">
+                <div class="p-6 max-h-60 overflow-y-auto mt-10" id="noteDiv">
                     <x-admin.order-management.orders.order-notes-list :notes="$order->notes" />
                 </div>
             </div>
@@ -843,7 +843,7 @@
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700 required" for="note_text">Note</label>
-                    {!! html()->textarea('note')->id('note_text')->class(['w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500'])->placeholder('Enter note...')->required() !!}
+                    {!! html()->textarea('note')->id('note_text')->class(['w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500'])->attribute('rows', 5)->placeholder('Enter note...')->required() !!}
                 </div>
             </div>
             <!-- Footer -->

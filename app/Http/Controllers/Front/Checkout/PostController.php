@@ -165,14 +165,14 @@ class PostController extends Controller
                 'platform' => 'Web',
             ]);
 
-            if(!empty($validated['orderNotes'])) {
-                // Create order note if provided
-                $order->notes()->create([
-                    'note' => $validated['orderNotes'],
-                    'created_by_type' => Customer::class,
-                    'created_by_id' => $customer->id,
-                ]);
-            }
+            // if(!empty($validated['orderNotes'])) {
+            //     // Create order note if provided
+            //     $order->notes()->create([
+            //         'note' => $validated['orderNotes'],
+            //         'created_by_type' => Customer::class,
+            //         'created_by_id' => $customer->id,
+            //     ]);
+            // }
 
             // Create order billing address
             $order->addresses()->create([

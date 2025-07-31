@@ -329,7 +329,7 @@
                                             {{ $addresse?->address ?? '' }}  {{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
                                             {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}<br>
 
-                                            {{ App\Helpers\CustomHelper::formatPhone($addresse->phone) ?? ' ' }}
+                {{ App\Helpers\CustomHelper::formatPhone(optional($addresse)->phone) ?? ' ' }}
                     </div>
                     {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
                         ->class([

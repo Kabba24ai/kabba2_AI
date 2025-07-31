@@ -95,7 +95,7 @@
                         <!-- Profile trigger -->
                         <a href="javascript:void(0)" class="flex items-center gap-2 group" onclick="toggleDropdown()">
                             <div class="w-8 h-8 rounded-full bg-yellow-400 text-white font-bold flex items-center justify-center text-sm shadow">
-                            N
+                           {{ $initial }}
                             </div>
                             <!-- <span class="text-sm font-medium group-hover:text-yellow-400 transition-all duration-300">
                             Nipa Patel
@@ -139,7 +139,7 @@
                     <!-- Profile trigger -->
                     <a href="javascript:void(0)" class="flex items-center gap-2 group mobile-d-none" onclick="toggleDropdownmobile()">
                         <div class="w-8 h-8 rounded-full bg-yellow-400 text-white font-bold flex items-center justify-center text-sm shadow">
-                        N
+                        {{ $initial }}
                         </div>
                         <!-- <span class="text-sm font-medium group-hover:text-yellow-400 transition-all duration-300">
                         Nipa Patel
@@ -164,9 +164,9 @@
                     </div>
 
                         @else
-                        <a href="{{ route('front.auth.login.index') }}"
-                        class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">
-                           <x-heroicon-o-arrow-right-on-rectangle class="w-6 h-6 mr-2 text-yellow-400" />
+                        <a href="{{ route('front.auth.login.index') }}" 
+                        class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out mobile-d-none">
+                           <x-heroicon-o-arrow-right-on-rectangle class="w-6 h-6 mr-2 text-yellow-400 " />
                         </a>
                     @endif 
                     <a href="javascript:void(0)" class="toggleCart px-3 py-2 rounded-full relative text-center me-5">

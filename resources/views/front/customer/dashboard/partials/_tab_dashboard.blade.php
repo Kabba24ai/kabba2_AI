@@ -136,89 +136,50 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
 
-                                     @php $rowCount = 0; @endphp
+                                        @php $rowCount = 0; @endphp
 
-                          @forelse ($customer->orders as $order)
-                                @foreach ($order->products as $product)
+                            @forelse ($customer->orders->sortByDesc('order_date') as $order)
+                                    @foreach ($order->products as $product)
 
-                                  @if ($rowCount >= 5)
-                                    @break(2) 
-                                  @endif
+                                    @if ($rowCount >= 5)
+                                        @break(2) 
+                                    @endif
 
-                                    @php $rowCount++; @endphp
+                                        @php $rowCount++; @endphp
 
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-medium text-gray-900">  {{ $order->order_number }}</td>
-                                        <td class="px-4 py-3">{{ $product->product_name ?? 'N/A' }}</td>
-                                        <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}</td>
-                                        <td class="px-4 py-3"> {!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}</td>
-                                        <td class="px-4 py-3">
-                                            <!-- <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span> -->
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 font-medium text-gray-900">  {{ $order->order_number }}</td>
+                                            <td class="px-4 py-3">{{ $product->product_name ?? 'N/A' }}</td>
+                                            <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}</td>
+                                            <td class="px-4 py-3"> {!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}</td>
+                                            <td class="px-4 py-3">
+                                                <!-- <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span> -->
 
-                                          {!! \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') !!}
+                                            {!! \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') !!}
 
 
-                                        </td>
-                                        <td class="px-4 py-3">   {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }} </td>
-                                        <td class="px-4 py-3 whitespace-nowrap items-center text-blue-600">
-                                            <!-- View -->
-                                                  <button title="View" class="openOrderModalBtn" data-order="{{ $order->order_number }}" data-date="{{ App\Helpers\CustomHelper::formatDate($order->order_date) }}" data-status="{{ \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') }}" data-method="{!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}" data-total="{{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}" data-product="{{ $product->product_name ?? 'N/A' }}">
-                                                                            <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
-                                                                        </button>
-                                            <!-- Download -->
-                                            <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 cursor-pointer" />
-                                            </button>
-                                        </td>
-                                    </tr>
-
-                                      @endforeach
-                                    @empty
-                                        <tr>
-                                            <td colspan="7" class="px-4 py-4 text-center text-gray-500">
-                                                No orders found.
+                                            </td>
+                                            <td class="px-4 py-3">   {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }} </td>
+                                            <td class="px-4 py-3 whitespace-nowrap items-center text-blue-600">
+                                                <!-- View -->
+                                                    <button title="View" class="openOrderModalBtn" data-order="{{ $order->order_number }}" data-date="{{ App\Helpers\CustomHelper::formatDate($order->order_date) }}" data-status="{{ \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') }}" data-method="{!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}" data-total="{{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}" data-product="{{ $product->product_name ?? 'N/A' }}">
+                                                                                <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
+                                                                            </button>
+                                                <!-- Download -->
+                                                <button title="Download">
+                                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 cursor-pointer" />
+                                                </button>
                                             </td>
                                         </tr>
-                                    @endforelse
 
-                                    <!-- <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-medium text-gray-900">ORD-2025-002</td>
-                                        <td class="px-4 py-3">Standard Widget Pack</td>
-                                        <td class="px-4 py-3">$875.50</td>
-                                        <td class="px-4 py-3">COD</td>
-                                        <td class="px-4 py-3">
-                                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span>
-                                        </td>
-                                        <td class="px-4 py-3">Jan 20, 2025</td>
-                                        <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
-                                            <button title="View">
-                                                <x-heroicon-o-eye class="w-5 h-5 cursor-pointer" />
-                                            </button>
-                                            <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 cursor-pointer" />
-                                            </button>
-                                        </td>
-                                    </tr>
-
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-medium text-gray-900">ORD-2025-003</td>
-                                        <td class="px-4 py-3">Widget Accessories Kit</td>
-                                        <td class="px-4 py-3">$624.50</td>
-                                        <td class="px-4 py-3">Account</td>
-                                        <td class="px-4 py-3">
-                                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">Acct.</span>
-                                        </td>
-                                        <td class="px-4 py-3">Jan 25, 2025</td>
-                                        <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
-                                            <button title="View">
-                                                <x-heroicon-o-eye class="w-5 h-5 cursor-pointer" />
-                                            </button>
-                                            <button title="Download">
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 cursor-pointer" />
-                                            </button>
-                                        </td>
-                                    </tr> -->
-
+                                    @endforeach
+                                        @empty
+                                            <tr>
+                                                <td colspan="7" class="px-4 py-4 text-center text-gray-500">
+                                                    No orders found.
+                                                </td>
+                                            </tr>
+                            @endforelse
 
                                 </tbody>
                             </table>

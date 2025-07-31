@@ -7,7 +7,11 @@
                 <div class="flex-1 pr-3">
                     <p class="text-sm text-gray-800 leading-relaxed text-justify">
                         {{ $note->note }}
-                        <span class="font-semibold">- {{ $note->user->full_name ?? 'N/A' }}</span>
+                        @if ($note->user)
+                            <span class="font-semibold">- {{ $note->user->full_name ?? 'N/A' }}</span>
+                        @elseif ($note->created_by_type_name === "Customer")
+                            <span class="font-semibold text-green-600">- Customer</span>
+                        @endif
                     </p>
 
                     {{-- Metadata --}}

@@ -24719,6 +24719,123 @@ namespace Spatie\Html\Facades {
             }
     }
 
+namespace Stevebauman\Location\Facades {
+    /**
+     * 
+     *
+     */
+    class Location {
+        /**
+         * Set the current driver to use.
+         *
+         * @static 
+         */
+        public static function setDriver($driver)
+        {
+            /** @var \Stevebauman\Location\LocationManager $instance */
+            return $instance->setDriver($driver);
+        }
+
+        /**
+         * Set the default location driver to use.
+         *
+         * @throws DriverDoesNotExistException
+         * @static 
+         */
+        public static function setDefaultDriver()
+        {
+            /** @var \Stevebauman\Location\LocationManager $instance */
+            return $instance->setDefaultDriver();
+        }
+
+        /**
+         * Attempt to retrieve the location of the user.
+         *
+         * @static 
+         */
+        public static function get($ip = null)
+        {
+            /** @var \Stevebauman\Location\LocationManager $instance */
+            return $instance->get($ip);
+        }
+
+        /**
+         * Set the request resolver callback.
+         *
+         * @static 
+         */
+        public static function resolveRequestUsing($callback)
+        {
+            /** @var \Stevebauman\Location\LocationManager $instance */
+            return $instance->resolveRequestUsing($callback);
+        }
+
+        /**
+         * Get the loaded driver instances.
+         *
+         * @return \Stevebauman\Location\Drivers\Driver[] 
+         * @static 
+         */
+        public static function drivers()
+        {
+            /** @var \Stevebauman\Location\LocationManager $instance */
+            return $instance->drivers();
+        }
+
+        /**
+         * Register a custom macro.
+         *
+         * @param string $name
+         * @param object|callable $macro
+         * @param-closure-this static  $macro
+         * @return void 
+         * @static 
+         */
+        public static function macro($name, $macro)
+        {
+            \Stevebauman\Location\LocationManager::macro($name, $macro);
+        }
+
+        /**
+         * Mix another object into the class.
+         *
+         * @param object $mixin
+         * @param bool $replace
+         * @return void 
+         * @throws \ReflectionException
+         * @static 
+         */
+        public static function mixin($mixin, $replace = true)
+        {
+            \Stevebauman\Location\LocationManager::mixin($mixin, $replace);
+        }
+
+        /**
+         * Checks if macro is registered.
+         *
+         * @param string $name
+         * @return bool 
+         * @static 
+         */
+        public static function hasMacro($name)
+        {
+            return \Stevebauman\Location\LocationManager::hasMacro($name);
+        }
+
+        /**
+         * Flush the existing macros.
+         *
+         * @return void 
+         * @static 
+         */
+        public static function flushMacros()
+        {
+            \Stevebauman\Location\LocationManager::flushMacros();
+        }
+
+            }
+    }
+
 namespace Stevebauman\Purify\Facades {
     /**
      * 
@@ -29962,6 +30079,7 @@ namespace  {
     class Breadcrumbs extends \Diglactic\Breadcrumbs\Breadcrumbs {}
     class Flash extends \Laracasts\Flash\Flash {}
     class Html extends \Spatie\Html\Facades\Html {}
+    class Location extends \Stevebauman\Location\Facades\Location {}
     class Purify extends \Stevebauman\Purify\Facades\Purify {}
     class DataTables extends \Yajra\DataTables\Facades\DataTables {}
 }

@@ -177,7 +177,7 @@
         </tr>
     </thead>
     <tbody id="ordersTable" class="divide-y divide-gray-200">
-        @forelse ($customer->orders as $order)
+@forelse ($customer->orders->sortByDesc('order_date') as $order)
             @foreach ($order->products as $product)
             <tr class="order-row" data-status="{{ strtolower(str_replace(' ', '-', $order->payments->first()->status->value ?? 'n/a')) }}">
                     {{-- Order Number --}}

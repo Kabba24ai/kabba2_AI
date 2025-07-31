@@ -327,7 +327,7 @@
                                             {{ $addresse?->address ?? '' }}  {{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
                                             {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}<br>
 
-                                            {{ App\Helpers\CustomHelper::formatPhone($addresse->phone) ?? ' ' }}
+{{ App\Helpers\CustomHelper::formatPhone(optional($addresse)->phone) ?? ' ' }}
 
                                           </div>
 

@@ -79,8 +79,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="ordersTable" class="divide-y divide-gray-200">
-                                          @forelse ($customer->orders as $order)
-
+@forelse ($customer->orders->sortByDesc('order_date') as $order)
                                         @foreach ($order->products as $product)
                                                                 <tr class="order-row">
                                                                     <td class="px-4 py-3 font-medium text-gray-900"> {{ $order->order_number }}</td>

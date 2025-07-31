@@ -1042,7 +1042,7 @@
                     if (res && res.success) {
                         let html = '';
                         noteDiv.innerHTML = res.html;
-                        notyf.success(res.message);
+                        //notyf.success(res.message);
                     } else {
                         notyf.error(res.message);
                     }

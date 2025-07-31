@@ -61,8 +61,8 @@ return [
                 ])
                 : [],
 
-            // // Add this line
-            'timezone' => 'UTC',
+            // Add this line
+            // 'timezone' => '+00:00', // its work in the local only
         ],
 
         'mariadb' => [

@@ -34,7 +34,7 @@ class SetTimezoneFromIP
             if (!$timezone) {
                 $timezone = config('app.timezone');
             }else {
-                \Log::info('Detected timezone for IP', ['ip' => $ip, 'timezone' => $timezone]);
+                //\Log::info('Detected timezone for IP', ['ip' => $ip, 'timezone' => $timezone]);
                 // If a timezone is found, set it in the config
                 Config::set('app.timezone', $timezone);
             }

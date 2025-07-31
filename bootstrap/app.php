@@ -38,7 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // This 👇
         $middleware->api(prepend: [\App\Http\Middleware\ForceJsonResponseMiddleware::class]);
-        $middleware->append(\App\Http\Middleware\SetTimezoneFromIP::class);
+        //$middleware->append(\App\Http\Middleware\SetTimezoneFromIP::class);// server time should be set as UTC first
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->dontFlash([

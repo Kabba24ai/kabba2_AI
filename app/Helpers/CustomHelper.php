@@ -37,7 +37,7 @@ class CustomHelper
         return Carbon::parse($time)->format($format);
     }
 
-    public static function formatDateTime($dateTime, $format = 'd/m/Y H:i A')
+    public static function formatDateTime($dateTime, $format = null)
     {
         if (empty($dateTime)) {
             return null;
@@ -131,12 +131,12 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
 
     switch ($record->type) {
         case 'payment':
-            
+
             if ($customer->getTaxStatus() === 'Taxable') {
 
                 $record->sales_tax = $salesTaxRate;
 
-                $amountWithTax = $record->amount; 
+                $amountWithTax = $record->amount;
 
                 // $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
 
@@ -178,10 +178,10 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
 
                   $record->sales_tax = $salesTaxRate;
 
-                $amountWithTax = $record->amount; 
+                $amountWithTax = $record->amount;
 
             }
-        
+
             else {
                 $record->sales_tax = 0;
                 $amountWithTax = $record->amount;
@@ -207,7 +207,7 @@ public static function reverseTransactionEffect(CustomerAccount $record): void
     $customer = Customer::findOrFail($record->customer_id);
     $currentBalance = $customer->available_credit_balance ?? 0;
     $adjustedBalance = $currentBalance;
- 
+
 
     switch ($record->type) {
         case 'payment':
@@ -229,14 +229,14 @@ public static function reverseTransactionEffect(CustomerAccount $record): void
             break;
 
         case 'charge':
-            
+
             if ($record->sales_tax_type === 'reverse'){
 
             $adjustedBalance -= $record->amount ;
             break;
 
             }
-        
+
             else {
                 $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
             $adjustedBalance -= $record->amount + $salesTaxAmount;

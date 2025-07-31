@@ -157,7 +157,7 @@ return [
         'db_date_time_format' => env('DB_DATE_TIME_FORMAT', 'Y-m-d H:i:s'),
         'date_format' => env('DATE_FORMAT', 'd/m/Y'),
         'time_format' => env('TIME_FORMAT', 'H:i A'),
-        'date_time_format' => env('DATE_TIME_FORMAT', 'd/m/Y - H:i'),
+        'date_time_format' => env('DATE_TIME_FORMAT', 'd/m/Y - H:i A'),
         'js_date_format' => env('JS_DATE_FORMAT', 'dd/MM/yyyy'),
     ],
 

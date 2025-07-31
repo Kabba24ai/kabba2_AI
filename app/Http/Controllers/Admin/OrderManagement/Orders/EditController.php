@@ -23,7 +23,7 @@ class EditController extends Controller
      */
     public function __invoke($uniqueid)
     {
-        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress'])->where('unique_id', $uniqueid)->firstOrFail();
+        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes'])->where('unique_id', $uniqueid)->firstOrFail();
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::orderBy('first_name')->get();

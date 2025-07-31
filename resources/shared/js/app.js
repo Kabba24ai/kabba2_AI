@@ -38,6 +38,37 @@ window.Parsley.getHiddenFieldErrors = function (parsleyForm) {
     return errors;
 };
 
+/**
+ * Global loader wrapper.
+ *
+ * @param {string} containerSelector - The selector for the container to dim (e.g. "#ordersTable")
+ * @param {string} loaderSelector - The selector for the loader/spinner (e.g. "#orders-loading")
+ * @param {Function|Promise} asyncFn - An async function or Promise to run
+ * @returns {Promise}
+ */
+window.withLoader = function(containerSelector, loaderSelector, asyncFn) {
+    const container = document.querySelector(containerSelector);
+    const loader = document.querySelector(loaderSelector);
+
+    if (loader) {
+        loader.classList.remove('hidden');
+    }
+    if (container) {
+        container.classList.add('opacity-50', 'pointer-events-none');
+    }
+
+    const promise = (typeof asyncFn === 'function') ? asyncFn() : asyncFn;
+
+    return Promise.resolve(promise).finally(() => {
+        if (loader) {
+            loader.classList.add('hidden');
+        }
+        if (container) {
+            container.classList.remove('opacity-50', 'pointer-events-none');
+        }
+    });
+};
+
 
 // Initialize scripts on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -66,13 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize digits from existing value
         if (input.value) {
-            // Remove non-digits (keeps only numbers)
             digits = input.value.replace(/\D/g, "");
         }
 
         const updateInput = () => {
             let num = parseFloat(digits || "0") / 100;
             input.value = num.toFixed(2);
+
+            // Manually trigger an input event so Parsley updates its validation
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
         };
 
         // Update once at the beginning if there was a value
@@ -103,10 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         input.addEventListener("paste", (e) => e.preventDefault());
-        input.addEventListener("input", (e) => e.preventDefault());
+
+        // REMOVE this line – don't block input event anymore!
+        // input.addEventListener("input", (e) => e.preventDefault());
 
         input.placeholder = "0.00";
     });
-
 });
 

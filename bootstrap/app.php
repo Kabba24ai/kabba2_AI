@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'prevent-back-history' => \App\Http\Middleware\PreventBackHistoryMiddleware::class,
+            // 'set-timezone-from-ip' => \App\Http\Middleware\SetTimezoneFromIP::class,
 
             // Front Middleware
             'front.common-front-data' => \App\Http\Middleware\Front\CommonDataMiddleware::class,
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // This 👇
         $middleware->api(prepend: [\App\Http\Middleware\ForceJsonResponseMiddleware::class]);
+        $middleware->append(\App\Http\Middleware\SetTimezoneFromIP::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->dontFlash([

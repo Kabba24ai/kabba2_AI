@@ -23,6 +23,7 @@
         "spatie/laravel-html": "^3.12",
         "spatie/laravel-permission": "^6.18",
         "stevebauman/purify": "^6.3",
+        "torann/geoip": "^3.0",
         "yajra/laravel-datatables-oracle": "^12.2"
     },
     "require-dev": {

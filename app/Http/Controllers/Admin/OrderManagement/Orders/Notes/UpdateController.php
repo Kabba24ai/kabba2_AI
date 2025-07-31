@@ -23,7 +23,7 @@ class UpdateController extends Controller
                 'note' => $validated['note'],
                 'user_id' => $validated['user_id'],
                 'updated_by_type' => auth()->user() ? get_class(auth()->user()) : null,
-                'updated_by_id' => auth()->id(),
+                'updated_by_id' => $validated['user_id'],
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Order or note not found.'], 404);

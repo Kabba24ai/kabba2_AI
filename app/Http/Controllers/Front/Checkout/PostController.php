@@ -159,20 +159,19 @@ class PostController extends Controller
                 'coupon_code' => null,
                 'discount_amount' => $cartSummary['discount'],
                 'grand_total' => $cartSummary['grand_total'],
-                'order_note' => $validated['orderNotes'] ?? null,
                 'cart_data' => $cart,
                 'is_tax_exempt' => $cartSummary['tax_exempt'] ? 'Yes' : 'No',
                 'platform' => 'Web',
             ]);
 
-            // if(!empty($validated['orderNotes'])) {
-            //     // Create order note if provided
-            //     $order->notes()->create([
-            //         'note' => $validated['orderNotes'],
-            //         'created_by_type' => Customer::class,
-            //         'created_by_id' => $customer->id,
-            //     ]);
-            // }
+            if(!empty($validated['orderNotes'])) {
+                // Create order note if provided
+                $order->notes()->create([
+                    'note' => $validated['orderNotes'],
+                    'created_by_type' => Customer::class,
+                    'created_by_id' => $customer->id,
+                ]);
+            }
 
             // Create order billing address
             $order->addresses()->create([

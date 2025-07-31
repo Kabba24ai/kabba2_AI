@@ -385,6 +385,10 @@
                         </div>
                     @endif --}}
                 @endforeach
+
+                <div class="text-sm px-3 py-2 bg-gray-100 rounded text-gray-600 mb-4">
+                    <span class="font-semibold">Customer Note:</span> {{ $order->order_note ?? 'N/A' }}
+                </div>
             </div>
 
 

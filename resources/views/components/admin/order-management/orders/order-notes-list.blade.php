@@ -47,6 +47,6 @@
             </div>
         </li>
     @empty
-        <li class="text-gray-400 text-sm">No notes available.</li>
+        <li class="list-disc text-gray-400 text-sm">No notes available.</li>
     @endforelse
 </ul>

@@ -29,7 +29,7 @@ class ConfirmPaymentController extends Controller
         }
 
         try {
-            $lastPayment = $order->payments()->pending()->cod()->latest()->first();
+            $lastPayment = $order->payments()->pending()->cod()->latest('id')->first();
             if (!$lastPayment) {
                 return response()->json([
                     'success' => false,

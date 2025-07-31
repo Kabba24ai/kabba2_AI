@@ -37,7 +37,7 @@ class IndexController extends Controller
             $query->where('status', $status);
         }
 
-        $stores = $query->latest()->paginate(10)->withQueryString(); // keeps filters in pagination links
+        $stores = $query->latest('id')->paginate(10)->withQueryString(); // keeps filters in pagination links
 
         // If the request is an AJAX request, return a JSON response
         if ($request->ajax()) {

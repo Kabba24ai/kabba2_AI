@@ -16,7 +16,7 @@ class AddToAccountPaymentController extends Controller
 {
     public function __invoke($uniqueId)
     {
-      
+
         $order = Order::where('unique_id', $uniqueId)->first();
         if (!$order) {
             return response()->json([
@@ -26,7 +26,7 @@ class AddToAccountPaymentController extends Controller
         }
 
         try {
-            $lastPayment = $order->payments()->pending()->cod()->latest()->first();
+            $lastPayment = $order->payments()->pending()->cod()->latest('id')->first();
             if (!$lastPayment) {
                 return response()->json([
                     'success' => false,

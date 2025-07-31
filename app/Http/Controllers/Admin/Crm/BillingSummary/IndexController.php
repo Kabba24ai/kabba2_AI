@@ -17,7 +17,7 @@ class IndexController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-     */ 
+     */
     public function __invoke(Request $request)
     {
          $query = Customer::with('orders.payments', 'addresses', 'accounts')
@@ -49,18 +49,18 @@ class IndexController extends Controller
             });
         }
 
-        
+
         if ($request->filled('search_company_name')) {
             $query->where('company_name', 'like', '%' . $request->search_company_name . '%');
         }
-        
-        
+
+
         if ($request->filled('search_phone')) {
             $searchPhone = CustomHelper::unformatPhone($request->search_phone);
             $query->where('phone', 'like', '%' . $searchPhone . '%');
         }
-        
-        
+
+
         if ($request->filled('alert_status') && $request->alert_status === 'warning') {
             $query->whereHas('accounts', function ($q) {
                 $q->where('type', 'payment');
@@ -82,10 +82,10 @@ class IndexController extends Controller
         }
 
 
-         $customers = $query->latest()->paginate(10)->withQueryString();
-        
+         $customers = $query->latest('id')->paginate(10)->withQueryString();
+
         if ($request->ajax()) {
-            
+
             $tableView = view('admin.crm.billingsummary.partials._table', compact('customers'))->render();
 
             return response()->json([
@@ -97,15 +97,15 @@ class IndexController extends Controller
 
         $query = Customer::with('orders.payments','addresses','accounts')->whereIn('status', ['Active', 'Inactive']);
 
-        $customers = $query->latest()->paginate(10)->withQueryString();
+        $customers = $query->latest('id')->paginate(10)->withQueryString();
 
         return view('admin.crm.billingsummary.index', [
             'customers'=>$customers,
             'totalOutstanding'=>$totalOutstanding,
-            'overdueCustomerCount' => $overdueCustomerCount , 
+            'overdueCustomerCount' => $overdueCustomerCount ,
             'totalOverdueAmount' => $totalOverdueAmount
         ]);
 
     }
-    
+
 }

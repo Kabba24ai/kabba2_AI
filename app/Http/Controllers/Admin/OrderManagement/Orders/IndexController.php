@@ -54,7 +54,7 @@ class IndexController extends Controller
             });
         }
 
-        $orders = $query->latest()->paginate(10)->withQueryString(); // keeps filters in pagination links
+        $orders = $query->latest('id')->paginate(10)->withQueryString(); // keeps filters in pagination links
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {

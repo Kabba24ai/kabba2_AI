@@ -11,7 +11,7 @@ use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User ;
 class ViewController extends Controller
 {
-    
+
      /**
      * Show the form for view the specified product option.
      *
@@ -20,7 +20,7 @@ class ViewController extends Controller
      */
     public function __invoke(string $unique_id): View
     {
-        
+
         $customer = Customer::with('orders.products','orders.payments', 'accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();
@@ -31,7 +31,7 @@ class ViewController extends Controller
             ->value('date');
 
         // dd($customer->total_order_amount);
-        
+
         $states = State::get();
 
         $protocol = '';
@@ -56,16 +56,16 @@ class ViewController extends Controller
         }
 
         $users = User::where('status','Active')->get();
-        // biling sumary 
+        // biling sumary
 
         $query = Customer::with('orders.payments','addresses','accounts')->whereIn('status', ['Active', 'Inactive']);
 
-        $customers = $query->latest()->paginate(10)->withQueryString();
+        $customers = $query->latest('id')->paginate(10)->withQueryString();
 
-        // biling sumary 
+        // biling sumary
 
 
-       
+
         return view('admin.crm.customers.view', [
             'customer' => $customer,
             'states' => $states,

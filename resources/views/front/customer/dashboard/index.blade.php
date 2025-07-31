@@ -4,9 +4,15 @@
 
 @section('content')
 
+
+
 <div class="pt-100 section-padding">
-    <div class="rounded-xl dark:border-gray-800" x-data="{ activeTab: 'dashboard' }">
+    <div class="rounded-xl dark:border-gray-800" x-data="{ activeTab: '{{ session('active_tab', 'dashboard') }}' }" >
         <div class="container">
+
+           @include('flash::message')
+                @include('admin.partials.formErrors')
+
             <div class="border-b border-gray-200 dark:border-gray-800">
                 <nav
                 class="-mb-px flex space-x-2 overflow-x-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 dark:[&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:h-1.5"

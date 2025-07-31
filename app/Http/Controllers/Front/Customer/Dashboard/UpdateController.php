@@ -35,11 +35,6 @@ class UpdateController extends Controller
                 'email' => $validated['email'] ?? null,
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
-                'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
-                'tax_document_upload_date' => CustomHelper::parseDateFromInput($validated['tax_document_upload_date'] ?? null),
-                'is_credit_account' => $validated['is_credit_account'] ?? false,
-                'tax_status' => $validated['tax_status'] ?? 'Taxable',
-                'credit_limit' => $validated['credit_limit'] ?? null,
             ];
 
            
@@ -109,9 +104,10 @@ class UpdateController extends Controller
                 if (!empty($mediaData['mediaObj'])) {
                     $customerData['tax_document_media_id'] = $mediaData['mediaObj']->id;
                     
-                    $customerData['tax_document_type'] = $validated['tax_document_type'] ?? null;
-
                     $customerData['tax_document_upload_date'] = now(); // or keep original if needed
+
+                    $customerData['tax_document_status'] = '';
+
                 }
                 $customer->update($customerData);
             }

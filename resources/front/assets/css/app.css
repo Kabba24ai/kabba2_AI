@@ -664,6 +664,7 @@ input:-webkit-autfill {
 input:-webkit-autofill ~ label{
     transform: scale(1.15) translateY(0rem) translateX(-0.625rem);
 }
+.mobile-d-none{display: none;}
 
 /* ============== */
 
@@ -707,6 +708,8 @@ input:-webkit-autofill ~ label{
     }
     .header-price{padding: 15px;}
     .price-tag-box{margin-top: 10px;}
+    .h-card-height{height: 235px;}
+    .mobile-d-none{display: block;}
 }
 
 @media screen and (max-width:699px) {
@@ -748,6 +751,8 @@ input:-webkit-autofill ~ label{
     }
     .header-price{padding: 15px;}
     .price-tag-box{margin-top: 10px;}
+    .h-card-height{height: 235px;}
+    .mobile-d-none{display: block;}
 }
 
 @media screen and (min-width:280px) and (max-width:350px) {}

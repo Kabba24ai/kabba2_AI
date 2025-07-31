@@ -30,7 +30,7 @@
     <section class="lg:pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="flex flex-col md:flex-row gap-2">
-                <div class="w-full md:w-1/2 md:border-r px-4 md:pr-8 pb-12">
+                <div class="w-full md:w-1/2 md:border-r px-0 lg:px-4 md:pr-6 pb-12">
                     <!-- Billing Info -->
                     <div class="flex items-center justify-between mt-2 mb-2">
                         <h2 class="text-2xl font-bold m-0">Billing information</h2>
@@ -203,7 +203,7 @@
                                 @enderror
                             </div>
                         </div>
-                        <div>
+                        <div class="mb-2">
                             <label for="billingAddress" class="block text-sm text-gray-600 mb-1">Address</label>
                             {{ html()->textarea('billingAddress', old('billingAddress', $primaryAddress ? $primaryAddress->address : null))->class(
                                     'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
@@ -464,7 +464,7 @@
                                 </label>
                                 <div id="cardSection" class="{{ old('payment') == 'Card' ? 'block' : 'hidden' }}">
                                     <!-- Card Visual -->
-                                    <div class="relative h-52 w-full max-w-sm  mt-4 card-container">
+                                    <div class="relative h-card-height lg:h-52 w-full max-w-sm  mt-4 card-container">
                                         <!-- Card Front -->
                                         <div id="cardFront"
                                             class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front"
@@ -637,7 +637,7 @@
                 </div>
 
                 <!-- Cart Summary -->
-                <div id="cartSummary" class="w-full md:w-1/2 mt-10 pl-6">
+                <div id="cartSummary" class="w-full md:w-1/2 mt:0 lg:mt-10 pl-0 lg:pl-6">
                     <div class="border-b pb-4 mb-6">
                         <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
                         <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>

@@ -8,16 +8,6 @@ use Illuminate\Validation\Rule;
 
 class UpdateRequest extends ApiBaseFormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-    public function authorize()
-    {
-        return true;
-    }
-
     protected function prepareForValidation()
     {
 
@@ -61,10 +51,10 @@ class UpdateRequest extends ApiBaseFormRequest
             'retail_product_cost' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Rental pricing
-            'rental_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_daily' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_weekend' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_weekly' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_monthly' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Damage waivers
             'rental_damage_waiver_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
@@ -94,12 +84,12 @@ class UpdateRequest extends ApiBaseFormRequest
 
             // Hour tracking
             'hour_tracking' => ['nullable', 'in:Yes,No'],
-            'hour_rate' => ['nullable', 'numeric', 'min:0'],
+            'hour_rate' => ['required_if:hour_tracking,Yes', 'nullable', 'numeric', 'min:0'],
 
             // Status
-            'status' => ['nullable', 'in:Published,Draft,Pending'],
+            'status' => ['required', 'in:Published,Draft,Pending'],
 
-            'categories' => ['nullable', 'array'],
+            'categories' => ['required', 'array'],
             'categories.*' => ['exists:product_categories,id'],
 
             'options' => ['nullable', 'array'],
@@ -151,6 +141,7 @@ class UpdateRequest extends ApiBaseFormRequest
             'product_type.in' => 'The product type must be either "Rental" or "Retail".',
             'is_general_term_type.boolean' => 'The general term type must be true or false.',
             'is_custom_term_type.boolean' => 'The custom term type must be true or false.',
+            'categories.required' => 'You must select at least one category for the product.',
         ];
     }
 }

@@ -247,7 +247,7 @@
             let paymentMethodInput = document.querySelector('select[name="payment_method"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
 
-            let loader = document.querySelector('#order-loading');
+
             let wrapper = document.querySelector('#order-table-wrapper');
             let timeout = null;
 
@@ -273,24 +273,22 @@
                 if (paymentStatus) params.append('payment_status', paymentStatus);
 
                 // Show loader
-                loader.classList.remove('hidden');
+
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
                 apiFetch("{{ route('admin.order-management.orders.index') }}?" + params.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
+                    }, {
+                        loaderSelector: '#order-loading',
+                        containerSelector: '#order-table-wrapper'
                     })
                     .then(response => {
                         wrapper.innerHTML = response.html;
                         initOrderCheckboxes(); // Reinitialize checkboxes after new content
                         initSingleDeleteButtons();
                     })
-                    .finally(() => {
-                        loader.classList.add('hidden');
-                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
-                    });
-
             }
 
             // Debounce search input

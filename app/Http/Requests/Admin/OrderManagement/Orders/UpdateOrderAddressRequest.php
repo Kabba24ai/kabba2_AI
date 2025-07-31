@@ -7,17 +7,6 @@ use App\Http\Requests\ApiBaseFormRequest;
 
 class UpdateOrderAddressRequest extends ApiBaseFormRequest
 {
-    public function authorize()
-    {
-        // Add your authorization logic if needed
-        return true;
-    }
-
-    protected function prepareForValidation()
-    {
-        $this->merge(PurifyHelper::purify([$this->all()],[]));
-    }
-
     public function rules()
     {
         return [

@@ -29,20 +29,19 @@
             Status
         </label>
 
-        {!! html()
-            ->select('status', [
-                '' => 'Select Status',
-                'Draft' => 'Draft',
-                'Pending' => 'Pending',
-                'Published' => 'Published'
-            ], old('status', $objProduct->status ?? 'Published'))
-            ->id('status')
-            ->class([
+        {!! html()->select(
+                'status',
+                [
+                    '' => 'Select Status',
+                    'Draft' => 'Draft',
+                    'Pending' => 'Pending',
+                    'Published' => 'Published',
+                ],
+                old('status', $objProduct->status ?? 'Published'),
+            )->id('status')->class([
                 'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                 'border-red-500' => $errors->has('status'),
-            ])
-            ->required()
-        !!}
+            ])->required() !!}
 
         @error('status')
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -51,7 +50,7 @@
 
     <!-- Product Type -->
     <div x-data x-init="$nextTick(() => $store.productForm.selectedType = '{{ old('product_type', $objProduct->product_type ?? 'Rental') }}')">
-        <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Product Type</label>
+        <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Product Type</label>
         <div class="flex flex-wrap items-center gap-4 mb-2">
 
             <!-- Rental Option -->
@@ -116,7 +115,8 @@
 
 {{-- Description --}}
 <div class="mb-8">
-    <label for="description" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Description</label>
+    <label for="description"
+        class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Description</label>
     {{ html()->textarea('description')->class([
             'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
             'border-red-500' => $errors->has('description'),
@@ -124,15 +124,14 @@
             'id' => 'description',
             'placeholder' => 'Enter Description Of The Product',
             'autocomplete' => 'off',
-        ])->required()
-    }}
+        ])->required() }}
     @error('description')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
     @enderror
 </div>
 
 @php
-    $mediaChildren = isset($objProduct) ? ($objProduct->mediaChildren ?? []) : [];
+    $mediaChildren = isset($objProduct) ? $objProduct->mediaChildren ?? [] : [];
     $hoverImage = isset($objProduct) ? optional($objProduct->media)->getUrl() : null;
     $hoverImageId = isset($objProduct) ? optional($objProduct->media)->id : null;
 @endphp
@@ -228,7 +227,7 @@
     {{-- Price --}}
     <div class="md:col-span-1">
         <label for="retail_price"
-            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Price</label>
+            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Price</label>
         <div class="relative">
             <span
                 class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
@@ -362,7 +361,7 @@
 
     <!-- Categories Column -->
     <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
-        <h3 class="text-md font-semibold text-gray-700 dark:text-white mb-4">Category Hierarchy</h3>
+        <h3 class="text-md font-semibold text-gray-700 dark:text-white mb-4 required">Category Hierarchy</h3>
 
         @if ($categoryTree->isNotEmpty())
             <div class="max-h-64 overflow-y-auto pr-2 custom-scroll">
@@ -381,7 +380,7 @@
 
     <!-- Sales Funnels Column -->
     <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
-        <h4 class="text-sm font-semibold text-gray-800 dark:text-white mb-3">Sales Funnels</h4>
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-3">Sales Funnels</h3>
 
         @if ($funnels->isNotEmpty())
             <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
@@ -412,14 +411,19 @@
         <p class="text-blue-600 font-semibold truncate">
             {{ old('seo_title', $objProduct->seo_title ?? 'Sample Category Title') }}</p>
         <p class="text-green-700 text-xs truncate">
-        @php
-            $seoSlug = isset($objProduct) ? ($objProduct->slug ?? '') : '';
-            $seoType = old('product_type', (isset($objProduct) && $objProduct->product_type == "Rental" ? 'daily' : 'retail'));
-            $seoUrl = $seoSlug ? route('front.products.details', ['slug' => $seoSlug, 'productVariant' => $seoType]) : '#';
-        @endphp
-        <a href="{{ $seoUrl }}" target="_blank" rel="noopener">
-            {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
-        </a>
+            @php
+                $seoSlug = isset($objProduct) ? $objProduct->slug ?? '' : '';
+                $seoType = old(
+                    'product_type',
+                    isset($objProduct) && $objProduct->product_type == 'Rental' ? 'daily' : 'retail',
+                );
+                $seoUrl = $seoSlug
+                    ? route('front.products.details', ['slug' => $seoSlug, 'productVariant' => $seoType])
+                    : '#';
+            @endphp
+            <a href="{{ $seoUrl }}" target="_blank" rel="noopener">
+                {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
+            </a>
         </p>
         <p class="text-gray-700 dark:text-gray-300 mt-1">
             {{ old('seo_description', $objProduct->seo_description ?? 'Product Description') }}
@@ -568,7 +572,8 @@
             Alpine.effect(() => {
                 const isRental = Alpine.store('productForm').selectedType === 'Rental';
                 // Your section
-                const rentalSection = document.querySelector('[x-show="$store.productForm.selectedType === \'Rental\'"]');
+                const rentalSection = document.querySelector(
+                    '[x-show="$store.productForm.selectedType === \'Rental\'"]');
 
                 if (!isRental && rentalSection) {
                     rentalSection.querySelectorAll('input, select, textarea').forEach(el => {
@@ -580,6 +585,34 @@
                     });
                 }
             });
+
+            // Make retail_price required when type is Retail
+            Alpine.effect(() => {
+                const isRetail = Alpine.store('productForm').selectedType === 'Retail';
+                const retailPrice = document.getElementById('retail_price');
+                const rentalDaily = document.getElementById('rental_daily');
+                const rentalWeekend = document.getElementById('rental_weekend');
+                const rentalWeekly = document.getElementById('rental_weekly');
+                const rentalMonthly = document.getElementById('rental_monthly');
+                // Delivery fee inputs
+                // const standardDelivery = document.querySelector('input[name="standard_delivery_fee"]');
+                // const extendedDelivery = document.querySelector('input[name="extended_delivery_fee"]');
+
+                if (isRetail) {
+                    retailPrice.setAttribute('required', 'required');
+                    rentalDaily.removeAttribute('required');
+                    rentalWeekend.removeAttribute('required');
+                    rentalWeekly.removeAttribute('required');
+                    rentalMonthly.removeAttribute('required');
+                } else {
+                    rentalDaily.setAttribute('required', 'required');
+                    rentalWeekend.setAttribute('required', 'required');
+                    rentalWeekly.setAttribute('required', 'required');
+                    rentalMonthly.setAttribute('required', 'required');
+                    retailPrice.removeAttribute('required');
+                }
+            });
+
         });
     </script>
 @endpush

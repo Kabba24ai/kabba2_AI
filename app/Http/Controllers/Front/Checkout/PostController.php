@@ -41,40 +41,44 @@ class PostController extends Controller
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
 
         try {
-            // 1. Find or create customer
-            $customer = Customer::firstOrCreate(
-                [
-                    'email' => $validated['billingEmail'],
-                ],
-                [
-                    'first_name' => $validated['billingFirstName'],
-                    'last_name' => $validated['billingLastName'],
-                    'company_name' => $validated['billingCompany'] ?? null,
-                    'phone' => $validated['billingPhone'],
-                    'is_guest' => false,
-                    'Status' => 'Active',
-                ],
-            );
+            if(auth()->guard('customer')->check()) {
+                $customer = auth()->guard('customer')->user();
+            } else {
+                // 1. Find or create customer
+                $customer = Customer::firstOrCreate(
+                    [
+                        'email' => $validated['billingEmail'],
+                    ],
+                    [
+                        'first_name' => $validated['billingFirstName'],
+                        'last_name' => $validated['billingLastName'],
+                        'company_name' => $validated['billingCompany'] ?? null,
+                        'phone' => $validated['billingPhone'],
+                        'is_guest' => true,
+                        'Status' => 'Active',
+                    ],
+                );
+                // Update company and phone if not already set
+                $updated = false;
+                if (empty($customer->company) && !empty($validated['billingCompany'])) {
+                    $customer->company_name = $validated['billingCompany'];
+                    $updated = true;
+                }
+                if (empty($customer->phone) && !empty($validated['billingPhone'])) {
+                    $customer->phone = $validated['billingPhone'];
+                    $updated = true;
+                }
+                if ($updated) {
+                    $customer->save();
+                    $customer->refresh();
+                }
 
-            // Update company and phone if not already set
-            $updated = false;
-            if (empty($customer->company) && !empty($validated['billingCompany'])) {
-                $customer->company_name = $validated['billingCompany'];
-                $updated = true;
-            }
-            if (empty($customer->phone) && !empty($validated['billingPhone'])) {
-                $customer->phone = $validated['billingPhone'];
-                $updated = true;
-            }
-            if ($updated) {
-                $customer->save();
-                $customer->refresh();
+                if (!empty($validated['showPassword']) && $validated['showPassword'] === 'Yes' && !empty($validated['password'])) {
+                    $customer->password = bcrypt($validated['password']);
+                    $customer->save();
+                }
             }
 
-            if (!empty($validated['showPassword']) && $validated['showPassword'] === 'Yes' && !empty($validated['password'])) {
-                $customer->password = bcrypt($validated['password']);
-                $customer->save();
-            }
 
             // 2. Add addresses (Billing & Delivery)
             // Customer has only one address, update or create as 'Billing'
@@ -160,6 +164,15 @@ class PostController extends Controller
                 'is_tax_exempt' => $cartSummary['tax_exempt'] ? 'Yes' : 'No',
                 'platform' => 'Web',
             ]);
+
+            if(!empty($validated['orderNotes'])) {
+                // Create order note if provided
+                $order->notes()->create([
+                    'note' => $validated['orderNotes'],
+                    'created_by_type' => Customer::class,
+                    'created_by_id' => $customer->id,
+                ]);
+            }
 
             // Create order billing address
             $order->addresses()->create([

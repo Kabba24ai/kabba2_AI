@@ -5,7 +5,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Daily -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Daily</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 required">Daily</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_daily')->attributes([
@@ -24,7 +24,8 @@
 
             <!-- Weekend Spcl. -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weekend Spcl.</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 required">Weekend
+                    Spcl.</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_weekend')->attributes([
@@ -43,7 +44,7 @@
 
             <!-- Weekly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weekly</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 required">Weekly</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_weekly')->attributes([
@@ -62,7 +63,7 @@
 
             <!-- Monthly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 required">Monthly</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_monthly')->attributes([
@@ -217,7 +218,7 @@
                         'class' =>
                             'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                     ]) !!}
-                    <div id="rental-fuel-gallons-errors"></div>
+                <div id="rental-fuel-gallons-errors"></div>
                 @php
                     $selectedFuelType = old('rental_fuel_type', $objProduct->rental_fuel_type ?? 'Diesel');
                 @endphp
@@ -246,7 +247,7 @@
                         'class' =>
                             'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                     ]) !!}
-                    <div id="rental-def-gallons-errors"></div>
+                <div id="rental-def-gallons-errors"></div>
             </div>
         </div>
 
@@ -351,7 +352,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 mt-4 items-end">
             <!-- Standard Delivery Fee -->
             <div class="flex flex-col items-center">
-                <label class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 text-left">Delivery
+                <label
+                    class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 text-left required">Delivery
                     Fee</label>
                 <div class="flex items-center gap-1 w-full">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
@@ -397,6 +399,11 @@
                     </span>
                 </div>
             @endif
+
+            <!-- Shared error message row -->
+            <div class="lg:col-span-2 xl:col-span-4">
+                <div id="delivery-fee-error" class="text-xs text-red-500 mt-1"></div>
+            </div>
         </div>
 
         <!-- Spacer -->
@@ -455,8 +462,7 @@
                 <span class="text-gray-500">$</span>
                 <input type="text" name="hour_rate" placeholder="0" x-bind:disabled="!hourTracking"
                     x-bind:value="hourTracking ? '{{ old('hour_rate', $objProduct->hour_rate ?? '') }}' : ''"
-                    data-digit-input="true"
-                    data-parsley-maxlength="8" maxlength="8"
+                    data-digit-input="true" data-parsley-maxlength="8" maxlength="8"
                     data-parsley-errors-container="#hour-rate-errors"
                     class="w-24 rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white" />
                 <span>Overage Rate / Hr.</span>

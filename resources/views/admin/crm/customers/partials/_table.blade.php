@@ -6,7 +6,7 @@
                 <th class="px-4 py-3 text-left cus-width-3"><input type="checkbox" id="select-all-checkbox" /></th>
                 <th class="cus-width-20 px-4 py-3 text-left font-semibold">Customer</th>
                 <th class="cus-width-20 px-4 py-3 text-left font-semibold">Company</th>
-                <th class="cus-width-15 px-4 py-3 text-left font-semibold">Contact</th>
+                <th class="cus-width-15 px-4 py-3 text-left font-semibold">Phone</th>
                 <th class="cus-width-15 px-4 py-3 text-left font-semibold">Status</th>
                 <th class="cus-width-10 px-4 py-3 text-left font-semibold">Orders</th>
                 <th class="cus-width-10 px-4 py-3 text-left font-semibold">Total Spent</th>
@@ -19,9 +19,9 @@
 
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-900 dark:text-gray-100">
             @forelse($customers as $customer)
-                <tr>
+                <tr id="customer-row-{{ $customer->unique_id }}">
                     <td class="px-4 py-3">
-                        <input type="checkbox" class="order-checkbox" />
+                        <input type="checkbox" class="customer-checkbox"   value="{{ $customer->unique_id }}" />
                     </td>
                     <td class="px-4 py-3">
                         <div class="font-medium">{{ $customer->full_name }}</div>
@@ -37,7 +37,7 @@
                                 <x-heroicon-o-globe-alt class="w-4 h-4 text-gray-400" />
                                 <span>
                                    
-        {{ preg_replace('#^https?://#', '', $customer->company_website) }}
+                      {{ preg_replace('#^https?://#', '', $customer->company_website) }}
                                    
                                 </span>
                             </div>      

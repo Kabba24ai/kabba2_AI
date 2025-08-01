@@ -16,11 +16,13 @@ use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentDeleteController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxStatusUpdateController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerStatusUpdateController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentUploadController;
+use App\Http\Controllers\Admin\Crm\Customers\BulkDeleteController;
 
 use App\Http\Controllers\Admin\Crm\Customers\PasswordResetController;
 
-use App\Http\Controllers\Admin\Crm\Customers\LoginController;
+// 
 
+use App\Http\Controllers\Admin\Crm\Customers\LoginController;
 
 Route::prefix('customers')
 ->name('customers.')
@@ -60,6 +62,8 @@ Route::prefix('customers')
    Route::post('/status-update/{unique_id}', CustomerStatusUpdateController::class)->name('status-update.customer');
 
 
+    // Delete
+    Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');
 
     // customeraccount
     require base_path('routes/admin/crm/customers/customeraccount/routes.php');

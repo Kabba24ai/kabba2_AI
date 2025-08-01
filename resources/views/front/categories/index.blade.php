@@ -10,7 +10,7 @@
             <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
-                        <h1 class="text-[40px] tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
+                        <h1 class="text-3xl lg:text-4xl tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
                         <ul  
                             class="border-yellow-400 px-5 py-4 mt-4 lg:mt-0 text-sm font-medium border-2 max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">

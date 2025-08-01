@@ -40,8 +40,9 @@ class IndexController extends Controller
     $overdueCustomerCount = $overdueCustomers->count();
 
     $totalOverdueAmount = $overdueCustomers->sum(function ($customer) {
-        return $customer->credit_limit - $customer->available_credit_balance;
+        return abs($customer->credit_limit - $customer->available_credit_balance);
     });
+
         if ($request->filled('search_name')) {
             $query->where(function ($q) use ($request) {
                 $q->where('first_name', 'like', '%' . $request->search_name . '%')

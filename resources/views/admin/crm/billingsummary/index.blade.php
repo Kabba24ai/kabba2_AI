@@ -9,12 +9,13 @@
 
     @include('flash::message')
 
-             <div class="bg-white rounded-md p-6 shadow-sm border border-gray-200 mt-6">
+             <div class="bg-white">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Left: Title & Description -->
-                    <div>
+                    <div class="text-2xl font-semibold flex items-center gap-2">
+                        <x-heroicon-o-credit-card class="w-6 h-6 text-blue-600" />
                         <h2 class="text-2xl font-semibold text-gray-900">Account Billing Summary</h2>
-                        <p class="text-sm text-gray-600">Consolidated view of all customer accounts and payment status</p>
+                        <!-- <p class="text-sm text-gray-600">Consolidated view of all customer accounts and payment status</p> -->
                     </div>
 
                     <!-- Right: Action Buttons -->

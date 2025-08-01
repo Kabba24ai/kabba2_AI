@@ -101,29 +101,29 @@ class ViewUpdateController extends Controller
                     }
                 }
            
-            if ($request->hasFile('tax_document')) {
-                if ($request->has('tax_document') && !is_null($request->file('tax_document'))) {
-                    if (!is_null($customer->media)) {
-                        MediaHelper::removeFile($customer->media);
-                    }
-                }
+            // if ($request->hasFile('tax_document')) {
+            //     if ($request->has('tax_document') && !is_null($request->file('tax_document'))) {
+            //         if (!is_null($customer->media)) {
+            //             MediaHelper::removeFile($customer->media);
+            //         }
+            //     }
 
-                $mediaData = MediaHelper::uploadStorageFile(
-                    'Public Asset',
-                    $request->file('tax_document'),
-                    'customers',
-                    $customer
-                );
+            //     $mediaData = MediaHelper::uploadStorageFile(
+            //         'Public Asset',
+            //         $request->file('tax_document'),
+            //         'customers',
+            //         $customer
+            //     );
 
-                if (!empty($mediaData['mediaObj'])) {
-                    $customerData['tax_document_media_id'] = $mediaData['mediaObj']->id;
+            //     if (!empty($mediaData['mediaObj'])) {
+            //         $customerData['tax_document_media_id'] = $mediaData['mediaObj']->id;
                     
-                    $customerData['tax_document_type'] = $validated['tax_document_type'] ?? null;
+            //         $customerData['tax_document_type'] = $validated['tax_document_type'] ?? null;
 
-                    $customerData['tax_document_upload_date'] = now(); // or keep original if needed
-                }
-                $customer->update($customerData);
-            }
+            //         $customerData['tax_document_upload_date'] = now(); // or keep original if needed
+            //     }
+            //     $customer->update($customerData);
+            // }
 
             DB::commit();
 

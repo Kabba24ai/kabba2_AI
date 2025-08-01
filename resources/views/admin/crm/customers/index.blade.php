@@ -78,6 +78,15 @@
         <div class="w-full sm:w-auto px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
       Total: <span id="customer-total-count">{{ $customers->total() }}</span>
         </div>
+
+        <div class="w-full sm:w-auto">
+            <button type="button" id="delete-selected-btn"
+                class="flex items-center gap-2 bg-gray-300 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium transition w-full sm:w-auto"
+                disabled>
+                <x-heroicon-o-trash class="w-4 h-4" />
+                Delete Selected (<span id="delete-selected-count">0</span>)
+            </button>
+        </div>
     </div>
 
     

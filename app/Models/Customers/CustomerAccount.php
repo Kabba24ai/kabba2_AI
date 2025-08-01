@@ -72,4 +72,6 @@ class CustomerAccount extends Model
         return $this->belongsTo(Order::class);
     }
 
+    
+
 }

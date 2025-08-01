@@ -574,14 +574,7 @@
 
             <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-0">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <!-- <div class="flex items-center gap-1">
-                        <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
-                        <h2 class="text-base font-semibold text-gray-800">Tax Exempt Status</h2>
-                        <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
-                    </div> -->
-                    <!-- <a href="javascript:void(0)" id="opentaxdocModal" class="px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                        Manage Tax Documents
-                    </a> -->
+                   
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -666,84 +659,33 @@
                             <!-- <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span> -->
                         </div>
                     </div>
+                
 
-                     @if ($customer->media)
-                    <!-- Right: File Card -->
-                     <div class="flex flex-col items-start md:items-end gap-2 text-left w-auto">
-                        <div class="md:text-right mb-4">
-                            <a href="javascript:void(0)" id="opentaxdocModal" class="px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                                Manage Tax Documents
-                            </a>
-                        </div>
-                        <div class="border border-gray-200 rounded-lg p-4 text-sm bg-white w-full">
-                            <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-                                <!-- Left Side: Icon + File Info -->
-                                <div class="flex items-start gap-3 flex-1 min-w-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 7h10M7 11h10M7 15h10M5 19h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <div class="min-w-0">
-                                        <div class="font-medium text-gray-800 truncate">{{$customer->media->original_file_name ?? ''}}</div>
-                                        <div class="text-gray-500 text-xs">
-                                            Type: <span class="text-grey-500 text-xs">{{$customer->tax_document_type ?? 'N/A'}}</span>
-                                        </div>
-                                        <div class="text-gray-500 text-xs">
-                                            Status: 
-                                            <span id="tax-status-{{ $customer->id }}" class="font-medium
-                                                {{ $customer->tax_document_status === 'Rejected' ? 'text-red-600' :
-                                                ($customer->tax_document_status === 'Approved' ? 'text-green-600' : 'text-yellow-600') }}">
-                                                    {{ $customer->tax_document_status ?: 'Pending Review' }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Right Side: Actions -->
-                                <div class="flex gap-4 text-sm justify-end sm:justify-start">
-                                    <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" @if(isset($customer->media)) target="_blank" @endif class="text-blue-600">View</a>
-                                    <!-- <a href="{{ isset($customer->media) ? $customer->media->getUrl() : '' }}" class="text-red-600 tax-status-btn">Delete</a> -->
-                                    <!-- Delete Button -->
-                                    <button type="button" class="text-red-600" onclick="confirmAndDelete({{ $customer->id }})" >
-                                        Delete
-                                    </button>
-
-                                    <!-- Approve Button -->
-                                    <button type="button"
-                                        class="text-green-600 approve-btn"
-                                        data-customer-id="{{ $customer->id }}"
-                                        style="{{ $customer->tax_document_status === 'Approved' ? 'display: none;' : '' }}">
-                                        Approve
-                                    </button>
-
-                                    <!-- Reject Button -->
-                                    <button type="button"
-                                        class="text-red-600 reject-btn"
-                                        data-customer-id="{{ $customer->id }}"
-                                        style="{{ $customer->tax_document_status === 'Approved' ? 'display: none;' : '' }}">
-                                        Reject
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        </div>
-                        @else
-                        <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
-                            <div class="mb-4">
-                                <a href="javascript:void(0)" id="opentaxdocModal" class="px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                                <div class="flex flex-col items-start md:items-end gap-2 text-left w-auto">
+                            <div class="md:text-right mb-4">
+                                <a href="javascript:void(0)" id="opentaxdocModal"
+                                    class="edit-view px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
                                     Manage Tax Documents
                                 </a>
                             </div>
-                            <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
-                                No tax document has been uploaded yet.
+
+                            <div id="taxDocPreviewWrapper">
+                                @if ($customer->media)
+                                    @include('admin.crm.customers.partials.tax_doc_preview', ['customer' => $customer])
+                                @else
+                                    <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
+                                        No tax document has been uploaded yet.
+                                    </div>
+                                @endif
                             </div>
                         </div>
-
-                    @endif
 
 
 
                 </div>
             </div>
+
+              {{ html()->form()->close() }}
 
 <!--taxdocModalWrapper Wrapper -->
 <div id="taxdocModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
@@ -757,70 +699,68 @@
             </div>
             <div class=" p-6 overflow-y-auto">
                 <div class="max-w-md mx-auto">
-                    <!-- Upload Box -->
-                    <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
-                        <div id="uploadUI" class="flex flex-col items-center justify-center">
-                            <!-- Icon -->
-                            <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
-                            </svg>
-                            <!-- Text -->
-                            <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
-                            <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
+                    <form id="taxDocForm" enctype="multipart/form-data">
 
-                            <!-- File input -->
-                            <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
-                                <input type="file" id="tax_document" name="tax_document" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
-                                <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
-                            </label>
-                        </div>
+                        <input type="hidden" name="customer_id" value="{{ $customer->id }}">
 
-                        <!-- File Display After Selection -->
-                         <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-                            <!-- File Name -->
-                            <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
+                        <!-- Upload Box -->
+                        <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
+                            <div id="uploadUI" class="flex flex-col items-center justify-center">
+                                <!-- Icon -->
+                                <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
+                                </svg>
+                                <!-- Text -->
+                                <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
+                                <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
 
-                            <!-- Buttons: View & Close -->
-                            <div class="flex justify-center sm:justify-start gap-2">
-                                <a id="viewFileLink" href="#" target="_blank"
-                                class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
-                                <button type="button" onclick="clearFile()" class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
+                                <!-- File input -->
+                                <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
+                                    <input type="file" id="tax_document" name="tax_document" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" required>
+                                    <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
+                                </label>
+                            </div>
+
+                            <!-- File Display After Selection -->
+                            <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                                <!-- File Name -->
+                                <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
+
+                                <!-- Buttons: View & Close -->
+                                <div class="flex justify-center sm:justify-start gap-2">
+                                    <a id="viewFileLink" href="#" target="_blank"
+                                    class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
+                                    <button type="button" onclick="clearFile()" class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- Document Type Dropdown -->
-                    <div class="mt-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
-                        <select name="tax_document_type" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            <option value="">-- Select Document Type --</option>
-                            <option value="Tax Exempt Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Tax Exempt Certificate' ? 'selected' : '' }}>Tax Exempt Certificate</option>
-                            <option value="Resale Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Resale Certificate' ? 'selected' : '' }}>Resale Certificate</option>
-                            <option value="Non-Profit Exemption" {{ old('tax_document_type', $customer->tax_document_type) == 'Non-Profit Exemption' ? 'selected' : '' }}>Non-Profit Exemption</option>
-                        </select>
-                    </div>
+                        <!-- Document Type Dropdown -->
+                        <div class="mt-5">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                            <select name="tax_document_type" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                <option value="">-- Select Document Type --</option>
+                                <option value="Tax Exempt Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Tax Exempt Certificate' ? 'selected' : '' }}>Tax Exempt Certificate</option>
+                                <option value="Resale Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Resale Certificate' ? 'selected' : '' }}>Resale Certificate</option>
+                                <option value="Non-Profit Exemption" {{ old('tax_document_type', $customer->tax_document_type) == 'Non-Profit Exemption' ? 'selected' : '' }}>Non-Profit Exemption</option>
+                            </select>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="mt-5 flex justify-end gap-2">
+                            <button type="button" id="cancelBtntaxdoc" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
+                            <button type="submit"  class="saveBtntax px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
+                        </div>
+
+                    </form>
 
 
-                    <!-- Buttons -->
-                    <div class="mt-5 flex justify-end gap-2">
-                        <button type="button" id="cancelBtntaxdoc" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
-                        <button type="submit"  class="saveBtn px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-
-
-
-
-
-
-
-  {{ html()->form()->close() }}
 
 
 <!-- Reset Password Modal Wrapper -->
@@ -852,30 +792,30 @@
     'id' => 'resetPasswordForm',
     'autocomplete' => 'off',
     'data-parsley-validate' => true,
-])->open() }}
+    ])->open() }}
 
-    @csrf
-    @method('POST')
+        @csrf
+        @method('POST')
 
-    {{ html()->hidden('customer_id', $customer->id) }}
+        {{ html()->hidden('customer_id', $customer->id) }}
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-        {{ html()->password('password')->attributes([
-            'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-            'required' => true,
-            'id' => 'password',
-            'data-parsley-minlength' => '6',
-            'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
-            
-        ])->placeholder('') }}
-        <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
-                                    @error('password')
-                                        <p class="text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-    </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            {{ html()->password('password')->attributes([
+                'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'required' => true,
+                'id' => 'password',
+                'data-parsley-minlength' => '6',
+                'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
+                
+            ])->placeholder('') }}
+            <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
+                                        @error('password')
+                                            <p class="text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+        </div>
 
-    <div>
+        <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Password Confirmation</label>
         {{ html()->password('password_confirmation')->attributes([
             'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -1044,56 +984,55 @@ document.getElementById('resetPasswordForm').addEventListener('submit', function
 </script>
 
 <script>
-document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
-    button.addEventListener('click', function () {
-        const customerId = this.getAttribute('data-customer-id');
-        const status = this.classList.contains('approve-btn') ? 'Approved' : 'Rejected';
+function bindTaxStatusButtons() {
+    document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const customerId = this.getAttribute('data-customer-id');
+            const status = this.classList.contains('approve-btn') ? 'Approved' : 'Rejected';
 
-        fetch("{{ route('admin.crm.customers.tax_status.update') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-            body: JSON.stringify({
-                customer_id: customerId,
-                status: status,
-            }),
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Network response was not ok");
-            return res.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Update status label
-                const statusSpan = document.getElementById(`tax-status-${customerId}`);
-                statusSpan.textContent = status;
-                statusSpan.className = `font-medium ${
-                    status === 'Approved' ? 'text-green-600' :
-                    status === 'Rejected' ? 'text-red-600' :
-                    'text-yellow-600'
-                }`;
+            fetch("{{ route('admin.crm.customers.tax_status.update') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    customer_id: customerId,
+                    status: status,
+                }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const statusSpan = document.getElementById(`tax-status-${customerId}`);
+                    statusSpan.textContent = status;
+                    statusSpan.className = `font-medium ${
+                        status === 'Approved' ? 'text-green-600' :
+                        status === 'Rejected' ? 'text-red-600' :
+                        'text-yellow-600'
+                    }`;
 
-                // Hide buttons if approved
-                if (status === 'Approved') {
-                    document.querySelectorAll(`[data-customer-id="${customerId}"].approve-btn`).forEach(btn => btn.style.display = 'none');
-                    document.querySelectorAll(`[data-customer-id="${customerId}"].reject-btn`).forEach(btn => btn.style.display = 'none');
+                    if (status === 'Approved') {
+                        document.querySelectorAll(`[data-customer-id="${customerId}"].approve-btn`).forEach(btn => btn.style.display = 'none');
+                        document.querySelectorAll(`[data-customer-id="${customerId}"].reject-btn`).forEach(btn => btn.style.display = 'none');
+                    }
+
+                    notyf.success(data.message || "Status updated successfully.");
+                } else {
+                    notyf.error(data.message || "Failed to update status.");
                 }
-
-                notyf.success(data.message || "Status updated successfully.");
-            } else {
-                notyf.error(data.message || "Failed to update status.");
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            notyf.error("Something went wrong while updating status.");
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                notyf.error("Something went wrong while updating status.");
+            });
         });
     });
-});
-</script>
+}
 
+document.addEventListener('DOMContentLoaded', bindTaxStatusButtons);
+
+</script>
 
 
 <script>
@@ -1135,6 +1074,81 @@ document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
         });
     });
 </script>
+
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modalWrapper = document.getElementById('taxdocModalWrapper');
+    const openBtn = document.getElementById('opentaxdocModal');
+    const closeBtn = document.getElementById('closetaxdocBtn');
+    const cancelBtn = document.getElementById('cancelBtntaxdoc');
+    const form = document.getElementById('taxDocForm');
+    const fileInput = document.getElementById('tax_document');
+    
+    // Modal open/close
+    const openModal = () => modalWrapper.style.display = 'flex';
+    const closeModal = () => modalWrapper.style.display = 'none';
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    modalWrapper.addEventListener('click', (e) => {
+        if (e.target === modalWrapper) closeModal();
+    });
+
+
+    // Handle AJAX form submission
+    form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const uploadBtn = form.querySelector('.saveBtntax');
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = "Uploading...";
+
+    try {
+        const response = await fetch("{{ route('admin.crm.customers.taxdoc.upload') }}", {
+            method: "POST",
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+    modalWrapper.style.display = 'none';
+    form.reset();
+
+    const wrapper = document.getElementById('taxDocPreviewWrapper');
+   wrapper.innerHTML = result.html;
+bindTaxStatusButtons(); 
+
+
+    notyf.success(result.message || 'Uploaded successfully');
+}
+ else {
+            alert(result.message || "Upload failed.");
+        }
+    } catch (error) {
+        console.error("Upload error:", error);
+        alert("Something went wrong.");
+    }
+
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "Upload Document";
+});
+
+});
+</script>
+
+
 
 
 @endpush

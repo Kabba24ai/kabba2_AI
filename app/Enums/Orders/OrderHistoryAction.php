@@ -9,6 +9,7 @@ enum OrderHistoryAction : string
     case PaymentFailed = 'payment_failed';
     case OrderPaid = 'order_paid';
     case OrderRefunded = 'order_refunded';
+  case AddedToAccount = 'added_to_account';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum OrderHistoryAction : string
             self::PaymentFailed => 'Payment Failed',
             self::OrderPaid => 'Order Paid',
             self::OrderRefunded => 'Order Refunded',
+            self::AddedToAccount => 'Added To Account',
         };
     }
 

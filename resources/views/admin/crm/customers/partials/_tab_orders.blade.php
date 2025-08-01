@@ -164,16 +164,16 @@
 
                 <!-- Table -->
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-left text-gray-700">
-    <thead class="bg-gray-50 text-gray-500 text-xs border-b border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
+    <thead class="border-b bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
         <tr>
-            <th class="px-4 py-3 font-medium uppercase">Order ID</th>
-            <th class="px-4 py-3 font-medium uppercase">Product Name</th>
-            <th class="px-4 py-3 font-medium uppercase">Amount</th>
-            <th class="px-4 py-3 font-medium uppercase">Payment Methods</th>
-            <th class="px-4 py-3 font-medium uppercase">Status</th>
-            <th class="px-4 py-3 font-medium uppercase">Created</th>
-            <th class="px-4 py-3 font-medium uppercase">Action</th>
+            <th class="px-4 py-3">Order ID</th>
+            <th class="px-4 py-3">Product Name</th>
+            <th class="px-4 w-32 py-3">Amount</th>
+            <th class="px-4 w-32 py-3 text-right">Payment Methods</th>
+            <th class="px-4 w-32 py-3 text-right">Status</th>
+            <th class="px-4 w-32 py-3 text-right">Created</th>
+            <th class="px-4 w-24 py-3 text-right">Action</th>
         </tr>
     </thead>
     <tbody id="ordersTable" class="divide-y divide-gray-200">
@@ -186,7 +186,7 @@
                     </td>
 
                     {{-- Product Name --}}
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 truncate min-w-3xs max-w-3xs">
                         {{ $product->product_name ?? 'N/A' }}
                     </td>
 
@@ -200,29 +200,31 @@
                     </td>
 
                     {{-- Payment Method --}}
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 text-right">
 {!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}
                     </td>
 
                     {{-- Order Status --}}
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 text-right">
                                                          {!! \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') !!}
 
                     </td>
 
                     {{-- Order Date --}}
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 text-right">
                         {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }}
                     </td>
 
                     {{-- Actions --}}
-                    <td class="px-4 py-3 flex items-center gap-3 text-blue-600">
-                        <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank" title="View">
-                            <x-heroicon-o-eye class="w-5 h-5" />
-                        </a>
-                        <a href="javascript:void(0)" title="Download">
-                            <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
-                        </a>
+                    <td class="px-4 py-3">
+                        <div class="flex gap-2 items-center justify-end">
+                            <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank" title="View">
+                                <x-heroicon-o-eye class="w-5 h-5 text-blue-600" />
+                            </a>
+                            <a href="javascript:void(0)" title="Download">
+                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
+                            </a>
+                        </div>
                     </td>
                 </tr>
             @endforeach

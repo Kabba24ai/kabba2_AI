@@ -699,7 +699,17 @@
             </div>
             <div class=" p-6 overflow-y-auto">
                 <div class="max-w-md mx-auto">
-                    <form id="taxDocForm" enctype="multipart/form-data">
+                    <!-- <form id="taxDocForm" enctype="multipart/form-data"> -->
+
+                    {{-- Open Form --}}
+                {!! html()->form() 
+                    ->id('taxDocForm')
+                    ->attribute('enctype', 'multipart/form-data')
+                    ->attribute('autocomplete', 'off')
+                    ->attribute('data-parsley-validate', true)
+                    ->class('space-y-8')
+                    ->open() 
+                !!}
 
                         <input type="hidden" name="customer_id" value="{{ $customer->id }}">
 
@@ -736,16 +746,18 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Document Type Dropdown -->
-                        <div class="mt-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
-                            <select name="tax_document_type" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <option value="">-- Select Document Type --</option>
-                                <option value="Tax Exempt Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Tax Exempt Certificate' ? 'selected' : '' }}>Tax Exempt Certificate</option>
-                                <option value="Resale Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Resale Certificate' ? 'selected' : '' }}>Resale Certificate</option>
-                                <option value="Non-Profit Exemption" {{ old('tax_document_type', $customer->tax_document_type) == 'Non-Profit Exemption' ? 'selected' : '' }}>Non-Profit Exemption</option>
-                            </select>
-                        </div>
+                       {{-- Document Type Dropdown --}}
+                            <div class="mt-5">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                                {!! html()->select('tax_document_type', [
+                                        '' => '-- Select Document Type --',
+                                        'Tax Exempt Certificate' => 'Tax Exempt Certificate',
+                                        'Resale Certificate' => 'Resale Certificate',
+                                        'Non-Profit Exemption' => 'Non-Profit Exemption'
+                                    ])
+                                    ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')->required()
+                                !!}
+                            </div>
 
                         <!-- Buttons -->
                         <div class="mt-5 flex justify-end gap-2">
@@ -753,7 +765,7 @@
                             <button type="submit"  class="saveBtntax px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
                         </div>
 
-                    </form>
+               {!! html()->form()->close() !!}
 
 
                 </div>
@@ -1059,6 +1071,9 @@ document.addEventListener('DOMContentLoaded', bindTaxStatusButtons);
 
 
 <script>
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
     const modalWrapper = document.getElementById('taxdocModalWrapper');
     const openBtn = document.getElementById('opentaxdocModal');
@@ -1066,6 +1081,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelBtn = document.getElementById('cancelBtntaxdoc');
     const form = document.getElementById('taxDocForm');
     const fileInput = document.getElementById('tax_document');
+
+    
+function resetTaxDocModalForm() {
+    form.reset();
+
+    document.getElementById('fileActions').style.display = 'none';
+    document.getElementById('fileNameDisplay').textContent = '';
+    document.getElementById('viewFileLink').href = '#';
+    document.getElementById('uploadUI').style.display = 'flex';
+
+    const docTypeSelect = form.querySelector('[name="tax_document_type"]');
+    if (docTypeSelect) docTypeSelect.value = '';
+}
+
     
     // Modal open/close
     const openModal = () => modalWrapper.style.display = 'flex';
@@ -1082,6 +1111,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle AJAX form submission
     form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    // Check if form is valid using Parsley
+    if (!$(form).parsley().validate()) {
+        return; // Stop submission if validation fails
+    }
 
     const formData = new FormData(form);
     const uploadBtn = form.querySelector('.saveBtntax');
@@ -1101,21 +1135,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (response.ok && result.success) {
     modalWrapper.style.display = 'none';
-    form.reset();
+
+   resetTaxDocModalForm();
+
 
     const wrapper = document.getElementById('taxDocPreviewWrapper');
    wrapper.innerHTML = result.html;
+
+    // Update upload date field
+    const uploadDateInput = document.getElementById('tax_document_upload_date');
+    if (uploadDateInput && result.upload_date) {
+        uploadDateInput.value = result.upload_date;
+    }
+
 bindTaxStatusButtons(); 
 
 
     notyf.success(result.message || 'Uploaded successfully');
 }
  else {
-            alert(result.message || "Upload failed.");
+           // Handle validation errors
+        if (result.errors) {
+            Object.values(result.errors).forEach(messages => {
+                messages.forEach(message => notyf.error(message));
+            });
+        } else {
+            notyf.error(result.message || "Upload failed.");
+        }
         }
     } catch (error) {
         console.error("Upload error:", error);
-        alert("Something went wrong.");
+    notyf.error("Something went wrong.");
     }
 
     uploadBtn.disabled = false;

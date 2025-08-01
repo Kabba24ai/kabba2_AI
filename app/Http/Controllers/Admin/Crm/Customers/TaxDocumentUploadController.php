@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\Customers\Customer;
 use App\Helpers\MediaHelper;
+use App\Helpers\CustomHelper;
+
 
 class TaxDocumentUploadController extends Controller
 {
@@ -52,6 +54,8 @@ class TaxDocumentUploadController extends Controller
                 'success'        => true,
                 'html'           => view('admin.crm.customers.partials.tax_doc_preview', ['customer' => $customer])->render(),
                 'message'        => 'Document uploaded successfully',
+                'upload_date' => CustomHelper::formatDate($customer->tax_document_upload_date),
+
             ]);
 
         } catch (\Throwable $e) {

@@ -3,7 +3,7 @@
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
         <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
             <tr>
-                <th class="px-4 py-3"><input type="checkbox" id="select-all-checkbox" /></th>
+                <th class="px-4 py-3 text-left cus-width-3"><input type="checkbox" id="select-all-checkbox" /></th>
                 <th class="cus-width-20 px-4 py-3 text-left font-semibold">Customer</th>
                 <th class="cus-width-20 px-4 py-3 text-left font-semibold">Company</th>
                 <th class="cus-width-15 px-4 py-3 text-left font-semibold">Contact</th>

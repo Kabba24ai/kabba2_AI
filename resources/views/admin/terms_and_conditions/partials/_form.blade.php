@@ -64,19 +64,19 @@
 
 </div>
 
-@if (!isset($terms) || $terms->is_global != 'Yes')
+{{-- @if (!isset($terms) || $terms->is_global != 'Yes')
     <button type="button" id="insert-shortcode-btn"
         class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
         Add Customer Initials
     </button>
-@endif
+@endif --}}
 
 {{-- Content --}}
 <div class="mb-8">
     <label for="content"
         class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Description</label>
     {{ html()->textarea('content', $terms->content ?? null)->class(
-            'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
+            'tinymce w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
         )->attributes([
             'autocomplete' => 'off',
             'id' => 'content-editor',
@@ -92,7 +92,7 @@
     <label for="signature_block"
         class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Signature Block</label>
     {{ html()->textarea('signature_block', $terms->signature_block ?? null)->class(
-            'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
+            'tinymce w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
         )->attributes([
             'autocomplete' => 'off',
             'id' => 'signature_block-editor',
@@ -173,21 +173,18 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const insertBtn = document.getElementById('insert-shortcode-btn');
-            if (insertBtn) {
-                insertBtn.addEventListener('click', () => {
-                    const editor = window.editors['content-editor'];
-                    if (editor) {
-                        const viewFragment = editor.data.processor.toView(
-                            '[customer_initials][/customer_initials]');
-                        const modelFragment = editor.data.toModel(viewFragment);
-                        editor.model.insertContent(modelFragment);
-                    } else {
-                        console.warn('Editor not ready.');
-                    }
-                });
-            }
-        });
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     const insertBtn = document.getElementById('insert-shortcode-btn');
+        //     if (insertBtn) {
+        //         insertBtn.addEventListener('click', () => {
+        //             const editor = tinymce.get('content-editor');
+        //             if (editor) {
+        //                 editor.insertContent('[customer_initials][/customer_initials]');
+        //             } else {
+        //                 console.warn('TinyMCE editor not ready.');
+        //             }
+        //         });
+        //     }
+        // });
     </script>
 @endpush

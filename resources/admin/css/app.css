@@ -176,6 +176,10 @@
 @import '../../shared/css/notyf.css';
 @import '../../shared/css/flatpickr.css';
 
+.tox-tinymce-aux
+{
+    z-index: 99999 !important;
+}
 
 .custom-scroll::-webkit-scrollbar {
     width: 6px;
@@ -852,5 +856,5 @@ span.flatpickr-weekday,
   .billing-summary-w-16{width: 100%;}
   .billing-summary-w-15{width: 100%;}
   .billing-summary-w-13{width: 100%;}
-} 
+}
 

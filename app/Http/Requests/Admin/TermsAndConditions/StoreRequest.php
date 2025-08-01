@@ -19,7 +19,7 @@ class StoreRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $this->merge(PurifyHelper::purify($this->all(),['content']));
+        $this->merge(PurifyHelper::purify($this->all(),['content','signature_block']));
     }
 
     /**

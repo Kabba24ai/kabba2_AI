@@ -29,6 +29,9 @@ export default defineConfig(() => {
             // },
         },
         build: {
+            rollupOptions: {
+                external: ['tinymce']
+            },
             sourcemap: false, // no source maps in production
             minify: "terser",
             terserOptions: {

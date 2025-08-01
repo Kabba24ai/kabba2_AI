@@ -14,6 +14,7 @@
 
     <!-- Core Css -->
     @vite(['resources/admin/css/app.css', 'resources/admin/js/app.js'])
+    <meta name="vite-app-css" content="{{ Vite::asset('resources/css/app.css') }}">
 
     @stack('css')
     <style>

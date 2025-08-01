@@ -271,7 +271,7 @@
                 @foreach ($order->products as $orderProduct)
                     <div class="flex gap-4">
                         <div class="w-[150px] h-[150px] bg-gray-100 flex items-center justify-center text-gray-400">
-                            @if ($orderProduct->product->image_url)
+                            @if ($orderProduct?->product?->image_url)
                                 <img src="{{ $orderProduct->product->image_url }}"
                                     alt="{{ $orderProduct->product_name }}"
                                     class="object-contain w-full h-full rounded" />
@@ -280,7 +280,16 @@
                             @endif
                         </div>
                         <div>
-                            <a href="javascript:void(0);" class="text-blue-600 font-semibold hover:underline">
+                            @php
+                                if ($orderProduct?->product) {
+                                    $href = route(
+                                        'admin.product-management.products.edit',
+                                        $orderProduct->product->unique_id,
+                                    );
+                                }
+                            @endphp
+                            <a href="{{ $href ?? 'javascript:void(0);' }}"
+                                class="text-blue-600 font-semibold hover:underline">
                                 {{ $orderProduct->product_name }} -
                                 {{ ucwords($orderProduct->product_data['product_variant'] ?? '') }}
                             </a>
@@ -714,10 +723,20 @@
                         <div class="flex flex-col items-center">
                             <div>Terms</div>
                             <div class="flex justify-center mb-1">
-                                <span
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
-                                    <x-heroicon-o-x-mark class="w-4 h-4" />
-                                </span>
+                                <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                    target="_blank" title="View Terms">
+                                    @if ($order->terms_status->isPending())
+                                        <span
+                                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                                        </span>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
+                                            <x-heroicon-o-check class="w-4 h-4" />
+                                        </span>
+                                    @endif
+                                </a>
                             </div>
                         </div>
                         <!-- License -->
@@ -1025,7 +1044,7 @@
             if (!noteDiv) return;
             const fetchUrl = '{{ route('admin.order-management.orders.notes.index', [':unique_id']) }}'.replace(
                 ':unique_id', orderUniqueId);
-                apiFetch(fetchUrl, {
+            apiFetch(fetchUrl, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
@@ -1254,39 +1273,44 @@
             // Add To Account button
             const addToAccountBtn = document.getElementById('addToAccountBtn');
             if (addToAccountBtn) {
-                addToAccountBtn.addEventListener('click', function () {
-                    showConfirm('Do you want to add this to the account?', 'Are you sure?').then((result) => {
+                addToAccountBtn.addEventListener('click', function() {
+                    showConfirm('Do you want to add this to the account?', 'Are you sure?').then((
+                        result) => {
                         if (result.isConfirmed) {
                             addToAccountBtn.disabled = true;
                             addToAccountBtn.textContent = 'Processing...';
-                            let url = '{{ route('admin.order-management.orders.add-to-account', ':unique_id') }}';
+                            let url =
+                                '{{ route('admin.order-management.orders.add-to-account', ':unique_id') }}';
                             url = url.replace(':unique_id', orderUniqueId);
 
                             apiFetch(url, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                },
-                                body: JSON.stringify({
-                                    _method: 'PUT'
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute(
+                                            'content')
+                                    },
+                                    body: JSON.stringify({
+                                        _method: 'PUT'
+                                    })
                                 })
-                            })
-                            .then(res => {
-                                if (res && res.success) {
-                                    notyf.success('Added to account successfully!');
-                                    setTimeout(() => window.location.reload(), 800);
-                                } else {
-                                    notyf.error(res && res.message ? res.message : 'Failed to add to account.');
-                                }
-                            })
-                            .catch(() => {
-                                notyf.error('Failed to add to account.');
-                            })
-                            .finally(() => {
-                                addToAccountBtn.disabled = false;
-                                addToAccountBtn.textContent = 'Add to Account';
-                            });
+                                .then(res => {
+                                    if (res && res.success) {
+                                        notyf.success('Added to account successfully!');
+                                        setTimeout(() => window.location.reload(), 800);
+                                    } else {
+                                        notyf.error(res && res.message ? res.message :
+                                            'Failed to add to account.');
+                                    }
+                                })
+                                .catch(() => {
+                                    notyf.error('Failed to add to account.');
+                                })
+                                .finally(() => {
+                                    addToAccountBtn.disabled = false;
+                                    addToAccountBtn.textContent = 'Add to Account';
+                                });
                         }
                     });
                 });

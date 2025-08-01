@@ -5,6 +5,9 @@ namespace App\Models\Orders;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
+// Enums
+use App\Enums\Orders\OrderTermsStatus;
+
 // Helpers
 use App\Helpers\ModelHelper;
 
@@ -31,10 +34,19 @@ class Order extends Model
         'order_note',
         'cart_data', // JSON data of cart items
         'platform', // Web*, Android, iOS
+
+        'terms_collection', // use that collection to get original terms content
+        'pending_terms_content',
+        'accepted_terms_content', // Content of terms that were accepted
+        'terms_accepted_at', // DateTime when terms were accepted
+        'terms_status', // Accepted, Declined, Pending*
+        'signature_image', // Base64 encoded image of signature
     ];
 
     protected $casts = [
         'cart_data' => 'array',
+        'terms_collection' => 'array',
+        'terms_status' => OrderTermsStatus::class,
     ];
 
     protected $appends = [

@@ -455,20 +455,20 @@
                         <div class="space-y-4">
 
                             <!-- Credit/Debit -->
-                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'Card' ? 'border-blue-500' : '' }}"
+                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'Card') == 'Card' ? 'border-blue-500' : '' }}"
                                 data-value="Card">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="Card"
-                                        {{ old('payment') == 'Card' ? 'checked' : '' }} />
+                                        {{ old('payment', 'Card') == 'Card' ? 'checked' : '' }} />
                                     <span>Credit or Debit</span>
                                 </label>
-                                <div id="cardSection" class="{{ old('payment') == 'Card' ? 'block' : 'hidden' }}">
+                                <div id="cardSection" class="{{ old('payment', 'Card') == 'Card' ? 'block' : 'hidden' }}">
                                     <!-- Card Visual -->
                                     <div class="relative h-card-height lg:h-52 w-full max-w-sm  mt-4 card-container">
                                         <!-- Card Front -->
                                         <div id="cardFront"
                                             class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front"
-                                            style="{{ old('payment') == 'Card' ? '' : 'display:block' }}">
+                                            style="{{ old('payment', 'Card') == 'Card' ? '' : 'display:block' }}">
                                             <div
                                                 class="w-10 h-7 relative bg-gray-400 rounded mt-5 before:w-[70%] before:content-[''] before:h-[60%] before:bg-gray-300 before:top-[20%] before:rounded-r before:absolute">
                                             </div>
@@ -534,13 +534,15 @@
                                 </div>
                             </div>
                             <!-- Cash On Delivery -->
-                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'COD') == 'COD' ? 'border-blue-500' : '' }}"
+                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'COD' ? 'border-blue-500' : '' }}"
                                 data-value="COD">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="COD"
-                                        {{ old('payment', 'COD') == 'COD' ? 'checked' : '' }} />
+                                        {{ old('payment') == 'COD' ? 'checked' : '' }} />
                                     <span>Cash on Delivery (COD)</span>
                                 </label>
+                                <p id="codNote" class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">COD Orders are not reserved  / locked in until paid. If you want to lock in your order, please pay using a credit card or call sales.
+                                </p>
                             </div>
                             <!-- Add Account -->
 
@@ -880,6 +882,7 @@
             const paymentOptions = document.querySelectorAll('.payment-option');
             const radioButtons = document.querySelectorAll('input[name="payment"]');
             const cardSection = document.getElementById('cardSection');
+            const codNote = document.getElementById('codNote');
 
             function updateHighlight() {
                 paymentOptions.forEach(opt => {
@@ -888,10 +891,13 @@
                 });
                 const checkedRadio = document.querySelector('input[name="payment"]:checked');
                 const selected = checkedRadio.value;
+
                 document.querySelector(`.payment-option[data-value="${selected}"]`).classList.add(
                     'border-blue-500');
                 // Show/hide card input section
                 cardSection.style.display = selected === 'Card' ? 'block' : 'none';
+                codNote.style.display = selected === 'COD' ? 'block' : 'none';
+
             }
             radioButtons.forEach(r => r.addEventListener('change', updateHighlight));
             updateHighlight();

@@ -124,7 +124,7 @@
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">
                                 Log In
                             </a>
-                        @endif 
+                        @endif
                     </li>
                 </ul>
             </div>
@@ -164,11 +164,11 @@
                     </div>
 
                         @else
-                        <a href="{{ route('front.auth.login.index') }}" 
+                        <a href="{{ route('front.auth.login.index') }}"
                         class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out mobile-d-none">
                            <x-heroicon-o-arrow-right-on-rectangle class="w-6 h-6 mr-2 text-yellow-400 " />
                         </a>
-                    @endif 
+                    @endif
                     <a href="javascript:void(0)" class="toggleCart px-3 py-2 rounded-full relative text-center me-5">
                         <i class="fa-solid fa-bag-shopping text-2xl text-white"></i>
                         <span id="cart-count"
@@ -238,7 +238,7 @@
                             </ul>
                         </li>
 
-                       
+
                         <li class=" py-3 {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group">
                             <a href="{{ route('front.faqs.index') }}"
                                 class="hover:text-yellow-400 px-5text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold ">Faqs</a>
@@ -325,9 +325,11 @@
   // Close the dropdown when clicking outside
   document.addEventListener('click', function (e) {
     const dropdown = document.getElementById('userDropdown');
+    if (!dropdown) return; // Exit early if the element doesn't exist
+
     const trigger = dropdown.previousElementSibling;
     if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
-      dropdown.classList.add('hidden');
+        dropdown.classList.add('hidden');
     }
   });
 </script>
@@ -341,9 +343,11 @@
   // Close the dropdown when clicking outside
   document.addEventListener('click', function (e) {
     const dropdown = document.getElementById('userDropdownmobile');
+    if (!dropdown) return; // Exit early if the element doesn't exist
+
     const trigger = dropdown.previousElementSibling;
     if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
-      dropdown.classList.add('hidden');
+        dropdown.classList.add('hidden');
     }
   });
 </script>

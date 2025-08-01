@@ -12,8 +12,6 @@ class ModuleCategory extends Model
 {
     use HasFactory;
 
-    use HasFactory;
-
     protected $fillable = [
         'unique_id',
         'title',

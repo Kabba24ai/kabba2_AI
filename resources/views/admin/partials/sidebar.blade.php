@@ -49,6 +49,16 @@
                         'admin.order-management.schedules.*',
                     ]);
 
+                    $customerChecklistActive = Route::is([
+                        // Add the correct route for customer checklist when ready
+                        'admin.checklist_management.customer_checklist.*',
+                    ]);
+
+                    $crmActive = Route::is([
+                        'admin.crm.customers.*',
+                        'admin.crm.billingsummary.*',
+                    ]);
+
                 @endphp
 
                 <ul class="mb-6 flex flex-col gap-4">
@@ -64,12 +74,57 @@
                         </a>
                     </li>
 
-                    <!-- Ecommerce -->
+                     <!-- Orders -->
+                    <li x-data="{ open: {{ $ordersActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $ordersActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-clipboard-document-list class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Orders</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.order-management.orders.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.order-management.orders.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-shopping-cart class="h-5 w-5" /> Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.order-management.schedules.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.order-management.schedules.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-calendar class="h-5 w-5" /> Schedules
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- products -->
                     <li x-data="{ open: {{ $ecommerceActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $ecommerceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
                             <x-heroicon-o-building-storefront class="w-6 h-6 " />
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Ecommerce</span>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Products</span>
                             <span class="menu-item-arrow"
                                 :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
                                     'lg:hidden' : ''
@@ -119,12 +174,12 @@
                         </div>
                     </li>
 
-                    <!-- Orders -->
-                    <li x-data="{ open: {{ $ordersActive ? 'true' : 'false' }} }">
+                     <!-- crm -->
+                    <li x-data="{ open: {{ $crmActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
-                            class="menu-item group flex items-center gap-3 {{ $ordersActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-o-clipboard-document-list class="w-6 h-6" />
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Orders</span>
+                            class="menu-item group flex items-center gap-3 {{ $crmActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-inbox class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">CRM</span>
                             <span class="menu-item-arrow"
                                 :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
                                     'lg:hidden' : ''
@@ -147,22 +202,23 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
-                                    <a href="{{ route('admin.order-management.orders.index') }}"
+                                    <a href="{{ route('admin.crm.customers.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.order-management.orders.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-shopping-cart class="h-5 w-5" /> Orders
+                                        {{ Route::is('admin.crm.customers.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-users class="w-6 h-6" /> Customers
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('admin.order-management.schedules.index') }}"
+                                    <a href="{{ route('admin.crm.billingsummary.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.order-management.schedules.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-calendar class="h-5 w-5" /> Schedules
+                                        {{ Route::is('admin.crm.billingsummary.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-5 h-5 mr-1"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg> Billing Summary
                                     </a>
                                 </li>
                             </ul>
                         </div>
                     </li>
+
 
                     @php
 
@@ -188,16 +244,6 @@
 
                      $rentalReadytemplates = Route::is([
                          'admin.checklist_management.rental_ready.templates.*',
-                    ]);
-
-                    $customerChecklistActive = Route::is([
-                        // Add the correct route for customer checklist when ready
-                        'admin.checklist_management.customer_checklist.*',
-                    ]);
-
-                    $crmActive = Route::is([
-                        'admin.crm.customers.*',
-                        'admin.crm.billingsummary.*',
                     ]);
 
                     @endphp
@@ -351,52 +397,6 @@
                         </div>
                     </li>
 
-
-
-                    <!-- crm -->
-                    <li x-data="{ open: {{ $crmActive ? 'true' : 'false' }} }">
-                        <a href="#" @click.prevent="open = !open"
-                            class="menu-item group flex items-center gap-3 {{ $crmActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-o-inbox class="w-6 h-6" />
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">CRM</span>
-                            <span class="menu-item-arrow"
-                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
-                                    'lg:hidden' : ''
-                                ]">
-
-                                <!-- Chevron Left (when open) -->
-                                <template x-if="!open">
-                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
-                                </template>
-
-                                <!-- Chevron Down (when closed) -->
-                                <template x-if="open">
-                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
-                                </template>
-                            </span>
-
-                        </a>
-
-                        <div x-show="open" x-transition>
-                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
-                                :class="sidebarToggle ? 'lg:hidden' : ''">
-                                <li>
-                                    <a href="{{ route('admin.crm.customers.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.crm.customers.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-users class="w-6 h-6" /> Customers
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('admin.crm.billingsummary.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.crm.billingsummary.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-5 h-5 mr-1"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg> Billing Summary
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
 
                     @php
                     $settingsActive = Route::is([

@@ -6,17 +6,22 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use DB;
 
+// Enums
+use App\Enums\Orders\OrderTermsStatus;
+
+// Services
+use App\Services\AuthorizeNetService;
+
 // Events
 use App\Events\Front\Checkout\OrderPlacedEvent;
 
 // Helpers
 use App\Helpers\CartHelper;
+use App\Helpers\CustomHelper;
+use App\Helpers\TermsContentHelper;
 
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
-
-use App\Helpers\CustomHelper;
-use App\Services\AuthorizeNetService;
 
 // Models
 use App\Models\Customers\Customer;
@@ -26,6 +31,7 @@ use App\Models\ProductManagement\Product;
 use App\Models\Configurations\Setting;
 use App\Models\Locations\State;
 use App\Models\Stores\Store;
+
 
 class PostController extends Controller
 {
@@ -78,7 +84,6 @@ class PostController extends Controller
                     $customer->save();
                 }
             }
-
 
             // 2. Add addresses (Billing & Delivery)
             // Customer has only one address, update or create as 'Billing'
@@ -234,6 +239,13 @@ class PostController extends Controller
                 }
             }
 
+            $termsContentData = TermsContentHelper::generateTermsContent($order);
+
+            $order->terms_collection = $termsContentData['merged_terms'] ?? null;
+            $order->pending_terms_content = $termsContentData['terms_content'] ?? null;
+            $order->terms_status = OrderTermsStatus::Pending;
+            $order->saveQuietly(); // saveQuietly() saves the model to the database without firing any Eloquent events (like "saved", "updated", etc.)
+
             // If payment type is card, process payment using AuthorizeNetService
             if (strtolower($validated['payment']) === 'card') {
                 $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
@@ -326,4 +338,6 @@ class PostController extends Controller
             return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
         }
     }
+
+
 }

@@ -169,7 +169,7 @@
                            
                         <!-- {{ config('app.currency.code') }}{{ number_format(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0), 2) }}  -->
 
-                        {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0)) }}
+                        {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
 
                     
                     </p>

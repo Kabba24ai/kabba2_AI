@@ -542,7 +542,7 @@
                                 
                             
 
-                            {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0)) }}
+                        {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
 
 
 
@@ -552,11 +552,10 @@
                            
                             @php
                                 $climit = $customer->credit_limit ?? 0;
-                                $available = $customer->total_account_order_amount ?? 0 ;
+                            $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
 
-                                $available = $available ;
 
-                                $per = $climit > 0 ? (($available / $climit) * 100) : 0;
+$per = $climit > 0 ? ((($climit - $available) / $climit) * 100) : 0;
                             @endphp
                             <div class="flex justify-between text-xs text-gray-500 mb-1">
                                 <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
@@ -565,6 +564,8 @@
                             <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
                                 <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%; max-width: 100%;"></div>
                             </div>
+
+                            
                             
                         </div>
                     </div>

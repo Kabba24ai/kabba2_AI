@@ -159,6 +159,7 @@ return [
         'time_format' => env('TIME_FORMAT', 'h:i A'),
         'date_time_format' => env('DATE_TIME_FORMAT', 'd/m/Y - h:i A'),
         'js_date_format' => env('JS_DATE_FORMAT', 'dd/MM/yyyy'),
+        'aire_datepicker_format' => env('AIRE_DATEPICKER_FORMAT', 'MM/dd/yyyy'),
     ],
 
     /*

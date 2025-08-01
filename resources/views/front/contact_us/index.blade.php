@@ -10,7 +10,7 @@
             <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
                 <div class="w-full border-b-4 border-b-[#231e41] pb-4">
                     <div class="flex justify-between items-center ">
-                        <h1 class="text-[28px] md:text-[40px] tracking-[-2px] leading-[110%] font-bold">Contact</h1>
+                        <h1 class="header-title">Contact</h1>
                     </div>
                 </div>
             </div>

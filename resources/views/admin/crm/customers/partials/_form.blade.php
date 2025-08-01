@@ -560,6 +560,13 @@
 
 @push('js')
 
+
+
+<script>
+    window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
+</script>
+
+
 @if (!empty($taxDocumentUrl))
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -879,34 +886,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-    const dateInputs = document.querySelectorAll('input.datepicker');
-
-    const jsFormat = @json(config('app.date.js_date_format'));
-    dateInputs.forEach(input => {
-        new AirDatepicker(input, {
-            autoClose: true,
-            dateFormat: jsFormat,
-            minDate: new Date(),
-            locale: {
-                days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-                daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                daysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-                months: [
-                    'January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'
-                ],
-                monthsShort: [
-                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                ],
-                today: 'Today',
-                clear: 'Clear',
-                dateFormat: jsFormat,
-                timeFormat: 'hh:mm aa',
-                firstDay: 0
-            }
-        });
-    });
 });
 
 </script>

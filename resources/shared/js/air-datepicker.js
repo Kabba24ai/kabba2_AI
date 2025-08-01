@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
             el._airDatepicker = new AirDatepicker(el, {
                 locale: localeEn,
                 timepicker: false,
-                dateFormat: el.dataset.format || 'yyyy-MM-dd HH:mm',
+                dateFormat: el.dataset.format || window.APP_DATE_FORMAT || 'yyyy-MM-dd HH:mm',
                 minDate: el.dataset.minDate ? new Date(el.dataset.minDate) : false,
                 autoClose: true,
                 keyboardNav: true,

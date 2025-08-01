@@ -19,7 +19,7 @@
     </div>
 
     
-    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-3 sm:space-y-0 mb-6">
+    <div class="flex flex-wrap items-end gap-4 w-full mb-6">
 
         <!-- Search by name -->
         <div class="relative w-full sm:w-48">
@@ -62,26 +62,30 @@
                 </svg>
             </div>
         </div>
-        <div>
 
-        <select class="w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300" name="tax_status" id="tax_status">
-            <option value="All" {{ request('status') === 'All' ? 'selected' : '' }}>All</option>
-            <option value="Exempt" {{ request('status') === 'Exempt' ? 'selected' : '' }}>Exempt</option>
-            <option value="Taxable" {{ request('status') === 'Taxable' ? 'selected' : '' }}>Taxable</option>
-        </select>
-
-
+        <div class="w-full sm:w-48">
+            <select
+                class="w-full h-10 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300"
+                name="tax_status"
+                id="tax_status">
+                <option value="All" {{ request('status') === 'All' ? 'selected' : '' }}>All</option>
+                <option value="Exempt" {{ request('status') === 'Exempt' ? 'selected' : '' }}>Exempt</option>
+                <option value="Taxable" {{ request('status') === 'Taxable' ? 'selected' : '' }}>Taxable</option>
+            </select>
         </div>
+
+    
+       
         
 
         <!-- Total count -->
-        <div class="w-full sm:w-auto px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
+        <div class="w-full sm:w-auto h-10 px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
       Total: <span id="customer-total-count">{{ $customers->total() }}</span>
         </div>
 
         <div class="w-full sm:w-auto">
             <button type="button" id="delete-selected-btn"
-                class="flex items-center gap-2 bg-gray-300 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium transition w-full sm:w-auto"
+                class="flex items-center h-10 gap-2 bg-gray-300 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium transition w-full sm:w-auto"
                 disabled>
                 <x-heroicon-o-trash class="w-4 h-4" />
                 Delete Selected (<span id="delete-selected-count">0</span>)

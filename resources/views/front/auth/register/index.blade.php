@@ -124,6 +124,38 @@
                                         'id' => 'password',
                                         'data-parsley-errors-container' => '#password-errors',
                                     ])->placeholder('') }}
+
+                                     <label for="password" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
+                                        Password
+                                    </label>
+                                    <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
+                                   @error('password')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+
+                                    <!-- Eye Toggle Icon -->
+                                    <button type="button" onclick="togglePassword()" class="absolute right-3 top-3 text-gray-500 hover:text-yellow-400 focus:outline-none">
+                                        <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 
+                                                12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 
+                                                0 .639C20.577 16.49 16.64 19.5 
+                                                12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <!-- {{-- Password --}}
+                                <div class="relative z-0 w-full my-6 group">
+                                    {{ html()->password('password')->attributes([
+                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
+                                        'required' => true,
+                                        'id' => 'password',
+                                        'data-parsley-errors-container' => '#password-errors',
+                                    ])->placeholder('') }}
                                     <label for="password" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
                                         Password
                                     </label>
@@ -131,9 +163,34 @@
                                     @error('password')
                                         <p class="text-sm text-red-600">{{ $message }}</p>
                                     @enderror
-                                </div>
+                                </div> -->
 
-                                {{-- Password Confirmation --}}
+                                {{-- Password --}}
+                                <div class="relative z-0 w-full my-6 group">
+                                     {{ html()->password('password_confirmation')->attributes([
+                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
+                                        'required' => true,
+                                        'id' => 'password_confirmation',
+                                        'data-parsley-equalto' => '#password',
+                                    ])->placeholder('') }}
+                                    <label for="password_confirmation" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
+                                        Password Confirmation
+                                    </label>
+                                    <!-- Eye Toggle Icon -->
+                                    <button type="button" onclick="toggleConfirmationPassword()" class="absolute right-3 top-3 text-gray-500 hover:text-yellow-400 focus:outline-none">
+                                        <svg id="eyeIconconfirmation" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 
+                                                12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 
+                                                0 .639C20.577 16.49 16.64 19.5 
+                                                12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <!-- {{-- Password Confirmation --}}
                                 <div class="relative z-0 w-full my-6 group">
                                     {{ html()->password('password_confirmation')->attributes([
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
@@ -144,7 +201,7 @@
                                     <label for="password_confirmation" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
                                         Password Confirmation
                                     </label>
-                                </div>
+                                </div> -->
 
                                 {{-- Policy Notice --}}
                                 <p class="text-xs text-gray-500">
@@ -184,6 +241,62 @@
 
 
 @push('js')
+
+<script>
+  function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3.98 8.223a10.477 10.477 0 00-.955 1.155c-.07.098-.07.301 0 .399C5.423 16.49 
+                 9.36 19.5 14 19.5c1.69 0 3.288-.472 4.693-1.296m1.827-1.827A10.5 10.5 0 0021 
+                 12c-1.39-4.171-5.325-7.178-9.963-7.178-1.69 0-3.288.472-4.693 
+                 1.296M3 3l18 18" />`;
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 
+                 4.5 12 4.5c4.638 0 8.573 3.007 
+                 9.963 7.178.07.207.07.431 0 
+                 .639C20.577 16.49 16.64 19.5 
+                 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`;
+    }
+  }
+</script>
+
+<script>
+  function toggleConfirmationPassword() {
+    const passwordInput = document.getElementById('password_confirmation');
+    const eyeIcon = document.getElementById('eyeIconconfirmation');
+
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3.98 8.223a10.477 10.477 0 00-.955 1.155c-.07.098-.07.301 0 .399C5.423 16.49 
+                 9.36 19.5 14 19.5c1.69 0 3.288-.472 4.693-1.296m1.827-1.827A10.5 10.5 0 0021 
+                 12c-1.39-4.171-5.325-7.178-9.963-7.178-1.69 0-3.288.472-4.693 
+                 1.296M3 3l18 18" />`;
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 
+                 4.5 12 4.5c4.638 0 8.573 3.007 
+                 9.963 7.178.07.207.07.431 0 
+                 .639C20.577 16.49 16.64 19.5 
+                 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`;
+    }
+  }
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

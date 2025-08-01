@@ -62,25 +62,24 @@
                 </svg>
             </div>
         </div>
-
         <div class="w-full sm:w-48">
-            <select
-                class="w-full h-10 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300"
-                name="tax_status"
-                id="tax_status">
-                <option value="All" {{ request('status') === 'All' ? 'selected' : '' }}>All</option>
-                <option value="Exempt" {{ request('status') === 'Exempt' ? 'selected' : '' }}>Exempt</option>
-                <option value="Taxable" {{ request('status') === 'Taxable' ? 'selected' : '' }}>Taxable</option>
-            </select>
-        </div>
 
-    
-       
+        <select 
+        class="w-full h-10 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300"
+         name="tax_status"
+          id="tax_status">
+            <option value="All" {{ request('status') === 'All' ? 'selected' : '' }}>All</option>
+            <option value="Exempt" {{ request('status') === 'Exempt' ? 'selected' : '' }}>Exempt</option>
+            <option value="Taxable" {{ request('status') === 'Taxable' ? 'selected' : '' }}>Taxable</option>
+        </select>
+
+
+        </div>
         
 
         <!-- Total count -->
         <div class="w-full sm:w-auto h-10 px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
-      Total: <span id="customer-total-count">{{ $customers->total() }}</span>
+            Total: <span id="customer-total-count">{{ $customers->total() }}</span>
         </div>
 
         <div class="w-full sm:w-auto">
@@ -179,6 +178,163 @@ document.addEventListener("DOMContentLoaded", function () {
         fetchCustomers(); // no timeout
     });
 });
+</script>
+
+
+<script>
+    // bulk delete 
+   
+
+
+      function initOrderCheckboxes() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            const orderCheckboxes = document.querySelectorAll('.customer-checkbox');
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            const deleteCountSpan = document.getElementById('delete-selected-count');
+
+            function updateDeleteBtnCount() {
+                const orderCheckboxes = document.querySelectorAll('.customer-checkbox');
+                const count = [...orderCheckboxes].filter(cb => cb.checked).length;
+                deleteCountSpan.textContent = count;
+
+                if (deleteBtn) {
+                    if (count === 0) {
+                        deleteBtn.disabled = true;
+                        deleteBtn.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                        deleteBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                    } else {
+                        deleteBtn.disabled = false;
+                        deleteBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                        deleteBtn.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                    }
+                }
+            }
+
+            // Select all functionality
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    orderCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+                    updateDeleteBtnCount();
+                });
+            }
+            // Update 'Select All' checkbox if any item is unchecked
+            orderCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.checked = [...orderCheckboxes].every(cb => cb.checked);
+                    }
+                    updateDeleteBtnCount();
+                });
+            });
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    const orderCheckboxes = document.querySelectorAll('.customer-checkbox');
+                    const ids = [...orderCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
+
+                    if (ids.length === 0) {
+                        notyf.error('Please select at least one customer to delete.', 'No customer selected!');
+                        return;
+                    }
+
+                    window.showConfirm(
+                        `Delete ${ids.length} customer(s)? This action cannot be undone!`,
+                        'Delete Customers'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            apiFetch("{{ route('admin.crm.customers.bulk-delete') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute(
+                                            'content')
+                                    },
+                                    body: JSON.stringify({
+                                        unique_ids: ids
+                                    })
+                                })
+                                .then(data => {
+
+                                    if (data.success || (data.message && data.message
+                                            .toLowerCase().includes('deleted'))) {
+                                        notyf.success(data.message,
+                                            'Deleted!');
+                                        // Remove rows
+                                        ids.forEach(function(id) {
+                                            const row = document.getElementById(
+                                                'customer-row-' + id);
+
+                                            if (row) row.remove();
+                                        });
+                                        // Reset select all and count
+                                        if (selectAllCheckbox) selectAllCheckbox.checked = false;
+                                        updateDeleteBtnCount();
+                                    } else {
+                                        notyf.error(data.message);
+                                    }
+                                })
+                        }
+                    });
+                });
+            }
+
+            updateDeleteBtnCount();
+        }
+
+        function initSingleDeleteButtons() {
+            const singleDeleteButtons = document.querySelectorAll('.delete-button');
+
+            singleDeleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const uniqueId = this.dataset.uniqueId;
+
+                    window.showConfirm(
+                        `Delete this Customer? This action cannot be undone!`,
+                        'Delete Customer'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch("{{ route('admin.crm.customers.bulk-delete') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute(
+                                            'content')
+                                    },
+                                    body: JSON.stringify({
+                                        unique_ids: [uniqueId] // send as an array
+                                    })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+
+                                    if (data.success || (data.message && data.message
+                                            .toLowerCase().includes('deleted'))) {
+                                        notyf.success(data.message, 'Deleted!');
+                                        const row = document.getElementById('customer-row-' +
+                                            uniqueId);
+                                             
+                                        if (row) row.remove();
+                                    } else {
+                                        notyf.error(data.message);
+                                    }
+                                })
+                        }
+                    });
+                });
+            });
+        }
+
+    
+    
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            initOrderCheckboxes();
+            initSingleDeleteButtons();
+        });
+
+
+    // bulk delete 
 </script>
 
 @endpush

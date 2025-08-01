@@ -30,8 +30,8 @@
                 <div class="lg:w-1/5"></div>
                 <div class="lg:w-3/5">
 
-                    <main class="flex items-center justify-center p-4 lg:p-8 bg-white shadow rounded">
-                        <div class="border-dotted border-4 border-gray w-full p-4 lg:p-8 ">
+                    <main class="flex items-center justify-center p-2 md:p-4 lg:p-8 bg-white shadow rounded">
+                        <div class="border-dotted border-4 border-gray w-full p-2 md:p-4 lg:p-8 ">
                             <h2 class="text-center text-lg font-semibold mb-6">Sign up</h2>
                             @if ($errors->any())
                             <div class="text-red-500 hover:border-red-500 py-2">
@@ -59,7 +59,7 @@
 
                                 <div class="flex flex-col md:flex-row gap-4">
                                 {{-- Name --}}
-                                <div class="relative z-0 w-full md:w-1/2 group">
+                                <div class="relative z-0 mt-2 w-full md:w-1/2 group">
                                     {{ html()->text('first_name')->attributes([
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,
@@ -75,7 +75,7 @@
                                 </div>
 
                                 {{-- last_name --}}
-                                <div class="relative z-0 w-full md:w-1/2 group">
+                                <div class="relative z-0 mt-2 w-full md:w-1/2 group">
                                     {{ html()->text('last_name')->attributes([
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,

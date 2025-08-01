@@ -76,26 +76,32 @@
                 </div>
             </div>
 
-            <div class="p-6 bg-white rounded-md shadow-sm mt-6">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-base font-semibold text-gray-800">Credit Utilization</h2>
-                </div>
-                <div class="flex justify-between items-center">
-                    <div class="text-sm text-gray-600 mb-2">
-                        Available: <span id="availableAmount">$0.00</span>
+                <div class="p-6 bg-white rounded-md shadow-sm mt-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-base font-semibold text-gray-800">Credit Utilization</h2>
                     </div>
-                    <div class="text-sm text-gray-600 mb-2">
-                        Used: <span id="usedAmount">$0.00</span>
+
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-600 mb-2">
+                            Available: 
+                            <span id="availableAmount">
+                                {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
+                            </span>
+                        </div>
+                        <div class="text-sm text-gray-600 mb-2">
+                            Used: <span id="usedAmount">$0.00</span>
+                        </div>
                     </div>
-                </div>
-                <!-- Progress Bar Container -->
-                <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="progressBar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
-                </div>
 
-                <p class="text-sm text-center text-gray-500 mt-2"> Credit Limit: <span id="limitAmount">$0.00</span> </p>
-            </div>
+                    <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
 
+                    <p class="text-sm text-center text-gray-500 mt-2">
+                        Credit Limit: <span id="limitAmount">$0.00</span>
+                    </p>
+                </div>
+                
             <div class=" mx-auto bg-white shadow rounded-md mt-6 mb-6">
                 <!-- Header and Filter -->
                 <div class="border-b border-gray-200 p-4 ">

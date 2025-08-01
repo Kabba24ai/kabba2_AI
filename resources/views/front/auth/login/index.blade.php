@@ -31,8 +31,8 @@
             <div class="lg:flex gap-2 pb-60 md:pt-[60px] pt-5">
                 <div class="lg:w-1/5"></div>
                 <div class="lg:w-3/5">
-                    <main class="flex items-center justify-center p-4 lg:p-8 bg-white shadow rounded">
-                        <div class="border-dotted border-4 border-gray w-full p-4 lg:p-8">
+                    <main class="flex items-center justify-center p-2 md:p-4 lg:p-8 bg-white shadow rounded">
+                        <div class="border-dotted border-4 border-gray w-full p-2 md:p-4 lg:p-8">
                             
                             <h2 class="text-xl font-semibold text-center mb-6">Login</h2>
 

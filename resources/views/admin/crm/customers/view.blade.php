@@ -455,17 +455,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-      const creditUsed = {{ $customer->total_account_order_amount ?? 0 }} ;
-      const creditLimit = {{ $customer->credit_limit ?? 0 }} ;
-      const available = creditLimit  - creditUsed ;
-      const percentUsed = (creditUsed / creditLimit) * 100;
+      const availableCredit = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer) }};
+      const creditLimit = {{ $customer->credit_limit ?? 0 }};
+      const usedCredit = creditLimit - availableCredit;
 
-      document.getElementById("usedAmount").textContent = `{{ config('app.currency.code') }}${creditUsed.toLocaleString()}`;
+      const percentUsed = creditLimit > 0 ? Math.min((usedCredit / creditLimit) * 100, 100) : 0;
+
+      document.getElementById("usedAmount").textContent = `{{ config('app.currency.code') }}${usedCredit.toLocaleString()}`;
       document.getElementById("limitAmount").textContent = `{{ config('app.currency.code') }}${creditLimit.toLocaleString()}`;
-      document.getElementById("availableAmount").textContent = `{{ config('app.currency.code') }}${available.toLocaleString()}`;
-
       document.getElementById("progressBar").style.width = `${percentUsed}%`;
   });
 </script>

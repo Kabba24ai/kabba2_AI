@@ -49,9 +49,9 @@ export default defineConfig(() => {
         },
         optimizeDeps: {
             exclude: [
-                // exclude css or js should be list here
+                'tinymce'
             ],
-            include: [],
+
         },
         //logLevel: "info",
         plugins: [

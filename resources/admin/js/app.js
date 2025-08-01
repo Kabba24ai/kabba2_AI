@@ -12,7 +12,6 @@ import '../../shared/js/flatpickr.js';
 
 
 import AirDatepicker from "air-datepicker";
-import { initEditor } from './tinymce';
 
 
 // Make Alpine globally available
@@ -26,10 +25,10 @@ Alpine.start();
 
 
 // Auto-initiate TinyMCE for all elements with the 'tinymce' class
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof initEditor === 'function') {
-        initEditor('.tinymce');
-    }
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//     if (typeof initEditor === 'function') {
+//         initEditor('.tinymce');
+//     }
+// });
 
 window.AirDatepicker = AirDatepicker;

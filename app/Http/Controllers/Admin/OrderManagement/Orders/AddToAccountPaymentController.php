@@ -16,6 +16,7 @@ class AddToAccountPaymentController extends Controller
 {
     public function __invoke($uniqueId)
     {
+        $user = auth()->user();
 
         $order = Order::where('unique_id', $uniqueId)->first();
         if (!$order) {
@@ -56,7 +57,7 @@ class AddToAccountPaymentController extends Controller
             CustomHelper::updateCreditBalance($record, $order->tax_amount);
 
             // Fire event
-            event(new PaymentAddedToAccountEvent($order, $customer, $lastPayment));
+            event(new PaymentAddedToAccountEvent($order, $user, $lastPayment));
 
             return response()->json([
                 'success' => true,

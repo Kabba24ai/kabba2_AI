@@ -3,6 +3,7 @@
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
         <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
             <tr>
+                <th class="px-4 py-3"><input type="checkbox" id="select-all-checkbox" /></th>
                 <th class="cus-width-20 px-4 py-3 text-left font-semibold">Customer</th>
                 <th class="cus-width-20 px-4 py-3 text-left font-semibold">Company</th>
                 <th class="cus-width-15 px-4 py-3 text-left font-semibold">Contact</th>
@@ -10,14 +11,6 @@
                 <th class="cus-width-10 px-4 py-3 text-left font-semibold">Orders</th>
                 <th class="cus-width-10 px-4 py-3 text-left font-semibold">Total Spent</th>
                 <th class="cus-width-10 px-4 py-3 text-left font-semibold">Actions</th>
-
-                <!-- <th class="w-45 px-4 py-3 text-left font-semibold">Customer</th>
-                <th class="w-40 px-4 py-3 text-left font-semibold">Company</th>
-                <th class="w-45 px-4 py-3 text-left font-semibold">Contact</th>
-                <th class="w-45 px-4 py-3 text-left font-semibold">Status</th>
-                <th class="w-40 px-4 py-3 text-left font-semibold">Orders</th>
-                <th class="w-35 px-4 py-3 text-left font-semibold">Total Spent</th>
-                <th class="w-35 px-4 py-3 text-left font-semibold">Actions</th> -->
             </tr>
         </thead>
 
@@ -27,6 +20,9 @@
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-900 dark:text-gray-100">
             @forelse($customers as $customer)
                 <tr>
+                    <td class="px-4 py-3">
+                        <input type="checkbox" class="order-checkbox" />
+                    </td>
                     <td class="px-4 py-3">
                         <div class="font-medium">{{ $customer->full_name }}</div>
                         <!-- <div class="text-gray-500 text-xs">{{ $customer->unique_id }}</div> -->

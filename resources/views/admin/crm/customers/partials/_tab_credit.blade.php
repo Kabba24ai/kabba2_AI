@@ -32,8 +32,8 @@
                     <div>
                         <p class="text-sm  text-gray-500">Available Credit</p>
                         <p class="text-xl font-semibold text-gray-900">
-                    
-                        {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0) ) }}
+                        {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
+                        <!-- {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0) ) }} -->
                   
                     </p>
                     </div>
@@ -180,17 +180,17 @@
 
                 <!-- Table -->
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-left text-gray-700">
-                        <thead class="bg-gray-50 text-gray-500 text-xs border-b uppercase">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
+                        <thead class="border-b bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                             <tr>
-                                <th class="px-4 py-3 font-medium">Date</th>
-                                <th class="px-4 py-3 font-medium">Type</th>
-                                <th class="px-4 py-3 font-medium">Description</th>
-                                <th class="px-4 py-3 text-right font-medium">Amount</th>
-                                <th class="px-4 py-3 text-right font-medium">Sales Tax</th>
-                                <th class="px-4 py-3 text-right font-medium">Balance Change</th>
-                                <th class="px-4 py-3 text-right font-medium">Running Balance</th>
-                                <th class="px-4 py-3 text-center font-medium">Actions</th>
+                                <th class="px-4 py-3">Date</th>
+                                <th class="px-4 py-3">Type</th>
+                                <th class="px-4 py-3  truncate min-w-3xs max-w-3xs">Description</th>
+                                <th class="px-4 py-3 w-40 text-right">Amount</th>
+                                <th class="px-4 py-3 w-40 text-right">Sales Tax</th>
+                                <th class="px-4 py-3 w-40 text-right">Balance Change</th>
+                                <th class="px-4 py-3 w-40 text-right">Running Balance</th>
+                                <th class="px-4 py-3 w-32 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id=" ">
@@ -359,8 +359,8 @@
                                                                         </td>
 
                                                                     <td class="px-4 py-3 text-right whitespace-nowrap">{{ number_format($transaction->balance, 2) }}</td>
-                                                                    <td class="px-4 py-3 text-blue-600 text-center">
-                                                                        <div class="flex items-center justify-center space-x-2">
+                                                                    <td class="px-4 py-3 text-blue-600">
+                                                                        <div class="flex gap-2 items-center justify-end">
                                                                         
 
                                                                         <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)'    data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}" >

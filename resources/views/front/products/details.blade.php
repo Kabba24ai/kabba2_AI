@@ -10,7 +10,7 @@
             <div class="pt-[100px] pb-[20px] ">
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
-                        <h1 class="text-4xl font-bold">
+                        <h1 class="text-3xl lg:text-4xl font-bold">
                             {{ $productDetail->product_name }}</h1>
                         <ul 
                             class="border-yellow-400 px-5 py-4 mt-4 lg:mt-0 text-sm font-medium border-2 max-w-full flex flex-wrap items-center gap-3">
@@ -60,7 +60,7 @@
                         class="relative w-full mx-auto aspect-square border border-gray-200 rounded-lg overflow-hidden bg-white group flex items-center justify-center">
                         <!-- Title -->
                         <div
-                            class="absolute top-3 left-3 z-10 bg-yellow-400 text-gray-800 text-xs font-medium rounded px-2 py-1 shadow">
+                            class="absolute top-3 left-3 z-10 h-5 bg-yellow-400 text-gray-800 text-xs font-medium rounded px-2 py-1 shadow flex items-center justify-center">
                             {{ $productDetail->product_name ?? 'Product' }}
                         </div>
                         <!-- Main image (with lightbox, initially first image) -->
@@ -92,7 +92,7 @@
                 <div>
                     <div class="bg-gray-100 mb-4 flex flex-col lg:flex-row justify-between items-center pl-2 header-price">
                         <div>
-                            <h3 class="font-bold text-2xl">{{ $productDetail->product_name }}
+                            <h3 class="font-bold text-xl lg:text-2xl">{{ $productDetail->product_name }}
                             </h3>
                             <p
                                 class="before:content-['('] before:text-gray-500 after:content-[')'] after:text-gray-500 text-green-600 ">
@@ -102,7 +102,7 @@
                             <h4>
                                 @if ($productDetail->product_type == 'Rental')
                                     <span>
-                                        <span class="font-bold text-3xl">
+                                        <span class="font-bold text-xl lg:text-3xl">
                                             {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productVariant)) }}
                                         </span>
                                         @if ($productDetail->isRentalOnSale($productVariant))
@@ -294,7 +294,7 @@
 
                     @if ($productDetail->hasOptions())
                         <div id="optionDiv" class="inline-grid">
-                            <h4 class="font-semibold text-2xl mb-1">Options</h4>
+                            <h4 class="font-semibold text-xl lg:text-2xl mb-1">Options</h4>
                             @if ($productDetail->rental_prepaid_fuel !== null)
                                 <!-- Prepaid Fuel -->
                                 <label class="inline-flex items-center space-x-2 mt-1 w-fit">

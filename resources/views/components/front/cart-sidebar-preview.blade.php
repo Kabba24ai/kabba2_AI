@@ -1,4 +1,11 @@
 <div>
+    <!-- <button onclick="closeCart()" class="absolute top-4 right-4 text-gray-800 hover:text-black text-2xl font-bold z-50">&times;</button> -->
+    <button onclick="closeCart()"
+    class="absolute top-4 right-4 lg:right-10 bg-gray-200 hover:bg-gray-300 text-gray-800 hover:text-black 
+            text-xl font-bold z-50 rounded-full px-3 py-1 shadow">
+    &times;
+    </button>
+
     <div class="flex items-center justify-between mb-4">
         <span class="font-semibold">Your cart</span>
         <x-heroicon-o-chevron-down class="h-4 w-4 text-gray-800" />

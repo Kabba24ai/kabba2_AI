@@ -12,13 +12,13 @@ class PaymentAddedToAccountEvent
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $order;
-    public $customer;
+    public $user;
     public $payment;
 
-    public function __construct(Order $order, $customer, $payment)
+    public function __construct(Order $order, $user, $payment)
     {
         $this->order = $order;
-        $this->customer = $customer;
+        $this->user = $user;
         $this->payment = $payment;
     }
 }

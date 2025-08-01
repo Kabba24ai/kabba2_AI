@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\Crm\Customers\ViewController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentDeleteController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxStatusUpdateController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerStatusUpdateController;
+use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentUploadController;
 
 use App\Http\Controllers\Admin\Crm\Customers\PasswordResetController;
 
@@ -43,6 +44,7 @@ Route::prefix('customers')
 
     Route::post('/tax-status-update', TaxStatusUpdateController::class)->name('tax_status.update');
 
+    Route::post('/taxdoc-upload', TaxDocumentUploadController::class)->name('taxdoc.upload');
 
       // Create
     Route::get('/create', CreateController::class)->name('create');

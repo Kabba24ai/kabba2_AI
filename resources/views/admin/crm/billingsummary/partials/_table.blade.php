@@ -6,11 +6,11 @@
     
         <!-- Table -->
         <div class="max-w-full overflow-x-auto">
-                    <table id="customerTable" class="min-w-full bg-white border border-gray-200 rounded-md overflow-hidden shadow-sm">
-                        <thead class="bg-gray-50 text-gray-500 text-xs border-b uppercase">
+                    <table id="customerTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
+                        <thead class="border-b bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                             <tr>
-                                <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(0, 'string')">Customer Name <span id="icon-0" class="ml-1"></span></th>
-                                <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(1, 'string')">Company Name <span id="icon-1" class="ml-1"></span></th>
+                                <th class="px-4 py-3 truncate min-w-3xs max-w-3xs font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(0, 'string')">Customer Name <span id="icon-0" class="ml-1"></span></th>
+                                <th class="px-4 py-3 truncate min-w-3xs max-w-3xs font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(1, 'string')">Company Name <span id="icon-1" class="ml-1"></span></th>
                                 <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Phone</th>
                                 <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Phone - Company</th>
                                 <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(2, 'number')">Balance <span id="icon-2" class="ml-1"></span></th>
@@ -18,7 +18,7 @@
                                 <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(3, 'date')">Last Payment Date <span id="icon-3" class="ml-1"></span></th>
                                 <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Payment Due</th>
                                 <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap" onclick="sortTable(4, 'days')">Days Aging <span id="icon-4" class="ml-1"></span></th>
-                                <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Actions</th>
+                                <th class="px-4 py-3 font-medium w-24 whitespace-nowrap text-center">Actions</th>
                             </tr>
                         </thead>
                         <div id="customer-loader" class="hidden"></div>
@@ -117,9 +117,11 @@
 
 
                                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-center">
-                                    <a href="{{ route('admin.crm.billingsummary.view' , $customer->unique_id) }}" target="_blank" class="text-blue-600  space-x-1">
-                                        <x-heroicon-o-eye class="w-4 h-4" />
-                                    </a>
+                                    <div class="flex items-center justify-center">
+                                        <a href="{{ route('admin.crm.billingsummary.view' , $customer->unique_id) }}" target="_blank" class="text-blue-600  space-x-1">
+                                            <x-heroicon-o-eye class="w-4 h-4" />
+                                        </a>
+                                   </div>
                                 </td>
                             </tr>
 

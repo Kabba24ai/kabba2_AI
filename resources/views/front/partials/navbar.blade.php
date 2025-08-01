@@ -256,7 +256,7 @@
 
         <!--  Off canvas Cart -->
         <div id="cartOffCanvas"
-            class="offcanvas-cart-body absolute top-17 right-0 overflow-hidden md:top-17 max-w-0 lg:top-20 opacity-0 md:max-w-md w-0 h-screen bg-white/90  shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
+            class="-translate-x-full offcanvas-cart-body absolute top-17 right-0 overflow-hidden md:top-17 max-w-0 lg:top-20 opacity-0 md:max-w-md w-0 h-screen bg-white/90  shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
             <div class="relative w-full h-[calc(100vh-80px)]">
                 <div class="px-9 pt-15 pb-15 overflow-y-scroll h-full w-full">
                     <div id="cartData" data-fetch-cart-url="{{ route('front.cart.index') }}">
@@ -268,6 +268,52 @@
         </div>
     </div>
 </nav>
+
+@push('js')
+
+<script>
+  const toggleCartButton = document.querySelector('.toggleCart');
+  const cartPanel = document.querySelector('#cartOffCanvas');
+
+  // Check if mobile screen
+  function isMobile() {
+    return window.innerWidth < 768;
+  }
+
+  // Open Cart
+  function openCart() {
+    cartPanel.classList.remove('translate-x-full');
+    cartPanel.classList.add('translate-x-0');
+
+    if (isMobile()) {
+      document.body.classList.add('overflow-hidden');
+    }
+  }
+
+  // Close Cart
+  function closeCart() {
+    cartPanel.classList.add('translate-x-full');
+    cartPanel.classList.remove('translate-x-0');
+
+    if (isMobile()) {
+      document.body.classList.remove('overflow-hidden');
+    }
+  }
+
+  // Click event to open cart
+  toggleCartButton?.addEventListener('click', openCart);
+
+  // Close on ESC key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      closeCart();
+    }
+  });
+
+  // Optional: close on outside click (if you add a backdrop)
+  // document.querySelector('#cartBackdrop')?.addEventListener('click', closeCart);
+</script>
+
 
 
 <script>
@@ -301,3 +347,5 @@
     }
   });
 </script>
+
+@endpush

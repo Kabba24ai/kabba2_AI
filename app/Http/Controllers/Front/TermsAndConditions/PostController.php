@@ -33,10 +33,12 @@ class PostController extends Controller
             $order->accepted_terms_content = $termsArr['accepted_terms_content'] ?? '';
             $order->terms_accepted_at = now();
             $order->save();
+
+            $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
         }
 
-        return response()->json(['success' => true, 'message' => 'Terms and conditions signed successfully.']);
+        return response()->json(['success' => true, 'message' => 'Terms and conditions signed successfully.', 'signed_url' => $signedUrl]);
     }
 }

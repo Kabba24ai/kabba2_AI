@@ -310,8 +310,6 @@ class PostController extends Controller
 
                 $record->save();
 
-
-
                 CustomHelper::updateCreditBalance($record, $order->tax_amount);
             }
 
@@ -326,10 +324,12 @@ class PostController extends Controller
             event(new OrderPlacedEvent($order, $customer, $payment));
 
             // Generate a signed URL for the thank you page with order unique id
-            $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
+            // $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
+
+            $redirectUrl = route('front.terms-and-conditions.index', ['orderUniqueId' => $order->unique_id]);
 
             // Success: redirect to signed thank you page with order id
-            return redirect($signedUrl);
+            return redirect($redirectUrl);
         } catch (\Exception $e) {
             // Log the error if needed: logger($e);
             logger($e);

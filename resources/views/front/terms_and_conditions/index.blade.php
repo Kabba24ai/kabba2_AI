@@ -278,7 +278,8 @@
                 }).then(response => {
                 if (response.success) {
                     notyf.success(response.message);
-                    window.location.href = "/";
+                    // Redirect to signed URL
+                    window.location.href = response.signed_url;
                 } else {
                     notyf.error(response.message);
                 }

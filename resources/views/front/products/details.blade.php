@@ -12,7 +12,7 @@
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-3xl lg:text-4xl font-bold">
                             {{ $productDetail->product_name }}</h1>
-                        <ul 
+                        <ul
                             class="border-yellow-400 px-5 py-4 mt-4 lg:mt-0 text-sm font-medium border-2 max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
@@ -136,14 +136,14 @@
                     <div class="my-5">
                         <div class="flex items-center">
                             <!-- Calendar icon button -->
-                            <a href="javascript:void(0);" id="openDatePicker">
-                                <x-heroicon-o-calendar-days class="w-6 h-6 mr-2 md:w-[52px] h-[52px] text-yellow-400" />
+                            <a href="javascript:void(0);" id="openDatePicker" class="flex items-center space-x-2 mr-3">
+                                <x-heroicon-o-calendar-days class="w-6 h-6 md:w-[52px] h-[52px] text-yellow-400" />
+                                <span id="selectedDateText" class="text-sm md:text-base text-gray-700">Select Start Date</span>
                             </a>
 
                             <!-- Right side: date display + qty controls, spaced out -->
                             <div class="flex items-center space-x-3 md:space-x-2 lg:space-x-4">
-                                <!-- Show selected date here -->
-                                <span id="selectedDateText" class="text-sm md:text-base text-gray-700 ">Select Start Date</span>
+
                                 <!-- Quantity controls unchanged -->
                                 <button type="button"
                                     class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"

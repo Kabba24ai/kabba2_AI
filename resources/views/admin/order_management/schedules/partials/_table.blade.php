@@ -40,7 +40,7 @@
                     </td>
                     <td class="px-4 py-3 truncate min-w-xs max-w-xs">
                         {{ $orderProduct->order->shippingAddress->full_address }}</td>
-                    <td class="px-4 py-3 text-left ">{{ $orderProduct->order->customer_phone }}</td>
+                    <td class="px-4 py-3 text-left ">{{ $orderProduct->order->shippingAddress->phone }}</td>
                     <td class="px-4 py-3 text-center">{{ $orderProduct->equipment ?? 'N/A' }}</td>
                     <td class="px-4 py-3 text-center">
                         @php

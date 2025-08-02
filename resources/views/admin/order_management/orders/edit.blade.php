@@ -1317,43 +1317,6 @@
             }
 
 
-            const saveBtn = document.getElementById('saveNoteBtn');
-            const noteInput = document.getElementById('order_note');
-
-            saveBtn.addEventListener('click', function() {
-                const note = noteInput.value;
-
-                // UI: Disable and show saving...
-                saveBtn.disabled = true;
-                const originalText = saveBtn.textContent;
-                saveBtn.textContent = 'Saving...';
-
-                url = '{{ route('admin.order-management.orders.update-note', ':unique_id') }}';
-                url = url.replace(':unique_id', orderUniqueId);
-
-                let data = {
-                    order_note: note,
-                    _method: 'PUT'
-                };
-
-                apiFetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                .getAttribute('content')
-                        },
-                        body: JSON.stringify(data)
-                    })
-                    .then(resData => {
-                        notyf.success('Order note updated successfully!');
-                    })
-                    .finally(() => {
-                        saveBtn.disabled = false;
-                        saveBtn.textContent = originalText;
-                    });
-            });
-
             // const saveBtn = document.getElementById('saveNoteBtn');
             // const noteInput = document.getElementById('order_note');
 

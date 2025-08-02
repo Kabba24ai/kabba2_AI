@@ -64,12 +64,17 @@
 
 </div>
 
-{{-- @if (!isset($terms) || $terms->is_global != 'Yes')
-    <button type="button" id="insert-shortcode-btn"
+@if (!isset($terms) || $terms->is_global == 'Yes')
+    <button type="button" id="insert-shortcode-product-initials-btn"
+        class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
+        Add Product Initials
+    </button>
+@else
+    <button type="button" id="insert-shortcode-customer-initials-btn"
         class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
         Add Customer Initials
     </button>
-@endif --}}
+@endif
 
 {{-- Content --}}
 <div class="mb-8">
@@ -147,6 +152,8 @@
 
 
 @push('js')
+    <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+    @vite('resources/admin/js/tinymce.js')
     <script>
         document.addEventListener('alpine:init', () => {
             // Alpine store for shared state
@@ -173,18 +180,31 @@
             });
         });
 
-        // document.addEventListener('DOMContentLoaded', () => {
-        //     const insertBtn = document.getElementById('insert-shortcode-btn');
-        //     if (insertBtn) {
-        //         insertBtn.addEventListener('click', () => {
-        //             const editor = tinymce.get('content-editor');
-        //             if (editor) {
-        //                 editor.insertContent('[customer_initials][/customer_initials]');
-        //             } else {
-        //                 console.warn('TinyMCE editor not ready.');
-        //             }
-        //         });
-        //     }
-        // });
+        document.addEventListener('DOMContentLoaded', () => {
+            const insertProductBtn = document.getElementById('insert-shortcode-product-initials-btn');
+            if (insertProductBtn) {
+                insertProductBtn.addEventListener('click', () => {
+                    const editor = tinymce.get('content-editor');
+                    if (editor) {
+                        editor.insertContent('[product_terms][/product_terms]');
+                    } else {
+                        console.warn('TinyMCE editor not ready.');
+                    }
+                });
+            }
+
+            const insertCustomerBtn = document.getElementById('insert-shortcode-customer-initials-btn');
+            if (insertCustomerBtn) {
+                insertCustomerBtn.addEventListener('click', () => {
+                    const editor = tinymce.get('content-editor');
+                    if (editor) {
+                        editor.insertContent('[customer_initials][/customer_initials]');
+                    } else {
+                        console.warn('TinyMCE editor not ready.');
+                    }
+                });
+            }
+        });
     </script>
 @endpush
+

@@ -76,50 +76,6 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
     </div>
     <!-- ===== Page Wrapper End ===== -->
     @stack('js')
-    <script src="https://cdn.tiny.cloud/1/5yx0xg5esob3um1tly8mle5l9c7q5ot2xanovbxz5xafaklv/tinymce/8/tinymce.min.js"
-        referrerpolicy="origin" crossorigin="anonymous"></script>
-    <script>
-        tinymce.init({
-            selector: 'textarea.tinymce',
-            plugins: 'link table lists code',
-            toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link table | code |  shortcodes',
-            setup: function(editor) {
-                // Add custom button
-                // editor.ui.registry.addButton('customer_initials', {
-                //     text: 'Add Customer Initials',
-                //     icon: 'insert', // optional icon
-                //     onAction: function () {
-                //         editor.insertContent('[customer_initials][/customer_initials]');
-                //     }
-                // });
-                // Optional: dropdown menu for multiple shortcodes
-                editor.ui.registry.addMenuButton('shortcodes', {
-                    text: 'Shortcodes',
-                    fetch: function(callback) {
-                        callback([{
-                                type: 'menuitem',
-                                text: 'Product Terms',
-                                onAction: () => editor.insertContent(
-                                    '[product_terms][/product_terms]')
-                            },
-                            {
-                                type: 'menuitem',
-                                text: 'Customer Initials',
-                                onAction: () => editor.insertContent(
-                                    '[customer_initials][/customer_initials]')
-                            }
-                        ]);
-                    }
-                });
-            },
-            skin_url: '/tinymce/skins/ui/oxide',
-            content_css: [
-                '/tinymce/skins/content/default/content.css',
-                document.querySelector('meta[name="vite-app-css"]')?.content || ''
-            ],
-            license_key: 'gpl',
-        });
-    </script>
     <script>
         window.Laravel = {
             success: @json(session('success')),

@@ -69,11 +69,14 @@ export default defineConfig(() => {
                     // Admin entry points
                     'resources/admin/css/app.css',
                     'resources/admin/js/app.js',
+                    'resources/admin/js/tinymce.js',
 
                     // Front entry points
                     "resources/front/assets/css/app.css",
                     "resources/front/assets/js/app.js",
                     "resources/front/assets/js/products/product-details-page.js"
+
+
                 ],
                 refresh: true,
             }),

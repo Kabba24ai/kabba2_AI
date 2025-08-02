@@ -108,7 +108,7 @@
 <div class="mb-8">
     <label for="content" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Description</label>
     {{ html()->textarea('content')
-        ->class('ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500')
+        ->class('tinymce w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500')
         ->attributes([
             'autocomplete' => 'off',
             'id' => 'content-editor'
@@ -222,6 +222,8 @@
 </div>
 
 @push('js')
+<script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+@vite('resources/admin/js/tinymce.js')
 <script>
     function removeImage() {
         document.getElementById('remove_image').value = '1';

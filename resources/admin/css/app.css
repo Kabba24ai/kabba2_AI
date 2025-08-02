@@ -176,6 +176,10 @@
 @import '../../shared/css/notyf.css';
 @import '../../shared/css/flatpickr.css';
 
+.tox-promotion, .tox-statusbar__branding {
+    display: none !important;
+}
+
 .tox-tinymce-aux
 {
     z-index: 99999 !important;

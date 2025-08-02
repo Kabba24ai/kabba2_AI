@@ -33,7 +33,7 @@
                         </p>
                     @enderror
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Category <span class="text-red-500">*</span>
@@ -69,7 +69,7 @@
                         style="max-width: 200px;"
                         class="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     />
-                   
+
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -424,8 +424,13 @@
                 name="equipment_notes"
                 rows="4"
                 placeholder="Enter any additional notes, maintenance history, special instructions, or other relevant information about this equipment..."
-                class="ckeditor w-full px-4 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                class="tinymce w-full px-4 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
             >{{ old('equipment_notes', $equipment->equipment_notes ?? '') }}</textarea>
         </div>
     </div>
 </div>
+
+@push('js')
+<script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+@vite('resources/admin/js/tinymce.js')
+@endpush

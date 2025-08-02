@@ -68,9 +68,8 @@ class TermsContentHelper
             <label for="customer_initials" class="flex items-center space-x-2">
                 <input
                     name="customer_initials[]"
-                    id="customer_initials"
                     type="checkbox"
-                    class="customer_initials_checkbox h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    class="customer_initials_checkbox h-4 w-4"
                     required
                 >
                 <span class="font-semibold text-red-600">Customer Approval Required</span>
@@ -137,9 +136,8 @@ class TermsContentHelper
             <label for="customer_initials" class="flex items-center space-x-2">
                 <input
                     name="customer_initials[]"
-                    id="customer_initials"
                     type="checkbox"
-                    class="customer_initials_checkbox h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    class="customer_initials_checkbox h-4 w-4"
                     disabled
                     checked
                     required

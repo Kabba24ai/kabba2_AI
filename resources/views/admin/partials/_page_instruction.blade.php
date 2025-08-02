@@ -59,7 +59,7 @@
 
                 <div class="fv-row mb-4">
                     <label class="form-label fs-6 text-dark">Description</label>
-                    {{ html()->textarea('content')->attributes(['class' => 'form-control note-ckeditor']) }}
+                    {{ html()->textarea('content')->attributes(['class' => 'form-control note-tinymce']) }}
                 </div>
 
                 <div class="fv-row row mt-4">

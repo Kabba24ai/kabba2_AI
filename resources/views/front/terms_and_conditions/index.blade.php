@@ -56,6 +56,7 @@
                 action="{{ route('front.terms-and-conditions.sign', ['orderUniqueId' => $order->unique_id]) }}">
                 <div id="terms-dynamic-content" class="flex flex-col gap-y-3 container">
                     @if ($order->terms_status->isPending())
+                        {{-- {!!  \App\Helpers\TermsContentHelper::generateTermsContent($order)['terms_content'] !!} --}}
                         {!! $order->pending_terms_content !!}
                     @else
                         {{-- {!! $order->pending_terms_content !!} --}}
@@ -80,7 +81,7 @@
 
     <!-- Signature Modal -->
     <div id="modal"
-        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-start pt-20"
         onclick="closeModalOnOutsideClick(event)">
         <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col relative">
             <!-- Header -->
@@ -277,7 +278,7 @@
                 }).then(response => {
                 if (response.success) {
                     notyf.success(response.message);
-                    // window.location.href = "/";
+                    window.location.href = "/";
                 } else {
                     notyf.error(response.message);
                 }

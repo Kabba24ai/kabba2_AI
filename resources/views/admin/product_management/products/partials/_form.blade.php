@@ -100,7 +100,7 @@
         Description
     </label>
     {{ html()->textarea('short_description')->class([
-            'ckeditor w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
+            'tinymce w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
             'border-red-500' => $errors->has('short_description'),
         ])->attributes([
             'rows' => 3,
@@ -118,7 +118,7 @@
     <label for="description"
         class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Description</label>
     {{ html()->textarea('description')->class([
-            'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
+            'tinymce w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
             'border-red-500' => $errors->has('description'),
         ])->attributes([
             'id' => 'description',
@@ -454,6 +454,8 @@
 </div>
 
 @push('js')
+    <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+    @vite('resources/admin/js/tinymce.js')
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const productNameInput = document.getElementById("product_name");

@@ -264,8 +264,8 @@
                 </div>
             </div>
 @php
-    $billingAddress = $customer->addresses->firstWhere(fn ($a) => $a->type === 'Billing' );
-    $shippingAddress = $customer->addresses->firstWhere(fn ($a) => $a->type === 'Shipping');
+    $billingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Billing' );
+    $shippingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Shipping');
 
     $defaultAddresses = [
         ['label' => 'Billing', 'data' => $billingAddress],
@@ -555,7 +555,7 @@
                             $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
 
 
-$per = $climit > 0 ? ((($climit - $available) / $climit) * 100) : 0;
+                                $per = $climit > 0 ? ((($climit - $available) / $climit) * 100) : 0;
                             @endphp
                             <div class="flex justify-between text-xs text-gray-500 mb-1">
                                 <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>

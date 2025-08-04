@@ -91,7 +91,7 @@ class PostController extends Controller
                 [
                     'customer_id' => $customer->id,
                     'type' => 'Billing',
-                    'address' => $validated['billingAddress'],
+                    //'address' => $validated['billingAddress'],
                 ],
                 [
                     'first_name' => $validated['billingFirstName'],
@@ -125,7 +125,7 @@ class PostController extends Controller
                 $deliveryAddressField = [
                     'customer_id' => $customer->id,
                     'type' => 'Shipping',
-                    'address' => $validated['billingAddress'],
+                    //'address' => $validated['billingAddress'],
                 ];
             } else {
                 $deliveryData = [
@@ -141,7 +141,7 @@ class PostController extends Controller
                 $deliveryAddressField = [
                     'customer_id' => $customer->id,
                     'type' => 'Shipping',
-                    'address' => $validated['deliveryAddress'],
+                    //'address' => $validated['deliveryAddress'],
                 ];
             }
 
@@ -159,6 +159,8 @@ class PostController extends Controller
                 'customer_name' => $customer->full_name,
                 'customer_email' => $customer->email,
                 'customer_phone' => $customer->phone,
+                'company_name' => $customer->company_name,
+                'company_website' => $customer->company_website,
                 'subtotal' => $cartSummary['sub_total'],
                 'tax_amount' => $cartSummary['tax_total'],
                 'coupon_code' => null,

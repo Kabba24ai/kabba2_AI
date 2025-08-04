@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="bg-white py-10 px-4 md:px-10 pt-130 pb-60">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]"> 
+        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="flex flex-col md:flex-row gap-2">
                 <!-- LEFT SECTION: Confirmation + Customer Info -->
                 <div class="w-full md:w-1/2 md:border-r px-0 lg:px-4 md:pr-8 pb-12 space-y-6">
@@ -23,24 +23,25 @@
                     <div class="space-y-2">
                         <h3 class="text-lg font-semibold">Customer information</h3>
                         <div class="flex">
+                            <span class="font-normal w-40 flex-shrink-0">Order Number:</span>
+                            <span class="text-custom-blue">{{ $order->order_number ?? '' }}</span>
+                        </div>
+                        <div class="flex">
                             <span class="font-normal w-40 flex-shrink-0">Full name:</span>
-                            <span class="text-custom-blue">{{ $order->customer_name ?? '' }}</span>
+                            <span class="text-custom-blue">{{ $order->shippingAddress->full_name ?? '' }}</span>
                         </div>
                         <div class="flex">
                             <span class="font-normal w-40 flex-shrink-0">Phone:</span>
-                            <span class="text-custom-blue">{{ $order->customer_phone ?? '' }}</span>
+                            <span class="text-custom-blue">{{ $order->shippingAddress->phone ?? '' }}</span>
                         </div>
                         <div class="flex">
                             <span class="font-normal w-40 flex-shrink-0">Email:</span>
-                            <span class="text-custom-blue break-all w-full sm:w-auto">{{ $order->customer_email ?? '' }}</span>
+                            <span class="text-custom-blue break-all w-full sm:w-auto">{{ $order->shippingAddress->email ?? '' }}</span>
                         </div>
                         <div class="flex">
                             <span class="font-normal w-40 flex-shrink-0">Address:</span>
                             <span class="text-custom-blue text-justify">
-                                {{ $order->shippingAddress->address ?? '' }}<br>
-                                {{ $order->shippingAddress->city ?? '' }},
-                                {{ $order->shippingAddress->state ?? '' }}<br>
-                                {{ $order->shippingAddress->zip_code ?? '' }}
+                                {{ $order->shippingAddress->full_address ?? '' }}
                             </span>
                         </div>
                         <div class="flex">

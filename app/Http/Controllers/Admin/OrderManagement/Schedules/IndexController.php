@@ -24,20 +24,21 @@ class IndexController extends Controller
         $query = OrderProduct::query()->with('order', 'order.customer', 'order.shippingAddress', 'order.lastPayment')->where('product_data->product_type', 'Rental')->whereNotNull('delivery_date');
 
         if ($request->filled('customer_name')) {
-            $query->whereHas('order', function ($q) use ($request) {
-                $q->where('customer_name', 'like', '%' . $request->customer_name . '%');
+            $query->whereHas('order.shippingAddress', function ($q) use ($request) {
+                $q->where('first_name', 'like', '%' . $request->customer_name . '%')
+                  ->orWhere('last_name', 'like', '%' . $request->customer_name . '%');
             });
         }
 
         if ($request->filled('customer_company_name')) {
-            $query->whereHas('order.customer', function ($q) use ($request) {
+            $query->whereHas('order', function ($q) use ($request) {
                 $q->where('company_name', 'like', '%' . $request->customer_company_name . '%');
             });
         }
 
         if ($request->filled('customer_phone')) {
-            $query->whereHas('order', function ($q) use ($request) {
-                $q->where('customer_phone', 'like', '%' . $request->customer_phone . '%');
+            $query->whereHas('order.shippingAddress', function ($q) use ($request) {
+                $q->where('phone', 'like', '%' . $request->customer_phone . '%');
             });
         }
 

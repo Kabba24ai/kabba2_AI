@@ -23,17 +23,25 @@ class IndexController extends Controller
         $query = Order::query()->with('shippingAddress', 'products.product.categories', 'lastPayment');
 
         if ($request->filled('customer_name')) {
-            $query->where('customer_name', 'like', '%' . $request->customer_name . '%');
+            $query->whereHas('shippingAddress', function ($q) use ($request) {
+                $q->where('first_name', 'like', '%' . $request->customer_name . '%')
+                  ->orWhere('last_name', 'like', '%' . $request->customer_name . '%');
+            });
+            // $query->where('customer_name', 'like', '%' . $request->customer_name . '%');
         }
 
         if ($request->filled('customer_company_name')) {
-            $query->whereHas('customer', function ($q) use ($request) {
-                $q->where('company_name', 'like', '%' . $request->customer_company_name . '%');
-            });
+            $query->where('company_name', 'like', '%' . $request->customer_company_name . '%');
+            // $query->whereHas('customer', function ($q) use ($request) {
+            //     $q->where('company_name', 'like', '%' . $request->customer_company_name . '%');
+            // });
         }
 
         if ($request->filled('customer_phone')) {
-            $query->where('customer_phone', 'like', '%' . $request->customer_phone . '%');
+            // $query->where('customer_phone', 'like', '%' . $request->customer_phone . '%');
+            $query->whereHas('shippingAddress', function ($q) use ($request) {
+                $q->where('phone', 'like', '%' . $request->customer_phone . '%');
+            });
         }
 
         if ($request->filled('category')) {
@@ -54,7 +62,7 @@ class IndexController extends Controller
             });
         }
 
-        $orders = $query->latest('id')->paginate(10)->withQueryString(); // keeps filters in pagination links
+        $orders = $query->latest('id')->paginate(1)->withQueryString(); // keeps filters in pagination links
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {

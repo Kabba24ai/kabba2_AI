@@ -25,6 +25,8 @@ class Order extends Model
         'customer_name',
         'customer_email',
         'customer_phone',
+        'company_name',
+        'company_website',
         'subtotal',
         'is_tax_exempt', // Yes, No*
         'tax_amount',

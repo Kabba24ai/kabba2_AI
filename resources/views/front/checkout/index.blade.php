@@ -55,12 +55,16 @@
                     <!-- Address Selection -->
                     @auth('customer')
                         @php
-                            $addresses =
-                                auth('customer')->user()->addresses()->where('type', 'Billing')->get() ?? collect();
-                            $primaryAddress = $addresses->firstWhere('is_primary', true);
+                            // $addresses =
+                            //     auth('customer')->user()->addresses()->where('type', 'Billing')->get() ?? collect();
+                            // $primaryAddress = $addresses->firstWhere('is_primary', true);
+
+                            $primaryAddress = auth('customer')->user()->billingAddress;
+                            $companyName = auth('customer')->user()->company_name ?? null;
+                            $companyWebsite = auth('customer')->user()->company_website ?? null;
                         @endphp
                         <div>
-                            <label for="selAddress" class="block text-sm font-medium text-gray-800 mt-3">
+                            {{-- <label for="selAddress" class="block text-sm font-medium text-gray-800 mt-3">
                                 Select available addresses:
                             </label>
                             <select id="selAddress" name="address_id"
@@ -73,7 +77,7 @@
                                         {{ collect([$addressItem->address, $addressItem->city, $addressItem->state_name, $addressItem->zip_code])->filter()->join(', ') }}
                                     </option>
                                 @endforeach
-                            </select>
+                            </select> --}}
                             <!-- Selected Address Preview -->
                             <div id="selectedAddressPreview"
                                 class="border-2 border-dashed border-green-600 rounded-md p-4 mt-4 relative capitalize bg-green-50/10 {{ $primaryAddress ? '' : 'hidden' }}">
@@ -81,7 +85,7 @@
                                     {{ $primaryAddress ? $primaryAddress->full_name : '' }}
                                 </h5>
                                 <p id="addressFull">
-                                    {{ $primaryAddress? collect([$primaryAddress->addressItem, $primaryAddress->city, $primaryAddress->state_name, $primaryAddress->zip_code])->filter()->join(', '): '' }}
+                                    {{ $primaryAddress? $primaryAddress->full_address : '' }}
                                 </p>
                                 <p class="text-sm" id="addressPhone">
                                     {{ $primaryAddress ? 'Phone: ' . $primaryAddress->phone : '' }}
@@ -149,7 +153,7 @@
                         </div>
                         <div>
                             <label for="billingCompany" class="block text-sm text-gray-600 mb-1">Company Name</label>
-                            {{ html()->text('billingCompany', old('billingCompany', $primaryAddress ? $primaryAddress->company : null))->class(
+                            {{ html()->text('billingCompany', old('billingCompany', $companyName ? $companyName : null))->class(
                                     'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                 )->attributes([
                                     'maxlength' => 240,
@@ -248,7 +252,7 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="billingZip" class="block text-sm text-gray-600 mb-1">ZIp Code</label>
+                                <label for="billingZip" class="block text-sm text-gray-600 mb-1">Zip Code</label>
                                 {{ html()->text('billingZip', old('billingZip', $primaryAddress ? $primaryAddress->zip_code : null))->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([

@@ -100,143 +100,145 @@
 
 @push('js')
     <script>
-        function initOrderCheckboxes() {
-            const selectAllCheckbox = document.getElementById('select-all-checkbox');
-            const orderCheckboxes = document.querySelectorAll('.order-checkbox');
-            const deleteBtn = document.getElementById('delete-selected-btn');
-            const deleteCountSpan = document.getElementById('delete-selected-count');
-
-            function updateDeleteBtnCount() {
-                const orderCheckboxes = document.querySelectorAll('.order-checkbox');
-                const count = [...orderCheckboxes].filter(cb => cb.checked).length;
-                deleteCountSpan.textContent = count;
-
-                if (deleteBtn) {
-                    if (count === 0) {
-                        deleteBtn.disabled = true;
-                        deleteBtn.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
-                        deleteBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-                    } else {
-                        deleteBtn.disabled = false;
-                        deleteBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-                        deleteBtn.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
-                    }
-                }
-            }
-
-            // Select all functionality
-            if (selectAllCheckbox) {
-                selectAllCheckbox.addEventListener('change', function() {
-                    orderCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-                    updateDeleteBtnCount();
-                });
-            }
-            // Update 'Select All' checkbox if any item is unchecked
-            orderCheckboxes.forEach(cb => {
-                cb.addEventListener('change', function() {
-                    if (selectAllCheckbox) {
-                        selectAllCheckbox.checked = [...orderCheckboxes].every(cb => cb.checked);
-                    }
-                    updateDeleteBtnCount();
-                });
-            });
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function() {
-                    const orderCheckboxes = document.querySelectorAll('.order-checkbox');
-                    const ids = [...orderCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
-
-                    if (ids.length === 0) {
-                        notyf.error('Please select at least one order to delete.', 'No orders selected!');
-                        return;
-                    }
-
-                    window.showConfirm(
-                        `Delete ${ids.length} order(s)? This action cannot be undone!`,
-                        'Delete Orders'
-                    ).then((result) => {
-                        if (result.isConfirmed) {
-                            apiFetch("{{ route('admin.order-management.orders.bulk-delete') }}", {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': document.querySelector(
-                                            'meta[name="csrf-token"]').getAttribute(
-                                            'content')
-                                    },
-                                    body: JSON.stringify({
-                                        unique_ids: ids
-                                    })
-                                })
-                                .then(data => {
-                                    if (data.success || (data.message && data.message
-                                            .toLowerCase().includes('deleted'))) {
-                                        notyf.success(data.message,
-                                            'Deleted!');
-                                        // Remove rows
-                                        ids.forEach(function(id) {
-                                            const row = document.getElementById(
-                                                'order-row-' + id);
-                                            if (row) row.remove();
-                                        });
-                                        // Reset select all and count
-                                        if (selectAllCheckbox) selectAllCheckbox.checked = false;
-                                        updateDeleteBtnCount();
-                                    } else {
-                                        notyf.error(data.message);
-                                    }
-                                })
-                        }
-                    });
-                });
-            }
-
-            updateDeleteBtnCount();
-        }
-
-        function initSingleDeleteButtons() {
-            const singleDeleteButtons = document.querySelectorAll('.delete-button');
-
-            singleDeleteButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const uniqueId = this.dataset.uniqueId;
-
-                    window.showConfirm(
-                        `Delete this order? This action cannot be undone!`,
-                        'Delete Order'
-                    ).then((result) => {
-                        if (result.isConfirmed) {
-                            fetch("{{ route('admin.order-management.orders.bulk-delete') }}", {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': document.querySelector(
-                                            'meta[name="csrf-token"]').getAttribute(
-                                            'content')
-                                    },
-                                    body: JSON.stringify({
-                                        unique_ids: [uniqueId] // send as an array
-                                    })
-                                })
-                                .then(res => res.json())
-                                .then(data => {
-                                    if (data.success || (data.message && data.message
-                                            .toLowerCase().includes('deleted'))) {
-                                        notyf.success(data.message, 'Deleted!');
-                                        const row = document.getElementById('order-row-' +
-                                            uniqueId);
-                                        if (row) row.remove();
-                                    } else {
-                                        notyf.error(data.message);
-                                    }
-                                })
-                        }
-                    });
-                });
-            });
-        }
 
 
         document.addEventListener('DOMContentLoaded', function() {
+            function initOrderCheckboxes() {
+                const selectAllCheckbox = document.getElementById('select-all-checkbox');
+                const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+                const deleteBtn = document.getElementById('delete-selected-btn');
+                const deleteCountSpan = document.getElementById('delete-selected-count');
+
+                function updateDeleteBtnCount() {
+                    const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+                    const count = [...orderCheckboxes].filter(cb => cb.checked).length;
+                    deleteCountSpan.textContent = count;
+
+                    if (deleteBtn) {
+                        if (count === 0) {
+                            deleteBtn.disabled = true;
+                            deleteBtn.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                            deleteBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                        } else {
+                            deleteBtn.disabled = false;
+                            deleteBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                            deleteBtn.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                        }
+                    }
+                }
+
+                // Select all functionality
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.addEventListener('change', function() {
+                        orderCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+                        updateDeleteBtnCount();
+                    });
+                }
+                // Update 'Select All' checkbox if any item is unchecked
+                orderCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        if (selectAllCheckbox) {
+                            selectAllCheckbox.checked = [...orderCheckboxes].every(cb => cb.checked);
+                        }
+                        updateDeleteBtnCount();
+                    });
+                });
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function() {
+                        const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+                        const ids = [...orderCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
+
+                        if (ids.length === 0) {
+                            notyf.error('Please select at least one order to delete.', 'No orders selected!');
+                            return;
+                        }
+
+                        window.showConfirm(
+                            `Delete ${ids.length} order(s)? This action cannot be undone!`,
+                            'Delete Orders'
+                        ).then((result) => {
+                            if (result.isConfirmed) {
+                                apiFetch("{{ route('admin.order-management.orders.bulk-delete') }}", {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector(
+                                                'meta[name="csrf-token"]').getAttribute(
+                                                'content')
+                                        },
+                                        body: JSON.stringify({
+                                            unique_ids: ids
+                                        })
+                                    })
+                                    .then(data => {
+                                        if (data.success || (data.message && data.message
+                                                .toLowerCase().includes('deleted'))) {
+                                            notyf.success(data.message,
+                                                'Deleted!');
+                                            // Remove rows
+                                            ids.forEach(function(id) {
+                                                const row = document.getElementById(
+                                                    'order-row-' + id);
+                                                if (row) row.remove();
+                                            });
+                                            // Reset select all and count
+                                            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+                                            updateDeleteBtnCount();
+                                            fetchOrders();
+                                        } else {
+                                            notyf.error(data.message);
+                                        }
+                                    })
+                            }
+                        });
+                    });
+                }
+
+                updateDeleteBtnCount();
+            }
+
+            function initSingleDeleteButtons() {
+                const singleDeleteButtons = document.querySelectorAll('.delete-button');
+
+                singleDeleteButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const uniqueId = this.dataset.uniqueId;
+
+                        window.showConfirm(
+                            `Delete this order? This action cannot be undone!`,
+                            'Delete Order'
+                        ).then((result) => {
+                            if (result.isConfirmed) {
+                                fetch("{{ route('admin.order-management.orders.bulk-delete') }}", {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector(
+                                                'meta[name="csrf-token"]').getAttribute(
+                                                'content')
+                                        },
+                                        body: JSON.stringify({
+                                            unique_ids: [uniqueId] // send as an array
+                                        })
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.success || (data.message && data.message
+                                                .toLowerCase().includes('deleted'))) {
+                                            notyf.success(data.message, 'Deleted!');
+                                            const row = document.getElementById('order-row-' +
+                                                uniqueId);
+                                            if (row) row.remove();
+                                        } else {
+                                            notyf.error(data.message);
+                                        }
+                                    })
+                            }
+                        });
+                    });
+                });
+            }
+
             initOrderCheckboxes();
             initSingleDeleteButtons();
 

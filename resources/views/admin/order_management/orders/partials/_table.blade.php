@@ -30,24 +30,24 @@
                         {!! $order->view_link !!}
                     </td>
                     <td class="px-4 py-3">
-                        <div class="font-medium">{{ $order->customer_name }}</div>
-                        <div class="text-gray-500 text-xs">{{ $order->customer?->unique_id ?? '-' }}</div>
+                        <div class="font-medium">{{ $order->shippingAddress->full_name }}</div>
+                        <div class="text-gray-500 text-xs">{{ $order->customer?->unique_id }}</div>
                     </td>
                     <td class="px-4 py-3">
-                        {{ $order->customer->company_name }}
+                        {{ $order->company_name }}
 
-                        @if (!empty($order->customer->company_website))
-                            <a href="{{ $order->customer->company_website }}" target="_blank">
+                        @if (!empty($order->company_website))
+                            <a href="{{ $order->company_website }}" target="_blank">
                                 <div class="text-sm text-brand-500 flex items-center gap-1">
                                     <x-heroicon-o-globe-alt class="w-4 h-4 text-brand-400" />
-                                    <span>{{ $order->customer->company_website }}</span>
+                                    <span>{{ $order->company_website }}</span>
                                 </div>
                             </a>
                         @endif
                     </td>
                     <td class="px-4 py-3 truncate min-w-3xs max-w-3xs text-left">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
                     <td class="px-4 py-3 truncate min-w-xs max-w-xs ">{{ $order->shippingAddress->address }}</td>
-                    <td class="px-4 py-3 text-left ">{{ $order->customer_phone }}</td>
+                    <td class="px-4 py-3 text-left ">{{ $order->shippingAddress->phone }}</td>
                     <td class="px-4 py-3 font-semibold text-right">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
                     <td class="px-4 py-3 text-center">

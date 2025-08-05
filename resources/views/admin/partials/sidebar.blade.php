@@ -405,7 +405,50 @@
                         'admin.configurations.*',
                     ]);
 
+                      $PlatformAdministration = Route::is([
+                        'admin.roles.*',
+                    ]);
+
                     @endphp
+
+                     <!-- Platform Administration -->
+                    <li x-data="{ open: {{ $PlatformAdministration ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $PlatformAdministration ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-cog class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Platform Administration</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.roles.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.roles.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-key class="w-5 h-5" /> Roles and Permissions
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </li>
                     <!-- Settings -->
                     <li x-data="{ open: {{ $settingsActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"

@@ -364,7 +364,7 @@
                                                                                             {{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }}
                                                                         </td>
 
-                                                                    <td class="px-4 py-3 text-right whitespace-nowrap">{{ number_format($transaction->balance, 2) }}</td>
+                                                                    <td class="px-4 py-3 text-right whitespace-nowrap">  {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance ?? 0) }} </td>
                                                                     <td class="px-4 py-3 text-blue-600">
                                                                         <div class="flex gap-2 items-center justify-end">
                                                                         

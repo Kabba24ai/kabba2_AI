@@ -79,25 +79,22 @@ class StoreController extends Controller
             // Create the customer
             $customer = Customer::create($customerData);
 
-            if (!empty($validated['alladdresslist'])) {
-                $addresses = json_decode($validated['alladdresslist'], true); 
-            
-                
+           if ($request->has('addresses') && is_array($request->addresses)) {
+    foreach ($request->addresses as $address) {
+        $customer->addresses()->create([
+            'first_name'   => $address['first_name'] ?? null,
+            'last_name'    => $address['last_name'] ?? null,
+            'phone'        => $address['phone'] ?? null,
+            'type'         => $address['type'] ?? null, // "Billing" or "Shipping"
+            'city'         => $address['city'] ?? null,
+            'state_id'     => $address['state_id'] ?? null,
+            'zip_code'     => $address['zip_code'] ?? null,
+            'address'      => $address['address'] ?? null,
+            'is_primary'   => $address['is_primary'] ?? 0,
+        ]);
+    }
+}
 
-                foreach ($addresses as $address) {
-                    $customer->addresses()->create([
-                        'first_name'    => $address['first_name'] ?? null,
-                        'last_name'     => $address['last_name'] ?? null,
-                        'phone'         => $address['phone'] ?? null,
-                        'type'          => $address['type'] ?? null,
-                        'city'          => $address['city'] ?? null,
-                        'state_id'      => $address['state_id'] ?? null,
-                        'zip_code'      => $address['zip_code'] ?? null,
-                        'address'      => $address['address'] ?? null,
-                        'customer_id'   => $customer->id,
-                    ]);
-                }
-            }
             
 
             // Handle tax document upload
@@ -122,7 +119,7 @@ class StoreController extends Controller
             flash('Customer created successfully.')->success();
 
             return match ($request->input('action')) {
-                'save' => redirect()->route('admin.crm.customers.edit', ['unique_id' => $customer->unique_id]),
+                'save' => redirect()->route('admin.crm.customers.index'),
                 'save_new' => redirect()->route('admin.crm.customers.create'),
                 default => redirect()->route('admin.crm.customers.index'),
             };

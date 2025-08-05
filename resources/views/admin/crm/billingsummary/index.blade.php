@@ -148,30 +148,19 @@
                         </div>
 
 
-                    <!-- Balance Sort -->
-                    <div class="flex flex-col billing-summary-w-16">
-                        <label class="text-sm text-gray-500 mb-1">Balance Sort</label>
-                        <select id="balanceSortSelect" class="py-2 px-3 border border-gray-300 rounded-md w-full ">
-                              <option value="">Select Sort</option>
-                            <option value="desc" >Highest to Lowest</option>
-                            <option  value="asc" >Lowest to Highest</option>
+                   <div class="flex flex-col billing-summary-w-16">
+                        <label class="text-sm text-gray-500 mb-1">Sort</label>
+                        <select id="balanceSortSelect" class="py-2 px-3 border border-gray-300 rounded-md w-full">
+                            <option value="balance" selected>Balance: Highest to Lowest</option>
+                            <option value="days">Days Aging : Newest to Oldest</option>
                         </select>
                     </div>
+
 
                 </div>
             </div>
 
-            <!-- <div id="customer-loader" class="hidden text-center py-4">
-                <svg class="animate-spin h-6 w-6 text-brand-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                            stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-                <p class="text-sm text-gray-500 mt-2">Loading customers...</p>
-            </div> -->
-
+          
             <div id="customer-table-wrapper">
                 @include('admin.crm.billingsummary.partials._table', ['customers' => $customers])
             </div>
@@ -216,13 +205,6 @@
                                 }
             });
             
-
-            // if (tax_status !== 'All') params.append('tax_status', tax_status);
-
-            // Show loader
-            // document.querySelector('#customer-loader').classList.remove('hidden');
-            // document.querySelector('#customer-table-wrapper').classList.add('hidden');
-
               // Show loader
                 loader.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
@@ -230,7 +212,7 @@
             fetch("{{ route('admin.crm.billingsummary.index') }}?" + params.toString(), {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-        .then(response => response.json())
+            .then(response => response.json())
             .then(data => {
                 document.querySelector('#customer-table-wrapper').innerHTML = data.html;
                 document.querySelector('#customer-total-count').textContent = data.total;
@@ -280,47 +262,62 @@
     });
     </script>
     <script>
-        function applyBalanceSort() {
-            const table = document.getElementById('customerTable');
-            if (!table) return;
+    function applyBalanceSort() {
+        const table = document.getElementById('customerTable');
+        if (!table) return;
 
-            const tbody = table.querySelector('tbody');
-            const balanceSortSelect = document.getElementById('balanceSortSelect');
-            if (!balanceSortSelect) return;
+        const tbody = table.querySelector('tbody');
+        const sortSelect = document.getElementById('balanceSortSelect');
+        if (!sortSelect) return;
 
-            const originalRows = Array.from(tbody.querySelectorAll('tr')).map(row => row.cloneNode(true));
+        const originalRows = Array.from(tbody.querySelectorAll('tr')).map(row => row.cloneNode(true));
 
-            balanceSortSelect.addEventListener('change', function () {
-                const order = this.value;
+        function extractBalance(row) {
+            // Balance is in the 6th column (index 5)
+            const cell = row.children[4];
+            const text = cell?.textContent?.replace(/[^\d.-]/g, '') || '0';
+            return parseFloat(text) || 0;
+        }
 
-                if (!order) {
-                    tbody.innerHTML = '';
-                    originalRows.forEach(row => tbody.appendChild(row.cloneNode(true)));
-                    return;
-                }
+        function extractDays(row) {
+            // Days is in the 9th column (index 8)
+            const cell = row.children[8];
+            const match = cell?.textContent?.match(/(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+        }
 
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                const extractBalance = row => {
-                    const balanceCell = row.children[4];
-                    const text = balanceCell.textContent.replace(/[^\d.-]/g, '');
-                    return parseFloat(text) || 0;
-                };
+        function sortRows(type) {
+        const rows = [...originalRows];
 
-                rows.sort((a, b) => {
-                    const aVal = extractBalance(a);
-                    const bVal = extractBalance(b);
-                    return order === 'asc' ? aVal - bVal : bVal - aVal;
-                });
+        if (type === 'balance') {
+            rows.sort((a, b) => extractBalance(b) - extractBalance(a)); // Desc
+        } else if (type === 'days') {
+            rows.sort((a, b) => {
+                const aDays = extractDays(a);
+                const bDays = extractDays(b);
 
-                tbody.innerHTML = '';
-                rows.forEach(row => tbody.appendChild(row));
+                const aVal = aDays === 0 ? Number.MAX_SAFE_INTEGER : aDays;
+                const bVal = bDays === 0 ? Number.MAX_SAFE_INTEGER : bDays;
+
+                return aVal - bVal;
             });
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            applyBalanceSort(); // Call on initial page load
-        });
-    </script>
+        tbody.innerHTML = '';
+        rows.forEach(row => tbody.appendChild(row.cloneNode(true)));
+    }
 
+
+        // Default sort by balance on load
+        sortRows('balance');
+
+        // Handle user selection
+        sortSelect.addEventListener('change', function () {
+            sortRows(this.value);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", applyBalanceSort);
+</script>
 
 @endpush

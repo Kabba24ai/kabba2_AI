@@ -2,6 +2,7 @@
 
 namespace App\Models\Orders;
 
+use App\Enums\Orders\OrderMediaType;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
@@ -103,6 +104,16 @@ class Order extends Model
         return $this->hasMany(OrderNote::class, 'order_id')->latest('id');
     }
 
+    public function media()
+    {
+        return $this->hasMany(OrderMedia::class, 'order_id');
+    }
+
+    public function licenseMedia()
+    {
+        return $this->hasMany(OrderMedia::class, 'order_id')->where('type', OrderMediaType::LICENSE);
+    }
+
     // Polymorphic relations for created_by and updated_by
     public function createdBy()
     {
@@ -131,6 +142,12 @@ class Order extends Model
             $currentDateTime = Carbon::now();
             $model->order_date = $currentDateTime->format(config('app.date.db_date_format'));
             $model->order_time = $currentDateTime->format('H:i:s');
+        });
+
+        static::deleting(function ($model) {
+            $model->media->each(function ($child) {
+                $child->delete(); // Triggers deleting event on OrderMedia
+            });
         });
     }
 

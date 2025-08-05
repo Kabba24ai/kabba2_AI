@@ -2,6 +2,7 @@
 
 namespace App\Models\Orders;
 
+use App\Enums\Orders\OrderMediaType;
 use Illuminate\Database\Eloquent\Model;
 
 // Helpers
@@ -65,6 +66,16 @@ class OrderProduct extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function deliveryMedia()
+    {
+        return $this->hasMany(OrderMedia::class)->where('type', OrderMediaType::DELIVERY);
+    }
+
+    public function pickupMedia()
+    {
+        return $this->hasMany(OrderMedia::class)->where('type', OrderMediaType::PICKUP);
     }
 
     protected static function boot()

@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 // Controllers
 use App\Http\Controllers\Api\Admin\V1\Orders\IndexController;
 use App\Http\Controllers\Api\Admin\V1\Orders\ShowController;
+use App\Http\Controllers\Api\Admin\V1\Orders\UploadMediaController;
+use App\Http\Controllers\Api\Admin\V1\Orders\RemoveMediaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,7 +19,9 @@ use App\Http\Controllers\Api\Admin\V1\Orders\ShowController;
 |
 */
 
-Route::group(['prefix' => 'orders'], function ($router) {
+Route::group(['prefix' => 'orders'], function () {
     Route::post('/', IndexController::class);
     Route::post('/details', ShowController::class);
+    Route::post('/upload-media', UploadMediaController::class);
+    Route::post('/remove-media', RemoveMediaController::class);
 });

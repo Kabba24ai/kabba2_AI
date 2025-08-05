@@ -2,9 +2,12 @@
 
 namespace App\Http\Resources\Api\Admin\V1\OrderProducts;
 
-use App\Helpers\CustomHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+
+use App\Helpers\CustomHelper;
+
+use App\Http\Resources\Api\Admin\V1\OrderMedias\ListResource as OrderMediasListResource;
 
 class ListResource extends JsonResource
 {
@@ -38,12 +41,15 @@ class ListResource extends JsonResource
             'delivery_date' => CustomHelper::formatDate($this->delivery_date) ?? '',
             'delivery_time' => CustomHelper::formatTime($this->delivery_time) ?? '',
 
+            'delivery_media' => OrderMediasListResource::collection($this->deliveryMedia ?? []),
             'pickup_status' => $this->pickup_status ?? '',
             'pickup_transport_mode' => $this->pickup_transport_mode ?? '',
             'pickup_store_id' => $this->pickup_store_id ?? '',
             'pickup_date' => CustomHelper::formatDate($this->pickup_date) ?? '',
             'pickup_time' => CustomHelper::formatTime($this->pickup_time) ?? '',
             'pickup_by' => $this->pickup_by ?? '',
+
+            'pickup_media' => OrderMediasListResource::collection($this->pickupMedia ?? []),
         ];
 
         return $return;

@@ -110,6 +110,8 @@
                         </div>
                         @php
                             $primaryAddress = null;
+                            $companyName = null;
+                            $companyWebsite = null;
                         @endphp
                     @endauth
                     <!-- Tax Exempt -->

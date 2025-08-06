@@ -84,7 +84,7 @@ class Product extends Model
     // Scopes
     public function scopeOrder($query)
     {
-        return $query->orderBy('sort_order', 'ASC');
+        return $query->orderBy('product_name', 'ASC');
     }
 
     public function scopePublished($query)

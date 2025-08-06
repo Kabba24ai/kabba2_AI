@@ -31,6 +31,7 @@ class ProductCategory extends Model
         'created_by',
         'updated_by',
     ];
+
     protected $table = 'product_categories';
 
     public function sluggable(): array

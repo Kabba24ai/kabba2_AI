@@ -39,6 +39,7 @@ class ListResource extends JsonResource
             'license' => OrderMediasListResource::collection($this->licenseMedia ?? []),
             'order_products' => OrderProductsListResource::collection($this->products) ?? [],
             'order_notes' => OrderNotesListResource::collection($this->notes) ?? [],
+
         ];
 
         return $return;

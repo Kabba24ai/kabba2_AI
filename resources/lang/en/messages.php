@@ -20,6 +20,8 @@ return [
                 'auth' => require base_path('resources/lang/en/api/admin/v1/auth/messages.php'),
                 'orders' => require base_path('resources/lang/en/api/admin/v1/orders/messages.php'),
                 'users' => require base_path('resources/lang/en/api/admin/v1/users/messages.php'),
+                'products' => require base_path('resources/lang/en/api/admin/v1/products/messages.php'),
+                'product_categories' => require base_path('resources/lang/en/api/admin/v1/product_categories/messages.php'),
             ],
         ],
     ],

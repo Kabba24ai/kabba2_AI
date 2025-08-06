@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\Admin\V1\Orders\IndexController;
 use App\Http\Controllers\Api\Admin\V1\Orders\ShowController;
 use App\Http\Controllers\Api\Admin\V1\Orders\UploadMediaController;
 use App\Http\Controllers\Api\Admin\V1\Orders\RemoveMediaController;
+use App\Http\Controllers\Api\Admin\V1\Orders\Notes\StoreController;
+use App\Http\Controllers\Api\Admin\V1\Orders\Notes\UpdateController;
+use App\Http\Controllers\Api\Admin\V1\Orders\Notes\RemoveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,4 +27,10 @@ Route::group(['prefix' => 'orders'], function () {
     Route::post('/details', ShowController::class);
     Route::post('/upload-media', UploadMediaController::class);
     Route::post('/remove-media', RemoveMediaController::class);
+
+    Route::group(['prefix' => 'notes'], function () {
+        Route::post('/create', StoreController::class);
+        Route::post('/update', UpdateController::class);
+        Route::post('/remove', RemoveController::class);
+    });
 });

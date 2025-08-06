@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Http\Resources\Api\Admin\V1\OrderNotes;
+
+use App\Helpers\CustomHelper;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class ListResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray(Request $request)
+    {
+        $return = [
+            'id' => $this->id ?? 0,
+            'unique_id' => $this->unique_id ?? 0,
+            'note' => $this->note ?? '',
+            'created_by' => $this->createdBy ? $this->createdBy->full_name ?? 'Unknown' : '',
+            'created_at' => $this->createdBy ? CustomHelper::formatDateTime($this->created_at) : '',
+            'updated_by' => $this->updatedBy ? $this->updatedBy->full_name ?? 'Unknown' : '',
+            'updated_at' => $this->updatedBy ? CustomHelper::formatDateTime($this->updated_at) : '',
+        ];
+
+        return $return;
+    }
+}

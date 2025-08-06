@@ -18,7 +18,6 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\StoreController as N
 use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\UpdateController as NotesUpdateController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\DeleteController as NotesDeleteController;
 
-
 Route::prefix('orders')
     ->name('orders.')
     ->group(function () {
@@ -36,12 +35,7 @@ Route::prefix('orders')
 
         Route::put('/{unique_id}/add-to-account', AddToAccountPaymentController::class)->name('add-to-account');
 
-
         Route::post('/{unique_id}/update-address', UpdateOrderAddressController::class)->name('update-address');
-
-
-
-
 
         // // Delete
         Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');
@@ -53,5 +47,5 @@ Route::prefix('orders')
                 Route::post('/{unique_id}', NotesStoreController::class)->name('store');
                 Route::put('/{unique_id}/{note_unique_id}/update', NotesUpdateController::class)->name('update');
                 Route::delete('/{unique_id}/{note_unique_id}', NotesDeleteController::class)->name('delete');
-            });
-    });
+        });
+});

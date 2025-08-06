@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin\V1\Orders;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\RemoveMediaRequest;
@@ -31,7 +32,7 @@ class RemoveMediaController extends Controller
             return response()->json(['message' => trans('messages.api.admin.v1.orders.media_remove_success')]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => trans('messages.api.admin.v1.orders.media_remove_failed') . ': ' . $e->getMessage()], 500);
+            return response()->json(['error' => trans('messages.api.admin.v1.orders.media_remove_failed') . ': ' . $e->getMessage()], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 // Helpers
 use App\Helpers\MediaHelper;
+use Illuminate\Http\JsonResponse;
 
 // Enums
 use App\Enums\Orders\OrderMediaType;
@@ -15,6 +16,7 @@ use App\Http\Requests\Api\Admin\V1\Orders\UploadMediaRequest;
 
 // Models
 use App\Models\Orders\Order;
+
 
 class UploadMediaController extends Controller
 {
@@ -68,7 +70,7 @@ class UploadMediaController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => trans('messages.api.admin.v1.orders.media_upload_failed') . ': ' . $e->getMessage()], 500);
+            return response()->json(['error' => trans('messages.api.admin.v1.orders.media_upload_failed') . ': ' . $e->getMessage()], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

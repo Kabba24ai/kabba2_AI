@@ -9,5 +9,10 @@ return [
     'media_upload_failed' => 'Failed to upload media',
     'media_remove_success' => 'Media removed successfully',
     'media_remove_failed' => 'Failed to remove media',
+    'note_created' => 'Note created successfully',
+    'note_not_found' => 'Note not found',
+    'note_deleted' => 'Note deleted successfully',
+    'note_update_success' => 'Note updated successfully',
+    'note_update_failed' => 'Failed to update note',
 ];
 

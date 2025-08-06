@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 use App\Http\Resources\Api\Admin\V1\OrderMedias\ListResource as OrderMediasListResource;
+use App\Http\Resources\Api\Admin\V1\OrderNotes\ListResource as OrderNotesListResource;
 use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource as OrderProductsListResource;
 
 class ListResource extends JsonResource
@@ -37,6 +38,7 @@ class ListResource extends JsonResource
 
             'license' => OrderMediasListResource::collection($this->licenseMedia ?? []),
             'order_products' => OrderProductsListResource::collection($this->products) ?? [],
+            'order_notes' => OrderNotesListResource::collection($this->notes) ?? [],
         ];
 
         return $return;

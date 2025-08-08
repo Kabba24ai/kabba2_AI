@@ -80,12 +80,19 @@
                     <!-- <span class="bg-red-100 text-red-800 px-2 py-0.5 rounded-full">inactive</span> -->
                 @endif
 
-                            @php
-                                $payType = $user->pay_type ? \App\Enums\UserPayType::from($user->pay_type) : null;
+                           @php
+                                $payTypeLabels = [
+                                    'Hourly' => 'Hourly Pay',
+                                    'Salary' => 'Salary Pay',
+                                ];
+                                $payTypeLabel = $user->pay_type && isset($payTypeLabels[$user->pay_type])
+                                    ? $payTypeLabels[$user->pay_type]
+                                    : null;
                             @endphp
-                            @if ($payType)
+
+                            @if ($payTypeLabel)
                                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {{ $payType->label() }}
+                                    {{ $payTypeLabel }}
                                 </span>
                             @endif
 

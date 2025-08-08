@@ -33,14 +33,15 @@
                                                
                                                 {{-- Pay Type Badge --}}
                                                     @php
-                                                        $payType = $user->pay_type ? \App\Enums\UserPayType::from($user->pay_type) : null;
-                                                    @endphp
+                                                        $payTypeLabels = [
+                                                            'Hourly' => 'Hourly Pay',
+                                                            'Salary' => 'Salary Pay',
+                                                        ];
 
-                                                    @if ($payType)
-                                                        <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                                                            {{ $payType->label() }}
-                                                        </span>
-                                                    @endif
+                                                        $payTypeLabel = $user->pay_type && isset($payTypeLabels[$user->pay_type])
+                                                            ? $payTypeLabels[$user->pay_type]
+                                                            : null;
+                                                    @endphp
 
                                             </div>
 

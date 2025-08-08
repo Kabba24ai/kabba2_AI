@@ -257,16 +257,7 @@
             <!-- Pay Type -->
             <div>
                 <label for="payType" class="text-xs text-gray-500 font-medium">Pay Type</label>
-                     <!-- {!! html()
-                        ->select('payType', \App\Enums\UserPayType::options(), old('payType', $user->pay_type ?? ''))
-                        ->id('payType')
-                        ->class([
-                            'w-full pl-2 pr-2 py-2 border rounded-md text-sm',
-                            'border-red-500' => $errors->has('payType'),
-                            'border-gray-300' => !$errors->has('payType'),
-                        ])
-                        ->required()
-                    !!} -->
+                     
                     {!! html()
                     ->select('payType', ['Hourly' => 'Hourly Pay', 'Salary' => 'Salary Pay'], old('payType', $user->pay_type ?? ''))->id('payType')
                         ->class([

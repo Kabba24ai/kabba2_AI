@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use App\Models\Locations\State;
 
+use App\Models\Iam\AccessControl\Role;
 
 class CreateUserController extends Controller
 {
@@ -19,6 +21,13 @@ class CreateUserController extends Controller
     public function __invoke(Request $request)
     {
 
-        return view('admin.roles.create-user');
+         $states = State::get();
+
+          $roles = Role::get();
+
+        return view('admin.roles.create-user', [
+            'states' => $states,
+            'roles' => $roles,
+        ]);
     }
 }

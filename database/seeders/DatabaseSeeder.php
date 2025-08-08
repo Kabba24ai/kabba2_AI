@@ -6,6 +6,9 @@ use Illuminate\Database\Seeder;
 
 // Seeders
 use Database\Seeders\Configurations\SettingSeeder;
+use Database\Seeders\Configurations\ColorSeeder;
+
+
 use Database\Seeders\Iam\ModuleSeeder;
 use Database\Seeders\Iam\RoleSeeder;
 
@@ -27,5 +30,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SettingSeeder::class); // fourth to create settings
         $this->call(StateSeeder::class); // fourth to create settings
         $this->call(StoreSeeder::class); // fourth to create settings
+        $this->call(ColorSeeder::class); // fourth to create settings
+
     }
 }

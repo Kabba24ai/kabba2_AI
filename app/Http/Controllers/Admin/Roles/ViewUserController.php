@@ -8,6 +8,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 // Models
+use App\Models\Locations\State;
+use App\Models\Iam\Personnel\User;
+
 
 
 class ViewUserController extends Controller
@@ -18,11 +21,18 @@ class ViewUserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(Request $request)
+    public function __invoke($unique_id)
     {
+          $states = State::get();
 
-       
+        // Fetch the user data based on unique_id or any other identifier
 
-        return view('admin.roles.view-user');
+        $user = User::with('roles')->where('unique_id', $unique_id)->first();
+
+         return view('admin.roles.view-user', [
+            'states' => $states,
+            'user' => $user,
+        ]);
+
     }
 }

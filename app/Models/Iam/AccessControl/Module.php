@@ -19,7 +19,7 @@ class Module extends Model
         'title',
         'name',
         'model_name',
-        'permissions',
+        'permission_names', // This is the renamed column
         'permission_options',
         'sort_order',
         //

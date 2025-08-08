@@ -21,7 +21,7 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
          $query = Customer::with('orders.payments', 'addresses', 'accounts')
-        ->whereIn('status', ['Active', 'Inactive']);
+        ->whereIn('status', ['Active', 'Archived']);
 
     // Clone the base query for total calculations (before filtering/pagination)
     $baseQuery = clone $query;
@@ -35,7 +35,7 @@ class IndexController extends Controller
                $customer->available_credit_balance > $customer->credit_limit;
     });
 
-    Log::info('overdueCustomers :- ' . $overdueCustomers);
+    // Log::info('overdueCustomers :- ' . $overdueCustomers);
 
     $overdueCustomerCount = $overdueCustomers->count();
 
@@ -62,11 +62,34 @@ class IndexController extends Controller
         }
 
 
-        if ($request->filled('alert_status') && $request->alert_status === 'warning') {
-            $query->whereHas('accounts', function ($q) {
-                $q->where('type', 'payment');
-            });
+        // if ($request->filled('alert_status') && $request->alert_status === 'warning') {
+        //     $query->whereHas('accounts', function ($q) {
+        //         $q->where('type', 'payment');
+        //     });
+        // }
+
+        if ($request->filled('alert_status')) {
+            switch ($request->alert_status) {
+                case 'warning':
+                    $query->whereHas('accounts', function ($q) {
+                        $q->where('type', 'payment');
+                    });
+                    break;
+
+                case 'with_balance':
+                    $query->where('available_credit_balance', '>', 0);
+                    break;
+
+                case 'active':
+                    $query->where('status', 'Active');
+                    break;
+
+                case 'inactive':
+                    $query->where('status', 'Archived');
+                    break;
+            }
         }
+
 
 
         if ($request->filled('credit_types')) {

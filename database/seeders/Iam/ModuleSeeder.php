@@ -30,7 +30,7 @@ class ModuleSeeder extends Seeder
                         'module_name' => 'personnel',
                         'module_title' => 'Personnel',
                         'model_name' => 'User',
-                        'permissions' => [
+                        'permission_names' => [
                             'view' => 'View',
                             'add' => 'Add',
                             'edit' => 'Edit',
@@ -41,7 +41,7 @@ class ModuleSeeder extends Seeder
                         'module_name' => 'roles',
                         'module_title' => 'Roles',
                         'model_name' => 'Role',
-                        'permissions' => [
+                        'permission_names' => [
                             'view' => 'View',
                             'add' => 'Add',
                             'edit' => 'Edit',
@@ -52,7 +52,7 @@ class ModuleSeeder extends Seeder
                         'module_name' => 'modules',
                         'module_title' => 'Modules',
                         'model_name' => 'Module',
-                        'permissions' => [
+                        'permission_names' => [
                             'set_permissions' => 'Set Permissions',
                         ]
                     ],
@@ -68,7 +68,7 @@ class ModuleSeeder extends Seeder
                         'module_name' => 'product_categories',
                         'module_title' => 'Product Categories',
                         'model_name' => 'ProductCategory',
-                        'permissions' => [
+                        'permission_names' => [
                             'view' => 'View',
                             'add' => 'Add',
                             'edit' => 'Edit',
@@ -79,7 +79,7 @@ class ModuleSeeder extends Seeder
                         'module_name' => 'products',
                         'module_title' => 'Products',
                         'model_name' => 'Product',
-                        'permissions' => [
+                        'permission_names' => [
                             'view' => 'View',
                             'add' => 'Add',
                             'edit' => 'Edit',
@@ -144,7 +144,7 @@ class ModuleSeeder extends Seeder
                     $modules_name_arr[] = $module_item->name;
 
 
-                    $module_item->permissions = implode(',', array_keys($module['permissions']));
+                    $module_item->permission_names = implode(',', array_keys($module['permission_names']));
 
                     if ($module_item->isDirty()) {
                         $module_item->need_set_permissions = 'Yes';
@@ -154,8 +154,8 @@ class ModuleSeeder extends Seeder
 
                     $permissions_arr = [];
                     $permission_options = [];
-                    if (is_array($module['permissions']) && count($module['permissions']) > 0) {
-                        foreach ($module['permissions'] as $permission_name => $permission_title) {
+                    if (is_array($module['permission_names']) && count($module['permission_names']) > 0) {
+                        foreach ($module['permission_names'] as $permission_name => $permission_title) {
                             $permission_name = $module['module_name'] . '.' . $permission_name;
                             $permissions_arr[] = $permission_name;
                             $permission_options[] = $permission_name;

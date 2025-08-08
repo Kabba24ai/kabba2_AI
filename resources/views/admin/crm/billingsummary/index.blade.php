@@ -127,8 +127,15 @@
                     <div class="flex flex-col billing-summary-w-13" >
                         <label class="text-sm text-gray-500 mb-1">Alerts</label>
                         <select name="alert_status"  class="py-2 px-3 border border-gray-300 rounded-md w-full ">
+                            <!-- <option value="" selected>All Accounts</option>
+                            <option value="warning">Accounts With Alerts </option> -->
+
                             <option value="" selected>All Accounts</option>
-                            <option value="warning">Alert Only</option>
+                            <option value="warning">Accounts With Alerts</option>
+                            <option value="with_balance">Accounts With Balance</option>
+                            <option value="active">Active Accounts</option>
+                            <option value="inactive">Suspended Accounts</option>
+
                         </select>
                     </div>
 
@@ -152,7 +159,7 @@
                         <label class="text-sm text-gray-500 mb-1">Sort</label>
                         <select id="balanceSortSelect" class="py-2 px-3 border border-gray-300 rounded-md w-full">
                             <option value="balance" selected>Balance: Highest to Lowest</option>
-                            <option value="days">Days Aging : Newest to Oldest</option>
+                            <option value="days">Days Aging: Oldest to Newest</option>
                         </select>
                     </div>
 
@@ -260,6 +267,7 @@
 
 
     });
+
     </script>
     <script>
     function applyBalanceSort() {
@@ -283,7 +291,13 @@
             // Days is in the 9th column (index 8)
             const cell = row.children[8];
             const match = cell?.textContent?.match(/(\d+)/);
-            return match ? parseInt(match[1]) : 0;
+            // return match ? parseInt(match[1]) : 0;
+             const days = match ? parseInt(match[1]) : null;
+
+                 return (days && days !== 0) ? days : null; // Return null if 0 or invalid
+
+
+
         }
 
         function sortRows(type) {
@@ -292,6 +306,7 @@
         if (type === 'balance') {
             rows.sort((a, b) => extractBalance(b) - extractBalance(a)); // Desc
         } else if (type === 'days') {
+            
             rows.sort((a, b) => {
                 const aDays = extractDays(a);
                 const bDays = extractDays(b);
@@ -299,8 +314,12 @@
                 const aVal = aDays === 0 ? Number.MAX_SAFE_INTEGER : aDays;
                 const bVal = bDays === 0 ? Number.MAX_SAFE_INTEGER : bDays;
 
-                return aVal - bVal;
+                // return aVal - bVal;
+                return bVal - aVal; // from newest to oldest
+
             });
+
+
         }
 
         tbody.innerHTML = '';

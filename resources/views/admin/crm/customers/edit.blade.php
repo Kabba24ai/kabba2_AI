@@ -7,8 +7,6 @@
 
 @section('content')
 
-
-
                 @include('flash::message')
                 @include('admin.partials.formErrors')
 

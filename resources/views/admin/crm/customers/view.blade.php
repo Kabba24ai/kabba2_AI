@@ -11,11 +11,33 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Left Section -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+          @php
+            $previousUrl = url()->previous();
+            $previousRouteName = null;
+
+            try {
+                $request = Illuminate\Http\Request::create($previousUrl);
+                $matchedRoute = app('router')->getRoutes()->match($request);
+                $previousRouteName = $matchedRoute->getName();
+            } catch (Exception $e) {
+                // No matching route
+                $previousRouteName = null;
+            }
+        @endphp
+
+        @if ($previousRouteName === 'admin.crm.customers.index')
             <!-- Back to Customers -->
             <a href="{{ route('admin.crm.customers.index') }}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-1" />
                 <span class="text-sm font-medium">Back to Customers</span>
             </a>
+        @elseif ($previousRouteName === 'admin.crm.billingsummary.index')
+            <!-- Back to Billing Summary -->
+            <a href="{{ route('admin.crm.billingsummary.index') }}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
+                <x-heroicon-o-arrow-left class="w-5 h-5 mr-1" />
+                <span class="text-sm font-medium">Back to Billing Summary</span>
+            </a>
+        @endif
 
             <!-- Divider -->
             <div class="hidden sm:block h-6 border-l border-gray-300"></div>
@@ -33,10 +55,7 @@
          <!-- Right Section: Buttons -->
         <div class="flex flex-wrap gap-2">
             <!-- Edit Button -->
-            <!-- <a href="{{ route('admin.crm.customers.edit', $customer->unique_id) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition">
-                <x-heroicon-o-pencil-square class="w-5 h-5 mr-2" />
-                Edit Customer
-            </a> -->
+          
 
             <!-- Delete Button -->
             <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}"

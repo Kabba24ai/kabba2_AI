@@ -20,61 +20,61 @@ class CustomHelper
     }
 
   public static function getAvailableCredit($customer)
-{
-    $creditLimit = $customer->credit_limit ?? 0;
-    $accounts = $customer->accounts ?? [];
+    {
+        $creditLimit = $customer->credit_limit ?? 0;
+        $accounts = $customer->accounts ?? [];
 
-    $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-    $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.00);
+        $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+        $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.00);
 
-    $balanceAdjustment = 0;
+        $balanceAdjustment = 0;
 
-    foreach ($accounts as $account) {
-        $type = strtolower($account->type);
-        $amount = $account->amount;
-        $taxable = $customer->getTaxStatus() === 'Taxable';
-        $tax = 0;
+        foreach ($accounts as $account) {
+            $type = strtolower($account->type);
+            $amount = $account->amount;
+            $taxable = $customer->getTaxStatus() === 'Taxable';
+            $tax = 0;
 
-        switch ($type) {
-            case 'payment':
-                $tax = $taxable ? 0 : 0; // payments have no tax added in available credit
-                $balanceAdjustment += $amount; // payment increases available credit
-                break;
+            switch ($type) {
+                case 'payment':
+                    $tax = $taxable ? 0 : 0; // payments have no tax added in available credit
+                    $balanceAdjustment += $amount; // payment increases available credit
+                    break;
 
-            case 'refund':
-                $tax = $taxable ? $salesTaxRate : 0;
-                $amountWithTax = $amount + ($amount * $tax);
-                $balanceAdjustment += $amountWithTax; // refund increases available credit
-                break;
-
-            case 'discount':
-                $balanceAdjustment += $amount; // discount increases available credit
-                break;
-
-            case 'charge':
-                if ($account->sales_tax_type === 'add') {
-                    $tax = $salesTaxRate;
+                case 'refund':
+                    $tax = $taxable ? $salesTaxRate : 0;
                     $amountWithTax = $amount + ($amount * $tax);
-                } elseif ($account->sales_tax_type === 'reverse') {
-                    $tax = $salesTaxRate;
-                    $amountWithTax = $amount; // tax was already included
-                } else {
-                    $amountWithTax = $amount;
-                }
+                    $balanceAdjustment += $amountWithTax; // refund increases available credit
+                    break;
 
-                $balanceAdjustment -= $amountWithTax; // charge decreases available credit
-                break;
+                case 'discount':
+                    $balanceAdjustment += $amount; // discount increases available credit
+                    break;
 
-            case 'order':
-                $tax = $account->sales_tax ?? 0;
-                $amountWithTax = $amount + ($amount * $tax);
-                $balanceAdjustment -= $amountWithTax; // order decreases available credit
-                break;
+                case 'charge':
+                    if ($account->sales_tax_type === 'add') {
+                        $tax = $salesTaxRate;
+                        $amountWithTax = $amount + ($amount * $tax);
+                    } elseif ($account->sales_tax_type === 'reverse') {
+                        $tax = $salesTaxRate;
+                        $amountWithTax = $amount; // tax was already included
+                    } else {
+                        $amountWithTax = $amount;
+                    }
+
+                    $balanceAdjustment -= $amountWithTax; // charge decreases available credit
+                    break;
+
+                case 'order':
+                    $tax = $account->sales_tax ?? 0;
+                    $amountWithTax = $amount + ($amount * $tax);
+                    $balanceAdjustment -= $amountWithTax; // order decreases available credit
+                    break;
+            }
         }
-    }
 
-    return $creditLimit + $balanceAdjustment;
-}
+        return $creditLimit + $balanceAdjustment;
+    }
 
 
 

@@ -22,7 +22,7 @@
                     <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
 
                     {!! html()->text('first_name', old('first_name', $customer->first_name ?? ''))->class([
-                        'w-full rounded-md border px-3 py-2 text-sm shadow-sm ',
+                        'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500',
                         'border-red-500' => $errors->has('first_name'),
                         'border-gray-300' => !$errors->has('first_name'),
                     ])->attributes([
@@ -43,7 +43,7 @@
                     <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
 
                     {!! html()->text('last_name', old('last_name', $customer->last_name ?? ''))->class([
-                        'w-full rounded-md border px-3 py-2 text-sm shadow-sm ',
+                        'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500',
                         'border-red-500' => $errors->has('last_name'),
                         'border-gray-300' => !$errors->has('last_name'),
                     ])->attributes([
@@ -65,7 +65,7 @@
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
 
                             {!! html()->email('email', old('email', $customer->email ?? ''))->class([
-                            'w-full rounded-md border px-3 py-2 text-sm shadow-sm ',
+                            'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500',
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                         ])->attributes([
@@ -94,7 +94,7 @@
                 <div class="mb-4">
                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                     {!! html()->text('phone', old('phone', $customer->phone ?? ''))->class([
-                        'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                        'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500',
                         'border-red-500' => $errors->has('phone'),
                         'border-gray-300' => !$errors->has('phone'),
                     ])->attributes([
@@ -121,7 +121,7 @@
                         ], old('status', $customer->status ?? ''))
                         ->id('status')
                         ->class([
-                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500',
                             'border-red-500' => $errors->has('status'),
                             'border-gray-300' => !$errors->has('status'),
                         ])
@@ -144,7 +144,7 @@
                 <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
 
                 {!! html()->text('company_name', old('company_name', $customer->company_name ?? ''))->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500',
                     'border-red-500' => $errors->has('company_name'),
                     'border-gray-300' => !$errors->has('company_name'),
                 ])->attributes([
@@ -165,7 +165,7 @@
             <div class="mb-4">
                 <label for="company_phone" class="block text-sm font-medium text-gray-700 mb-1">Company Phone</label>
                 {!! html()->text('company_phone', old('company_phone', $customer->company_phone ?? ''))->class([
-                    'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                    'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500',
                     'border-red-500' => $errors->has('company_phone'),
                     'border-gray-300' => !$errors->has('company_phone'),
                 ])->attributes([
@@ -191,7 +191,7 @@
                         'http://' => 'http://',
                     ], old('website_protocol', $website_protocol))
                     ->class([
-                        'w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm',
+                        'w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500',
                         'border-red-500' => $errors->has('website_protocol'),
                         'border-gray-300' => !$errors->has('website_protocol'),
                     ])
@@ -201,7 +201,7 @@
                 {{-- Website Name --}}
                 {!! html()->text('company_website', old('company_website',$company_website))
                     ->class([
-                        'w-4/6 border rounded-md px-3 py-2 text-sm shadow-sm',
+                        'w-4/6 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500',
                         'border-red-500' => $errors->has('company_website'),
                         'border-gray-300' => !$errors->has('company_website'),
                     ])
@@ -218,7 +218,7 @@
                         '.gov' => '.gov',
                     ], old('website_extension', $website_extension))
                     ->class([
-                        'w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm',
+                        'w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500',
                         'border-red-500' => $errors->has('website_extension'),
                         'border-gray-300' => !$errors->has('website_extension'),
                     ])
@@ -247,32 +247,32 @@
 
                         <div>
                             <label class="text-sm text-gray-700 mb-1">First Name</label>
-                            <input type="text" name="addresses[0][first_name]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" placeholder="First Name" required>
+                            <input type="text" name="addresses[0][first_name]" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="First Name" required>
                         </div>
 
                         <div>
                             <label class="text-sm text-gray-700 mb-1">Last Name</label>
-                            <input type="text" name="addresses[0][last_name]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" placeholder="Last Name" required>
+                            <input type="text" name="addresses[0][last_name]" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="Last Name" required>
                         </div>
 
                         <div class="md:col-span-2">
                             <label class="text-sm text-gray-700 mb-1">Address</label>
-                            <input type="text" name="addresses[0][address]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" placeholder="Street Address" required>
+                            <input type="text" name="addresses[0][address]" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="Street Address" required>
                         </div>
 
                         <div>
                             <label class="text-sm text-gray-700 mb-1">City</label>
-                            <input type="text" name="addresses[0][city]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" required>
+                            <input type="text" name="addresses[0][city]" class="w-full border rounded-md px-3 py-2 text-sm" required>
                         </div>
 
                         <div>
                             <label class="text-sm text-gray-700 mb-1">Zip Code</label>
-                            <input type="text" name="addresses[0][zip_code]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" maxlength="10" required>
+                            <input type="text" name="addresses[0][zip_code]" class="w-full border rounded-md px-3 py-2 text-sm" maxlength="10" required>
                         </div>
 
                         <div>
                             <label class="text-sm text-gray-700 mb-1">State</label>
-                            <select name="addresses[0][state_id]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" required>
+                            <select name="addresses[0][state_id]" class="w-full border rounded-md px-3 py-2 text-sm" required>
                                 <option value="">-- Select State --</option>
                                 @foreach ($states as $state)
                                     <option value="{{ $state->id }}">{{ $state->name }}</option>
@@ -282,7 +282,7 @@
 
                         <div>
                             <label class="text-sm text-gray-700 mb-1">Phone</label>
-                            <input type="text" name="addresses[0][phone]" class=" masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm" placeholder="(123) 456-7890" required>
+                            <input type="text" name="addresses[0][phone]" class=" masked-phone w-full border rounded-md px-3 py-2 text-sm" placeholder="(123) 456-7890" required>
                         </div>
                     </div>
         </div>
@@ -298,32 +298,32 @@
 
                     <div>
                         <label class="text-sm text-gray-700 mb-1">First Name</label>
-                        <input type="text" name="addresses[1][first_name]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" placeholder="First Name" required>
+                        <input type="text" name="addresses[1][first_name]" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="First Name" required>
                     </div>
 
                     <div>
                         <label class="text-sm text-gray-700 mb-1">Last Name</label>
-                        <input type="text" name="addresses[1][last_name]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" placeholder="Last Name" required>
+                        <input type="text" name="addresses[1][last_name]" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="Last Name" required>
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="text-sm text-gray-700 mb-1">Address</label>
-                        <input type="text" name="addresses[1][address]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" placeholder="Street Address" required>
+                        <input type="text" name="addresses[1][address]" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="Street Address" required>
                     </div>
 
                     <div>
                         <label class="text-sm text-gray-700 mb-1">City</label>
-                        <input type="text" name="addresses[1][city]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" required>
+                        <input type="text" name="addresses[1][city]" class="w-full border rounded-md px-3 py-2 text-sm" required>
                     </div>
 
                     <div>
                         <label class="text-sm text-gray-700 mb-1">Zip Code</label>
-                        <input type="text" name="addresses[1][zip_code]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" maxlength="10" required>
+                        <input type="text" name="addresses[1][zip_code]" class="w-full border rounded-md px-3 py-2 text-sm" maxlength="10" required>
                     </div>
 
                     <div>
                         <label class="text-sm text-gray-700 mb-1">State</label>
-                        <select name="addresses[1][state_id]" class="w-full border rounded-md px-3 py-2 text-sm shadow-sm" required>
+                        <select name="addresses[1][state_id]" class="w-full border rounded-md px-3 py-2 text-sm" required>
                             <option value="">-- Select State --</option>
                             @foreach ($states as $state)
                                 <option value="{{ $state->id }}">{{ $state->name }}</option>
@@ -333,7 +333,7 @@
 
                     <div>
                         <label class="text-sm text-gray-700 mb-1">Phone</label>
-                        <input type="text" name="addresses[1][phone]" class=" masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm" placeholder="(123) 456-7890" required>
+                        <input type="text" name="addresses[1][phone]" class=" masked-phone w-full border rounded-md px-3 py-2 text-sm" placeholder="(123) 456-7890" required>
                     </div>
                 </div>
         </div>
@@ -424,7 +424,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Completed On</label>
 
                         {!! html()->text('account_application_completed', old('account_application_completed', \App\Helpers\CustomHelper::formatDate($customer->account_application_completed ?? null) ?? null))->class([
-                            'w-full border datepicker unded-md px-3 py-2 text-sm rounded-md shadow-sm  bg-white',
+                            'w-full border datepicker unded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 bg-white',
                             'border-red-500' => $errors->has('account_application_completed'),
                             'border-gray-300' => !$errors->has('account_application_completed'),
                         ])->attributes([
@@ -512,7 +512,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Upload Date</label>
 
                         {!! html()->text('tax_document_upload_date', old('tax_document_upload_date', \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) ?? null))->class([
-                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm bg-white datepicker',
+                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 bg-white datepicker',
                             'border-red-500' => $errors->has('tax_document_upload_date'),
                             'border-gray-300' => !$errors->has('tax_document_upload_date'),
                         ])->attributes([
@@ -530,7 +530,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
 
                         {!! html()->text('tax_document_valid_until', old('tax_document_valid_until', \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) ?? null))->class([
-                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm bg-white datepicker',
+                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 bg-white datepicker',
                             'border-red-500' => $errors->has('tax_document_valid_until'),
                             'border-gray-300' => !$errors->has('tax_document_valid_until'),
                         ])->attributes([

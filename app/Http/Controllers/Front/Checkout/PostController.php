@@ -298,22 +298,51 @@ class PostController extends Controller
 
             $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
 
+            // if ($validated['payment'] === 'Account') {
+
+            //     $record = new CustomerAccount();
+            //     $record->customer_id = $customer->id;
+            //     $record->order_id = $order->id;
+            //     $record->balance = $customer->available_credit_balance ?? 0;
+            //     $record->amount = $order->subtotal;
+
+            //     $record->sales_tax = $order->tax_amount > 0 ? $salesTaxSetting?->setting_value : 0.0;
+
+            //     $record->date = now();
+            //     $record->type = 'order';
+
+            //     $record->save();
+
+            //     CustomHelper::updateCreditBalance($record, $order->tax_amount);
+
+            // }
+
             if ($validated['payment'] === 'Account') {
-                $record = new CustomerAccount();
-                $record->customer_id = $customer->id;
-                $record->order_id = $order->id;
-                $record->balance = $customer->available_credit_balance ?? 0;
-                $record->amount = $order->subtotal;
+                $products = $order->products;
 
-                $record->sales_tax = $order->tax_amount > 0 ? $salesTaxSetting?->setting_value : 0.0;
+                foreach ($products as $product) {
+                    $record = new CustomerAccount();
+                    $record->customer_id = $customer->id;
+                    $record->order_id = $order->id;
 
-                $record->date = now();
-                $record->type = 'order';
+                    $record->amount = $product->sub_total ;
+                    // $record->sales_tax = $product->tax ?? 0;
+                    $record->sales_tax = $product->tax > 0 ? $salesTaxSetting?->setting_value : 0.0;
+                    
+                    $record->date = now();
+                    $record->type = 'order';
+                    $record->reason = $product->product_name;
 
-                $record->save();
+                    $record->balance = $customer->available_credit_balance ?? 0; // Optional: adjust this if you need per-product logic
 
-                CustomHelper::updateCreditBalance($record, $order->tax_amount);
+                    $record->save();
+
+                    // Update credit balance per product (optional, depends on logic)
+                    CustomHelper::updateCreditBalance($record, $product->tax ?? 0);
+                }
             }
+
+
 
             if(session()->has('tax_exempt')) {
                 session()->forget('tax_exempt'); // Clear tax exempt session if already set

@@ -28,7 +28,7 @@
                             @if($customer->status!='Archived')
                                 <button onclick="confirmAndSuspend({{ $customer->id }})"  type="button" class="bg-red-600 text-white px-4 py-2 rounded text-sm static-view">Suspend Account</button>
                             @elseif($customer->status!='Active')
-                                <button onclick="confirmAndActive({{ $customer->id }})"  type="button" class="bg-green-600 text-white px-4 py-2 rounded text-sm static-view">Active Account</button>
+                                <button onclick="confirmAndActive({{ $customer->id }})"  type="button" class="bg-green-600 text-white px-4 py-2 rounded text-sm static-view">Activate Account</button>
                             @endif
                             <button type="button" id="openResetPasswordModal" class="bg-yellow-500 text-white px-4 py-2 rounded text-sm static-view">Reset Password</button>
                             <button id="editBtn" type="button" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"> Edit Information</button>    

@@ -405,18 +405,26 @@
                         'admin.configurations.*',
                     ]);
 
-                      $PlatformAdministration = Route::is([
-                        'admin.roles.*',
-                    ]);
+                     
 
                     @endphp
+
+                    @php
+                        $PlatformAdministration = Route::is('admin.hrm.*');
+
+                        $isUsers      = Route::is('admin.hrm.users.*') || Route::is('admin.hrm.*') ;
+                        $isRoles      = Route::is('admin.roles.manage.role') || Route::is('admin.roles.create.role') ;
+                        
+                    @endphp
+
+
 
                      <!-- Platform Administration -->
                     <li x-data="{ open: {{ $PlatformAdministration ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $PlatformAdministration ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-o-cog class="w-6 h-6" />
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Platform Administration</span>
+                            <x-heroicon-o-briefcase class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">HRM</span>
                             <span class="menu-item-arrow"
                                 :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
                                     'lg:hidden' : ''
@@ -439,13 +447,31 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
-                                    <a href="{{ route('admin.roles.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.roles.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-key class="w-5 h-5" /> Roles and Permissions
+                                    <a href="{{ route('admin.hrm.users.index') }}"
+                                    class="menu-dropdown-item group {{ $isUsers ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-users class="w-5 h-5" /> Users Account Settings
+
                                     </a>
                                 </li>
 
+                                <!-- <li>
+                                    <a href="{{ route('admin.hrm.roles.manage.role') }}"
+                                    class="menu-dropdown-item group {{ $isRoles ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-cog class="w-5 h-5 " /> Roles
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascrip:void(0)"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-clipboard-document-check class="w-5 h-5" /> Attenande
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascrip:void(0)"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-document-text class="w-5 h-5" /> Report
+                                    </a>
+                                </li> -->
                             </ul>
                         </div>
                     </li>

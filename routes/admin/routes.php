@@ -51,7 +51,8 @@ Route::name('admin.')->group(function ($router) {
         // Stores
         require base_path('routes/admin/stores/routes.php');
 
-          // Stores
-        require base_path('routes/admin/roles/routes.php');
+        // hrm
+        require base_path('routes/admin/hrm/routes.php');
+
     });
 });

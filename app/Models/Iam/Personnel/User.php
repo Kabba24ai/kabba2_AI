@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Traits\HasPermissions;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Iam\Personnel\EmergencyContact;
 
 // Helpers
 use App\Helpers\ModelHelper;
@@ -23,17 +24,33 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'unique_id',
-        'first_name',
-        'last_name',
-        'email',
-        'password',
-        'status', // 'Active' or 'Inactive'
-    ];
+    'unique_id',
+    'first_name',
+    'middle_name',
+    'last_name',
+    'email',
+    'mobile_phone',
+    'phone_number',
+    'street_address',
+    'city',
+    'state',
+    'zip_code',
+    'country',
+    'start_date',
+    'end_date',
+    'pay_type',
+    'clock_code',
+    'limit_start_time',
+    'limit_end_time',
+    'status', // 'Active' or 'Inactive'
+    'password',
+];
+
 
     protected $appends = [
         'full_name',
-    ];
+        'role_short_names',
+    ];  
 
     /**
      * The attributes that should be hidden for serialization.
@@ -86,4 +103,30 @@ class User extends Authenticatable
     {
         return $this->first_name . ' ' . $this->last_name;
     }
+
+    /**
+     * 
+     * Get the emergency contacts for the user.
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<EmergencyContact>
+     * */
+    public function emergencyContacts()
+    {
+        return $this->hasMany(EmergencyContact::class);
+    }
+
+
+    public function emergencyContactOne()
+    {
+        return $this->hasOne(EmergencyContact::class)->where('contact_index', 1);
+    }
+
+    public function emergencyContactTwo()
+    {
+        return $this->hasOne(EmergencyContact::class)->where('contact_index', 2);
+    }
+public function getRoleShortNamesAttribute(): array
+{
+    return $this->roles->pluck('short_name')->toArray();
+}
+
 }

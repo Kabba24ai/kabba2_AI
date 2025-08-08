@@ -123,7 +123,7 @@
                                         <rect width="20" height="14" x="2" y="5" rx="2" />
                                         <line x1="2" x2="22" y1="10" y2="10" />
                                     </svg>
-                                    Credit / Debit
+                                    Payment
                                 </a>
 
                                 <a href="javascript:void(0)" id="openRefundModal"
@@ -192,6 +192,7 @@
                                 <th class="px-4 py-3">Date</th>
                                 <th class="px-4 py-3">Type</th>
                                 <th class="px-4 py-3  truncate min-w-3xs max-w-3xs">Description</th>
+                                <th class="px-4 py-3 w-40 text-right">Note</th>
                                 <th class="px-4 py-3 w-40 text-right">Amount</th>
                                 <th class="px-4 py-3 w-40 text-right">Sales Tax</th>
                                 <th class="px-4 py-3 w-40 text-right">Balance Change</th>
@@ -257,9 +258,8 @@
 
                             @foreach ($customer->accounts as $transaction)
                                 @php
-                                $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
-                            @endphp
-
+                                    $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
+                                @endphp
                                                     
                             <tr data-status="{{ $transaction->type }}" class="border-b status-row">
                                 <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
@@ -269,12 +269,12 @@
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $style['bg'] }} {{ $style['text'] }}">
                                                 @if ($style['icon'] === 'plus')
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                                                class="lucide lucide-plus w-4 h-4">
-                                                                                <path d="M5 12h14" />
-                                                                                <path d="M12 5v14" />
-                                                                            </svg>
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                        class="lucide lucide-plus w-4 h-4">
+                                                        <path d="M5 12h14" />
+                                                        <path d="M12 5v14" />
+                                                    </svg>
                                                 @elseif ($style['icon'] === 'credit-card')
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -318,13 +318,27 @@
                                                                         </div>
                                                                     </td>
                                                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                                                        <div class="max-w-xs truncate text-gray-700">{{ $transaction->notes ?? 'N/A' }}</div>
+                                                                        <div class="max-w-xs truncate text-gray-700">  
+                                                                    
+                                                                       @if ($transaction->type === 'payment')
+                                                                            {{ $transaction->payment_type ?? 'N/A' }}
+                                                                        @else
+                                                                            {{ $transaction->reason ?? 'N/A' }}
+                                                                        @endif
+                                                                        
+                                                                        <!-- {{ $transaction->notes ?? 'N/A' }} -->
+                                                                    
+                                                                    </div>
                                                                         <div class="text-xs text-gray-500">Ref: {{ $transaction->unique_id }}</div>
                                                                     </td>
                                                                     <!-- Amount Without Tax -->
+
+                                                          <td class="px-4 py-3 text-right whitespace-nowrap">  {{ $transaction->notes ?? 'N/A' }} </td>
+
+
                                                                         <td class="px-4 py-3 text-right"> 
 
-                                                                         @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
+                                                                             @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
                                                                                     {{-- Tax is included in the amount (payment or reverse charge) --}}
                                                                                     {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) / (1 + $transaction->sales_tax)) }}
                                                                                 @else
@@ -487,9 +501,17 @@
                         <!-- <input type="number" placeholder="0.00"
                                 class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
 
-                                  {!! html()->number('amount', old('amount'))
-            ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
-            ->placeholder('0.00')->required() !!}
+                                  {!! html()->text('amount', old('amount'))->attributes([
+                                        'placeholder' => '0',
+                                        'autocomplete' => 'off',
+                                    
+                                        'data-digit-input' => 'true',
+                                        'data-parsley-maxlength' => 8,
+                                        'maxlength' => 8,
+                                    
+                                        ])->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                                    ->placeholder('0.00')->required() 
+                                  !!}
 
 
     
@@ -598,7 +620,13 @@
                             <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
 
-                            {!! html()->number('amount', old('amount'))
+                            {!! html()->text('amount', old('amount'))->attributes([
+                                'placeholder' => '0',
+                                'autocomplete' => 'off',
+                                'data-digit-input' => 'true',
+                                'data-parsley-maxlength' => 8,
+                                'maxlength' => 8,
+                                ])
                             ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
                             ->placeholder('0.00')->required() !!}
 
@@ -715,9 +743,22 @@
                             <span class="absolute inset-y-0 h-[35px] left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
 
-                             {!! html()->number('amount', old('amount'))
+                             <!-- {!! html()->number('amount', old('amount'))
                                 ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
-                                ->placeholder('0.00')->required() !!}
+                                ->placeholder('0.00')->required() !!} -->
+
+                                {!! html()->text('amount' , old('amount') )->attributes([
+                                'placeholder' => '0',
+                                'autocomplete' => 'off',
+                              
+                                'data-digit-input' => 'true',
+                                'data-parsley-maxlength' => 8,
+                                'maxlength' => 8,
+                               
+                                ])->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                                    ->placeholder('0.00')->required()
+                            !!}
+
 
                         </div>
                     </div>
@@ -834,7 +875,15 @@
                             <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
 
-                              {!! html()->number('amount', old('amount'))
+                              {!! html()->text('amount', old('amount'))->attributes([
+                                'placeholder' => '0',
+                                'autocomplete' => 'off',
+                              
+                                'data-digit-input' => 'true',
+                                'data-parsley-maxlength' => 8,
+                                'maxlength' => 8,
+                               
+                                ])
                             ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
                             ->placeholder('0.00')->required() !!}
 

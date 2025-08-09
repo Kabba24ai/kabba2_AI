@@ -17,10 +17,10 @@ use App\Http\Controllers\Admin\Crm\Customers\TaxStatusUpdateController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerStatusUpdateController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentUploadController;
 use App\Http\Controllers\Admin\Crm\Customers\BulkDeleteController;
-
+use App\Http\Controllers\Admin\Crm\Customers\Login\ImpersonateController;
 use App\Http\Controllers\Admin\Crm\Customers\PasswordResetController;
 
-// 
+//
 
 use App\Http\Controllers\Admin\Crm\Customers\LoginController;
 
@@ -48,18 +48,19 @@ Route::prefix('customers')
 
     Route::post('/taxdoc-upload', TaxDocumentUploadController::class)->name('taxdoc.upload');
 
-      // Create
-    Route::get('/create', CreateController::class)->name('create');
-   
     // Delete
     Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 
     Route::delete('/tax-document/{unique_id}', TaxDocumentDeleteController::class)->name('tax-document.delete');
     Route::get('/{unique_id}/login', LoginController::class)->name('login');
 
+    // Impersonate Login
+    Route::post('/impersonate/{unique_id}', ImpersonateController::class)->name('impersonate-login');
+
     Route::post('/password/update', PasswordResetController::class)->name('password.update');
 
-   Route::post('/status-update/{unique_id}', CustomerStatusUpdateController::class)->name('status-update.customer');
+    Route::post('/status-update/{unique_id}', CustomerStatusUpdateController::class)->name('status-update.customer');
+
 
 
     // Delete

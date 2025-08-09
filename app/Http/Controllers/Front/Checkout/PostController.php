@@ -284,6 +284,23 @@ class PostController extends Controller
                     'created_by_type' => Customer::class,
                 ]);
 
+                if(empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
+                    // If payment profile is created, save it to customer's cards
+                    $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
+                    $customer->saveQuietly();
+                }
+
+                if (!empty($paymentResult['payment_profile_id'])) {
+                    $customer->cards()->updateOrCreate([
+                        'payment_profile_id' => $paymentResult['payment_profile_id'],
+                    ], [
+                        'first_name' => $validated['firstName'] ?? null,
+                        'last_name' => $validated['lastName'] ?? null,
+                        'card_number' => $paymentResult['card_number'] ?? null,
+                        'card_type' => $paymentResult['card_type'] ?? null,
+                    ]);
+                }
+
             } else {
                 // If payment type is not card, just create a pending payment record
                 $payment =$order->payments()->create([
@@ -328,7 +345,7 @@ class PostController extends Controller
                     $record->amount = $product->sub_total ;
                     // $record->sales_tax = $product->tax ?? 0;
                     $record->sales_tax = $product->tax > 0 ? $salesTaxSetting?->setting_value : 0.0;
-                    
+
                     $record->date = now();
                     $record->type = 'order';
                     $record->reason = $product->product_name;

@@ -32,6 +32,7 @@ class Customer extends Authenticatable
         'media_id',
         'phone',
         'dob',
+        'authorize_profile_id',
         'status', // Active*, Inactive, Archive
         'is_guest', // true or false
         'tax_status', // Taxable* , Exempt
@@ -151,6 +152,11 @@ class Customer extends Authenticatable
     public function accounts()
     {
         return $this->hasMany(CustomerAccount::class);
+    }
+
+    public function cards()
+    {
+        return $this->hasMany(CustomerCard::class);
     }
 
     public function getPaidSalesAttribute()

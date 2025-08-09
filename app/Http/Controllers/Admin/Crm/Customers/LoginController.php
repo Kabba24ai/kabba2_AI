@@ -14,11 +14,11 @@ class LoginController extends Controller
     public function __invoke(Request $request, $unique_id)
     {
         try {
-          
+
             $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
 
             Auth::guard('customer')->login($customer);
-            $request->session()->regenerate();
+            //$request->session()->regenerate();
 
             return redirect()->route('front.customer.dashboard.index')
             ->with('success', "Logged in as customer using Admin’s panel.");

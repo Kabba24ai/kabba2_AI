@@ -134,7 +134,8 @@
                             signal: controller.signal
                         }
                     );
-                    const matches = await res.json();
+                    const data = await res.json();
+                    const matches = data.products || [];
                     return matches.filter(p =>
                         !selectedProducts.some(sp => sp.id === p.id)
                     );

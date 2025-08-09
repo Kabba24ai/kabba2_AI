@@ -46,7 +46,7 @@ class IndexController extends BaseController
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.orders.orders_found'),
-            'tournaments' => ListResource::collection($orders),
+            'orders' => ListResource::collection($orders),
             'pagination' => [
                 'current_page' => $orders->currentPage(),
                 'last_page'    => $orders->lastPage(),

@@ -96,12 +96,26 @@ class AuthorizeNetService
                 throw new \Exception('Failed to create customer profile: ' . $error);
             }
         } else {
-            // Profile exists, but check if payment profile exists
-            // You might want to check for existing payment profiles or create a new one
-            // For now, let's just return the customerProfileId
+            // Profile exists – look for payment profiles
+            $getProfileRequest = new AnetAPI\GetCustomerProfileRequest();
+            $getProfileRequest->setMerchantAuthentication($this->merchantAuthentication);
+            $getProfileRequest->setCustomerProfileId($profileId);
+
+            $getProfileController = new AnetController\GetCustomerProfileController($getProfileRequest);
+            $getProfileResponse = $getProfileController->executeWithApiResponse($this->getApiEnvironment());
+
+            $paymentProfiles = $getProfileResponse->getProfile()->getPaymentProfiles();
+
+            // You should decide your logic for "matching" (e.g., by last4, or maybe by card fingerprint if available)
+            // For now, let's just take the first one
+            $paymentProfileId = $paymentProfiles && count($paymentProfiles) > 0 ? $paymentProfiles[0]->getCustomerPaymentProfileId() : null;
+
+            // If you want to create a new one (for a new card), you can do so here
+            // (similar code as when you create a new profile, but use CreateCustomerPaymentProfileRequest)
+
             return [
                 'customer_profile_id' => $profileId,
-                'payment_profile_id' => null, // Or fetch the list if you want
+                'payment_profile_id' => $paymentProfileId,
             ];
         }
     }
@@ -211,6 +225,12 @@ class AuthorizeNetService
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
             $transactionResponse = $response->getTransactionResponse();
             // Return known profile/payment ids or extract from response
+            // If payment profile IDs exist, fetch card type & expiry from the profile
+            $cardType = null;
+            if ($customerProfileId && $paymentProfileId) {
+                $cardInfo = $this->getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId);
+                $cardType = $cardInfo['card_type'];
+            }
             return [
                 'status' => 'success',
                 'payment_status' => 'Paid',
@@ -220,6 +240,7 @@ class AuthorizeNetService
                 'customer_profile_id' => $customerProfileId,
                 'payment_profile_id' => $paymentProfileId,
                 'card_number' => $transactionResponse && method_exists($transactionResponse, 'getAccountNumber') ? $transactionResponse->getAccountNumber() : null,
+                'card_type' => $cardType,
             ];
         }
 
@@ -257,6 +278,32 @@ class AuthorizeNetService
     {
         $this->currency = $currency;
         return $this;
+    }
+
+    public function getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId): array
+    {
+        $cardType = null;
+        try {
+            $request = new AnetAPI\GetCustomerPaymentProfileRequest();
+            $request->setMerchantAuthentication($this->merchantAuthentication);
+            $request->setCustomerProfileId($customerProfileId);
+            $request->setCustomerPaymentProfileId($paymentProfileId);
+
+            $controller = new AnetController\GetCustomerPaymentProfileController($request);
+            $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+
+            if ($response && $response->getMessages()->getResultCode() === 'Ok') {
+                $card = $response->getPaymentProfile()->getPayment()->getCreditCard();
+                if ($card) {
+                    $cardType = $card->getCardType();
+                }
+            }
+        } catch (\Exception $e) {
+            // Optionally log error
+        }
+        return [
+            'card_type' => $cardType,
+        ];
     }
 
     /**

@@ -62,10 +62,23 @@
 
             {{-- Action Buttons --}}
             <div class="flex flex-wrap gap-2">
-                <button
-                    class="inline-flex items-center px-3 py-1.5 text-sm bg-orange-500 text-white rounded hover:bg-orange-600">
-                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
-                </button>
+                <div class="relative group inline-block">
+                    <button
+                        class="inline-flex items-center px-3 py-1.5 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 focus:outline-none">
+                        <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
+                        <x-heroicon-o-chevron-down class="w-4 h-4 ml-1" />
+                    </button>
+                    <div
+                        class="absolute left-0 top-full mt-0 w-44 bg-white border rounded shadow-lg z-10 hidden group-hover:block">
+                        <a target="_blank"
+                            href="{{ route('admin.order-management.orders.reorder.index', ['unique_id' => $order->unique_id, 'type' => 'reference']) }}"
+                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Reference Order</a>
+                        <a target="_blank"
+                            href="{{ route('admin.order-management.orders.reorder.index', ['unique_id' => $order->unique_id, 'type' => 'new']) }}"
+                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">New Order</a>
+                    </div>
+                </div>
+
                 <button
                     class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
                     <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Invoice
@@ -87,9 +100,12 @@
                 @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                 <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
             </a>
-            <a href="javascript:void(0);" class="inline-flex items-center hover:underline">
-                <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
-            </a>
+            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}" method="POST" target="_blank" class="inline-flex items-center">
+                @csrf
+                <button type="submit" class="inline-flex items-center hover:underline">
+                    <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
+                </button>
+            </form>
         </div>
     </div>
 

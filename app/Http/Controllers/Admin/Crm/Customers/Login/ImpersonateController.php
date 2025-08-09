@@ -33,6 +33,6 @@ class ImpersonateController extends Controller
             ]
         );
 
-        return redirect($signedUrl)->with('success', 'You are now impersonating the user.');
+        return redirect($signedUrl);
     }
 }

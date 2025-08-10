@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Admin\Crm\Customers\Login;
 
+
 use App\Http\Controllers\Controller;
-use App\Models\Customers\Customer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\URL;
-use Str;
+
+// Helpers
+use App\Helpers\SignedUrlHelper;
+
+// Models
+use App\Models\Customers\Customer;
 
 class ImpersonateController extends Controller
 {
@@ -23,14 +25,13 @@ class ImpersonateController extends Controller
     {
         $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
 
-        // Build a temporary signed URL carrying customer unique_id + admin id + admin guard
-        $signedUrl = URL::temporarySignedRoute(
+        $signedUrl = SignedUrlHelper::make(
             'front.auth.login.impersonate',
-            now()->addMinutes(5),
             [
-                'unique_id'  => $customer->unique_id,
-                'admin_id'   => auth()->id(),
-            ]
+                'customer_unique_id' => $customer->unique_id,
+                'admin_unique_id' => auth()->id(),
+            ],
+            1,
         );
 
         return redirect($signedUrl);

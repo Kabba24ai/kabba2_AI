@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Front\Checkout;
 use App\Helpers\CartHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Orders\Order;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 
 class ThankYouController extends Controller
@@ -14,8 +15,14 @@ class ThankYouController extends Controller
      */
     public function __invoke(Request $request, $order)
     {
+        try {
+            $uniqueId = decrypt($order);   // <-- decrypt the route param
+        } catch (DecryptException $e) {
+            abort(403, 'Invalid or tampered order parameter.');
+        }
+
         // Find order by unique id (or fail if not found)
-        $order = Order::with(['customer', 'billingAddress', 'shippingAddress'])->where('unique_id', $order)->firstOrFail();
+        $order = Order::with(['customer', 'billingAddress', 'shippingAddress'])->where('unique_id', $uniqueId)->firstOrFail();
 
         $cartSummary = CartHelper::buildCartSummary([
             'tax_exempt' => $order->is_tax_exempt == "Yes" ? true : false,

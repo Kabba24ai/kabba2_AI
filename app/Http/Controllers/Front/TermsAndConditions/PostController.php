@@ -7,6 +7,7 @@ use App\Http\Requests\Front\TermsAndConditions\PostRequest;
 
 // Enums
 use App\Enums\Orders\OrderTermsStatus;
+use App\Helpers\SignedUrlHelper;
 use App\Helpers\TermsContentHelper;
 // Models
 use App\Models\Orders\Order;
@@ -34,7 +35,12 @@ class PostController extends Controller
             $order->terms_accepted_at = now();
             $order->save();
 
-            $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
+            $signedUrl = SignedUrlHelper::make(
+                'front.checkout.thank-you',
+                ['order' => $order->unique_id],
+                5,
+            );
+
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
         }

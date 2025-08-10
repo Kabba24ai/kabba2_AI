@@ -85,7 +85,7 @@
                                     {{ $primaryAddress ? $primaryAddress->full_name : '' }}
                                 </h5>
                                 <p id="addressFull">
-                                    {{ $primaryAddress? $primaryAddress->full_address : '' }}
+                                    {{ $primaryAddress ? $primaryAddress->full_address : '' }}
                                 </p>
                                 <p class="text-sm" id="addressPhone">
                                     {{ $primaryAddress ? 'Phone: ' . $primaryAddress->phone : '' }}
@@ -468,7 +468,18 @@
                                         {{ old('payment', 'Card') == 'Card' ? 'checked' : '' }} />
                                     <span>Credit or Debit</span>
                                 </label>
-                                <div id="cardSection" class="{{ old('payment', 'Card') == 'Card' ? 'block' : 'hidden' }}">
+
+                                <div id="cardSection"
+                                    class="{{ old('payment', 'Card') == 'Card' ? 'block' : 'hidden' }}">
+                                    @if (session()->has('impersonated_by_admin'))
+                                        <select name="customer_card" id="customer_card"
+                                            class="w-full max-w-sm rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none{{ $errors->has('card') ? ' border-red-400' : '' }}">
+                                            <option value="">New Card</option>
+                                            @foreach (auth('customer')->user()->cards as $card)
+                                                <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
                                     <!-- Card Visual -->
                                     <div class="relative h-card-height lg:h-52 w-full max-w-sm  mt-4 card-container">
                                         <!-- Card Front -->
@@ -547,7 +558,10 @@
                                         {{ old('payment') == 'COD' ? 'checked' : '' }} />
                                     <span>Cash on Delivery (COD)</span>
                                 </label>
-                                <p id="codNote" class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">COD Orders are not reserved  / locked in until paid. If you want to lock in your order, please pay using a credit card or call sales.
+                                <p id="codNote"
+                                    class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">
+                                    COD Orders are not reserved / locked in until paid. If you want to lock in your order,
+                                    please pay using a credit card or call sales.
                                 </p>
                             </div>
                             <!-- Add Account -->

@@ -78,3 +78,15 @@
         </div>
     </section>
 @endsection
+
+@push('js')
+    <script>
+        // Custom JavaScript for this page
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(!empty($cart_data))
+                window.CartStorage.setCart(@json($cart_data));
+            @endif
+        });
+
+    </script>
+@endpush

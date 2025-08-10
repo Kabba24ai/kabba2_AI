@@ -17,11 +17,10 @@ class IndexController extends Controller
 
          // Check if the session was started via impersonation
         if (session()->has('impersonated_by_admin')) {
-
             session()->forget([
                 'impersonated_by_admin',
-                'impersonator_id',
-                'impersonator_name'
+                'impersonator',
+                'order',
             ]);
         }
 

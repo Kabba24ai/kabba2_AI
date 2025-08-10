@@ -1,5 +1,18 @@
 <div>
     @if (!empty($cart['cart_items']))
+        @if (session()->has('order.type'))
+            <div class="mb-4 p-3 bg-green-100 border border-green-300 rounded text-green-800">
+                <strong class="capitalize">{{ session('order.type') }} Order from:</strong>
+                <span>{{ session('order.number') }}</span>
+                {{-- <small>
+                    @if (session('order.type') === 'reference')
+                        <span class="text-xs text-gray-700">(This is a reference order )</span>
+                    @elseif (session('order.type') === 'new')
+                        <span class="text-xs text-gray-700">(This is a new order created from the selected order number and will be considered as a new order)</span>
+                    @endif
+                </small> --}}
+            </div>
+        @endif
         @foreach ($cart['cart_items'] as $item)
             <div class="border-b pb-4 mb-6">
                 <div class=" flex flex-col sm:flex-row items-start gap-3 py-2">

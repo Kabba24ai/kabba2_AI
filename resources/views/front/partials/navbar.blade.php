@@ -8,7 +8,7 @@
                 </span>
                 by
                 <span class="font-bold text-blue-600">
-                    [{{ session('impersonator_name', 'Admin') }}]
+                    [{{ session('impersonator.name', 'Admin') }}]
                 </span>
             </div>
 

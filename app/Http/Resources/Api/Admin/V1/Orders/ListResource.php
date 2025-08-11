@@ -51,7 +51,7 @@ class ListResource extends JsonResource
             'order_notes' => OrderNotesListResource::collection($this->notes) ?? [],
 
             'terms_status' => $this->terms_status ?? '',
-            'terms_page' => route('front.terms-and-conditions.index', $this->unique_id) ?? '',
+            'terms_page' => route('front.terms-and-conditions.index', ['orderUniqueId' => $this->unique_id, 'device' => 'mobile']) ?? '',
 
             'terms_accepted_at' => CustomHelper::formatDateTime($this->terms_accepted_at) ?? '',
 

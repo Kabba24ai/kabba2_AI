@@ -115,6 +115,20 @@
 
 @push('js')
     <script>
+        const device = "{{ $device ?? 'web' }}";
+
+        if (device === 'mobile') {
+            // Open modal automatically for mobile devices
+            document.addEventListener('DOMContentLoaded', function() {
+                // Hide <nav> and <footer> tags for mobile device
+                const nav = document.querySelector('nav');
+                const footer = document.querySelector('footer');
+                const breadcrumbs = document.getElementById('breadcrumbs');
+                if (nav) nav.style.display = 'none';
+                if (footer) footer.style.display = 'none';
+                if (breadcrumbs) breadcrumbs.style.display = 'none';
+            });
+        }
         // Modal control
         function openModal() {
             const modal = document.getElementById("modal");

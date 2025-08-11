@@ -250,57 +250,106 @@ class PostController extends Controller
 
             // If payment type is card, process payment using AuthorizeNetService
             if (strtolower($validated['payment']) === 'card') {
-                $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
-                $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
                 $amount = $order->grand_total;
-                if (!$opaqueDataValue || !$opaqueDataDescriptor) {
-                    DB::rollback();
-                    return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
-                }
-                $authorizeNetService = new AuthorizeNetService();
-                if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
-                    DB::rollback();
-                    return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
-                }
-                $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
-                if ($paymentResult['status'] !== 'success') {
-                    logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
-                    // DB::rollback();
-                    // return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
-                }
-                $payment = $order->payments()->create([
-                    'payment_datetime' => now(),
-                    'payment_method' => $validated['payment'],
-                    'amount' => $amount,
-                    'transaction_id' => $paymentResult['transaction_id'] ?? null,
-                    'auth_code' => $paymentResult['auth_code'] ?? null,
-                    'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
-                    'payment_profile_id' => $paymentResult['payment_profile_id'] ?? null,
-                    'card_number' => $paymentResult['card_number'] ?? null,
-                    'card_first_name' => $validated['firstName'] ?? null,
-                    'card_last_name' => $validated['lastName'] ?? null,
-                    'status' => $paymentResult['payment_status'] ?? 'Pending',
-                    'created_by_id' => $customer->id,
-                    'created_by_type' => Customer::class,
-                ]);
+                if (session()->has('impersonated_by_admin') && !empty($validated['customer_card'])) {
+                    $cardDetail =  $customer->cards()->where('unique_id', $validated['customer_card'])->first();
 
-                if(empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
-                    // If payment profile is created, save it to customer's cards
-                    $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
-                    $customer->saveQuietly();
-                }
+                    $paymentProfileId  = $cardDetail->payment_profile_id;
+                    $customerProfileId = $customer->authorize_profile_id;
 
-                if (!empty($paymentResult['payment_profile_id'])) {
-                    $customer->cards()->updateOrCreate([
-                        'payment_profile_id' => $paymentResult['payment_profile_id'],
-                    ], [
-                        'first_name' => $validated['firstName'] ?? null,
-                        'last_name' => $validated['lastName'] ?? null,
-                        'card_number' => $paymentResult['card_number'] ?? null,
-                        'card_type' => $paymentResult['card_type'] ?? null,
+                    if (!$customerProfileId) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Customer profile not found for saved card.');
+                    }
+
+                    $authorizeNetService = new AuthorizeNetService();
+
+                    // Your service should wrap Authorize.Net CIM createTransactionRequest
+                    // e.g. createProfileTransaction / chargeCustomerProfile
+                    $paymentResult = $authorizeNetService->chargeCustomerProfile(
+                        $customerProfileId,
+                        $paymentProfileId,
+                        $amount,
+                        [
+                            'order_number' => $order->order_number,
+                            'customer'     => $customer->toArray(),
+                        ]
+                    );
+
+                    if (($paymentResult['status'] ?? null) !== 'success') {
+                        logger()->error('Profile payment failed for Order ID: '.$order->unique_id.' - '.($paymentResult['message'] ?? 'Unknown error'));
+                        DB::rollBack();
+                        return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
+
+                    $payment = $order->payments()->create([
+                        'payment_datetime'     => now(),
+                        'payment_method'       => $validated['payment'],
+                        'amount'               => $amount,
+                        'transaction_id'       => $paymentResult['transaction_id'] ?? null,
+                        'auth_code'            => $paymentResult['auth_code'] ?? null,
+                        'customer_profile_id'  => $customerProfileId,
+                        'payment_profile_id'   => $paymentProfileId,
+                        'card_number'          => $paymentResult['card_number'] ?? null,
+                        'card_first_name'      => $cardDetail->first_name ?? null, // optional
+                        'card_last_name'       => $cardDetail->last_name ?? null,  // optional
+                        'status'               => $paymentResult['payment_status'] ?? 'Pending',
+                        'created_by_id'        => $customer->id,
+                        'created_by_type'      => Customer::class,
                     ]);
-                }
 
+                } else {
+                    $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
+                    $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
+
+                    if (!$opaqueDataValue || !$opaqueDataDescriptor) {
+                        DB::rollback();
+                        return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
+                    }
+                    $authorizeNetService = new AuthorizeNetService();
+                    if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
+                        DB::rollback();
+                        return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
+                    }
+                    $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
+                    if ($paymentResult['status'] !== 'success') {
+                        logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
+                        // DB::rollback();
+                        // return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
+                    $payment = $order->payments()->create([
+                        'payment_datetime' => now(),
+                        'payment_method' => $validated['payment'],
+                        'amount' => $amount,
+                        'transaction_id' => $paymentResult['transaction_id'] ?? null,
+                        'auth_code' => $paymentResult['auth_code'] ?? null,
+                        'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
+                        'payment_profile_id' => $paymentResult['payment_profile_id'] ?? null,
+                        'card_number' => $paymentResult['card_number'] ?? null,
+                        'card_first_name' => $validated['firstName'] ?? null,
+                        'card_last_name' => $validated['lastName'] ?? null,
+                        'status' => $paymentResult['payment_status'] ?? 'Pending',
+                        'created_by_id' => $customer->id,
+                        'created_by_type' => Customer::class,
+                    ]);
+
+                    if(empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
+                        // If payment profile is created, save it to customer's cards
+                        $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
+                        $customer->saveQuietly();
+                    }
+
+                    if (!empty($paymentResult['payment_profile_id'])) {
+                        $customer->cards()->updateOrCreate([
+                            'payment_profile_id' => $paymentResult['payment_profile_id'],
+                        ], [
+                            'first_name' => $validated['firstName'] ?? null,
+                            'last_name' => $validated['lastName'] ?? null,
+                            'card_number' => $paymentResult['card_number'] ?? null,
+                            'card_type' => $paymentResult['card_type'] ?? null,
+                        ]);
+                    }
+                }
             } else {
                 // If payment type is not card, just create a pending payment record
                 $payment =$order->payments()->create([

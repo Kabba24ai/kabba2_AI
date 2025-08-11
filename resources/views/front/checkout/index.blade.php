@@ -479,6 +479,9 @@
                                                 <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
                                             @endforeach
                                         </select>
+                                        @error('customer_card')
+                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                        @enderror
                                     @endif
                                     <!-- Card Visual -->
                                     <div class="relative h-card-height lg:h-52 w-full max-w-sm  mt-4 card-container">
@@ -515,36 +518,46 @@
                                     </div>
                                     <!-- Card Inputs -->
                                     <div class="grid md:grid-cols-2 gap-4 mt-4 max-w-sm">
-                                        <input type="text" placeholder="First name" id="firstName" name="firstName"
-                                            value="{{ old('firstName') }}"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
-                                        @error('firstName')
-                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                        @enderror
-                                        <input type="text" placeholder="Last name" id="lastName" name="lastName"
-                                            value="{{ old('lastName') }}"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
-                                        @error('lastName')
-                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                        @enderror
-                                        <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
-                                            name="cardNumber" value="{{ old('cardNumber') }}"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm md:col-span-2 focus:border-blue-500" />
-                                        @error('cardNumber')
-                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                        @enderror
-                                        <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
-                                            name="expiry" value="{{ old('expiry') }}"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
-                                        @error('expiry')
-                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                        @enderror
-                                        <input type="text" placeholder="CVC" maxlength="4" id="cvc"
-                                            name="cvc" value="{{ old('cvc') }}"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
-                                        @error('cvc')
-                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                        @enderror
+                                        <div class="md:col-span-1">
+                                            <input type="text" placeholder="First name" id="firstName" name="firstName"
+                                                value="{{ old('firstName') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('firstName')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="md:col-span-1">
+                                            <input type="text" placeholder="Last name" id="lastName" name="lastName"
+                                                value="{{ old('lastName') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('lastName')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
+                                                name="cardNumber" value="{{ old('cardNumber') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('cardNumber')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="md:col-span-1">
+                                            <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
+                                                name="expiry" value="{{ old('expiry') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('expiry')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="md:col-span-1">
+                                            <input type="text" placeholder="CVC" maxlength="4" id="cvc"
+                                                name="cvc" value="{{ old('cvc') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('cvc')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
                                         <input type="hidden" name="opaqueDataValue" id="opaqueDataValue" />
                                         <input type="hidden" name="opaqueDataDescriptor" id="opaqueDataDescriptor" />
                                     </div>
@@ -796,6 +809,18 @@
                 const paymentType = document.querySelector('input[name="payment"]:checked');
                 if (paymentType && paymentType.value === 'Card') {
 
+                    // Get impersonation + saved card info (adapt selectors to your form)
+                    const impersonatedByAdmin = '{{ session("impersonated_by_admin") }}';
+                    const customerCard = document.getElementById('customer_card')?.value?.trim();
+
+                    // If impersonated and using a saved card → no need to tokenize new card
+                    if (impersonatedByAdmin && customerCard) {
+                        // Just submit directly (no Accept.js needed)
+                        disableCheckoutButton();
+                        form.submit();
+                        return;
+                    }
+
                     e.preventDefault(); // Pause form submit until Accept.js finishes
                     disableCheckoutButton();
                     try {
@@ -819,11 +844,11 @@
                         }
 
                         if (!/^\d{13,19}$/.test(cardNumber) || !luhnCheck(cardNumber)) {
-                            throw new Error('Invalid card number.');
+                            throw new Error('Invalid or missing card number.');
                         }
 
                         if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-                            throw new Error('Invalid expiry date. Use MM/YY.');
+                            throw new Error('Invalid or missing expiry date. Use MM/YY.');
                         }
                         const [mm, yy] = expiry.split('/');
                         const now = new Date();
@@ -839,7 +864,7 @@
                         }
 
                         if (!/^\d{3,4}$/.test(cvc)) {
-                            throw new Error('Invalid CVC code.');
+                            throw new Error('Invalid or missing CVC code.');
                         }
 
                         // 3. If validation passes, use Accept.js to tokenize the card

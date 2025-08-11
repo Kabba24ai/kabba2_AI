@@ -149,6 +149,94 @@ class AuthorizeNetService
     }
 
     /**
+     * Charge an existing Authorize.Net CIM customer/payment profile.
+     *
+     * @param string $customerProfileId
+     * @param string $paymentProfileId
+     * @param float  $amount
+     * @param array  $options  ['order_number' => string, 'card_code' => string]
+     * @return array
+     */
+    public function chargeCustomerProfile(string $customerProfileId, string $paymentProfileId, float $amount, array $options = []): array
+    {
+        // 1) Build profile reference
+        $profilePayment = new AnetAPI\CustomerProfilePaymentType();
+        $profilePayment->setCustomerProfileId($customerProfileId);
+
+        $paymentProfileObj = new AnetAPI\PaymentProfileType();
+        $paymentProfileObj->setPaymentProfileId($paymentProfileId);
+        $profilePayment->setPaymentProfile($paymentProfileObj);
+
+        // 2) Build transaction request
+        $txnRequest = new AnetAPI\TransactionRequestType();
+        $txnRequest->setTransactionType('authCaptureTransaction');
+        $txnRequest->setAmount($amount);
+        $txnRequest->setProfile($profilePayment);
+
+
+        // Optional invoice / order number
+        if (!empty($options['order_number'])) {
+            $order = new AnetAPI\OrderType();
+            $order->setInvoiceNumber($options['order_number']);
+            $txnRequest->setOrder($order);
+        }
+
+        // 3) Create & send API request
+        $request = new AnetAPI\CreateTransactionRequest();
+        $request->setMerchantAuthentication($this->merchantAuthentication);
+        $request->setRefId('ref' . time());
+        $request->setTransactionRequest($txnRequest);
+
+        $controller = new AnetController\CreateTransactionController($request);
+        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        logger()->info('AuthorizeNet profile charge response: ' . json_encode($response));
+
+        // 4) Handle success
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+            $tr = $response->getTransactionResponse();
+
+            // Try to enrich with card info from the payment profile
+            $cardInfo = $this->getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId);
+            $cardType = $cardInfo['card_type'] ?? null;
+
+            return [
+                'status'              => 'success',
+                'payment_status'      => 'Paid',
+                'message'             => 'Payment successful',
+                'transaction_id'      => ($tr && method_exists($tr, 'getTransId')) ? $tr->getTransId() : null,
+                'auth_code'           => ($tr && method_exists($tr, 'getAuthCode')) ? $tr->getAuthCode() : null,
+                'customer_profile_id' => $customerProfileId,
+                'payment_profile_id'  => $paymentProfileId,
+                // Account number and card type may not always be present; fetch type via profile as above
+                'card_number'         => ($tr && method_exists($tr, 'getAccountNumber')) ? $tr->getAccountNumber() : null,
+                'card_type'           => $cardType,
+            ];
+        }
+
+        // 5) Handle errors
+        $errorMessage = 'Payment failed';
+        if ($response) {
+            // Prefer transactionResponse errors first if present
+            $tr = method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null;
+            if ($tr && method_exists($tr, 'getErrors') && $tr->getErrors()) {
+                $err = $tr->getErrors()[0];
+                $errorMessage .= ': ' . ($err->getErrorText() ?? 'Unknown error');
+            } elseif ($response->getMessages() && isset($response->getMessages()->getMessage()[0])) {
+                $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
+            }
+        }
+
+        return [
+            'status'              => 'failure',
+            'payment_status'      => 'Failed',
+            'message'             => $errorMessage,
+            'customer_profile_id' => $customerProfileId,
+            'payment_profile_id'  => $paymentProfileId,
+        ];
+    }
+
+
+    /**
      * Create a payment transaction using Accept.js opaque data, creating/finding both
      * customer and payment profiles if customer data is present.
      *

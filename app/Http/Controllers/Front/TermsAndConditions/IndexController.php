@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Front\TermsAndConditions;
 
+use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Orders\Order;
 

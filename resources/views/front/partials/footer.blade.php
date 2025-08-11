@@ -7,10 +7,10 @@
                     <h3 class="font-bold text-white text-base mb-2 ">Contact Us</h3>
                     <a href="{{ route('front.contact-us.index') }}"
                         class="text-neutral-200/60 hover:text-yellow-400 text-sm flex gap-2 transition-all duration-300 ease-in-out">
-                        Phone: (615) 815-6734
+                        Phone: {{ $contactUsSettings['mobile'] ?? '' }}
                     </a>
-                    <p class="text-neutral-200/60 text-sm flex gap-2">Email: support@rentnking.com </p>
-                    <p class="text-neutral-200/60 text-sm flex gap-2"> Address: 123 Main St, Dickson, TN</p>
+                    <p class="text-neutral-200/60 text-sm flex gap-2">Email: {{ $contactUsSettings['email'] ?? '' }} </p>
+                    <p class="text-neutral-200/60 text-sm flex gap-2"> Address: {{ $contactUsSettings['address1'] ?? '' }}</p>
                 </div>
             </div>
             <div class="w-5/5 md:w-1/5 lg:w-1/5 md:mt-0">

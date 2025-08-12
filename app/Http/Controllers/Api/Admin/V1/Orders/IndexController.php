@@ -27,20 +27,43 @@ class IndexController extends BaseController
         $validatedData = $request->validated();
 
         $perPage = $validatedData['per_page'] ?? 10;
-        $status  = $validatedData['status'] ?? null;
+        $status = $validatedData['status'] ?? null;
+        $paymentMethod = $validatedData['payment_method'] ?? null;
+        $search = $validatedData['search'] ?? null;
+        $categoryId = $validatedData['category_id'] ?? null;
 
-        $orders = Order::query()->with('shippingAddress', 'products.product', 'lastPayment')
-        ->when($status && $status !== 'All', fn($query) => $query->whereHas('lastPayment', function ($q) use ($status) {
-            $q->where('status', $status);
-        }))
-        ->orderByDesc('id')
-        ->paginate($perPage);
+        $orders = Order::query()
+            ->with('shippingAddress', 'products.product', 'lastPayment')
+            ->when(
+                $status && $status !== 'All',
+                fn($query) => $query->whereHas('lastPayment', function ($q) use ($status) {
+                    $q->where('status', $status);
+                }),
+            )
+            ->when(
+                $search,
+                fn($query) => $query->whereHas('shippingAddress', function ($q) use ($search) {
+                    $q->where('first_name', 'like', '%' . $search . '%')->orWhere('last_name', 'like', '%' . $search . '%');
+                }),
+            )
+            ->when(
+                $categoryId,
+                fn($query) => $query->whereHas('products.product.categories', function ($q) use ($categoryId) {
+                    $q->where('product_categories.id', $categoryId);
+                }),
+            )
+            ->when($paymentMethod && $paymentMethod !== 'All', fn($query) => $query->whereHas('lastPayment', fn($q) => $q->where('payment_method', $paymentMethod)))
+            ->orderByDesc('id')
+            ->paginate($perPage);
 
         if ($orders->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => trans('messages.api.admin.v1.orders.no_orders_found'),
-            ], JsonResponse::HTTP_NOT_FOUND);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => trans('messages.api.admin.v1.orders.no_orders_found'),
+                ],
+                JsonResponse::HTTP_NOT_FOUND,
+            );
         }
 
         return response()->json([
@@ -49,9 +72,9 @@ class IndexController extends BaseController
             'orders' => ListResource::collection($orders),
             'pagination' => [
                 'current_page' => $orders->currentPage(),
-                'last_page'    => $orders->lastPage(),
-                'per_page'     => $orders->perPage(),
-                'total'        => $orders->total(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
             ],
         ]);
     }

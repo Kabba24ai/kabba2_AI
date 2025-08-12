@@ -20,10 +20,14 @@ class ListResource extends JsonResource
             'id' => $this->id ?? 0,
             'unique_id' => $this->unique_id ?? 0,
             'note' => $this->note ?? '',
+            'is_created_by_customer' => $this->isCreatedByCustomer() ?? false,
             'created_by' => $this->createdBy ? $this->createdBy->full_name ?? 'Unknown' : '',
+            'created_by_type_name' => $this->createdBy ? $this->created_by_type_name ?? 'Unknown' : '',
             'created_at' => $this->createdBy ? CustomHelper::formatDateTime($this->created_at) : '',
             'updated_by' => $this->updatedBy ? $this->updatedBy->full_name ?? 'Unknown' : '',
+            'updated_by_type_name' => $this->updatedBy ? $this->updated_by_type_name ?? 'Unknown' : '',
             'updated_at' => $this->updatedBy ? CustomHelper::formatDateTime($this->updated_at) : '',
+
         ];
 
         return $return;

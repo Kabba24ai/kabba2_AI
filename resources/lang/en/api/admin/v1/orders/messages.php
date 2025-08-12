@@ -14,5 +14,7 @@ return [
     'note_deleted' => 'Note deleted successfully',
     'note_update_success' => 'Note updated successfully',
     'note_update_failed' => 'Failed to update note',
+    'address_updated' => 'Address updated successfully',
+    'address_update_failed' => 'Failed to update address',
 ];
 

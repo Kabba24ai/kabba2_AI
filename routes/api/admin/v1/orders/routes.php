@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\V1\Orders\RemoveMediaController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Notes\StoreController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Notes\UpdateController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Notes\RemoveController;
+use App\Http\Controllers\Api\Admin\V1\Orders\UpdateAddressController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +28,7 @@ Route::group(['prefix' => 'orders'], function () {
     Route::post('/details', ShowController::class);
     Route::post('/upload-media', UploadMediaController::class);
     Route::post('/remove-media', RemoveMediaController::class);
+    Route::post('/update-address', UpdateAddressController::class);
 
     Route::group(['prefix' => 'notes'], function () {
         Route::post('/create', StoreController::class);

@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\Notes\UpdateRequest;
+use App\Http\Resources\Api\Admin\V1\OrderNotes\ListResource;
 use App\Models\Iam\Personnel\User;
 
 // Model
@@ -37,6 +38,7 @@ class UpdateController extends BaseController
             return response()->json([
                 'success' => true,
                 'message' => trans('messages.api.admin.v1.orders.note_update_success'),
+                'note' => new ListResource($order->notes()->latest()->first())
             ]);
 
         } catch (\Exception $e) {

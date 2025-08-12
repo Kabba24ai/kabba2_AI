@@ -12,6 +12,8 @@ use App\Models\Locations\State;
 use App\Models\Iam\Personnel\User;
 
 
+use App\Enums\UserPayType;
+
 
 class ViewUserController extends Controller
 {
@@ -28,10 +30,12 @@ class ViewUserController extends Controller
         // Fetch the user data based on unique_id or any other identifier
 
         $user = User::with('roles')->where('unique_id', $unique_id)->first();
+     $paytypes = UserPayType::options();
 
          return view('admin.hrm.users.view-user', [
             'states' => $states,
             'user' => $user,
+            'paytypes' => $paytypes,
         ]);
 
     }

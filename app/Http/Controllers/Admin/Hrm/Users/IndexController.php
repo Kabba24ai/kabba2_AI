@@ -8,6 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use App\Models\Iam\Personnel\User;
 use App\Models\Iam\AccessControl\Role;
+use App\Enums\UserPayType;
 
 // Models
 
@@ -43,15 +44,19 @@ class IndexController extends Controller
      $users = $query->get();
        $roles = Role::get();
 
+     $paytypes = UserPayType::options();
+
+
 
         // If AJAX, return partial
     if ($request->ajax()) {
         return response()->json([
             'html' => view('admin.hrm.users.partials._user_cards', compact('users'))->render(),
             'total' => $users->count(),
+            'paytypes' => $paytypes,
         ]);
     }
 
-    return view('admin.hrm.users.index', compact('users', 'roles'));
+    return view('admin.hrm.users.index', compact('users', 'roles','paytypes'));
     }
 }

@@ -575,9 +575,16 @@
                         <button type="button" id="canceltempBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
-                        <button type="submit" id="submitTemplatesBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                            Record Payment
+                        <button type="submit" id="submitTemplatesBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white flex items-center justify-center gap-2 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                            <span id="btnText">Record Payment</span>
+                            <svg id="btnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
                         </button>
+
+
+
                     </div>
 
   {{ html()->form()->close() }}
@@ -688,9 +695,14 @@
                         <button type="button" id="cancelRefundBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
-                        <button type="submit" id="submitRefundBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                            Process Refund
+                       <button type="submit" id="submitRefundBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                            <span id="refundBtnText">Process Refund</span>
+                            <svg id="refundBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
                         </button>
+
                     </div>
              {{ html()->form()->close() }}
             
@@ -818,9 +830,14 @@
                         <button type="button" id="cancelDiscountBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
-                        <button type="submit" id="submitDiscountBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                            Apply Discount
+                        <button type="submit" id="submitDiscountBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                            <span id="discountBtnText">Apply Discount</span>
+                            <svg id="discountBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
                         </button>
+
                     </div>
                 <!-- </form> -->
 
@@ -967,9 +984,14 @@
                         <button type="button" id="cancelChargeBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
-                        <button type="submit" id="submitChargeBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                            Add Charge
+                        <button type="submit" id="submitChargeBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                            <span id="chargeBtnText">Add Charge</span>
+                            <svg id="chargeBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
                         </button>
+
                     </div>
                
                     
@@ -1160,4 +1182,54 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+
+
+
+<script>
+
+document.getElementById('recordpayment').addEventListener('submit', function () {
+  const btn = document.getElementById('submitTemplatesBtn');
+  const btnText = document.getElementById('btnText');
+  const spinner = document.getElementById('btnSpinner');
+
+  btn.disabled = true;
+  btnText.textContent = 'Processing...';
+  spinner.classList.remove('hidden');
+});
+
+
+document.getElementById('processRefund').addEventListener('submit', function () {
+  const btn = document.getElementById('submitRefundBtn');
+  const btnText = document.getElementById('refundBtnText');
+  const spinner = document.getElementById('refundBtnSpinner');
+
+  btn.disabled = true;
+  btnText.textContent = 'Processing...';
+  spinner.classList.remove('hidden');
+});
+
+document.getElementById('applyDiscount').addEventListener('submit', function () {
+  const btn = document.getElementById('submitDiscountBtn');
+  const btnText = document.getElementById('discountBtnText');
+  const spinner = document.getElementById('discountBtnSpinner');
+
+  btn.disabled = true;
+  btnText.textContent = 'Applying...';
+  spinner.classList.remove('hidden');
+});
+
+document.getElementById('applyCharge').addEventListener('submit', function () {
+  const btn = document.getElementById('submitChargeBtn');
+  const btnText = document.getElementById('chargeBtnText');
+  const spinner = document.getElementById('chargeBtnSpinner');
+
+  btn.disabled = true;
+  btnText.textContent = 'Adding...';
+  spinner.classList.remove('hidden');
+});
+
+
+</script>
+
+
 @endpush

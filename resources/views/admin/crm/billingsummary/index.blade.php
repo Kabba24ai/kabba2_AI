@@ -25,10 +25,16 @@
                             Export
                         </button>
                         
-                        <button class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
+                        <!-- <a href="{{ route('admin.crm.billingsummary.index') }}" class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
                              <x-heroicon-o-arrow-path class="w-5 h-5 text-white" />
                             Refresh
-                        </button>
+                        </a> -->
+
+                         <a href="{{ route('admin.crm.billingsummary.index') }}" id="refreshBtn" class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
+                            <x-heroicon-o-arrow-path id="refreshIcon" class="w-5 h-5 text-white" />
+                            Refresh
+                        </a>
+
                     </div>
                 </div>
             </div>
@@ -41,7 +47,7 @@
                     </div>
                     <div>
                         <p class="text-sm  text-gray-500">Total Outstanding</p>
-                        <p class="text-xl font-semibold text-gray-900"> {{ \App\Helpers\CustomHelper::formatCurrency($totalOutstanding) }} </p>
+                        <p class="text-xl font-semibold text-gray-900" id="total-outstanding"> {{ \App\Helpers\CustomHelper::formatCurrency($totalOutstanding) }} </p>
                     </div>
                 </div>
 
@@ -51,8 +57,8 @@
                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500" />
                     </div>
                     <div>
-                        <p class="text-sm  text-gray-500">Overdue Amount</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($totalOverdueAmount) }}   </p>
+                        <p class="text-sm  text-gray-500" >Overdue Amount</p>
+                        <p class="text-xl font-semibold text-gray-900" id="total-overdue-amount">{{ \App\Helpers\CustomHelper::formatCurrency($totalOverdueAmount) }}   </p>
                     </div>
                 </div>
 
@@ -71,7 +77,7 @@
                     </div>
                     <div>
                     <p class="text-sm text-gray-500">Overdue Accounts</p>
-                    <p class="text-xl font-semibold text-gray-900">  {{ $overdueCustomerCount }} </p>
+                    <p class="text-xl font-semibold text-gray-900" id="overdue-customer-count">  {{ $overdueCustomerCount }} </p>
                     </div>
                 </div>
 
@@ -82,7 +88,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Total Customers</p>
-                        <p class="text-xl font-semibold text-gray-900">{{ $customers->total() }} </p>
+                        <p class="text-xl font-semibold text-gray-900" id="totalcustomers">{{ $customers->total() }} </p>
                     </div>
                 </div>
             </div>
@@ -160,9 +166,10 @@
                         <select id="balanceSortSelect" class="py-2 px-3 border border-gray-300 rounded-md w-full">
                             <option value="balance" selected>Balance: Highest to Lowest</option>
                             <option value="days">Days Aging: Oldest to Newest</option>
+                            <option value="bad_debt">Bad Debt: Higest to Lowest</option>
+
                         </select>
                     </div>
-
 
                 </div>
             </div>
@@ -183,7 +190,8 @@
         let phoneInput = document.querySelector('input[name="b_search_phone"]');
         let company_name = document.querySelector('input[name="b_company_name"]');
         // let statusSelect = document.querySelector('select[name="tax_status"]');
-        const balanceSort = document.getElementById('balanceSortSelect').value;
+        // const balanceSort = document.getElementById('balanceSortSelect').value;
+        let sortValue = document.getElementById('balanceSortSelect').value;
 
         let alertStatusSelect = document.querySelector('select[name="alert_status"]');
 
@@ -211,6 +219,9 @@
                                     params.append('credit_types[]', cb.value);
                                 }
             });
+
+            params.append('sort', sortValue);
+
             
               // Show loader
                 loader.classList.remove('hidden');
@@ -224,7 +235,16 @@
                 document.querySelector('#customer-table-wrapper').innerHTML = data.html;
                 document.querySelector('#customer-total-count').textContent = data.total;
 
-                applyBalanceSort();
+
+
+
+
+               //  Update totals dynamically
+                document.querySelector('#total-outstanding').textContent = data.totalOutstanding;
+                document.querySelector('#total-overdue-amount').textContent = data.totalOverdueAmount;
+                document.querySelector('#overdue-customer-count').textContent = data.overdueCustomerCount;
+                document.querySelector('#totalcustomers').textContent = data.total;
+
             })
 
             .catch(err => {
@@ -264,79 +284,22 @@
             });
         });
 
+            document.getElementById('balanceSortSelect').addEventListener('change', function () {
+                sortValue = this.value;
+                fetchCustomers();
+            });
 
 
     });
 
     </script>
-    <script>
-    function applyBalanceSort() {
-        const table = document.getElementById('customerTable');
-        if (!table) return;
 
-        const tbody = table.querySelector('tbody');
-        const sortSelect = document.getElementById('balanceSortSelect');
-        if (!sortSelect) return;
-
-        const originalRows = Array.from(tbody.querySelectorAll('tr')).map(row => row.cloneNode(true));
-
-        function extractBalance(row) {
-            // Balance is in the 6th column (index 5)
-            const cell = row.children[4];
-            const text = cell?.textContent?.replace(/[^\d.-]/g, '') || '0';
-            return parseFloat(text) || 0;
-        }
-
-        function extractDays(row) {
-            // Days is in the 9th column (index 8)
-            const cell = row.children[8];
-            const match = cell?.textContent?.match(/(\d+)/);
-            // return match ? parseInt(match[1]) : 0;
-             const days = match ? parseInt(match[1]) : null;
-
-                 return (days && days !== 0) ? days : null; // Return null if 0 or invalid
-
-
-
-        }
-
-        function sortRows(type) {
-        const rows = [...originalRows];
-
-        if (type === 'balance') {
-            rows.sort((a, b) => extractBalance(b) - extractBalance(a)); // Desc
-        } else if (type === 'days') {
-            
-            rows.sort((a, b) => {
-                const aDays = extractDays(a);
-                const bDays = extractDays(b);
-
-                const aVal = aDays === 0 ? Number.MAX_SAFE_INTEGER : aDays;
-                const bVal = bDays === 0 ? Number.MAX_SAFE_INTEGER : bDays;
-
-                // return aVal - bVal;
-                return bVal - aVal; // from newest to oldest
-
-            });
-
-
-        }
-
-        tbody.innerHTML = '';
-        rows.forEach(row => tbody.appendChild(row.cloneNode(true)));
-    }
-
-
-        // Default sort by balance on load
-        sortRows('balance');
-
-        // Handle user selection
-        sortSelect.addEventListener('change', function () {
-            sortRows(this.value);
-        });
-    }
-
-    document.addEventListener("DOMContentLoaded", applyBalanceSort);
+<script>
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        const icon = document.getElementById('refreshIcon');
+        icon.classList.add('animate-spin');  // Tailwind built-in animation class
+        // page reloads normally, animation will play before reload
+    });
 </script>
 
 @endpush

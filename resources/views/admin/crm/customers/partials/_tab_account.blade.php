@@ -540,11 +540,7 @@
                             <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
                             <span class="text-green-600 font-medium ">
                                 
-                            
-
                         {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
-
-
 
                         </div>
                         <div class="static-view">

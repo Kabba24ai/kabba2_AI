@@ -31,17 +31,12 @@
                                                 @endif
 
                                                
-                                                {{-- Pay Type Badge --}}
-                                                    @php
-                                                        $payTypeLabels = [
-                                                            'Hourly' => 'Hourly Pay',
-                                                            'Salary' => 'Salary Pay',
-                                                        ];
-
-                                                        $payTypeLabel = $user->pay_type && isset($payTypeLabels[$user->pay_type])
-                                                            ? $payTypeLabels[$user->pay_type]
-                                                            : null;
-                                                    @endphp
+                                                  <!-- {{-- Pay Type Badge --}} -->
+                                                @if($user->pay_type && isset($paytypes[$user->pay_type]))
+                                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                                        {{ $paytypes[$user->pay_type] }}
+                                                    </span>
+                                                @endif
 
                                             </div>
 

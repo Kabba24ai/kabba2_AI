@@ -21,8 +21,11 @@ class DeleteController extends Controller
     {
         $objCustomer = Customer::where('unique_id', $unique_id)->firstOrFail();
 
-        // Delete the main
-        $objCustomer->delete();
+  
+
+         // Update status instead of deleting
+        $objCustomer->status = 'Inactive';
+        $objCustomer->save();
 
         flash('Customer deleted successfully.')->success();
 

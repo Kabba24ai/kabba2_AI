@@ -31,7 +31,7 @@
                             </div>
                             <div>
                             <p class="text-sm text-gray-500">Available Credit</p>
-                            <p class="text-xl font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0)) }}</p>
+                            <p class="text-xl font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}</p>
                             </div>
                         </div>
 

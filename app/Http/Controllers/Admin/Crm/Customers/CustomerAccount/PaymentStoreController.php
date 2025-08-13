@@ -35,7 +35,6 @@ class PaymentStoreController extends Controller
             $record->amount = $validated['amount'];
             $record->payment_type = $validated['payment_type'];
 
-            // $record->responsible_person = $validated['responsible_person'];
 
               // Fetch user and store both ID and full_name
                 $user = User::findOrFail($validated['responsible_person']);
@@ -56,7 +55,7 @@ class PaymentStoreController extends Controller
             DB::commit();
 
             flash('Payment recorded successfully.')->success();
- session()->flash('active_tab', 'credit');
+            session()->flash('active_tab', 'credit');
 
             
             return redirect()->back();
@@ -65,7 +64,7 @@ class PaymentStoreController extends Controller
             report($e);
 
             flash('Something went wrong while recording the payment.')->error();
-  session()->flash('active_tab', 'credit');
+            session()->flash('active_tab', 'credit');
             Log::info($e);
 
             return redirect()->back()->withInput()->withErrors([

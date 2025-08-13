@@ -30,7 +30,7 @@ class RefundStoreRequest extends FormRequest
                 'Duplicate Charge',
                 'Other',
             ])],
-            'responsible_person' => ['required', 'string', 'max:255'],
+            'responsible_person' => ['required'],
             'notes' => ['nullable', 'string'],
         ];
     }

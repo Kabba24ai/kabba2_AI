@@ -446,7 +446,7 @@
     <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
         <div class="flex justify-end space-x-3">
             <!-- Cancel Button -->
-            <a href="{{ route('admin.hrm.roles.manage.role') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+            <a href="{{ route('admin.hrm.roles.manage') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                 Cancel
             </a>
 

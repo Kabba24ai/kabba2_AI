@@ -64,7 +64,7 @@
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,
                                         'id' => 'first_name',
-                                        'maxlength' => 100,
+                                        
                                     ])->placeholder('') }}
                                     <label for="first_name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
                                     First Name
@@ -80,7 +80,7 @@
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,
                                         'id' => 'last_name',
-                                        'maxlength' => 100,
+                                        
                                     ])->placeholder('') }}
                                     <label for="last_name" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
                                     Last Name
@@ -122,6 +122,7 @@
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,
                                         'id' => 'password',
+                                        'data-parsley-minlength' => 6, 
                                         'data-parsley-errors-container' => '#password-errors',
                                     ])->placeholder('') }}
 
@@ -148,28 +149,14 @@
                                     </button>
                                 </div>
 
-                                <!-- {{-- Password --}}
-                                <div class="relative z-0 w-full my-6 group">
-                                    {{ html()->password('password')->attributes([
-                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
-                                        'required' => true,
-                                        'id' => 'password',
-                                        'data-parsley-errors-container' => '#password-errors',
-                                    ])->placeholder('') }}
-                                    <label for="password" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
-                                        Password
-                                    </label>
-                                    <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
-                                    @error('password')
-                                        <p class="text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div> -->
+                               
 
                                 {{-- Password --}}
                                 <div class="relative z-0 w-full my-6 group">
                                      {{ html()->password('password_confirmation')->attributes([
                                         'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,
+                                         'data-parsley-minlength' => 6,
                                         'id' => 'password_confirmation',
                                         'data-parsley-equalto' => '#password',
                                     ])->placeholder('') }}
@@ -190,18 +177,7 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <!-- {{-- Password Confirmation --}}
-                                <div class="relative z-0 w-full my-6 group">
-                                    {{ html()->password('password_confirmation')->attributes([
-                                        'class' => 'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
-                                        'required' => true,
-                                        'id' => 'password_confirmation',
-                                        'data-parsley-equalto' => '#password',
-                                    ])->placeholder('') }}
-                                    <label for="password_confirmation" class="pointer-events-none  z-1 px-6 absolute text-base text-gray-500 duration-300 transform -translate-y-8 scale-75 top-2 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 -translate-x-2.5 peer-focus:text-black peer-[.not-empty]:scale-75 peer-[.not-empty]:-translate-y-8">
-                                        Password Confirmation
-                                    </label>
-                                </div> -->
+                               
 
                                 {{-- Policy Notice --}}
                                 <p class="text-xs text-gray-500">

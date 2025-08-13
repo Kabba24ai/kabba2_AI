@@ -357,9 +357,9 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-      const creditUsed = {{ $customer->total_account_order_amount ?? 0 }};
+      const creditUsed = {{ $customer->available_credit_balance ?? 0 }};
       const creditLimit = {{ $customer->credit_limit ?? 0 }} ;
-      const available = creditLimit - creditUsed;
+      const available = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer) }} ;
       const percentUsed = (creditUsed / creditLimit) * 100;
 
       document.getElementById("usedAmount").textContent = `{{ config('app.currency.code') }}${creditUsed.toLocaleString()}`;

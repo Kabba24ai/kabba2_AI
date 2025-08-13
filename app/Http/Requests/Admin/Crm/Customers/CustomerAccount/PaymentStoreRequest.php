@@ -34,7 +34,7 @@ class PaymentStoreRequest extends FormRequest
         'customer_id' => ['required'],
         'amount' => ['required'],
         'payment_type' => ['required', Rule::in(['Cash', 'Cheque', 'CreditCard', 'BankTransfer', 'Other'])],
-        'responsible_person' => ['required', 'string', 'max:255'],
+        'responsible_person' => ['required'],
         'notes' => ['nullable'],
     ];
 }

@@ -23,14 +23,14 @@ class UpdateRequest extends FormRequest
     {
 
         return [
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
-            'company_name' => ['nullable', 'string', 'max:255'],
+            'first_name' => ['required'],
+            'last_name' => ['required'],
+            'company_name' => ['nullable'],
             'email' => [
                 'required',
                 'email'
             ],
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['required', 'string', 'max:20'],
 
             'tax_document_review_status' => ['nullable'],
 

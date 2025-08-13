@@ -31,9 +31,9 @@
                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-1" />
                 <span class="text-sm font-medium">Back to Customers</span>
             </a>
-        @elseif ($previousRouteName === 'admin.crm.billingsummary.index')
+        @elseif ($previousRouteName === 'admin.crm.billing-summary.index')
             <!-- Back to Billing Summary -->
-            <a href="{{ route('admin.crm.billingsummary.index') }}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
+            <a href="{{ route('admin.crm.billing-summary.index') }}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-1" />
                 <span class="text-sm font-medium">Back to Billing Summary</span>
             </a>
@@ -807,7 +807,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const transactionId = document.getElementById('noteTransactionId').value;
 
 
-    fetch(`{{ route('admin.crm.customers.customeraccount.update_note') }}`, {
+    fetch(`{{ route('admin.crm.customers.customer-account.update_note') }}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

@@ -20,11 +20,11 @@
 
             <!-- Right: Action Buttons -->
             <div class="flex flex-wrap justify-right items-center gap-2">
-                <a href="{{route('admin.hrm.roles.manage.role')}}" class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
+                <a href="{{route('admin.hrm.roles.manage')}}" class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
                     <x-heroicon-o-shield-check class="w-5 h-5" />
                     Manage Roles
                 </a>
-                <a href="{{route('admin.hrm.users.create.user')}}" class="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
+                <a href="{{route('admin.hrm.users.create')}}" class="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
                     <x-heroicon-o-plus class="w-5 h-5" />
                     Add Employee
                 </a>

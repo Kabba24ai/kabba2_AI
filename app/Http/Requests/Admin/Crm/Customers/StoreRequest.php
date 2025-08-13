@@ -36,10 +36,10 @@ class StoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['nullable', 'string', 'max:100'],
-            'last_name' => ['nullable', 'string', 'max:100'],
-            'company_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:customers,email'],
+            'first_name' => ['nullable'],
+            'last_name' => ['nullable'],
+            'company_name' => ['nullable'],
+            'email' => ['required', 'email', 'unique:customers,email'],
             'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
             'dob' => ['nullable', 'date'],
             'status' => ['required', Rule::in(['Active', 'Inactive', 'Archived'])],

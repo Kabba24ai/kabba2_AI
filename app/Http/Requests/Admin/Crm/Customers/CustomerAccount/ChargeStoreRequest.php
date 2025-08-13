@@ -32,7 +32,7 @@ class ChargeStoreRequest extends FormRequest
                 'Missing Items',
                 'Product Purchase',
             ])],
-            'responsible_person' => ['required', 'string', 'max:255'],
+            'responsible_person' => ['required'],
             'sales_tax' => ['nullable', Rule::in(['add', 'free', 'reverse'])],
             'notes' => ['nullable', 'string'],
         ];

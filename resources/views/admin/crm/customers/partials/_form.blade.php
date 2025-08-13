@@ -26,7 +26,7 @@
                         'border-red-500' => $errors->has('first_name'),
                         'border-gray-300' => !$errors->has('first_name'),
                     ])->attributes([
-                        'maxlength' => 100,
+                        
                         'data-parsley-maxlength' => 100,
                         'placeholder' => 'Enter First Name',
                         'id' => 'first_name',
@@ -47,7 +47,7 @@
                         'border-red-500' => $errors->has('last_name'),
                         'border-gray-300' => !$errors->has('last_name'),
                     ])->attributes([
-                        'maxlength' => 100,
+                        
                         'data-parsley-maxlength' => 100,
                         'placeholder' => 'Enter Last Name',
                         'id' => 'last_name',
@@ -69,7 +69,7 @@
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                         ])->attributes([
-                            'maxlength' => 100,
+                           
                             'placeholder' => 'Enter Email',
                             'id' => 'email',
                             'autocomplete' => 'off',
@@ -100,8 +100,8 @@
                     ])->attributes([
                         'maxlength' => 14,
                         'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                        'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
-                        'placeholder' => '(123) 456-7890',
+                        'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                        'placeholder' => '(xxx) xxx-xxxx',
                         'id' => 'phone',
                         'autocomplete' => 'tel',
                     ])->required() !!}
@@ -171,8 +171,8 @@
                 ])->attributes([
                     'maxlength' => 14,
                     'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                    'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
-                    'placeholder' => '(123) 456-7890',
+                    'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                    'placeholder' => '(xxx) xxx-xxxx',
                     'id' => 'company_phone',
                     'autocomplete' => 'tel',
                 ]) !!}
@@ -282,7 +282,7 @@
 
                         <div>
                             <label class="text-sm text-gray-700 mb-1">Phone</label>
-                            <input type="text" name="addresses[0][phone]" class=" masked-phone w-full border rounded-md px-3 py-2 text-sm" placeholder="(123) 456-7890" required>
+                            <input type="text" name="addresses[0][phone]" class=" masked-phone w-full border rounded-md px-3 py-2 text-sm" placeholder="(xxx) xxx-xxxx" required>
                         </div>
                     </div>
         </div>
@@ -333,7 +333,7 @@
 
                     <div>
                         <label class="text-sm text-gray-700 mb-1">Phone</label>
-                        <input type="text" name="addresses[1][phone]" class=" masked-phone w-full border rounded-md px-3 py-2 text-sm" placeholder="(123) 456-7890" required>
+                        <input type="text" name="addresses[1][phone]" class=" masked-phone w-full border rounded-md px-3 py-2 text-sm" placeholder="(xxx) xxx-xxxx" required>
                     </div>
                 </div>
         </div>

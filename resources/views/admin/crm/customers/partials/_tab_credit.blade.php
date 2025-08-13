@@ -398,7 +398,7 @@
                                                                                     data-notes="{{ $transaction->notes }}"
                                                                                     data-sales_tax="{{ $transaction->sales_tax }}"
                                                                                     data-sales_tax_type="{{ $transaction->sales_tax_type }}"
-                                                                                    data-action="{{ route('admin.crm.customers.customeraccount.transactionupdate', $transaction->id) }}"
+                                                                                    data-action="{{ route('admin.crm.customers.customer-account.transactionupdate', $transaction->id) }}"
                                                                                     title="Edit">
                                                                                 <x-heroicon-o-pencil class="w-4 h-4" />
                                                                             </button>
@@ -407,7 +407,7 @@
                                                                         @endif
 
                                                                             <!-- Download -->
-                                                                            <form method="GET" action="{{ route('admin.crm.customers.customeraccount.download', $transaction->id) }}" target="_blank" style="display:flex;">
+                                                                            <form method="GET" action="{{ route('admin.crm.customers.customer-account.download', $transaction->id) }}" target="_blank" style="display:flex;">
                                                                                 <button title="Download" type="submit">
                                                                                     <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
                                                                                 </button>
@@ -424,7 +424,7 @@
                                                                             <button class="openDeleteTransactionBtn text-red-600 hover:text-red-800"
                                                                                     data-id="{{ $transaction->id }}"
                                                                                     data-type="{{ $transaction->type }}"
-                                                                                    data-action="{{ route('admin.crm.customers.customeraccount.transactiondelete', $transaction->id) }}"
+                                                                                    data-action="{{ route('admin.crm.customers.customer-account.transactiondelete', $transaction->id) }}"
                                                                                     title="Delete">
                                                                                 <x-heroicon-o-trash class="w-4 h-4" />
                                                                             </button>
@@ -477,7 +477,7 @@
                 <!-- <form> -->
 
                 
-                         {{ html()->form('POST', route('admin.crm.customers.customeraccount.paymentstore'))->id('recordpayment')->attributes([
+                         {{ html()->form('POST', route('admin.crm.customers.customer-account.paymentstore'))->id('recordpayment')->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
@@ -612,7 +612,7 @@
             <div class=" px-6 overflow-y-auto">
                 <!-- <form> -->
 
-                 {{ html()->form('POST', route('admin.crm.customers.customeraccount.refundstore'))->id('processRefund')->attributes([
+                 {{ html()->form('POST', route('admin.crm.customers.customer-account.refundstore'))->id('processRefund')->attributes([
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'space-y-8',
@@ -736,7 +736,7 @@
             <div class="px-6 overflow-y-auto">
                 <!-- <form> -->
 
-                 {{ html()->form('POST', route('admin.crm.customers.customeraccount.discountstore'))->id('applyDiscount')->attributes([
+                 {{ html()->form('POST', route('admin.crm.customers.customer-account.discountstore'))->id('applyDiscount')->attributes([
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'space-y-8',
@@ -872,7 +872,7 @@
             <div class="px-6 overflow-y-auto">
                 <!-- <form> -->
 
-                {{ html()->form('POST', route('admin.crm.customers.customeraccount.chargestore'))->id('applyCharge')->attributes([
+                {{ html()->form('POST', route('admin.crm.customers.customer-account.chargestore'))->id('applyCharge')->attributes([
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'space-y-8',

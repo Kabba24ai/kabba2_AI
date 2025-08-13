@@ -152,7 +152,7 @@ class IndexController extends Controller
             $customers = $query->paginate(10)->withQueryString();
 
 
-            $tableView = view('admin.crm.billingsummary.partials._table', compact('customers'))->render();
+            $tableView = view('admin.crm.billing_summary.partials._table', compact('customers'))->render();
 
             return response()->json([
                 'html' => $tableView,
@@ -208,7 +208,7 @@ class IndexController extends Controller
         
 
 
-            return view('admin.crm.billingsummary.index', [
+            return view('admin.crm.billing_summary.index', [
                 'customers' => $customers,
                 'totalOutstanding' => $totalOutstanding,
                 'overdueCustomerCount' => $overdueCustomerCount,

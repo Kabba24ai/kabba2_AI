@@ -56,7 +56,7 @@
                                             'border-red-500' => $errors->has('first_name'),
                                         ])
                                         ->attributes([
-                                            'maxlength' => 100,
+                                           
                                             'placeholder' => 'Enter First Name',
                                             'id' => 'first_name',
                                             'autocomplete' => 'off',
@@ -77,7 +77,6 @@
                                         'border-red-500' => $errors->has('last_name'),
                                     ])
                                     ->attributes([
-                                        'maxlength' => 100,
                                         'placeholder' => 'Enter Last Name',
                                         'id' => 'last_name',
                                         'autocomplete' => 'off',
@@ -102,7 +101,7 @@
                                         'border-red-500' => $errors->has('email'),
                                     ])
                                     ->attributes([
-                                        'maxlength' => 100,
+                                       
                                         'placeholder' => 'Enter Email',
                                         'id' => 'email',
                                         'autocomplete' => 'off',
@@ -135,11 +134,11 @@
                                     ])
                                     ->attributes([
                                         'maxlength' => 14,
-                                        'placeholder' => '(123) 456-7890',
+                                        'placeholder' => '(xxx) xxx-xxxx',
                                         'id' => 'phone',
                                         'autocomplete' => 'tel',
                                         'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                        'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
+                                        'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
                                     ])
                                     ->required() !!}
 
@@ -164,7 +163,7 @@
                                         'border-red-500' => $errors->has('company_name'),
                                     ])
                                     ->attributes([
-                                        'maxlength' => 100,
+                                       
                                         'placeholder' => 'Enter Company Name',
                                         'id' => 'company_name',
                                     ])
@@ -191,11 +190,11 @@
                                     ])
                                     ->attributes([
                                         'maxlength' => 14,
-                                        'placeholder' => '(123) 456-7890',
+                                        'placeholder' => '(xxx) xxx-xxxx',
                                         'id' => 'company_phone',
                                         'autocomplete' => 'tel',
                                         'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                        'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
+                                        'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
                                     ]) !!}
 
 
@@ -312,7 +311,7 @@
                                                         'border-red-500' => $errors->has("addresses.$index.last_name"),
                                                     ])
                                                     ->attributes([
-                                                        'maxlength' => 10,
+                                                      
                                                         'placeholder' => 'Last Name',
                                                         'class' => 'last_name'
                                                     ])->required() !!}
@@ -395,11 +394,11 @@
                                                             ])
                                                             ->attributes([
                                                                 'maxlength' => 14,
-                                                                'placeholder' => '(123) 456-7890',
+                                                                'placeholder' => '(xxx) xxx-xxxx',
                                                                 'class' => 'phone',
                                                                 'autocomplete' => 'tel',
                                                                 'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                                                'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
+                                                                'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
                                                             ])->required() !!}
 
                                                     </div>
@@ -491,17 +490,16 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
-                                    <span class="text-green-600 font-medium"> {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0)) }}</span>
+                                    <span class="text-green-600 font-medium"> {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}</span>
                                 </div>
 
-                                 @php
-                                    $climit = $customer->credit_limit ?? 0;
-                                    $available = $customer->total_account_order_amount ?? 0 ;
+                            @php
+                                $climit = $customer->credit_limit ?? 0;
+                                $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
 
-                                    $available = $available ;
 
-                                    $per = $climit > 0 ? (($available / $climit) * 100) : 0;
-                                @endphp
+                                $per = $climit > 0 ? ((($climit - $available) / $climit) * 100) : 0;
+                            @endphp
 
                                 <div class="flex justify-between text-xs text-gray-500 mb-1">
                                     <label class="text-xs text-gray-500 font-medium">Credit Utilization</label>

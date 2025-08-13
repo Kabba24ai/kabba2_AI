@@ -364,24 +364,6 @@ class PostController extends Controller
 
             $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
 
-            // if ($validated['payment'] === 'Account') {
-
-            //     $record = new CustomerAccount();
-            //     $record->customer_id = $customer->id;
-            //     $record->order_id = $order->id;
-            //     $record->balance = $customer->available_credit_balance ?? 0;
-            //     $record->amount = $order->subtotal;
-
-            //     $record->sales_tax = $order->tax_amount > 0 ? $salesTaxSetting?->setting_value : 0.0;
-
-            //     $record->date = now();
-            //     $record->type = 'order';
-
-            //     $record->save();
-
-            //     CustomHelper::updateCreditBalance($record, $order->tax_amount);
-
-            // }
 
             if ($validated['payment'] === 'Account') {
                 $products = $order->products;

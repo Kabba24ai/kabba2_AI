@@ -8,8 +8,8 @@ use App\Http\Controllers\Admin\Crm\BillingSummary\ViewController;
 
 
 
-Route::prefix('billingsummary')
-->name('billingsummary.')
+Route::prefix('billing-summary')
+->name('billing-summary.')
 ->group(function ($router) {
 
     Route::get('/', IndexController::class)->name('index');

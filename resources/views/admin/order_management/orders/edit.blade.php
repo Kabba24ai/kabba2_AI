@@ -63,14 +63,13 @@
             {{-- Action Buttons --}}
             <div class="flex flex-wrap gap-2">
                 <div class="relative group inline-block">
-                    <button
-                        id="reorderBtn"
-                        type="button"
+                    <button id="reorderBtn" type="button"
                         class="inline-flex items-center px-3 py-1.5 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 focus:outline-none">
                         <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
                     </button>
                     <!-- Reorder Modal -->
-                    <div id="reorderModal" class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+                    <div id="reorderModal"
+                        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
                         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
                             <!-- Header -->
                             <div class="flex justify-between items-center p-4 border-b">
@@ -83,23 +82,28 @@
                                 <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
                                     <div>
                                         <label class="text-sm font-medium text-gray-700 required">Order Type</label>
-                                        <select id="orderTypeSelect" name="order_type" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700" required>
+                                        <select id="orderTypeSelect" name="order_type"
+                                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
+                                            required>
                                             <option value="new">New Order</option>
                                             <option value="duplicate">Duplicate Order</option>
                                         </select>
                                     </div>
                                     <div id="duplicateOrderSection" class="hidden">
-                                        <label class="text-sm font-medium text-gray-700 mb-2">Products Dates</label>
+                                        <label class="text-sm font-medium text-gray-700 mb-2">Products</label>
                                         <div class="space-y-2">
                                             @foreach ($order->products as $orderProduct)
-                                                <div class="flex items-center gap-2">
-                                                    <span class="flex-1">{{ $orderProduct->product_name }}</span>
-                                                     <input type="text" name="delivery_dates[{{ $orderProduct->unique_id }}]"
-                                                    data-format="{{ config('app.date.js_date_format') }}"
-                                                    placeholder="Select date"
-                                                    data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                    class="datepicker border rounded px-2 py-2 text-xs" />
-                                                </div>
+                                                @if(!empty($orderProduct->product))
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="flex-1">{{ $orderProduct->product_name }}</span>
+                                                        <input type="text"
+                                                            name="delivery_dates[{{ $orderProduct->product->unique_id }}]"
+                                                            data-format="{{ config('app.date.js_date_format') }}"
+                                                            placeholder="Select date"
+                                                            data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                                            class="reorder-datepicker border rounded px-2 py-2 text-xs" />
+                                                    </div>
+                                                @endif
                                             @endforeach
                                         </div>
                                     </div>
@@ -141,7 +145,8 @@
                 @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                 <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
             </a>
-            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}" method="POST" target="_blank" class="inline-flex items-center">
+            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}" method="POST"
+                target="_blank" class="inline-flex items-center">
                 @csrf
                 <button type="submit" class="inline-flex items-center hover:underline">
                     <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
@@ -1811,17 +1816,25 @@
                 }
             });
 
-             // Modal open/close logic
+            // Modal open/close logic
             const reorderBtn = document.getElementById('reorderBtn');
             const reorderModal = document.getElementById('reorderModal');
             const orderTypeSelect = document.getElementById('orderTypeSelect');
             const duplicateOrderSection = document.getElementById('duplicateOrderSection');
-            const closeReorderModelButton = document.querySelector('.close-reorder-model-btn');
 
             function openReorderModal() {
+                orderTypeSelect.value = 'new';
+                orderTypeSelect.dispatchEvent(new Event('change'));
+                document.querySelectorAll('.reorder-datepicker').forEach(el => {
+                    el.value = '';
+                    if (el._airDatepicker) {
+                        el._airDatepicker.clear();
+                    }
+                });
                 reorderModal.classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
             }
+
             function closeReorderModal() {
                 reorderModal.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
@@ -1830,9 +1843,9 @@
                 reorderBtn.addEventListener('click', openReorderModal);
             }
 
-            if (closeReorderModelButton) {
-                closeReorderModelButton.addEventListener('click', closeReorderModal);
-            }
+            // ✅ attach to BOTH close buttons
+            document.querySelectorAll('.close-reorder-model-btn').forEach(btn => btn.addEventListener('click',
+                closeReorderModal));
 
             if (orderTypeSelect) {
                 orderTypeSelect.addEventListener('change', function() {
@@ -1847,6 +1860,62 @@
                     duplicateOrderSection.classList.remove('hidden');
                 }
             }
+
+            document.querySelectorAll('.reorder-datepicker').forEach(el => {
+                // Only initialize if the input is visible (not .hidden)
+                if (!el.classList.contains('hidden')) {
+                    el._airDatepicker = new AirDatepicker(el, {
+                        locale: window.airDatepickerLocaleEn,
+                        timepicker: false,
+                        dateFormat: el.dataset.format || window.APP_DATE_FORMAT ||
+                            'yyyy-MM-dd HH:mm',
+                        minDate: el.dataset.minDate ? new Date(el.dataset.minDate) : false,
+                        autoClose: true,
+                        keyboardNav: true,
+                        // 🔹 Put the calendar in <body> so it’s not clipped or stuck
+                        container: "#reorderModal",
+                        // 🔹 Give it a stacking level above your modal overlay
+                        zIndex: 99999
+                    });
+                }
+            });
+
+
+            document.getElementById('reorderForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+                // Unified endpoint
+                const endpoint =
+                    '{{ route('admin.order-management.orders.reorder', ['unique_id' => $order->unique_id]) }}';
+
+                const response = apiFetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: formData
+                    })
+                    .then(res => {
+                        if (res && res.success) {
+                            notyf.success(res.message);
+                            window.open(res.redirect_url, '_blank');
+                            closeReorderModal();
+
+                        } else {
+                            notyf.error(res && res.message);
+                        }
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    });
+            });
         });
     </script>
 @endpush

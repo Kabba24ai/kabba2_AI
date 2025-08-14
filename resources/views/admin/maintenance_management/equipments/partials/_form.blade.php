@@ -358,36 +358,52 @@
 
     {{-- Third Row --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {{-- Rental Ready --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <div class="flex items-center space-x-2 mb-4">
-                <svg class="h-5 w-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 class="text-lg font-bold text-gray-900">Rental Ready</h3>
+        {{-- Power Source --}}
+         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center space-x-3 mb-4">
+                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <h3 class="text-lg font-bold text-gray-900">Power Source</h3>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Rental Ready Checklist</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Power Type</label>
                 <select
                     name="rental_ready_checklist"
                     class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                 >
-                    <option value="">Select Rental Ready Checklist</option>
+                    <option value="">Select Power Source</option>
+                    {{-- These will be populated from a checklists table in the future --}}
+                </select>
+                
+            </div>
+        </div>
+        {{-- Customer Checklist --}}
+         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center space-x-2 mb-4">
+                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <h3 class="text-lg font-bold text-gray-900">Checklist Master</h3>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Checklist Master</label>
+                <select
+                    name="rental_ready_checklist"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                >
+                    <option value="">Select Checklist Master</option>
                     {{-- These will be populated from a checklists table in the future --}}
                 </select>
                 <p class="mt-2 text-xs text-gray-500">
-                    Pre-rental inspection and preparation checklist
+                    Customer delivery and return inspection checklist
                 </p>
             </div>
         </div>
 
-        {{-- Equipment Service --}}
+
+         {{-- Equipment Service --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex items-center space-x-2 mb-4">
-                <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench h-5 w-5 text-indigo-600"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
                 <h3 class="text-lg font-bold text-gray-900">Equipment Service</h3>
             </div>
 
@@ -402,6 +418,27 @@
                 </select>
                 <p class="mt-2 text-xs text-gray-500">
                     Maintenance schedule and service history tracking
+                </p>
+            </div>
+        </div>
+        {{-- Equipment Part List --}}
+         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center space-x-3 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-5 w-5 text-purple-600"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
+                <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Parts List Template</label>
+                <select
+                    name="rental_ready_checklist"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                >
+                    <option value="">Select Equipment Part List</option>
+                    {{-- These will be populated from a checklists table in the future --}}
+                </select>
+                <p class="mt-2 text-xs text-gray-500">
+                    Assign a parts list template for this equipment
                 </p>
             </div>
         </div>

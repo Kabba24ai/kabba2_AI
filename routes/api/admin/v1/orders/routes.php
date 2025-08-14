@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\V1\Orders\Notes\StoreController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Notes\UpdateController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Notes\RemoveController;
 use App\Http\Controllers\Api\Admin\V1\Orders\UpdateAddressController;
+use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\IndexController as SchedulesIndexController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,10 @@ Route::group(['prefix' => 'orders'], function () {
     Route::post('/upload-media', UploadMediaController::class);
     Route::post('/remove-media', RemoveMediaController::class);
     Route::post('/update-address', UpdateAddressController::class);
+
+    Route::group(['prefix' => 'schedules'], function () {
+        Route::post('/', SchedulesIndexController::class);
+    });
 
     Route::group(['prefix' => 'notes'], function () {
         Route::post('/create', StoreController::class);

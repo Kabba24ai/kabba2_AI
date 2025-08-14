@@ -16,5 +16,7 @@ return [
     'note_update_failed' => 'Failed to update note',
     'address_updated' => 'Address updated successfully',
     'address_update_failed' => 'Failed to update address',
+    'schedules_found' => 'Schedules found successfully',
+    'schedules_not_found' => 'No schedules found',
 ];
 

@@ -43,12 +43,12 @@ class ListResource extends JsonResource
             'platform' => $this->platform ?? '',
             'payment_type' => $this->last_payment_type ?? '',
             'payment_status' => $this->last_payment_status ?? '',
-            'delivery_address' => new OrderAddressesListResource($this->shippingAddress ?? []) ?? [],
-            'billing_address' => new OrderAddressesListResource($this->billingAddress ?? []) ?? [],
+            'delivery_address' => new OrderAddressesListResource($this->whenLoaded('shippingAddress') ?? []),
+            'billing_address' => new OrderAddressesListResource($this->whenLoaded('billingAddress') ?? []),
 
-            'license' => OrderMediasListResource::collection($this->licenseMedia ?? []),
-            'order_products' => OrderProductsListResource::collection($this->products) ?? [],
-            'order_notes' => OrderNotesListResource::collection($this->notes) ?? [],
+            'license' => OrderMediasListResource::collection($this->whenLoaded('licenseMedia') ?? []),
+            'order_products' => OrderProductsListResource::collection($this->whenLoaded('products')) ?? [],
+            'order_notes' => OrderNotesListResource::collection($this->whenLoaded('notes')) ?? [],
 
             'terms_status' => $this->terms_status ?? '',
             'terms_page' => route('front.terms-and-conditions.index', ['orderUniqueId' => $this->unique_id, 'device' => 'mobile']) ?? '',

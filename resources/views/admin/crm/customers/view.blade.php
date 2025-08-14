@@ -56,18 +56,22 @@
         <div class="flex flex-wrap gap-2">
             <!-- Edit Button -->
           
-
-            <!-- Delete Button -->
+            <!-- Delete Form -->
             <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}"
-                method="POST" class="inline"
-                onsubmit="return confirm('Are you sure you want to delete this Customer?');">
+                method="POST"
+                class="inline delete-customer-form"
+                data-customer-name="{{ $customer->name }}">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition">
+                <button type="submit"
+                    class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition">
                     <x-heroicon-o-trash class="w-5 h-5 mr-2" />
                     Delete
                 </button>
             </form>
+
+
+
         </div>
     </div>
 </div>
@@ -163,6 +167,27 @@
 @endsection
 
 @push('js')
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-customer-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // stop immediate form submission
+
+            let customerName = form.getAttribute('data-customer-name') || 'this customer';
+
+            window.showConfirm(
+                `Delete ${customerName}? This action cannot be undone!`,
+                'Delete Customer'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // submit the original form
+                }
+            });
+        });
+    });
+});
+</script>
 
 
 <script>
@@ -823,6 +848,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.success) {
             notyf.success(data.message || "Note updated successfully.");
             document.getElementById('noteContainer').innerText = newNote;
+
+            // Update the table cell for this transaction row
+            const noteCell = document.querySelector(`.transaction-note-cell-${transactionId}`);
+             
+
+            if (noteCell) {
+                noteCell.textContent = newNote || 'N/A';
+            }
+
             restoreButtons();
         } else {
             notyf.error(data.message || "Failed to update note.");

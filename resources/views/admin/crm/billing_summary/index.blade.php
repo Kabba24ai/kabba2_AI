@@ -25,12 +25,9 @@
                             Export
                         </button>
                         
-                        <!-- <a href="{{ route('admin.crm.billingsummary.index') }}" class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
-                             <x-heroicon-o-arrow-path class="w-5 h-5 text-white" />
-                            Refresh
-                        </a> -->
+                        
 
-                         <a href="{{ route('admin.crm.billingsummary.index') }}" id="refreshBtn" class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
+                         <a href="{{ route('admin.crm.billing-summary.index') }}" id="refreshBtn" class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
                             <x-heroicon-o-arrow-path id="refreshIcon" class="w-5 h-5 text-white" />
                             Refresh
                         </a>
@@ -176,7 +173,7 @@
 
           
             <div id="customer-table-wrapper">
-                @include('admin.crm.billingsummary.partials._table', ['customers' => $customers])
+                @include('admin.crm.billing_summary.partials._table', ['customers' => $customers])
             </div>
 
 @endsection
@@ -227,7 +224,7 @@
                 loader.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
-            fetch("{{ route('admin.crm.billingsummary.index') }}?" + params.toString(), {
+            fetch("{{ route('admin.crm.billing-summary.index') }}?" + params.toString(), {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(response => response.json())

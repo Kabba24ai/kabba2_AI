@@ -123,7 +123,7 @@
 
                                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-center">
                                     <div class="flex items-center justify-center">
-                                        <a href="{{ route('admin.crm.billingsummary.view' , $customer->unique_id) }}" target="_blank" class="text-blue-600  space-x-1">
+                                        <a href="{{ route('admin.crm.billing-summary.view' , $customer->unique_id) }}" target="_blank" class="text-blue-600  space-x-1">
                                             <x-heroicon-o-eye class="w-4 h-4" />
                                         </a>
                                    </div>

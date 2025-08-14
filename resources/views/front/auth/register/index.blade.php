@@ -293,50 +293,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const passwordInput = document.getElementById('password');
-    const confirmInput = document.getElementById('password_confirmation');
-    const passwordError = document.getElementById('password-errors');
 
-    // Live check: Password length
-    passwordInput.addEventListener('input', function () {
-        const password = passwordInput.value;
-        if (password.length < 6) {
-            passwordError.textContent = 'Password must be at least 6 characters long.';
-        } else {
-            passwordError.textContent = '';
-        }
-
-        // Also recheck confirm password if already typed
-        validateConfirmPassword();
-    });
-
-    // Live check: Confirm password matches
-    confirmInput.addEventListener('input', function () {
-        validateConfirmPassword();
-    });
-
-    function validateConfirmPassword() {
-        const confirmErrorId = 'confirm-password-error';
-        const existingError = document.getElementById(confirmErrorId);
-        const password = passwordInput.value;
-        const confirm = confirmInput.value;
-
-        if (confirm && confirm !== password) {
-            if (!existingError) {
-                const error = document.createElement('p');
-                error.id = confirmErrorId;
-                error.className = 'text-sm text-red-600 mt-1';
-                error.textContent = 'Passwords do not match.';
-                confirmInput.insertAdjacentElement('afterend', error);
-            }
-        } else {
-            if (existingError) {
-                existingError.remove();
-            }
-        }
-    }
-});
-</script>
 @endpush

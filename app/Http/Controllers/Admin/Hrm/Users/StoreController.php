@@ -39,7 +39,7 @@ class StoreController extends Controller
                 'start_date' => CustomHelper::parseDateFromInput($validated['startDate'] ?? null),
                 'end_date' => CustomHelper::parseDateFromInput($validated['endDate'] ?? null),
                 'pay_type'       => $validated['payType'] ?? null,
-                'clock_code'     => $validated['clockCode'] ?? null,
+                
                 'status'         => $validated['status'] ?? 'Active',
             
                 'limit_start_time' => $validated['limit_start'] ?? false,

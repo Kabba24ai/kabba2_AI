@@ -36,10 +36,8 @@ class UpdateRequest extends FormRequest
 
             'company_website' => ['nullable'],
             'company_phone' => ['nullable'],
-            'tax_document_type'=> ['nullable'],
         
             'alladdresslist'=>['nullable'],
-            'tax_document_media_id' => ['nullable'],
 
             'website_protocol' => ['nullable'],
             'website_extension' => ['nullable'],

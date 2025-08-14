@@ -82,7 +82,7 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <x-heroicon-o-briefcase class="w-4 h-4 text-gray-900" />
-                                        Clock Code: {{  $user->clock_code }} 
+                                        Employee Code: {{  $user->employee_code ?? 'N/A' }} 
                                     </div>
                                     <div class="flex items-center gap-2 mb-4">
                                     <x-heroicon-o-calendar class="w-4 h-4 text-gray-900" />

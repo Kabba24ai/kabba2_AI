@@ -48,7 +48,7 @@
                     <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 text-sm text-gray-700">
 
                         <div>
-                            <label class="text-xs text-gray-500 font-medium">First Name</label>
+                            <label class="text-xs text-gray-500 font-medium">First Name *</label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
                              <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
 
@@ -69,7 +69,7 @@
                         </div>
 
                         <div>
-                            <label class="text-xs text-gray-500 font-medium">Last Name</label>
+                            <label class="text-xs text-gray-500 font-medium">Last Name *</label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
 
@@ -89,7 +89,7 @@
                         </div>
 
                         <div class="col-span-2">
-                            <label class="text-xs text-gray-500 font-medium">Email Address</label>
+                            <label class="text-xs text-gray-500 font-medium">Email Address *</label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-1 text-sm">
                                     <x-heroicon-o-envelope class="w-4 h-4 text-gray-900" />{{ $customer->email ?? '' }}
@@ -121,7 +121,7 @@
                         </div>
 
                         <div class="col-span-2">
-                            <label class="text-xs text-gray-500 font-medium">Phone Number</label>
+                            <label class="text-xs text-gray-500 font-medium">Phone Number *</label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-1 text-gray-900">
                                     <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
@@ -158,7 +158,7 @@
                     </h3>
                     <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
                         <div class="col-span-2">
-                            <label class="text-xs text-gray-500 font-medium">Company Name</label>
+                            <label class="text-xs text-gray-500 font-medium">Company Name *</label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
 
@@ -296,7 +296,7 @@
 
             <div class="grid grid-cols-2 gap-4">
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">First Name</label>
+                        <label class="text-sm text-gray-700 mb-1">First Name *</label>
                         {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -308,7 +308,7 @@
                             ])->required() !!}
                     </div>
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">Last Name </label>
+                        <label class="text-sm text-gray-700 mb-1">Last Name *</label>
                         {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -323,7 +323,7 @@
                 </div>
 
                 <div>
-                    <label class="text-sm text-gray-700 mb-1 edit-view">Address</label>
+                    <label class="text-sm text-gray-700 mb-1 edit-view">Address *</label>
                     <div class="static-view text-gray-900 text-sm">
                       {{ $addresse?->full_name ?? '' }}<br>
                                             {{ $addresse?->address ?? '' }}  {{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
@@ -339,12 +339,12 @@
                         ->attributes([
                             'placeholder' => 'Enter Address',
                             'class' => 'address'
-                        ]) !!}
+                        ])->required() !!}
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">City</label>
+                        <label class="text-sm text-gray-700 mb-1">City *</label>
                         {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -353,39 +353,39 @@
                             ->attributes([
                                 'placeholder' => 'Enter City',
                                 'class' => 'city'
-                            ]) !!}
+                            ])->required() !!}
                     </div>
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">Zip Code</label>
+                        <label class="text-sm text-gray-700 mb-1">Zip Code *</label>
                         {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                                 'border-red-500' => $errors->has("addresses.$index.zip_code"),
                             ])
                             ->attributes([
-                                'maxlength' => 10,
+                                'maxlength' => 8,
                                 'placeholder' => 'ZIP Code',
                                 'class' => 'zip_code'
-                            ]) !!}
+                            ])->required() !!}
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                             <div class="edit-view">
-                                <label class="text-sm text-gray-700 mb-1">State</label>
+                                <label class="text-sm text-gray-700 mb-1">State *</label>
                                 {!! html()
                                     ->select("addresses[$index][state_id]",
-                                        $states->pluck('name', 'id')->toArray(),
+                                          ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
                                         old("addresses.$index.state_id", $addresse->state_id ?? '')
                                     )
                                     ->class([
                                         'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
                                         'border-red-500' => $errors->has("addresses.$index.state_id"),
-                                    ]) !!}
+                                    ]) ->attribute('required', true)  !!}
                             </div>
 
                             <div class="edit-view">
-                                <label class="text-sm text-gray-700 mb-1">Phone Number</label>
+                                <label class="text-sm text-gray-700 mb-1">Phone Number *</label>
 
 
                                  {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
@@ -653,7 +653,6 @@
                                     autocomplete="off"
                                 />                           
                             </div>
-                            <!-- <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span> -->
                         </div>
                     </div>
                 
@@ -698,7 +697,7 @@
                 <div class="max-w-md mx-auto">
                     <!-- <form id="taxDocForm" enctype="multipart/form-data"> -->
 
-                    {{-- Open Form --}}
+            {{-- Open Form --}}
                 {!! html()->form() 
                     ->id('taxDocForm')
                     ->attribute('enctype', 'multipart/form-data')
@@ -927,11 +926,11 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
-    // Expecting { valid: true/false }
-    const response = xhr.responseJSON || {};
-    return response.valid === true;
-});
+        window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
+        // Expecting { valid: true/false }
+        const response = xhr.responseJSON || {};
+        return response.valid === true;
+    });
 
 });
 
@@ -1137,7 +1136,7 @@ function resetTaxDocModalForm() {
 
 
     const wrapper = document.getElementById('taxDocPreviewWrapper');
-   wrapper.innerHTML = result.html;
+      wrapper.innerHTML = result.html;
 
     // Update upload date field
     const uploadDateInput = document.getElementById('tax_document_upload_date');

@@ -202,8 +202,8 @@
             <div class="grid grid-cols-1 text-sm text-gray-700 gap-y-4">
                 <!-- Clock Code -->
                 <div>
-                    <p class="text-xs text-gray-500 font-medium">Clock Code</p>
-                    <p class="text-sm text-gray-900">{{ $user->clock_code ?? '' }}</p>
+                    <p class="text-xs text-gray-500 font-medium">Employee Code</p>
+                    <p class="text-sm text-gray-900">{{ $user->employee_code ?? '' }}</p>
                 </div>
                 <!-- Limit Times side-by-side -->
                 <div class="flex flex-col sm:flex-row sm:items-start sm:gap-6 ">

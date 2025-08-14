@@ -261,7 +261,7 @@
                                     $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
                                 @endphp
                                                     
-                            <tr data-status="{{ $transaction->type }}" class="border-b status-row">
+                            <tr data-status="{{ $transaction->type }}"  class="border-b status-row">
                                 <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
                                 <td class="px-4 py-3 text-red-600 ">
                                     
@@ -333,7 +333,7 @@
                                                                     </td>
                                                                     <!-- Amount Without Tax -->
 
-                                                          <td class="px-4 py-3 text-right whitespace-nowrap">  {{ $transaction->notes ?? 'N/A' }} </td>
+                                                          <td class="px-4 py-3 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}">  {{ $transaction->notes ?? 'N/A' }} </td>
 
 
                                                                         <td class="px-4 py-3 text-right"> 
@@ -493,7 +493,7 @@
 
                     <!-- Payment Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount *</label>
                         <div class="relative">
                         <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
@@ -519,7 +519,7 @@
                     </div>
                     <!-- Payment Method -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
                        
 
 
@@ -537,7 +537,7 @@
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
 
                        
 
@@ -622,7 +622,7 @@
                  {!! html()->hidden('customer_id', $customer->id ?? '') !!}
                     <!-- Payment Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount *</label>
                         <div class="relative">
                             <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -641,7 +641,7 @@
                     </div>
                     <!-- Payment Method -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason *</label>
                         
 
                         {!! html()->select('reason', [
@@ -658,12 +658,8 @@
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
-                        <!-- <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 ">
-                        <option>Select person responsible</option>
-                        <option>John Doe</option>
-                        <option>Jane Smith</option>
-                        </select> -->
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
+                      
 
                         {!! html()
                         ->select('responsible_person',
@@ -750,7 +746,7 @@
 
                     <!-- Discount Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount *</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 h-[35px] left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -776,7 +772,7 @@
                     </div>
                     <!-- Discount Reason -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason *</label>
                      
 
 
@@ -794,7 +790,7 @@
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
                         
                          {!! html()
                             ->select('responsible_person',
@@ -887,7 +883,7 @@
 
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount *</label>
                          <div class="relative">
                             <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -932,7 +928,7 @@
 
                     <!-- Charge Reason -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason *</label>
                         
                          {!! html()->select('reason', [
                         '' => 'Select charge reason',
@@ -951,7 +947,7 @@
 
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
                         
                          {!! html()
                         ->select('responsible_person',
@@ -1184,52 +1180,36 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-
 <script>
+function attachValidatedSubmit(formId, btnId, btnTextId, spinnerId, loadingText) {
+    const form = document.getElementById(formId);
+    if (!form) return; // Safety in case the form doesn't exist
 
-document.getElementById('recordpayment').addEventListener('submit', function () {
-  const btn = document.getElementById('submitTemplatesBtn');
-  const btnText = document.getElementById('btnText');
-  const spinner = document.getElementById('btnSpinner');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault(); // Stop immediate submit
 
-  btn.disabled = true;
-  btnText.textContent = 'Processing...';
-  spinner.classList.remove('hidden');
-});
+        // If using Parsley validation
+        if ($(form).parsley().isValid()) {
+            const btn = document.getElementById(btnId);
+            const btnText = document.getElementById(btnTextId);
+            const spinner = document.getElementById(spinnerId);
 
+            btn.disabled = true;
+            btnText.textContent = loadingText;
+            spinner.classList.remove('hidden');
 
-document.getElementById('processRefund').addEventListener('submit', function () {
-  const btn = document.getElementById('submitRefundBtn');
-  const btnText = document.getElementById('refundBtnText');
-  const spinner = document.getElementById('refundBtnSpinner');
+            form.submit(); // Submit after showing loader
+        }
+    });
+}
 
-  btn.disabled = true;
-  btnText.textContent = 'Processing...';
-  spinner.classList.remove('hidden');
-});
-
-document.getElementById('applyDiscount').addEventListener('submit', function () {
-  const btn = document.getElementById('submitDiscountBtn');
-  const btnText = document.getElementById('discountBtnText');
-  const spinner = document.getElementById('discountBtnSpinner');
-
-  btn.disabled = true;
-  btnText.textContent = 'Applying...';
-  spinner.classList.remove('hidden');
-});
-
-document.getElementById('applyCharge').addEventListener('submit', function () {
-  const btn = document.getElementById('submitChargeBtn');
-  const btnText = document.getElementById('chargeBtnText');
-  const spinner = document.getElementById('chargeBtnSpinner');
-
-  btn.disabled = true;
-  btnText.textContent = 'Adding...';
-  spinner.classList.remove('hidden');
-});
-
-
+// Attach to all forms
+attachValidatedSubmit('recordpayment', 'submitTemplatesBtn', 'btnText', 'btnSpinner', 'Processing...');
+attachValidatedSubmit('processRefund', 'submitRefundBtn', 'refundBtnText', 'refundBtnSpinner', 'Processing...');
+attachValidatedSubmit('applyDiscount', 'submitDiscountBtn', 'discountBtnText', 'discountBtnSpinner', 'Applying...');
+attachValidatedSubmit('applyCharge', 'submitChargeBtn', 'chargeBtnText', 'chargeBtnSpinner', 'Adding...');
 </script>
+
 
 
 @endpush

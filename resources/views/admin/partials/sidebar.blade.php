@@ -305,6 +305,61 @@
                     <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $checklistManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-clipboard-document-check class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Checklist Mangement</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="#"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-wrench-screwdriver class="w-5 h-5" /> Equipment Mgt.
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.checklist_management.checklist-master.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist_management.checklist-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-check-circle class="w-5 h-5" /> Checklist Master
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-truck class="h-5 w-5" /> Rental Ready Admin
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-s-user-group class="w-5 h-5" /> Customer Admin
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- Checklist Mangement -->
+                    <!-- <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $checklistManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
 
                                 <x-heroicon-o-clipboard-document-check class="w-6 h-6" />
                                 <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Checklist Management</span>
@@ -315,12 +370,10 @@
                                 </span>
                             </a>
 
-                        <!-- Level 2 Dropdown -->
                         <div x-show="open" x-transition>
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
 
-                                <!-- Rental Ready (Level 2) -->
                                 <li x-data="{ subOpen: {{ $rentalReadyActive ? 'true' : 'false' }} }" >
                                     <a href="#" @click.prevent="subOpen = !subOpen"
                                         class="menu-dropdown-item group flex items-center justify-between gap-2
@@ -336,7 +389,6 @@
                                             </svg>
                                     </a>
 
-                                    <!-- Level 3 Dropdown -->
                                     <ul x-show="subOpen" x-transition class="mt-1 pl-5 space-y-1 text-sm text-gray-600 ">
                                         <li>
                                             <a href="{{ route('admin.checklist_management.rental_ready.question_and_categories.index') }}"
@@ -361,12 +413,10 @@
                             </ul>
                         </div>
 
-                         <!-- Level 2 Dropdown -->
                         <div x-show="open" x-transition>
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
 
-                                <!-- Equipments (Level 2) -->
                                 <li x-data="{ subOpen: {{ $customerChecklistActive ? 'true' : 'false' }} }">
                                     <a href="#" @click.prevent="subOpen = !subOpen"
                                     class="menu-dropdown-item group flex items-center justify-between gap-2
@@ -380,7 +430,6 @@
                                         </svg>
                                     </a>
 
-                                    <!-- Level 3 Dropdown -->
                                     <ul x-show="subOpen" x-transition class="mt-1 pl-5 space-y-1 text-sm text-gray-600">
                                         <li>
                                             <a href="#"
@@ -395,7 +444,7 @@
 
                             </ul>
                         </div>
-                    </li>
+                    </li> -->
 
 
                     @php

@@ -126,7 +126,7 @@
                         ->attributes([
                             'placeholder' => '123 Main Street',
                             'autocomplete' => 'off',
-                        ])
+                        ])->required()
                     !!}
 
             </div>
@@ -141,7 +141,7 @@
                                     ->attributes([
                                         'placeholder' => 'New York',
                                         'autocomplete' => 'off',
-                                    ])
+                                    ])->required()
                                 !!}
                 </div>
                 <div>
@@ -288,21 +288,7 @@
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Clock Code -->
-            <div class="flex flex-col">
-                <label for="clockCode" class="text-xs text-gray-500 font-medium">Clock Code *</label>
-             
-                      {!! html()->text('clockCode', old('clockCode', $user->clock_code ?? ''))->class([
-                            'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                            'border-red-500' => $errors->has('clockCode'),
-                            'border-gray-300' => !$errors->has('clockCode'),
-                        ])->attributes([
-                            'id' => 'clockCode',
-                            'placeholder' => '12345',
-                            'autocomplete' => 'off',
-                        ]) !!}
-
-            </div>
+           
 
             <div class="flex items-center gap-2">
                

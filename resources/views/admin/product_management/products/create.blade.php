@@ -116,13 +116,25 @@
                 e.preventDefault();
 
                 const parsleyForm = $(form).parsley();
+                const productType = document.querySelector('input[name="product_type"]:checked')?.value;
 
                 const isFormValid = parsleyForm.validate({
                     force: true
                 });
 
+                if (!isFormValid) {
+                    const failedFields = parsleyForm.fields.filter(field => !field.isValid());
+
+                    failedFields.forEach(field => {
+                        console.log('Failed field:', field.$element.attr('name'));
+                    });
+
+                    e.preventDefault();
+                    return;
+                }
+
                 // --- CUSTOM COMMON VALIDATION FOR DELIVERY FEES ---
-                if (stdInput && extInput && errorBox) {
+                if (stdInput && extInput && errorBox && productType == "Rental") {
                     const stdVal = parseFloat(stdInput.value || 0);
                     const extVal = parseFloat(extInput.value || 0);
 
@@ -136,20 +148,6 @@
                     }
                 }
                 // --------------------------------------------------
-
-                if (!isFormValid) {
-                    const failedFields = parsleyForm.fields.filter(field => !field.isValid());
-
-                    failedFields.forEach(field => {
-                        console.log('Failed field:', field.$element.attr('name'));
-                    });
-
-                    e.preventDefault();
-                    return;
-                }
-
-
-                console.log('Form is valid, proceeding with submission');
 
                 const submitter = e.submitter;
                 const clickedButton = submitter ? submitter.value : null;

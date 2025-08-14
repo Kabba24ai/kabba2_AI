@@ -29,6 +29,7 @@ use App\Models\Customers\CustomerAddress;
 use App\Models\Customers\CustomerAccount;
 use App\Models\ProductManagement\Product;
 use App\Models\Configurations\Setting;
+use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
 use App\Models\Stores\Store;
 
@@ -40,13 +41,25 @@ class PostController extends Controller
      */
     public function __invoke(PostRequest $request)
     {
-        DB::beginTransaction();
         $validated = $request->validated();
 
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
+        $employeeCode = $validated['employee_code'] ?? null;
+
+
+        if ($employeeCode) {
+            // Validate employee code if provided
+            $employee = User::where('employee_code', $employeeCode)->active()->first();
+            if (!$employee) {
+                return redirect()->back()->withInput()->with('error', 'Invalid employee code.');
+            }
+        } else {
+            $employee = null;
+        }
 
         try {
+            DB::beginTransaction();
             if(auth()->guard('customer')->check()) {
                 $customer = auth()->guard('customer')->user();
             } else {
@@ -156,6 +169,7 @@ class PostController extends Controller
             // Save Order
             $order = $customer->orders()->create([
                 'customer_id' => $customer->id,
+                'reference_order_number' => session('order.number') ?? null,
                 'customer_name' => $customer->full_name,
                 'customer_email' => $customer->email,
                 'customer_phone' => $customer->phone,
@@ -399,8 +413,37 @@ class PostController extends Controller
 
             DB::commit();
 
+            $orderActionType = null;
+
+            if(session()->has('order.number')){
+                // Reorder performed while impersonating
+                $orderActionType = 'reorder';
+            }elseif(session()->has('master_passcode')) {
+                // Master passcode flow
+                $orderActionType = 'master_passcode';
+            }elseif(!empty($validated['employee_code']) && auth()->guard('customer')->check()) {
+                // Customer is logged in (with an employee code)
+                $orderActionType = 'website_login';
+            }elseif(auth()->guard('customer')->check()) {
+                // Customer is logged in (without an employee code)
+                $employee = null;
+                $orderActionType = 'customer_account_login';
+            }elseif(!empty($validated['employee_code'])){
+                // New account created with an employee code (no customer login)
+                $orderActionType = 'new_account';
+            }else{
+                // Guest checkout, no employee code
+                $employee = null;
+                $orderActionType = 'customer_no_account';
+            }
+
+            // Update the reference_order_number if exists
+            if (session()->has('order')) {
+                session()->forget('order');
+            }
+
             // Fire OrderPlaced event
-            event(new OrderPlacedEvent($order, $customer, $payment));
+            event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
 
             // Generate a signed URL for the thank you page with order unique id
             // $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);

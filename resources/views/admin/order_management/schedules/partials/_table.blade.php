@@ -25,7 +25,7 @@
                     </td>
                     <td class="px-4 py-3 text-left">
                         <div class="font-medium">{{ $orderProduct->order->customer_name }}</div>
-                        <div class="text-gray-500 text-xs">{{ $orderProduct->order->customer?->unique_id ?? '-' }}</div>
+                        {{-- <div class="text-gray-500 text-xs">{{ $orderProduct->order->customer?->unique_id ?? '-' }}</div> --}}
                     </td>
                     <td class="px-4 py-3">
                         {{ $orderProduct->order->customer->company_name }}

@@ -13,11 +13,15 @@ class OrderPlacedEvent
     public $order;
     public $customer;
     public $payment;
+    public $employee;
+    public $orderActionType;
 
-    public function __construct(Order $order, $customer, $payment)
+    public function __construct(Order $order, $customer, $payment, $orderActionType, $employee = null)
     {
         $this->order = $order;
         $this->customer = $customer;
         $this->payment = $payment;
+        $this->orderActionType = $orderActionType;
+        $this->employee = $employee;
     }
 }

@@ -93,7 +93,7 @@
                                         <label class="text-sm font-medium text-gray-700 mb-2">Products</label>
                                         <div class="space-y-2">
                                             @foreach ($order->products as $orderProduct)
-                                                @if(!empty($orderProduct->product))
+                                                @if (!empty($orderProduct->product))
                                                     <div class="flex items-center gap-2">
                                                         <span class="flex-1">{{ $orderProduct->product_name }}</span>
                                                         <input type="text"
@@ -152,6 +152,14 @@
                     <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
                 </button>
             </form>
+            @if ($order->reference_order_number)
+                <a href="{{ $order->referenceOrder ? route('admin.order-management.orders.edit', $order->referenceOrder->unique_id) : 'javascript:void(0);' }}"
+                    target="_blank"
+                    class="inline-flex items-center hover:underline {{ !$order->referenceOrder ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
+                    @if (!$order->referenceOrder) tabindex="-1" aria-disabled="true" @endif>
+                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reference Order: {{ $order->reference_order_number }}
+                </a>
+            @endif
         </div>
     </div>
 
@@ -173,7 +181,8 @@
                     <input type="hidden" id="billing_last_name_input"
                         data-last-name="{{ $order->billingAddress->last_name ?? '' }}">
                     <input type="hidden" id="billing_email_input" data-email="{{ $order->billingAddress->email ?? '' }}">
-                    <input type="hidden" id="billing_phone_input" data-phone="{{ $order->billingAddress->phone ?? '' }}">
+                    <input type="hidden" id="billing_phone_input"
+                        data-phone="{{ $order->billingAddress->phone ?? '' }}">
                     <input type="hidden" id="billing_address_input"
                         data-address="{{ $order->billingAddress->address ?? '' }}">
                     <input type="hidden" id="billing_state_input"
@@ -784,21 +793,37 @@
                         <!-- Terms -->
                         <div class="flex flex-col items-center">
                             <div>Terms</div>
-                            <div class="flex justify-center mb-1">
-                                <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                    target="_blank" title="View Terms">
-                                    @if ($order->terms_status->isPending())
+                            <div class="flex justify-center mb-1 gap-1">
+                                @if ($order->terms_status->isPending())
+                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                        target="_blank" title="View Terms">
                                         <span
                                             class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
                                             <x-heroicon-o-x-mark class="w-4 h-4" />
                                         </span>
-                                    @else
+                                    </a>
+                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                        target="_blank" title="View Terms">
+                                        <span
+                                            class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                            <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
+
+                                            <!-- Tooltip -->
+                                            <span
+                                                class="absolute top-full mb-1 hidden group-hover:block px-2 py-1 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap">
+                                                Send terms signature request
+                                            </span>
+                                        </span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                        target="_blank" title="View Terms">
                                         <span
                                             class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
                                             <x-heroicon-o-check class="w-4 h-4" />
                                         </span>
-                                    @endif
-                                </a>
+                                    </a>
+                                @endif
                             </div>
                         </div>
                         <!-- License -->

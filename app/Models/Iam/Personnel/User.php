@@ -9,7 +9,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Traits\HasPermissions;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Iam\Personnel\EmergencyContact;
-use Illuminate\Support\Str; 
+use Illuminate\Support\Str;
 // Helpers
 use App\Helpers\ModelHelper;
 
@@ -24,43 +24,36 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-    'unique_id',
-    'first_name',
-    'middle_name',
-    'employee_code',
-    'last_name',
-    'email',
-    'mobile_phone',
-    'phone_number',
-    'street_address',
-    'city',
-    'state',
-    'zip_code',
-    'country',
-    'start_date',
-    'end_date',
-    'pay_type',
-    'limit_start_time',
-    'limit_end_time',
-    'status', // 'Active' or 'Inactive'
-    'password',
-];
+        'unique_id',
+        'first_name',
+        'middle_name',
+        'employee_code',
+        'last_name',
+        'email',
+        'mobile_phone',
+        'phone_number',
+        'street_address',
+        'city',
+        'state',
+        'zip_code',
+        'country',
+        'start_date',
+        'end_date',
+        'pay_type',
+        'limit_start_time',
+        'limit_end_time',
+        'status', // 'Active' or 'Inactive'
+        'password',
+    ];
 
-
-    protected $appends = [
-        'full_name',
-        'role_short_names',
-    ];  
+    protected $appends = ['full_name', 'role_short_names'];
 
     /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
      */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     /**
      * Get the attributes that should be cast.
@@ -82,11 +75,11 @@ class User extends Authenticatable
             $model->unique_id = ModelHelper::generateUniqueID($model, 'PER');
 
             // Generate unique employee_code
-        $model->employee_code = self::generateEmployeeCode();
+            $model->employee_code = self::generateEmployeeCode();
         });
     }
 
-   private static function generateEmployeeCode()
+    private static function generateEmployeeCode()
     {
         do {
             $code = str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -94,7 +87,6 @@ class User extends Authenticatable
 
         return $code;
     }
-
 
     /**
      * Scope a query to only include active users.
@@ -118,7 +110,7 @@ class User extends Authenticatable
     }
 
     /**
-     * 
+     *
      * Get the emergency contacts for the user.
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<EmergencyContact>
      * */
@@ -126,7 +118,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(EmergencyContact::class);
     }
-
 
     public function emergencyContactOne()
     {
@@ -137,9 +128,8 @@ class User extends Authenticatable
     {
         return $this->hasOne(EmergencyContact::class)->where('contact_index', 2);
     }
-public function getRoleShortNamesAttribute(): array
-{
-    return $this->roles->pluck('short_name')->toArray();
-}
-
+    public function getRoleShortNamesAttribute(): array
+    {
+        return $this->roles->pluck('short_name')->toArray();
+    }
 }

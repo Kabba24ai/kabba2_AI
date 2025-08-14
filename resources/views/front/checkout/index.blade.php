@@ -31,16 +31,6 @@
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="flex flex-col md:flex-row gap-2">
                 <div class="w-full md:w-1/2 md:border-r px-0 lg:px-4 md:pr-6 pb-12">
-                    <!-- Billing Info -->
-                    <div class="flex items-center justify-between mt-2 mb-2">
-                        <h2 class="text-2xl font-bold m-0">Billing information</h2>
-                        <div class="flex items-center gap-x-2">
-                            <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4 align-middle"
-                                {{ old('taxExempt', session('tax_exempt', false)) ? 'checked' : '' }} />
-                            <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
-                        </div>
-                    </div>
-
                     {{ html()->form()->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
@@ -48,6 +38,46 @@
                             'id' => 'checkout-form',
                         ])->open() }}
                     @csrf
+
+                    <!-- Billing Info -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 mb-2 gap-3">
+                        <h2 class="text-2xl font-bold m-0">Billing information</h2>
+
+                        <!-- Inputs row -->
+                        <div class="flex items-center justify-between w-full sm:w-auto gap-3">
+                            <!-- Employee Code (left) -->
+                            <div class="flex flex-col">
+                                <label for="employeeCode" class="sr-only">Employee Code</label>
+                                <div class="w-40">
+                                    {{ html()->text('employee_code', old('employee_code'))->class([
+                                            'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
+                                            'input-error' => $errors->has('employee_code'),
+                                        ])->attributes([
+                                            'maxlength' => 20,
+                                            'data-parsley-maxlength' => 20,
+                                            'placeholder' => 'Employee Code',
+                                            'autocomplete' => 'off',
+                                            'id' => 'employee_code',
+                                        ]) }}
+
+                                    @error('employee_code')
+                                        <p class="mt-1 text-red-600 dark:text-red-400 text-xs">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Tax Exempt (right) -->
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="tax_exempt" value="0" />
+                                <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
+                                    class="accent-blue-500 h-5 w-5 sm:h-4 sm:w-4 align-middle"
+                                    {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
+                                <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <input type="hidden" name="cart" id="cart-input">
                     @error('cart')
                         <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
@@ -519,8 +549,8 @@
                                     <!-- Card Inputs -->
                                     <div class="grid md:grid-cols-2 gap-4 mt-4 max-w-sm">
                                         <div class="md:col-span-1">
-                                            <input type="text" placeholder="First name" id="firstName" name="firstName"
-                                                value="{{ old('firstName') }}"
+                                            <input type="text" placeholder="First name" id="firstName"
+                                                name="firstName" value="{{ old('firstName') }}"
                                                 class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
                                             @error('firstName')
                                                 <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
@@ -535,8 +565,8 @@
                                             @enderror
                                         </div>
                                         <div class="md:col-span-2">
-                                            <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
-                                                name="cardNumber" value="{{ old('cardNumber') }}"
+                                            <input type="text" placeholder="Card number" maxlength="19"
+                                                id="cardNumber" name="cardNumber" value="{{ old('cardNumber') }}"
                                                 class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
                                             @error('cardNumber')
                                                 <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
@@ -777,6 +807,15 @@
             }
 
             form.addEventListener('submit', function(e) {
+
+                const employeeCode = document.getElementById('employee_code').value.trim();
+                const isRequired = '{{ session()->has('impersonated_by_admin') || session()->has('master_passcode') }}';
+                if(isRequired && !employeeCode) {
+                    notyf.error('Employee code is required.');
+                    e.preventDefault();
+                    return;
+                }
+
                 const parsleyForm = $(form).parsley();
 
                 const isFormValid = parsleyForm.validate({
@@ -810,7 +849,7 @@
                 if (paymentType && paymentType.value === 'Card') {
 
                     // Get impersonation + saved card info (adapt selectors to your form)
-                    const impersonatedByAdmin = '{{ session("impersonated_by_admin") }}';
+                    const impersonatedByAdmin = '{{ session('impersonated_by_admin') }}';
                     const customerCard = document.getElementById('customer_card')?.value?.trim();
 
                     // If impersonated and using a saved card → no need to tokenize new card

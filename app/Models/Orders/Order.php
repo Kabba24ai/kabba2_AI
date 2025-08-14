@@ -19,6 +19,7 @@ class Order extends Model
 {
     protected $fillable = [
         'unique_id',
+        'reference_order_number',
         'order_number',
         'order_date',
         'order_time', // New column for order time
@@ -62,6 +63,11 @@ class Order extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function referenceOrder()
+    {
+        return $this->belongsTo(Order::class, 'reference_order_number', 'order_number');
     }
 
     public function addresses()

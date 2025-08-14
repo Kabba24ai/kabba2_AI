@@ -113,6 +113,11 @@ class PostRequest extends FormRequest
             }
         }
 
+        if (session()->has('impersonated_by_admin') || session()->has('master_passcode')) {
+            $rules['employee_code'] = ['required', 'string', 'max:10', 'exists:users,employee_code'];
+        }else{
+            $rules['employee_code'] = ['nullable', 'string', 'max:10', 'exists:users,employee_code'];
+        }
         return $rules;
     }
 

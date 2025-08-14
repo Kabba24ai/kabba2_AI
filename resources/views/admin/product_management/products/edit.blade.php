@@ -113,9 +113,11 @@
                 e.preventDefault();
 
                 const parsleyForm = $(form).parsley();
+                const productType = document.querySelector('input[name="product_type"]:checked')?.value;
+
 
                 // --- CUSTOM COMMON VALIDATION FOR DELIVERY FEES ---
-                if (stdInput && extInput && errorBox) {
+                if (stdInput && extInput && errorBox && productType == "Rental") {
                     const stdVal = parseFloat(stdInput.value || 0);
                     const extVal = parseFloat(extInput.value || 0);
 

@@ -30,8 +30,7 @@ class IndexController extends Controller
       // Name filter
     if ($request->filled('search_name')) {
         $query->where(function ($q) use ($request) {
-            $q->where('first_name', 'like', '%' . $request->search_name . '%')
-              ->orWhere('last_name', 'like', '%' . $request->search_name . '%')
+            $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->search_name}%"])
               ->orWhere('email', 'like', '%' . $request->search_name . '%');
         });
     }

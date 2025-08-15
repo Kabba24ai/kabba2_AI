@@ -37,12 +37,11 @@ class IndexController extends BaseController
             ->with('order', 'order.customer', 'order.shippingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia')
             ->where('product_data->product_type', 'Rental')
             ->whereNotNull('delivery_date')
-            ->when(
-                $search,
-                fn($query) => $query->whereHas('order.shippingAddress', function ($q) use ($search) {
-                    $q->where('first_name', 'like', '%' . $search . '%')->orWhere('last_name', 'like', '%' . $search . '%');
-                }),
-            )
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('order.shippingAddress', function ($q) use ($search) {
+                    $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$search}%"]);
+                });
+            })
             ->when(
                 $categoryId,
                 fn($query) => $query->whereHas('product.categories', function ($q) use ($categoryId) {

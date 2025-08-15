@@ -18,5 +18,7 @@ return [
     'address_update_failed' => 'Failed to update address',
     'schedules_found' => 'Schedules found successfully',
     'schedules_not_found' => 'No schedules found',
+    'schedule_updated' => 'Schedule updated successfully',
+    'schedule_update_failed' => 'Failed to update schedule',
 ];
 

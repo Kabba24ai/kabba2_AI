@@ -24,8 +24,7 @@ class IndexController extends Controller
 
         if ($request->filled('customer_name')) {
             $query->whereHas('shippingAddress', function ($q) use ($request) {
-                $q->where('first_name', 'like', '%' . $request->customer_name . '%')
-                  ->orWhere('last_name', 'like', '%' . $request->customer_name . '%');
+                $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->customer_name}%"]);
             });
             // $query->where('customer_name', 'like', '%' . $request->customer_name . '%');
         }

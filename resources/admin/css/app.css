@@ -838,17 +838,24 @@ span.flatpickr-weekday,
 .cus-width-3{
   width: 3%;
 }
- .hidden-step-header { display: none; }
-    .card-radio-step:checked + label {
-      border-color: #22c55e;
-      background-color: #ecfdf5;
-    }
-    .card-radio-step:checked + label svg.checkmark {
-      display: block;
-    }
-    svg.checkmark {
-      display: none;
-    }
+.hidden-step-header { display: none; }
+.card-radio-step:checked + label {
+  border-color: #22c55e;
+  background-color: #ecfdf5;
+}
+.card-radio-step:checked + label svg.checkmark {
+  display: block;
+}
+.card-radio-step-two:checked + label {
+  border-color: rgb(99 102 241);
+  background-color: rgb(238 242 255);
+}
+.card-radio-step-two:checked + label svg.checkmark {
+  display: block;
+}
+svg.checkmark {
+  display: none;
+}
 @media screen and (min-width: 1920px) and (max-width: 2500px) {
   .cus-width-10 { width: 5%;}
   .cus-width-15 { width: 10%;}

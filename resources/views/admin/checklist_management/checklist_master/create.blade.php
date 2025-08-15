@@ -15,10 +15,10 @@
         <div class="flex items-start gap-3">
             <x-heroicon-o-document class="w-8 h-8 text-blue-600" />
             <div>
-                <!-- <h2 class="text-xl font-semibold text-gray-900">Create New Checklist System</h2> -->
-                <h2 class="text-xl font-semibold text-gray-900">Create Checklist System: <span class="checklist-title-display">-</span></h2>
-                <!-- <p class="text-sm text-gray-600">Step 2 of 4: <span class="checklist-title-display">-</span>Assign Rental Ready Template</p> -->
-                <p class="text-sm text-gray-600">Set up a complete checklist system for equipment</p>
+                <h2 class="text-xl font-semibold text-gray-900">Create New Checklist System</h2> 
+                <p class="text-sm text-gray-600">Step 2 of 4: <span class="checklist-title-display">-</span>Assign Rental Ready Template</p>
+                <!-- <h2 class="text-xl font-semibold text-gray-900">Create Checklist System: <span class="checklist-title-display">-</span></h2>
+                <p class="text-sm text-gray-600">Set up a complete checklist system for equipment</p> -->
             </div>
         </div>
 
@@ -149,12 +149,20 @@
                 <p class="mt-1">Select an existing rental ready template or create a new one. This template will be assigned to your checklist system for equipment inspections.</p>
             </div>
 
+            <div class="flex items-center justify-between mb-5"><h3 class="text-md font-semibold text-gray-800">Select Rental Ready Template</h3></div>
             <!-- Filters -->
             <div class="grid md:grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="text-sm font-medium text-gray-700 mb-1 block">Search Templates</label>
-                    <input type="text" class="w-full border px-3 py-2 rounded-md text-sm" placeholder="Search rental ready templates..." />
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                        <input type="text" placeholder="Search rental ready templates..." class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="">
+                    </div>
                 </div>
+                <!-- <div>
+                    <label class="text-sm font-medium text-gray-700 mb-1 block">Search Templates</label>
+                    <input type="text" class="w-full border px-3 py-2 rounded-md text-sm" placeholder="Search rental ready templates..." />
+                </div> -->
                 <div>
                     <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
                     <select class="w-full border px-3 py-2 rounded-md text-sm">
@@ -168,68 +176,92 @@
 
             <!-- Card Options as Radio Buttons -->
             <form id="templateForm" class="space-y-4 grid md:grid-cols-2 gap-4">
-   
+
                 <input type="radio" name="template" id="compact" class="card-radio-step hidden" value="Compact Equipment Standard" />
                     <label for="compact" class="flex justify-between gap-4 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
-                  <!-- Left section: icon and details -->
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-3">
-        <!-- Icon -->
-        <svg class="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-        <div>
-          <p class="font-semibold text-gray-900 leading-tight">Compact Equipment Standard</p>
-          <p class="text-sm text-gray-600">Compact Equipment</p>
-        </div>
-      </div>
-      <p class="text-sm text-gray-600 mt-1">Standard checklist for compact equipment like skid steers and mini excavators</p>
-      <p class="text-sm text-gray-600 mt-1">10 questions</p>
-    </div>
+                    <!-- Left section: icon and details -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <!-- Icon -->
+                            <x-heroicon-o-document class="w-6 h-6 text-green-600" />
+                            <div>
+                            <p class="font-semibold text-gray-900 leading-tight">Compact Equipment Standard</p>
+                            <p class="text-sm text-gray-600">Compact Equipment</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">Standard checklist for compact equipment like skid steers and mini excavators</p>
+                        <p class="text-sm text-gray-600 mt-1">10 questions</p>
+                    </div>
 
-    <!-- Right section: checkmark + status -->
-    <div class="flex flex-col justify-between items-end">
-      <svg class="checkmark w-6 h-6 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
-      <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
-    </div>
+                    <!-- Right section: checkmark + status -->
+                    <div class="flex flex-col justify-between items-end">
+                        <svg class="checkmark w-6 h-6 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
+                    </div>
                 </label>
 
                 <input type="radio" name="template" id="heavy" class="card-radio-step hidden" value="Heavy Equipment Standard" />
-                <label for="heavy" class="flex justify-between items-start border rounded-md p-4 cursor-pointer transition-all">
-                    <div>
-                        <h4 class="font-semibold text-gray-900">Heavy Equipment Standard</h4>
-                        <p class="text-sm text-gray-500">Standard checklist for heavy equipment like excavators, bulldozers, and loaders</p>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="text-sm text-gray-600">12 questions</span>
-                            <span class="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Active</span>
+                <label for="heavy" class="flex justify-between gap-4 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
+                     <!-- Left section: icon and details -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <!-- Icon -->
+                            <x-heroicon-o-document class="w-6 h-6 text-green-600" />
+                            <div>
+                                <p class="font-semibold text-gray-900 leading-tight">Heavy Equipment Standard</p>
+                                <p class="text-sm text-gray-600">Heavy Equipment</p>
+                            </div>
                         </div>
+                        <p class="text-sm text-gray-600 mt-1">Standard checklist for heavy equipment like excavators, bulldozers, and loaders</p>
+                        <p class="text-sm text-gray-600 mt-1">12 questions</p>
                     </div>
-                    <svg class="checkmark w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+                  
+                     <!-- Right section: checkmark + status -->
+                    <div class="flex flex-col justify-between items-end">
+                        <svg class="checkmark w-6 h-6 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
+                    </div>
                 </label>
 
                 <input type="radio" name="template" id="power" class="card-radio-step hidden" value="Power Equipment Standard" />
-                <label for="power" class="flex justify-between items-start border rounded-md p-4 cursor-pointer transition-all">
-                    <div>
-                        <h4 class="font-semibold text-gray-900">Power Equipment Standard</h4>
-                        <p class="text-sm text-gray-500">Standard checklist for power equipment like generators and compressors</p>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="text-sm text-gray-600">10 questions</span>
-                            <span class="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Active</span>
+                <label for="power" class="flex justify-between gap-4 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
+                     <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <!-- Icon -->
+                            <x-heroicon-o-document class="w-6 h-6 text-green-600" />
+                            <div>
+                                <p class="font-semibold text-gray-900 leading-tight">Power Equipment Standard</p>
+                                <p class="text-sm text-gray-600">Power Equipment</p>
+                            </div>
                         </div>
+                        <p class="text-sm text-gray-600 mt-1">Standard checklist for power equipment like generators and compressors</p>
+                        <p class="text-sm text-gray-600 mt-1">10 questions</p>
                     </div>
-                    <svg class="checkmark w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+                  
+                    <!-- Right section: checkmark + status -->
+                    <div class="flex flex-col justify-between items-end">
+                        <svg class="checkmark w-6 h-6 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
+                    </div>
                 </label>
             </form>
 
             <!-- Template Selected Box -->
             <div id="templateSummary" class="hidden mt-6 bg-green-50 border border-green-200 text-green-800 p-4 rounded-md text-sm">
-                <strong>Template Selected:</strong> <span id="selectedTemplate">-</span><br />
+                <div class="flex items-center gap-2 font-semibold mb-1">
+                    <!-- Right check icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Template Selected:</span> <span id="selectedTemplate">-</span><br />
+                </div>
+                
                 This template will be assigned to your checklist system for rental ready inspections.
             </div>
 
@@ -239,11 +271,198 @@
                 <button onclick="goToStep(3)"  class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium md:w-auto">Continue to Customer Template →</button>
             </div>
 
-            <div class="flex justify-between items-center mt-6">
-                <button onclick="goToStep(1)" class="text-sm text-gray-600">← Previous</button>
+            <div class="flex justify-between items-center mt-6 border-t border-gray-200 pb-0 pt-4">
+                <button onclick="goToStep(1)" class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left w-4 h-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Previous Step </button>
+                <!-- <button onclick="goToStep(1)" class="text-sm text-gray-600">← Previous</button> -->
                  <p class="text-xs text-gray-500 text-center mt-4">Step 2 of 4</p>
             </div>
            
+        </div>
+
+        <!-- Step 3 -->
+        <div id="step3" class="hidden">
+            
+            <!-- Step Title -->
+            <div class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-md mb-6">
+                <strong class="block font-medium">Step 3: Assign Customer Template</strong>
+                <p class="mt-1">Select an existing customer template or create a new one. This template will be assigned to your checklist system for delivery and return processes.</p>
+            </div>
+
+            <div class="flex items-center justify-between mb-5"><h3 class="text-md font-semibold text-gray-800">Select Customer Template</h3></div>
+            <div class="relative mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                <input type="text" placeholder="Search customer templates..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="">
+            </div>
+
+            <!-- Card Options as Radio Buttons -->
+            <form id="templateFormcustomer" class="space-y-4 grid md:grid-cols-2 gap-4">
+                <input type="radio" name="templatetwo" id="equipment" class="card-radio-step-two hidden" value="Heavy Equipment Standard" />
+                <label for="equipment" class="flex justify-between gap-4 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
+                     <!-- Left section: icon and details -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <!-- Icon -->
+                            <x-heroicon-o-user class="w-6 h-6 text-indigo-600" />
+                            <div>
+                                <p class="font-semibold text-gray-900 leading-tight">Heavy Equipment Customer Checklist</p>
+                                <p class="text-sm text-gray-600">Heavy Equipment</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">Standard delivery/return checklist for heavy equipment</p>
+                        <p class="text-sm text-gray-600 mt-1">3 questions</p>
+                    </div>
+                  
+                     <!-- Right section: checkmark + status -->
+                    <div class="flex flex-col justify-between items-end">
+                        <svg class="checkmark w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
+                    </div>
+                </label>
+
+                <input type="radio" name="templatetwo" id="compactequipment" class="card-radio-step-two hidden" value="Compact Equipment Customer Checklist" />
+                <label for="compactequipment" class="flex justify-between gap-4 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
+                     <!-- Left section: icon and details -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <!-- Icon -->
+                            <x-heroicon-o-user class="w-6 h-6 text-indigo-600" />
+                            <div>
+                                <p class="font-semibold text-gray-900 leading-tight">Compact Equipment Customer Checklist</p>
+                                <p class="text-sm text-gray-600">Compact Equipment</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">Standard delivery/return checklist for compact equipment</p>
+                        <p class="text-sm text-gray-600 mt-1">2 questions</p>
+                    </div>
+                  
+                     <!-- Right section: checkmark + status -->
+                    <div class="flex flex-col justify-between items-end">
+                        <svg class="checkmark w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
+                    </div>
+                </label>
+
+                <input type="radio" name="templatetwo" id="powerequipment" class="card-radio-step-two hidden" value="Power Equipment Customer Checklist" />
+                <label for="powerequipment" class="flex justify-between gap-4 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
+                     <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <!-- Icon -->
+                            <x-heroicon-o-user class="w-6 h-6 text-indigo-600" />
+                            <div>
+                                <p class="font-semibold text-gray-900 leading-tight">Power Equipment Customer Checklist</p>
+                                <p class="text-sm text-gray-600">Power Equipment</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">Standard delivery/return checklist for power equipment</p>
+                        <p class="text-sm text-gray-600 mt-1">1 questions</p>
+                    </div>
+                  
+                     <!-- Right section: checkmark + status -->
+                    <div class="flex flex-col justify-between items-end">
+                        <svg class="checkmark w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
+                    </div>
+                </label>
+            </form>
+
+            <div id="templatecustomer" class="hidden mt-6 bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-md text-sm">
+                <div class="flex items-center gap-2 font-semibold mb-1">
+                    <!-- Right check icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Template Selected:</span> <span id="selectedTemplateCustomer">-</span><br />
+                </div>
+                This template will be assigned to your checklist system for customer delivery/return checklists.
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col md:flex-row justify-between mt-8 gap-4">
+                <button class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">Cancel New Checklist and Create Rental Ready Template</button>
+                <button onclick="goToStep(4)"  class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium md:w-auto">Continue to Customer Template →</button>
+            </div>
+
+            <div class="flex justify-between items-center mt-6 border-t border-gray-200 pb-0 pt-4">
+                <button onclick="goToStep(2)" class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left w-4 h-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Previous Step
+                </button>
+                <!-- <button onclick="goToStep(1)" class="text-sm text-gray-600">← Previous</button> -->
+                 <p class="text-xs text-gray-500 text-center mt-4">Step 2 of 4</p>
+            </div>
+           
+        </div>
+
+        <div id="step4" class="hidden max-w-2xl mx-auto text-center py-12">
+            
+            <div class="flex flex-col items-center text-center max-w-2xl w-full">
+                <!-- Success Icon -->
+                <div class="mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                </div>
+
+                <!-- Heading and Description -->
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Checklist System Complete!</h1>
+                <p class="text-gray-600 text-sm sm:text-base mb-6">
+                Your checklist system "<strong class="font-semibold text-gray-800">aa</strong>" has been successfully created with both rental ready and customer checklist templates.
+                </p>
+
+                <!-- What You've Created -->
+                <div class="bg-green-50 border border-green-200 text-green-900 rounded-lg p-6 w-full shadow-sm mb-6">
+                    <div class="items-center mb-4">
+                        <h3 class="font-medium text-green-900 mb-4">✅ What You've Created:</h3>
+                    </div>
+                    <ul class="space-y-2 text-sm text-left">
+                        <li class="flex items-start gap-2 text-sm text-green-800 ">
+                        <svg class="w-4 h-4 mt-1 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                            Named checklist system: <span>"aa"</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-green-800 ">
+                            <svg class="w-4 h-4 mt-1 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Assigned rental ready template: <span>"template-power-equipment"</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-green-800 ">
+                            <svg class="w-4 h-4 mt-1 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Assigned customer template: <span>"ctemplate-power"</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-green-800 ">
+                        <svg class="w-4 h-4 mt-1 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Complete checklist system ready for assignment
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Next Steps -->
+                <div class="bg-blue-50 border border-blue-200 text-blue-900 rounded-lg p-4 w-full shadow-sm mb-6">
+                <div class="flex items-center gap-2 mb-2 justify-center">
+                    <p class="font-semibold text-blue-800">📋 Next Steps</p>
+                </div>
+                <p class="text-sm text-center">
+                    Your checklist system is now ready to be assigned to equipment items through the Equipment Management screen.
+                </p>
+                </div>
+
+                <!-- Button -->
+                <button class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-md text-sm flex items-center gap-2 shadow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    Save & Return to Equipment Mgt.
+                </button>
+
+            </div>             
         </div>
     </section>
 
@@ -318,5 +537,23 @@ function goToStep(step) {
     });
   });
 </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const radios = document.querySelectorAll('input[name="templatetwo"]');
+    const customerBox = document.getElementById('templatecustomer');
+    const selectedCustomer = document.getElementById('selectedTemplateCustomer');
+
+    radios.forEach(radio => {
+      radio.addEventListener('change', function () {
+        customerBox.classList.remove('hidden');
+        selectedCustomer.textContent = this.value;
+      });
+    });
+  });
+</script>
+
+
+
 
 @endpush

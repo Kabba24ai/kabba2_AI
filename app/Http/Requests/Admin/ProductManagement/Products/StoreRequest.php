@@ -10,7 +10,7 @@ class StoreRequest extends ApiBaseFormRequest
 
     protected function prepareForValidation()
     {
-        $input = PurifyHelper::purify($this->all(), ['description']);
+        $input = PurifyHelper::purify($this->all(), ['description','short_description']);
         $this->merge($input);
     }
 
@@ -25,15 +25,15 @@ class StoreRequest extends ApiBaseFormRequest
             'product_name' => ['required', 'string', 'max:240', 'unique:products,product_name'],
             'product_type' => ['required', 'in:Rental,Retail'],
 
-            'is_general_term_type' => ['nullable', 'boolean'],
+            'is_general_term_type' => ['required', 'boolean'],
             'is_custom_term_type' => ['nullable', 'boolean'],
 
             'terms' => ['required_if:is_custom_term_type,1'],
 
             'seo_title' => ['nullable', 'string', 'max:255'],
-            'seo_description' => ['nullable', 'string', 'max:1000'],
+            'seo_description' => ['nullable', 'string', 'max:2000'],
 
-            'short_description' => ['nullable', 'string', 'max:1000'],
+            'short_description' => ['required', 'string', 'max:2000'],
             'description' => ['required', 'string'],
 
             'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -85,7 +85,7 @@ class StoreRequest extends ApiBaseFormRequest
             // Status
             'status' => ['required', 'in:Published,Draft,Pending'],
 
-            'categories' => ['required', 'array'],
+            'categories' => ['nullable', 'array'],
             'categories.*' => ['exists:product_categories,id'],
 
             'options' => ['nullable', 'array'],

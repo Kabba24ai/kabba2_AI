@@ -3,7 +3,6 @@
 use Stevebauman\Purify\Definitions\Html5Definition;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Config
@@ -38,18 +37,18 @@ return [
     */
 
     'configs' => [
-
         'default' => [
             'Core.Encoding' => 'utf-8',
             'HTML.Doctype' => 'HTML 4.01 Transitional',
-            'HTML.Allowed' => 'h1[class],h2[class],h3[class],h4[class],h5[class],h6[class],b[class],strong[class],i[class],em,a[href|title|class],ul[class],ol[class],li[class],p[style|class],br,span[style|class],img[class|alt|src|style],table[summary|class],th[abbr],tr,tbody,td[abbr|class|colspan|rowspan],th[abbr|class|colspan|rowspan],div[class],u,blockquote,figure[style|class]',            'HTML.ForbiddenElements' => '',
+            'HTML.Allowed' => 'h1[class],h2[class],h3[class],h4[class],h5[class],h6[class],b[class],strong[class],i[class],em,a[href|title|class],ul[class],ol[class],li[class],p[style|class],br,span[style|class],img[class|alt|src|style],table[summary|class],th[abbr],tr,tbody,td[abbr|class|colspan|rowspan],th[abbr|class|colspan|rowspan],div[class],u,blockquote,figure[style|class]',
+            'HTML.ForbiddenElements' => '',
             'CSS.AllowedProperties' => 'font,font-size,font-weight,font-style,font-family,text-decoration,padding-left,color,background-color,text-align,margin,margin-left,margin-right,margin-top,margin-bottom,float,display,width,height',
             'AutoFormat.AutoParagraph' => false,
             'AutoFormat.RemoveEmpty' => false,
             'CSS.AllowTricky' => true,
+            // include border-related props and border-collapse
+            'CSS.AllowedProperties' => implode(',', ['font', 'font-size', 'font-weight', 'font-style', 'font-family', 'text-decoration', 'text-align', 'color', 'background-color', 'width', 'height', 'display', 'float', 'margin', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom', 'padding', 'padding-left', 'padding-right', 'padding-top', 'padding-bottom', 'border', 'border-color', 'border-style', 'border-width', 'border-collapse', 'text-decoration-thickness']),
         ],
-
-
     ],
 
     /*
@@ -112,5 +111,4 @@ return [
     //    'path' => 'purify',
     //    'cache' => \Stevebauman\Purify\Cache\FilesystemDefinitionCache::class,
     // ],
-
 ];

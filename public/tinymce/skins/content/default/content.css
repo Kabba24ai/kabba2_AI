@@ -68,3 +68,18 @@ code {
   margin-right: 1.5rem;
   padding-right: 1rem;
 }
+/* tinymce-content.css */
+ul, ol {
+  margin: .5rem 0 .75rem;
+  padding-left: 1.25rem;
+}
+ul {
+  list-style: disc;
+}
+ol {
+  list-style: decimal;
+}
+li {
+  margin: .25rem 0;
+}
+

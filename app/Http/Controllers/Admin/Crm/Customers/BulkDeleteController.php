@@ -23,9 +23,12 @@ class BulkDeleteController extends Controller
             return response()->json(['message' => 'No Customers selected for deletion.'], 422);
         }
 
-        DB::transaction(function () use ($uniqueIds) {
-            Customer::whereIn('unique_id', $uniqueIds)->delete();
+
+         DB::transaction(function () use ($uniqueIds) {
+            Customer::whereIn('unique_id', $uniqueIds)
+                ->update(['status' => 'Inactive']);
         });
+
 
         return response()->json([
             'success' => true,

@@ -34,4 +34,9 @@ enum OrderPaymentStatus : string
         return $this === self::Failed;
     }
 
+    public static function getValues(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
 }

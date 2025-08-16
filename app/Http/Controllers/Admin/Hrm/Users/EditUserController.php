@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Locations\State;
 use App\Models\Iam\Personnel\User;
 use App\Models\Iam\AccessControl\Role;
+use App\Enums\UserPayType;
 
 
   class EditUserController extends Controller
@@ -27,13 +28,16 @@ use App\Models\Iam\AccessControl\Role;
 
         $user = User::where('unique_id', $unique_id)->first();
 
-          $roles = Role::get();
+        $roles = Role::get();
+        $paytypes = UserPayType::options();
 
 
         return view('admin.hrm.users.edit-user', [
             'states' => $states,
             'user' => $user,
-             'roles' => $roles,
+            'roles' => $roles,
+            'paytypes' => $paytypes,
+
         ]);
     }
 }

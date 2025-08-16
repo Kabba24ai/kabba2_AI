@@ -77,24 +77,17 @@
                     <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
                 @elseif($user->status === 'Inactive')
                                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">inactive</span>
-                    <!-- <span class="bg-red-100 text-red-800 px-2 py-0.5 rounded-full">inactive</span> -->
                 @endif
 
-                           @php
-                                $payTypeLabels = [
-                                    'Hourly' => 'Hourly Pay',
-                                    'Salary' => 'Salary Pay',
-                                ];
-                                $payTypeLabel = $user->pay_type && isset($payTypeLabels[$user->pay_type])
-                                    ? $payTypeLabels[$user->pay_type]
-                                    : null;
-                            @endphp
+                           
 
-                            @if ($payTypeLabel)
+                            @if($user->pay_type && isset($paytypes[$user->pay_type]))
                                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {{ $payTypeLabel }}
+                                    {{ $paytypes[$user->pay_type] }}
                                 </span>
                             @endif
+
+                                             
 
 
                 @foreach ($user->roles as $role)

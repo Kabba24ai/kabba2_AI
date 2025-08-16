@@ -64,8 +64,10 @@
                     @endif
 
                     <div class="flex flex-col gap-y-1 mt-4">
-                        <p>4385 SR-48, Charlotte, TN (615) 815-6734</p>
-                        <p>Rent ’n King is a Brand Name of Development 360, Inc</p>
+                        @empty(!$contactUsSettings)
+                            <p>{{ $contactUsSettings['address1'] ?? '' }}</p>
+                            <p>{{ $contactUsSettings['address2'] ?? '' }}</p>
+                        @endempty
                     </div>
                     @if ($order->terms_status->isPending())
                         <div class="border-t mt-8 pt-4">

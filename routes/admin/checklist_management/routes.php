@@ -19,4 +19,8 @@ Route::prefix('checklist_management')
 
     // customers
     require base_path('routes/admin/checklist_management/rental_ready/routes.php');
+
+    // Checklist_Master
+     require base_path('routes/admin/checklist_management/checklist_master/routes.php');
+
 });

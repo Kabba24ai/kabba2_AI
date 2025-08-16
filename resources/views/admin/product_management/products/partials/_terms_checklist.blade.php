@@ -12,19 +12,35 @@
         <label class="inline-flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-200">
             <input type="checkbox" name="is_general_term_type" value="1" id="is_general_term_type"
                 {{ $isGeneral ? 'checked' : '' }}
-                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700" />
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
+                data-parsley-multiple="term_type"
+                data-parsley-required="true"
+                data-parsley-required-message="Please select at least one option."
+                data-parsley-errors-container="#terms-error"
+                data-parsley-class-handler="#terms-group"
+                />
             <span>General Terms</span>
         </label>
 
         <label class="inline-flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-200">
             <input type="checkbox" name="is_custom_term_type" value="1" id="is_custom_term_type"
                 {{ $isCustom ? 'checked' : '' }}
-                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700" />
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
+                data-parsley-multiple="term_type"
+                data-parsley-required-message="Please select at least one option."
+                data-parsley-errors-container="#terms-error"
+                data-parsley-class-handler="#terms-group"
+                />
             <span>Add Product Specific Terms</span>
         </label>
     </div>
+    <!-- Single shared error spot -->
+    <div id="terms-error" class="terms-error mt-1 text-sm text-red-600 dark:text-red-400"></div>
+    @error('is_general_term_type')
+        <div class="terms-error mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</div>
+    @enderror
     @error('is_custom_term_type')
-        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        <div class="terms-error mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</div>
     @enderror
 
     <!-- Show this only if Custom is selected -->

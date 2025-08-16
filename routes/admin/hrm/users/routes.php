@@ -4,13 +4,13 @@ use Illuminate\Support\Facades\Route;
 
 // Controllers
 use App\Http\Controllers\Admin\Hrm\Users\IndexController;
-use App\Http\Controllers\Admin\Hrm\Users\CreateUserController;
-use App\Http\Controllers\Admin\Hrm\Users\ViewUserController;
-use App\Http\Controllers\Admin\Hrm\Users\DeleteUserController;
-use App\Http\Controllers\Admin\Hrm\Users\StoreUserController;
+use App\Http\Controllers\Admin\Hrm\Users\CreateController;
+use App\Http\Controllers\Admin\Hrm\Users\ViewController;
+use App\Http\Controllers\Admin\Hrm\Users\DeleteController;
+use App\Http\Controllers\Admin\Hrm\Users\StoreController;
 use App\Http\Controllers\Admin\Hrm\Users\CheckEmailController;
-use App\Http\Controllers\Admin\Hrm\Users\EditUserController;
-use App\Http\Controllers\Admin\Hrm\Users\UpdateUserController;
+use App\Http\Controllers\Admin\Hrm\Users\EditController;
+use App\Http\Controllers\Admin\Hrm\Users\UpdateController;
 
 
 
@@ -20,17 +20,17 @@ Route::prefix('users')
 
     Route::get('/', IndexController::class)->name('index');
 
-    Route::get('/create-user', CreateUserController::class)->name('create.user');
-    Route::post('/create-user', StoreUserController::class);
+    Route::get('/create', CreateController::class)->name('create');
+    Route::post('/create', StoreController::class);
 
-    Route::get('/view-user/{unique_id}', ViewUserController::class)->name('view.user');
+    Route::get('/view/{unique_id}', ViewController::class)->name('view');
 
  
-    Route::delete('/{unique_id}/delete-user/', DeleteUserController::class)->name('delete.user');
+    Route::delete('/{unique_id}/delete/', DeleteController::class)->name('delete');
 
 
-    Route::get('/edit-user/{unique_id}', EditUserController::class)->name('edit.user');
-    Route::put('/edit-user/{unique_id}', UpdateUserController::class);
+    Route::get('/edit/{unique_id}', EditController::class)->name('edit');
+    Route::put('/edit/{unique_id}', UpdateController::class);
 
     Route::get('/check-email-unique', CheckEmailController::class)->name('check.email.unique');
 

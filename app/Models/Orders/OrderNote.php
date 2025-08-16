@@ -57,4 +57,9 @@ class OrderNote extends Model
             $model->unique_id = ModelHelper::generateUniqueID($model, 'ORD-NOTE');
         });
     }
+
+    public function isCreatedByCustomer()
+    {
+        return $this->created_by_type_name === 'Customer';
+    }
 }

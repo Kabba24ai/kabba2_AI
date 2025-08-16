@@ -11,4 +11,9 @@ class State extends Model
         'slug',
         'abbreviation'
     ];
+
+    public function scopeOrder($query, $direction = 'asc')
+    {
+        return $query->orderBy('name', $direction);
+    }
 }

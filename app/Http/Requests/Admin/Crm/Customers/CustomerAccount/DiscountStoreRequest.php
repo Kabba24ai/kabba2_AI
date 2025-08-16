@@ -30,7 +30,7 @@ class DiscountStoreRequest extends FormRequest
                 'Misc. Management Discount',
                 'Other',
             ])],
-            'responsible_person' => ['required', 'string', 'max:255'],
+            'responsible_person' => ['required'],
             'notes' => ['nullable', 'string'],
         ];
     }

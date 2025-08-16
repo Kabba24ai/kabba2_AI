@@ -10,6 +10,28 @@
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
         <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Edit Product</h3>
+        <div class="flex items-center space-x-4">
+            <!-- Save -->
+            <button type="button" name="action" value="save"
+                class="submit-btn inline-flex items-center px-6 py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-sm font-semibold shadow transition">
+                Save
+                <x-heroicon-o-check class="w-4 h-4 ml-2" />
+            </button>
+
+            <!-- Save & New Button -->
+            <button type="button" name="action" value="save_new"
+                class="submit-btn inline-flex items-center px-6 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-semibold shadow transition">
+                Save & New
+                <x-heroicon-o-plus class="w-4 h-4 ml-2" />
+            </button>
+
+            <!-- Save & Exit Button -->
+            <button type="button" name="action" value="save_exit"
+                class="submit-btn inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold shadow transition">
+                Save & Exit
+                <x-heroicon-o-arrow-right-on-rectangle class="w-4 h-4 ml-2" />
+            </button>
+        </div>
     </div>
 
     @include('flash::message')
@@ -63,22 +85,22 @@
                         </div> --}}
 
                         <!-- Save -->
-                        <button type="submit" name="action" value="save"
-                            class="inline-flex items-center px-6 py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-sm font-semibold shadow transition">
+                        <button type="button" name="action" value="save"
+                            class="submit-btn inline-flex items-center px-6 py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-sm font-semibold shadow transition">
                             Save
                             <x-heroicon-o-check class="w-4 h-4 ml-2" />
                         </button>
 
                         <!-- Save & New Button -->
-                        <button type="submit" name="action" value="save_new"
-                            class="inline-flex items-center px-6 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-semibold shadow transition">
+                        <button type="button" name="action" value="save_new"
+                            class="submit-btn inline-flex items-center px-6 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-semibold shadow transition">
                             Save & New
                             <x-heroicon-o-plus class="w-4 h-4 ml-2" />
                         </button>
 
                         <!-- Save & Exit Button -->
-                        <button type="submit" name="action" value="save_exit"
-                            class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold shadow transition">
+                        <button type="button" name="action" value="save_exit"
+                            class="submit-btn inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold shadow transition">
                             Save & Exit
                             <x-heroicon-o-arrow-right-on-rectangle class="w-4 h-4 ml-2" />
                         </button>
@@ -95,7 +117,8 @@
 @push('js')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('productForm');
+
+            const parsleyForm = $('#productForm').parsley(); // requires jQuery + Parsley jQuery adapter
             // Live error clearing when user types
             const stdInput = document.querySelector('input[name="standard_delivery_fee"]');
             const extInput = document.querySelector('input[name="extended_delivery_fee"]');
@@ -109,13 +132,16 @@
                 });
             }
 
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const parsleyForm = $(form).parsley();
+            // AJAX submit method
+            function handleProductSubmit(clickedButtonValue = null) {
+                const form = document.getElementById('productForm');
+                const productType = document.querySelector('input[name="product_type"]:checked')?.value;
+                const isFormValid = parsleyForm.validate({
+                    force: true
+                });
 
                 // --- CUSTOM COMMON VALIDATION FOR DELIVERY FEES ---
-                if (stdInput && extInput && errorBox) {
+                if (stdInput && extInput && errorBox && productType == "Rental") {
                     const stdVal = parseFloat(stdInput.value || 0);
                     const extVal = parseFloat(extInput.value || 0);
 
@@ -131,39 +157,35 @@
                 // --------------------------------------------------
 
                 // Force Parsley to validate
-                if (!parsleyForm.isValid({
-                        force: true
-                    })) {
-                    // Stop everything: do not show loader
-                    e.preventDefault();
+                if (!isFormValid) {
+                    const failedFields = parsleyForm.fields.filter(field => !field.isValid());
+
+                    failedFields.forEach(field => {
+                        console.log('Failed field:', field.$element.attr('name'));
+                    });
                     return;
                 }
 
-                const submitter = e.submitter;
-                const clickedButton = submitter ? submitter.value : null;
-
-                const submitButtons = form.querySelectorAll('button[type="submit"]');
-                // Store original button texts
+                // Disable all submit and header buttons and change their text
+                const submitButtons = document.querySelectorAll('.submit-btn');
                 const originalTexts = new Map();
+
                 submitButtons.forEach(btn => {
                     originalTexts.set(btn, btn.innerHTML);
                     btn.innerHTML = 'Saving...';
                     btn.disabled = true;
                 });
 
+
                 const formData = new FormData(form);
-
                 formData.append('method', 'PUT'); // important
-
-                // Include clicked button value
-                if (clickedButton) {
-                    formData.append('action', clickedButton);
+                if (clickedButtonValue) {
+                    formData.append('action', clickedButtonValue);
                 }
 
                 const action = form.getAttribute('action');
 
                 try {
-
                     apiFetch(action, {
                             method: 'POST',
                             headers: {
@@ -175,37 +197,36 @@
                         .then(res => {
                             if (res && res.success) {
                                 notyf.success(res.message);
-
-                                // If redirect_url is provided by the backend, navigate there
                                 if (res.action === 'save_exit' || res.redirect_url) {
                                     setTimeout(() => {
                                         window.location.href = res.redirect_url;
                                     }, 800);
                                 } else if (res.action === 'save_new') {
-                                    // If saving new, redirect to create page
                                     window.location.href = "{{ route('admin.product-management.products.create') }}";
                                 } else {
-                                    // Otherwise, stay on the edit page
                                     window.location.reload();
                                 }
-
                             } else {
                                 notyf.error(res.message);
                             }
-
                         })
                         .finally(() => {
-                            // Restore buttons
                             submitButtons.forEach(btn => {
                                 btn.disabled = false;
                                 btn.innerHTML = originalTexts.get(btn);
                             });
                         });
-
-
                 } catch (error) {
                     console.error('Submission failed:', error);
                 }
+            }
+
+            // Header buttons trigger AJAX submit
+            document.querySelectorAll('.submit-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleProductSubmit(btn.value);
+                });
             });
         });
     </script>

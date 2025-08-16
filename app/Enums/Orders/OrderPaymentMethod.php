@@ -16,4 +16,9 @@ enum OrderPaymentMethod : string
             self::Card => 'Credit/Debit Card',
         };
     }
+
+    public static function getValues(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
 }

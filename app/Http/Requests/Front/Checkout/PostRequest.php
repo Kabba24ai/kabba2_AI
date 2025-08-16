@@ -70,29 +70,54 @@ class PostRequest extends FormRequest
         $rules['taxExempt'] = ['nullable'];
 
         // cart
-        $rules['cart'] = ['required', function ($attribute, $value, $fail) {
-            $cart = json_decode($value, true);
-            if (empty($cart) || !is_array($cart)) {
-                $fail('Your cart is empty. Please add products before placing an order.');
-            }
-        }];
+        $rules['cart'] = [
+            'required',
+            function ($attribute, $value, $fail) {
+                $cart = json_decode($value, true);
+                if (empty($cart) || !is_array($cart)) {
+                    $fail('Your cart is empty. Please add products before placing an order.');
+                }
+            },
+        ];
 
         // Payment
         $rules['payment'] = ['required', 'in:COD,Account,Card'];
 
         // If credit is selected, validate card fields
         if ($this->input('payment') === 'Card') {
-            $rules = array_merge($rules, [
-                'firstName' => ['required', 'string', 'max:50'],
-                'lastName' => ['required', 'string', 'max:50'],
-                'cardNumber' => ['required'],
-                'expiry' => ['required', 'regex:/^(0[1-9]|1[0-2])\/?([0-9]{2})$/'],
-                'cvc' => ['required', 'digits_between:3,4'],
-                'opaqueDataValue' => ['nullable', 'string', 'max:255'],
-                'opaqueDataDescriptor' => ['nullable', 'string', 'max:255'],
-            ]);
+            // If impersonated by admin: either customer_card OR card details
+
+            if (session()->has('impersonated_by_admin')) {
+                $rules['customer_card'] = ['nullable', 'required_without_all:firstName,lastName,cardNumber,expiry,cvc'];
+
+                $rules = array_merge($rules, [
+                    'firstName' => ['nullable', 'required_without:customer_card', 'string', 'max:50'],
+                    'lastName' => ['nullable', 'required_without:customer_card', 'string', 'max:50'],
+                    'cardNumber' => ['nullable', 'required_without:customer_card'],
+                    'expiry' => ['nullable', 'required_without:customer_card', 'regex:/^(0[1-9]|1[0-2])\/?([0-9]{2})$/'],
+                    'cvc' => ['nullable', 'required_without:customer_card', 'digits_between:3,4'],
+                    'opaqueDataValue' => ['nullable', 'string', 'max:255'],
+                    'opaqueDataDescriptor' => ['nullable', 'string', 'max:255'],
+                ]);
+
+            } else {
+                $rules = array_merge($rules, [
+                    'firstName' => ['required', 'string', 'max:50'],
+                    'lastName' => ['required', 'string', 'max:50'],
+                    'cardNumber' => ['required'],
+                    'expiry' => ['required', 'regex:/^(0[1-9]|1[0-2])\/?([0-9]{2})$/'],
+                    'cvc' => ['required', 'digits_between:3,4'],
+                    'opaqueDataValue' => ['nullable', 'string', 'max:255'],
+                    'opaqueDataDescriptor' => ['nullable', 'string', 'max:255'],
+                ]);
+            }
         }
 
+        if (session()->has('impersonated_by_admin') || session()->has('master_passcode')) {
+            $rules['employee_code'] = ['required', 'string', 'max:10', 'exists:users,employee_code'];
+        }else{
+            $rules['employee_code'] = ['nullable', 'string', 'max:10', 'exists:users,employee_code'];
+        }
         return $rules;
     }
 

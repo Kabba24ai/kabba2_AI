@@ -1,6 +1,6 @@
 {
-  "_api-DA5ykaLl.js": {
-    "file": "assets/api-DA5ykaLl.js",
+  "_api-BpHnsaBo.js": {
+    "file": "assets/api-BpHnsaBo.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
@@ -42,25 +42,30 @@
     "file": "assets/fa-v4compatibility-C9RhG_FT.woff2",
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
+  "public/tinymce/skins/content/default/content.css": {
+    "file": "assets/content-DpkMiu1K.css",
+    "src": "public/tinymce/skins/content/default/content.css",
+    "isEntry": true
+  },
   "resources/admin/css/app.css": {
-    "file": "assets/app-Pi7uT7Ei.css",
+    "file": "assets/app-B2pWXV4w.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-Ci47BzN3.js",
+    "file": "assets/app-ipJCh-eG.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-DA5ykaLl.js"
+      "_api-BpHnsaBo.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
     ]
   },
   "resources/admin/js/tinymce.js": {
-    "file": "assets/tinymce-N9x5NVLg.js",
+    "file": "assets/tinymce-jSe4kNXi.js",
     "name": "tinymce",
     "src": "resources/admin/js/tinymce.js",
     "isEntry": true
@@ -71,17 +76,17 @@
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-e-RAgAEn.css",
+    "file": "assets/app-DP9huEbw.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-yLUU-m8p.js",
+    "file": "assets/app-Cbrz7nBX.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-DA5ykaLl.js"
+      "_api-BpHnsaBo.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"

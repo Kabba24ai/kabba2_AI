@@ -63,19 +63,64 @@
             {{-- Action Buttons --}}
             <div class="flex flex-wrap gap-2">
                 <div class="relative group inline-block">
-                    <button
+                    <button id="reorderBtn" type="button"
                         class="inline-flex items-center px-3 py-1.5 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 focus:outline-none">
                         <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
-                        <x-heroicon-o-chevron-down class="w-4 h-4 ml-1" />
                     </button>
-                    <div
-                        class="absolute left-0 top-full mt-0 w-44 bg-white border rounded shadow-lg z-10 hidden group-hover:block">
-                        <a target="_blank"
-                            href="{{ route('admin.order-management.orders.reorder.index', ['unique_id' => $order->unique_id, 'type' => 'reference']) }}"
-                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Reference Order</a>
-                        <a target="_blank"
-                            href="{{ route('admin.order-management.orders.reorder.index', ['unique_id' => $order->unique_id, 'type' => 'new']) }}"
-                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">New Order</a>
+                    <!-- Reorder Modal -->
+                    <div id="reorderModal"
+                        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+                        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+                            <!-- Header -->
+                            <div class="flex justify-between items-center p-4 border-b">
+                                <h2 class="text-lg font-semibold">Reorder</h2>
+                                <button type="button"
+                                    class="close-reorder-model-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+                            </div>
+                            <!-- Body -->
+                            <form id="reorderForm" class="flex-1 flex flex-col justify-between">
+                                <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700 required">Order Type</label>
+                                        <select id="orderTypeSelect" name="order_type"
+                                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
+                                            required>
+                                            <option value="new">New Order</option>
+                                            <option value="duplicate">Duplicate Order</option>
+                                        </select>
+                                    </div>
+                                    <div id="duplicateOrderSection" class="hidden">
+                                        <label class="text-sm font-medium text-gray-700 mb-2">Products</label>
+                                        <div class="space-y-2">
+                                            @foreach ($order->products as $orderProduct)
+                                                @if (!empty($orderProduct->product))
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="flex-1">{{ $orderProduct->product_name }}</span>
+                                                        <input type="text"
+                                                            name="delivery_dates[{{ $orderProduct->product->unique_id }}]"
+                                                            data-format="{{ config('app.date.js_date_format') }}"
+                                                            placeholder="Select date"
+                                                            data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                                            class="reorder-datepicker border rounded px-2 py-2 text-xs" />
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Footer -->
+                                <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                                    <button type="button"
+                                        class="close-reorder-model-btn px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                                        Cancel
+                                    </button>
+                                    <button type="submit"
+                                        class="px-6 py-2 rounded-md bg-orange-600 text-white font-medium hover:bg-orange-700 shadow-sm transition">
+                                        Continue
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -100,12 +145,21 @@
                 @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                 <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
             </a>
-            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}" method="POST" target="_blank" class="inline-flex items-center">
+            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}" method="POST"
+                target="_blank" class="inline-flex items-center">
                 @csrf
                 <button type="submit" class="inline-flex items-center hover:underline">
                     <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
                 </button>
             </form>
+            @if ($order->reference_order_number)
+                <a href="{{ $order->referenceOrder ? route('admin.order-management.orders.edit', $order->referenceOrder->unique_id) : 'javascript:void(0);' }}"
+                    target="_blank"
+                    class="inline-flex items-center hover:underline {{ !$order->referenceOrder ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
+                    @if (!$order->referenceOrder) tabindex="-1" aria-disabled="true" @endif>
+                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reference Order: {{ $order->reference_order_number }}
+                </a>
+            @endif
         </div>
     </div>
 
@@ -127,7 +181,8 @@
                     <input type="hidden" id="billing_last_name_input"
                         data-last-name="{{ $order->billingAddress->last_name ?? '' }}">
                     <input type="hidden" id="billing_email_input" data-email="{{ $order->billingAddress->email ?? '' }}">
-                    <input type="hidden" id="billing_phone_input" data-phone="{{ $order->billingAddress->phone ?? '' }}">
+                    <input type="hidden" id="billing_phone_input"
+                        data-phone="{{ $order->billingAddress->phone ?? '' }}">
                     <input type="hidden" id="billing_address_input"
                         data-address="{{ $order->billingAddress->address ?? '' }}">
                     <input type="hidden" id="billing_state_input"
@@ -738,21 +793,37 @@
                         <!-- Terms -->
                         <div class="flex flex-col items-center">
                             <div>Terms</div>
-                            <div class="flex justify-center mb-1">
-                                <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                    target="_blank" title="View Terms">
-                                    @if ($order->terms_status->isPending())
+                            <div class="flex justify-center mb-1 gap-1">
+                                @if ($order->terms_status->isPending())
+                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                        target="_blank" title="View Terms">
                                         <span
                                             class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
                                             <x-heroicon-o-x-mark class="w-4 h-4" />
                                         </span>
-                                    @else
+                                    </a>
+                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                        target="_blank" title="View Terms">
+                                        <span
+                                            class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                            <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
+
+                                            <!-- Tooltip -->
+                                            <span
+                                                class="absolute top-full mb-1 hidden group-hover:block px-2 py-1 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap">
+                                                Send terms signature request
+                                            </span>
+                                        </span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                        target="_blank" title="View Terms">
                                         <span
                                             class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
                                             <x-heroicon-o-check class="w-4 h-4" />
                                         </span>
-                                    @endif
-                                </a>
+                                    </a>
+                                @endif
                             </div>
                         </div>
                         <!-- License -->
@@ -1770,7 +1841,106 @@
                 }
             });
 
+            // Modal open/close logic
+            const reorderBtn = document.getElementById('reorderBtn');
+            const reorderModal = document.getElementById('reorderModal');
+            const orderTypeSelect = document.getElementById('orderTypeSelect');
+            const duplicateOrderSection = document.getElementById('duplicateOrderSection');
 
+            function openReorderModal() {
+                orderTypeSelect.value = 'new';
+                orderTypeSelect.dispatchEvent(new Event('change'));
+                document.querySelectorAll('.reorder-datepicker').forEach(el => {
+                    el.value = '';
+                    if (el._airDatepicker) {
+                        el._airDatepicker.clear();
+                    }
+                });
+                reorderModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeReorderModal() {
+                reorderModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+            if (reorderBtn) {
+                reorderBtn.addEventListener('click', openReorderModal);
+            }
+
+            // ✅ attach to BOTH close buttons
+            document.querySelectorAll('.close-reorder-model-btn').forEach(btn => btn.addEventListener('click',
+                closeReorderModal));
+
+            if (orderTypeSelect) {
+                orderTypeSelect.addEventListener('change', function() {
+                    if (this.value === 'duplicate') {
+                        duplicateOrderSection.classList.remove('hidden');
+                    } else {
+                        duplicateOrderSection.classList.add('hidden');
+                    }
+                });
+                // On load, ensure correct section is shown
+                if (orderTypeSelect.value === 'duplicate') {
+                    duplicateOrderSection.classList.remove('hidden');
+                }
+            }
+
+            document.querySelectorAll('.reorder-datepicker').forEach(el => {
+                // Only initialize if the input is visible (not .hidden)
+                if (!el.classList.contains('hidden')) {
+                    el._airDatepicker = new AirDatepicker(el, {
+                        locale: window.airDatepickerLocaleEn,
+                        timepicker: false,
+                        dateFormat: el.dataset.format || window.APP_DATE_FORMAT ||
+                            'yyyy-MM-dd HH:mm',
+                        minDate: el.dataset.minDate ? new Date(el.dataset.minDate) : false,
+                        autoClose: true,
+                        keyboardNav: true,
+                        // 🔹 Put the calendar in <body> so it’s not clipped or stuck
+                        container: "#reorderModal",
+                        // 🔹 Give it a stacking level above your modal overlay
+                        zIndex: 99999
+                    });
+                }
+            });
+
+
+            document.getElementById('reorderForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+                // Unified endpoint
+                const endpoint =
+                    '{{ route('admin.order-management.orders.reorder', ['unique_id' => $order->unique_id]) }}';
+
+                const response = apiFetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: formData
+                    })
+                    .then(res => {
+                        if (res && res.success) {
+                            notyf.success(res.message);
+                            window.open(res.redirect_url, '_blank');
+                            closeReorderModal();
+
+                        } else {
+                            notyf.error(res && res.message);
+                        }
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    });
+            });
         });
     </script>
 @endpush

@@ -106,7 +106,7 @@ class ModuleSeeder extends Seeder
         $modules_name_arr = [];
 
 
-        $role_item = Role::where('name', 'System Architecture')->first();
+        $role_item = Role::where('name', 'Master Admin')->first();
 
 
         foreach ($this->moduleList as $category) {
@@ -167,7 +167,7 @@ class ModuleSeeder extends Seeder
                             $permission_item->update([
                                 'module_id' => $module_item->id
                             ]);
-                            $this->setPermissionToSystemArchitecture($role_item, $permission_item);
+                            $this->setPermissionToMasterAdmin($role_item, $permission_item);
                         }
                     }
                     $module_item->permission_options = json_encode($permission_options);
@@ -188,14 +188,15 @@ class ModuleSeeder extends Seeder
     }
 
 
-    // Assign All permissions to System Architecture [Start]
+    // Assign All permissions to Master Admin [Start]
 
-    private function setPermissionToSystemArchitecture(Role $role_item, Permission $permission_item): void
+    private function setPermissionToMasterAdmin(Role $role_item, Permission $permission_item): void
     {
         if (!is_null($role_item)) {
             $role_item->givePermissionTo($permission_item);
         }
     }
 
-    // Assign All permissions to System Architecture [End]
+
+    // Assign All permissions to Master Admin [End]
 }

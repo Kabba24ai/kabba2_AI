@@ -128,9 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (tax_status !== 'All') params.append('tax_status', tax_status);
 
          // Show loader
-        // document.querySelector('#customer-loader').classList.remove('hidden');
-    // document.querySelector('#customer-table-wrapper').classList.add('hidden');
-
+  
 
       loader.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');

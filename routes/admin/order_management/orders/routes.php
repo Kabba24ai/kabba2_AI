@@ -17,7 +17,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\IndexController as N
 use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\StoreController as NotesStoreController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\UpdateController as NotesUpdateController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\DeleteController as NotesDeleteController;
-use App\Http\Controllers\Admin\OrderManagement\Orders\Reorder\IndexController as ReorderIndexController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\Reorder\PostController as ReorderPostController;
 
 Route::prefix('orders')
     ->name('orders.')
@@ -42,12 +42,7 @@ Route::prefix('orders')
         Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');
 
         // Reorder
-        Route::prefix('reorder')
-            ->name('reorder.')
-            ->group(function () {
-                Route::get('/{unique_id}/{type}', ReorderIndexController::class)->name('index');
-                // Route::post('/{unique_id}', NotesStoreController::class)->name('store');
-            });
+        Route::post('/{unique_id}/reorder', ReorderPostController::class)->name('reorder');
 
         // Notes
         Route::prefix('notes')

@@ -5,36 +5,51 @@ use Stevebauman\Purify\Facades\Purify;
 
 class PurifyHelper
 {
-    public static function purify($requestArr, $omit_fields = [])
+    public static function purify($requestArr, array $exceptFields = [])
     {
-        $config = config('purify.configs.default');
-        if (!is_null($requestArr) && is_array($requestArr) && count($requestArr) > 0) {
-            $clearRequestArr = [];
-            foreach ($requestArr as $key => $item) {
-                if (is_array($item) && count($item) > 0) {
-                    $clearRequestArr[$key] = self::purify($item, $omit_fields);
-                } else if ($item != '' && $item != null) {
+        $config = config('purify.configs.default'); // or just use 'default'
 
-                    if (count($omit_fields) > 0 && in_array($key, $omit_fields)) {
-                        $clearRequestArr[$key] = Purify::config($config)->clean(str_replace('&gt;', '>', str_replace('&lt;', '<', $item)),[
-                            'HTML.Allowed' => 'u', // Allow the "u" tag
-                        ]);
-                    } else {
-                        $clearRequestArr[$key] = Purify::config($config)->clean(str_replace('&gt;', '>', str_replace('&lt;', '<', $item)),[
-                            'HTML.Allowed' => 'u', // Allow the "u" tag
-                        ]);
-                        $clearRequestArr[$key] = strip_tags($item);
-                    }
+        if (is_array($requestArr)) {
+            $clean = [];
+
+            foreach ($requestArr as $key => $value) {
+                if (is_array($value)) {
+                    $clean[$key] = self::purify($value, $exceptFields);
+                    continue;
+                }
+
+                if ($value === '' || $value === null) {
+                    $clean[$key] = null;
+                    continue;
+                }
+
+                // Non-strings (ints, bools, etc.) — keep as-is
+                if (!is_string($value)) {
+                    $clean[$key] = $value;
+                    continue;
+                }
+
+                if (in_array($key, $exceptFields, true)) {
+                    // Completely skip sanitizing these fields
+                    $clean[$key] = html_entity_decode($value, ENT_QUOTES | ENT_HTML5);
                 } else {
-                    $clearRequestArr[$key] = null;
+                    $decoded = html_entity_decode($value, ENT_QUOTES | ENT_HTML5);
+                    $clean[$key] = Purify::config($config)->clean($decoded); // or 'default'
                 }
             }
-            return $clearRequestArr;
-        } else if ($requestArr != '' && !is_array($requestArr)) {
-            $returnval = Purify::config($config)->clean(str_replace('&gt;', '>', str_replace('&lt;', '<', $requestArr)));
-            return strip_tags($returnval);
-        } else {
-            return null;
+
+            return $clean;
         }
+
+        // Scalar input
+        if ($requestArr !== '' && $requestArr !== null) {
+            if (!is_string($requestArr)) {
+                return $requestArr;
+            }
+            $decoded = html_entity_decode($requestArr, ENT_QUOTES | ENT_HTML5);
+            return Purify::config($config)->clean($decoded);
+        }
+
+        return null;
     }
 }

@@ -31,17 +31,12 @@
                                                 @endif
 
                                                
-                                                {{-- Pay Type Badge --}}
-                                                    @php
-                                                        $payTypeLabels = [
-                                                            'Hourly' => 'Hourly Pay',
-                                                            'Salary' => 'Salary Pay',
-                                                        ];
-
-                                                        $payTypeLabel = $user->pay_type && isset($payTypeLabels[$user->pay_type])
-                                                            ? $payTypeLabels[$user->pay_type]
-                                                            : null;
-                                                    @endphp
+                                                  <!-- {{-- Pay Type Badge --}} -->
+                                                @if($user->pay_type && isset($paytypes[$user->pay_type]))
+                                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                                        {{ $paytypes[$user->pay_type] }}
+                                                    </span>
+                                                @endif
 
                                             </div>
 
@@ -50,8 +45,8 @@
                                         </div>
                                     </div>
                                     <div class="flex gap-2">
-                                        <a href="{{ route('admin.hrm.users.view.user',$user->unique_id ) }}"><x-heroicon-o-eye class="w-4 h-4 text-grey-600" /></a>
-                                        <a href="{{ route('admin.hrm.users.edit.user',$user->unique_id ) }}" target="_blank">
+                                        <a href="{{ route('admin.hrm.users.view',$user->unique_id ) }}"><x-heroicon-o-eye class="w-4 h-4 text-grey-600" /></a>
+                                        <a href="{{ route('admin.hrm.users.edit',$user->unique_id ) }}" target="_blank">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
                                             </svg>
@@ -60,7 +55,7 @@
                                 
                                         <button 
                                             class="delete-user-btn"
-                                            data-url="{{ route('admin.hrm.users.delete.user', $user->unique_id) }}"
+                                            data-url="{{ route('admin.hrm.users.delete', $user->unique_id) }}"
                                             type="button"
                                             title="Delete"
                                         >
@@ -87,7 +82,7 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <x-heroicon-o-briefcase class="w-4 h-4 text-gray-900" />
-                                        Clock Code: {{  $user->clock_code }} 
+                                        Employee Code: {{  $user->employee_code ?? 'N/A' }} 
                                     </div>
                                     <div class="flex items-center gap-2 mb-4">
                                     <x-heroicon-o-calendar class="w-4 h-4 text-gray-900" />

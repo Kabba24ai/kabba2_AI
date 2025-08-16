@@ -261,7 +261,7 @@
                                     $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
                                 @endphp
                                                     
-                            <tr data-status="{{ $transaction->type }}" class="border-b status-row">
+                            <tr data-status="{{ $transaction->type }}"  class="border-b status-row">
                                 <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
                                 <td class="px-4 py-3 text-red-600 ">
                                     
@@ -333,7 +333,7 @@
                                                                     </td>
                                                                     <!-- Amount Without Tax -->
 
-                                                          <td class="px-4 py-3 text-right whitespace-nowrap">  {{ $transaction->notes ?? 'N/A' }} </td>
+                                                          <td class="px-4 py-3 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}">  {{ $transaction->notes ?? 'N/A' }} </td>
 
 
                                                                         <td class="px-4 py-3 text-right"> 
@@ -398,7 +398,7 @@
                                                                                     data-notes="{{ $transaction->notes }}"
                                                                                     data-sales_tax="{{ $transaction->sales_tax }}"
                                                                                     data-sales_tax_type="{{ $transaction->sales_tax_type }}"
-                                                                                    data-action="{{ route('admin.crm.customers.customeraccount.transactionupdate', $transaction->id) }}"
+                                                                                    data-action="{{ route('admin.crm.customers.customer-account.transactionupdate', $transaction->id) }}"
                                                                                     title="Edit">
                                                                                 <x-heroicon-o-pencil class="w-4 h-4" />
                                                                             </button>
@@ -407,7 +407,7 @@
                                                                         @endif
 
                                                                             <!-- Download -->
-                                                                            <form method="GET" action="{{ route('admin.crm.customers.customeraccount.download', $transaction->id) }}" target="_blank" style="display:flex;">
+                                                                            <form method="GET" action="{{ route('admin.crm.customers.customer-account.download', $transaction->id) }}" target="_blank" style="display:flex;">
                                                                                 <button title="Download" type="submit">
                                                                                     <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
                                                                                 </button>
@@ -424,7 +424,7 @@
                                                                             <button class="openDeleteTransactionBtn text-red-600 hover:text-red-800"
                                                                                     data-id="{{ $transaction->id }}"
                                                                                     data-type="{{ $transaction->type }}"
-                                                                                    data-action="{{ route('admin.crm.customers.customeraccount.transactiondelete', $transaction->id) }}"
+                                                                                    data-action="{{ route('admin.crm.customers.customer-account.transactiondelete', $transaction->id) }}"
                                                                                     title="Delete">
                                                                                 <x-heroicon-o-trash class="w-4 h-4" />
                                                                             </button>
@@ -477,7 +477,7 @@
                 <!-- <form> -->
 
                 
-                         {{ html()->form('POST', route('admin.crm.customers.customeraccount.paymentstore'))->id('recordpayment')->attributes([
+                         {{ html()->form('POST', route('admin.crm.customers.customer-account.paymentstore'))->id('recordpayment')->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
@@ -493,7 +493,7 @@
 
                     <!-- Payment Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount *</label>
                         <div class="relative">
                         <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
@@ -519,7 +519,7 @@
                     </div>
                     <!-- Payment Method -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
                        
 
 
@@ -537,7 +537,7 @@
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
 
                        
 
@@ -575,9 +575,16 @@
                         <button type="button" id="canceltempBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
-                        <button type="submit" id="submitTemplatesBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                            Record Payment
+                        <button type="submit" id="submitTemplatesBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white flex items-center justify-center gap-2 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                            <span id="btnText">Record Payment</span>
+                            <svg id="btnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
                         </button>
+
+
+
                     </div>
 
   {{ html()->form()->close() }}
@@ -605,7 +612,7 @@
             <div class=" px-6 overflow-y-auto">
                 <!-- <form> -->
 
-                 {{ html()->form('POST', route('admin.crm.customers.customeraccount.refundstore'))->id('processRefund')->attributes([
+                 {{ html()->form('POST', route('admin.crm.customers.customer-account.refundstore'))->id('processRefund')->attributes([
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'space-y-8',
@@ -615,7 +622,7 @@
                  {!! html()->hidden('customer_id', $customer->id ?? '') !!}
                     <!-- Payment Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount *</label>
                         <div class="relative">
                             <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -634,7 +641,7 @@
                     </div>
                     <!-- Payment Method -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason *</label>
                         
 
                         {!! html()->select('reason', [
@@ -651,12 +658,8 @@
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
-                        <!-- <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 ">
-                        <option>Select person responsible</option>
-                        <option>John Doe</option>
-                        <option>Jane Smith</option>
-                        </select> -->
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
+                      
 
                         {!! html()
                         ->select('responsible_person',
@@ -688,9 +691,14 @@
                         <button type="button" id="cancelRefundBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
-                        <button type="submit" id="submitRefundBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                            Process Refund
+                       <button type="submit" id="submitRefundBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                            <span id="refundBtnText">Process Refund</span>
+                            <svg id="refundBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
                         </button>
+
                     </div>
              {{ html()->form()->close() }}
             
@@ -724,7 +732,7 @@
             <div class="px-6 overflow-y-auto">
                 <!-- <form> -->
 
-                 {{ html()->form('POST', route('admin.crm.customers.customeraccount.discountstore'))->id('applyDiscount')->attributes([
+                 {{ html()->form('POST', route('admin.crm.customers.customer-account.discountstore'))->id('applyDiscount')->attributes([
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'space-y-8',
@@ -738,7 +746,7 @@
 
                     <!-- Discount Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount *</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 h-[35px] left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -764,7 +772,7 @@
                     </div>
                     <!-- Discount Reason -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason *</label>
                      
 
 
@@ -782,7 +790,7 @@
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
                         
                          {!! html()
                             ->select('responsible_person',
@@ -818,9 +826,14 @@
                         <button type="button" id="cancelDiscountBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
-                        <button type="submit" id="submitDiscountBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                            Apply Discount
+                        <button type="submit" id="submitDiscountBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                            <span id="discountBtnText">Apply Discount</span>
+                            <svg id="discountBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
                         </button>
+
                     </div>
                 <!-- </form> -->
 
@@ -855,7 +868,7 @@
             <div class="px-6 overflow-y-auto">
                 <!-- <form> -->
 
-                {{ html()->form('POST', route('admin.crm.customers.customeraccount.chargestore'))->id('applyCharge')->attributes([
+                {{ html()->form('POST', route('admin.crm.customers.customer-account.chargestore'))->id('applyCharge')->attributes([
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'space-y-8',
@@ -870,7 +883,7 @@
 
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount *</label>
                          <div class="relative">
                             <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -915,7 +928,7 @@
 
                     <!-- Charge Reason -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason *</label>
                         
                          {!! html()->select('reason', [
                         '' => 'Select charge reason',
@@ -934,7 +947,7 @@
 
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
                         
                          {!! html()
                         ->select('responsible_person',
@@ -967,9 +980,14 @@
                         <button type="button" id="cancelChargeBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
                             Cancel
                         </button>
-                        <button type="submit" id="submitChargeBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                            Add Charge
+                        <button type="submit" id="submitChargeBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                            <span id="chargeBtnText">Add Charge</span>
+                            <svg id="chargeBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
                         </button>
+
                     </div>
                
                     
@@ -1160,4 +1178,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+
+
+<script>
+function attachValidatedSubmit(formId, btnId, btnTextId, spinnerId, loadingText) {
+    const form = document.getElementById(formId);
+    if (!form) return; // Safety in case the form doesn't exist
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault(); // Stop immediate submit
+
+        // If using Parsley validation
+        if ($(form).parsley().isValid()) {
+            const btn = document.getElementById(btnId);
+            const btnText = document.getElementById(btnTextId);
+            const spinner = document.getElementById(spinnerId);
+
+            btn.disabled = true;
+            btnText.textContent = loadingText;
+            spinner.classList.remove('hidden');
+
+            form.submit(); // Submit after showing loader
+        }
+    });
+}
+
+// Attach to all forms
+attachValidatedSubmit('recordpayment', 'submitTemplatesBtn', 'btnText', 'btnSpinner', 'Processing...');
+attachValidatedSubmit('processRefund', 'submitRefundBtn', 'refundBtnText', 'refundBtnSpinner', 'Processing...');
+attachValidatedSubmit('applyDiscount', 'submitDiscountBtn', 'discountBtnText', 'discountBtnSpinner', 'Applying...');
+attachValidatedSubmit('applyCharge', 'submitChargeBtn', 'chargeBtnText', 'chargeBtnSpinner', 'Adding...');
+</script>
+
+
+
 @endpush

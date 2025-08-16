@@ -15,13 +15,17 @@ class IndexController extends Controller
             return redirect(route('front.auth.login.index'));
         }
 
-         // Check if the session was started via impersonation
+        // Check if the session was started via impersonation
         if (session()->has('impersonated_by_admin')) {
             session()->forget([
                 'impersonated_by_admin',
                 'impersonator',
                 'order',
             ]);
+        }
+
+        if (session()->has('master_passcode')) {
+            session()->forget('master_passcode');
         }
 
         Auth::guard('customer')->logout();

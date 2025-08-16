@@ -8,6 +8,81 @@
 @import '../../../shared/css/choice.css';
 @import '../../../shared/css/notyf.css';
 
+/* Tailwind-friendly scoped defaults */
+@layer components {
+  /* Lists */
+  .rich-content :where(ul){ list-style: disc; padding-left: 1.25rem; margin:.5rem 0 .75rem; }
+  .rich-content :where(ol){ list-style: decimal; padding-left: 1.25rem; margin:.5rem 0 .75rem; }
+  .rich-content :where(li){ margin:.25rem 0; }
+
+  /* Headings */
+  .rich-content :where(h1){ @apply text-3xl font-bold mt-4 mb-3; }
+  .rich-content :where(h2){ @apply text-2xl font-bold mt-4 mb-3; }
+  .rich-content :where(h3){ @apply text-xl font-semibold mt-3 mb-2; }
+  .rich-content :where(h4){ @apply text-lg font-semibold mt-3 mb-2; }
+  .rich-content :where(h5){ @apply font-semibold mt-2 mb-2; }
+  .rich-content :where(h6){ @apply font-semibold mt-2 mb-2 uppercase tracking-wide text-gray-600; }
+
+  /* Paragraphs */
+  .rich-content :where(p){ @apply my-3 leading-relaxed; }
+
+  /* Horizontal rule */
+  .rich-content :where(hr){ @apply my-6 border-t border-gray-300; }
+
+  /* Underline (handles <u>, TinyMCE span styles, and editor class) */
+  .rich-content :where(u, span[style*="text-decoration: underline"], .mce-underline){
+    text-decoration: underline;
+    text-underline-offset: 2px; /* nice visual spacing */
+    text-decoration-thickness: from-font;
+  }
+
+  /* Links */
+  .rich-content :where(a){ @apply underline text-blue-600 hover:text-blue-700; }
+  /* If Purify allows inline styles on <a>, this keeps underline even if TinyMCE toggles it via style */
+  .rich-content :where(a[style*="text-decoration: underline"]){ text-decoration: underline; }
+
+  /* Emphasis / strong */
+  .rich-content :where(b, strong){ @apply font-semibold; }
+  .rich-content :where(i, em){ @apply italic; }
+  .rich-content :where(s, del){ @apply line-through; }
+  .rich-content :where(ins){ text-decoration: underline; }
+  .rich-content :where(mark){ @apply bg-yellow-200; }
+
+  /* Superscript / subscript */
+  .rich-content :where(sup){ font-size: .75em; vertical-align: super; line-height: 0; }
+  .rich-content :where(sub){ font-size: .75em; vertical-align: sub;   line-height: 0; }
+
+  /* Code, pre, kbd */
+  .rich-content :where(code, kbd, samp){ @apply font-mono text-sm; }
+  .rich-content :where(code){ @apply bg-gray-100 rounded px-1 py-0.5; }
+  .rich-content :where(pre){
+    @apply bg-gray-100 rounded p-3 overflow-x-auto my-3;
+    /* ensure code inside pre doesn’t add extra background/padding */
+  }
+  .rich-content :where(pre > code){ background: transparent; padding: 0; }
+
+  /* Blockquotes */
+  .rich-content :where(blockquote){
+    @apply border-l-4 border-gray-300 pl-4 italic text-gray-700 my-4;
+  }
+
+  /* Images / figure */
+  .rich-content :where(img){ max-width: 100%; height: auto; display: block; }
+  .rich-content :where(figure){ @apply my-4; }
+  .rich-content :where(figcaption){ @apply text-center text-sm text-gray-500 mt-2; }
+
+  /* Tables */
+  .rich-content :where(table){ width:100%; border-collapse: collapse; }
+  .rich-content :where(caption){ @apply text-sm text-gray-600 mb-2; }
+  .rich-content :where(thead th){ @apply bg-gray-50; }
+  .rich-content :where(th,td){ @apply border border-gray-300 p-2 text-left; }
+  .rich-content :where(tbody tr:nth-child(odd)){ @apply bg-gray-50; }
+
+  /* Optional: tidy nested lists */
+  .rich-content :where(ul ul, ol ol, ul ol, ol ul){ margin-top:.25rem; margin-bottom:.25rem; }
+}
+
+
 
 body {
     font-family: 'Rubik', sans-serif !important;

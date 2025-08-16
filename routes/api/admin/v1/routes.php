@@ -24,5 +24,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         require base_path('routes/api/admin/v1/products/routes.php');
 
         require base_path('routes/api/admin/v1/product_categories/routes.php');
+
+        require base_path('routes/api/admin/v1/locations/routes.php');
     });
 });

@@ -151,4 +151,7 @@ Each API resource is organized in a folder named after the plural form of the mo
 
 ---
 
+> **Note:**  
+> When rendering HTML content using the editor on the front end, add the `rich-content` class to ensure proper styling and formatting.
+
 **Tip:** For more details, see the official [Laravel documentation](https://laravel.com/docs).

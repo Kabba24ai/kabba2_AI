@@ -7,6 +7,9 @@ use App\Models\Customers\Customer;
 use App\Models\Configurations\Setting;
 use App\Enums\Orders\OrderPaymentStatus;
 use App\Enums\Orders\OrderPaymentMethod;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
+
 
 class CustomHelper
 {
@@ -19,8 +22,13 @@ class CustomHelper
         return config('app.currency.code') . number_format($value, 2);
     }
 
-  public static function getAvailableCredit($customer)
+    public static function getAvailableCredit($customer)
     {
+
+        if (!(($customer->credit_limit ?? 0) > 0) || ($customer->is_credit_account ?? 0) != 1) {
+            return 0;
+        }
+
         $creditLimit = $customer->credit_limit ?? 0;
         $accounts = $customer->accounts ?? [];
 
@@ -75,6 +83,27 @@ class CustomHelper
 
         return $creditLimit + $balanceAdjustment;
     }
+    
+
+    
+       public static function isBadDebitCustomer($customer): bool
+    {
+        //  >45 days since last payment (danger)
+        if (isset($customer->payment_status_badge) && $customer->payment_status_badge === 'danger') {
+            return true;
+        }
+
+        //  Credit problems (credit_limit <= 0 OR NULL OR not a credit account)
+        //    BUT only considered bad debt if available_credit_balance > 0
+        $creditIssue = ($customer->credit_limit <= 0) || is_null($customer->credit_limit) || ($customer->is_credit_account == 0);
+
+        if ($creditIssue && $customer->available_credit_balance > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
 
 
 
@@ -182,142 +211,164 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
 }
 
     public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.00): void
-{
-    $customer = Customer::findOrFail($record->customer_id);
-    $currentBalance = $customer->available_credit_balance ?? 0;
-    $newBalance = $currentBalance;
+    {
+        $maxRetries = 5;
+        $attempt = 0;
 
-    $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-    $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.00);
+        while (true) {
+            try {
+                DB::transaction(function () use ($record, $externalTaxAmount) {
+                    // Lock the customer row for update to prevent concurrent conflicts
+                    $customer = Customer::findOrFail($record->customer_id);
+                    $currentBalance = $customer->available_credit_balance ?? 0;
+                    $newBalance = $currentBalance;
 
-    switch ($record->type) {
-        case 'payment':
+                    $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+                    $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.00);
 
-            if ($customer->getTaxStatus() === 'Taxable') {
+                    switch ($record->type) {
+                        case 'payment':
 
-                $record->sales_tax = $salesTaxRate;
+                            if ($customer->getTaxStatus() === 'Taxable') {
 
-                $amountWithTax = $record->amount;
+                                $record->sales_tax = $salesTaxRate;
 
-                // $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+                                $amountWithTax = $record->amount;
 
-            } else {
-                $record->sales_tax = 0;
-                $amountWithTax = $record->amount;
+                                // $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+
+                            } else {
+                                $record->sales_tax = 0;
+                                $amountWithTax = $record->amount;
+                            }
+
+                            $newBalance -= $amountWithTax;
+                            break;
+
+
+                        case 'refund':
+                            if ($customer->getTaxStatus() === 'Taxable') {
+                                $record->sales_tax = $salesTaxRate;
+                                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+                            } else {
+                                $record->sales_tax = 0;
+                                $amountWithTax = $record->amount;
+                            }
+
+                            $newBalance -= $amountWithTax;
+                            break;
+
+                        case 'discount':
+                            $record->sales_tax = 0;
+                            $newBalance -= $record->amount;
+                            break;
+
+                        case 'charge':
+                            if (
+                                $record->sales_tax_type === 'add'
+                            ) {
+
+                                $record->sales_tax = $salesTaxRate;
+                                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+
+                            } elseif ($record->sales_tax_type === 'reverse'){
+
+                                $record->sales_tax = $salesTaxRate;
+
+                                $amountWithTax = $record->amount;
+
+                            }
+
+                            else {
+                                $record->sales_tax = 0;
+                                $amountWithTax = $record->amount;
+                            }
+
+                            $newBalance += $amountWithTax;
+                            break;
+
+                        case 'order':
+                            // $record->sales_tax = 0;
+                            $newBalance += $record->amount + $externalTaxAmount;
+                            break;
+                    }
+
+                    $record->balance = $newBalance;
+                    $record->save();
+
+                    $customer->available_credit_balance = $newBalance;
+                    $customer->save();
+
+
+              });
+
+                break; // If transaction succeeds, exit retry loop
+
+            } catch (QueryException $e) {
+                // Deadlock error code in MySQL is 40001
+                if ($e->getCode() === '40001' && ++$attempt <= $maxRetries) {
+                    usleep(100000); // wait 100ms before retrying
+                    continue;
+                }
+                throw $e; // rethrow other exceptions or if retries exhausted
             }
-
-            $newBalance -= $amountWithTax;
-            break;
-
-
-        case 'refund':
-            if ($customer->getTaxStatus() === 'Taxable') {
-                $record->sales_tax = $salesTaxRate;
-                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
-            } else {
-                $record->sales_tax = 0;
-                $amountWithTax = $record->amount;
-            }
-
-            $newBalance -= $amountWithTax;
-            break;
-
-        case 'discount':
-            $record->sales_tax = 0;
-            $newBalance -= $record->amount;
-            break;
-
-        case 'charge':
-            if (
-                $record->sales_tax_type === 'add'
-            ) {
-
-                $record->sales_tax = $salesTaxRate;
-                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
-
-            } elseif ($record->sales_tax_type === 'reverse'){
-
-                  $record->sales_tax = $salesTaxRate;
-
-                $amountWithTax = $record->amount;
-
-            }
-
-            else {
-                $record->sales_tax = 0;
-                $amountWithTax = $record->amount;
-            }
-
-            $newBalance += $amountWithTax;
-            break;
-
-        case 'order':
-            // $record->sales_tax = 0;
-            $newBalance += $record->amount + $externalTaxAmount;
-            break;
+        }
     }
-
-    $record->balance = $newBalance;
-    $record->save();
-
-    $customer->available_credit_balance = $newBalance;
-    $customer->save();
-}
-public static function reverseTransactionEffect(CustomerAccount $record): void
-{
-    $customer = Customer::findOrFail($record->customer_id);
-    $currentBalance = $customer->available_credit_balance ?? 0;
-    $adjustedBalance = $currentBalance;
+    public static function reverseTransactionEffect(CustomerAccount $record): void
+    {
+        $customer = Customer::findOrFail($record->customer_id);
+        $currentBalance = $customer->available_credit_balance ?? 0;
+        $adjustedBalance = $currentBalance;
 
 
-    switch ($record->type) {
-        case 'payment':
+        switch ($record->type) {
+            case 'payment':
 
-            // $salesTaxAmount = $record->sales_tax > 0 ? $record->amount - ($record->amount ?? 0) / (1 + $record->sales_tax) : 0;
+                // $salesTaxAmount = $record->sales_tax > 0 ? $record->amount - ($record->amount ?? 0) / (1 + $record->sales_tax) : 0;
 
-            $adjustedBalance += $record->amount ;
-            break;
+                $adjustedBalance += $record->amount ;
+                break;
 
-        case 'refund':
+            case 'refund':
 
-               $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
-
-            $adjustedBalance += $record->amount + $salesTaxAmount;
-            break;
-
-        case 'discount':
-            $adjustedBalance += $record->amount;
-            break;
-
-        case 'charge':
-
-            if ($record->sales_tax_type === 'reverse'){
-
-            $adjustedBalance -= $record->amount ;
-            break;
-
-            }
-
-            else {
                 $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
-            $adjustedBalance -= $record->amount + $salesTaxAmount;
-            break;
-            }
 
-        case 'order':
+                $adjustedBalance += $record->amount + $salesTaxAmount;
+                break;
 
-               $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+            case 'discount':
+                $adjustedBalance += $record->amount;
+                break;
 
-            $adjustedBalance -= $record->amount + $salesTaxAmount;
-            break;
+            case 'charge':
+
+                if ($record->sales_tax_type === 'reverse'){
+
+                $adjustedBalance -= $record->amount ;
+                break;
+
+                }
+
+                else {
+                    $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+                $adjustedBalance -= $record->amount + $salesTaxAmount;
+                break;
+                }
+
+            case 'order':
+
+                $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+
+                $adjustedBalance -= $record->amount + $salesTaxAmount;
+                break;
+        }
+
+        $record->balance = $adjustedBalance;
+        $record->save();
+
+        $customer->available_credit_balance = $adjustedBalance;
+        $customer->save();
     }
-
-    $record->balance = $adjustedBalance;
-    $record->save();
-
-    $customer->available_credit_balance = $adjustedBalance;
-    $customer->save();
-}
 
 
 

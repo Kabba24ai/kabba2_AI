@@ -61,7 +61,7 @@
                                 ->id('email')
                                 ->class('w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                                 ->attributes([
-                                    'maxlength' => 100,
+                                    
                                     'placeholder' => 'Enter Email',
                                     'id' => 'email',
                                     'autocomplete' => 'off',
@@ -85,7 +85,7 @@
                                 ->id('mobile')
                                 ->class('masked-phone w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                                 ->attributes([
-                                    'placeholder' => '(555) 123-4567',
+                                    'placeholder' => '(xxx) xxx-xxxx',
                                     'autocomplete' => 'off',
                                 ])
                             !!}
@@ -98,7 +98,7 @@
                         ->id('phone')
                         ->class('masked-phone w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                         ->attributes([
-                            'placeholder' => '(555) 123-4567',
+                            'placeholder' => '(xxx) xxx-xxxx',
                             'autocomplete' => 'off',
                         ])
                         ->required()
@@ -126,7 +126,7 @@
                         ->attributes([
                             'placeholder' => '123 Main Street',
                             'autocomplete' => 'off',
-                        ])
+                        ])->required()
                     !!}
 
             </div>
@@ -141,7 +141,7 @@
                                     ->attributes([
                                         'placeholder' => 'New York',
                                         'autocomplete' => 'off',
-                                    ])
+                                    ])->required()
                                 !!}
                 </div>
                 <div>
@@ -258,8 +258,10 @@
             <div>
                 <label for="payType" class="text-xs text-gray-500 font-medium">Pay Type</label>
                      
-                    {!! html()
-                    ->select('payType', ['Hourly' => 'Hourly Pay', 'Salary' => 'Salary Pay'], old('payType', $user->pay_type ?? ''))->id('payType')
+
+                     {!! html()
+                        ->select('payType', $paytypes, old('payType', $user->pay_type ?? ''))
+                        ->id('payType')
                         ->class([
                             'w-full pl-2 pr-2 py-2 border rounded-md text-sm',
                             'border-red-500' => $errors->has('payType'),
@@ -286,21 +288,7 @@
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Clock Code -->
-            <div class="flex flex-col">
-                <label for="clockCode" class="text-xs text-gray-500 font-medium">Clock Code *</label>
-             
-                      {!! html()->text('clockCode', old('clockCode', $user->clock_code ?? ''))->class([
-                            'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                            'border-red-500' => $errors->has('clockCode'),
-                            'border-gray-300' => !$errors->has('clockCode'),
-                        ])->attributes([
-                            'id' => 'clockCode',
-                            'placeholder' => '12345',
-                            'autocomplete' => 'off',
-                        ]) !!}
-
-            </div>
+           
 
             <div class="flex items-center gap-2">
                
@@ -396,7 +384,7 @@
                         ->id('emergency_mobile_phone')
                         ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                         ->attributes([
-                            'placeholder' => '(555) 987-6543',
+                            'placeholder' => '(xxx) xxx-xxxx',
                             'autocomplete' => 'off',
                         ])
                     !!}
@@ -408,7 +396,7 @@
                         ->id('emergency_phone')
                         ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                         ->attributes([
-                            'placeholder' => '(555) 987-6543',
+                            'placeholder' => '(xxx) xxx-xxxx',
                             'autocomplete' => 'off',
                         ])
                     !!}
@@ -530,14 +518,14 @@
                 {!! html()->text('emergency2_mobile_phone', old('emergency2_mobile_phone', $user->emergencyContactTwo->mobile_phone ?? ''))
                     ->id('emergency2_mobile_phone')
                     ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => '(555) 456-7890', 'autocomplete' => 'off']) !!}
+                    ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'off']) !!}
             </div>
             <div>
                 <label for="emergency2_phone_number" class="text-xs text-gray-500 font-medium">Phone Number</label>
                 {!! html()->text('emergency2_phone_number', old('emergency2_phone_number', $user->emergencyContactTwo->phone_number ?? ''))
                     ->id('emergency2_phone_number')
                     ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => '(555) 456-7890', 'autocomplete' => 'off']) !!}
+                    ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'off']) !!}
             </div>
         </div>
 

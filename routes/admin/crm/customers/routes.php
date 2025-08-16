@@ -61,13 +61,10 @@ Route::prefix('customers')
 
     Route::post('/status-update/{unique_id}', CustomerStatusUpdateController::class)->name('status-update.customer');
 
-
-
     // Delete
     Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');
 
-    // customeraccount
-    require base_path('routes/admin/crm/customers/customeraccount/routes.php');
-
-
+    // customer_account
+    require base_path('routes/admin/crm/customers/customer_account/routes.php');
+    
 });

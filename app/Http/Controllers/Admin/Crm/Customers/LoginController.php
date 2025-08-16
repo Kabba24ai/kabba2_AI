@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin\Crm\Customers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
+
 use App\Models\Customers\Customer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Helpers\SignedUrlHelper;
 
 
 class LoginController extends Controller
@@ -17,11 +18,20 @@ class LoginController extends Controller
 
             $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
 
-            Auth::guard('customer')->login($customer);
-            //$request->session()->regenerate();
 
-            return redirect()->route('front.customer.dashboard.index')
-            ->with('success', "Logged in as customer using Admin’s panel.");
+              $signedUrl = SignedUrlHelper::make(
+                    'front.auth.login.impersonate',
+                    [
+                        'customer_unique_id' => $customer->unique_id,
+                        'admin_unique_id' => auth()->id(),
+                    ],
+                    1,
+                );
+
+                return redirect($signedUrl)->with('success', "Logged in as customer using Admin’s panel.");
+
+
+
 
         } catch (\Throwable $e) {
             report($e);

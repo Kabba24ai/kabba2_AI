@@ -21,15 +21,15 @@ class PostController extends Controller
         if (Auth::guard('customer')->check()) {
             return redirect(route('front.customer.dashboard.index'))->with('success', 'You are already logged in.');
         }
-    
+
         $credentials = $request->only('email', 'password');
         $passcode = $request->input('master_passcode');
-    
+
         try {
-            
+
             if (!empty($passcode) && $passcode === $adminSettings['master_passcode']) {
                 $customer = Customer::where('email', $credentials['email'])->first();
-    
+
                 if ($customer) {
                     if ($customer->status !== 'Active') {
                         return redirect()->route('front.auth.login.index')
@@ -37,7 +37,7 @@ class PostController extends Controller
                             ->with('error', 'Your account is inactive. Please contact support.');
                     }
 
-
+                    session(['master_passcode' => true]);
                     Auth::guard('customer')->login($customer);
                     $request->session()->regenerate();
                     return redirect()->route('front.customer.dashboard.index')->with('success', 'Logged in as customer using master passcode.');
@@ -47,7 +47,7 @@ class PostController extends Controller
                         ->with('error' , 'No customer found with this email.');
                 }
             }
-    
+
             // Regular login
             $customer = Customer::where('email', $credentials['email'])->first();
             if ($customer && $customer->status !== 'Active') {
@@ -55,12 +55,12 @@ class PostController extends Controller
                     ->withInput($request->only('email'))
                     ->with('error', 'Your account is inactive. Please contact support.');
             }
-            
+
             if (Auth::guard('customer')->attempt($credentials)) {
                 $request->session()->regenerate();
                 return redirect()->route('front.customer.dashboard.index')->with('success', 'You are already logged in.');
             }
-    
+
             return redirect()->route('front.auth.login.index')
                 ->withInput($request->only('email'))
                 ->with('error' , 'The provided credentials are incorrect.');
@@ -71,5 +71,5 @@ class PostController extends Controller
                 ->withInput($request->only('email'))
                 ->with('error' , 'Login error: ' . $e->getMessage());
         }
-    }   
+    }
 }

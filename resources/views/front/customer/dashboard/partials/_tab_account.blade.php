@@ -56,7 +56,7 @@
                                             'border-red-500' => $errors->has('first_name'),
                                         ])
                                         ->attributes([
-                                            'maxlength' => 100,
+                                           
                                             'placeholder' => 'Enter First Name',
                                             'id' => 'first_name',
                                             'autocomplete' => 'off',
@@ -77,7 +77,6 @@
                                         'border-red-500' => $errors->has('last_name'),
                                     ])
                                     ->attributes([
-                                        'maxlength' => 100,
                                         'placeholder' => 'Enter Last Name',
                                         'id' => 'last_name',
                                         'autocomplete' => 'off',
@@ -102,7 +101,7 @@
                                         'border-red-500' => $errors->has('email'),
                                     ])
                                     ->attributes([
-                                        'maxlength' => 100,
+                                       
                                         'placeholder' => 'Enter Email',
                                         'id' => 'email',
                                         'autocomplete' => 'off',
@@ -135,11 +134,11 @@
                                     ])
                                     ->attributes([
                                         'maxlength' => 14,
-                                        'placeholder' => '(123) 456-7890',
+                                        'placeholder' => '(xxx) xxx-xxxx',
                                         'id' => 'phone',
                                         'autocomplete' => 'tel',
                                         'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                        'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
+                                        'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
                                     ])
                                     ->required() !!}
 
@@ -164,7 +163,7 @@
                                         'border-red-500' => $errors->has('company_name'),
                                     ])
                                     ->attributes([
-                                        'maxlength' => 100,
+                                       
                                         'placeholder' => 'Enter Company Name',
                                         'id' => 'company_name',
                                     ])
@@ -191,11 +190,11 @@
                                     ])
                                     ->attributes([
                                         'maxlength' => 14,
-                                        'placeholder' => '(123) 456-7890',
+                                        'placeholder' => '(xxx) xxx-xxxx',
                                         'id' => 'company_phone',
                                         'autocomplete' => 'tel',
                                         'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                        'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
+                                        'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
                                     ]) !!}
 
 
@@ -312,7 +311,7 @@
                                                         'border-red-500' => $errors->has("addresses.$index.last_name"),
                                                     ])
                                                     ->attributes([
-                                                        'maxlength' => 10,
+                                                      
                                                         'placeholder' => 'Last Name',
                                                         'class' => 'last_name'
                                                     ])->required() !!}
@@ -363,7 +362,7 @@
                                                         'border-red-500' => $errors->has("addresses.$index.zip_code"),
                                                     ])
                                                     ->attributes([
-                                                        'maxlength' => 10,
+                                                        'maxlength' => 8,
                                                         'placeholder' => 'ZIP Code',
                                                         'class' => 'zip_code'
                                                     ]) !!}
@@ -375,13 +374,14 @@
                                                         <label class="text-sm text-gray-700 mb-1">State</label>
                                                         {!! html()
                                                             ->select("addresses[$index][state_id]",
-                                                                $states->pluck('name', 'id')->toArray(),
+                                                                ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
                                                                 old("addresses.$index.state_id", $addresse->state_id ?? '')
                                                             )
                                                             ->class([
                                                                 'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
                                                                 'border-red-500' => $errors->has("addresses.$index.state_id"),
-                                                            ]) !!}
+                                                            ]) ->attribute('required', true) 
+                                                             !!}
                                                     </div>
 
                                                     <div class="edit-view">
@@ -395,11 +395,11 @@
                                                             ])
                                                             ->attributes([
                                                                 'maxlength' => 14,
-                                                                'placeholder' => '(123) 456-7890',
+                                                                'placeholder' => '(xxx) xxx-xxxx',
                                                                 'class' => 'phone',
                                                                 'autocomplete' => 'tel',
                                                                 'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                                                'data-parsley-error-message' => 'Please enter phone number in format (123) 456-7890',
+                                                                'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
                                                             ])->required() !!}
 
                                                     </div>
@@ -491,17 +491,16 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
-                                    <span class="text-green-600 font-medium"> {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0)) }}</span>
+                                    <span class="text-green-600 font-medium"> {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}</span>
                                 </div>
 
-                                 @php
-                                    $climit = $customer->credit_limit ?? 0;
-                                    $available = $customer->total_account_order_amount ?? 0 ;
+                            @php
+                                $climit = $customer->credit_limit ?? 0;
+                                $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
 
-                                    $available = $available ;
 
-                                    $per = $climit > 0 ? (($available / $climit) * 100) : 0;
-                                @endphp
+                                $per = $climit > 0 ? ((($climit - $available) / $climit) * 100) : 0;
+                            @endphp
 
                                 <div class="flex justify-between text-xs text-gray-500 mb-1">
                                     <label class="text-xs text-gray-500 font-medium">Credit Utilization</label>
@@ -543,55 +542,25 @@
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-xs text-gray-500 font-medium">Uploaded:</span> 
-                                    <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
+                                    <span class="text-sm" id="tax_document_upload_date">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
                                 </div>
                             </div>
 
                             <!-- Right: File Card -->
                             <div class="border border-gray-200 rounded-lg p-4 text-sm bg-white w-full">
-                                <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-                                @if ($customer->media)
-                                    <!-- Left Side: Icon + File Info -->
-                                    <div class="flex items-start gap-3 flex-1 min-w-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M7 7h10M7 11h10M7 15h10M5 19h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <div class="min-w-0">
-                                            <div class="font-medium text-gray-800 truncate">{{$customer->media->original_file_name ?? ''}}</div>
-                                            <div class="text-gray-500 text-xs">
-                                            Status: <span  class="font-medium
-                                                {{ $customer->tax_document_status === 'Rejected' ? 'text-red-600' :
-                                                ($customer->tax_document_status === 'Approved' ? 'text-green-600' : 'text-yellow-600') }}">
-                                                    {{ $customer->tax_document_status ?: 'Pending Review' }}
-                                            </span>
-                                            </div>
+                                 <div id="taxDocPreviewWrapper" class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
 
-                                           
-                                           
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
-                                        No tax document has been uploaded yet.
-                                    </div>
-                                @endif
+                              
+                                  @include('front.customer.dashboard.partials.tax_doc_preview', ['customer' => $customer])
 
-                                    <!-- Right Side: Actions -->
-                                    <div class="flex gap-4 text-sm justify-end sm:justify-start">
-                                          @if ($customer->media)
-                                        <a href="{{ isset($customer->media) ? $customer->media->getUrl() : 'javascript:void(0)' }}" @if(isset($customer->media)) target="_blank" @endif class="text-blue-600">View</a>
-                                        <a href="javascript:void(0)" id="opentaxdocModal" class="text-green-600">Replace</a>
-                                          @else
-                                        <a href="javascript:void(0)" id="opentaxdocModal" class="text-green-600">Add New</a>
 
-                                         @endif
-                                    </div>
                                 </div>
                             </div>
 
                         </div>
                     </div>
+
+  {{ html()->form()->close() }}
 
 
 
@@ -607,6 +576,19 @@
             </div>
             <div class=" p-6 overflow-y-auto">
                 <div class="max-w-md mx-auto">
+
+                {{-- Open Form --}}
+                {!! html()->form() 
+                    ->id('taxDocForm')
+                    ->attribute('enctype', 'multipart/form-data')
+                    ->attribute('autocomplete', 'off')
+                    ->attribute('data-parsley-validate', true)
+                    ->class('space-y-8')
+                    ->open() 
+                !!}
+
+                  <input type="hidden" name="customer_id" value="{{ $customer->id }}">
+
                     <!-- Upload Box -->
                     <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
                         <div id="uploadUI" class="flex flex-col items-center justify-center">
@@ -622,7 +604,7 @@
 
                             <!-- File input -->
                             <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
-                                <input type="file" id="fileInput" name="tax_document" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
+                                <input type="file" id="fileInput"  name="tax_document" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
                                 <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
                             </label>
                         </div>
@@ -644,20 +626,31 @@
                     <!-- Document Type Dropdown -->
                     <div class="mt-5">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
-                        <select name="tax_document_type" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                        <!-- <select name="tax_document_type" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
                                                         <option value="">-- Select Document Type --</option>
 
                         <option value="Tax Exempt Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Tax Exempt Certificate' ? 'selected' : '' }}>Tax Exempt Certificate</option>
                             <option value="Resale Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Resale Certificate' ? 'selected' : '' }}>Resale Certificate</option>
                             <option value="Non-Profit Exemption" {{ old('tax_document_type', $customer->tax_document_type) == 'Non-Profit Exemption' ? 'selected' : '' }}>Non-Profit Exemption</option>
-                        </select>
+                        </select> -->
+
+                        {!! html()->select('tax_document_type', [
+                                        '' => '-- Select Document Type --',
+                                        'Tax Exempt Certificate' => 'Tax Exempt Certificate',
+                                        'Resale Certificate' => 'Resale Certificate',
+                                        'Non-Profit Exemption' => 'Non-Profit Exemption'
+                                    ])
+                                    ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')->required()
+                                !!}
                     </div>
 
                     <!-- Buttons -->
                     <div class="mt-5 flex justify-end gap-2">
                         <button type="button" id="cancelBtntaxdoc" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
-                        <button type="submit" class="saveBtn px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
+                        <button type="submit" class="saveBtntax px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
                     </div>
+
+                {!! html()->form()->close() !!}    
                 </div>
             </div>
         </div>
@@ -666,88 +659,190 @@
 
 
 
-
-                    
-  {{ html()->form()->close() }}
-
-
   @push('js')
-
-  <script>
-    
-document.addEventListener('DOMContentLoaded', () => {
-
-    window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
-    // Expecting { valid: true/false }
-    const response = xhr.responseJSON || {};
-    return response.valid === true;
-});
-});
-  </script>
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('customerForm');
-    const saveBtn = document.querySelector('.saveBtn');
-    const addressListInput = document.getElementById('alladdresslist');
+        document.addEventListener('click', (e) => {
 
-    let allowSubmit = false;
+            const modalWrapper = document.getElementById('taxdocModalWrapper');
 
-    // Function to collect address data
-    function collectAddresses() {
-        const addressBlocks = document.querySelectorAll('.address-block');
-        const data = [];
-
-        
-
-        addressBlocks.forEach((block, index) => {
-            data.push({
-                first_name: block.querySelector('.first_name')?.value || null,
-                last_name: block.querySelector('.last_name')?.value || null,
-                phone: block.querySelector('.phone')?.value || null,
-                address_id: block.querySelector('.address_id')?.value || null,
-                type: block.querySelector('.type')?.value || null,
-                address: block.querySelector('.address')?.value || '',
-                city: block.querySelector('.city')?.value || '',
-                zip_code: block.querySelector('.zip_code')?.value || '',
-                state_id: block.querySelector('.state_id')?.value || '',
-            });
+            if (e.target && e.target.id === 'opentaxdocModal') {
+                modalWrapper.style.display = 'flex';
+            }
         });
-
-        addressListInput.value = JSON.stringify(data);
-    }
-
-    // Triggered only when save button is clicked
-    saveBtn.addEventListener('click', function () {
-        allowSubmit = true;
-
-        // Collect address list first
-        collectAddresses();
-
-        // Validate form before allowing submission
-        if (!form.parsley().isValid()) {
-            form.parsley().validate();
-            allowSubmit = false; // Block if validation fails
-        }
-    });
-
-    // Intercept form submission
-    form.addEventListener('submit', function (e) {
-        if (!allowSubmit) {
-            e.preventDefault(); // Block submission if not allowed
-        }
-        allowSubmit = false; // Reset after every attempt
-    });
-
-    // Define custom async validator outside of any event
-    window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
-        const response = xhr.responseJSON || {};
-        return response.valid === true;
-    });
-});
 </script>
 
+<script>
+    
+        document.addEventListener('DOMContentLoaded', () => {
+
+            window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
+            // Expecting { valid: true/false }
+            const response = xhr.responseJSON || {};
+            return response.valid === true;
+        });
+        });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('customerForm');
+        const saveBtn = document.querySelector('.saveBtn');
+        const addressListInput = document.getElementById('alladdresslist');
+
+        let allowSubmit = false;
+
+        // Function to collect address data
+        function collectAddresses() {
+            const addressBlocks = document.querySelectorAll('.address-block');
+            const data = [];
+
+            
+
+            addressBlocks.forEach((block, index) => {
+                data.push({
+                    first_name: block.querySelector('.first_name')?.value || null,
+                    last_name: block.querySelector('.last_name')?.value || null,
+                    phone: block.querySelector('.phone')?.value || null,
+                    address_id: block.querySelector('.address_id')?.value || null,
+                    type: block.querySelector('.type')?.value || null,
+                    address: block.querySelector('.address')?.value || '',
+                    city: block.querySelector('.city')?.value || '',
+                    zip_code: block.querySelector('.zip_code')?.value || '',
+                    state_id: block.querySelector('.state_id')?.value || '',
+                });
+            });
+
+            addressListInput.value = JSON.stringify(data);
+        }
+
+        // Triggered only when save button is clicked
+        saveBtn.addEventListener('click', function () {
+            allowSubmit = true;
+
+            // Collect address list first
+            collectAddresses();
+
+            // Validate form before allowing submission
+            if (!form.parsley().isValid()) {
+                form.parsley().validate();
+                allowSubmit = false; // Block if validation fails
+            }
+        });
+
+        // Intercept form submission
+        form.addEventListener('submit', function (e) {
+            if (!allowSubmit) {
+                e.preventDefault(); // Block submission if not allowed
+            }
+            allowSubmit = false; // Reset after every attempt
+        });
+
+        // Define custom async validator outside of any event
+        window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
+            const response = xhr.responseJSON || {};
+            return response.valid === true;
+        });
+    });
+</script>
+
+<script >
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalWrapper = document.getElementById('taxdocModalWrapper');
+        const openBtn = document.getElementById('opentaxdocModal');
+        const closeBtn = document.getElementById('closetaxdocBtn');
+        const cancelBtn = document.getElementById('cancelBtntaxdoc');
+        const form = document.getElementById('taxDocForm');
+        const fileInput = document.getElementById('fileInput');
+
+        function resetTaxDocModalForm() {
+            form.reset();
+
+            document.getElementById('fileActions').style.display = 'none';
+            document.getElementById('fileNameDisplay').textContent = '';
+            document.getElementById('viewFileLink').href = '#';
+            document.getElementById('uploadUI').style.display = 'flex';
+
+            const docTypeSelect = form.querySelector('[name="tax_document_type"]');
+            if (docTypeSelect) docTypeSelect.value = '';
+        }
+
+        // Modal open/close
+        const openModal = () => modalWrapper.style.display = 'flex';
+        const closeModal = () => modalWrapper.style.display = 'none';
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        modalWrapper.addEventListener('click', (e) => {
+            if (e.target === modalWrapper) closeModal();
+        });
+
+
+        // Handle AJAX form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Check if form is valid using Parsley
+            if (!$(form).parsley().validate()) {
+                return; // Stop submission if validation fails
+            }
+
+            const formData = new FormData(form);
+            const uploadBtn = form.querySelector('.saveBtntax');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = "Uploading...";
+
+            try {
+                const response = await fetch("{{ route('front.customer.dashboard.taxdoc.upload') }}", {
+                    method: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    modalWrapper.style.display = 'none';
+
+                    resetTaxDocModalForm();
+
+                    const wrapper = document.getElementById('taxDocPreviewWrapper');
+                    wrapper.innerHTML = result.html;
+
+                    // Update upload date field
+
+                    const uploadDateInput = document.getElementById('tax_document_upload_date');
+                    if (uploadDateInput && result.upload_date) {
+                        uploadDateInput.textContent  = result.upload_date;
+                    }
+
+                    notyf.success(result.message || 'Uploaded successfully');
+                } else {
+                    // Handle validation errors
+                    if (result.errors) {
+                        Object.values(result.errors).forEach(messages => {
+                            messages.forEach(message => notyf.error(message));
+                        });
+                    } else {
+                        notyf.error(result.message || "Upload failed.");
+                    }
+                }
+            } catch (error) {
+                console.error("Upload error:", error);
+                notyf.error("Something went wrong.");
+            }
+
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = "Upload Document";
+        });
+
+    }); 
+</script>
 
       
   @endpush

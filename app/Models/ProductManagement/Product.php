@@ -104,7 +104,7 @@ class Product extends Model
             }
 
             if (empty($model->seo_description)) {
-                $model->seo_description = $model->short_description ?? null;
+                $model->seo_description = strip_tags($model->short_description) ?? null;
             }
 
             // Set created_by and updated_by
@@ -121,7 +121,7 @@ class Product extends Model
             }
 
             if (empty($model->seo_description)) {
-                $model->seo_description = $model->short_description ?? null;
+                $model->seo_description = strip_tags($model->short_description) ?? null;
             }
 
             if (auth()->check()) {

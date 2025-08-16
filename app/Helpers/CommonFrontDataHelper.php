@@ -10,12 +10,19 @@ class CommonFrontDataHelper
     public static function setCommonFrontData()
     {
         $categoryTree = self::categoryTree();
+        $contactUsSettings = self::contactUsSettings();
 
         $data = [
             'frontCategoryTree' => $categoryTree,
+            'contactUsSettings' => $contactUsSettings,
         ];
 
         view()->share($data);
+    }
+
+    public static function contactUsSettings()
+    {
+        return ConfigurationHelper::getSettings('Contact Us Settings');
     }
 
     public static function categoryTree()

@@ -9,6 +9,9 @@ use Illuminate\Support\Collection;
 use App\Models\Locations\State;
 
 use App\Models\Iam\AccessControl\Role;
+use App\Enums\UserPayType;
+
+
 
 class CreateUserController extends Controller
 {
@@ -25,9 +28,12 @@ class CreateUserController extends Controller
 
          $roles = Role::get();
 
+         $paytypes = UserPayType::options();
+
         return view('admin.hrm.users.create-user', [
             'states' => $states,
             'roles' => $roles,
+            'paytypes' => $paytypes,
         ]);
     }
 }

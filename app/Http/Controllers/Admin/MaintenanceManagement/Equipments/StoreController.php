@@ -14,11 +14,13 @@ class StoreController extends Controller
         $data = $request->validated();
         $data['unique_id'] = Str::uuid();
         $data['status'] = 'available'; // Default status
+        //$data['has_def'] = $request->boolean('has_def') ? 'T' : 'F';
         
         Equipment::create($data);
         
         return redirect()
             ->route('admin.maintenance-management.equipments.index')
             ->with('success', 'Equipment created successfully!');
+            
     }
 }

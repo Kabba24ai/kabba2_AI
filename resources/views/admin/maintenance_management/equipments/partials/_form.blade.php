@@ -517,23 +517,42 @@
 
 <!-- Added by Jignesh Parmar -->
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const hasDefCheckbox = document.getElementById('has-def-checkbox');
+    const defField = document.getElementById('def-capacity-field');
+
+    if (hasDefCheckbox) {
+        hasDefCheckbox.addEventListener('change', function () {
+            defField.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
+
+
 document.addEventListener('DOMContentLoaded', function () {
     const powerTypeSelect = document.getElementById('power-type-select');
     const fieldsContainer = document.getElementById('power-type-fields');
 
     const templates = {
         diesel: `
-            <div class="flex items-center space-x-2">
-                <input type="checkbox" name="has_def" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                <label class="text-sm font-medium text-gray-700">Has DEF (Diesel Exhaust Fluid)</label>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Diesel Tank Capacity (Gallons)</label>
-                <input type="number" name="diesel_tank_capacity" placeholder="0" min="0" step="0.1"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value="">
-            </div>
-        `,
+    <div class="flex items-center space-x-2 py-2.5">
+        <input type="checkbox" name="has_def" id="has-def-checkbox"
+            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+        <label class="text-sm font-medium text-gray-700">Has DEF (Diesel Exhaust Fluid)</label>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Diesel Tank Capacity (Gallons)</label>
+        <input type="number" name="diesel_tank_capacity" placeholder="0" min="0" step="0.1"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 
+                   focus:ring-blue-500 focus:border-blue-500 transition-colors" value="">
+    </div>
+    <div id="def-capacity-field" style="display:none;">
+        <label class="block text-sm font-medium text-gray-700 mb-1" style="padding-top:15px">DEF Tank Capacity (Gallons)</label>
+        <input type="number" name="def_capacity" placeholder="0" min="0" step="0.1"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 
+                   focus:ring-blue-500 focus:border-blue-500 transition-colors" value="">
+    </div>`,
+
         gas: `
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Gas Tank Capacity (Gallons)</label>
@@ -559,9 +578,18 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     powerTypeSelect.addEventListener('change', function () {
-        const selected = this.value;
-        fieldsContainer.innerHTML = templates[selected] || '';
-    });
+    const selected = this.value;
+    fieldsContainer.innerHTML = templates[selected] || '';
+
+    if (selected === 'diesel') {
+        const hasDefCheckbox = document.getElementById('has-def-checkbox');
+        const defField = document.getElementById('def-capacity-field');
+        hasDefCheckbox.addEventListener('change', function () {
+            defField.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
+
 });
 </script>
 <!-- End By Jignesh Parmar -->

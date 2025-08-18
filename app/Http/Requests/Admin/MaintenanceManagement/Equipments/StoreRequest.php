@@ -37,6 +37,7 @@ class StoreRequest extends FormRequest
             'power_source_type'=>'required|string|max:255',
             'has_def' => 'nullable|string|max:10',
             'diesel_tank_capacity'=> 'nullable|numeric|min:0',
+            'def_tank_capacity'=> 'nullable|numeric|min:0',
             'gas_tank_capacity'=> 'nullable|numeric|min:0',
             'standard_battery_count'=> 'nullable|numeric|min:0',
             'expanded_battery_count'=> 'nullable|numeric|min:0',

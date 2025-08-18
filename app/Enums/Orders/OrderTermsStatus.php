@@ -7,6 +7,7 @@ enum OrderTermsStatus : string
     case Accepted = 'Accepted';
     case Declined = 'Declined';
     case Pending = 'Pending';
+    case Exempt = 'Exempt';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum OrderTermsStatus : string
             self::Accepted => 'Accepted',
             self::Declined => 'Declined',
             self::Pending => 'Pending',
+            self::Exempt => 'Exempt',
         };
     }
 
@@ -30,6 +32,11 @@ enum OrderTermsStatus : string
     public function isPending(): bool
     {
         return $this === self::Pending;
+    }
+
+    public function isExempt(): bool
+    {
+        return $this === self::Exempt;
     }
 
 }

@@ -43,7 +43,7 @@ class Order extends Model
         'pending_terms_content',
         'accepted_terms_content', // Content of terms that were accepted
         'terms_accepted_at', // DateTime when terms were accepted
-        'terms_status', // Accepted, Declined, Pending*
+        'terms_status', // Accepted, Declined, Pending*, Exempt
         'signature_image', // Base64 encoded image of signature
     ];
 

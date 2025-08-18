@@ -26,9 +26,9 @@ class UpdateController extends BaseController
         $validatedData = $request->validated();
 
         try {
-            $order = OrderNote::where('unique_id', $validatedData['order_note_unique_id'])->firstOrFail();
+            $orderNote = OrderNote::where('unique_id', $validatedData['order_note_unique_id'])->firstOrFail();
 
-            $order->update([
+            $orderNote->update([
                 'note' => $validatedData['note'],
                 'user_id' => $validatedData['user_id'],
                 'updated_by_type' => User::class,
@@ -38,7 +38,7 @@ class UpdateController extends BaseController
             return response()->json([
                 'success' => true,
                 'message' => trans('messages.api.admin.v1.orders.note_update_success'),
-                'note' => new ListResource($order->notes()->latest()->first())
+                'note' => new ListResource($orderNote->refresh())
             ]);
 
         } catch (\Exception $e) {

@@ -11,14 +11,15 @@
                         <td class="py-4 px-6">
                             <span class="text-sm font-medium text-gray-900">{{ $item->category }}</span>
                         </td>
+                        <td class="py-4 px-6">
+                            <span class="text-sm text-gray-900">{{ $item->equipment_name }}</span>
+                        </td>
                         <td class="py-3 px-3">
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                                 {{ $item->equipment_id }}
                             </span>
                         </td>
-                        <td class="py-4 px-6">
-                            <span class="text-sm text-gray-900">{{ $item->equipment_name }}</span>
-                        </td>
+                        
                         <td class="py-3 px-3">
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border {{ $item->status_color }}">
                                 {{ ucfirst($item->status) }}

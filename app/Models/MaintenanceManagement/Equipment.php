@@ -39,6 +39,7 @@ class Equipment extends Model
         'power_source_type',
         'has_def',
         'diesel_tank_capacity',
+        'def_tank_capacity',
         'gas_tank_capacity',
         'standard_battery_count',
         'expanded_battery_count',

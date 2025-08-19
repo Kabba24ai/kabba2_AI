@@ -37,6 +37,15 @@
                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-1" />
                 <span class="text-sm font-medium">Back to Billing Summary</span>
             </a>
+
+        @else
+            <!-- Back to Customers -->
+            <a href="{{ route('admin.crm.customers.index') }}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
+                <x-heroicon-o-arrow-left class="w-5 h-5 mr-1" />
+                <span class="text-sm font-medium">Back to Customers</span>
+            </a>
+
+
         @endif
 
             <!-- Divider -->
@@ -301,36 +310,62 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 <script>
-  function handleFileChange(event) {
-    const file = event.target.files[0];
-    const fileNameDisplay = document.getElementById("fileNameDisplay");
-    const fileActions = document.getElementById("fileActions");
-    const viewLink = document.getElementById("viewFileLink");
-    const uploadUI = document.getElementById("uploadUI");
+    function handleFileChange(event) {
+        const file = event.target.files[0];
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const fileActions = document.getElementById("fileActions");
+        const viewLink = document.getElementById("viewFileLink");
+        const uploadUI = document.getElementById("uploadUI");
 
-    if (file) {
-      fileNameDisplay.textContent = file.name;
-      fileActions.style.display = "flex";
-      uploadUI.style.display = "none";
+        if (file) {
+            // Allowed file extensions
+            const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
+            const fileExtension = file.name.split(".").pop().toLowerCase();
 
-      // Show file in new tab (temporary blob link)
-      const objectUrl = URL.createObjectURL(file);
-      viewLink.href = objectUrl;
+            // Max file size (10 MB)
+            const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
+
+            // Validation: format
+            if (!allowedExtensions.includes(fileExtension)) {
+
+                 notyf.error("Invalid file format. Allowed: PDF, JPG, JPEG, PNG.");
+
+                event.target.value = ""; // Reset file input
+                return;
+            }
+
+            // Validation: size
+            if (file.size > maxSize) {
+                 notyf.error("File is too large. Maximum size allowed is 10 MB.");
+
+                event.target.value = ""; // Reset file input
+                return;
+            }
+
+            //  Passed validation → show UI
+            fileNameDisplay.textContent = file.name;
+            fileActions.style.display = "flex";
+            uploadUI.style.display = "none";
+
+            // Temporary blob link for preview
+            const objectUrl = URL.createObjectURL(file);
+            viewLink.href = objectUrl;
+        }
     }
-  }
 
-  function clearFile() {
-    const fileInput = document.getElementById("tax_document");
-    const fileActions = document.getElementById("fileActions");
-    const uploadUI = document.getElementById("uploadUI");
-    const fileNameDisplay = document.getElementById("fileNameDisplay");
+    function clearFile() {
+        const fileInput = document.getElementById("fileInput");
+        const fileActions = document.getElementById("fileActions");
+        const uploadUI = document.getElementById("uploadUI");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
 
-    fileInput.value = "";
-    fileActions.style.display = "none";
-    uploadUI.style.display = "flex";
-    fileNameDisplay.textContent = "";
-  }
+        fileInput.value = "";
+        fileActions.style.display = "none";
+        uploadUI.style.display = "flex";
+        fileNameDisplay.textContent = "";
+    }
 </script>
+
     
 <script>
   function initializeEditUI() {
@@ -748,6 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 </script>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const modalWrapper = document.getElementById('noteModalWrapper');
@@ -856,6 +892,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (noteCell) {
                 noteCell.textContent = newNote || 'N/A';
             }
+
+             // Update the button's data-note so next time modal opens it has fresh value
+          const noteBtn = document.querySelector(`.openNoteModalBtn[data-id="${transactionId}"]`);
+          if (noteBtn) {
+              noteBtn.setAttribute("data-note", newNote);
+          }
+
+
+             // also update the button's data-* attributes so the next time modal opens, it shows fresh values
+           let editBtn = document.querySelector(`.openEditPaymentModalBtn[data-id="${data.id}"]`);
+          if (editBtn) {
+              editBtn.dataset.notes = data.notes ?? "";
+          }
+
 
             restoreButtons();
         } else {

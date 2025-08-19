@@ -55,7 +55,7 @@
             <!-- Row 2 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                    <label for="email" class="text-xs text-gray-500 font-medium">Email Address *</label>
                    
                         {!! html()->email('email', old('email', $user->email ?? ''))
                                 ->id('email')
@@ -79,27 +79,35 @@
 
                 </div>
                 <div>
-                    <label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Mobile Phone</label>
+                    <label for="mobile" class="text-xs text-gray-500 font-medium">Mobile Phone</label>
                  
                              {!! html()->text('mobile_phone', old('mobile_phone', $user->mobile_phone ?? ''))
                                 ->id('mobile')
                                 ->class('masked-phone w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                                 ->attributes([
+                                   'maxlength' => 14,
+                                    'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                                    'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
                                     'placeholder' => '(xxx) xxx-xxxx',
-                                    'autocomplete' => 'off',
+                                    'id' => 'company_phone',
+                                    'autocomplete' => 'tel',
                                 ])
                             !!}
 
                 </div>
                 <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                    <label for="phone" class="text-xs text-gray-500 font-medium">Phone Number *</label>
                  
                      {!! html()->text('phone_number', old('phone_number', $user->phone_number ?? ''))
                         ->id('phone')
                         ->class('masked-phone w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                         ->attributes([
+                            'maxlength' => 14,
+                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                            'data-parsley-error-message' => 'Please enter phone number  in <br> format (xxx) xxx-xxxx',
                             'placeholder' => '(xxx) xxx-xxxx',
-                            'autocomplete' => 'off',
+                            'id' => 'company_phone',
+                            'autocomplete' => 'tel',
                         ])
                         ->required()
                     !!}
@@ -146,7 +154,8 @@
                 </div>
                 <div>
                     <label for="state" class="text-xs text-gray-500 font-medium">State *</label>
-                      {!! html()
+                     
+                    <!-- {!! html()
                              ->select('state',
                              $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
                                  old('state', $user->state ?? '')
@@ -156,7 +165,22 @@
                                  'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                                  'border-red-500' => $errors->has('state'),
                              ])->required()
-                         !!}
+                         !!} -->         
+
+                           {!! html()
+                                ->select(
+                                    'state',
+                                    ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
+                                    old('state', $user->state ?? '')
+                                )
+                                ->id('state')
+                                ->class([
+                                    'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                    'border-red-500' => $errors->has('state'),
+                                ])
+                                ->required()
+                            !!}
+
                 </div>
                 <div>
                     <label for="zip" class="text-xs text-gray-500 font-medium">Zip Code</label>
@@ -367,7 +391,7 @@
             <!-- Contact Row -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                    <label for="emergency_email" class="text-xs text-gray-500 font-medium">Email Address</label>
+                    <label for="emergency_email" class="text-xs text-gray-500 font  -medium">Email Address</label>
                     {!! html()->email('emergency_email', old('emergency_email', $user->emergencyContactOne->email ?? ''))
                         ->id('emergency_email')
                         ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
@@ -384,8 +408,12 @@
                         ->id('emergency_mobile_phone')
                         ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                         ->attributes([
+                            'maxlength' => 14,
+                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                            'data-parsley-error-message' => 'Please enter mobile number in <br> format (xxx) xxx-xxxx',
                             'placeholder' => '(xxx) xxx-xxxx',
-                            'autocomplete' => 'off',
+                            'id' => 'company_phone',
+                            'autocomplete' => 'tel',
                         ])
                     !!}
                 </div>
@@ -396,12 +424,16 @@
                         ->id('emergency_phone')
                         ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                         ->attributes([
+                            'maxlength' => 14,
+                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                            'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
                             'placeholder' => '(xxx) xxx-xxxx',
-                            'autocomplete' => 'off',
+                            'id' => 'company_phone',
+                            'autocomplete' => 'tel',
                         ])
                     !!}
                 </div>
-            </div>
+            </div>  
 
             <!-- Address -->
             <div class="mb-4">
@@ -432,7 +464,7 @@
 
                 <div>
                     <label for="emergency_state" class="text-xs text-gray-500 font-medium">State</label>
-                    {!! html()
+                    <!-- {!! html()
                                 ->select('emergency_state',
                                 $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
                                     old('emergency_state', $user->emergencyContactOne->state ?? '')
@@ -442,7 +474,22 @@
                                     'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                                     'border-red-500' => $errors->has('emergency_state'),
                                 ])->required()
-                            !!}
+                            !!} -->
+
+                            {!! html()
+                            ->select(
+                                'emergency_state',
+                                ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
+                                old('emergency_state', $user->emergencyContactOne->state ?? '')
+                            )
+                            ->id('emergency_state')
+                            ->class([
+                                'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                'border-red-500' => $errors->has('emergency_state'),
+                            ])
+                        !!}
+
+
                 </div>
 
                 <div>
@@ -518,14 +565,24 @@
                 {!! html()->text('emergency2_mobile_phone', old('emergency2_mobile_phone', $user->emergencyContactTwo->mobile_phone ?? ''))
                     ->id('emergency2_mobile_phone')
                     ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'off']) !!}
+                    ->attributes(['maxlength' => 14,
+                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                            'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
+                            'placeholder' => '(xxx) xxx-xxxx',
+                            'id' => 'company_phone',
+                            'autocomplete' => 'tel',]) !!}
             </div>
             <div>
                 <label for="emergency2_phone_number" class="text-xs text-gray-500 font-medium">Phone Number</label>
                 {!! html()->text('emergency2_phone_number', old('emergency2_phone_number', $user->emergencyContactTwo->phone_number ?? ''))
                     ->id('emergency2_phone_number')
                     ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'off']) !!}
+                    ->attributes(['maxlength' => 14,
+                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                            'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
+                            'placeholder' => '(xxx) xxx-xxxx',
+                            'id' => 'company_phone',
+                            'autocomplete' => 'tel',]) !!}
             </div>
         </div>
 
@@ -549,7 +606,7 @@
             </div>
             <div>
                 <label for="emergency2_state" class="text-xs text-gray-500 font-medium">State</label>
-                 {!! html()
+                 <!-- {!! html()
                              ->select('emergency2_state',
                              $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
                                  old('emergency2_state', $user->emergencyContactTwo->state ?? '')
@@ -559,7 +616,22 @@
                                  'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                                  'border-red-500' => $errors->has('emergency2_state'),
                              ])->required()
-                         !!}
+                         !!} -->
+
+                         {!! html()
+                            ->select(
+                                'emergency2_state',
+                                ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
+                                old('emergency2_state', $user->emergencyContactTwo->state ?? '')
+                            )
+                            ->id('emergency2_state')
+                            ->class([
+                                'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                'border-red-500' => $errors->has('emergency2_state'),
+                            ])
+                           
+                        !!}
+
             </div>
             <div>
                 <label for="emergency2_zip" class="text-xs text-gray-500 font-medium">Zip Code</label>

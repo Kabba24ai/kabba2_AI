@@ -25,11 +25,13 @@ class CustomerAccount extends Model
         'notes',
         'date',
         'payment_number_id',
+        'auth_code',
+        'customer_profile_id',
+        'payment_profile_id',       
         'reason',
         'sales_tax',
         'sales_tax_type',
         'type',
-       
     ];
 
     protected $casts = [

@@ -43,7 +43,7 @@ Route::name('front.')->group(function () {
         require base_path('routes/front/auth/routes.php');
     });
 
-    Route::prefix('customer')->middleware(['web', 'auth:customer','front.common-front-data'])->name('customer.')->group(function ($router) {
+    Route::prefix('customer')->middleware(['web', 'auth:customer',   'customer.active',   'front.common-front-data'])->name('customer.')->group(function ($router) {
         // dashboard
         require base_path('routes/front/customer/dashboard/routes.php');
         // profile

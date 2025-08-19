@@ -63,7 +63,7 @@
                                     'id' => 'first_name',
                                     'autocomplete' => 'off',
                                 ])
-                                ->required() !!}
+                            ->required() !!}
 
 
                         </div>
@@ -279,10 +279,7 @@
         <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
             <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id ?? '' }}" class="address_id">
             <input type="hidden" name="addresses[{{ $index }}][type]" value="{{ $addressItem['label'] }}" class="type">
-            
-            
-        <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
-
+            <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
 
             <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
                 <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
@@ -296,7 +293,7 @@
 
             <div class="grid grid-cols-2 gap-4">
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">First Name *</label>
+                        <label class="text-xs text-gray-500 font-medium">First Name *</label>
                         {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -308,7 +305,7 @@
                             ])->required() !!}
                     </div>
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">Last Name *</label>
+                        <label class="text-xs text-gray-500 font-medium">Last Name *</label>
                         {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -323,15 +320,25 @@
                 </div>
 
                 <div>
-                    <label class="text-sm text-gray-700 mb-1 edit-view">Address *</label>
+                    <label class="text-xs text-gray-500 font-medium edit-view">Address *</label>
                     <div class="static-view text-gray-900 text-sm">
-                      {{ $addresse?->full_name ?? '' }}<br>
-                                            {{ $addresse?->address ?? '' }}  {{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
-                                            {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}<br>
+                                          @if($addresse?->full_name)
+                                                {{ $addresse->full_name }}<br>
+                                            @endif
 
-                {{ App\Helpers\CustomHelper::formatPhone(optional($addresse)->phone) ?? ' ' }}
-                    </div>
-                    {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
+                                            @if($addresse?->address || $addresse?->city)
+                                                {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
+                                            @endif
+
+                                            @if($addresse?->state?->name || $addresse?->zip_code)
+                                                {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}<br>
+                                            @endif
+
+                                            @if($addresse?->phone)
+                                                    {{ App\Helpers\CustomHelper::formatPhone($addresse->phone) }}
+                                            @endif
+                       </div>
+                       {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
                         ->class([
                             'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                             'border-red-500' => $errors->has("addresses.$index.address"),
@@ -340,11 +347,11 @@
                             'placeholder' => 'Enter Address',
                             'class' => 'address'
                         ])->required() !!}
-                </div>
+                      </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">City *</label>
+                        <label class="text-xs text-gray-500 font-medium">City *</label>
                         {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -356,7 +363,7 @@
                             ])->required() !!}
                     </div>
                     <div class="edit-view">
-                        <label class="text-sm text-gray-700 mb-1">Zip Code *</label>
+                        <label class="text-xs text-gray-500 font-medium">Zip Code *</label>
                         {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -372,7 +379,7 @@
 
                 <div class="grid grid-cols-2 gap-4">
                             <div class="edit-view">
-                                <label class="text-sm text-gray-700 mb-1">State *</label>
+                                <label class="text-xs text-gray-500 font-medium">State *</label>
                                 {!! html()
                                     ->select("addresses[$index][state_id]",
                                           ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
@@ -385,7 +392,7 @@
                             </div>
 
                             <div class="edit-view">
-                                <label class="text-sm text-gray-700 mb-1">Phone Number *</label>
+                                <label class="text-xs text-gray-500 font-medium">Phone Number *</label>
 
 
                                  {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
@@ -399,7 +406,7 @@
                                         'class' => 'phone',
                                         'autocomplete' => 'tel',
                                         'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                        'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                                        'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
                                     ])->required() !!}
 
                             </div>
@@ -943,7 +950,15 @@ document.getElementById('resetPasswordForm').addEventListener('submit', function
     e.preventDefault();
 
     const form = e.target;
+
+ 
+    if (!$(form).parsley().isValid()) {
+        return; // stop if validation fails
+    }
+
+
     const formData = new FormData(form);
+
 
    fetch("{{ route('admin.crm.customers.password.update') }}", {
         method: "POST",

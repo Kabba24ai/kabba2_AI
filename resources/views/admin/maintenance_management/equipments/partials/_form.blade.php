@@ -316,7 +316,7 @@
                         name="serial_number"
                         value="{{ old('serial_number', $equipment->serial_number ?? '') }}"
                         placeholder="Serial Number"
-                        style="max-width: 175px;"
+                        style="max-width: 200px;"
                         class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
                     />
                 </div>

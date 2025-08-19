@@ -79,15 +79,15 @@
         $seoUrl = $seoSlug ? route('front.products.details', ['slug' => $seoSlug, 'productVariant' => $seoType]) : '#';
     @endphp
     <!-- Slug Input -->
-    <div class="col-span-3">
+    <div class="col-span-3 overflow-hidden">
         <label for="slug" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
             Permalink
         </label>
 
         {{-- View Mode --}}
         <div id="permalinkView" class="flex items-center">
-            <span class="text-gray-500 dark:text-gray-400 text-sm">
-                <a href="{{ $seoUrl }}" target="_blank" class="underline text-blue-600 permalink">
+            <span class="text-gray-500 dark:text-gray-400 text-sm break-words">
+                <a href="{{ $seoUrl }}" target="_blank" class="underline text-blue-600 permalink break-all">
                     {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
                 </a>
             </span>

@@ -228,6 +228,9 @@ class CartHelper
                 if ($itemKey === 'rental_damage_waiver' && $variant) {
                     $damageWaiverKey = 'rental_damage_waiver_' . strtolower($variant);
                     $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$damageWaiverKey ?? 0);
+                }elseif($itemKey === 'rental_truck_insurance' && $variant) {
+                    $truckInsuranceKey = 'rental_truck_insurance_' . strtolower($variant);
+                    $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$truckInsuranceKey ?? 0);
                 } else {
                     $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$itemKey ?? 0);
                 }

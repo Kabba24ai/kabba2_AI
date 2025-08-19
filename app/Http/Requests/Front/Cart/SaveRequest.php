@@ -58,7 +58,7 @@ class SaveRequest extends FormRequest
             'product_option_items' => ['nullable', 'array'],
             'product_option_items.*.unique_id' => ['required_with:product_option_items', 'string', 'exists:product_option_items,unique_id'],
             'product_rental_items' => ['nullable', 'array'],
-            'product_rental_items.*' => ['required', 'in:rental_prepaid_fuel,rental_prepaid_cleaning,rental_fuel_gallons,rental_def_gallons,rental_damage_waiver'],
+            'product_rental_items.*' => ['required', 'in:rental_prepaid_fuel,rental_prepaid_cleaning,rental_damage_waiver,rental_truck_insurance'],
         ];
     }
 

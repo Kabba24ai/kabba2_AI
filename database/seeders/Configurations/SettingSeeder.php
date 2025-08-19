@@ -150,6 +150,29 @@ class SettingSeeder extends Seeder
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => 20,
             ],
+
+            // --- Truck Insurance ---
+            [
+                'value_type' => 'textarea',
+                'setting_name' => 'truck_insurance_info',
+                'setting_title' => 'Truck Insurance Information',
+                'default_value' => 'By removing the Truck Insurance, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance.',
+                'sort_order' => 21,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'truck_insurance_decline_label',
+                'setting_title' => 'Truck Insurance Decline Label',
+                'default_value' => self::DECLINE_LABEL,
+                'sort_order' => 22,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'truck_insurance_approve_label',
+                'setting_title' => 'Truck Insurance Approve Label',
+                'default_value' => self::APPROVE_LABEL,
+                'sort_order' => 23,
+            ],
         ];
     }
 

@@ -285,12 +285,13 @@
                             </div>
                             <div>
                                 <label for="billingZip" class="block text-sm text-gray-600 mb-1">Zip Code</label>
-                                {{ html()->text('billingZip', old('billingZip', $primaryAddress ? $primaryAddress->zip_code : null))->class(
+                                {{ html()->number('billingZip', old('billingZip', $primaryAddress ? $primaryAddress->zip_code : null))->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 8,
                                         'placeholder' => 'Zip code',
                                         'autocomplete' => 'off',
+                                        'data-parsley-type' => 'number',
                                         'id' => 'billingZip',
                                     ])->required() }}
                                 @error('billingZip')
@@ -454,12 +455,13 @@
                             </div>
                             <div>
                                 <label for="deliveryZip" class="block text-sm text-gray-600 mb-1">Zip code</label>
-                                {{ html()->text('deliveryZip')->class(
+                                {{ html()->number('deliveryZip')->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
                                             ($errors->has('deliveryZip') ? ' border-red-400' : ''),
                                     )->attributes([
                                         'placeholder' => 'Zip Code',
                                         'autocomplete' => 'off',
+                                        'data-parsley-type' => 'number',
                                         'id' => 'deliveryZip',
                                     ]) }}
                                 @error('deliveryZip')

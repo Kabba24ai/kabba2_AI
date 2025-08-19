@@ -292,6 +292,7 @@
                         </div>
                     </div>
 
+
                     @if ($productDetail->hasOptions())
                         <div id="optionDiv" class="inline-grid">
                             <h4 class="font-semibold text-xl lg:text-2xl mb-1">Options</h4>
@@ -323,6 +324,44 @@
                                     <span>Prepaid Cleaning
                                         <span class="font-medium">+
                                             {{ App\Helpers\CustomHelper::formatCurrency($productDetail->rental_prepaid_cleaning) }}
+                                        </span>
+                                    </span>
+                                </label>
+                            @endif
+
+                            @if (
+                                $productDetail->rental_truck_insurance_daily !== null ||
+                                    $productDetail->rental_truck_insurance_weekend !== null ||
+                                    $productDetail->rental_truck_insurance_weekly !== null ||
+                                    $productDetail->rental_truck_insurance_monthly !== null)
+                                <!-- Truck Insurance -->
+                                <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="truckInsuranceCheckbox"
+                                        data-charged="1 Time Max" data-name="rental_truck_insurance"
+                                        data-keep="{{ $productSettings['truck_insurance_approve_label'] }}"
+                                        data-discard="{{ $productSettings['truck_insurance_decline_label'] }}"
+                                        data-message="{{ $productSettings['truck_insurance_info'] }}" />
+                                    @php
+                                        $truckInsurancePrice = match ($productVariant) {
+                                            'daily' => App\Helpers\CustomHelper::formatCurrency(
+                                                $productDetail->rental_truck_insurance_daily,
+                                            ),
+                                            'weekend' => App\Helpers\CustomHelper::formatCurrency(
+                                                $productDetail->rental_truck_insurance_weekend,
+                                            ),
+                                            'weekly' => App\Helpers\CustomHelper::formatCurrency(
+                                                $productDetail->rental_truck_insurance_weekly,
+                                            ),
+                                            'monthly' => App\Helpers\CustomHelper::formatCurrency(
+                                                $productDetail->rental_truck_insurance_monthly,
+                                            ),
+                                            default => '-',
+                                        };
+                                    @endphp
+
+                                    <span>Truck Insurance
+                                        <span class="font-medium">
+                                            + {{ $truckInsurancePrice }}
                                         </span>
                                     </span>
                                 </label>

@@ -58,12 +58,15 @@ class StoreRequest extends ApiBaseFormRequest
             'rental_damage_waiver_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_damage_waiver_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
+            // Truck insurance
+            'rental_truck_insurance_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_truck_insurance_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_truck_insurance_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_truck_insurance_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+
             // Prepaid options
             'rental_prepaid_cleaning' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_prepaid_fuel' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_fuel_gallons' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_fuel_type' => ['nullable', 'in:Diesel,Gas'],
-            'rental_def_gallons' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Sale prices
             'sale_price_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
@@ -107,18 +110,19 @@ class StoreRequest extends ApiBaseFormRequest
                 $stdFee = floatval($data['standard_delivery_fee'] ?? 0);
                 $extFee = floatval($data['extended_delivery_fee'] ?? 0);
 
-                if ($stdFee <= 0 && $extFee <= 0) {
-                    $validator->errors()->add('standard_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
-                    $validator->errors()->add('extended_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
-                }
-
                 // At least one pickup option "Yes"
                 $pickup = $data['in_store_pickup'] ?? null;
                 $deliveryPickup = $data['delivery_and_pickup'] ?? null;
 
+                if ($stdFee <= 0 && $extFee <= 0 && $deliveryPickup == 'Yes') {
+                    $validator->errors()->add('standard_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
+                    //$validator->errors()->add('extended_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
+                }
+
+
                 if ($pickup !== 'Yes' && $deliveryPickup !== 'Yes') {
                     $validator->errors()->add('in_store_pickup', 'At least one pickup option (In Store or Delivery and Pickup) must be "Yes" for rental products.');
-                    $validator->errors()->add('delivery_and_pickup', 'At least one pickup option (In Store or Delivery and Pickup) must be "Yes" for rental products.');
+                    //$validator->errors()->add('delivery_and_pickup', 'At least one pickup option (In Store or Delivery and Pickup) must be "Yes" for rental products.');
                 }
             }
         });

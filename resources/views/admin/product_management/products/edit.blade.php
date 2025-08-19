@@ -120,15 +120,42 @@
 
             const parsleyForm = $('#productForm').parsley(); // requires jQuery + Parsley jQuery adapter
             // Live error clearing when user types
-            const stdInput = document.querySelector('input[name="standard_delivery_fee"]');
-            const extInput = document.querySelector('input[name="extended_delivery_fee"]');
-            const errorBox = document.getElementById('delivery-fee-error');
+            const stdInput  = document.querySelector('input[name="standard_delivery_fee"]');
+            const extInput  = document.querySelector('input[name="extended_delivery_fee"]');
+            const delCheck  = document.querySelector('input[name="delivery_and_pickup"]');
+            const errorBox  = document.getElementById('delivery-fee-error');
 
+            // helper to toggle readonly + subtle styling
+            function setFeesReadonly(isReadonly) {
+                [stdInput, extInput].forEach(el => {
+                    if (!el) return;
+                    if (isReadonly) {
+                        el.value = "";
+                        el.readOnly = true;                        // readonly attr
+                        el.classList.add('readonly'); // add class
+                    } else {
+                        el.readOnly = false;
+                        el.classList.remove('readonly');
+                    }
+                });
+            }
+
+            // initial state on load
+            if (delCheck) setFeesReadonly(!delCheck.checked);
+
+            // update on change
+            if (delCheck) {
+                delCheck.addEventListener('change', () => {
+                    setFeesReadonly(!delCheck.checked);
+                    // clear any shared error when user toggles the option
+                    if (errorBox) errorBox.textContent = '';
+                });
+            }
+
+            // live error clearing when user types
             if (stdInput && extInput && errorBox) {
                 [stdInput, extInput].forEach(el => {
-                    el.addEventListener('input', () => {
-                        errorBox.textContent = '';
-                    });
+                    el.addEventListener('input', () => (errorBox.textContent = ''));
                 });
             }
 
@@ -140,14 +167,15 @@
                     force: true
                 });
 
-                // --- CUSTOM COMMON VALIDATION FOR DELIVERY FEES ---
-                if (stdInput && extInput && errorBox && productType == "Rental") {
+                // Only enforce delivery-fee rule when "Truck Delivery / Pickup" is selected
+                const deliveryEnabled = !!delCheck?.checked;
+
+                if (deliveryEnabled && stdInput && extInput && errorBox && productType === 'Rental') {
                     const stdVal = parseFloat(stdInput.value || 0);
                     const extVal = parseFloat(extInput.value || 0);
 
                     if (stdVal <= 0 && extVal <= 0) {
-                        errorBox.textContent =
-                            'At least one delivery fee (standard or extended) must be greater than zero.';
+                        errorBox.textContent = 'At least one delivery fee (standard or extended) must be greater than zero.';
                         stdInput.focus();
                         return; // Stop submission
                     } else {

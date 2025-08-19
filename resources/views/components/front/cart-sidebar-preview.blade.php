@@ -1,7 +1,7 @@
 <div>
     <!-- <button onclick="closeCart()" class="absolute top-4 right-4 text-gray-800 hover:text-black text-2xl font-bold z-50">&times;</button> -->
     <button onclick="closeCart()"
-    class="absolute top-4 right-4 lg:right-10 bg-gray-200 hover:bg-gray-300 text-gray-800 hover:text-black 
+    class="absolute top-4 right-4 lg:right-10 bg-gray-200 hover:bg-gray-300 text-gray-800 hover:text-black
             text-xl font-bold z-50 rounded-full px-3 py-1 shadow">
     &times;
     </button>
@@ -84,6 +84,7 @@
                         // Rental items (always x1)
                         foreach ($item['product_rental_items_prices'] ?? [] as $rentalKey => $optPrice) {
                             $optionsTotal += $optPrice ?? 0;
+
                             $name = ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
                             // Always x1 for rental items
                             $optionNames[] = $name .' '. App\Helpers\CustomHelper::formatCurrency($optPrice).' (x1)';

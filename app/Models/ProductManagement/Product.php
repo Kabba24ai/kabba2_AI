@@ -45,11 +45,13 @@ class Product extends Model
         'rental_damage_waiver_weekly', // Weekly damage waiver fee
         'rental_damage_waiver_monthly', // Monthly damage waiver fee
 
+        'rental_truck_insurance_daily', // Daily truck insurance fee
+        'rental_truck_insurance_weekend', // Weekend truck insurance fee
+        'rental_truck_insurance_weekly', // Weekly truck insurance fee
+        'rental_truck_insurance_monthly', // Monthly truck insurance fee
+
         'rental_prepaid_cleaning', // Prepaid cleaning fee
         'rental_prepaid_fuel', // Prepaid fuel fee
-        'rental_fuel_gallons', // Number of fuel gallons provided or required
-        'rental_fuel_type', // Type of fuel (e.g., gas, diesel)
-        'rental_def_gallons', // Diesel Exhaust Fluid (DEF) gallons
 
         'sale_price_daily', // Sale price if purchased on a daily basis
         'sale_price_weekend', // Sale price for the weekend
@@ -300,7 +302,7 @@ class Product extends Model
 
     public function hasOptions()
     {
-        $optionFields = ['rental_prepaid_fuel', 'rental_prepaid_cleaning', 'rental_fuel_gallons', 'rental_def_gallons', 'rental_damage_waiver_daily', 'rental_damage_waiver_weekend', 'rental_damage_waiver_weekly', 'rental_damage_waiver_monthly'];
+        $optionFields = ['rental_prepaid_fuel', 'rental_prepaid_cleaning', 'rental_damage_waiver_daily', 'rental_damage_waiver_weekend', 'rental_damage_waiver_weekly', 'rental_damage_waiver_monthly', 'rental_truck_insurance_daily', 'rental_truck_insurance_weekend', 'rental_truck_insurance_weekly', 'rental_truck_insurance_monthly'];
 
         $hasSettingOption = collect($optionFields)->contains(function ($field) {
             return $this->{$field} !== null;

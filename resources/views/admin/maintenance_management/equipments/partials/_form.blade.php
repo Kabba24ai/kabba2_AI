@@ -165,12 +165,13 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Date Acquired</label>
                     <input
-                        type="date"
-                        name="date_acquired"
-                        value="{{ old('date_acquired', $equipment->date_acquired ? $equipment->date_acquired->format('Y-m-d') : '') }}"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+    type="text"
+    name="date_acquired"
+    placeholder="mm/dd/yyyy"
+    value="{{ old('date_acquired', optional($equipment->date_acquired)->format('Y-m-d')) }}"
+    style="max-width: 200px;"
+    class="w-full px-3 py-2 datepicker text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+/>
                 </div>
             </div>
         </div>
@@ -523,6 +524,14 @@
 </div>
 
 
+
+@push('js')
+
+<script>
+    window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
+</script>
+
+
 <!-- Added by Jignesh Parmar -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -633,7 +642,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 <!-- End By Jignesh Parmar -->
 
-@push('js')
 <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
 @vite('resources/admin/js/tinymce.js')
 @endpush

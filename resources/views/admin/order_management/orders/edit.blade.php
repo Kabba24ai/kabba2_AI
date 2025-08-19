@@ -237,7 +237,7 @@
         <div class="bg-white rounded-lg border border-gray-200">
             <div class="px-4 py-4 rounded-t-lg border-b border-gray-200">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-gray-800">Shipping Information</h3>
+                    <h3 class="text-sm font-semibold text-gray-800">Delivery Information</h3>
                     <x-heroicon-o-pencil-square class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer"
                         id="editShippingBtn" />
                 </div>
@@ -1633,7 +1633,7 @@
                 currentAddressData = addressData || {};
 
                 // Set the modal title
-                document.getElementById('addressModalTitle').textContent = `Edit ${type} Address`;
+                document.getElementById('addressModalTitle').textContent = `Edit ${(type == 'Billing' ? 'Billing' : 'Delivery')} Address`;
 
                 // Set the type select field
                 document.getElementById('type').value = type;

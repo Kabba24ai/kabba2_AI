@@ -40,7 +40,7 @@ class UpdateOrderAddressController extends Controller
                 $message = 'Billing address updated.';
             } else {
                 $address = $order->shippingAddress;
-                $message = 'Shipping address updated.';
+                $message = 'Delivery address updated.';
             }
             return response()->json([
                 'success' => true,

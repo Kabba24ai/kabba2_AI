@@ -609,136 +609,136 @@
 
     </div>
 
-<div x-data="{ showQuestionModal: false }" x-ref="questionRoot" x-init="window.addEventListener('open-question-modal', () => showQuestionModal = true)">
-    <!-- Modal -->  
-    <div
-        x-show="showQuestionModal"
-        x-transition
-        x-cloak
-        class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
-        <div class="modal-scrollable w-full mx-auto">
-            <div
-                @click.away="showQuestionModal = false"
-                class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-xl space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full" >
-                <div class="flex justify-between items-center px-6 pt-4 ">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Question</h3>
-                    <button @click="showQuestionModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
-                </div>
-                <div x-data="questionForm()" class="max-w-3xl px-6 space-y-6 bg-white rounded-lg overflow-y-auto">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Question Name *</label>
-                        <input type="text" class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <div x-data="{ showQuestionModal: false }" x-ref="questionRoot" x-init="window.addEventListener('open-question-modal', () => showQuestionModal = true)">
+        <!-- Modal -->  
+        <div
+            x-show="showQuestionModal"
+            x-transition
+            x-cloak
+            class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+            <div class="modal-scrollable w-full mx-auto">
+                <div
+                    @click.away="showQuestionModal = false"
+                    class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-xl space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full" >
+                    <div class="flex justify-between items-center px-6 pt-4 ">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Question</h3>
+                        <button @click="showQuestionModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
                     </div>
-                    <!-- Category -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                        <select class="w-full text-sm border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Select Category</option>
-                            <option>Safety</option>
-                            <option>Engine</option>
-                        </select>
-                    </div>
-
-                    <!-- Required checkbox -->
-                    <div>
-                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                        <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" />
-                        Required Question
-                        </label>
-                    </div>
-
-                    <!-- Answer Options Header -->
-                    <div x-data="sortableAnswers" x-init="init()" class="space-y-4 max-w-3xl w-full mx-auto">
-                        <!-- Header -->
-                        <div class="flex justify-between items-center">
-                            <div class="text-sm font-medium text-gray-700">
-                                Answer Options <span class="text-xs text-gray-400 font-normal">(Drag to reorder)</span>
-                            </div>
-                            <button @click="addOption" class="text-blue-600 text-sm font-medium hover:underline">+ Add Option</button>
+                    <div x-data="questionForm()" class="max-w-3xl px-6 space-y-6 bg-white rounded-lg overflow-y-auto">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Question Name *</label>
+                            <input type="text" class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <!-- Category -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                            <select class="w-full text-sm border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>Select Category</option>
+                                <option>Safety</option>
+                                <option>Engine</option>
+                            </select>
                         </div>
 
-                        <!-- Answer Option List -->
-                        <div id="sortable-list" class="space-y-3">
-                            <template x-for="(option, index) in answerOptions" :key="option.id">
-                                <div class="bg-white border border-gray-300 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                                    <!-- Drag Icon Only (No Number) -->
-                                    <div class="flex items-center mb-2 sm:mb-0">
-                                        <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
-                                            </svg>
-                                        </span>
-                                    </div>
+                        <!-- Required checkbox -->
+                        <div>
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" />
+                            Required Question
+                            </label>
+                        </div>
 
-                                    <!-- Text input -->
-                                    <input type="text"
-                                        x-model="option.text"
-                                        placeholder="Answer description..."
-                                        class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-
-                                    <!-- Dropdown -->
-                                    <select x-model="option.status"
-                                        class="mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <option>Rental Ready</option>
-                                        <option>Maint. Hold</option>
-                                        <option>Damaged</option>
-                                    </select>
-
-                                    <!-- Delete -->
-                                    <button @click="removeOption(index)"
-                                        class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center transition hover:text-red-800"
-                                        title="Delete">
-                                        <x-heroicon-o-trash class="w-4 h-4" />
-                                    </button>
+                        <!-- Answer Options Header -->
+                        <div x-data="sortableAnswers" x-init="init()" class="space-y-4 max-w-3xl w-full mx-auto">
+                            <!-- Header -->
+                            <div class="flex justify-between items-center">
+                                <div class="text-sm font-medium text-gray-700">
+                                    Answer Options <span class="text-xs text-gray-400 font-normal">(Drag to reorder)</span>
                                 </div>
-                            </template>
+                                <button @click="addOption" class="text-blue-600 text-sm font-medium hover:underline">+ Add Option</button>
+                            </div>
+
+                            <!-- Answer Option List -->
+                            <div id="sortable-list" class="space-y-3">
+                                <template x-for="(option, index) in answerOptions" :key="option.id">
+                                    <div class="bg-white border border-gray-300 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                                        <!-- Drag Icon Only (No Number) -->
+                                        <div class="flex items-center mb-2 sm:mb-0">
+                                            <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
+                                                </svg>
+                                            </span>
+                                        </div>
+
+                                        <!-- Text input -->
+                                        <input type="text"
+                                            x-model="option.text"
+                                            placeholder="Answer description..."
+                                            class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+                                        <!-- Dropdown -->
+                                        <select x-model="option.status"
+                                            class="mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option>Rental Ready</option>
+                                            <option>Maint. Hold</option>
+                                            <option>Damaged</option>
+                                        </select>
+
+                                        <!-- Delete -->
+                                        <button @click="removeOption(index)"
+                                            class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center transition hover:text-red-800"
+                                            title="Delete">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+
                         </div>
-
                     </div>
-                </div>
-                <div class="flex justify-end gap-2 px-6 pb-4">
-                    <button type="button" @click="showQuestionModal = false" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
-                    <button type="button" id="submitQuestionBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600"> Save Question </button>
+                    <div class="flex justify-end gap-2 px-6 pb-4">
+                        <button type="button" @click="showQuestionModal = false" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
+                        <button type="button" id="submitQuestionBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600"> Save Question </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
- <div x-data="{ showAddressModal: false }" x-ref="addressRoot" x-init="window.addEventListener('open-address-modal', () => showAddressModal = true)">
-    <!-- Modal -->  
-    <div
-        x-show="showAddressModal"
-        x-transition
-        x-cloak
-        class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
-        <div class="modal-scrollable w-full mx-auto">
-            <div
-                @click.away="showAddressModal = false"
-                class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto  max-w-xl  space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col" >
-                <div class="flex justify-between items-center  px-6 pt-4 ">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Category</h3>
-                    <button @click="showAddressModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
-                </div>
-                <div class="px-6 grid grid-cols-1  gap-6 bg-gray-50">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Category Name *</label>
-                        <input type="text" class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+    <div x-data="{ showAddressModal: false }" x-ref="addressRoot" x-init="window.addEventListener('open-address-modal', () => showAddressModal = true)">
+        <!-- Modal -->  
+        <div
+            x-show="showAddressModal"
+            x-transition
+            x-cloak
+            class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+            <div class="modal-scrollable w-full mx-auto">
+                <div
+                    @click.away="showAddressModal = false"
+                    class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto  max-w-xl  space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col" >
+                    <div class="flex justify-between items-center  px-6 pt-4 ">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Category</h3>
+                        <button @click="showAddressModal = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Optional description..."></textarea>
+                    <div class="px-6 grid grid-cols-1  gap-6 bg-gray-50">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Category Name *</label>
+                            <input type="text" class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Optional description..."></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="flex justify-end gap-2 px-6  pb-4">
-                    <button type="button" @click="showAddressModal = false" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
-                    <button type="button" id="submitAddressBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-blue-700">Save Category </button>
+                    <div class="flex justify-end gap-2 px-6  pb-4">
+                        <button type="button" @click="showAddressModal = false" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
+                        <button type="button" id="submitAddressBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-blue-700">Save Category </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
 @endsection

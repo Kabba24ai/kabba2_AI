@@ -36,6 +36,17 @@ class PaymentStoreRequest extends FormRequest
         'payment_type' => ['required', Rule::in(['Cash', 'Cheque', 'CreditCard', 'BankTransfer', 'Other'])],
         'responsible_person' => ['required'],
         'notes' => ['nullable'],
+        'existing_card_id' => ['nullable', 'exists:customer_cards,unique_id'], 
+        
+        'opaqueDataValue' => ['nullable', 'string'],
+        'opaqueDataDescriptor' => ['nullable', 'string'],
+
+        'firstName' => ['nullable', 'string', 'max:50'],
+        'lastName' => ['nullable', 'string', 'max:50'],
+        'cardNumber' => ['nullable'],
+        'expiry' => ['nullable', 'regex:/^(0[1-9]|1[0-2])\/?([0-9]{2})$/'],
+        'cvc' => ['nullable', 'digits_between:3,4'],
+
     ];
 }
 

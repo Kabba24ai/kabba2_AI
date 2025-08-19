@@ -234,16 +234,16 @@
                     ]);
 
                     $rentalReadyActive = Route::is([
-                        'admin.checklist_management.rental_ready.question_and_categories.*',
-                        'admin.checklist_management.rental_ready.templates.*',
+                        'admin.checklist_management.rental-ready.question_and_categories.*',
+                        'admin.checklist_management.rental-ready.templates.*',
                     ]);
 
                     $rentalReadyquestion = Route::is([
-                        'admin.checklist_management.rental_ready.question_and_categories.*',
+                        'admin.checklist_management.rental-ready.question_and_categories.*',
                     ]);
 
                      $rentalReadytemplates = Route::is([
-                         'admin.checklist_management.rental_ready.templates.*',
+                         'admin.checklist_management.rental-ready.templates.*',
                     ]);
 
                     @endphp
@@ -279,7 +279,9 @@
                                     <a href="{{ route('admin.maintenance-management.equipments.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.maintenance-management.equipments.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment</a>
+
                                 </li>
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.parts.index') }}"
@@ -340,8 +342,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#"
-                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                    <a href="{{ route('admin.checklist_management.rental-ready.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist_management.rental-ready.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-truck class="h-5 w-5" /> Rental Ready Admin
                                     </a>
                                 </li>
@@ -390,7 +392,7 @@
 
                                     <ul x-show="subOpen" x-transition class="mt-1 pl-5 space-y-1 text-sm text-gray-600 ">
                                         <li>
-                                            <a href="{{ route('admin.checklist_management.rental_ready.question_and_categories.index') }}"
+                                            <a href="{{ route('admin.checklist_management.rental-ready.question_and_categories.index') }}"
                                             class="block px-2 py-1 menu-dropdown-item-inactive hover:text-black {{ $rentalReadyquestion ? 'text-brand-600 font-semibold' : '' }}">
                                             Question & Categories
                                             </a>
@@ -398,7 +400,7 @@
                                         </li>
 
                                          <li>
-                                            <a href="{{ route('admin.checklist_management.rental_ready.templates.index') }}"
+                                            <a href="{{ route('admin.checklist_management.rental-ready.templates.index') }}"
                                             class="block px-2 py-1 menu-dropdown-item-inactive hover:text-black {{ $rentalReadytemplates ? 'text-brand-600 font-semibold' : '' }}">
                                             Templates
                                             </a>

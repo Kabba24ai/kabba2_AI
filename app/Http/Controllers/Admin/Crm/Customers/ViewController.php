@@ -9,6 +9,7 @@ use Illuminate\View\View;
 use App\Models\Locations\State;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User ;
+use App\Helpers\ConfigurationHelper;
 class ViewController extends Controller
 {
 
@@ -63,6 +64,7 @@ class ViewController extends Controller
         $customers = $query->latest('id')->paginate(10)->withQueryString();
 
         // biling sumary
+                $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
 
 
@@ -75,6 +77,7 @@ class ViewController extends Controller
             'users'=>$users,
             'lastpaymentdate'=> $lastpaymentdate,
             'customers'=>$customers,
+            'paymentSetting' => $paymentSetting
         ]);
     }
 }

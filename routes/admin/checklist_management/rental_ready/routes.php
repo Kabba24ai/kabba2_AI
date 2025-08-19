@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
+
+use App\Http\Controllers\Admin\ChecklistManagement\RentalReady\IndexController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,9 +17,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('rental_ready')
-->name('rental_ready.')
+Route::prefix('rental-ready')
+->name('rental-ready.')
 ->group(function ($router) {
+
+    
+     Route::get('/', IndexController::class)->name('index');
+
 
     // customers
     require base_path('routes/admin/checklist_management/rental_ready/question_and_categories/routes.php');

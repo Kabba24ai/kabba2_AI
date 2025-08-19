@@ -46,7 +46,7 @@
                             <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 text-sm text-gray-700">
 
                                 <div>
-                                    <label class="text-xs text-gray-500 font-medium">First Name</label>
+                                    <label class="text-xs text-gray-500 font-medium">First Name *</label>
                                     <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
                                     <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
 
@@ -67,7 +67,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="text-xs text-gray-500 font-medium">Last Name</label>
+                                    <label class="text-xs text-gray-500 font-medium">Last Name *</label>
                                     <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
                                     <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
 
@@ -86,7 +86,7 @@
                                 </div>
 
                                 <div class="col-span-2">
-                                    <label class="text-xs text-gray-500 font-medium">Email Address</label>
+                                    <label class="text-xs text-gray-500 font-medium">Email Address *</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-1 text-sm">
                                             <x-heroicon-o-envelope class="w-4 h-4 text-gray-900" />{{ $customer->email ?? '' }}
@@ -118,7 +118,7 @@
                                 </div>
 
                                 <div class="col-span-2">
-                                    <label class="text-xs text-gray-500 font-medium">Phone Number</label>
+                                    <label class="text-xs text-gray-500 font-medium">Phone Number *</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-1 text-gray-900">
                                             <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
@@ -138,7 +138,7 @@
                                         'id' => 'phone',
                                         'autocomplete' => 'tel',
                                         'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                        'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                                        'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
                                     ])
                                     ->required() !!}
 
@@ -153,7 +153,7 @@
                             </h3>
                             <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
                                 <div class="col-span-2">
-                                    <label class="text-xs text-gray-500 font-medium">Company Name</label>
+                                    <label class="text-xs text-gray-500 font-medium">Company Name *</label>
                                     <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
                                     <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
 
@@ -292,7 +292,7 @@
 
                                     <div class="grid grid-cols-2 gap-4">
                                             <div class="edit-view">
-                                                <label class="text-sm text-gray-700 mb-1">First Name</label>
+                                                <label class="text-sm text-gray-700 mb-1">First Name *</label>
                                                 {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
                                                     ->class([
                                                         'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -304,7 +304,7 @@
                                                     ])->required() !!}
                                             </div>
                                             <div class="edit-view">
-                                                <label class="text-sm text-gray-700 mb-1">Last Name </label>
+                                                <label class="text-sm text-gray-700 mb-1">Last Name *</label>
                                                 {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
                                                     ->class([
                                                         'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -319,7 +319,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="text-sm text-gray-700 mb-1 edit-view">Address</label>
+                                            <label class="text-sm text-gray-700 mb-1 edit-view">Address *</label>
                                            <div class="static-view text-gray-900 text-sm">
 
                                             {{ $addresse?->full_name ?? '' }}<br>
@@ -338,12 +338,12 @@
                                                 ->attributes([
                                                     'placeholder' => 'Enter Address',
                                                     'class' => 'address'
-                                                ]) !!}
+                                                ])->required() !!}
                                         </div>
 
                                         <div class="grid grid-cols-2 gap-4">
                                             <div class="edit-view">
-                                                <label class="text-sm text-gray-700 mb-1">City</label>
+                                                <label class="text-sm text-gray-700 mb-1">City *</label>
                                                 {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                                                     ->class([
                                                         'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -352,10 +352,10 @@
                                                     ->attributes([
                                                         'placeholder' => 'Enter City',
                                                         'class' => 'city'
-                                                    ]) !!}
+                                                    ])->required() !!}
                                             </div>
                                             <div class="edit-view">
-                                                <label class="text-sm text-gray-700 mb-1">Zip Code</label>
+                                                <label class="text-sm text-gray-700 mb-1">Zip Code *</label>
                                                 {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                                                     ->class([
                                                         'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -365,13 +365,13 @@
                                                         'maxlength' => 8,
                                                         'placeholder' => 'ZIP Code',
                                                         'class' => 'zip_code'
-                                                    ]) !!}
+                                                    ])->required() !!}
                                             </div>
                                         </div>
 
                                         <div class="grid grid-cols-2 gap-4">
                                                     <div class="edit-view">
-                                                        <label class="text-sm text-gray-700 mb-1">State</label>
+                                                        <label class="text-sm text-gray-700 mb-1">State *</label>
                                                         {!! html()
                                                             ->select("addresses[$index][state_id]",
                                                                 ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
@@ -385,7 +385,7 @@
                                                     </div>
 
                                                     <div class="edit-view">
-                                                        <label class="text-sm text-gray-700 mb-1">Phone Number</label>
+                                                        <label class="text-sm text-gray-700 mb-1">Phone Number *</label>
 
 
                                                         {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
@@ -399,7 +399,7 @@
                                                                 'class' => 'phone',
                                                                 'autocomplete' => 'tel',
                                                                 'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                                                'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                                                                'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
                                                             ])->required() !!}
 
                                                     </div>
@@ -604,7 +604,7 @@
 
                             <!-- File input -->
                             <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
-                                <input type="file" id="fileInput"  name="tax_document" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
+                                <input type="file" id="fileInput" name="tax_document" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" required/>
                                 <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
                             </label>
                         </div>
@@ -625,14 +625,7 @@
 
                     <!-- Document Type Dropdown -->
                     <div class="mt-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
-                        <!-- <select name="tax_document_type" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
-                                                        <option value="">-- Select Document Type --</option>
-
-                        <option value="Tax Exempt Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Tax Exempt Certificate' ? 'selected' : '' }}>Tax Exempt Certificate</option>
-                            <option value="Resale Certificate" {{ old('tax_document_type', $customer->tax_document_type) == 'Resale Certificate' ? 'selected' : '' }}>Resale Certificate</option>
-                            <option value="Non-Profit Exemption" {{ old('tax_document_type', $customer->tax_document_type) == 'Non-Profit Exemption' ? 'selected' : '' }}>Non-Profit Exemption</option>
-                        </select> -->
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Document Type *</label>
 
                         {!! html()->select('tax_document_type', [
                                         '' => '-- Select Document Type --',
@@ -725,8 +718,8 @@
             collectAddresses();
 
             // Validate form before allowing submission
-            if (!form.parsley().isValid()) {
-                form.parsley().validate();
+            if (!$(form).parsley().isValid()) {
+                $(form).parsley().validate();
                 allowSubmit = false; // Block if validation fails
             }
         });

@@ -333,7 +333,7 @@
                                                                     </td>
                                                                     <!-- Amount Without Tax -->
 
-                                                          <td class="px-4 py-3 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}">  {{ $transaction->notes ?? 'N/A' }} </td>
+                                                                     <td class="px-4 py-3 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}">  {{ $transaction->notes ?? 'N/A' }} </td>
 
 
                                                                         <td class="px-4 py-3 text-right"> 
@@ -390,6 +390,7 @@
                                                                         @if ($transaction->type !== 'order')
                                                                             
                                                                             <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
+                                                                                    data-id="{{ $transaction->id }}"
                                                                                     data-type="{{ $transaction->type }}"
                                                                                     data-amount="{{ $transaction->amount }}"
                                                                                     data-payment_type="{{ $transaction->payment_type }}"
@@ -520,9 +521,6 @@
                     <!-- Payment Method -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
-                       
-
-
                         {!! html()->select('payment_type', [
             '' => 'Select payment method',
             'CreditCard' => 'Credit / Debit Card',
@@ -531,10 +529,69 @@
             'BankTransfer' => 'Bank Transfer',
             'Other' => 'Other',
         ], old('payment_type'))
-        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
-
-
+         ->id('payment_type')
+        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+         ->required() !!}
                     </div>
+
+
+  <!-- Card Options -->
+                    <div id="creditCardOptions" class="mb-4 hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Options *</label>
+                        <select id="cardOption" name="card_option"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                            <option value="NewCard" selected>New Card</option>
+
+                                @if ($customer->cards && $customer->cards->count() > 0)
+                                                            <option value="CardOnFile">Card on File</option>
+                                @endif
+
+                        </select>
+                    </div>
+
+                    <!-- New Card Fields -->
+                    <div id="newCardFields" class="mb-4 hidden">
+                        <div class="grid md:grid-cols-2 gap-4 max-w-sm">
+                            <div class="md:col-span-1">
+                                <input type="text" placeholder="First name" id="firstName" name="firstName"
+                                    class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                            </div>
+                            <div class="md:col-span-1">
+                                <input type="text" placeholder="Last name" id="lastName" name="lastName"
+                                    class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                            </div>
+                            <div class="md:col-span-2">
+                                <input type="text" placeholder="Card number" maxlength="19" id="cardNumber" name="cardNumber"
+                                    class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                            </div>
+                            <div class="md:col-span-1">
+                                <input type="text" placeholder="MM/YY" maxlength="5" id="expiry" name="expiry"
+                                    class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                            </div>
+                            <div class="md:col-span-1">
+                                <input type="text" placeholder="CVC" maxlength="4" id="cvc" name="cvc"
+                                    class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                            </div>
+                        </div>
+                        <input type="hidden" name="opaqueDataValue" id="opaqueDataValue" />
+                        <input type="hidden" name="opaqueDataDescriptor" id="opaqueDataDescriptor" />
+                    </div>
+
+                    <!-- Card on File Dropdown -->
+                    @if ($customer->cards && $customer->cards->count() > 0)
+                        <div id="cardOnFileDropdown" class="mb-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Existing Card *</label>
+                            <select name="existing_card_id"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                                <option value="">-- Select a saved card --</option>
+                                @foreach ($customer->cards as $card)
+                                    <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+
                     <!-- Person Responsible -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
@@ -1204,12 +1261,178 @@ function attachValidatedSubmit(formId, btnId, btnTextId, spinnerId, loadingText)
 }
 
 // Attach to all forms
-attachValidatedSubmit('recordpayment', 'submitTemplatesBtn', 'btnText', 'btnSpinner', 'Processing...');
+// attachValidatedSubmit('recordpayment', 'submitTemplatesBtn', 'btnText', 'btnSpinner', 'Processing...');
 attachValidatedSubmit('processRefund', 'submitRefundBtn', 'refundBtnText', 'refundBtnSpinner', 'Processing...');
 attachValidatedSubmit('applyDiscount', 'submitDiscountBtn', 'discountBtnText', 'discountBtnSpinner', 'Applying...');
 attachValidatedSubmit('applyCharge', 'submitChargeBtn', 'chargeBtnText', 'chargeBtnSpinner', 'Adding...');
 </script>
 
 
+@if ($paymentSetting['payment_test_mode'] ?? false)
+<script src="https://jstest.authorize.net/v1/Accept.js"></script>
+@else
+<script src="https://js.authorize.net/v1/Accept.js"></script>
+@endif
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    console.log(" DOM fully loaded");
+
+    const form = document.getElementById('recordpayment');
+    const paymentType = document.getElementById('payment_type');
+    const creditCardOptions = document.getElementById('creditCardOptions');
+    const cardOption = document.getElementById('cardOption');
+    const newCardFields = document.getElementById('newCardFields');
+    const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
+    const cardNumberInput = document.getElementById('cardNumber');
+    const expiryInput = document.getElementById('expiry');
+    const cvcInput = document.getElementById('cvc');
+    const submitBtn = document.getElementById('submitTemplatesBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+
+    // ===== Show/hide card sections =====
+    paymentType.addEventListener('change', function () {
+        console.log(" Payment type changed:", this.value);
+        if (this.value === 'CreditCard') {
+            creditCardOptions.classList.remove('hidden');
+            cardOption.dispatchEvent(new Event('change'));
+        } else {
+            creditCardOptions.classList.add('hidden');
+            newCardFields.classList.add('hidden');
+            cardOnFileDropdown.classList.add('hidden');
+        }
+    });
+
+    cardOption.addEventListener('change', function () {
+        console.log("Card option changed:", this.value);
+        if (this.value === 'NewCard') {
+            newCardFields.classList.remove('hidden');
+            cardOnFileDropdown.classList.add('hidden');
+        } else {
+            newCardFields.classList.add('hidden');
+            cardOnFileDropdown.classList.remove('hidden');
+        }
+    });
+
+    // ===== Input formatting =====
+    cardNumberInput.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim();
+    });
+
+    expiryInput.addEventListener('input', function () {
+        let val = this.value.replace(/[^0-9]/g, '').substring(0, 4);
+        if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2);
+        this.value = val;
+    });
+
+    cvcInput.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').substring(0, 4);
+    });
+
+    // ===== Submit handler =====
+    form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    console.log(" Form submit triggered");
+
+    const payType = paymentType.value;
+    const cardOpt = cardOption.value;
+
+       if (payType !== 'CreditCard' || cardOpt === 'CardOnFile') {
+            console.log("ℹ Non-credit card or card on file — submitting normally");
+            if ($(form).parsley().isValid()) {
+
+                // Show loader immediately
+                    submitBtn.disabled = true;
+                    btnText.textContent = 'Processing...';
+                    btnSpinner.classList.remove('hidden');
+
+                form.submit();
+            } else {
+                notyf.error("Please fix the form errors before submitting.");
+            }
+            return;
+        }
+
+    // Show loader immediately
+    submitBtn.disabled = true;
+    btnText.textContent = 'Processing...';
+    btnSpinner.classList.remove('hidden');
+    console.log(" Loader shown, starting tokenization");
+
+    try {
+        // Parse expiry
+        let [expMonth, expYearShort] = expiryInput.value.split('/');
+        expMonth = expMonth?.trim();
+        expYearShort = expYearShort?.trim();
+        let expYear = '';
+        if (expYearShort?.length === 2) expYear = '20' + expYearShort;
+        else if (expYearShort?.length === 4) expYear = expYearShort;
+
+        console.log(" Expiry parsed:", expMonth, expYear);
+
+        // Tokenize
+        Accept.dispatchData({
+            authData: {
+                clientKey: "{{ $paymentSetting['payment_api_public_key'] ?? '' }}",
+                apiLoginID: "{{ $paymentSetting['payment_api_key'] ?? '' }}"
+            },
+            cardData: {
+                cardNumber: cardNumberInput.value.replace(/\s/g, ''),
+                month: expMonth,
+                year: expYear,
+                cardCode: cvcInput.value ,
+            }
+        }, function (response) {
+            console.log(" Tokenization response:", response);
+
+            if (response.messages.resultCode === 'Error') {
+                let errorMsg = response.messages.message?.[0]?.text || "Tokenization failed.";
+                console.error(" Tokenization error:", errorMsg);
+                notyf.error(errorMsg);
+
+                // Reset UI
+                submitBtn.disabled = false;
+                btnText.textContent = 'Record Payment';
+                btnSpinner.classList.add('hidden');
+                return; // Stop submit
+            }
+
+            console.log(" Tokenization success — Opaque Data:", response.opaqueData);
+            notyf.success("Payment details validated successfully!");
+
+            document.getElementById('opaqueDataValue').value = response.opaqueData.dataValue;
+            document.getElementById('opaqueDataDescriptor').value = response.opaqueData.dataDescriptor;
+
+              //  Now check Parsley validation before final submit
+                if ($(form).parsley().isValid()) {
+                    console.log(" Form validation passed — submitting now");
+                    form.submit();
+                } else {
+                    console.warn(" Form validation failed after tokenization");
+                    notyf.error("Please fix the form errors before submitting.");
+
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Record Payment';
+                    btnSpinner.classList.add('hidden');
+                }
+                
+        });
+
+    } catch (error) {
+        console.error(" Tokenization JS error:", error);
+        notyf.error("Something went wrong during payment processing.");
+
+        // Reset UI
+        submitBtn.disabled = false;
+        btnText.textContent = 'Record Payment';
+        btnSpinner.classList.add('hidden');
+
+        return; // Stop submit
+    }
+});
+
+});
+</script>
 
 @endpush

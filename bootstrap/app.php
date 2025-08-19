@@ -1,10 +1,10 @@
 <?php
 
-
+use App\Exceptions\ExceptionHandling;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Support\Facades\Route; // ✅ Correct
+use Illuminate\Support\Facades\Route; 
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,18 +16,22 @@ return Application::configure(basePath: dirname(__DIR__))
 
             Route::middleware('web')->domain(config('app.domains.admin'))->group(base_path('routes/admin/routes.php'));
 
-            Route::middleware(['api'])
-                ->domain(config('app.domains.api'))
-                ->group(base_path('routes/api/routes.php'));
+            // Route::middleware(['api'])
+            //     ->prefix('api')
+            //     ->domain(config('app.domains.api'))
+            //     ->group(base_path('routes/api/routes.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'prevent-back-history' => \App\Http\Middleware\PreventBackHistoryMiddleware::class,
-            // 'set-timezone-from-ip' => \App\Http\Middleware\SetTimezoneFromIP::class,
 
             // Front Middleware
             'front.common-front-data' => \App\Http\Middleware\Front\CommonDataMiddleware::class,
+            
+            // Chehck Middleware that customer active
+            'customer.active' => \App\Http\Middleware\Front\EnsureCustomerIsActive::class,
+
         ]);
 
         $middleware->redirectGuestsTo(function () {
@@ -38,7 +42,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // This 👇
         $middleware->api(prepend: [\App\Http\Middleware\ForceJsonResponseMiddleware::class]);
-        //$middleware->append(\App\Http\Middleware\SetTimezoneFromIP::class);// server time should be set as UTC first
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->dontFlash([

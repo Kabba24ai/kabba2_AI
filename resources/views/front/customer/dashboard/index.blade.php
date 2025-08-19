@@ -275,37 +275,63 @@
     </script>
 
 
-    <script>
-        function handleFileChange(event) {
-            const file = event.target.files[0];
-            const fileNameDisplay = document.getElementById("fileNameDisplay");
-            const fileActions = document.getElementById("fileActions");
-            const viewLink = document.getElementById("viewFileLink");
-            const uploadUI = document.getElementById("uploadUI");
+   <script>
+    function handleFileChange(event) {
+        const file = event.target.files[0];
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const fileActions = document.getElementById("fileActions");
+        const viewLink = document.getElementById("viewFileLink");
+        const uploadUI = document.getElementById("uploadUI");
 
-            if (file) {
-                fileNameDisplay.textContent = file.name;
-                fileActions.style.display = "flex";
-                uploadUI.style.display = "none";
+        if (file) {
+            // Allowed file extensions
+            const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
+            const fileExtension = file.name.split(".").pop().toLowerCase();
 
-                // Show file in new tab (temporary blob link)
-                const objectUrl = URL.createObjectURL(file);
-                viewLink.href = objectUrl;
+            // Max file size (10 MB)
+            const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
+
+            // Validation: format
+            if (!allowedExtensions.includes(fileExtension)) {
+
+                 notyf.error("Invalid file format. Allowed: PDF, JPG, JPEG, PNG.");
+
+                event.target.value = ""; // Reset file input
+                return;
             }
-        }
 
-        function clearFile() {
-            const fileInput = document.getElementById("fileInput");
-            const fileActions = document.getElementById("fileActions");
-            const uploadUI = document.getElementById("uploadUI");
-            const fileNameDisplay = document.getElementById("fileNameDisplay");
+            // Validation: size
+            if (file.size > maxSize) {
+                 notyf.error("File is too large. Maximum size allowed is 10 MB.");
 
-            fileInput.value = "";
-            fileActions.style.display = "none";
-            uploadUI.style.display = "flex";
-            fileNameDisplay.textContent = "";
+                event.target.value = ""; // Reset file input
+                return;
+            }
+
+            //  Passed validation → show UI
+            fileNameDisplay.textContent = file.name;
+            fileActions.style.display = "flex";
+            uploadUI.style.display = "none";
+
+            // Temporary blob link for preview
+            const objectUrl = URL.createObjectURL(file);
+            viewLink.href = objectUrl;
         }
-    </script>
+    }
+
+    function clearFile() {
+        const fileInput = document.getElementById("fileInput");
+        const fileActions = document.getElementById("fileActions");
+        const uploadUI = document.getElementById("uploadUI");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+
+        fileInput.value = "";
+        fileActions.style.display = "none";
+        uploadUI.style.display = "flex";
+        fileNameDisplay.textContent = "";
+    }
+</script>
+
 
     <script>
         function initializeEditUI() {

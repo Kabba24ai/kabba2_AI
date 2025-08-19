@@ -75,7 +75,7 @@
 
 <!-- Table -->
 <div class="bg-white border border-gray-200 rounded-md overflow-x-auto mt-6">
-    <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
         <thead class="bg-gray-100 text-gray-600">
             <tr>
                 <th class="px-4 py-3 text-left font-semibold">Checklist System Name</th>
@@ -245,21 +245,21 @@
 </div>
 
 <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mt-6">
-    <div class="flex items-start space-x-3">
-        <!-- Note icon -->
-        <x-heroicon-o-document-text class="w-6 h-6 text-blue-900" />
-        <!-- Text content -->
-        <div>
-            <h3 class="font-semibold text-blue-900">System Assignment</h3>
-            <p class="text-sm text-blue-800 leading-snug mt-1">
-                These checklist systems are independent and can be assigned to multiple equipment items 
-                (3, 5, 12, or more) through the Equipment Profile screen in a separate module. 
-                Each system combines both rental ready and customer checklists for complete equipment management.
-            </p>
-        </div>
+  <div class="flex items-start space-x-3">
+    <!-- Note icon with responsive sizing -->
+    <x-heroicon-o-document-text class="w-4 h-5 sm:w-6 sm:h-6 md:w-4 md:h-7 text-blue-900 flex-shrink-0" />
+    
+    <!-- Text content -->
+    <div>
+      <h3 class="font-semibold text-blue-900 text-base sm:text-lg">System Assignment</h3>
+      <p class="text-sm sm:text-sm text-blue-800 leading-snug mt-1">
+        These checklist systems are independent and can be assigned to multiple equipment items 
+        (3, 5, 12, or more) through the Equipment Profile screen in a separate module. 
+        Each system combines both rental ready and customer checklists for complete equipment management.
+      </p>
     </div>
+  </div>
 </div>
-
 
 
 

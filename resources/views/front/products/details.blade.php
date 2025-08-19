@@ -128,8 +128,8 @@
                         </div>
                     </div>
 
-                    <div>
-                        <strong> Short Description :- </strong>
+                    <div class="rich-content">
+                        <strong>Short Description</strong>
                         <p> {!! $productDetail->short_description !!} </p>
                     </div>
 
@@ -423,7 +423,7 @@
                     Details
                 </a>
             </div>
-            <div class="flex flex-col gap-4 text-gray-700 leading-relaxed">
+            <div class="flex flex-col gap-4 text-gray-700 leading-relaxed  rich-content">
                 {!! $productDetail->description !!}
             </div>
         </div>

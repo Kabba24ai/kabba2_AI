@@ -40,12 +40,11 @@ class IndexController extends BaseController
                     $q->where('status', $status);
                 }),
             )
-            ->when(
-                $search,
-                fn($query) => $query->whereHas('shippingAddress', function ($q) use ($search) {
-                    $q->where('first_name', 'like', '%' . $search . '%')->orWhere('last_name', 'like', '%' . $search . '%');
-                }),
-            )
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('shippingAddress', function ($q) use ($search) {
+                    $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$search}%"]);
+                });
+            })
             ->when(
                 $categoryId,
                 fn($query) => $query->whereHas('products.product.categories', function ($q) use ($categoryId) {

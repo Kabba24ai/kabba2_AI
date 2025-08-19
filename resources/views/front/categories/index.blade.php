@@ -11,7 +11,7 @@
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-3xl lg:text-4xl tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
-                        <ul  
+                        <ul
                             class="border-yellow-400 px-5 py-4 mt-4 lg:mt-0 text-sm font-medium border-2 max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
@@ -28,7 +28,7 @@
                                 </li>
                                 <li>
                                     <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
-                                </li>      
+                                </li>
                             @endif
                         </ul>
                     </div>
@@ -144,9 +144,9 @@
     </section>
 
     <!-- Categories Listing details -->
-    <section class="pb-[60px]">
+    <section class="py-[20px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <div class="flex flex-col gap-y-4">
+            <div class="flex flex-col gap-y-4 rich-content">
                 {!! $category->content !!}
             </div>
         </div>

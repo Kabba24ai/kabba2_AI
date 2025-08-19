@@ -96,7 +96,7 @@
 
 {{-- Short Description --}}
 <div class="mb-8">
-    <label for="short_description" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Short
+    <label for="short_description" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Short
         Description
     </label>
     {{ html()->textarea('short_description')->class([
@@ -104,10 +104,12 @@
             'border-red-500' => $errors->has('short_description'),
         ])->attributes([
             'rows' => 3,
-            'maxlength' => 1000,
+            'maxlength' => 2000,
             'placeholder' => 'Enter Short Description Of The Product',
             'autocomplete' => 'off',
-        ]) }}
+            'data-parsley-errors-container' => '#short-description-error',
+        ])->required() }}
+    <p id="short-description-error" class="mt-1 text-sm text-red-600 dark:text-red-400"></p>
     @error('short_description')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
     @enderror
@@ -124,7 +126,9 @@
             'id' => 'description',
             'placeholder' => 'Enter Description Of The Product',
             'autocomplete' => 'off',
+            'data-parsley-errors-container' => '#description-error',
         ])->required() }}
+    <p id="description-error" class="mt-1 text-sm text-red-600 dark:text-red-400"></p>
     @error('description')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
     @enderror
@@ -361,7 +365,7 @@
 
     <!-- Categories Column -->
     <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
-        <h3 class="text-md font-semibold text-gray-700 dark:text-white mb-4 required">Category Hierarchy</h3>
+        <h3 class="text-md font-semibold text-gray-700 dark:text-white mb-4 ">Category Hierarchy</h3>
 
         @if ($categoryTree->isNotEmpty())
             <div class="max-h-64 overflow-y-auto pr-2 custom-scroll">

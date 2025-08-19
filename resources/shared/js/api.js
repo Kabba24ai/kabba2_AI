@@ -18,6 +18,7 @@ window.apiFetch = async function (input, init = {}, uiOptions = {}) {
     const clearFieldErrors = () => {
         document.querySelectorAll('.field-error').forEach(el => el.remove());
         document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+        document.querySelectorAll('[class*="-error"]').forEach(el => el.textContent = '');
     };
 
     // Show error either inside container (if defined) or below field

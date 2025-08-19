@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Admin\V1\Orders\Notes\UpdateController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Notes\RemoveController;
 use App\Http\Controllers\Api\Admin\V1\Orders\UpdateAddressController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\IndexController as SchedulesIndexController;
+use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\UpdateController as SchedulesUpdateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,7 @@ Route::group(['prefix' => 'orders'], function () {
 
     Route::group(['prefix' => 'schedules'], function () {
         Route::post('/', SchedulesIndexController::class);
+        Route::post('/update', SchedulesUpdateController::class);
     });
 
     Route::group(['prefix' => 'notes'], function () {

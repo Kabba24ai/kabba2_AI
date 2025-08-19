@@ -34,6 +34,15 @@ class StoreRequest extends FormRequest
             'imei' => 'nullable|string|max:255',
             'rental_ready_checklist' => 'nullable|string|max:255',
             'equipment_service_list' => 'nullable|string|max:255',
+            'power_source_type'=>'required|string|max:255',
+            'has_def' => 'nullable|string|max:10',
+            'diesel_tank_capacity'=> 'nullable|numeric|min:0',
+            'def_tank_capacity'=> 'nullable|numeric|min:0',
+            'gas_tank_capacity'=> 'nullable|numeric|min:0',
+            'standard_battery_count'=> 'nullable|numeric|min:0',
+            'expanded_battery_count'=> 'nullable|numeric|min:0',
+            'checklist_master'=> 'required|string|max:255',
+            'equipment_parts_list' => 'required|string|max:255',
             'equipment_notes' => 'nullable|string',
         ];
     }

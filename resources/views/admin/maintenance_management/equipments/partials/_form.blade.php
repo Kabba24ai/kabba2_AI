@@ -104,7 +104,7 @@
                 </svg>
                 <h3 class="text-lg font-bold text-gray-900">Equipment Details</h3>
             </div>
-
+ 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -165,12 +165,13 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Date Acquired</label>
                     <input
-                        type="date"
-                        name="date_acquired"
-                        value="{{ old('date_acquired', $equipment->date_acquired ? $equipment->date_acquired->format('Y-m-d') : '') }}"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+    type="text"
+    name="date_acquired"
+    placeholder="mm/dd/yyyy"
+    value="{{ old('date_acquired', optional($equipment->date_acquired)->format('Y-m-d')) }}"
+    style="max-width: 200px;"
+    class="w-full px-3 py-2 datepicker text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+/>
                 </div>
             </div>
         </div>
@@ -393,7 +394,7 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Power Type</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Power Type <span class="text-red-500">*</span></label>
         <select
             id="power-type-select"
             name="power_source_type"
@@ -404,6 +405,14 @@
             <option value="gas" {{ old('power_source_type', $equipment->power_source_type ?? '') === 'gas' ? 'selected' : '' }}>Gas</option>
             <option value="batteries" {{ old('power_source_type', $equipment->power_source_type ?? '') === 'batteries' ? 'selected' : '' }}>Batteries</option>
         </select>
+         @error('power_source_type')
+                        <p class="mt-1 text-xs text-red-600 flex items-center space-x-1">
+                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>{{ $message }}</span>
+                        </p>
+                    @enderror
     </div>
 
     <!-- Dynamic fields get inserted here -->
@@ -515,6 +524,14 @@
 </div>
 
 
+
+@push('js')
+
+<script>
+    window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
+</script>
+
+
 <!-- Added by Jignesh Parmar -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -541,15 +558,15 @@ document.addEventListener('DOMContentLoaded', function () {
         <label class="text-sm font-medium text-gray-700">Has DEF (Diesel Exhaust Fluid)</label>
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Diesel Tank Capacity (Gallons)</label>
-        <input type="number" name="diesel_tank_capacity" placeholder="0" min="0" step="0.1"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 
+        <label class="jsp block text-sm font-medium text-gray-700 mb-1">Diesel Tank Capacity (Gallons)</label>
+        <input type="number" name="diesel_tank_capacity" placeholder="0" min="0" max="100000" step="0.1"
+            class="jsp w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 
                    focus:ring-blue-500 focus:border-blue-500 transition-colors" value="">
     </div>
     <div id="def-capacity-field" style="display:none;">
         <label class="block text-sm font-medium text-gray-700 mb-1" style="padding-top:15px">DEF Tank Capacity (Gallons)</label>
-        <input type="number" name="def_capacity" placeholder="0" min="0" step="0.1"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 
+        <input type="number" name="def_capacity"  placeholder="0" min="0" max="100000" step="0.1"
+            class="jsp w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 
                    focus:ring-blue-500 focus:border-blue-500 transition-colors" value="">
     </div>`,
 
@@ -587,14 +604,44 @@ document.addEventListener('DOMContentLoaded', function () {
         hasDefCheckbox.addEventListener('change', function () {
             defField.style.display = this.checked ? 'block' : 'none';
         });
+        // Moved the input restriction code here
+                const input = document.querySelector('input[name="diesel_tank_capacity"]');
+                input.addEventListener('input', function() {
+                    if (this.value.length > 6) {
+                        if(this.value > 100000)
+                    {
+                        this.value = 100000;
+                    }
+                    else
+                    {
+                        this.value = this.value.slice(0, 6);
+                    }
+                        
+                    }
+                });
+                const defInput = document.querySelector('input[name="def_capacity"]');
+                 defInput.addEventListener('input', function() {
+                    if (this.value.length > 6) {
+                        if(this.value > 100000)
+                    {
+                        this.value = 100000;
+                    }
+                    else
+                    {
+                        this.value = this.value.slice(0, 6);
+                    }
+                    }
+                });
     }
 });
+
+
+
 
 });
 </script>
 <!-- End By Jignesh Parmar -->
 
-@push('js')
 <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
 @vite('resources/admin/js/tinymce.js')
 @endpush

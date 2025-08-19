@@ -6,6 +6,7 @@ use App\Helpers\MediaHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Str;
 
 use App\Helpers\ModelHelper;
 use App\Models\Global\Media;
@@ -76,7 +77,7 @@ class Product extends Model
         return [
             'slug' => [
                 'source' => 'product_name',
-                'onUpdate' => true,
+                'onUpdate' => false,
             ],
         ];
     }
@@ -115,6 +116,12 @@ class Product extends Model
 
         // Automatically update updated_by on update
         static::updating(function ($model) {
+
+            if (!empty($model->slug)) {
+                // Prevent auto-slugging if slug already exists
+                $model->slug = Str::slug($model->slug);
+            }
+
             // If seo_title is not set, use title or slug as fallback
             if (empty($model->seo_title)) {
                 $model->seo_title = $model->title ?? $model->slug;

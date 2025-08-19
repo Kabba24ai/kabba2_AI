@@ -1,7 +1,6 @@
 <!-- Basic Info -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Product Name Input -->
-    <div>
+<div class="grid grid-cols-1 lg:grid-cols-7 grid-flow-row-dense gap-6">
+    <div class="col-span-1">
         <label for="product_name" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
             Product Name
         </label>
@@ -16,43 +15,23 @@
                 'placeholder' => 'Enter Product Name',
                 'autocomplete' => 'off',
                 'id' => 'product_name',
+                // <-- tell Parsley where to put its error
+                'data-parsley-errors-container' => '#product_name_error',
             ])->required() !!}
 
-        @error('product_name')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
+        {{-- One place for both client (Parsley) and server errors --}}
+        <div id="product_name_error" class="mt-1">
+            @error('product_name')
+                <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
+        </div>
     </div>
 
-    <!-- Status Input -->
-    <div>
-        <label for="Status" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
-            Status
-        </label>
-
-        {!! html()->select(
-                'status',
-                [
-                    '' => 'Select Status',
-                    'Draft' => 'Draft',
-                    'Pending' => 'Pending',
-                    'Published' => 'Published',
-                ],
-                old('status', $objProduct->status ?? 'Published'),
-            )->id('status')->class([
-                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                'border-red-500' => $errors->has('status'),
-            ])->required() !!}
-
-        @error('status')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
-    </div>
 
     <!-- Product Type -->
-    <div x-data x-init="$nextTick(() => $store.productForm.selectedType = '{{ old('product_type', $objProduct->product_type ?? 'Rental') }}')">
+    <div class="col-span-2" x-data x-init="$nextTick(() => $store.productForm.selectedType = '{{ old('product_type', $objProduct->product_type ?? 'Rental') }}')">
         <label class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Product Type</label>
         <div class="flex flex-wrap items-center gap-4 mb-2">
-
             <!-- Rental Option -->
             <label
                 :class="$store.productForm.selectedType === 'Rental' ? 'text-gray-700 dark:text-gray-200' :
@@ -69,7 +48,6 @@
                 </span>
                 Rental Configuration
             </label>
-
             <!-- Retail Option -->
             <label
                 :class="$store.productForm.selectedType === 'Retail' ? 'text-gray-700 dark:text-gray-200' :
@@ -87,16 +65,79 @@
                 Retail Configuration
             </label>
         </div>
-
         @error('product_type')
             <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
         @enderror
     </div>
+
+    @php
+        $seoSlug = isset($objProduct) ? $objProduct->slug ?? '' : '';
+        $seoType = old(
+            'product_type',
+            isset($objProduct) && $objProduct->product_type == 'Rental' ? 'daily' : 'retail',
+        );
+        $seoUrl = $seoSlug ? route('front.products.details', ['slug' => $seoSlug, 'productVariant' => $seoType]) : '#';
+    @endphp
+    <!-- Slug Input -->
+    <div class="col-span-3">
+        <label for="slug" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
+            Permalink
+        </label>
+
+        {{-- View Mode --}}
+        <div id="permalinkView" class="flex items-center">
+            <span class="text-gray-500 dark:text-gray-400 text-sm">
+                <a href="{{ $seoUrl }}" target="_blank" class="underline text-blue-600 permalink">
+                    {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
+                </a>
+            </span>
+            <button type="button" id="editPermalink"
+                class="ml-2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 {{ $seoUrl === '#' ? 'hidden' : '' }}">Edit</button>
+            <button type="button" id="copyPermalink"
+                class="ml-2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 {{ $seoUrl === '#' ? 'hidden' : '' }}">Copy</button>
+        </div>
+
+        {{-- Edit Mode --}}
+        <div id="permalinkEdit" class="hidden">
+            <div class="flex items-center">
+                <span class="text-gray-500 dark:text-gray-400 text-sm">{{ $seoUrl }}/</span>
+                <input type="text" id="slug" name="slug" value="{{ old('slug', $objProduct->slug ?? '') }}"
+                    class="flex-1 ml-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <button type="button" id="donePermalink"
+                    class="ml-2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Input -->
+    <div class="col-span-1">
+        <label for="Status" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
+            Status
+        </label>
+        {!! html()->select(
+                'status',
+                [
+                    '' => 'Select Status',
+                    'Draft' => 'Draft',
+                    'Pending' => 'Pending',
+                    'Published' => 'Published',
+                ],
+                old('status', $objProduct->status ?? 'Published'),
+            )->id('status')->class([
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                'border-red-500' => $errors->has('status'),
+            ])->required() !!}
+        @error('status')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
 </div>
+
 
 {{-- Short Description --}}
 <div class="mb-8">
-    <label for="short_description" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Short
+    <label for="short_description"
+        class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Short
         Description
     </label>
     {{ html()->textarea('short_description')->class([
@@ -415,17 +456,7 @@
         <p class="text-blue-600 font-semibold truncate">
             {{ old('seo_title', $objProduct->seo_title ?? 'Sample Category Title') }}</p>
         <p class="text-green-700 text-xs truncate">
-            @php
-                $seoSlug = isset($objProduct) ? $objProduct->slug ?? '' : '';
-                $seoType = old(
-                    'product_type',
-                    isset($objProduct) && $objProduct->product_type == 'Rental' ? 'daily' : 'retail',
-                );
-                $seoUrl = $seoSlug
-                    ? route('front.products.details', ['slug' => $seoSlug, 'productVariant' => $seoType])
-                    : '#';
-            @endphp
-            <a href="{{ $seoUrl }}" target="_blank" rel="noopener">
+            <a href="{{ $seoUrl }}" target="_blank" rel="noopener" class="permalink">
                 {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
             </a>
         </p>
@@ -461,7 +492,140 @@
     <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
     @vite('resources/admin/js/tinymce.js')
     <script>
+        document.addEventListener('alpine:init', () => {
+            // Alpine store for shared state
+            Alpine.store('productForm', {
+                selectedType: '{{ old('product_type', $objProduct->product_type ?? 'Rental') }}'
+            });
+
+            // Watch and reset Rental inputs when switching away
+            Alpine.effect(() => {
+                const isRental = Alpine.store('productForm').selectedType === 'Rental';
+                // Your section
+                const rentalSection = document.querySelector(
+                    '[x-show="$store.productForm.selectedType === \'Rental\'"]');
+
+                if (!isRental && rentalSection) {
+                    rentalSection.querySelectorAll('input, select, textarea').forEach(el => {
+                        if (['checkbox', 'radio'].includes(el.type)) {
+                            // el.checked = false;
+                        } else {
+                            el.value = '';
+                        }
+                    });
+                }
+            });
+
+            // Make retail_price required when type is Retail
+            Alpine.effect(() => {
+                const isRetail = Alpine.store('productForm').selectedType === 'Retail';
+                const retailPrice = document.getElementById('retail_price');
+                const rentalDaily = document.getElementById('rental_daily');
+                const rentalWeekend = document.getElementById('rental_weekend');
+                const rentalWeekly = document.getElementById('rental_weekly');
+                const rentalMonthly = document.getElementById('rental_monthly');
+                // Delivery fee inputs
+                // const standardDelivery = document.querySelector('input[name="standard_delivery_fee"]');
+                // const extendedDelivery = document.querySelector('input[name="extended_delivery_fee"]');
+
+                if (isRetail) {
+                    retailPrice.setAttribute('required', 'required');
+                    rentalDaily.removeAttribute('required');
+                    rentalWeekend.removeAttribute('required');
+                    rentalWeekly.removeAttribute('required');
+                    rentalMonthly.removeAttribute('required');
+                } else {
+                    rentalDaily.setAttribute('required', 'required');
+                    rentalWeekend.setAttribute('required', 'required');
+                    rentalWeekly.setAttribute('required', 'required');
+                    rentalMonthly.setAttribute('required', 'required');
+                    retailPrice.removeAttribute('required');
+                }
+            });
+
+        });
+
         document.addEventListener("DOMContentLoaded", function() {
+            const permalinkView = document.getElementById("permalinkView");
+            const permalinkEdit = document.getElementById("permalinkEdit");
+            // select ALL anchors with the class "permalink"
+            const permalinkLinks = document.querySelectorAll(".permalink");
+            const editBtn = document.getElementById("editPermalink");
+            const doneBtn = document.getElementById("donePermalink");
+            const copyBtn = document.getElementById("copyPermalink");
+            const slugInput = document.getElementById("slug");
+
+            // Keep an immutable template for the route
+            const URL_TEMPLATE =
+                "{{ route('front.products.details', ['slug' => ':slug', 'productVariant' => ':variant']) }}";
+
+            // Build URL from current slug + product type
+            function computePermalink(slug, selectedType) {
+                const cleanedSlug = (slug || "").trim();
+                const variant = selectedType === "Rental" ? "daily" : "retail";
+                if (!cleanedSlug) {
+                    return "Product link will be generated after saving.";
+                }
+                return URL_TEMPLATE
+                    .replace(":slug", encodeURIComponent(cleanedSlug))
+                    .replace(":variant", variant);
+            }
+
+            // Read latest values and update ALL permalink links
+            function updatePermalink() {
+                const selectedType = Alpine.store("productForm").selectedType; // always fresh
+                const slug = slugInput ? slugInput.value : "";
+                const url = computePermalink(slug, selectedType);
+
+                // update every .permalink anchor
+                permalinkLinks.forEach((a) => {
+                    a.href = url;
+                    a.textContent = url;
+                });
+            }
+
+            // ----- UI wiring -----
+            if (editBtn) {
+                editBtn.addEventListener("click", function() {
+                    permalinkView.classList.add("hidden");
+                    permalinkEdit.classList.remove("hidden");
+                });
+            }
+
+            if (doneBtn) {
+                doneBtn.addEventListener("click", function() {
+                    updatePermalink(); // recompute with latest values
+                    permalinkEdit.classList.add("hidden");
+                    permalinkView.classList.remove("hidden");
+                });
+            }
+
+            if (copyBtn) {
+                copyBtn.addEventListener("click", function() {
+                    // copy the first permalink’s URL (adjust if you want a different one)
+                    const first = permalinkLinks[0];
+                    const url = first?.href || "";
+                    if (!url) return;
+                    navigator.clipboard.writeText(url).then(() => {
+                        notyf?.success?.("Permalink copied to clipboard!");
+                    });
+                });
+            }
+
+            // Recompute when the slug is edited
+            if (slugInput) {
+                slugInput.addEventListener("input", updatePermalink);
+                slugInput.addEventListener("change", updatePermalink);
+            }
+
+            // Recompute when product type changes (listen to the radios)
+            document.querySelectorAll('input[name="product_type"]').forEach((el) => {
+                el.addEventListener("change", updatePermalink);
+            });
+
+            // Initial render
+            //updatePermalink();
+
             const productNameInput = document.getElementById("product_name");
             const shortDescInput = document.getElementById("short_description");
             const seoTitleInput = document.getElementById("seo_title");
@@ -565,60 +729,6 @@
                 const existingHoverInput = document.querySelector('input[name="existing_hover_image"]');
                 if (existingHoverInput) existingHoverInput.remove();
             };
-        });
-
-
-        document.addEventListener('alpine:init', () => {
-            // Alpine store for shared state
-            Alpine.store('productForm', {
-                selectedType: '{{ old('product_type', $objProduct->product_type ?? 'Rental') }}'
-            });
-
-            // Watch and reset Rental inputs when switching away
-            Alpine.effect(() => {
-                const isRental = Alpine.store('productForm').selectedType === 'Rental';
-                // Your section
-                const rentalSection = document.querySelector(
-                    '[x-show="$store.productForm.selectedType === \'Rental\'"]');
-
-                if (!isRental && rentalSection) {
-                    rentalSection.querySelectorAll('input, select, textarea').forEach(el => {
-                        if (['checkbox', 'radio'].includes(el.type)) {
-                            // el.checked = false;
-                        } else {
-                            el.value = '';
-                        }
-                    });
-                }
-            });
-
-            // Make retail_price required when type is Retail
-            Alpine.effect(() => {
-                const isRetail = Alpine.store('productForm').selectedType === 'Retail';
-                const retailPrice = document.getElementById('retail_price');
-                const rentalDaily = document.getElementById('rental_daily');
-                const rentalWeekend = document.getElementById('rental_weekend');
-                const rentalWeekly = document.getElementById('rental_weekly');
-                const rentalMonthly = document.getElementById('rental_monthly');
-                // Delivery fee inputs
-                // const standardDelivery = document.querySelector('input[name="standard_delivery_fee"]');
-                // const extendedDelivery = document.querySelector('input[name="extended_delivery_fee"]');
-
-                if (isRetail) {
-                    retailPrice.setAttribute('required', 'required');
-                    rentalDaily.removeAttribute('required');
-                    rentalWeekend.removeAttribute('required');
-                    rentalWeekly.removeAttribute('required');
-                    rentalMonthly.removeAttribute('required');
-                } else {
-                    rentalDaily.setAttribute('required', 'required');
-                    rentalWeekend.setAttribute('required', 'required');
-                    rentalWeekly.setAttribute('required', 'required');
-                    rentalMonthly.setAttribute('required', 'required');
-                    retailPrice.removeAttribute('required');
-                }
-            });
-
         });
     </script>
 @endpush

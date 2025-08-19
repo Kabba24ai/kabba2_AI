@@ -358,7 +358,7 @@
                                         };
                                     @endphp
 
-                                    <span>Damage Waiver
+                                    <span>Damage Waiver Protection
                                         <span class="font-medium">
                                             + {{ $damageWaiverPrice }}
                                         </span>

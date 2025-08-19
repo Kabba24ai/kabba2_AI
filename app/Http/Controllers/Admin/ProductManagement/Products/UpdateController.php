@@ -27,6 +27,7 @@ class UpdateController extends Controller
             $productData = [
                 'product_name' => $validated['product_name'],
                 'product_type' => $validated['product_type'],
+                'slug' => $validated['slug'] ?? null,
                 'short_description' => $validated['short_description'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'seo_title' => $validated['seo_title'] ?? null,

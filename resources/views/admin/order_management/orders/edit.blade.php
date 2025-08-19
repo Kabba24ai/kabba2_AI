@@ -1928,7 +1928,9 @@
                     })
                     .then(res => {
                         if (res && res.success) {
-                            notyf.success(res.message);
+                            setTimeout(() => {
+                                notyf.success(res.message);
+                            }, 500);
                             window.open(res.redirect_url, '_blank');
                             closeReorderModal();
 

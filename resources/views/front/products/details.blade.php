@@ -330,38 +330,38 @@
                             @endif
 
                             @if (
-                                $productDetail->rental_truck_insurance_daily !== null ||
-                                    $productDetail->rental_truck_insurance_weekend !== null ||
-                                    $productDetail->rental_truck_insurance_weekly !== null ||
-                                    $productDetail->rental_truck_insurance_monthly !== null)
-                                <!-- Truck Insurance -->
+                                $productDetail->rental_track_insurance_daily !== null ||
+                                    $productDetail->rental_track_insurance_weekend !== null ||
+                                    $productDetail->rental_track_insurance_weekly !== null ||
+                                    $productDetail->rental_track_insurance_monthly !== null)
+                                <!-- Track Insurance -->
                                 <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="truckInsuranceCheckbox"
-                                        data-charged="1 Time Max" data-name="rental_truck_insurance"
-                                        data-keep="{{ $productSettings['truck_insurance_approve_label'] }}"
-                                        data-discard="{{ $productSettings['truck_insurance_decline_label'] }}"
-                                        data-message="{{ $productSettings['truck_insurance_info'] }}" />
+                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="trackInsuranceCheckbox"
+                                        data-charged="1 Time Max" data-name="rental_track_insurance"
+                                        data-keep="{{ $productSettings['track_insurance_approve_label'] }}"
+                                        data-discard="{{ $productSettings['track_insurance_decline_label'] }}"
+                                        data-message="{{ $productSettings['track_insurance_info'] }}" />
                                     @php
-                                        $truckInsurancePrice = match ($productVariant) {
+                                        $trackInsurancePrice = match ($productVariant) {
                                             'daily' => App\Helpers\CustomHelper::formatCurrency(
-                                                $productDetail->rental_truck_insurance_daily,
+                                                $productDetail->rental_track_insurance_daily,
                                             ),
                                             'weekend' => App\Helpers\CustomHelper::formatCurrency(
-                                                $productDetail->rental_truck_insurance_weekend,
+                                                $productDetail->rental_track_insurance_weekend,
                                             ),
                                             'weekly' => App\Helpers\CustomHelper::formatCurrency(
-                                                $productDetail->rental_truck_insurance_weekly,
+                                                $productDetail->rental_track_insurance_weekly,
                                             ),
                                             'monthly' => App\Helpers\CustomHelper::formatCurrency(
-                                                $productDetail->rental_truck_insurance_monthly,
+                                                $productDetail->rental_track_insurance_monthly,
                                             ),
                                             default => '-',
                                         };
                                     @endphp
 
-                                    <span>Truck Insurance
+                                    <span>Track Insurance
                                         <span class="font-medium">
-                                            + {{ $truckInsurancePrice }}
+                                            + {{ $trackInsurancePrice }}
                                         </span>
                                     </span>
                                 </label>

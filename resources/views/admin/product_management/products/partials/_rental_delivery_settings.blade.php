@@ -167,65 +167,69 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Truck
-                    Insurance</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
+                    Track Insurance
+                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
-                    {!! html()->text('rental_truck_insurance_daily')->attributes([
+                    {!! html()->text('rental_track_insurance_daily')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
-                            'data-parsley-errors-container' => '#rental-truck-insurance-daily-errors',
+                            'data-parsley-errors-container' => '#rental-track-insurance-daily-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <div id="rental-truck-insurance-daily-errors"></div>
+                <div id="rental-track-insurance-daily-errors"></div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Truck
-                    Insurance</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
+                    Track Insurance
+                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
-                    {!! html()->text('rental_truck_insurance_weekend')->attributes([
+                    {!! html()->text('rental_track_insurance_weekend')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
-                            'data-parsley-errors-container' => '#rental-truck-insurance-weekend-errors',
+                            'data-parsley-errors-container' => '#rental-track-insurance-weekend-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <div id="rental-truck-insurance-weekend-errors"></div>
+                <div id="rental-track-insurance-weekend-errors"></div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Truck
-                    Insurance</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
+                    Track Insurance
+                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
-                    {!! html()->text('rental_truck_insurance_weekly')->attributes([
+                    {!! html()->text('rental_track_insurance_weekly')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
-                            'data-parsley-errors-container' => '#rental-truck-insurance-weekly-errors',
+                            'data-parsley-errors-container' => '#rental-track-insurance-weekly-errors',
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <div id="rental-truck-insurance-weekly-errors"></div>
+                <div id="rental-track-insurance-weekly-errors"></div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Truck
-                    Insurance</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
+                    Track Insurance
+                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
-                    {!! html()->text('rental_truck_insurance_monthly')->attributes([
+                    {!! html()->text('rental_track_insurance_monthly')->attributes([
                             'placeholder' => '0',
                             'data-digit-input' => 'true',
                             'data-parsley-maxlength' => 8,

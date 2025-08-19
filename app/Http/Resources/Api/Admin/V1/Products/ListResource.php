@@ -47,10 +47,10 @@ class ListResource extends JsonResource
             'rental_damage_waiver_weekly' => $this->rental_damage_waiver_weekly ?? 0,
             'rental_damage_waiver_monthly' => $this->rental_damage_waiver_monthly ?? 0,
 
-            'rental_truck_insurance_daily' => $this->rental_truck_insurance_daily ?? 0,
-            'rental_truck_insurance_weekend' => $this->rental_truck_insurance_weekend ?? 0,
-            'rental_truck_insurance_weekly' => $this->rental_truck_insurance_weekly ?? 0,
-            'rental_truck_insurance_monthly' => $this->rental_truck_insurance_monthly ?? 0,
+            'rental_track_insurance_daily' => $this->rental_track_insurance_daily ?? 0,
+            'rental_track_insurance_weekend' => $this->rental_track_insurance_weekend ?? 0,
+            'rental_track_insurance_weekly' => $this->rental_track_insurance_weekly ?? 0,
+            'rental_track_insurance_monthly' => $this->rental_track_insurance_monthly ?? 0,
 
             'rental_prepaid_cleaning' => $this->rental_prepaid_cleaning ?? 0,
             'rental_prepaid_fuel' => $this->rental_prepaid_fuel ?? 0,

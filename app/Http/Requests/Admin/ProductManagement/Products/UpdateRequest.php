@@ -63,11 +63,11 @@ class UpdateRequest extends ApiBaseFormRequest
             'rental_damage_waiver_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_damage_waiver_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
-            // Truck insurance
-            'rental_truck_insurance_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_truck_insurance_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_truck_insurance_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_truck_insurance_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            // Track insurance
+            'rental_track_insurance_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_track_insurance_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_track_insurance_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_track_insurance_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Prepaid options
             'rental_prepaid_cleaning' => ['nullable', 'numeric', 'min:0', 'max:9999999'],

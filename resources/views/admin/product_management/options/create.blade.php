@@ -16,8 +16,13 @@
 
         {{-- Flash + Error --}}
         @include('flash::message')
-        @include('admin.partials.formErrors')
-        {{ html()->form('POST', route('admin.product-management.options.create'))->attribute('autocomplete', 'off')->open() }}
+        {{ html()->form()->attributes([
+                'action' => route('admin.product-management.options.create'),
+                'method' => 'POST',
+                'autocomplete' => 'off',
+                'data-parsley-validate' => true,
+                'class' => 'space-y-8',
+            ])->open() }}
         @include('admin.product_management.options.partials._form')
 
         <div class="mt-6 flex justify-end gap-4">

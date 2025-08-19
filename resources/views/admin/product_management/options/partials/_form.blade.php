@@ -1,8 +1,8 @@
 {{-- Rental Options List Form Partial --}}
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-8 gap-6 mb-8">
     {{-- Name --}}
-    <div>
+    <div class="col-span-2">
         {{ html()->label('Name', 'name')->class('block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required') }}
         {{ html()->text('name', old('name'))->id('name')->class([
                 'w-full rounded-lg border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white',
@@ -15,6 +15,22 @@
                 'placeholder' => 'Enter Name',
             ]) }}
         @error('name')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Description --}}
+    <div class="col-span-4">
+        {{ html()->label('Description', 'description')->class('block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300') }}
+        {{ html()->text('description', old('description'))->id('description')->attributes([
+                'maxlength' => 500,
+                'data-parsley-maxlength' => 500,
+                'placeholder' => 'Enter Description',
+            ])->class([
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white',
+                'border-red-500' => $errors->has('description'),
+            ]) }}
+        @error('description')
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
@@ -32,9 +48,8 @@
         $selectedType = old('type', isset($objProductOption) ? $objProductOption->type : 'Rental');
     @endphp
 
-
     <!-- Type Selector -->
-    <div class="mb-4">
+    <div class="col-span-1">
         <label for="type"
             class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Type</label>
         <select name="type" id="type"
@@ -50,8 +65,8 @@
     </div>
 
     {{-- Status --}}
-    <div>
-        {{ html()->label('Status', 'status')->class('block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300') }}
+    <div class="col-span-1">
+        {{ html()->label('Status', 'status')->class('block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required') }}
         {{ html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $objProductOption->status ?? 'Active'))->id('status')->class([
                 'w-full rounded-lg border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white',
                 'border-red-500' => $errors->has('status'),
@@ -60,23 +75,6 @@
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
-</div>
-
-{{-- Description --}}
-<div class="mb-8">
-    {{ html()->label('Description', 'description')->class('block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300') }}
-    {{ html()->textarea('description', old('description'))->id('description')->attributes([
-            'rows' => 3,
-            'maxlength' => 1000,
-            'data-parsley-maxlength' => 1000,
-            'placeholder' => 'Enter Description',
-        ])->class([
-            'w-full rounded-lg border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white',
-            'border-red-500' => $errors->has('description'),
-        ]) }}
-    @error('description')
-        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-    @enderror
 </div>
 
 <!-- Options Table -->
@@ -98,9 +96,6 @@
         <button type="button" id="add-option" class="mt-3 text-blue-600 hover:underline text-sm font-medium">
             + Add new row
         </button>
-        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            Start each new Options List with 4 blank rows by default.
-        </p>
     </div>
 </div>
 
@@ -123,6 +118,14 @@
             const modal = document.getElementById('comment-modal');
             const modalContent = document.getElementById('modal-content');
             const typeSelect = document.getElementById('type');
+            const dataErrors = JSON.parse(wrapper.dataset.errors || '{}');
+
+            if (Object.keys(dataErrors).length > 0) {
+                Object.entries(dataErrors).forEach(([field, messages]) => {
+                    messages.forEach(msg => notyf.error(msg));
+                });
+            }
+
             let options = JSON.parse(wrapper.dataset.options || '[]');
             options = options.map(opt => ({
                 ...opt,
@@ -240,7 +243,7 @@
                 <td class="px-3 py-2">
                     <input type="text" name="options[${index}][label]" value="${opt.label}"
                         class="w-full rounded-md border px-2 py-1 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                        placeholder="Option Name" />
+                        placeholder="Option Name" required />
                     ${error}
                 </td>
 

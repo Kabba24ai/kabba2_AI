@@ -26,7 +26,7 @@
         <div class="mt-4 md:mt-0">
             <a href="https://admin.kabba.local/checklist_management/checklist-master" class="flex items-center text-sm text-gray-500 hover:text-gray-700">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 Cancel
             </a>
@@ -34,56 +34,55 @@
     </div>
 
     <!-- Step Header (Hidden initially and shown on step 2+) -->
-     <div id="stepHeader" class="mb-6 hidden-step-header mx-auto px-4 py-4 border-b border-gray-200">
-  <div class="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-4 text-sm text-gray-700">
+    <div id="stepHeader" class="mb-6 hidden-step-header mx-auto px-4 py-4 border-b border-gray-200">
+        <div class="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-4 text-sm text-gray-700">
     
-    <!-- Step 1 -->
-    <div class="flex items-center gap-3 flex-1 min-w-[240px]">
-      <div id="stepIcon1" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">1</div>
-      <div>
-        <p class="font-semibold">Name Your Checklist</p>
-        <p class="text-xs text-gray-500">Create and name your checklist system</p>
-      </div>
+            <!-- Step 1 -->
+            <div class="flex items-center gap-3 flex-1 min-w-[240px]">
+                <div id="stepIcon1" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">1</div>
+                <div>
+                    <p class="font-semibold">Name Your Checklist</p>
+                    <p class="text-xs text-gray-500">Create and name your checklist system</p>
+                </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hidden md:block text-gray-300 self-center">➝</div>
+
+            <!-- Step 2 -->
+            <div class="flex items-center gap-3 flex-1 min-w-[240px]">
+                <div id="stepIcon2" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">2</div>
+                <div>
+                    <p class="font-semibold">Assign Rental Ready Template</p>
+                    <p class="text-xs text-gray-500">Select rental ready checklist template</p>
+                </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hidden md:block text-gray-300 self-center">➝</div>
+
+            <!-- Step 3 -->
+            <div class="flex items-center gap-3 flex-1 min-w-[240px]">
+                <div id="stepIcon3" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">3</div>
+                <div>
+                    <p class="font-semibold">Assign Customer Template</p>
+                    <p class="text-xs text-gray-500">Select customer checklist template</p>
+                </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hidden md:block text-gray-300 self-center">➝</div>
+
+            <!-- Step 4 -->
+            <div class="flex items-center gap-3 flex-1 min-w-[240px]">
+                <div id="stepIcon4" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">4</div>
+                <div>
+                    <p class="font-semibold">Complete & Save</p>
+                    <p class="text-xs text-gray-500">Save and return to Equipment Mgt.</p>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <!-- Arrow -->
-    <div class="hidden md:block text-gray-300 self-center">➝</div>
-
-    <!-- Step 2 -->
-    <div class="flex items-center gap-3 flex-1 min-w-[240px]">
-      <div id="stepIcon2" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">2</div>
-      <div>
-        <p class="font-semibold">Assign Rental Ready Template</p>
-        <p class="text-xs text-gray-500">Select rental ready checklist template</p>
-      </div>
-    </div>
-
-    <!-- Arrow -->
-    <div class="hidden md:block text-gray-300 self-center">➝</div>
-
-    <!-- Step 3 -->
-    <div class="flex items-center gap-3 flex-1 min-w-[240px]">
-      <div id="stepIcon3" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">3</div>
-      <div>
-        <p class="font-semibold">Assign Customer Template</p>
-        <p class="text-xs text-gray-500">Select customer checklist template</p>
-      </div>
-    </div>
-
-    <!-- Arrow -->
-    <div class="hidden md:block text-gray-300 self-center">➝</div>
-
-    <!-- Step 4 -->
-    <div class="flex items-center gap-3 flex-1 min-w-[240px]">
-      <div id="stepIcon4" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">4</div>
-      <div>
-        <p class="font-semibold">Complete & Save</p>
-        <p class="text-xs text-gray-500">Save and return to Equipment Mgt.</p>
-      </div>
-    </div>
-
-  </div>
-</div>
 
     <!-- <div id="stepHeader" class="mb-6 hidden-step-header  mx-auto px-2 sm:px-2 lg:px-2 py-2 border-b border-gray-200">
         <div class="flex flex-wrap justify-between items-center text-sm text-gray-700 gap-y-4">
@@ -145,7 +144,7 @@
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <button class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-cog-6-tooth  class="w-4 h-4" /> Rental Ready Admin</button>
+                        <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-cog-6-tooth  class="w-4 h-4" /> Rental Ready Admin</a>
                         <button class="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-users class="w-4 h-4" />Customer Admin</button>
                     </div>
                 </div>
@@ -192,7 +191,7 @@
         </div>
 
         <!-- Step 2 -->
-        <div id="step2" class="hidden">
+        <div id="step2" class="hidden max-w-2xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
             
             <!-- Step Title -->
             <div class="bg-green-50 border border-green-200 text-green-800 text-sm p-4 rounded-md mb-6">
@@ -207,7 +206,7 @@
                     <label class="text-sm font-medium text-gray-700 mb-1 block">Search Templates</label>
                     <div class="relative">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-                        <input type="text" placeholder="Search rental ready templates..." class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="">
+                        <input type="text" placeholder="Search rental ready templates..." class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md" value="">
                     </div>
                 </div>
                 <!-- <div>
@@ -236,8 +235,8 @@
                             <!-- Icon -->
                             <x-heroicon-o-document class="w-6 h-6 text-green-600" />
                             <div>
-                            <p class="font-semibold text-gray-900 leading-tight">Compact Equipment Standard</p>
-                            <p class="text-sm text-gray-600">Compact Equipment</p>
+                                <p class="font-semibold text-gray-900 leading-tight">Compact Equipment Standard</p>
+                                <p class="text-sm text-gray-600">Compact Equipment</p>
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mt-1">Standard checklist for compact equipment like skid steers and mini excavators</p>
@@ -350,7 +349,7 @@
         </div>
 
         <!-- Step 3 -->
-        <div id="step3" class="hidden">
+        <div id="step3" class="hidden max-w-2xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
             
             <!-- Step Title -->
             <div class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-md mb-6">
@@ -361,7 +360,7 @@
             <div class="flex items-center justify-between mb-5"><h3 class="text-md font-semibold text-gray-800">Select Customer Template</h3></div>
             <div class="relative mb-6">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-                <input type="text" placeholder="Search customer templates..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="">
+                <input type="text" placeholder="Search customer templates..." class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm" value="">
             </div>
 
             <!-- Card Options as Radio Buttons -->

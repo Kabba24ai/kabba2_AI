@@ -1,4 +1,4 @@
-
+<div class="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-2xl mx-auto">
     <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
         <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
             <x-heroicon-o-user class="w-5 h-5 text-blue-600" />
@@ -304,7 +304,6 @@
         </div>
     </div>
 
-
     <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
         <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
             <x-heroicon-o-clock class="w-5 h-5 text-blue-600" />
@@ -340,317 +339,316 @@
         </div>
     </div>
 
-   <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
-        <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
-            <x-heroicon-o-phone class="w-5 h-5 text-blue-600" />
-            Emergency Contact 1
-        </h2>
+    <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
+            <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
+                <x-heroicon-o-phone class="w-5 h-5 text-blue-600" />
+                Emergency Contact 1
+            </h2>
 
-        <div class="space-y-6">
-            <!-- Name Row -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                    <label for="emergency_first_name" class="text-xs text-gray-500 font-medium">First Name </label>
-                    {!! html()->text('emergency_first_name', old('emergency_first_name', $user->emergencyContactOne->first_name ?? ''))
-                        ->id('emergency_first_name')
+            <div class="space-y-6">
+                <!-- Name Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label for="emergency_first_name" class="text-xs text-gray-500 font-medium">First Name </label>
+                        {!! html()->text('emergency_first_name', old('emergency_first_name', $user->emergencyContactOne->first_name ?? ''))
+                            ->id('emergency_first_name')
+                            ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'placeholder' => 'Jane',
+                                'autocomplete' => 'off',
+                            ])
+                            
+                        !!}
+                    </div>
+
+                    <div>
+                        <label for="emergency_middle_name" class="text-xs text-gray-500 font-medium">Middle Name</label>
+                        {!! html()->text('emergency_middle_name', old('emergency_middle_name', $user->emergencyContactOne->middle_name ?? ''))
+                            ->id('emergency_middle_name')
+                            ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'placeholder' => 'Marie',
+                                'autocomplete' => 'off',
+                            ])
+                        !!}
+                    </div>
+
+                    <div>
+                        <label for="emergency_last_name" class="text-xs text-gray-500 font-medium">Last Name </label>
+                        {!! html()->text('emergency_last_name', old('emergency_last_name', $user->emergencyContactOne->last_name ?? ''))
+                            ->id('emergency_last_name')
+                            ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'placeholder' => 'Smith',
+                                'autocomplete' => 'off',
+                            ])
+                            
+                        !!}
+                    </div>
+                </div>
+
+                <!-- Contact Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label for="emergency_email" class="text-xs text-gray-500 font  -medium">Email Address</label>
+                        {!! html()->email('emergency_email', old('emergency_email', $user->emergencyContactOne->email ?? ''))
+                            ->id('emergency_email')
+                            ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'placeholder' => 'jane.smith@email.com',
+                                'autocomplete' => 'off',
+                            ])
+                        !!}
+                    </div>
+
+                    <div>
+                        <label for="emergency_mobile_phone" class="text-xs text-gray-500 font-medium">Mobile Phone</label>
+                        {!! html()->text('emergency_mobile_phone', old('emergency_mobile_phone', $user->emergencyContactOne->mobile_phone ?? ''))
+                            ->id('emergency_mobile_phone')
+                            ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'maxlength' => 14,
+                                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                                'data-parsley-error-message' => 'Please enter mobile number in <br> format (xxx) xxx-xxxx',
+                                'placeholder' => '(xxx) xxx-xxxx',
+                                'id' => 'company_phone',
+                                'autocomplete' => 'tel',
+                            ])
+                        !!}
+                    </div>
+
+                    <div>
+                        <label for="emergency_phone" class="text-xs text-gray-500 font-medium">Phone Number</label>
+                        {!! html()->text('emergency_phone', old('emergency_phone', $user->emergencyContactOne->phone_number ?? ''))
+                            ->id('emergency_phone')
+                            ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'maxlength' => 14,
+                                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                                'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
+                                'placeholder' => '(xxx) xxx-xxxx',
+                                'id' => 'company_phone',
+                                'autocomplete' => 'tel',
+                            ])
+                        !!}
+                    </div>
+                </div>  
+
+                <!-- Address -->
+                <div class="mb-4">
+                    <label for="emergency_address" class="text-xs text-gray-500 font-medium">Street Address</label>
+                    {!! html()->text('emergency_address', old('emergency_address', $user->emergencyContactOne->street_address ?? ''))
+                        ->id('emergency_address')
                         ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                         ->attributes([
-                            'placeholder' => 'Jane',
-                            'autocomplete' => 'off',
-                        ])
-                        
-                    !!}
-                </div>
-
-                <div>
-                    <label for="emergency_middle_name" class="text-xs text-gray-500 font-medium">Middle Name</label>
-                    {!! html()->text('emergency_middle_name', old('emergency_middle_name', $user->emergencyContactOne->middle_name ?? ''))
-                        ->id('emergency_middle_name')
-                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'placeholder' => 'Marie',
-                            'autocomplete' => 'off',
-                        ])
-                    !!}
-                </div>
-
-                <div>
-                    <label for="emergency_last_name" class="text-xs text-gray-500 font-medium">Last Name </label>
-                    {!! html()->text('emergency_last_name', old('emergency_last_name', $user->emergencyContactOne->last_name ?? ''))
-                        ->id('emergency_last_name')
-                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'placeholder' => 'Smith',
-                            'autocomplete' => 'off',
-                        ])
-                        
-                    !!}
-                </div>
-            </div>
-
-            <!-- Contact Row -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                    <label for="emergency_email" class="text-xs text-gray-500 font  -medium">Email Address</label>
-                    {!! html()->email('emergency_email', old('emergency_email', $user->emergencyContactOne->email ?? ''))
-                        ->id('emergency_email')
-                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'placeholder' => 'jane.smith@email.com',
-                            'autocomplete' => 'off',
-                        ])
-                    !!}
-                </div>
-
-                <div>
-                    <label for="emergency_mobile_phone" class="text-xs text-gray-500 font-medium">Mobile Phone</label>
-                    {!! html()->text('emergency_mobile_phone', old('emergency_mobile_phone', $user->emergencyContactOne->mobile_phone ?? ''))
-                        ->id('emergency_mobile_phone')
-                        ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'maxlength' => 14,
-                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                            'data-parsley-error-message' => 'Please enter mobile number in <br> format (xxx) xxx-xxxx',
-                            'placeholder' => '(xxx) xxx-xxxx',
-                            'id' => 'company_phone',
-                            'autocomplete' => 'tel',
-                        ])
-                    !!}
-                </div>
-
-                <div>
-                    <label for="emergency_phone" class="text-xs text-gray-500 font-medium">Phone Number</label>
-                    {!! html()->text('emergency_phone', old('emergency_phone', $user->emergencyContactOne->phone_number ?? ''))
-                        ->id('emergency_phone')
-                        ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'maxlength' => 14,
-                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                            'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
-                            'placeholder' => '(xxx) xxx-xxxx',
-                            'id' => 'company_phone',
-                            'autocomplete' => 'tel',
-                        ])
-                    !!}
-                </div>
-            </div>  
-
-            <!-- Address -->
-            <div class="mb-4">
-                <label for="emergency_address" class="text-xs text-gray-500 font-medium">Street Address</label>
-                {!! html()->text('emergency_address', old('emergency_address', $user->emergencyContactOne->street_address ?? ''))
-                    ->id('emergency_address')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes([
-                        'placeholder' => '456 Oak Avenue',
-                        'autocomplete' => 'off',
-                    ])
-                !!}
-            </div>
-
-            <!-- City, State, Zip, Country -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label for="emergency_city" class="text-xs text-gray-500 font-medium">City</label>
-                    {!! html()->text('emergency_city', old('emergency_city', $user->emergencyContactOne->city ?? ''))
-                        ->id('emergency_city')
-                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'placeholder' => 'New York',
+                            'placeholder' => '456 Oak Avenue',
                             'autocomplete' => 'off',
                         ])
                     !!}
                 </div>
 
-                <div>
-                    <label for="emergency_state" class="text-xs text-gray-500 font-medium">State</label>
-                    <!-- {!! html()
-                                ->select('emergency_state',
-                                $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
+                <!-- City, State, Zip, Country -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="emergency_city" class="text-xs text-gray-500 font-medium">City</label>
+                        {!! html()->text('emergency_city', old('emergency_city', $user->emergencyContactOne->city ?? ''))
+                            ->id('emergency_city')
+                            ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'placeholder' => 'New York',
+                                'autocomplete' => 'off',
+                            ])
+                        !!}
+                    </div>
+
+                    <div>
+                        <label for="emergency_state" class="text-xs text-gray-500 font-medium">State</label>
+                        <!-- {!! html()
+                                    ->select('emergency_state',
+                                    $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
+                                        old('emergency_state', $user->emergencyContactOne->state ?? '')
+                                    )
+                                    ->id('emergency_state')
+                                    ->class([
+                                        'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                        'border-red-500' => $errors->has('emergency_state'),
+                                    ])->required()
+                                !!} -->
+
+                                {!! html()
+                                ->select(
+                                    'emergency_state',
+                                    ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
                                     old('emergency_state', $user->emergencyContactOne->state ?? '')
                                 )
                                 ->id('emergency_state')
                                 ->class([
                                     'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                                     'border-red-500' => $errors->has('emergency_state'),
+                                ])
+                            !!}
+
+
+                    </div>
+
+                    <div>
+                        <label for="emergency_zip" class="text-xs text-gray-500 font-medium">Zip Code</label>
+                        {!! html()->text('emergency_zip', old('emergency_zip', $user->emergencyContactOne->zip_code ?? ''))
+                            ->id('emergency_zip')
+                            ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'placeholder' => '10001',
+                                'autocomplete' => 'off',
+                            ])
+                        !!}
+                    </div>
+
+                    <div>
+                        <label for="emergency_country" class="text-xs text-gray-500 font-medium">Country</label>
+                        {!! html()->text('emergency_country', old('emergency_country', $user->emergencyContactOne->country ?? ''))
+                            ->id('emergency_country')
+                            ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                            ->attributes([
+                                'placeholder' => 'USA',
+                                'autocomplete' => 'off',
+                            ])
+                        !!}
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
+        <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
+            <x-heroicon-o-phone class="w-5 h-5 text-blue-600" /> 
+            Emergency Contact 2
+        </h2>
+
+        <div class="space-y-6">
+            <!-- Name Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label for="emergency2_first_name" class="text-xs text-gray-500 font-medium">First Name</label>
+                    {!! html()->text('emergency2_first_name', old('emergency2_first_name', $user->emergencyContactTwo->first_name ?? ''))
+                        ->id('emergency2_first_name')
+                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                        ->attributes(['placeholder' => 'Robert', 'autocomplete' => 'off']) !!}
+                </div>
+                <div>
+                    <label for="emergency2_middle_name" class="text-xs text-gray-500 font-medium">Middle Name</label>
+                    {!! html()->text('emergency2_middle_name', old('emergency2_middle_name', $user->emergencyContactTwo->middle_name ?? ''))
+                        ->id('emergency2_middle_name')
+                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                        ->attributes(['placeholder' => 'James', 'autocomplete' => 'off']) !!}
+                </div>
+                <div>
+                    <label for="emergency2_last_name" class="text-xs text-gray-500 font-medium">Last Name</label>
+                    {!! html()->text('emergency2_last_name', old('emergency2_last_name', $user->emergencyContactTwo->last_name ?? ''))
+                        ->id('emergency2_last_name')
+                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                        ->attributes(['placeholder' => 'Johnson', 'autocomplete' => 'off']) !!}
+                </div>
+            </div>
+
+            <!-- Contact Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label for="emergency2_email" class="text-xs text-gray-500 font-medium">Email Address</label>
+                    {!! html()->email('emergency2_email', old('emergency2_email', $user->emergencyContactTwo->email ?? ''))
+                        ->id('emergency2_email')
+                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                        ->attributes(['placeholder' => 'robert.johnson@email.com', 'autocomplete' => 'off']) !!}
+                </div>
+                <div>
+                    <label for="emergency2_mobile_phone" class="text-xs text-gray-500 font-medium">Mobile Phone</label>
+                    {!! html()->text('emergency2_mobile_phone', old('emergency2_mobile_phone', $user->emergencyContactTwo->mobile_phone ?? ''))
+                        ->id('emergency2_mobile_phone')
+                        ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                        ->attributes(['maxlength' => 14,
+                                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                                'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
+                                'placeholder' => '(xxx) xxx-xxxx',
+                                'id' => 'company_phone',
+                                'autocomplete' => 'tel',]) !!}
+                </div>
+                <div>
+                    <label for="emergency2_phone_number" class="text-xs text-gray-500 font-medium">Phone Number</label>
+                    {!! html()->text('emergency2_phone_number', old('emergency2_phone_number', $user->emergencyContactTwo->phone_number ?? ''))
+                        ->id('emergency2_phone_number')
+                        ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                        ->attributes(['maxlength' => 14,
+                                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                                'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
+                                'placeholder' => '(xxx) xxx-xxxx',
+                                'id' => 'company_phone',
+                                'autocomplete' => 'tel',]) !!}
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="mb-4">
+                <label for="emergency2_street_address" class="text-xs text-gray-500 font-medium">Street Address</label>
+                {!! html()->text('emergency2_street_address', old('emergency2_street_address', $user->emergencyContactTwo->street_address ?? ''))
+                    ->id('emergency2_street_address')
+                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                    ->attributes(['placeholder' => '789 Pine Street', 'autocomplete' => 'off']) !!}
+            </div>
+
+            <!-- City, State, Zip, Country -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="emergency2_city" class="text-xs text-gray-500 font-medium">City</label>
+                    {!! html()->text('emergency2_city', old('emergency2_city', $user->emergencyContactTwo->city ?? ''))
+                        ->id('emergency2_city')
+                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                        ->attributes(['placeholder' => 'Brooklyn', 'autocomplete' => 'off']) !!}
+                </div>
+                <div>
+                    <label for="emergency2_state" class="text-xs text-gray-500 font-medium">State</label>
+                    <!-- {!! html()
+                                ->select('emergency2_state',
+                                $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
+                                    old('emergency2_state', $user->emergencyContactTwo->state ?? '')
+                                )
+                                ->id('emergency2_state')
+                                ->class([
+                                    'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                    'border-red-500' => $errors->has('emergency2_state'),
                                 ])->required()
                             !!} -->
 
                             {!! html()
-                            ->select(
-                                'emergency_state',
-                                ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
-                                old('emergency_state', $user->emergencyContactOne->state ?? '')
-                            )
-                            ->id('emergency_state')
-                            ->class([
-                                'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has('emergency_state'),
-                            ])
-                        !!}
-
+                                ->select(
+                                    'emergency2_state',
+                                    ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
+                                    old('emergency2_state', $user->emergencyContactTwo->state ?? '')
+                                )
+                                ->id('emergency2_state')
+                                ->class([
+                                    'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                                    'border-red-500' => $errors->has('emergency2_state'),
+                                ])
+                            
+                            !!}
 
                 </div>
-
                 <div>
-                    <label for="emergency_zip" class="text-xs text-gray-500 font-medium">Zip Code</label>
-                    {!! html()->text('emergency_zip', old('emergency_zip', $user->emergencyContactOne->zip_code ?? ''))
-                        ->id('emergency_zip')
+                    <label for="emergency2_zip" class="text-xs text-gray-500 font-medium">Zip Code</label>
+                    {!! html()->text('emergency2_zip', old('emergency2_zip', $user->emergencyContactTwo->zip_code ?? ''))
+                        ->id('emergency2_zip')
                         ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'placeholder' => '10001',
-                            'autocomplete' => 'off',
-                        ])
-                    !!}
+                        ->attributes(['placeholder' => '11201', 'autocomplete' => 'off']) !!}
                 </div>
-
                 <div>
-                    <label for="emergency_country" class="text-xs text-gray-500 font-medium">Country</label>
-                    {!! html()->text('emergency_country', old('emergency_country', $user->emergencyContactOne->country ?? ''))
-                        ->id('emergency_country')
+                    <label for="emergency2_country" class="text-xs text-gray-500 font-medium">Country</label>
+                    {!! html()->text('emergency2_country', old('emergency2_country', $user->emergencyContactTwo->country ?? ''))
+                        ->id('emergency2_country')
                         ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'placeholder' => 'USA',
-                            'autocomplete' => 'off',
-                        ])
-                    !!}
+                        ->attributes(['placeholder' => 'USA', 'autocomplete' => 'off']) !!}
                 </div>
-            </div>
-        </div>
-   </div>
-
-<div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
-    <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
-        <x-heroicon-o-phone class="w-5 h-5 text-blue-600" /> 
-        Emergency Contact 2
-    </h2>
-
-    <div class="space-y-6">
-        <!-- Name Row -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-                <label for="emergency2_first_name" class="text-xs text-gray-500 font-medium">First Name</label>
-                {!! html()->text('emergency2_first_name', old('emergency2_first_name', $user->emergencyContactTwo->first_name ?? ''))
-                    ->id('emergency2_first_name')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => 'Robert', 'autocomplete' => 'off']) !!}
-            </div>
-            <div>
-                <label for="emergency2_middle_name" class="text-xs text-gray-500 font-medium">Middle Name</label>
-                {!! html()->text('emergency2_middle_name', old('emergency2_middle_name', $user->emergencyContactTwo->middle_name ?? ''))
-                    ->id('emergency2_middle_name')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => 'James', 'autocomplete' => 'off']) !!}
-            </div>
-            <div>
-                <label for="emergency2_last_name" class="text-xs text-gray-500 font-medium">Last Name</label>
-                {!! html()->text('emergency2_last_name', old('emergency2_last_name', $user->emergencyContactTwo->last_name ?? ''))
-                    ->id('emergency2_last_name')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => 'Johnson', 'autocomplete' => 'off']) !!}
-            </div>
-        </div>
-
-        <!-- Contact Row -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-                <label for="emergency2_email" class="text-xs text-gray-500 font-medium">Email Address</label>
-                {!! html()->email('emergency2_email', old('emergency2_email', $user->emergencyContactTwo->email ?? ''))
-                    ->id('emergency2_email')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => 'robert.johnson@email.com', 'autocomplete' => 'off']) !!}
-            </div>
-            <div>
-                <label for="emergency2_mobile_phone" class="text-xs text-gray-500 font-medium">Mobile Phone</label>
-                {!! html()->text('emergency2_mobile_phone', old('emergency2_mobile_phone', $user->emergencyContactTwo->mobile_phone ?? ''))
-                    ->id('emergency2_mobile_phone')
-                    ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['maxlength' => 14,
-                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                            'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
-                            'placeholder' => '(xxx) xxx-xxxx',
-                            'id' => 'company_phone',
-                            'autocomplete' => 'tel',]) !!}
-            </div>
-            <div>
-                <label for="emergency2_phone_number" class="text-xs text-gray-500 font-medium">Phone Number</label>
-                {!! html()->text('emergency2_phone_number', old('emergency2_phone_number', $user->emergencyContactTwo->phone_number ?? ''))
-                    ->id('emergency2_phone_number')
-                    ->class('masked-phone w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['maxlength' => 14,
-                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                            'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
-                            'placeholder' => '(xxx) xxx-xxxx',
-                            'id' => 'company_phone',
-                            'autocomplete' => 'tel',]) !!}
-            </div>
-        </div>
-
-        <!-- Address -->
-        <div class="mb-4">
-            <label for="emergency2_street_address" class="text-xs text-gray-500 font-medium">Street Address</label>
-            {!! html()->text('emergency2_street_address', old('emergency2_street_address', $user->emergencyContactTwo->street_address ?? ''))
-                ->id('emergency2_street_address')
-                ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                ->attributes(['placeholder' => '789 Pine Street', 'autocomplete' => 'off']) !!}
-        </div>
-
-        <!-- City, State, Zip, Country -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <label for="emergency2_city" class="text-xs text-gray-500 font-medium">City</label>
-                {!! html()->text('emergency2_city', old('emergency2_city', $user->emergencyContactTwo->city ?? ''))
-                    ->id('emergency2_city')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => 'Brooklyn', 'autocomplete' => 'off']) !!}
-            </div>
-            <div>
-                <label for="emergency2_state" class="text-xs text-gray-500 font-medium">State</label>
-                 <!-- {!! html()
-                             ->select('emergency2_state',
-                             $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
-                                 old('emergency2_state', $user->emergencyContactTwo->state ?? '')
-                             )
-                             ->id('emergency2_state')
-                             ->class([
-                                 'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                 'border-red-500' => $errors->has('emergency2_state'),
-                             ])->required()
-                         !!} -->
-
-                         {!! html()
-                            ->select(
-                                'emergency2_state',
-                                ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
-                                old('emergency2_state', $user->emergencyContactTwo->state ?? '')
-                            )
-                            ->id('emergency2_state')
-                            ->class([
-                                'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has('emergency2_state'),
-                            ])
-                           
-                        !!}
-
-            </div>
-            <div>
-                <label for="emergency2_zip" class="text-xs text-gray-500 font-medium">Zip Code</label>
-                {!! html()->text('emergency2_zip', old('emergency2_zip', $user->emergencyContactTwo->zip_code ?? ''))
-                    ->id('emergency2_zip')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => '11201', 'autocomplete' => 'off']) !!}
-            </div>
-            <div>
-                <label for="emergency2_country" class="text-xs text-gray-500 font-medium">Country</label>
-                {!! html()->text('emergency2_country', old('emergency2_country', $user->emergencyContactTwo->country ?? ''))
-                    ->id('emergency2_country')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => 'USA', 'autocomplete' => 'off']) !!}
             </div>
         </div>
     </div>
-</div>
-
 
     <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
         <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
@@ -712,11 +710,11 @@
             </button>
         </div>
     </div>
-
+</div>
 
     @push('js')
 
-    <script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
 
     window.Parsley.addAsyncValidator('useremailcheck', function (xhr) {

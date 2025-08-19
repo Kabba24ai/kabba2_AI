@@ -300,7 +300,7 @@
                     @endif
                 </div>
                 <p class="text-sm text-blue-600 shipping-address-section {{ $order->shippingAddress->isSameAs($order->billingAddress) ? '' : 'hidden' }}"
-                    id="shipping_same_as_billing">Same as billing</p>
+                    id="shipping_same_as_billing">Same as Billing</p>
 
             </div>
         </div>

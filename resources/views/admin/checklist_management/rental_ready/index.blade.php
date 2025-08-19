@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'checklist master')
+@section('title', 'Rental Ready Admin')
 
 @push('css')
 
@@ -9,131 +9,370 @@
 @section('content')
 
     @include('flash::message')
+    @include('admin.partials.formErrors')
 
 
-<!-- Outer Tabs -->
-<div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm mb-6">
-    <div class="flex flex-wrap sm:flex-nowrap p-6 gap-2" data-tab-group="main">
-        <button onclick="showTab('overview', this)" id="tab-overview" class="tab-button bg-green-100 text-green-800 px-4 py-2 text-sm font-medium rounded-md transition">Overview</button>
+    <div class="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-2xl mx-auto">
+ 
 
-        <button onclick="showTab('questions', this)" id="tab-questions" class="tab-button text-gray-700 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">Questions & Categories</button>
-
-        <button onclick="showTab('templates', this)" id="tab-templates" class="tab-button text-gray-700 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">Templates</button>
-    </div>
-</div>
-
-<!-- Outer Tab Contents -->
-<div id="overview" class="tab-content grid grid-cols-1 md:grid-cols-2 gap-6" data-tab-group="main">
-    <!-- Card 1 -->
-    <div class="border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
-        <div class="flex items-start gap-4 mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
-        <h4 class="text-lg font-semibold text-gray-900">Question & Categories Mgt</h4>
-    </div>
-    <p class="text-sm text-gray-600 mb-4">Create and manage inspection questions organized by categories.</p>
-    <button onclick="showTab('questions', document.getElementById('tab-questions'))" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium w-full">Manage Questions & Categories</button>
-  </div>
-
-    <!-- Card 2 -->
-    <div class="border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
-        <div class="flex items-start gap-4 mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
-            <h4 class="text-lg font-semibold text-gray-800">Checklist Templates</h4>
-        </div>
-        <p class="text-sm text-gray-600 mb-4">Build custom checklist templates for different equipment categories.</p>
-        <button onclick="showTab('templates', document.getElementById('tab-templates'))" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium w-full">Manage Templates</button>
-    </div>
-</div>
-
-<div id="questions" class="tab-content hidden" data-tab-group="main">
-    <h3 class="text-2xl font-semibold text-gray-900 mb-2">Question & Categories Mgt</h3>
-    <p class="text-gray-600 mb-6">Manage inspection questions, answers, and categories</p>
-
-    <!-- Inner Tabs -->
-    <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm mb-6 ">
-        <div class="flex gap-6 border-b" data-tab-group="inner">
-            <button onclick="showTab('questionssub', this)" 
-                class="inner-tab px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none">
-                Questions (14)
+        <!-- Outer Tabs -->
+        <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm mb-6">
+        <div class="flex flex-wrap sm:flex-nowrap p-6 gap-2" data-tab-group="main">
+            <button onclick="showTab('overview', this)" id="tab-overview" 
+                    class="tab-button bg-green-100 text-green-800 px-4 py-2 text-sm font-medium rounded-md transition">
+            Overview
             </button>
-            <button onclick="showTab('categoriessub', this)" 
-                class="inner-tab px-4 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 border-b-2 border-transparent focus:outline-none">
-                Categories (9)
+            <button onclick="showTab('questions', this)" id="tab-questions"
+                    class="tab-button text-gray-700 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">
+            Questions & Categories
+            </button>
+            <button onclick="showTab('templates', this)" id="tab-templates"
+                    class="tab-button text-gray-700 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">
+            Templates
             </button>
         </div>
+        </div>
 
-        <!-- Inner Tab Contents -->
-        <div id="questionssub" class="tab-content" data-tab-group="inner">
-            <div class="space-y-6 p-4" id="questionWrapper">
-                 <!-- Header -->
+        <!-- Outer Tab Contents -->
+        <div id="overview" class="tab-content grid grid-cols-1 md:grid-cols-2 gap-6" data-tab-group="main">
+            <!-- Card 1 -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
+                <div class="flex items-start gap-4 mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
+                <h4 class="text-lg font-semibold text-gray-900">Question & Categories Mgt</h4>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Create and manage inspection questions organized by categories.</p>
+            <button onclick="showTab('questions', document.getElementById('tab-questions'))" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium w-full">Manage Questions & Categories</button>
+            </div>
+ 
+            <!-- Card 2 -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
+                <div class="flex items-start gap-4 mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                    <h4 class="text-lg font-semibold text-gray-800">Checklist Templates</h4>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">Build custom checklist templates for different equipment categories.</p>
+                <button onclick="showTab('templates', document.getElementById('tab-templates'))" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium w-full">Manage Templates</button>
+            </div>
+        </div>
+
+        <div id="questions" class="tab-content hidden" data-tab-group="main">
+            <h3 class="text-2xl font-semibold text-gray-900 mb-2">Question & Categories Mgt</h3>
+            <p class="text-gray-600 mb-6">Manage inspection questions, answers, and categories</p>
+
+            <!-- Inner Tabs -->
+            <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm mb-6" >
+                <div class="flex gap-6 border-b" data-tab-group="inner">
+                    <button id="tab-questions-sub" onclick="showTab('questionssub', this)" 
+                            class="inner-tab px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">
+                        Questions ({{ $totalQuestions }})
+
+                    </button>
+                    <button id="tab-categories-sub" onclick="showTab('categoriessub', this)" 
+                            class="inner-tab px-4 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 border-b-2 border-transparent">
+                         Questions Categories ( {{ $rentalreadycategory->count() }} )
+                    </button>
+                </div>
+
+                
+                <!-- Inner Tab Contents -->
+                <div id="questionssub" class="tab-content" data-tab-group="inner">
+                    <div class="space-y-6 p-4" id="questionWrapper">
+                        <!-- Header -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-900">Questions</h2>
+                                <p class="text-gray-600">Create and manage inspection questions and answer options</p>
+                            </div>
+                            <a href="javascript:void(0)"  onclick="openQuestionModal()"
+                                class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 mt-3">
+                                + New Question
+                            </a>
+                        </div>
+                        <!-- Top Filters -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 space-y-4 shadow-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Search -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Search Questions</label>
+                                    <input type="text" placeholder="Search by question name..."
+                                    class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                </div>
+
+                                <!-- Filter -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
+                                    <select
+                                    class="w-full text-sm px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option>All Categories</option>
+                                    @foreach ($rentalreadycategory as $category)
+                                         <option value="{{ $category->id }}"> {{ $category->category_name }} </option>
+                                    @endforeach
+                                    
+                                    
+                                    <!-- <option>Engine</option> -->
+                                    </select>
+                                </div>
+
+                                <!-- Answer Visibility Toggle -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Answer Visibility</label>
+                                    <button id="toggleGlobalAnswers"
+                                    class="w-full font-medium px-4 py-2 text-sm rounded-md flex items-center justify-center gap-2 border border-blue-300 text-blue-600 hover:bg-gray-50 transition">
+                                        <svg id="icon-show" class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        <svg id="icon-hide" class="w-5 h-5 text-gray-900 hidden" fill="none" stroke="currentColor"
+                                            stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.042 10.042 0 013.03-4.362M6.873 6.876A9.953 9.953 0 0112 5c4.477 0 8.267 2.943 9.541 7a9.966 9.966 0 01-1.249 2.527M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18" />
+                                        </svg>
+                                        <span id="toggleText">Show All Answers</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        @foreach($rentalreadycategory as $category)
+                            @foreach($category->questions as $question)
+                                <!-- Sample Question Card -->
+                                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-card" data-required="{{ $question->required_question }}">
+                                    <!-- Header -->
+                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h3 class="text-base font-semibold text-gray-900"> {{ $question->question_name }}</h3>
+                                        
+                                                @if($question->required_question)
+                                                    <span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-medium">Required</span>
+                                                @endif
+
+                                            </div>
+                                            <p class="text-sm text-gray-600 mt-1">Category:  {{ $category->category_name }} </p>
+                                        </div>
+                                        <div class="flex items-center gap-4 mt-3 md:mt-0 text-gray-600 text-sm">
+                                            <button class="toggle-answers text-blue-600 hover:underline flex items-center gap-1">
+                                                <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor"
+                                                    stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            <span>Show Questions ({{ $question->answers->count() }}) </span>
+                                            </button>
+                                            <!-- Edit -->
+                                            <button class="text-green-600 hover:text-green-800" title="Edit">
+                                                <x-heroicon-o-pencil class="w-5 h-5" />
+                                            </button>
+                                            <!-- Delete -->
+                                            <button class="text-red-600 hover:text-red-800" title="Delete">
+                                                <x-heroicon-o-trash class="w-5 h-5" /> 
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Answers (initially hidden) -->
+                                    <div class="answers hidden mt-5 border-t pt-5 space-y-2">
+                                        <h4 class="text-sm font-semibold text-gray-800">Answer Options:</h4>
+                                        <div class="grid sm:grid-cols-2 gap-3">
+
+                                        @foreach($question->answers as $index => $answer)
+                                            @php
+                                                $statusMap = [
+                                                    'Rental Ready' => [
+                                                        'bg' => 'bg-green-100 text-green-700',
+                                                        'icon' => ''
+                                                    ],
+                                                    'Maint. Hold' => [
+                                                        'bg' => 'bg-yellow-100 text-yellow-700',
+                                                        'icon' => ''
+                                                    ],
+                                                    'Damaged' => [
+                                                        'bg' => 'bg-red-100 text-red-600',
+                                                        'icon' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1.75 1.75 0 001.51 2.62h17.34a1.75 1.75 0 001.51-2.62L13.71 3.86a1.75 1.75 0 00-3.42 0z" />
+                                                        </svg>'
+                                                    ],
+                                                ];
+
+                                                $status = $statusMap[$answer->type] ?? $statusMap['Rental Ready'];
+                                            @endphp
+
+                                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">
+                                                        {{ $index + 1 }}
+                                                    </span>
+                                                    <span class="flex items-center gap-1 text-black text-sm font-medium">
+                                                    
+                                                    {{-- Icon based on type --}}
+                                                        @if($answer->type === 'Rental Ready')
+                                                            <x-heroicon-o-check class="w-5 h-5 text-green-700" />
+                                                        @elseif($answer->type === 'Maint. Hold')
+                                                            <x-heroicon-o-clock class="w-5 h-5 text-yellow-700" />
+                                                        @elseif($answer->type === 'Damaged')
+                                                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="2"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1.75 1.75 0 001.51 2.62h17.34a1.75 1.75 0 001.51-2.62L13.71 3.86a1.75 1.75 0 00-3.42 0z" />
+                                                            </svg>
+                                                        @endif
+                                                    
+                                                    {{ $answer->answer_name }}
+                                                    </span>
+                                                </div>
+                                                <span class="{{ $status['bg'] }} text-xs px-2 py-0.5 rounded-full">
+                                                    {{ $answer->type ?? 'N/A' }}
+                                                </span>
+                                            </div>
+                                        @endforeach
+
+
+                                        
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endforeach
+                       
+                    </div>
+                </div>
+
+                <div id="categoriessub" class="tab-content hidden" data-tab-group="inner">
+                    <div class=" p-4 space-y-6">
+                        <!-- Header -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-800">Categories</h2>
+                                <p class="text-sm text-gray-500">Organize questions into logical categories</p>
+                            </div>
+                            <a href="javascript:void(0)" onclick="openCategoriesModal()"
+                                class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 mt-3">
+                                + New Category
+                            </a>
+                        </div>
+                        <!-- Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach ($rentalreadycategory as $category)
+                                <!-- Category Card -->
+                                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex items-start gap-3">
+                                            <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                                            </svg>
+                                        <div>
+                                            <h3 class="text-base font-semibold text-gray-800">{{ $category->category_name }}</h3>
+                                            <p class="text-sm text-gray-600">2 questions</p>
+                                        </div>
+                                        </div>
+                                        <div class="flex gap-3 text-gray-500">
+                                            <!-- Edit -->
+                                            <button class="text-green-600 hover:text-green-800 edit-category-btn"
+                                                    title="Edit"
+                                                    data-id="{{ $category->id }}"
+                                                    data-name="{{ $category->category_name }}"
+                                                    data-description="{{ $category->description }}"
+                                                    data-route="{{ route('admin.checklist_management.rental-ready.categories.update', $category->unique_id ) }}">
+                                                <x-heroicon-o-pencil class="w-5 h-5" />
+                                            </button>
+                                                <!-- Delete -->
+                                                <form action="{{ route('admin.checklist_management.rental-ready.categories.delete', $category->unique_id) }}"
+                                                    method="POST"
+                                                    class="inline delete-category-form"
+                                                    data-category-name="{{ $category->category_name }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
+                                                        <x-heroicon-o-trash class="w-5 h-5" />
+                                                    </button>
+                                                </form>
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <p class="text-sm text-gray-500 mt-1">{{ $category->description }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="templates" class="tab-content hidden" data-tab-group="main">
+            <div class="space-y-6" id="questionWrappertemp">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                     <div>
-                        <h2 class="text-xl font-semibold text-gray-900">Questions</h2>
-                        <p class="text-gray-600">Create and manage inspection questions and answer options</p>
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Checklist Templates</h2>
+                        <p class="text-gray-600">Create and manage checklist templates for different equipment categories</p>
                     </div>
-                    <a href="javascript:void(0)"  onclick="openQuestionModal()"
+                    <a href="javascript:void(0)" id="openTemplatesModal"
                         class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 mt-3">
-                        + New Question
+                        + New Template
                     </a>
                 </div>
+
                 <!-- Top Filters -->
-                <div class="bg-white border border-gray-200 rounded-lg p-4 space-y-4 shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 space-y-4 shadow-sm mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Search -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Search Questions</label>
-                            <input type="text" placeholder="Search by question name..."
-                            class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Search Templates</label>
+                            <input type="text" placeholder="Search Templates..." class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
 
                         <!-- Filter -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
-                            <select
-                            class="w-full text-sm px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>All Categories</option>
-                            <option>Safety</option>
-                            <option>Engine</option>
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Template Count</label>
+                            <input type="text"  class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
 
                         <!-- Answer Visibility Toggle -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Answer Visibility</label>
-                            <button id="toggleGlobalAnswers"
+                            <button id="toggleGlobalAnswerstemp"
                             class="w-full font-medium px-4 py-2 text-sm rounded-md flex items-center justify-center gap-2 border border-blue-300 text-blue-600 hover:bg-gray-50 transition">
-                                <svg id="icon-show" class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
+                                <svg id="icon-showtemp" class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
-                                <svg id="icon-hide" class="w-5 h-5 text-gray-900 hidden" fill="none" stroke="currentColor"
+                                <svg id="icon-hidetemp" class="w-5 h-5 text-gray-900 hidden" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.042 10.042 0 013.03-4.362M6.873 6.876A9.953 9.953 0 0112 5c4.477 0 8.267 2.943 9.541 7a9.966 9.966 0 01-1.249 2.527M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18" />
                                 </svg>
-                                <span id="toggleText">Show All Answers</span>
+                                <span id="toggleTexttemp">Show All Answers</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sample Question Card -->
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-card" data-required="true">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-cardtemp mb-6" data-required="true">
                     <!-- Header -->
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-base font-semibold text-gray-900">Safety Equipment Present</h3>
-                                <span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-medium">Required</span>
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3 class="text-base font-semibold text-gray-900">Heavy Equipment Standard</h3>
+                                <span class="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full font-medium">Active</span>
                             </div>
-                            <p class="text-sm text-gray-600 mt-1">Category: Safety</p>
+                            <p class="text-sm text-gray-600 mb-1">Standard checklist for heavy equipment like excavators, bulldozers, and loaders </p>
+                            <p class="text-sm text-gray-600 mb-1">Equipment Category: Heavy Equipment</p>
+                            <p class="text-sm text-gray-600 mt-1">12 Questions</p>
                         </div>
+
                         <div class="flex items-center gap-4 mt-3 md:mt-0 text-gray-600 text-sm">
-                            <button class="toggle-answers text-blue-600 hover:underline flex items-center gap-1">
+                            <button class="toggle-answerstemp text-blue-600 hover:underline flex items-center gap-1">
                                 <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -145,754 +384,277 @@
                                 <x-heroicon-o-pencil class="w-5 h-5" />
                             </button>
                             <!-- Delete -->
-                                <button class="text-red-600 hover:text-red-800" title="Delete">
+                            <button class="text-red-600 hover:text-red-800" title="Delete">
                                 <x-heroicon-o-trash class="w-5 h-5" />
                             </button>
                         </div>
                     </div>
 
                     <!-- Answers (initially hidden) -->
-                    <div class="answers hidden mt-5 border-t pt-5 space-y-2">
-                        <h4 class="text-sm font-semibold text-gray-800">Answer Options:</h4>
-                        <div class="grid sm:grid-cols-2 gap-3">
-                            <!-- Option 1 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">1</span>
-                                    <span class="flex items-center gap-1 text-black text-sm font-medium"><x-heroicon-o-check class="w-5 h-5 text-green-700" /> All Present & Functional</span>
-                                </div>
-                                <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Rental Ready</span>
+                    <div class="answerstemp hidden mt-5 border-t pt-5 space-y-2">
+                        <!-- <div class="border-t border-gray-300 mt-5 mb-5"></div> -->
+                            <h4 class="text-sm font-semibold text-gray-800">Questions in Template:</h4>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">1</span>
+                                <span class="flex-1 font-medium">Safety Equipment Present</span>
+                                <span class="text-xs text-gray-500">Safety</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
                             </div>
-
-                            <!-- Option 2 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                                <div class="flex items-center gap-3">
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
                                 <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">2</span>
-                                    <span class="flex items-center gap-1   text-sm font-medium"><x-heroicon-o-check class="w-5 h-5 text-green-700" /> Present but Needs Cleaning</span>
-                                </div>
-                                <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Rental Ready</span>
+                                <span class="flex-1 font-medium">Warning Labels Visible</span>
+                                <span class="text-xs text-gray-500">Safety</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
                             </div>
-
-                            <!-- Option 3 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">3</span>
-                                    <span class="flex items-center gap-1 text-sm font-medium text-black">
-                                        <x-heroicon-o-clock class="w-5 h-5  text-yellow-700" />
-                                        Missing Non-Critical Items
-                                    </span>
-                                </div>
-
-                                <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full">Maint. Hold</span>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">3</span>
+                                <span class="flex-1 font-medium">Engine Oil Level</span>
+                                <span class="text-xs text-gray-500">Engine</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
                             </div>
-
-                            <!-- Option 4 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                                <div class="flex items-center gap-3">
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
                                 <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">4</span>
-                                    <span class="flex items-center gap-1 text-sm font-medium text-black">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                                            viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1.75 1.75 0 001.51 2.62h17.34a1.75 1.75 0 001.51-2.62L13.71 3.86a1.75 1.75 0 00-3.42 0z" />
-                                        </svg>
-                                            Missing Critical Items
-                                    </span>
-                                </div>
-                                <span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full">Damaged</span>
+                                <span class="flex-1 font-medium">Coolant Level</span>
+                                <span class="text-xs text-gray-500">Engine</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
                             </div>
-
-                            <!-- Option 5 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg ">
-                                <div class="flex items-center gap-3">
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
                                 <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">5</span>
-                                    <span class="flex items-center gap-1 text-sm font-medium text-black">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                                            viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1.75 1.75 0 001.51 2.62h17.34a1.75 1.75 0 001.51-2.62L13.71 3.86a1.75 1.75 0 00-3.42 0z" />
-                                        </svg>
-                                            Equipment Damaged/Non-Functional
-                                    </span>
-                                </div>
-                                <span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full">Damaged</span>
+                                <span class="flex-1 font-medium">Hydraulic Fluid Level</span>
+                                <span class="text-xs text-gray-500">Hydraulics</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
                             </div>
-                        </div>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">6</span>
+                                <span class="flex-1 font-medium">Hydraulic Hoses Condition</span>
+                                <span class="text-xs text-gray-500">Hydraulics</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                            </div>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">7</span>
+                                <span class="flex-1 font-medium">Fuel Level</span>
+                                <span class="text-xs text-gray-500">Fuel</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                            </div>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">8</span>
+                                <span class="flex-1 font-medium">Battery Condition</span>
+                                <span class="text-xs text-gray-500">Electrical</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                            </div>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">9</span>
+                                <span class="flex-1 font-medium">Lights Functioning</span>
+                                <span class="text-xs text-gray-500">Electrical</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                            </div>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">10</span>
+                                <span class="flex-1 font-medium">Track Condition</span>
+                                <span class="text-xs text-gray-500">Tracks</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                            </div>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">11</span>
+                                <span class="flex-1 font-medium">Bucket/Attachment Condition</span>
+                                <span class="text-xs text-gray-500">Attachments</span>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                            </div>
+                            <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">12</span>
+                                <span class="flex-1 font-medium">Overall Cleanliness</span>
+                                <span class="text-xs text-gray-500">General</span>
+                            </div>
                     </div>
                 </div>
 
                 <!-- Sample Question Card -->
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-card" data-required="true">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-cardtemp mb-6" data-required="true">
                     <!-- Header -->
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-base font-semibold text-gray-900">Warning Labels Visible</h3>
-                                <span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-medium">Required</span>
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3 class="text-base font-semibold text-gray-900">Compact Equipment Standard</h3>
+                                <span class="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full font-medium">Active</span>
                             </div>
-                            <p class="text-sm text-gray-600 mt-1">Category: Safety</p>
+                            <p class="text-sm text-gray-600 mb-1">Standard checklist for compact equipment like skid steers and mini excavators</p>
+                            <p class="text-sm text-gray-600 mb-1">Equipment Category: Compact Equipment</p>
+                            <p class="text-sm text-gray-600 mt-1">10 Questions</p>
                         </div>
+
                         <div class="flex items-center gap-4 mt-3 md:mt-0 text-gray-600 text-sm">
-                            <button class="toggle-answers text-blue-600 hover:underline flex items-center gap-1">
+                            <button class="toggle-answerstemp text-blue-600 hover:underline flex items-center gap-1">
                                 <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                                 </svg>
-                                <span>Show Questions (5)</span>
+                                <span>Show Questions (10)</span>
                             </button>
                             <!-- Edit -->
                             <button class="text-green-600 hover:text-green-800" title="Edit">
                                 <x-heroicon-o-pencil class="w-5 h-5" />
                             </button>
                             <!-- Delete -->
-                                <button class="text-red-600 hover:text-red-800" title="Delete">
+                            <button class="text-red-600 hover:text-red-800" title="Delete">
                                 <x-heroicon-o-trash class="w-5 h-5" />
                             </button>
                         </div>
                     </div>
 
                     <!-- Answers (initially hidden) -->
-                    <div class="answers hidden mt-5 border-t pt-5 space-y-2">
-                        <h4 class="text-sm font-semibold text-gray-800">Answer Options:</h4>
-                        <div class="grid sm:grid-cols-2 gap-3">
-                            <!-- Option 1 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">1</span>
-                                    <span class="flex items-center gap-1 text-black text-sm font-medium"><x-heroicon-o-check class="w-5 h-5 text-green-700" /> All Labels Clear & Visible</span>
-                                </div>
-                                <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Rental Ready</span>
-                            </div>
-
-                            <!-- Option 2 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">2</span>
-                                    <span class="flex items-center gap-1   text-sm font-medium"><x-heroicon-o-check class="w-5 h-5 text-green-700" /> Labels Present but Faded</span>
-                                </div>
-                                <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Rental Ready</span>
-                            </div>
-
-                            <!-- Option 3 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">3</span>
-                                    <span class="flex items-center gap-1 text-sm font-medium text-black">
-                                        <x-heroicon-o-clock class="w-5 h-5  text-yellow-700" />
-                                        Some Labels Missing
-                                    </span>
-                                </div>
-
-                                <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full">Maint. Hold</span>
-                            </div>
-
-
-                            <!-- Option 4 -->
-                            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">4</span>
-                                    <span class="flex items-center gap-1 text-sm font-medium text-black">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                                            viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1.75 1.75 0 001.51 2.62h17.34a1.75 1.75 0 001.51-2.62L13.71 3.86a1.75 1.75 0 00-3.42 0z" />
-                                        </svg>
-                                        Critical Labels Missing
-                                    </span>
-                                </div>
-                                <span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full">Damaged</span>
-                            </div>
-
+                    <div class="answerstemp hidden mt-5 border-t pt-5 space-y-2">
+                        <h4 class="text-sm font-semibold text-gray-800">Questions in Template:</h4>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">1</span>
+                            <span class="flex-1 font-medium">Safety Equipment Present</span>
+                            <span class="text-xs text-gray-500">Safety</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">2</span>
+                            <span class="flex-1 font-medium">Warning Labels Visible</span>
+                            <span class="text-xs text-gray-500">Safety</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">3</span>
+                            <span class="flex-1 font-medium">Engine Oil Level</span>
+                            <span class="text-xs text-gray-500">Engine</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">4</span>
+                            <span class="flex-1 font-medium">Coolant Level</span>
+                            <span class="text-xs text-gray-500">Engine</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">5</span>
+                            <span class="flex-1 font-medium">Hydraulic Fluid Level</span>
+                            <span class="text-xs text-gray-500">Hydraulics</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">6</span>
+                            <span class="flex-1 font-medium">Hydraulic Hoses Condition</span>
+                            <span class="text-xs text-gray-500">Hydraulics</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">7</span>
+                            <span class="flex-1 font-medium">Fuel Level</span>
+                            <span class="text-xs text-gray-500">Fuel</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">8</span>
+                            <span class="flex-1 font-medium">Battery Condition</span>
+                            <span class="text-xs text-gray-500">Electrical</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">9</span>
+                            <span class="flex-1 font-medium">Lights Functioning</span>
+                            <span class="text-xs text-gray-500">Electrical</span>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
+                        </div>
+                        <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                            <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">10</span>
+                            <span class="flex-1 font-medium">Overall Cleanliness</span>
+                            <span class="text-xs text-gray-500">General</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div id="categoriessub" class="tab-content hidden" data-tab-group="inner">
-            <div class=" p-4 space-y-6">
-                <!-- Header -->
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-800">Categories</h2>
-                        <p class="text-sm text-gray-500">Organize questions into logical categories</p>
-                    </div>
-                    <a href="javascript:void(0)" onclick="openAddressModal()"
-                        class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 mt-3">
-                        + New Category
-                    </a>
-                </div>
-
-                <!-- Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Category Card -->
-                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">Safety</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">Safety-related inspection items</p>
-                        </div>
-                    </div>
-
-                    <!-- Duplicate card for more categories -->
-                    
-                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">Engine</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">Engine and motor inspection items</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">Hydraulics</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">Hydraulic system inspection items</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">Electrical</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">Electrical system inspection items</p>
-                        </div>
-                    </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">Fuel</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">Fuel system inspection items</p>
-                        </div>
-                    </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">Tracks</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">Track and undercarriage inspection items</p>
-                        </div>
-                    </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">Attachments</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">Attachment and implement inspection items</p>
-                        </div>
-                    </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">Power</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">Power generation and output inspection items</p>
-                        </div>
-                    </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h3.6a1 1 0 01.7.3l1.4 1.4a1 1 0 00.7.3H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                                </svg>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-800">General</h3>
-                                <p class="text-sm text-gray-600">2 questions</p>
-                            </div>
-                            </div>
-                            <div class="flex gap-3 text-gray-500">
-                                <!-- Edit -->
-                                <button class="text-green-600 hover:text-green-800" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                </button>
-                                <!-- Delete -->
-                                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-sm text-gray-500 mt-1">General condition and appearance items</p>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
-        </div>
-    </div>
-   
-</div>
-
-<div id="templates" class="tab-content hidden" data-tab-group="main">
-    <div class="space-y-6" id="questionWrappertemp">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <div>
-                <h2 class="text-2xl font-semibold text-gray-900 mb-2">Checklist Templates</h2>
-                <p class="text-gray-600">Create and manage checklist templates for different equipment categories</p>
-            </div>
-            <a href="javascript:void(0)" id="openTemplatesModal"
-                class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 mt-3">
-                + New Template
-            </a>
-        </div>
-
-        <!-- Top Filters -->
-        <div class="bg-white border border-gray-200 rounded-lg p-4 space-y-4 shadow-sm mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Search -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Search Templates</label>
-                    <input type="text" placeholder="Search Templates..." class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-
-                <!-- Filter -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Template Count</label>
-                    <input type="text"  class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-
-                <!-- Answer Visibility Toggle -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Answer Visibility</label>
-                    <button id="toggleGlobalAnswerstemp"
-                    class="w-full font-medium px-4 py-2 text-sm rounded-md flex items-center justify-center gap-2 border border-blue-300 text-blue-600 hover:bg-gray-50 transition">
-                        <svg id="icon-showtemp" class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        <svg id="icon-hidetemp" class="w-5 h-5 text-gray-900 hidden" fill="none" stroke="currentColor"
-                            stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.042 10.042 0 013.03-4.362M6.873 6.876A9.953 9.953 0 0112 5c4.477 0 8.267 2.943 9.541 7a9.966 9.966 0 01-1.249 2.527M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18" />
-                        </svg>
-                        <span id="toggleTexttemp">Show All Answers</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sample Question Card -->
-        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-cardtemp mb-6" data-required="true">
-            <!-- Header -->
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div>
-                    <div class="flex items-center gap-2 mb-2">
-                        <h3 class="text-base font-semibold text-gray-900">Heavy Equipment Standard</h3>
-                        <span class="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full font-medium">Active</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-1">Standard checklist for heavy equipment like excavators, bulldozers, and loaders </p>
-                    <p class="text-sm text-gray-600 mb-1">Equipment Category: Heavy Equipment</p>
-                    <p class="text-sm text-gray-600 mt-1">12 Questions</p>
-                </div>
-
-                <div class="flex items-center gap-4 mt-3 md:mt-0 text-gray-600 text-sm">
-                    <button class="toggle-answerstemp text-blue-600 hover:underline flex items-center gap-1">
-                        <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor"
-                            stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                        <span>Show Questions (5)</span>
-                    </button>
-                    <!-- Edit -->
-                    <button class="text-green-600 hover:text-green-800" title="Edit">
-                        <x-heroicon-o-pencil class="w-5 h-5" />
-                    </button>
-                    <!-- Delete -->
-                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                        <x-heroicon-o-trash class="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
-
-            <!-- Answers (initially hidden) -->
-            <div class="answerstemp hidden mt-5 border-t pt-5 space-y-2">
-                <!-- <div class="border-t border-gray-300 mt-5 mb-5"></div> -->
-                    <h4 class="text-sm font-semibold text-gray-800">Questions in Template:</h4>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">1</span>
-                        <span class="flex-1 font-medium">Safety Equipment Present</span>
-                        <span class="text-xs text-gray-500">Safety</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">2</span>
-                        <span class="flex-1 font-medium">Warning Labels Visible</span>
-                        <span class="text-xs text-gray-500">Safety</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">3</span>
-                        <span class="flex-1 font-medium">Engine Oil Level</span>
-                        <span class="text-xs text-gray-500">Engine</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">4</span>
-                        <span class="flex-1 font-medium">Coolant Level</span>
-                        <span class="text-xs text-gray-500">Engine</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">5</span>
-                        <span class="flex-1 font-medium">Hydraulic Fluid Level</span>
-                        <span class="text-xs text-gray-500">Hydraulics</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">6</span>
-                        <span class="flex-1 font-medium">Hydraulic Hoses Condition</span>
-                        <span class="text-xs text-gray-500">Hydraulics</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">7</span>
-                        <span class="flex-1 font-medium">Fuel Level</span>
-                        <span class="text-xs text-gray-500">Fuel</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">8</span>
-                        <span class="flex-1 font-medium">Battery Condition</span>
-                        <span class="text-xs text-gray-500">Electrical</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">9</span>
-                        <span class="flex-1 font-medium">Lights Functioning</span>
-                        <span class="text-xs text-gray-500">Electrical</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">10</span>
-                        <span class="flex-1 font-medium">Track Condition</span>
-                        <span class="text-xs text-gray-500">Tracks</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">11</span>
-                        <span class="flex-1 font-medium">Bucket/Attachment Condition</span>
-                        <span class="text-xs text-gray-500">Attachments</span>
-                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                    </div>
-                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                        <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-normal">12</span>
-                        <span class="flex-1 font-medium">Overall Cleanliness</span>
-                        <span class="text-xs text-gray-500">General</span>
-                    </div>
-            </div>
-        </div>
-
-         <!-- Sample Question Card -->
-        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-cardtemp mb-6" data-required="true">
-            <!-- Header -->
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-               <div>
-                    <div class="flex items-center gap-2 mb-2">
-                    <h3 class="text-base font-semibold text-gray-900">Compact Equipment Standard</h3>
-                        <span class="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full font-medium">Active</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-1">Standard checklist for compact equipment like skid steers and mini excavators</p>
-                    <p class="text-sm text-gray-600 mb-1">Equipment Category: Compact Equipment</p>
-                    <p class="text-sm text-gray-600 mt-1">10 Questions</p>
-                </div>
-
-                <div class="flex items-center gap-4 mt-3 md:mt-0 text-gray-600 text-sm">
-                    <button class="toggle-answerstemp text-blue-600 hover:underline flex items-center gap-1">
-                        <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor"
-                            stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                        <span>Show Questions (10)</span>
-                    </button>
-                    <!-- Edit -->
-                    <button class="text-green-600 hover:text-green-800" title="Edit">
-                        <x-heroicon-o-pencil class="w-5 h-5" />
-                    </button>
-                    <!-- Delete -->
-                    <button class="text-red-600 hover:text-red-800" title="Delete">
-                        <x-heroicon-o-trash class="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
-
-            <!-- Answers (initially hidden) -->
-            <div class="answerstemp hidden mt-5 border-t pt-5 space-y-2">
-                <h4 class="text-sm font-semibold text-gray-800">Questions in Template:</h4>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">1</span>
-                    <span class="flex-1 font-medium">Safety Equipment Present</span>
-                    <span class="text-xs text-gray-500">Safety</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">2</span>
-                    <span class="flex-1 font-medium">Warning Labels Visible</span>
-                    <span class="text-xs text-gray-500">Safety</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">3</span>
-                    <span class="flex-1 font-medium">Engine Oil Level</span>
-                    <span class="text-xs text-gray-500">Engine</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">4</span>
-                    <span class="flex-1 font-medium">Coolant Level</span>
-                    <span class="text-xs text-gray-500">Engine</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">5</span>
-                    <span class="flex-1 font-medium">Hydraulic Fluid Level</span>
-                    <span class="text-xs text-gray-500">Hydraulics</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">6</span>
-                    <span class="flex-1 font-medium">Hydraulic Hoses Condition</span>
-                    <span class="text-xs text-gray-500">Hydraulics</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">7</span>
-                    <span class="flex-1 font-medium">Fuel Level</span>
-                    <span class="text-xs text-gray-500">Fuel</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">8</span>
-                    <span class="flex-1 font-medium">Battery Condition</span>
-                    <span class="text-xs text-gray-500">Electrical</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">9</span>
-                    <span class="flex-1 font-medium">Lights Functioning</span>
-                    <span class="text-xs text-gray-500">Electrical</span>
-                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                </div>
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
-                    <span class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold">10</span>
-                    <span class="flex-1 font-medium">Overall Cleanliness</span>
-                    <span class="text-xs text-gray-500">General</span>
-                </div>
             </div>
         </div>
 
     </div>
-</div>
 
-   <!-- Modal -->
+
+   <!--Question Modal -->
 <div id="questionModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
-    <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-xl flex flex-col max-h-full overflow-hidden border border-gray-200">
-            <div class="flex justify-between items-center px-6 pt-4">
-                <h3 class="text-lg font-semibold text-gray-800">New Question</h3>
-                <button onclick="closeQuestionModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
-            </div>
+  <div class="modal-scrollable w-full mx-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-2xl flex flex-col max-h-full overflow-hidden border border-gray-200">
+      <div class="flex justify-between items-center px-6 pt-4">
+        <h3 class="text-lg font-semibold text-gray-800">New Question</h3>
+        <button onclick="closeQuestionModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+      </div>
 
-            <div class="max-w-3xl px-6 py-4 space-y-6 overflow-y-auto">
-                <div>
+        <!-- Scrollable Content -->
+      <div class=" overflow-y-auto max-h-[70vh]">
+            <!-- {{-- Form --}} -->
+            {{ html()->form('POST', route('admin.checklist_management.rental-ready.questions.store'))
+                ->id('questionForm')
+                ->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'flex flex-col flex-1'
+                ])
+                ->acceptsFiles()
+                ->open() }}
+
+                 
+                    <input type="hidden" name="options" id="optionsInput">
+
+
+                <div class="max-w-3xl px-6 py-4 space-y-6 overflow-y-auto">
+
+                    <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Question Name *</label>
-                    <input type="text" class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
+                    <!-- <input type="text" class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"> -->
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                    <select class="w-full text-sm border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Select Category</option>
-                        <option>Safety</option>
-                        <option>Engine</option>
-                    </select>
-                </div>
+                    {!! html()->text('question_name')
+                    ->class('w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500')
+                    ->attributes(['id' => 'question_name', 'placeholder' => 'Enter Question name'])
+                    ->required() !!}
 
-                <div>
-                <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                    <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600"> Required Question
-                </label>
-                </div>
-
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-gray-700">Answer Options <span class="text-xs text-gray-400 font-normal">(Drag to reorder)</span></span>
-                        <button onclick="addOption()" class="text-blue-600 text-sm font-medium hover:underline">+ Add Option</button>
                     </div>
 
-                    <div id="sortable-list" class="space-y-3"></div>
-                </div>
-            </div>
+                    <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Question Category *</label>
+                    {!! html()->select('category_id', $rentalreadycategory->pluck('category_name', 'id'))
+                    ->class('w-full text-sm border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500')
+                    ->attributes(['id' => 'category_id'])
+                    ->required() !!}
 
-            <div class="flex justify-end gap-2 px-6 pb-4">
-                <button onclick="closeQuestionModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Cancel</button>
-                <button class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600">Save Question</button>
-            </div>
-        </div>
+                    </div>
+
+                    <div>
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <!-- <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600"> Required Question -->
+                        {!! html()->checkbox('required_question', false, 1)
+                        ->class('form-checkbox h-4 w-4 text-blue-600') !!}
+
+                        Required Question 
+                    </label>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">Answer Options <span class="text-xs text-gray-400 font-normal">(Drag to reorder)</span></span>
+                            <button type="button" onclick="addOption()" class="text-blue-600 text-sm font-medium hover:underline">+ Add Option</button>
+                        </div>
+
+                        <div id="sortable-list" class="space-y-3"></div>
+                    </div>
+
+                </div>
+
+                <div class="flex justify-end gap-2 px-6 pb-4">
+                    <button type="button" onclick="closeQuestionModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600">Save Question</button>
+                </div>
+
+            {{ html()->form()->close() }}
+
+ </div>
     </div>
+  </div>
 </div>
 
-<!-- Address Modal -->
-<div id="addressModalWrapper" class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+<!-- Category Modal -->
+<div id="CategoryModalWrapper" class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
         <div
         class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-xl space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full"
@@ -900,24 +662,62 @@
         >
             <div class="flex justify-between items-center px-6 pt-4">
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Category</h3>
-                <button onclick="closeAddressModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                <button onclick="closeCategoryModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
             </div>
+
+             
+                {{ html()->form()->attributes([
+                    'method' => 'POST',
+                    'id' => 'categoryForm',
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'action' => route('admin.checklist_management.rental-ready.categories.store'),
+                ])->open() }}
+
+                @csrf
+            
 
             <div class="px-6 grid grid-cols-1 gap-6 bg-gray-50">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Category Name *</label>
-                    <input type="text" class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    <!-- <input type="text" class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required> -->
+
+                     {{ html()->text('category_name')->attributes([
+                        'class' => 'mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500',
+                        'required' => true,
+                        'id' => 'category_name',
+                        'data-parsley-required-message' => 'Category name is required.',
+                    ])->placeholder('Enter category name') }}
+                    @error('category_name')
+                        <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+
+
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Optional description..."></textarea>
+                    <!-- <textarea class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Optional description..."></textarea> -->
+                     {{ html()->textarea('description')->attributes([
+                        'class' => 'mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500',
+                        'rows' => 3,
+                        'id' => 'description',
+                    ])->placeholder('Optional description...') }}
                 </div>
             </div>
 
             <div class="flex justify-end gap-2 px-6 pb-4">
-                <button type="button" onclick="closeAddressModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
-                <button type="button" id="submitAddressBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-blue-700">Save Category</button>
+                <button type="button" onclick="closeCategoryModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
+                 <!-- Submit Button with Loader -->
+                <button type="submit" id="submitCategoryBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700 flex items-center justify-center gap-2">
+                    <span id="categoryBtnText">Save Category</span>
+                    <svg id="categoryBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </button>
             </div>
+
+              {{ html()->form()->close() }}
         </div>
     </div>
 </div>
@@ -960,7 +760,7 @@
                     <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
                         <option>All Categories</option>
                     </select>
-                    <div id="available" class="space-y-2 min-h-[300px] bg-gray-50 rounded-md"></div>
+                    <div id="available" class="bg-white space-y-2 min-h-[300px] bg-gray-50 rounded-md"></div>
                 </div>
 
                 <!-- Template Questions -->
@@ -980,60 +780,9 @@
     </div>
 </div>
 
-    @endsection
+@endsection
+
 @push('js')
-
-<script>
-  // Open modal
-  function openAddressModal() {
-    document.getElementById('addressModalWrapper').classList.remove('hidden');
-  }
-
-  // Close modal
-  function closeAddressModal() {
-    document.getElementById('addressModalWrapper').classList.add('hidden');
-  }
-
-  // Optional: Close when clicking outside modal content
-  window.addEventListener('click', function (e) {
-    const modal = document.getElementById('addressModalWrapper');
-    if (e.target === modal) {
-      closeAddressModal();
-    }
-  });
-
-  // Optional: Listen to external event to open modal (like Alpine's window event)
-  window.addEventListener('open-address-modal', () => {
-    openAddressModal();
-  });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('templatesModalWrapper');
-        const openBtn = document.getElementById('openTemplatesModal');
-        const closeBtn = document.getElementById('closeModalBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -1289,6 +1038,31 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script>
+  // Open modal
+  function openCategoriesModal() {
+    document.getElementById('CategoryModalWrapper').classList.remove('hidden');
+  }
+
+  // Close modal
+  function closeCategoryModal() {
+    document.getElementById('CategoryModalWrapper').classList.add('hidden');
+  }
+
+  // Optional: Close when clicking outside modal content
+  window.addEventListener('click', function (e) {
+    const modal = document.getElementById('CategoryModalWrapper');
+    if (e.target === modal) {
+      closeCategoryModal();
+    }
+  });
+
+  // Optional: Listen to external event to open modal (like Alpine's window event)
+  window.addEventListener('open-address-modal', () => {
+    openCategoriesModal();
+  });
+</script>
+
 
 <script>
   // Toggle individual answer sets
@@ -1337,45 +1111,72 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 </script>
 
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let activeTab    = @json(session('active_tab', 'overview'));
+    let activeSubTab = @json(session('active_subtab', null));
+
+    // Activate outer tab
+    if (activeTab) {
+        const outerBtn = document.getElementById('tab-' + activeTab);
+        if (outerBtn) {
+            showTab(activeTab, outerBtn);
+        }
+    }
+
+    // Activate inner subtab
+   
+        if (activeSubTab) {
+            const innerBtn = document.getElementById('tab-' + activeSubTab + '-sub');
+            if (innerBtn) {
+                showTab(activeSubTab + 'sub', innerBtn);
+            }
+        }
+
+
+});
+</script>
+
+
+
 <script>
 function showTab(tabId, clickedBtn) {
   const group = clickedBtn.closest('[data-tab-group]').getAttribute('data-tab-group');
 
-  // Hide only tab contents belonging to this group
+  // hide all contents in this group
   document.querySelectorAll(`.tab-content[data-tab-group="${group}"]`).forEach(content => {
     content.classList.add('hidden');
   });
 
-  // Show selected tab
+  // show selected content
   document.getElementById(tabId).classList.remove('hidden');
 
-  // Reset styles for buttons in this group
+  // reset all buttons in this group
   const buttons = clickedBtn.closest('[data-tab-group]').querySelectorAll('button');
-
   buttons.forEach(btn => {
     if (group === 'main') {
-      // Outer tabs reset
-      btn.classList.remove('bg-green-100','text-green-800');
+      btn.classList.remove('bg-green-100', 'text-green-800');
       btn.classList.add('text-gray-700');
     } else if (group === 'inner') {
-      // Inner tabs reset
-      btn.classList.remove('text-blue-600','border-blue-600');
-      btn.classList.add('text-gray-600','border-transparent');
+      btn.classList.remove('text-blue-600', 'border-blue-600');
+      btn.classList.add('text-gray-600', 'border-transparent');
     }
   });
 
-  // Apply active style to clicked button
+  // set active styles for clicked button
   if (group === 'main') {
-    clickedBtn.classList.add('bg-green-100','text-green-800');
+    clickedBtn.classList.add('bg-green-100', 'text-green-800');
     clickedBtn.classList.remove('text-gray-700');
   } else if (group === 'inner') {
-    clickedBtn.classList.add('text-blue-600','border-blue-600');
-    clickedBtn.classList.remove('text-gray-600','border-transparent');
+    clickedBtn.classList.add('text-blue-600', 'border-blue-600');
+    clickedBtn.classList.remove('text-gray-600', 'border-transparent');
   }
 }
 </script>
 
-<script>
+
+   <script>
 let answerOptions = [{ id: 1, text: '', status: 'Rental Ready' }];
 let nextId = 2;
 
@@ -1394,7 +1195,8 @@ function renderOptions() {
 
   answerOptions.forEach((option, index) => {
     const wrapper = document.createElement('div');
-    wrapper.className = 'bg-white border border-gray-300 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4';
+    wrapper.className =
+      'bg-white border border-gray-300 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4';
     wrapper.setAttribute('data-id', option.id);
 
     wrapper.innerHTML = `
@@ -1406,13 +1208,19 @@ function renderOptions() {
           </svg>
         </span>
       </div>
-      <input type="text" placeholder="Answer description..." class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value="${option.text}" oninput="updateText(${index}, this.value)">
-      <select class="mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="updateStatus(${index}, this.value)">
+      <input type="text" placeholder="Answer description..." 
+        class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value="${option.text}" 
+        oninput="updateText(${index}, this.value)" required>
+
+      <select class="mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+        onchange="updateStatus(${index}, this.value)">
         <option ${option.status === 'Rental Ready' ? 'selected' : ''}>Rental Ready</option>
         <option ${option.status === 'Maint. Hold' ? 'selected' : ''}>Maint. Hold</option>
         <option ${option.status === 'Damaged' ? 'selected' : ''}>Damaged</option>
       </select>
-      <button onclick="removeOption(${index})" class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800" title="Delete">
+
+      <button type="button" onclick="removeOption(${index})" class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800" title="Delete">
         <x-heroicon-o-trash class="w-4 h-4" />
       </button>
     `;
@@ -1420,7 +1228,7 @@ function renderOptions() {
     container.appendChild(wrapper);
   });
 
-  // Re-initialize Sortable after rendering
+  // Re-init Sortable
   Sortable.create(container, {
     handle: '.drag-handle',
     animation: 150,
@@ -1449,23 +1257,132 @@ function updateText(index, value) {
 function updateStatus(index, value) {
   answerOptions[index].status = value;
 }
+
+//  Before submitting form, sync options into hidden input
+document.getElementById('questionForm').addEventListener('submit', function(e) {
+  document.getElementById('optionsInput').value = JSON.stringify(answerOptions);
+});
 </script>
 
-<!-- 
+
+
+
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('openAddressModal').addEventListener('click', () => {
-            window.dispatchEvent(new CustomEvent('open-address-modal'));
+function attachValidatedSubmit(formId, btnId, btnTextId, spinnerId, loadingText) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Run Parsley validation
+        if ($(form).parsley().isValid()) {
+            const btn = document.getElementById(btnId);
+            const btnText = document.getElementById(btnTextId);
+            const spinner = document.getElementById(spinnerId);
+
+            btn.disabled = true;
+            btnText.textContent = loadingText;
+            spinner.classList.remove('hidden');
+
+            form.submit(); // now submit
+        }
+    });
+}
+
+// Attach to category form
+document.addEventListener("DOMContentLoaded", function () {
+    attachValidatedSubmit(
+        'categoryForm',
+        'submitCategoryBtn',
+        'categoryBtnText',
+        'categoryBtnSpinner',
+        'Saving...'
+    );
+});
+</script>
+
+
+
+<!-- handal edit catagray model  -->
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const modalWrapper = document.getElementById("CategoryModalWrapper");
+    const form = document.getElementById("categoryForm");
+    const categoryNameInput = document.getElementById("category_name");
+    const descriptionInput = document.getElementById("description");
+    const btnText = document.getElementById("categoryBtnText");
+
+    // Handle Edit button clicks
+    document.querySelectorAll(".edit-category-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const name = this.dataset.name;
+            const description = this.dataset.description || "";
+            const updateRoute = this.dataset.route;
+
+            // Prefill inputs
+            categoryNameInput.value = name;
+            descriptionInput.value = description;
+
+            // Switch form to update route
+            form.setAttribute("action", updateRoute);
+
+            // Add hidden _method=PUT
+            let methodField = form.querySelector("input[name='_method']");
+            if (!methodField) {
+                methodField = document.createElement("input");
+                methodField.type = "hidden";
+                methodField.name = "_method";
+                form.appendChild(methodField);
+            }
+            methodField.value = "PUT";
+
+            // Change button text
+            btnText.textContent = "Update Category";
+
+            modalWrapper.classList.remove("hidden");
         });
     });
+
+    // Reset for Create
+    window.openCategoryModal = function () {
+        form.setAttribute("action", "{{ route('admin.checklist_management.rental-ready.categories.store') }}");
+
+        let methodField = form.querySelector("input[name='_method']");
+        if (methodField) methodField.remove();
+
+        categoryNameInput.value = "";
+        descriptionInput.value = "";
+        btnText.textContent = "Save Category";
+
+        modalWrapper.classList.remove("hidden");
+    };
+});
+
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('openQuestionModal').addEventListener('click', () => {
-            window.dispatchEvent(new CustomEvent('open-question-modal'));
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-category-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // stop auto submit
+
+            const categoryName = form.getAttribute('data-category-name') || 'this category';
+
+            window.showConfirm(
+                `Delete "${categoryName}"? This action cannot be undone!`,
+                'Delete Category'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); 
+                }
+            });
         });
     });
-</script> -->
+});
+</script>
+
+
 
 @endpush
 

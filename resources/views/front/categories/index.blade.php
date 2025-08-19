@@ -85,7 +85,7 @@
                                                     @endif
                                                 </span>
                                                 <span>
-                                                    <span class="font-bold text-black">
+                                                    <span class="font-normal text-black">
                                                         {{ App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice($type)) }}
                                                     </span>
                                                     @if ($product->isRentalOnSale($type))

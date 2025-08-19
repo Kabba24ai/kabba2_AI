@@ -94,7 +94,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">12 questions</div>
-                            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Heavy Equipment Standard</button>
+                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" >Heavy Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -125,7 +125,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">10 questions</div>
-                            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Compact Equipment Standard</button>
+                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Compact Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -156,7 +156,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">10 questions</div>
-                            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Power Equipment Standard</button>
+                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Power Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -187,7 +187,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">12 questions</div>
-                            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Heavy Equipment Standard</button>
+                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Heavy Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -218,7 +218,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">10 questions</div>
-                            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Compact Equipment Standard</button>
+                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Compact Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -245,20 +245,19 @@
 </div>
 
 <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mt-6">
-  <div class="flex items-start space-x-3">
-    <!-- Note icon with responsive sizing -->
-    <x-heroicon-o-document-text class="w-4 h-5 sm:w-6 sm:h-6 md:w-4 md:h-7 text-blue-900 flex-shrink-0" />
-    
-    <!-- Text content -->
-    <div>
-      <h3 class="font-semibold text-blue-900 text-base sm:text-lg">System Assignment</h3>
-      <p class="text-sm sm:text-sm text-blue-800 leading-snug mt-1">
-        These checklist systems are independent and can be assigned to multiple equipment items 
-        (3, 5, 12, or more) through the Equipment Profile screen in a separate module. 
-        Each system combines both rental ready and customer checklists for complete equipment management.
-      </p>
+    <div class="flex items-start space-x-3">
+        <!-- Note icon with responsive sizing -->
+        <x-heroicon-o-document-text class="w-4 h-5 sm:w-6 sm:h-6 md:w-4 md:h-7 text-blue-900 flex-shrink-0" />
+        <!-- Text content -->
+        <div>
+            <h3 class="font-semibold text-blue-900 text-base sm:text-lg">System Assignment</h3>
+            <p class="text-sm sm:text-sm text-blue-800 leading-snug mt-1">
+                These checklist systems are independent and can be assigned to multiple equipment items 
+                (3, 5, 12, or more) through the Equipment Profile screen in a separate module. 
+                Each system combines both rental ready and customer checklists for complete equipment management.
+            </p>
+        </div>
     </div>
-  </div>
 </div>
 
 

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ChecklistManagement\RentalReady\IndexController;
 
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -25,10 +26,10 @@ Route::prefix('rental-ready')
      Route::get('/', IndexController::class)->name('index');
 
 
-    // customers
-    require base_path('routes/admin/checklist_management/rental_ready/question_and_categories/routes.php');
+      // question
+    require base_path('routes/admin/checklist_management/rental_ready/question/routes.php');
 
-    // customers
-    require base_path('routes/admin/checklist_management/rental_ready/templates/routes.php');
+      // question
+    require base_path('routes/admin/checklist_management/rental_ready/categories/routes.php');
 
 });

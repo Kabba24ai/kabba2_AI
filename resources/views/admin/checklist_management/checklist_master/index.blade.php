@@ -107,13 +107,15 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3 flex gap-2">
-                    <a href="#" class="text-blue-600">
-                        <x-heroicon-o-pencil class="w-4 h-4" />
-                    </a>
-                    <a href="#" class="text-red-600">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </a>
+                <td class="px-4 py-3">
+                    <div class=" flex gap-2">
+                        <a href="#" class="text-blue-600">
+                            <x-heroicon-o-pencil class="w-4 h-4" />
+                        </a>
+                        <a href="#" class="text-red-600">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </a>
+                    </div>
                 </td>
             </tr>
 
@@ -138,13 +140,15 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3 flex gap-2">
-                    <a href="#" class="text-blue-600">
-                        <x-heroicon-o-pencil class="w-4 h-4" />
-                    </a>
-                    <a href="#" class="text-red-600">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </a>
+                <td class="px-4 py-3">
+                    <div class="flex gap-2">
+                        <a href="#" class="text-blue-600">
+                            <x-heroicon-o-pencil class="w-4 h-4" />
+                        </a>
+                        <a href="#" class="text-red-600">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </a>
+                    </div>
                 </td>
             </tr>
           
@@ -169,13 +173,16 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3 flex gap-2">
-                    <a href="#" class="text-blue-600">
-                        <x-heroicon-o-pencil class="w-4 h-4" />
-                    </a>
-                    <a href="#" class="text-red-600">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </a>
+                <td class="px-4 py-3">
+                    <div class="flex gap-2">
+                        <a href="#" class="text-blue-600">
+                            <x-heroicon-o-pencil class="w-4 h-4" />
+                        </a>
+                        <a href="#" class="text-red-600">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </a>
+                    </div>
+                    
                 </td>
             </tr>
 
@@ -200,13 +207,15 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3 flex gap-2">
-                    <a href="#" class="text-blue-600">
-                        <x-heroicon-o-pencil class="w-4 h-4" />
-                    </a>
-                    <a href="#" class="text-red-600">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </a>
+                <td class="px-4 py-3 ">
+                    <div class="flex gap-2">
+                        <a href="#" class="text-blue-600">
+                            <x-heroicon-o-pencil class="w-4 h-4" />
+                        </a>
+                        <a href="#" class="text-red-600">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </a>
+                    </div>
                 </td>
             </tr>
 
@@ -231,13 +240,15 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3 flex gap-2">
-                    <a href="#" class="text-blue-600">
-                        <x-heroicon-o-pencil class="w-4 h-4" />
-                    </a>
-                    <a href="#" class="text-red-600">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </a>
+                <td class="px-4 py-3">
+                    <div class="flex gap-2">
+                        <a href="#" class="text-blue-600">
+                            <x-heroicon-o-pencil class="w-4 h-4" />
+                        </a>
+                        <a href="#" class="text-red-600">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </a>
+                    </div>
                 </td>
             </tr>
         </tbody>

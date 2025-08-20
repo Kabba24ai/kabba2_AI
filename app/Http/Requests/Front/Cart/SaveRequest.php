@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Front\Cart;
 
+use App\Enums\Products\ProductCustomStaticLabel;
 use App\Helpers\PurifyHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -45,6 +46,9 @@ class SaveRequest extends FormRequest
      */
     public function rules(): array
     {
+        $enumKeys   = array_map(fn($case) => $case->name, ProductCustomStaticLabel::cases());
+        $fixedKeys  = ['rental_prepaid_fuel', 'rental_prepaid_cleaning'];
+        $allAllowed = implode(',', array_merge($fixedKeys, $enumKeys));
         return [
             'product_unique_id' => ['required', 'string', 'exists:products,unique_id'],
             'product_type' => ['required', 'in:Rental,Retail'],
@@ -58,7 +62,7 @@ class SaveRequest extends FormRequest
             'product_option_items' => ['nullable', 'array'],
             'product_option_items.*.unique_id' => ['required_with:product_option_items', 'string', 'exists:product_option_items,unique_id'],
             'product_rental_items' => ['nullable', 'array'],
-            'product_rental_items.*' => ['required', 'in:rental_prepaid_fuel,rental_prepaid_cleaning,rental_damage_waiver,rental_track_insurance'],
+            'product_rental_items.*' => ['required',  "in:$allAllowed"],
         ];
     }
 

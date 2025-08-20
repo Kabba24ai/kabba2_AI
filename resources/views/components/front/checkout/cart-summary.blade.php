@@ -84,7 +84,6 @@
                                 $optionsTotal += $optPrice ?? 0;
 
                                 $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey);
-
                                 $name = $case?->value ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
 
                                 $optionRows[] = [

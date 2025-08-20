@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+
+use App\Enums\Products\ProductCustomStaticLabel;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductOptionItem;
 use App\Models\Stores\Store;
@@ -225,12 +227,10 @@ class CartHelper
         if ($product->product_type === 'Rental') {
             $productRentalItems = $validated['product_rental_items'] ?? [];
             foreach ($productRentalItems as $itemKey) {
-                if ($itemKey === 'rental_damage_waiver' && $variant) {
-                    $damageWaiverKey = 'rental_damage_waiver_' . strtolower($variant);
-                    $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$damageWaiverKey ?? 0);
-                }elseif($itemKey === 'rental_track_insurance' && $variant) {
-                    $trackInsuranceKey = 'rental_track_insurance_' . strtolower($variant);
-                    $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$trackInsuranceKey ?? 0);
+                $case = collect(ProductCustomStaticLabel::cases())->firstWhere('name', $itemKey);
+                if ($case) {
+                    $priceKey = $case->name."_".strtolower($variant);
+                    $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$priceKey ?? 0);
                 } else {
                     $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$itemKey ?? 0);
                 }

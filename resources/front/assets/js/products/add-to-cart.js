@@ -21,7 +21,7 @@ export function initAddToCart(context) {
         if (qtyError) qtyError.classList.add('hidden');
 
         let errorMsg = '';
-        if (!storeId) {
+        if (context.productType === 'Rental' && !storeId) {
             errorMsg = 'Please select a store before adding to cart.';
             if (storeError) {
             storeError.textContent = errorMsg;
@@ -43,7 +43,7 @@ export function initAddToCart(context) {
             }
         }
 
-        if (!storeId || !scheduleDate || !qty) {
+        if ((context.productType === 'Rental' && !storeId) || !scheduleDate || !qty) {
             if (loader) loader.classList.add('hidden');
             addToCartBtn.disabled = false;
             addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');

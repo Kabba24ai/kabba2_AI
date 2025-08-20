@@ -1,4 +1,5 @@
-<div  id="cardWrapper" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-3xl mx-auto">
+    <div  id="cardWrapper" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
             <!-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> -->
                 
             @foreach ($users as $user)
@@ -145,3 +146,4 @@
         <p id="no-users-message" class="hidden text-center text-gray-600 text-sm mt-4">
             No users are available.
         </p>
+    </div>

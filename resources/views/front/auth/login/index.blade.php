@@ -10,7 +10,7 @@
                     <div class="flex flex-col lg:flex-row justify-between items-center gap-y-2 md:gap-y-0">
                         <h1 class="header-title">Login</h1>
                         <ul
-                            class="px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative border-2 border-white">
+                            class="px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-1">
                                 <a href="index.php" class="opacity-25">Home</a>
                             </li>

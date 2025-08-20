@@ -82,7 +82,11 @@
                             // Rental items (always x1)
                             foreach ($item['product_rental_items_prices'] ?? [] as $rentalKey => $optPrice) {
                                 $optionsTotal += $optPrice ?? 0;
-                                $name = ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
+
+                                $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey);
+
+                                $name = $case?->value ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
+
                                 $optionRows[] = [
                                     'name' =>
                                         $name . ' ' . App\Helpers\CustomHelper::formatCurrency($optPrice) . ' (x1)',

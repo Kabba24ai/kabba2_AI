@@ -12,8 +12,7 @@
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-3xl lg:text-4xl font-bold">
                             {{ $productDetail->product_name }}</h1>
-                        <ul
-                            class="border-yellow-400 px-5 py-4 mt-4 lg:mt-0 text-sm font-medium border-2 max-w-full flex flex-wrap items-center gap-3">
+                        <ul class="px-5 py-4 mt-4 lg:mt-0 text-sm font-medium max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
                             </li>
@@ -27,7 +26,8 @@
                                 <!-- Only display child categories that are linked to the product -->
                                 @foreach ($childCategories as $child)
                                     <li class="tracking-[0] after:content-['/'] after:pl-[5px]">
-                                        <a href="{{ route('front.categories.sub-category', ['slug' => $parentCategory->slug, 'childCategorySlug' => $child->slug]) }}">
+                                        <a
+                                            href="{{ route('front.categories.sub-category', ['slug' => $parentCategory->slug, 'childCategorySlug' => $child->slug]) }}">
                                             {{ $child->title }}
                                         </a>
                                     </li>
@@ -59,10 +59,10 @@
                     <div
                         class="relative w-full mx-auto aspect-square border border-gray-200 rounded-lg overflow-hidden bg-white group flex items-center justify-center">
                         <!-- Title -->
-                        <div
+                        {{-- <div
                             class="absolute top-3 left-3 z-10 h-5 bg-yellow-400 text-gray-800 text-xs font-medium rounded px-2 py-1 shadow flex items-center justify-center">
                             {{ $productDetail->product_name ?? 'Product' }}
-                        </div>
+                        </div> --}}
                         <!-- Main image (with lightbox, initially first image) -->
                         <a href="{{ $galleryImages[0] }}" id="main-image-link">
                             <img src="{{ $galleryImages[0] }}" alt="Product" id="main-image"
@@ -98,18 +98,19 @@
                                 class="before:content-['('] before:text-gray-500 after:content-[')'] after:text-gray-500 text-green-600 ">
                                 In Stock</p>
                         </div>
-                        <div class="bg-yellow-400 text-xl h-[auto] md:h[auto] lg:h-[70px] px-6 flex items-center font-medium price-tag-box header-price">
+                        <div
+                            class="bg-yellow-400 text-xl h-[auto] md:h[auto] lg:h-[70px] px-6 flex items-center font-medium price-tag-box header-price">
                             <h4>
                                 @if ($productDetail->product_type == 'Rental')
                                     <span>
                                         <span class="font-bold text-xl lg:text-3xl">
                                             {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productVariant)) }}
                                         </span>
-                                        @if ($productDetail->isRentalOnSale($productVariant))
+                                        {{-- @if ($productDetail->isRentalOnSale($productVariant))
                                             <span class="line-through text-gray-500 text-base ml-1 font-normal italic">
                                                 {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productVariant, false)) }}
                                             </span>
-                                        @endif
+                                        @endif --}}
                                         <span class="font-normal">/ {{ $productVariant }}</span>
                                     </span>
                                 @else
@@ -134,37 +135,45 @@
                     </div>
 
                     <div class="my-5">
-                        <div class="flex items-center">
-                            <!-- Calendar icon button -->
-                            <a href="javascript:void(0);" id="openDatePicker" class="flex items-center space-x-2 mr-3">
-                                <x-heroicon-o-calendar-days class="w-6 h-6 md:w-[52px] h-[52px] text-yellow-400" />
-                                <span id="selectedDateText" class="text-sm md:text-base text-gray-700">Select Start Date</span>
-                            </a>
+                        <!-- Calendar icon button -->
+                        <a href="javascript:void(0);" id="openDatePicker" class="flex items-center space-x-2 mr-3">
+                            <img src="{{ asset('storage/front/images/calendar_icon.png') }}" alt="Calendar Icon" class="w-6 h-6 md:w-[52px] h-[52px]" />
+                            <span id="selectedDateText" class="text-sm md:text-base text-gray-700">Select Start Date</span>
+                        </a>
 
-                            <!-- Right side: date display + qty controls, spaced out -->
-                            <div class="flex items-center space-x-3 md:space-x-2 lg:space-x-4">
+                        <!-- Hidden input stays outside for accessibility/JS -->
+                        <input type="text" name="delivery_date" id="scheduleStartDateInput"
+                            data-format="{{ config('app.date.js_date_format') }}"
+                            data-min-date="{{ now()->format(config('app.date.db_date_format')) }}" class="sr-only" readonly
+                            placeholder="Select Start Date" />
 
-                                <!-- Quantity controls unchanged -->
-                                <button type="button"
-                                    class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
-                                    onclick="changeQty(-1)">−</button>
-
-                                <input type="number" id="qty" name="qty" value="1" min="1" max="1000"
-                                    class="w-16 text-center border border-gray-300 rounded" />
-
-                                <button type="button"
-                                    class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
-                                    onclick="changeQty(1)">+</button>
-                            </div>
-
-                            <!-- Hidden input stays outside for accessibility/JS -->
-                            <input type="text" name="delivery_date" id="scheduleStartDateInput"
-                                data-format="{{ config('app.date.js_date_format') }}"
-                                data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                class="sr-only" readonly placeholder="Select Start Date" />
-                        </div>
                         <!-- Optional: error message -->
                         <div id="dateError" class="text-red-600 text-sm hidden mt-1"></div>
+                    </div>
+
+                    <div class="my-5">
+                        <!-- Right side: date display + qty controls, spaced out -->
+                        <!-- Quantity controls unchanged -->
+                        <div class="flex items-center space-x-2 mr-3">
+                            <button type="button"
+                                class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
+                                onclick="changeQty(-1)">−</button>
+
+                            <input type="text" id="qty" name="qty" value="1"
+                                class="w-16 text-center border border-gray-300 rounded"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);"
+                                min="1"
+                            />
+
+                            <button type="button"
+                                class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
+                                onclick="changeQty(1)">+</button>
+
+                            <span class="text-sm md:text-base text-gray-700">Select Quantity</span>
+                        </div>
+
+                        <!-- Optional: error message -->
+                        <div id="qtyError" class="text-red-600 text-sm hidden mt-1"></div>
                     </div>
 
                     <div class="my-5">
@@ -267,7 +276,8 @@
                                 </div>
 
                                 <!-- Custom Option Text -->
-                                <div id="customServiceOption" class="hidden w-[100%] md:w-[100%] lg:w-[80%] border-[5px] border-sky-400 p-2 mt-2">
+                                <div id="customServiceOption"
+                                    class="hidden w-[100%] md:w-[100%] lg:w-[80%] border-[5px] border-sky-400 p-2 mt-2">
                                     <h4 class="text-center font-bold">Please Call / Text for Custom Solutions</h4>
                                     <h5 class="text-center text-red font-bold py-2">(615) 815-6734</h5>
                                     <p class="italic">Please reserve the item now, using the closest delivery range,
@@ -285,10 +295,11 @@
                                 <option disabled selected value="">Select Store Location</option>
                                 @foreach ($stores as $store)
                                     <option value="{{ $store->id }}">
-                                        {{ $store->store_name}}
+                                        {{ $store->store_name }}
                                     </option>
                                 @endforeach
                             </select>
+                            <div id="storeError" class="hidden text-red-500 text-sm mt-1"></div>
                         </div>
                     </div>
 
@@ -336,8 +347,9 @@
                                     $productDetail->rental_track_insurance_monthly !== null)
                                 <!-- Track Insurance -->
                                 <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked id="trackInsuranceCheckbox"
-                                        data-charged="1 Time Max" data-name="rental_track_insurance"
+                                    <input type="checkbox" class="form-checkbox h-4 w-4" checked
+                                        id="trackInsuranceCheckbox" data-charged="1 Time Max"
+                                        data-name="{{ \App\Enums\Products\ProductCustomStaticLabel::rental_track_insurance->name }}"
                                         data-keep="{{ $productSettings['track_insurance_approve_label'] }}"
                                         data-discard="{{ $productSettings['track_insurance_decline_label'] }}"
                                         data-message="{{ $productSettings['track_insurance_info'] }}" />
@@ -359,7 +371,7 @@
                                         };
                                     @endphp
 
-                                    <span>Track Insurance
+                                    <span>{{ \App\Enums\Products\ProductCustomStaticLabel::rental_track_insurance->label() }}
                                         <span class="font-medium">
                                             + {{ $trackInsurancePrice }}
                                         </span>
@@ -375,7 +387,7 @@
                                 <!-- Damage Waiver -->
                                 <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                     <input type="checkbox" class="form-checkbox h-4 w-4" checked id="damageCheckbox"
-                                        data-charged="1 Time Max" data-name="rental_damage_waiver"
+                                        data-charged="1 Time Max" data-name="{{ \App\Enums\Products\ProductCustomStaticLabel::rental_damage_waiver->name }}"
                                         data-keep="{{ $productSettings['damage_waiver_approve_label'] }}"
                                         data-discard="{{ $productSettings['damage_waiver_decline_label'] }}"
                                         data-message="{{ $productSettings['damage_waiver_info'] }}" />
@@ -397,7 +409,7 @@
                                         };
                                     @endphp
 
-                                    <span>Damage Waiver Protection
+                                    <span>{{ \App\Enums\Products\ProductCustomStaticLabel::rental_damage_waiver->label() }}
                                         <span class="font-medium">
                                             + {{ $damageWaiverPrice }}
                                         </span>
@@ -458,7 +470,7 @@
         <div class="container mx-auto max-w-screen-2xl px-4 md:px-6">
             <div class="pb-10">
                 <a href="javascript:void(0)"
-                    class="bg-yellow-400 px-6 py-3 text-sm font-medium rounded-lg shadow hover:bg-yellow-300 transition-colors border-0">
+                    class="border-2 border-yellow-400 px-6 py-3 text-sm font-medium rounded-lg shadow transition-colors cursor-default">
                     Details
                 </a>
             </div>
@@ -483,7 +495,8 @@
                                 class="lg:h-80 w-full flex items-center justify-center relative rounded-lg overflow-hidden group transition-all duration-500">
                                 <div
                                     class="w-full h-full flex items-center justify-center bg-white transition-all duration-500 rounded-lg">
-                                    <img src="{{ $relatedProduct->image_url }}" alt="{{ $relatedProduct->product_name }}"
+                                    <img src="{{ $relatedProduct->image_url }}"
+                                        alt="{{ $relatedProduct->product_name }}"
                                         class="w-[90%] h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105 "
                                         loading="lazy" />
                                 </div>
@@ -509,7 +522,8 @@
                                                 <span class="z-30">
                                                     {{ ucfirst($type) }}
                                                     @if ($relatedProduct->isRentalOnSale($type))
-                                                        - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                        - <span
+                                                            class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
                                                     @endif
                                                 </span>
                                                 <span>
@@ -541,7 +555,8 @@
                                             <span class="z-30">
                                                 {{ ucfirst('retail') }}
                                                 @if ($relatedProduct->isRetailOnSale())
-                                                    - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                    - <span
+                                                        class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
                                                 @endif
                                             </span>
                                             <span>

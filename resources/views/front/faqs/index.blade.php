@@ -13,7 +13,7 @@
                         <h1 class="header-title">FAQs
                         </h1>
                         <ul
-                            class="border-yellow-400 px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative border-2 border-white">
+                            class="px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-1">
                                 <a href="index.php" class="opacity-25">Home</a>
                             </li>

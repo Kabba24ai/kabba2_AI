@@ -150,7 +150,43 @@ Each API resource is organized in a folder named after the plural form of the mo
   Nested for API and modules.
 
 ---
+### Storage Folder Structure
 
+Inside `storage/app/public/`, static files and icons are organized for both admin and front-end use:
+
+- **admin/**: Contains static assets and icons used in the admin panel (e.g., admin-specific images, icons, and uploads).
+- **front/**: Contains static assets and icons for the front-end of the application (e.g., user-facing images, icons, and uploads).
+- **media/**: Stores uploaded media files through the admin panel, such as images, videos, and other uploads that may be used across both admin and front sections.
+
+This structure keeps assets organized by context and usage, making it easier to manage and reference files in your application.
+
+> This approach keeps static assets organized and leverages Laravel's built-in file storage system for serving files securely.
+
+## Product Enum: ProductCustomStaticLabel
+
+Located at: `app/Enums/Products/ProductCustomStaticLabel.php`
+
+This enum defines custom static labels for product rental options:
+- `rental_damage_waiver` — "Damage Waiver Protection"
+- `rental_track_insurance` — "Thrown Track Coverage"
+
+**Usage Notes:**
+- Do not change enum keys if orders exist, as this will break order data integrity.
+
+### Usages Across the Codebase
+
+- **Blade Views:**
+  - `resources/views/front/products/details.blade.php`: Used to display and reference rental options for products.
+  - `resources/views/components/front/cart-sidebar-preview.blade.php`: Used to show rental item names in the cart.
+  - `resources/views/components/front/checkout/cart-summary.blade.php`: Used to summarize rental options in checkout.
+  - `resources/views/admin/order_management/orders/edit.blade.php`: Used to display rental options in order editing.
+
+- **Helpers:**
+  - `app/Helpers/CartHelper.php`: Used to resolve and price rental options when building cart items.
+
+- **Controllers:**
+  - `app/Http/Controllers/Admin/ProductManagement/Products/UpdateController.php`: Handles updating product rental options and their prices.
+  
 > **Note:**  
 > When rendering HTML content using the editor on the front end, add the `rich-content` class to ensure proper styling and formatting.
 

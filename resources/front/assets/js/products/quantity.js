@@ -5,4 +5,5 @@ export function changeQty(delta) {
     if (newValue < parseInt(input.min)) newValue = parseInt(input.min);
     if (newValue > parseInt(input.max)) newValue = parseInt(input.max);
     input.value = newValue;
+    document.getElementById('qtyError').textContent = "";
 }

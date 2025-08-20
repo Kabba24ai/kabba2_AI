@@ -43,10 +43,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    storeSelect.addEventListener('change', function(event) {
+        const value = event.target.value;
+        const storeError = document.getElementById('storeError');
+        if (!value) {
+            storeError.textContent = 'Please select a store before adding to cart.';
+            storeError.classList.remove('hidden');
+        } else {
+            storeError.classList.add('hidden');
+        }
+    });
+
     // Datepicker, option grid modal, add to cart
     initDatepicker();
     initProductOptions();
     initAddToCart(context);
+
 
     // --- Here: Update product form from cart, if present ---
     if (window.CartStorage && typeof window.CartStorage.updateProductFormFromCart === 'function') {

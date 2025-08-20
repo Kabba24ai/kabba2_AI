@@ -12,7 +12,7 @@
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-3xl lg:text-4xl tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
                         <ul
-                            class="border-yellow-400 px-5 py-4 mt-4 lg:mt-0 text-sm font-medium border-2 max-w-full flex flex-wrap items-center gap-3">
+                            class="px-5 py-4 mt-4 lg:mt-0 text-sm font-medium max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
@@ -118,7 +118,7 @@
                                                 @endif
                                             </span>
                                             <span>
-                                                <span class="font-bold text-lg text-black">
+                                                <span class="font-normal text-lg text-black">
                                                     {{ App\Helpers\CustomHelper::formatCurrency($product->getRetailPrice(false)) }}
                                                 </span>
                                                 @if ($product->isRetailOnSale())

@@ -8,26 +8,55 @@ export function initAddToCart(context) {
         addToCartBtn.disabled = true;
         addToCartBtn.classList.add('opacity-60', 'cursor-not-allowed');
 
-        const qty = parseInt(document.getElementById('qty').value) || 1;
+        const qty = parseInt(document.getElementById('qty').value);
+        const storeId = document.getElementById('storeSelect')?.value || '';
         const scheduleDate = document.getElementById('scheduleStartDateInput').value;
         const dateError = document.getElementById('dateError');
+        const qtyError = document.getElementById('qtyError');
+        const storeError = document.getElementById('storeError');
+
+        // Clear previous errors
+        if (storeError) storeError.classList.add('hidden');
+        if (dateError) dateError.classList.add('hidden');
+        if (qtyError) qtyError.classList.add('hidden');
+
+        let errorMsg = '';
+        if (!storeId) {
+            errorMsg = 'Please select a store before adding to cart.';
+            if (storeError) {
+            storeError.textContent = errorMsg;
+            storeError.classList.remove('hidden');
+            }
+        }
         if (!scheduleDate) {
+            errorMsg = 'Please select a date before adding to cart.';
+            if (dateError) {
+            dateError.textContent = errorMsg;
+            dateError.classList.remove('hidden');
+            }
+        }
+        if (!qty) {
+            errorMsg = 'Please enter a valid quantity.';
+            if (qtyError) {
+            qtyError.textContent = errorMsg;
+            qtyError.classList.remove('hidden');
+            }
+        }
+
+        if (!storeId || !scheduleDate || !qty) {
             if (loader) loader.classList.add('hidden');
             addToCartBtn.disabled = false;
             addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-            if (dateError) {
-                dateError.textContent = 'Please select a date before adding to cart.';
-                dateError.classList.remove('hidden');
-            }
             return;
         }
+
         const serviceMethod = document.querySelector('input[name="service_method"]:checked')?.value || '';
         let distanceType = '';
         if (serviceMethod === 'Delivery') {
             distanceType = document.querySelector('input[name="distance_type"]:checked')?.value || '';
         }
         const serviceOption = document.getElementById('deliveryOptionSelect')?.value || '';
-        const storeId = document.getElementById('storeSelect')?.value || '';
+
         let distanceRange = '';
         let unit = context.distanceUnit || '';
         if (distanceType === 'Standard') {

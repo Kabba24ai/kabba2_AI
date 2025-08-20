@@ -72,7 +72,10 @@ class Product extends Model
         'updated_by', // ID of the user who last updated the record
     ];
 
-    protected $appends = ['image_url'];
+    protected $appends = [
+        'image_url',
+        'hover_image_url'
+    ];
 
     public function sluggable(): array
     {
@@ -165,9 +168,14 @@ class Product extends Model
         );
     }
 
-    public function getImageUrlAttribute()
+    public function getHoverImageUrlAttribute()
     {
         return $this->media ? $this->media->getUrl() : asset('storage/admin/images/error/No_Image_Available.jpg');
+    }
+
+    public function getImageUrlAttribute()
+    {
+        return $this->mediaChildren->first()?->media->url ?? asset('storage/admin/images/error/No_Image_Available.jpg');
     }
 
     public function media()
@@ -177,7 +185,7 @@ class Product extends Model
 
     public function mediaChildren()
     {
-        return $this->hasMany(ProductMediaChild::class, 'product_id');
+        return $this->hasMany(ProductMediaChild::class, 'product_id')->with('media')->sortOrder();
     }
 
     public function categories()

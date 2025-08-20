@@ -11,8 +11,7 @@
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
                         <h1 class="text-3xl lg:text-4xl tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
-                        <ul
-                            class="px-5 py-4 mt-4 lg:mt-0 text-sm font-medium max-w-full flex flex-wrap items-center gap-3">
+                        <ul class="px-5 py-4 mt-4 lg:mt-0 text-sm font-medium max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
@@ -22,7 +21,8 @@
                                 </li>
                             @else
                                 <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                    <a href="{{ route('front.categories.index', ['slug' => $category->parentCategory->slug]) }}" class="opacity-75">
+                                    <a href="{{ route('front.categories.index', ['slug' => $category->parentCategory->slug]) }}"
+                                        class="opacity-75">
                                         {{ $category->parentCategory->title }}
                                     </a>
                                 </li>
@@ -54,10 +54,20 @@
                                 class="lg:h-80 w-full flex items-center justify-center relative rounded-lg overflow-hidden group transition-all duration-500">
                                 <div
                                     class="w-full h-full flex items-center justify-center bg-white transition-all duration-500 rounded-lg">
-                                    <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
+                                    {{-- <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
                                         class="w-[90%] h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105 "
+                                        loading="lazy" /> --}}
+                                    <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
+                                        class="w-[90%] h-full object-contain transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+                                        loading="lazy" />
+
+                                    <!-- Hover image (first gallery image) -->
+                                    <img src="{{ $product->hover_image_url }}"
+                                        alt="{{ $product->product_name }} hover"
+                                        class="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
                                         loading="lazy" />
                                 </div>
+
                             </div>
 
 
@@ -81,7 +91,8 @@
                                                 <span class="z-30">
                                                     {{ ucfirst($type) }}
                                                     @if ($product->isRentalOnSale($type))
-                                                        - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                        - <span
+                                                            class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
                                                     @endif
                                                 </span>
                                                 <span>
@@ -102,7 +113,7 @@
                                 @else
                                     <!-- Retail Product (centered button, no inline styles) -->
                                     <div class="grid grid-cols-2 gap-2">
-                                        <a href="{{ route('front.products.details', [ 'slug' => $product->slug, 'productVariant' => 'retail']) }}"
+                                        <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productVariant' => 'retail']) }}"
                                             class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                             {{-- @if ($product->isRetailOnSale())
                                                 <span
@@ -114,7 +125,8 @@
                                             <span class="z-30">
                                                 {{ ucfirst('retail') }}
                                                 @if ($product->isRetailOnSale())
-                                                    - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                    - <span
+                                                        class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
                                                 @endif
                                             </span>
                                             <span>
@@ -131,8 +143,9 @@
                                         </a>
                                     </div>
                                 @endif
-                                <h6 class="text-[12px] mt-2 text-black text-center ">Select an Option to Learn More or
-                                    Reserve Today</h6>
+                                <h6 class="text-[12px] mt-2 text-black text-center ">
+                                    Select an Option to Learn More or Reserve Today
+                                </h6>
                             </div>
 
                         </div>

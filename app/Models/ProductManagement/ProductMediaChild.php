@@ -12,15 +12,21 @@ class ProductMediaChild extends Model
 {
     protected $fillable = [
         'product_id',
-        'media_id'
+        'media_id',
+        'sort_order'
     ];
+
+    public function scopeSortOrder($query, $direction = 'asc')
+    {
+        return $query->orderBy('sort_order', $direction);
+    }
 
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-   public function media()
+    public function media()
     {
         return $this->belongsTo(Media::class, 'media_id', 'id');
     }

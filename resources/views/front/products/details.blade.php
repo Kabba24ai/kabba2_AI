@@ -49,7 +49,6 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
 
                 @php
-                    $galleryImages = [$productDetail->image_url];
                     foreach ($productDetail->mediaChildren as $child) {
                         $galleryImages[] = $child->media->url;
                     }
@@ -64,9 +63,14 @@
                             {{ $productDetail->product_name ?? 'Product' }}
                         </div> --}}
                         <!-- Main image (with lightbox, initially first image) -->
-                        <a href="{{ $galleryImages[0] }}" id="main-image-link">
+                        <a href="{{ $galleryImages[0] }}" id="main-image-link" class="relative block w-full h-full">
+                            <!-- Default image -->
                             <img src="{{ $galleryImages[0] }}" alt="Product" id="main-image"
-                                class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" />
+                                class="w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-0" />
+
+                            <!-- Hover image -->
+                            <img src="{{ $productDetail->hover_image_url }}" alt="Hover Product"
+                                class="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                         </a>
 
                         <!-- Zoom icon -->

@@ -623,8 +623,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // If it’s EDIT → fill with values
             if (button.dataset.action) {
                 if (modal.querySelector('input[name="amount"]')) {
-                    modal.querySelector('input[name="amount"]').value = button.dataset.amount || '';
+                    const amountInput = modal.querySelector('input[name="amount"]');
+                    const value = button.dataset.amount || '0.00';
+ 
+                    // Set input value
+                    amountInput.value = parseFloat(value).toFixed(2);
+ 
+                    // 🔹 Sync digits for your custom input handler
+                    amountInput.digits = value.replace(/\D/g, '');
+                   
+                    // Trigger input event to update Parsley/other listeners
+                    const event = new Event('input', { bubbles: true });
+                    amountInput.dispatchEvent(event);
                 }
+
                 if (modal.querySelector('select[name="payment_type"]')) {
                     modal.querySelector('select[name="payment_type"]').value = button.dataset.payment_type || '';
                 }

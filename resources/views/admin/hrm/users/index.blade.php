@@ -32,7 +32,7 @@
         </div>
     </div>
 
-<div class="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-3xl mx-auto">
+<div class="w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-4xl mx-auto">
     <div class="container mt-6">
         <div class="bg-white border border-gray-200 rounded-md p-4 w-full">
             <div class="flex justify-left">

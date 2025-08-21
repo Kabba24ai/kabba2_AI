@@ -880,3 +880,10 @@ svg.checkmark {
   .billing-summary-w-13{width: 100%;}
 }
 
+/* @layer utilities {
+  @media (min-width: 1024px) {
+    .xl\:grid-cols-3 {
+      grid-template-columns: repeat(3,minmax(0,1fr));
+    }
+  }
+} */

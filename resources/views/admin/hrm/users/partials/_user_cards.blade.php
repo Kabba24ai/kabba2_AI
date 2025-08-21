@@ -1,7 +1,6 @@
-<div class="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-3xl mx-auto">
-    <div  id="cardWrapper" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-            <!-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> -->
-                
+
+<div class="w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-4xl mx-auto">
+    <div  id="cardWrapper" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-3"> 
             @foreach ($users as $user)
             
             @php
@@ -12,17 +11,14 @@
                 <div class="tv-filter-item tv-case-study tv-case-study-show" data-category="{{ $userCategories }}">
                     <div class="bg-gray-50">
                         <div class="">
-                            <div class="bg-white rounded-lg shadow border p-4">
+                            <div class="bg-white rounded-md shadow border p-4">
                                 <div class="flex justify-between items-start">
                                     <div class="flex gap-3 items-start">
                                         <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
                                             <x-heroicon-o-user class="w-5 h-5" />
-                                            </svg>
                                         </div>
                                         <div>
                                             <h2 class="text-base font-semibold text-gray-800">{{ $user->first_name }} {{ $user->middle_name }}  {{ $user->last_name }}  </h2>
-                                            <div class="flex gap-2 mt-1 text-xs">
-                                                
                                             <div class="flex gap-2 mt-1 text-xs">
                                                 {{-- Status Badge --}}
                                                 @if($user->status === 'Active')
@@ -30,17 +26,13 @@
                                                 @elseif($user->status === 'Inactive')
                                                     <span class="bg-red-100 text-red-800 px-2 py-0.5 rounded-full">inactive</span>
                                                 @endif
-
-                                               
-                                                  <!-- {{-- Pay Type Badge --}} -->
+                                                
+                                                <!-- {{-- Pay Type Badge --}} -->
                                                 @if($user->pay_type && isset($paytypes[$user->pay_type]))
                                                     <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
                                                         {{ $paytypes[$user->pay_type] }}
                                                     </span>
                                                 @endif
-
-                                            </div>
-
 
                                             </div>
                                         </div>
@@ -104,7 +96,7 @@
                                     <!-- <span class="bg-orange-100 text-orange-800 text-xs px-3 py-1 rounded-full">Manager</span> -->
                                 </div>
 
-                            <!-- Emergency Contact 1 -->
+                                <!-- Emergency Contact 1 -->
                                 @if($user->emergencyContactOne)
                                     <div class="mt-4 pt-2 border-t text-sm text-gray-700">
                                         <p class="font-semibold mb-1">Emergency Contact 1</p>

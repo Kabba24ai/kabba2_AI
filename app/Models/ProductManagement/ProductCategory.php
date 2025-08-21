@@ -91,6 +91,11 @@ class ProductCategory extends Model
         return $query->where('status', 'Active');
     }
 
+    public function scopeParent($query)
+    {
+        return $query->whereNull('parent_id');
+    }
+
     public static function boot()
     {
         parent::boot();
@@ -130,4 +135,65 @@ class ProductCategory extends Model
         return $this->belongsToMany(Product::class, ProductCategoryChild::class)->withTimestamps();
     }
 
+    // tree only
+    // public static function getHierarchy($except = []): array
+    // {
+    //     return new self()->getCategories($except);
+    // }
+
+    // private function getCategories($except = []): array
+    // {
+    //     $mainCategories = self::parent()->orderByAdmin()->whereNotIn('id', $except)->get();
+
+    //     foreach ($mainCategories as $category) {
+    //         $this->categories[$category->id] = $category->title;
+    //         $this->getChildCategories($category, 0, $except);
+    //     }
+
+    //     return $this->categories;
+    // }
+
+    // private function getChildCategories($category, $level, $except = [])
+    // {
+    //     if ($subCategories = $category->childCategories) {
+    //         $level++;
+    //         foreach ($subCategories as $subCategory) {
+    //             if (!in_array($subCategory->id, $except)) {
+    //                 $subCategory->title = str_repeat('-', $level) . $subCategory->title;
+    //                 $this->categories[$subCategory->id] = $subCategory->title;
+    //                 $this->getParentCategories($subCategory, $level, $except);
+    //             }
+    //         }
+    //     }
+    // }
+
+    // In your Category model
+    public static function getHierarchy(array $except = []): array
+    {
+        // 1 query, ordered once; exclude upfront
+        $all = self::query()->select('id', 'parent_id', 'title')->whereNotIn('id', $except)->orderByAdmin()->get();
+
+        // Group children by parent_id while preserving orderByAdmin order
+        $childrenByParent = [];
+        foreach ($all as $cat) {
+            $childrenByParent[$cat->parent_id ?? 0][] = $cat;
+        }
+
+        // Flatten the tree (depth-first) without mutating titles
+        $result = [];
+        foreach ($childrenByParent[0] ?? ($childrenByParent[null] ?? []) as $root) {
+            self::flattenCategory($root, $childrenByParent, $result, 0);
+        }
+
+        return $result; // [id => "---- Title"]
+    }
+
+    private static function flattenCategory($node, array &$childrenByParent, array &$result, int $level): void
+    {
+        $result[$node->id] = str_repeat('-', $level) . $node->title;
+
+        foreach ($childrenByParent[$node->id] ?? [] as $child) {
+            self::flattenCategory($child, $childrenByParent, $result, $level + 1);
+        }
+    }
 }

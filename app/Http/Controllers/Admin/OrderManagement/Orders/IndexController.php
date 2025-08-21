@@ -72,7 +72,7 @@ class IndexController extends Controller
             ]);
         }
 
-        $categories = ProductCategory::orderByAdmin()->get();
+        $categories = ProductCategory::getHierarchy();
 
         return view('admin.order_management.orders.index', [
             'orders' => $orders,

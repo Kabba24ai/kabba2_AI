@@ -12,7 +12,7 @@
     @include('admin.partials.formErrors')
 
 
-    <div class="w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-3xl mx-auto">
+    <div class="w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-4xl mx-auto">
  
         <!-- Outer Tabs -->
         <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm mb-6">

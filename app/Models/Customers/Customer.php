@@ -151,7 +151,7 @@ class Customer extends Authenticatable
 
     public function accounts()
     {
-        return $this->hasMany(CustomerAccount::class);
+        return $this->hasMany(CustomerAccount::class)->orderBy('date', 'desc');
     }
 
     public function cards()

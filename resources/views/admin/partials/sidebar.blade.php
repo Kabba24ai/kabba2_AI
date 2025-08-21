@@ -276,6 +276,12 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
+                                    <a href="https://projectmanager.kabba.ai" target="_blank"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Project Manager
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('admin.maintenance-management.equipments.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.maintenance-management.equipments.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">

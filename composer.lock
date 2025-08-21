@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c1460485645b57d04fba1f9caea5bb9b",
+    "content-hash": "0038a8c44ce467344bdf7b5ad004f906",
     "packages": [
         {
             "name": "authorizenet/authorizenet",
@@ -478,78 +478,6 @@
                 "source": "https://github.com/cocur/slugify/tree/v4.6.0"
             },
             "time": "2024-09-10T14:09:25+00:00"
-        },
-        {
-            "name": "codeat3/blade-carbon-icons",
-            "version": "2.36.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/codeat3/blade-carbon-icons.git",
-                "reference": "6f98c9c7639243f3bdde703897ac038056bad235"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/codeat3/blade-carbon-icons/zipball/6f98c9c7639243f3bdde703897ac038056bad235",
-                "reference": "6f98c9c7639243f3bdde703897ac038056bad235",
-                "shasum": ""
-            },
-            "require": {
-                "blade-ui-kit/blade-icons": "^1.1",
-                "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0",
-                "php": "^7.4|^8.0"
-            },
-            "require-dev": {
-                "codeat3/blade-icon-generation-helpers": "^0.10",
-                "codeat3/phpcs-styles": "^1.0",
-                "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0|^10.0",
-                "phpunit/phpunit": "^9.0|^10.5|^11.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Codeat3\\BladeCarbonIcons\\BladeCarbonIconsServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Codeat3\\BladeCarbonIcons\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Swapnil Sarwe",
-                    "homepage": "https://swapnilsarwe.com"
-                },
-                {
-                    "name": "Dries Vints",
-                    "homepage": "https://driesvints.com"
-                }
-            ],
-            "description": "A package to easily make use of Carbon Icons in your Laravel Blade views.",
-            "homepage": "https://github.com/codeat3/blade-carbon-icons",
-            "keywords": [
-                "blade",
-                "carbon-icons",
-                "icons",
-                "laravel"
-            ],
-            "support": {
-                "issues": "https://github.com/codeat3/blade-carbon-icons/issues",
-                "source": "https://github.com/codeat3/blade-carbon-icons/tree/2.36.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/swapnilsarwe",
-                    "type": "github"
-                }
-            ],
-            "time": "2025-07-22T02:06:38+00:00"
         },
         {
             "name": "composer/ca-bundle",

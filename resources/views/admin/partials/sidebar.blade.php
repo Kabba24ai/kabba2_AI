@@ -357,33 +357,7 @@
                             </ul>
                         </div>
                     </li>
-                     <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
-                        <a href="https://projectmanager.kabba.ai/" target="_blank" 
-                            class="menu-item group flex items-center gap-3 {{ $checklistManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-carbon-ibm-cloud-projects class="w-6 h-6" />
-                            
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Project Manager</span>
-                            <span class="menu-item-arrow"
-                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
-                                    'lg:hidden' : ''
-                                ]">
-
-                                <!-- Chevron Left (when open) -->
-                                <template x-if="!open">
-                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
-                                </template>
-
-                                <!-- Chevron Down (when closed) -->
-                                <template x-if="open">
-                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
-                                </template>
-                            </span>
-
-                        </a>
-
-                        
-                    </li>
-
+                    
                    
 
 

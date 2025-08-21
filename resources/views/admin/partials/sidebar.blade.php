@@ -275,12 +275,7 @@
                         <div x-show="open" x-transition>
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
-                                <li>
-                                    <a href="https://projectmanager.kabba.ai" target="_blank"
-                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
-                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Project Manager
-                                    </a>
-                                </li>
+                               
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.equipments.index') }}"
                                         class="menu-dropdown-item group
@@ -337,7 +332,7 @@
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
                                     <a href="#"
-                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        class="menu-dropdown-item group menu-dropdown-item-active">
                                         <x-heroicon-o-wrench-screwdriver class="w-5 h-5" /> Equipment Mgt.
                                     </a>
                                 </li>
@@ -361,6 +356,32 @@
                                 </li>
                             </ul>
                         </div>
+                    </li>
+                     <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
+                        <a href="https://projectmanager.kabba.ai/" target="_blank" 
+                            class="menu-item group flex items-center gap-3 {{ $checklistManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-carbon-ibm-cloud-projects class="w-6 h-6" />
+                            
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Project Manager</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+
+                        </a>
+
+                        
                     </li>
 
                    

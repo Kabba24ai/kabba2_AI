@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('checklist_management')
-->name('checklist_management.')
+Route::prefix('checklist-management')
+->name('checklist-management.')
 ->group(function ($router) {
 
     // customers

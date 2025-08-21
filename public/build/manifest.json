@@ -1,6 +1,6 @@
 {
-  "_api-BpHnsaBo.js": {
-    "file": "assets/api-BpHnsaBo.js",
+  "_api-DG9RYQG5.js": {
+    "file": "assets/api-DG9RYQG5.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
@@ -48,17 +48,17 @@
     "isEntry": true
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-LKgWNFgC.css",
+    "file": "assets/app-CE2bIbxJ.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-ipJCh-eG.js",
+    "file": "assets/app-6OeY-6iB.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-BpHnsaBo.js"
+      "_api-DG9RYQG5.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
@@ -71,22 +71,22 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-Bx0Qpy-y.css",
+    "file": "assets/app-CDr4a_i1.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-5srN1SGm.css",
+    "file": "assets/app-D1VE8cQW.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-Cbrz7nBX.js",
+    "file": "assets/app--VwKINjI.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-BpHnsaBo.js"
+      "_api-DG9RYQG5.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"

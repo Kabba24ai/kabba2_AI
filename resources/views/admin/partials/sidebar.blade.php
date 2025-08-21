@@ -51,7 +51,7 @@
 
                     $customerChecklistActive = Route::is([
                         // Add the correct route for customer checklist when ready
-                        'admin.checklist_management.customer_checklist.*',
+                        'admin.checklist-management.customer_checklist.*',
                     ]);
 
                     $crmActive = Route::is([
@@ -230,20 +230,20 @@
 
                     // Checklist Management
                     $checklistManagementActive = Route::is([
-                        'admin.checklist_management.*',
+                        'admin.checklist-management.*',
                     ]);
 
                     $rentalReadyActive = Route::is([
-                        'admin.checklist_management.rental-ready.question_and_categories.*',
-                        'admin.checklist_management.rental-ready.templates.*',
+                        'admin.checklist-management.rental-ready.question_and_categories.*',
+                        'admin.checklist-management.rental-ready.templates.*',
                     ]);
 
                     $rentalReadyquestion = Route::is([
-                        'admin.checklist_management.rental-ready.question_and_categories.*',
+                        'admin.checklist-management.rental-ready.question_and_categories.*',
                     ]);
 
                      $rentalReadytemplates = Route::is([
-                         'admin.checklist_management.rental-ready.templates.*',
+                         'admin.checklist-management.rental-ready.templates.*',
                     ]);
 
                     @endphp
@@ -336,14 +336,14 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('admin.checklist_management.checklist-master.index') }}"
-                                        class="menu-dropdown-item group {{ Route::is('admin.checklist_management.checklist-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                    <a href="{{ route('admin.checklist-management.checklist-master.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist-management.checklist-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-check-circle class="w-5 h-5" /> Checklist Master
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('admin.checklist_management.rental-ready.index') }}"
-                                        class="menu-dropdown-item group {{ Route::is('admin.checklist_management.rental-ready.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                    <a href="{{ route('admin.checklist-management.rental-ready.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist-management.rental-ready.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-truck class="h-5 w-5" /> Rental Ready Admin
                                     </a>
                                 </li>

@@ -206,7 +206,7 @@
         <!-- Main Image Previews -->
         <div class="grid grid-cols-4 gap-2 mt-4" id="mainImagePreview">
             @foreach ($mediaChildren as $image)
-                <div class="relative group">
+                <div class="relative group" data-key="{{ $image->id }}">
                     <a href="{{ $image->media->getUrl() }}" target="_blank">
                         <img src="{{ $image->media->getUrl() }}" class="w-full h-60 object-cover rounded-md border" />
                     </a>
@@ -219,6 +219,7 @@
                     <input type="hidden" name="existing_images[]" value="{{ $image->id }}">
                 </div>
             @endforeach
+            <input type="hidden" name="image_sort_order" id="image_sort_order">
         </div>
     </div>
 
@@ -545,7 +546,32 @@
 
         });
 
+        // Make refreshImageSortOrder global
+        window.refreshImageSortOrder = function() {
+            console.log("Refreshing image sort order...");
+            const grid = document.getElementById('mainImagePreview');
+            const sortInput = document.getElementById('image_sort_order');
+            if (!grid || !sortInput) return;
+
+            const keys = Array.from(grid.querySelectorAll('.group'))
+                .map(w => w.dataset.key) // e.g. ["existing-12","new-abc","existing-34"]
+                .filter(Boolean);
+
+            sortInput.value = JSON.stringify(keys);
+        };
+
+        // Initial compute
+        window.refreshImageSortOrder();
         document.addEventListener("DOMContentLoaded", function() {
+            // Init Sortable
+            const grid = document.getElementById('mainImagePreview');
+            if (grid) {
+                new Sortable(grid, {
+                    animation: 150,
+                    onEnd: window.refreshImageSortOrder
+                });
+            }
+
             const permalinkView = document.getElementById("permalinkView");
             const permalinkEdit = document.getElementById("permalinkEdit");
             // select ALL anchors with the class "permalink"
@@ -662,12 +688,13 @@
             // Append new images to main preview
             mainImageInput.addEventListener("change", function() {
                 const files = Array.from(this.files);
-
+                // sanitize: lowercase, replace spaces with dashes, remove non-word chars
                 files.forEach(file => {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const wrapper = document.createElement("div");
                         wrapper.className = "relative group";
+                        wrapper.dataset.key = `new-${file.name}`;
 
                         const anchor = document.createElement("a");
                         anchor.href = e.target.result;

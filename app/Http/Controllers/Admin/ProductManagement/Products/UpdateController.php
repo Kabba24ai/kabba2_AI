@@ -18,8 +18,8 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
-        $product = Product::where('unique_id', $unique_id)->firstOrFail();
 
+        $product = Product::where('unique_id', $unique_id)->firstOrFail();
         DB::beginTransaction();
 
         try {
@@ -158,6 +158,30 @@ class UpdateController extends Controller
                     $image->delete();
                 });
 
+            // Decode sort order JSON
+            $imageOrder = json_decode($validated['image_sort_order'] ?? '[]', true);
+
+            // Map into ['id-or-name' => sort_order]
+            $ordered = [];
+            $pos = 1;
+
+            foreach ($imageOrder as $key) {
+                // strip "new-" prefix if you want only the filename
+                $cleanKey = str_starts_with($key, 'new-')
+                    ? substr($key, 4)
+                    : $key;
+
+                $ordered[$cleanKey] = $pos++;
+            }
+
+            // Update existing
+            foreach ($product->mediaChildren as $child) {
+                $id = (string) $child->id;
+                if (isset($ordered[$id])) {
+                    $child->update(['sort_order' => $ordered[$id]]);
+                }
+            }
+
             // Upload and attach additional product images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
@@ -166,11 +190,11 @@ class UpdateController extends Controller
                         ProductMediaChild::create([
                             'product_id' => $product->id,
                             'media_id' => $mediaData['mediaObj']->id,
+                            'sort_order' => $ordered[$mediaData['mediaObj']->original_file_name] ?? 0,
                         ]);
                     }
                 }
             }
-
 
             DB::commit();
 

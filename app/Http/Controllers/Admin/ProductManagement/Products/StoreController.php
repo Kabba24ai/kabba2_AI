@@ -128,6 +128,7 @@ class StoreController extends Controller
             // ✅ Upload & associate hover image (single)
             if ($request->hasFile('hover_image')) {
                 $mediaData = MediaHelper::uploadStorageFile('Public Asset', $request->file('hover_image'), 'products', $product);
+
                 if (!empty($mediaData['mediaObj'])) {
                     $product->media_id = $mediaData['mediaObj']->id;
                     $product->save();
@@ -136,11 +137,13 @@ class StoreController extends Controller
 
             // ✅ Upload & associate multiple main images to ProductMediaChild
             if ($request->hasFile('images')) {
+                $position = 1;
                 foreach ($request->file('images') as $image) {
                     $mediaData = MediaHelper::uploadStorageFile('Public Asset', $image, 'products', $product);
                     if (!empty($mediaData['mediaObj'])) {
                         ProductMediaChild::create([
                             'product_id' => $product->id,
+                            'sort_order' => $position++,
                             'media_id' => $mediaData['mediaObj']->id,
                         ]);
                     }

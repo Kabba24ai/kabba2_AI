@@ -120,10 +120,10 @@
 
             const parsleyForm = $('#productForm').parsley(); // requires jQuery + Parsley jQuery adapter
             // Live error clearing when user types
-            const stdInput  = document.querySelector('input[name="standard_delivery_fee"]');
-            const extInput  = document.querySelector('input[name="extended_delivery_fee"]');
-            const delCheck  = document.querySelector('input[name="delivery_and_pickup"]');
-            const errorBox  = document.getElementById('delivery-fee-error');
+            const stdInput = document.querySelector('input[name="standard_delivery_fee"]');
+            const extInput = document.querySelector('input[name="extended_delivery_fee"]');
+            const delCheck = document.querySelector('input[name="delivery_and_pickup"]');
+            const errorBox = document.getElementById('delivery-fee-error');
 
             // helper to toggle readonly + subtle styling
             function setFeesReadonly(isReadonly) {
@@ -131,7 +131,7 @@
                     if (!el) return;
                     if (isReadonly) {
                         el.value = "";
-                        el.readOnly = true;                        // readonly attr
+                        el.readOnly = true; // readonly attr
                         el.classList.add('readonly'); // add class
                     } else {
                         el.readOnly = false;
@@ -175,7 +175,8 @@
                     const extVal = parseFloat(extInput.value || 0);
 
                     if (stdVal <= 0 && extVal <= 0) {
-                        errorBox.textContent = 'At least one delivery fee (standard or extended) must be greater than zero.';
+                        errorBox.textContent =
+                            'At least one delivery fee (standard or extended) must be greater than zero.';
                         stdInput.focus();
                         return; // Stop submission
                     } else {
@@ -192,6 +193,11 @@
                         console.log('Failed field:', field.$element.attr('name'));
                     });
                     return;
+                }
+
+                // 🔹 Ensure image order is up-to-date before submission
+                if (typeof window.refreshImageSortOrder === 'function') {
+                    window.refreshImageSortOrder();
                 }
 
                 // Disable all submit and header buttons and change their text
@@ -230,7 +236,8 @@
                                         window.location.href = res.redirect_url;
                                     }, 800);
                                 } else if (res.action === 'save_new') {
-                                    window.location.href = "{{ route('admin.product-management.products.create') }}";
+                                    window.location.href =
+                                        "{{ route('admin.product-management.products.create') }}";
                                 } else {
                                     window.location.reload();
                                 }

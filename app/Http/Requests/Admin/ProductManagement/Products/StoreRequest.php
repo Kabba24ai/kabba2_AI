@@ -83,7 +83,25 @@ class StoreRequest extends ApiBaseFormRequest
 
             // Hour tracking
             'hour_tracking' => ['nullable', 'in:Yes,No'],
-            'hour_rate' => ['required_if:hour_tracking,Yes', 'nullable', 'numeric', 'min:0'],
+            'hour_rate' => [
+                'nullable',
+                function ($attribute, $value, $fail) {
+                    if (
+                        ($this->input('product_type') === 'Rental') &&
+                        ($this->input('hour_tracking') === 'Yes') &&
+                        (is_null($value) || $value === '')
+                    ) {
+                        $fail('The hour rate field is required when hour tracking is "Yes" and product type is "Rental".');
+                    }
+                    if (
+                        ($this->input('product_type') === 'Rental') &&
+                        ($this->input('hour_tracking') === 'Yes') &&
+                        (!is_null($value) && (!is_numeric($value) || $value < 0))
+                    ) {
+                        $fail('The hour rate must be a non-negative number.');
+                    }
+                },
+            ],
 
             // Status
             'status' => ['required', 'in:Published,Draft,Pending'],

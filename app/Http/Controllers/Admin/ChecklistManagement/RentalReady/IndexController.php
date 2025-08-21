@@ -17,6 +17,9 @@ class IndexController extends Controller
         ->get();
 
         $totalQuestions = RentalReadyChecklistQuestion::count();
+
+        
+
         // Return the view with the settings data
         return view('admin.checklist_management.rental_ready.index',compact('rentalreadycategory','totalQuestions'));
     }

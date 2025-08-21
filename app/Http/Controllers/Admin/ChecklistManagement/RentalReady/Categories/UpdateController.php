@@ -36,7 +36,7 @@ class UpdateController extends Controller
             session()->flash('active_subtab', 'categories');
 
             return redirect()
-                ->route('admin.checklist_management.rental-ready.index')
+                ->route('admin.checklist-management.rental-ready.index')
                 ->with('success', 'Category updated successfully.');
 
         } catch (\Throwable $e) {

@@ -23,7 +23,7 @@
 
             <!-- Right: Action Button -->
             <div>
-                <a href="{{ route('admin.checklist_management.checklist-master.create') }}"
+                <a href="{{ route('admin.checklist-management.checklist-master.create') }}"
                     class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
                     <!-- Plus Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" fill="none"
@@ -94,7 +94,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">12 questions</div>
-                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" >Heavy Equipment Standard</a>
+                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" >Heavy Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -107,8 +107,8 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3">
-                    <div class=" flex gap-2">
+                <td class="px-4 py-3 ">
+                    <div class="flex gap-2">
                         <a href="#" class="text-blue-600">
                             <x-heroicon-o-pencil class="w-4 h-4" />
                         </a>
@@ -127,7 +127,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">10 questions</div>
-                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Compact Equipment Standard</a>
+                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Compact Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -160,7 +160,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">10 questions</div>
-                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Power Equipment Standard</a>
+                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Power Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -173,7 +173,7 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3">
+                <td class="px-4 py-3 ">
                     <div class="flex gap-2">
                         <a href="#" class="text-blue-600">
                             <x-heroicon-o-pencil class="w-4 h-4" />
@@ -182,7 +182,6 @@
                             <x-heroicon-o-trash class="w-4 h-4" />
                         </a>
                     </div>
-                    
                 </td>
             </tr>
 
@@ -194,7 +193,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">12 questions</div>
-                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Heavy Equipment Standard</a>
+                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Heavy Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -207,7 +206,7 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3 ">
+                <td class="px-4 py-3">
                     <div class="flex gap-2">
                         <a href="#" class="text-blue-600">
                             <x-heroicon-o-pencil class="w-4 h-4" />
@@ -227,7 +226,7 @@
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
                             <div class="text-sm text-gray-900">10 questions</div>
-                            <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Compact Equipment Standard</a>
+                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Compact Equipment Standard</a>
                         </div>
                     </div>
                 </td>
@@ -240,7 +239,7 @@
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3">
+                <td class="px-4 py-3 ">
                     <div class="flex gap-2">
                         <a href="#" class="text-blue-600">
                             <x-heroicon-o-pencil class="w-4 h-4" />

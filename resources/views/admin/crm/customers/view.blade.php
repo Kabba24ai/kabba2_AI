@@ -532,9 +532,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 </script>
 
-
-
-
 <script>
   document.addEventListener('DOMContentLoaded', function () {
       const availableCredit = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer) }};
@@ -606,183 +603,157 @@ document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById(modalId);
             if (!modal) return;
 
-            // Show modal
-            modal.style.display = 'flex';
+            const form = modal.querySelector('form');
 
-            // Fill shared form fields
-            if (modal.querySelector('input[name="amount"]')) {
-                modal.querySelector('input[name="amount"]').value = button.dataset.amount || '';
-            }
+            // 🔹 Reset the form when opening (so "Add" always starts fresh)
+            if (form) {
+                form.reset();
 
-            if (modal.querySelector('select[name="payment_type"]')) {
-                modal.querySelector('select[name="payment_type"]').value = button.dataset.payment_type || '';
-            }
-
-            if (modal.querySelector('select[name="reason"]')) {
-                modal.querySelector('select[name="reason"]').value = button.dataset.reason || '';
-            }
-
-            if (modal.querySelector('select[name="responsible_person"]')) {
-                modal.querySelector('select[name="responsible_person"]').value = button.dataset.responsible_person || '';
-            }
-
-            if (modal.querySelector('textarea[name="notes"]')) {
-                modal.querySelector('textarea[name="notes"]').value = button.dataset.notes || '';
-            }
-
-            // Set sales_tax radio
-            if (button.dataset.sales_tax_type) {
-                const salesTaxInputs = modal.querySelectorAll('input[name="sales_tax"]');
-                salesTaxInputs.forEach(input => {
-                    input.checked = input.value === button.dataset.sales_tax_type;
+                // also clear hidden fields manually if needed
+                form.querySelectorAll('input[type="hidden"]').forEach(h => {
+                    if (h.name !== "_token" && h.name !== "_method") {
+                        h.value = "";
+                    }
                 });
             }
 
+            // Show modal
+            modal.style.display = 'flex';
 
-              // Update form action/method
-            const form = modal.querySelector('form');
-            if (form) {
-                form.action = button.dataset.action || '#';
-                const methodInput = modal.querySelector('input[name="_method"]');
-                if (methodInput) {
+            // If it’s EDIT → fill with values
+            if (button.dataset.action) {
+                if (modal.querySelector('input[name="amount"]')) {
+                    modal.querySelector('input[name="amount"]').value = button.dataset.amount || '';
+                }
+                if (modal.querySelector('select[name="payment_type"]')) {
+                    modal.querySelector('select[name="payment_type"]').value = button.dataset.payment_type || '';
+                }
+                if (modal.querySelector('select[name="reason"]')) {
+                    modal.querySelector('select[name="reason"]').value = button.dataset.reason || '';
+                }
+                if (modal.querySelector('select[name="responsible_person"]')) {
+                    modal.querySelector('select[name="responsible_person"]').value = button.dataset.responsible_person || '';
+                }
+                if (modal.querySelector('textarea[name="notes"]')) {
+                    modal.querySelector('textarea[name="notes"]').value = button.dataset.notes || '';
+                }
+
+                // Set sales_tax radio
+                if (button.dataset.sales_tax_type) {
+                    const salesTaxInputs = modal.querySelectorAll('input[name="sales_tax"]');
+                    salesTaxInputs.forEach(input => {
+                        input.checked = input.value === button.dataset.sales_tax_type;
+                    });
+                }
+
+                // Update form action/method
+                if (form) {
+                    form.action = button.dataset.action || '#';
+                    let methodInput = form.querySelector('input[name="_method"]');
+                    if (!methodInput) {
+                        methodInput = document.createElement('input');
+                        methodInput.setAttribute('type', 'hidden');
+                        methodInput.setAttribute('name', '_method');
+                        form.appendChild(methodInput);
+                    }
                     methodInput.value = 'PUT';
-                } else {
-                    const hiddenMethod = document.createElement('input');
-                    hiddenMethod.setAttribute('type', 'hidden');
-                    hiddenMethod.setAttribute('name', '_method');
-                    hiddenMethod.setAttribute('value', 'PUT');
-                    form.appendChild(hiddenMethod);
-                }
 
-                //  Create or update 'type' field dynamically
-                let typeInput = form.querySelector('input[name="type"]');
-                if (!typeInput) {
-                    typeInput = document.createElement('input');
-                    typeInput.setAttribute('type', 'hidden');
-                    typeInput.setAttribute('name', 'type');
-                    form.appendChild(typeInput);
+                    // Update hidden type input
+                    let typeInput = form.querySelector('input[name="type"]');
+                    if (!typeInput) {
+                        typeInput = document.createElement('input');
+                        typeInput.setAttribute('type', 'hidden');
+                        typeInput.setAttribute('name', 'type');
+                        form.appendChild(typeInput);
+                    }
+                    typeInput.value = type;
                 }
-                typeInput.value = type;
-
+            } else {
+                // 🔹 If ADD → set default form action/method
+                if (form) {
+                    form.action = form.dataset.createAction || '#';
+                    let methodInput = form.querySelector('input[name="_method"]');
+                    if (methodInput) methodInput.remove();
+                }
             }
         });
     });
 });
+
 </script>
 
 <!-- edit  -->
 
-
-
-<!-- JavaScript -->
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('templatesModalWrapper');
-        const openBtn = document.getElementById('openTemplatesModal');
-        const closeBtn = document.getElementById('closeModalBtn');
-        const cancelBtn = document.getElementById('canceltempBtn');
+document.addEventListener('DOMContentLoaded', () => {
 
+    //  reset and re-sync form fields inside a modal
+    function resetForm(modalWrapper) {
+        const form = modalWrapper.querySelector('form');
+        if (form) form.reset(); // clear all normal inputs
+
+        // Reset custom digit inputs properly
+        const digitInputs = modalWrapper.querySelectorAll("input[data-digit-input='true']");
+        digitInputs.forEach(input => {
+            // Force display to 0.00
+            input.value = "0.00";
+
+            // Also reset internal digits variable if exists
+            if (input.hasOwnProperty('digits')) input.digits = "";
+
+            // Trigger input event so Parsley updates validation
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
+        });
+
+        // hide optional sections back to defaults
+        const creditCardOptions  = modalWrapper.querySelector('#creditCardOptions');
+        const newCardFields      = modalWrapper.querySelector('#newCardFields');
+        const cardOnFileDropdown = modalWrapper.querySelector('#cardOnFileDropdown');
+        [creditCardOptions, newCardFields, cardOnFileDropdown].forEach(el => {
+            if (el) el.classList.add('hidden');
+        });
+
+        // Reset payment type and card option
+        const paymentType = modalWrapper.querySelector('#payment_type');
+        if (paymentType) paymentType.value = '';
+        const cardOption = modalWrapper.querySelector('#cardOption');
+        if (cardOption) cardOption.value = 'NewCard';
+    }
+
+    // Universal modal handler
+    function setupModal(openBtnId, modalWrapperId, closeBtnId, cancelBtnId) {
+        const modalWrapper = document.getElementById(modalWrapperId);
+        const openBtn = document.getElementById(openBtnId);
+        const closeBtn = document.getElementById(closeBtnId);
+        const cancelBtn = document.getElementById(cancelBtnId);
+        if (!modalWrapper || !openBtn || !closeBtn || !cancelBtn) return;
+
+        // Open
         openBtn.addEventListener('click', () => {
+            resetForm(modalWrapper);       // Reset everything on open
             modalWrapper.style.display = 'flex';
         });
 
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
+        // Close
+        const closeModal = () => modalWrapper.style.display = 'none';
         closeBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
         modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
+            if (e.target === modalWrapper) closeModal();
         });
-    });
+    }
+
+    // Setup all modals
+    setupModal('openTemplatesModal', 'templatesModalWrapper', 'closeModalBtn', 'canceltempBtn');
+    setupModal('openRefundModal', 'refundModalWrapper', 'closeRefundModalBtn', 'cancelRefundBtn');
+    setupModal('openDiscountModal', 'discountModalWrapper', 'closeDiscountModalBtn', 'cancelDiscountBtn');
+    setupModal('openChargeModal', 'chargeModalWrapper', 'closeChargeModalBtn', 'cancelChargeBtn');
+});
 </script>
 
-<!-- JavaScript -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('refundModalWrapper');
-        const openBtn = document.getElementById('openRefundModal');
-        const closeBtn = document.getElementById('closeRefundModalBtn');
-        const cancelBtn = document.getElementById('cancelRefundBtn');
 
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
 
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('discountModalWrapper');
-        const openBtn = document.getElementById('openDiscountModal');
-        const closeBtn = document.getElementById('closeDiscountModalBtn');
-        const cancelBtn = document.getElementById('cancelDiscountBtn');
-
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('chargeModalWrapper');
-        const openBtn = document.getElementById('openChargeModal');
-        const closeBtn = document.getElementById('closeChargeModalBtn');
-        const cancelBtn = document.getElementById('cancelChargeBtn');
-
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

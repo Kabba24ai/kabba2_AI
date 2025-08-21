@@ -24,7 +24,7 @@ class DeleteController extends Controller
             session()->flash('active_subtab', 'categories');
 
             return redirect()
-                ->route('admin.checklist_management.rental-ready.index')
+                ->route('admin.checklist-management.rental-ready.index')
                 ->with('success', 'Category deleted successfully.');
 
         } catch (\Throwable $e) {

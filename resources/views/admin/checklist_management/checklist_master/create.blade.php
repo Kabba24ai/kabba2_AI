@@ -124,7 +124,7 @@
     <!-- <section class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded shadow"> -->
     <section class="">
         <!-- Step 1 -->
-        <div id="step1" class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+        <div id="step1" class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
             <div>
                 <!-- Header Icon and Title -->
                 <div class="flex flex-col items-center text-center space-y-1 mb-8">
@@ -144,7 +144,7 @@
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <a href="{{ route('admin.checklist_management.rental-ready.index') }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-cog-6-tooth  class="w-4 h-4" /> Rental Ready Admin</a>
+                        <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-cog-6-tooth  class="w-4 h-4" /> Rental Ready Admin</a>
                         <button class="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-users class="w-4 h-4" />Customer Admin</button>
                     </div>
                 </div>
@@ -191,7 +191,7 @@
         </div>
 
         <!-- Step 2 -->
-        <div id="step2" class="hidden max-w-3xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+        <div id="step2" class="hidden max-w-2xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
             
             <!-- Step Title -->
             <div class="bg-green-50 border border-green-200 text-green-800 text-sm p-4 rounded-md mb-6">
@@ -349,7 +349,7 @@
         </div>
 
         <!-- Step 3 -->
-        <div id="step3" class="hidden max-w-3xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+        <div id="step3" class="hidden max-w-2xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
             
             <!-- Step Title -->
             <div class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-md mb-6">
@@ -483,7 +483,7 @@
            
         </div>
 
-        <div id="step4" class="hidden max-w-3xl mx-auto text-center py-12">
+        <div id="step4" class="hidden max-w-2xl mx-auto text-center py-12">
             
             <div class="flex flex-col items-center text-center max-w-2xl w-full">
                 <!-- Success Icon -->

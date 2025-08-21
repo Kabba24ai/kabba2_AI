@@ -535,7 +535,7 @@
                     </div>
 
 
-  <!-- Card Options -->
+                 <!-- Card Options -->
                     <div id="creditCardOptions" class="mb-4 hidden">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Card Options *</label>
                         <select id="cardOption" name="card_option"
@@ -551,7 +551,7 @@
 
                     <!-- New Card Fields -->
                     <div id="newCardFields" class="mb-4 hidden">
-                        <div class="grid md:grid-cols-2 gap-4 max-w-sm">
+                        <div class="grid md:grid-cols-2 gap-4">
                             <div class="md:col-span-1">
                                 <input type="text" placeholder="First name" id="firstName" name="firstName"
                                     class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
@@ -591,7 +591,6 @@
                         </div>
                     @endif
 
-
                     <!-- Person Responsible -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
@@ -608,8 +607,8 @@
                             'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
                             'border-red-500' => $errors->has('responsible_person'),
                         ])
-                        ->required()
-                    !!}
+                            ->required()
+                        !!}
 
 
                     </div>
@@ -621,9 +620,9 @@
                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></textarea> -->
 
                             {!! html()->textarea('notes', old('notes'))
-        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
-        ->rows(3)
-        ->placeholder('Enter any additional notes...') !!}
+                                ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                                ->rows(3)
+                                ->placeholder('Enter any additional notes...') !!}
 
 
                     </div>
@@ -644,7 +643,7 @@
 
                     </div>
 
-  {{ html()->form()->close() }}
+        {{ html()->form()->close() }}
             
             </div>
            
@@ -1430,6 +1429,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return; // Stop submit
     }
+    
 });
 
 });

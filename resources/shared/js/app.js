@@ -90,58 +90,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-   const inputs = document.querySelectorAll("input[data-digit-input='true']");
+  const inputs = document.querySelectorAll("input[data-digit-input='true']");
 
-    inputs.forEach((input) => {
-        let digits = "";
+inputs.forEach((input) => {
+    // Use property on input element
+    if (!input.digits) input.digits = ""; // initialize if not set
 
-        // Initialize digits from existing value
-        if (input.value) {
-            digits = input.value.replace(/\D/g, "");
-        }
+    // Initialize digits from existing value
+    if (input.value) {
+        input.digits = input.value.replace(/\D/g, "");
+    }
 
-        const updateInput = () => {
-            let num = parseFloat(digits || "0") / 100;
-            input.value = num.toFixed(2);
+    const updateInput = () => {
+        let num = parseFloat(input.digits || "0") / 100;
+        input.value = num.toFixed(2);
 
-            // Manually trigger an input event so Parsley updates its validation
-            const event = new Event('input', { bubbles: true });
-            input.dispatchEvent(event);
-        };
+        const event = new Event("input", { bubbles: true });
+        input.dispatchEvent(event);
+    };
 
-        // Update once at the beginning if there was a value
-        if (digits) {
-            updateInput();
-        }
+    if (input.digits) updateInput();
 
-        input.addEventListener("keydown", function (e) {
-            const allowedKeys = ["Backspace", "Tab", "ArrowLeft", "ArrowRight"];
-            if (allowedKeys.includes(e.key)) {
-                if (e.key === "Backspace") {
-                    e.preventDefault();
-                    digits = digits.slice(0, -1);
-                    updateInput();
-                }
-                return;
-            }
-
-            // Allow only number keys (0–9)
-            if (/^[0-9]$/.test(e.key)) {
+    input.addEventListener("keydown", function (e) {
+        const allowedKeys = ["Backspace", "Tab", "ArrowLeft", "ArrowRight"];
+        if (allowedKeys.includes(e.key)) {
+            if (e.key === "Backspace") {
                 e.preventDefault();
-                digits += e.key;
+                input.digits = input.digits.slice(0, -1);
                 updateInput();
-                return;
             }
+            return;
+        }
 
+        if (/^[0-9]$/.test(e.key)) {
             e.preventDefault();
-        });
+            input.digits += e.key;
+            updateInput();
+            return;
+        }
 
-        input.addEventListener("paste", (e) => e.preventDefault());
-
-        // REMOVE this line – don't block input event anymore!
-        // input.addEventListener("input", (e) => e.preventDefault());
-
-        input.placeholder = "0.00";
+        e.preventDefault();
     });
+
+    input.addEventListener("paste", (e) => e.preventDefault());
+
+    input.placeholder = "0.00";
+});
 });
 

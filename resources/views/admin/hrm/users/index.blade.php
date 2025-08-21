@@ -92,7 +92,7 @@
 </div>
 
     
-    <div class="container  mt-6" id="user-wrapper">
+    <div class="mt-6" id="user-wrapper">
         @include('admin.hrm.users.partials._user_cards')
     </div>
 

@@ -16,29 +16,12 @@
             </div>
 
             <!-- Title -->
-            <span class="text-gray-800 dark:text-white font-medium truncate max-w-[200px]">
-                {{ $category->title }}
+            <span class="text-gray-800 dark:text-white font-medium truncate max-w-[110px]">
+                {{ html_entity_decode($category->title) }}
             </span>
 
             <!-- Status -->
-            @php
-                $statuses = [
-                    'published' => ['text' => 'Published', 'bg' => 'bg-green-100', 'textColor' => 'text-green-700'],
-                    'draft' => ['text' => 'Draft', 'bg' => 'bg-blue-100', 'textColor' => 'text-blue-700'],
-                    'pending' => ['text' => 'Pending', 'bg' => 'bg-yellow-100', 'textColor' => 'text-yellow-700'],
-                ];
-
-                $status = strtolower($category->status);
-                $badge = $statuses[$status] ?? [
-                    'text' => ucfirst($status),
-                    'bg' => 'bg-gray-100',
-                    'textColor' => 'text-gray-700',
-                ];
-            @endphp
-
-            <span class="ml-2 text-xs px-2 py-0.5 rounded {{ $badge['bg'] }} {{ $badge['textColor'] }}">
-                {{ $badge['text'] }}
-            </span>
+            {!! \App\Helpers\CustomHelper::statusBadge($category->status) !!}
 
         </div>
 

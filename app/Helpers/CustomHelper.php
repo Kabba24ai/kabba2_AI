@@ -9,7 +9,7 @@ use App\Enums\Orders\OrderPaymentStatus;
 use App\Enums\Orders\OrderPaymentMethod;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
-
+use Symfony\Component\Mime\DraftEmail;
 
 class CustomHelper
 {
@@ -24,7 +24,6 @@ class CustomHelper
 
     public static function getAvailableCredit($customer)
     {
-
         if (!(($customer->credit_limit ?? 0) > 0) || ($customer->is_credit_account ?? 0) != 1) {
             return 0;
         }
@@ -33,7 +32,7 @@ class CustomHelper
         $accounts = $customer->accounts ?? [];
 
         $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-        $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.00);
+        $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
 
         $balanceAdjustment = 0;
 
@@ -51,7 +50,7 @@ class CustomHelper
 
                 case 'refund':
                     $tax = $taxable ? $salesTaxRate : 0;
-                    $amountWithTax = $amount + ($amount * $tax);
+                    $amountWithTax = $amount + $amount * $tax;
                     $balanceAdjustment += $amountWithTax; // refund increases available credit
                     break;
 
@@ -62,7 +61,7 @@ class CustomHelper
                 case 'charge':
                     if ($account->sales_tax_type === 'add') {
                         $tax = $salesTaxRate;
-                        $amountWithTax = $amount + ($amount * $tax);
+                        $amountWithTax = $amount + $amount * $tax;
                     } elseif ($account->sales_tax_type === 'reverse') {
                         $tax = $salesTaxRate;
                         $amountWithTax = $amount; // tax was already included
@@ -75,7 +74,7 @@ class CustomHelper
 
                 case 'order':
                     $tax = $account->sales_tax ?? 0;
-                    $amountWithTax = $amount + ($amount * $tax);
+                    $amountWithTax = $amount + $amount * $tax;
                     $balanceAdjustment -= $amountWithTax; // order decreases available credit
                     break;
             }
@@ -83,10 +82,8 @@ class CustomHelper
 
         return $creditLimit + $balanceAdjustment;
     }
-    
 
-    
-       public static function isBadDebitCustomer($customer): bool
+    public static function isBadDebitCustomer($customer): bool
     {
         //  >45 days since last payment (danger)
         if (isset($customer->payment_status_badge) && $customer->payment_status_badge === 'danger') {
@@ -95,7 +92,7 @@ class CustomHelper
 
         //  Credit problems (credit_limit <= 0 OR NULL OR not a credit account)
         //    BUT only considered bad debt if available_credit_balance > 0
-        $creditIssue = ($customer->credit_limit <= 0) || is_null($customer->credit_limit) || ($customer->is_credit_account == 0);
+        $creditIssue = $customer->credit_limit <= 0 || is_null($customer->credit_limit) || $customer->is_credit_account == 0;
 
         if ($creditIssue && $customer->available_credit_balance > 0) {
             return true;
@@ -103,9 +100,6 @@ class CustomHelper
 
         return false;
     }
-
-
-
 
     public static function formatDate($date, $format = null)
     {
@@ -167,50 +161,49 @@ class CustomHelper
         return sprintf('(%s) %s-%s', substr($digits, 0, 3), substr($digits, 3, 3), substr($digits, 6, 4));
     }
 
- public static function statusBadge(string|OrderPaymentStatus|null $status): string
-{
-    // Convert enum to string value if needed
-    if ($status instanceof OrderPaymentStatus) {
-        $status = $status->value;
+    public static function statusBadge(string|OrderPaymentStatus|null $status): string
+    {
+        // Convert enum to string value if needed
+        if ($status instanceof OrderPaymentStatus) {
+            $status = $status->value;
+        }
+
+        // Handle null fallback
+        $status ??= 'N/A';
+
+        // Normalize for matching (e.g., convert 'Paid' to 'paid')
+        $normalizedStatus = strtolower($status);
+
+        $classes = [
+            'published' => 'bg-green-100 text-green-800',
+            'active' => 'bg-green-100 text-green-800',
+            'inactive' => 'bg-red-100 text-red-800',
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'account' => 'bg-blue-100 text-blue-800',
+            'partial refund' => 'bg-orange-100 text-orange-800',
+            'refunded' => 'bg-purple-100 text-purple-800',
+            'paid' => 'bg-green-100 text-green-800',
+            'failed' => 'bg-red-100 text-red-800',
+            'yes' => 'bg-green-100 text-green-800',
+            'no' => 'bg-red-100 text-red-800',
+            'draft' => 'bg-blue-100 text-blue-800',
+        ];
+
+        $class = $classes[$normalizedStatus] ?? 'bg-gray-200 text-gray-800';
+
+        return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">' . ucfirst($status) . '</span>';
     }
 
-    // Handle null fallback
-    $status ??= 'N/A';
+    public static function paymentMethodLabel(null|string|OrderPaymentMethod $method): string
+    {
+        if ($method instanceof OrderPaymentMethod) {
+            return $method->label();
+        }
 
-    // Normalize for matching (e.g., convert 'Paid' to 'paid')
-    $normalizedStatus = strtolower($status);
-
-    $classes = [
-        'published'       => 'bg-green-100 text-green-800',
-        'active'          => 'bg-green-100 text-green-800',
-        'inactive'        => 'bg-red-100 text-red-800',
-        'pending'         => 'bg-yellow-100 text-yellow-800',
-        'account'         => 'bg-blue-100 text-blue-800',
-        'partial refund'  => 'bg-orange-100 text-orange-800',
-        'refunded'        => 'bg-purple-100 text-purple-800',
-        'paid'            => 'bg-green-100 text-green-800',
-        'failed'          => 'bg-red-100 text-red-800',
-        'yes'             => 'bg-green-100 text-green-800',
-        'no'              => 'bg-red-100 text-red-800',
-    ];
-
-    $class = $classes[$normalizedStatus] ?? 'bg-gray-200 text-gray-800';
-
-    return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">'
-        . ucfirst($status) .
-        '</span>';
-}
-
-public static function paymentMethodLabel(null|string|OrderPaymentMethod $method): string
-{
-    if ($method instanceof OrderPaymentMethod) {
-        return $method->label();
+        return OrderPaymentMethod::tryFrom($method)?->label() ?? 'N/A';
     }
 
-    return OrderPaymentMethod::tryFrom($method)?->label() ?? 'N/A';
-}
-
-    public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.00): void
+    public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.0): void
     {
         $maxRetries = 5;
         $attempt = 0;
@@ -224,19 +217,16 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
                     $newBalance = $currentBalance;
 
                     $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-                    $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.00);
+                    $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
 
                     switch ($record->type) {
                         case 'payment':
-
                             if ($customer->getTaxStatus() === 'Taxable') {
-
                                 $record->sales_tax = $salesTaxRate;
 
                                 $amountWithTax = $record->amount;
 
                                 // $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
-
                             } else {
                                 $record->sales_tax = 0;
                                 $amountWithTax = $record->amount;
@@ -245,11 +235,10 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
                             $newBalance -= $amountWithTax;
                             break;
 
-
                         case 'refund':
                             if ($customer->getTaxStatus() === 'Taxable') {
                                 $record->sales_tax = $salesTaxRate;
-                                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
+                                $amountWithTax = $record->amount + $record->amount * $record->sales_tax;
                             } else {
                                 $record->sales_tax = 0;
                                 $amountWithTax = $record->amount;
@@ -264,22 +253,14 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
                             break;
 
                         case 'charge':
-                            if (
-                                $record->sales_tax_type === 'add'
-                            ) {
-
+                            if ($record->sales_tax_type === 'add') {
                                 $record->sales_tax = $salesTaxRate;
-                                $amountWithTax = $record->amount + ($record->amount * $record->sales_tax);
-
-                            } elseif ($record->sales_tax_type === 'reverse'){
-
+                                $amountWithTax = $record->amount + $record->amount * $record->sales_tax;
+                            } elseif ($record->sales_tax_type === 'reverse') {
                                 $record->sales_tax = $salesTaxRate;
 
                                 $amountWithTax = $record->amount;
-
-                            }
-
-                            else {
+                            } else {
                                 $record->sales_tax = 0;
                                 $amountWithTax = $record->amount;
                             }
@@ -298,12 +279,9 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
 
                     $customer->available_credit_balance = $newBalance;
                     $customer->save();
-
-
-              });
+                });
 
                 break; // If transaction succeeds, exit retry loop
-
             } catch (QueryException $e) {
                 // Deadlock error code in MySQL is 40001
                 if ($e->getCode() === '40001' && ++$attempt <= $maxRetries) {
@@ -320,17 +298,14 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
         $currentBalance = $customer->available_credit_balance ?? 0;
         $adjustedBalance = $currentBalance;
 
-
         switch ($record->type) {
             case 'payment':
-
                 // $salesTaxAmount = $record->sales_tax > 0 ? $record->amount - ($record->amount ?? 0) / (1 + $record->sales_tax) : 0;
 
-                $adjustedBalance += $record->amount ;
+                $adjustedBalance += $record->amount;
                 break;
 
             case 'refund':
-
                 $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
 
                 $adjustedBalance += $record->amount + $salesTaxAmount;
@@ -341,22 +316,16 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
                 break;
 
             case 'charge':
-
-                if ($record->sales_tax_type === 'reverse'){
-
-                $adjustedBalance -= $record->amount ;
-                break;
-
-                }
-
-                else {
+                if ($record->sales_tax_type === 'reverse') {
+                    $adjustedBalance -= $record->amount;
+                    break;
+                } else {
                     $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
-                $adjustedBalance -= $record->amount + $salesTaxAmount;
-                break;
+                    $adjustedBalance -= $record->amount + $salesTaxAmount;
+                    break;
                 }
 
             case 'order':
-
                 $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
 
                 $adjustedBalance -= $record->amount + $salesTaxAmount;
@@ -369,7 +338,4 @@ public static function paymentMethodLabel(null|string|OrderPaymentMethod $method
         $customer->available_credit_balance = $adjustedBalance;
         $customer->save();
     }
-
-
-
 }

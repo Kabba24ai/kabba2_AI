@@ -190,7 +190,8 @@ class ProductCategory extends Model
 
     private static function flattenCategory($node, array &$childrenByParent, array &$result, int $level): void
     {
-        $result[$node->id] = str_repeat('-', $level) . $node->title;
+        $result[$node->id] = str_repeat("-", $level * 2). $node->title;
+
 
         foreach ($childrenByParent[$node->id] ?? [] as $child) {
             self::flattenCategory($child, $childrenByParent, $result, $level + 1);

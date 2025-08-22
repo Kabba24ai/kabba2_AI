@@ -166,7 +166,7 @@ class IndexController extends Controller
             ]);
         }
 
-        $categories = ProductCategory::orderByAdmin()->get();
+        $categories = ProductCategory::getHierarchy();
         $stores = Store::orderBy('store_name')->get();
 
         return view('admin.order_management.schedules.index', ['orderProducts' => $orderProducts, 'categories' => $categories, 'stores' => $stores]);

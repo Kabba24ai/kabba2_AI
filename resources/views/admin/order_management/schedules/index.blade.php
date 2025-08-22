@@ -62,9 +62,9 @@
                 <select name="category"
                     class="choices-select w-full  rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                     <option value="">Select Category</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}" @selected(request('category') == $category->id)>
-                            {{ $category->title }}
+                    @foreach ($categories as $id => $category)
+                        <option value="{{ $id }}" @selected(request('category') == $id)>
+                            {{ $category }}
                         </option>
                     @endforeach
                 </select>

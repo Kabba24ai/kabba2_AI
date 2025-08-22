@@ -46,7 +46,7 @@ class IndexController extends Controller
             return view('admin.product_management.products.partials._table', compact('products'))->render();
         }
 
-        $categories = ProductCategory::orderBy('title')->get();
+        $categories = ProductCategory::getHierarchy();
 
         return view('admin.product_management.products.index', [
             'products' => $products,

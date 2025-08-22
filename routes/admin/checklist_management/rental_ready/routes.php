@@ -29,7 +29,10 @@ Route::prefix('rental-ready')
       // question
     require base_path('routes/admin/checklist_management/rental_ready/question/routes.php');
 
-      // question
+      // categories
     require base_path('routes/admin/checklist_management/rental_ready/categories/routes.php');
+
+      // templates
+    require base_path('routes/admin/checklist_management/rental_ready/templates/routes.php');
 
 });

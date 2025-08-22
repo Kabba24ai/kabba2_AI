@@ -400,10 +400,15 @@
                                                                                     data-sales_tax="{{ $transaction->sales_tax }}"
                                                                                     data-sales_tax_type="{{ $transaction->sales_tax_type }}"
                                                                                     data-action="{{ route('admin.crm.customers.customer-account.transactionupdate', $transaction->id) }}"
+
+                                                                                    @if($transaction->card)
+                                                                                        data-card_id="{{ $transaction->card->unique_id }}"
+                                                                                        data-card_masked="{{ $transaction->card->card_number }}"
+                                                                                    @endif
+                                                                                    
                                                                                     title="Edit">
                                                                                 <x-heroicon-o-pencil class="w-4 h-4" />
                                                                             </button>
-
                                                                     
                                                                         @endif
 
@@ -417,18 +422,25 @@
                                                                             <!-- Note -->
                                                                             <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">
 
-
                                                                                 <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
                                                                             </a>
 
                                     @if ($transaction->type !== 'order')
-                                                                            <button class="openDeleteTransactionBtn text-red-600 hover:text-red-800"
-                                                                                    data-id="{{ $transaction->id }}"
-                                                                                    data-type="{{ $transaction->type }}"
-                                                                                    data-action="{{ route('admin.crm.customers.customer-account.transactiondelete', $transaction->id) }}"
-                                                                                    title="Delete">
-                                                                                <x-heroicon-o-trash class="w-4 h-4" />
-                                                                            </button>
+
+                                                                            <!-- Transaction delete button wrapped in form -->
+                                                <form action="{{ route('admin.crm.customers.customer-account.transactiondelete', $transaction->id) }}"
+                                                    method="POST"
+                                                    class="flex delete-transaction-form"
+                                                    data-transaction-type="{{ $transaction->type }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                            class="text-red-600 hover:text-red-800"
+                                                            title="Delete">
+                                                        <x-heroicon-o-trash class="w-4 h-4" />
+                                                    </button>
+                                                </form>
+                                                                            
                                     @endif
 
                                     </div>
@@ -522,16 +534,16 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
                         {!! html()->select('payment_type', [
-            '' => 'Select payment method',
-            'CreditCard' => 'Credit / Debit Card',
-            'Cash' => 'Cash',
-            'Cheque' => 'Check',
-            'BankTransfer' => 'Bank Transfer',
-            'Other' => 'Other',
-        ], old('payment_type'))
-         ->id('payment_type')
-        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
-         ->required() !!}
+                            '' => 'Select payment method',
+                            'CreditCard' => 'Credit / Debit Card',
+                            'Cash' => 'Cash',
+                            'Cheque' => 'Check',
+                            'BankTransfer' => 'Bank Transfer',
+                            'Other' => 'Other',
+                        ], old('payment_type'))
+                        ->id('payment_type')
+                        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                        ->required() !!}
                     </div>
 
 
@@ -1109,34 +1121,23 @@
 
 @push('js')
 
+<!-- delete transaction script -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.openDeleteTransactionBtn').forEach(button => {
-        button.addEventListener('click', () => {
-            const type = button.dataset.type;
-            const id = button.dataset.id;
-            const action = button.dataset.action;
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-transaction-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // stop auto submit
 
-            if (confirm(`Are you sure you want to delete this ${type} transaction?`)) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = action;
+            const transactionType = form.getAttribute('data-transaction-type') || 'this transaction';
 
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = '_token';
-                csrfInput.value = '{{ csrf_token() }}';
-
-                const methodInput = document.createElement('input');
-                methodInput.type = 'hidden';
-                methodInput.name = '_method';
-                methodInput.value = 'DELETE';
-
-                form.appendChild(csrfInput);
-                form.appendChild(methodInput);
-                document.body.appendChild(form);
-                form.submit();
-            }
+            window.showConfirm(
+                `Delete "${transactionType}"? This action cannot be undone!`,
+                'Delete transaction'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
         });
     });
 });

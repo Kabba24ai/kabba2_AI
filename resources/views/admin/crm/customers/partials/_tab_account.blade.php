@@ -816,28 +816,50 @@
 
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-            {{ html()->password('password')->attributes([
-                'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                'required' => true,
-                'id' => 'password',
-                'data-parsley-minlength' => '6',
-                'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
-                
-            ])->placeholder('') }}
-            <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
-                                        @error('password')
-                                            <p class="text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
+            <div class="relative">
+                {{ html()->password('password')->attributes([
+                    'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'required' => true,
+                    'id' => 'password',
+                    'data-parsley-minlength' => '6',
+                    'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
+                    
+                ])->placeholder('') }}
+                <button type="button" onclick="toggleVisibility('password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                </button>
+                <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
+                @error('password')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
         </div>
 
         <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Password Confirmation</label>
-        {{ html()->password('password_confirmation')->attributes([
-            'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-            'required' => true,
-            'id' => 'password_confirmation',
-            'data-parsley-equalto' => '#password',
-        ])->placeholder('') }}
+        <div class="relative">
+            {{ html()->password('password_confirmation')->attributes([
+                'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'required' => true,
+                'id' => 'password_confirmation',
+                'data-parsley-equalto' => '#password',
+            ])->placeholder('') }}
+            <button type="button" onclick="toggleVisibility('password_confirmation', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <div class="flex justify-end gap-2 pb-4">
@@ -881,6 +903,25 @@
 
 @push('js')
 
+<script>
+function toggleVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+  
+  const svg = btn.querySelector('svg');
+  svg.innerHTML = isPassword
+    ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.042 10.042 0 013.03-4.362M6.873 6.876A9.953 9.953 0 0112 5c4.477 0 8.267 2.943 9.541 7a9.966 9.966 0 01-1.249 2.527M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M3 3l18 18" />`
+    : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+}
+</script>
+
 
 <script>
     window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
@@ -888,10 +929,15 @@
 
 
 <script>
-    function confirmAndDelete(id) {
-        if (confirm("Are you sure you want to delete this document?")) {
-            document.getElementById(`delete-media-form-${id}`).submit();
-        }
+function confirmAndDelete(id) {
+           window.showConfirm(
+                `Are you sure you want to delete this document ? This action cannot be undone!`,
+                'Delete Document'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`delete-media-form-${id}`).submit();
+                }
+            });
     }
     function confirmAndSuspend(id) {
         if (confirm("Are you sure you want to suspend this customer?")) {

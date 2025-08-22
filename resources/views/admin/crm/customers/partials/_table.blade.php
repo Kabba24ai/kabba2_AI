@@ -124,7 +124,7 @@
                         </a> -->
 
 
-                        {{-- Delete Button --}}
+                        <!-- {{-- Delete Button --}}
                         <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}" method="POST"
                             class="inline" onsubmit="return confirm('Are you sure you want to delete this Customer?');">
                             @csrf
@@ -132,7 +132,20 @@
                             <button class="text-red-600 hover:text-red-800" title="Delete">
                                 <x-heroicon-o-trash class="w-5 h-5" />
                             </button>
+                        </form> -->
+
+
+                        <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}"
+                            method="POST"
+                            class="inline delete-customer-form"
+                            data-customer-name="{{ $customer->full_name }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
+                                <x-heroicon-o-trash class="w-5 h-5" />
+                            </button>
                         </form>
+
                         </a>
 
                     </td>
@@ -155,3 +168,34 @@
 <div class="mt-6">
     {{ $customers->links() }}
 </div>
+
+
+@push('js')
+
+
+
+<!-- delete- -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-customer-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // stop auto submit
+
+            const templateName = form.getAttribute('data-customer-name') || 'this customer';
+
+            window.showConfirm(
+                `Delete "${templateName}"? This action cannot be undone!`,
+                'Delete customer'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); 
+                }
+            });
+        });
+    });
+});
+</script>
+
+<!-- delete- -->
+
+@endpush

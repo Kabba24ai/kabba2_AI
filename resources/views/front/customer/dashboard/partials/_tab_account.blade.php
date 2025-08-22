@@ -292,7 +292,7 @@
 
                                     <div class="grid grid-cols-2 gap-4">
                                             <div class="edit-view">
-                                                <label class="text-sm text-gray-700 mb-1">First Name *</label>
+                                                <label class="text-xs text-gray-500 font-medium mb-1">First Name *</label>
                                                 {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
                                                     ->class([
                                                         'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -304,7 +304,7 @@
                                                     ])->required() !!}
                                             </div>
                                             <div class="edit-view">
-                                                <label class="text-sm text-gray-700 mb-1">Last Name *</label>
+                                                <label class="text-xs text-gray-500 font-medium mb-1">Last Name *</label>
                                                 {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
                                                     ->class([
                                                         'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -319,7 +319,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="text-sm text-gray-700 mb-1 edit-view">Address *</label>
+                                            <label class="text-xs text-gray-500 font-medium mb-1 edit-view">Address *</label>
                                            <div class="static-view text-gray-900 text-sm">
 
                                             {{ $addresse?->full_name ?? '' }}<br>
@@ -343,7 +343,7 @@
 
                                         <div class="grid grid-cols-2 gap-4">
                                             <div class="edit-view">
-                                                <label class="text-sm text-gray-700 mb-1">City *</label>
+                                                <label class="text-xs text-gray-500 font-medium mb-1">City *</label>
                                                 {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                                                     ->class([
                                                         'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -355,7 +355,7 @@
                                                     ])->required() !!}
                                             </div>
                                             <div class="edit-view">
-                                                <label class="text-sm text-gray-700 mb-1">Zip Code *</label>
+                                                <label class="text-xs text-gray-500 font-medium mb-1">Zip Code *</label>
                                                 {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                                                     ->class([
                                                         'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -371,7 +371,7 @@
 
                                         <div class="grid grid-cols-2 gap-4">
                                                     <div class="edit-view">
-                                                        <label class="text-sm text-gray-700 mb-1">State *</label>
+                                                        <label class="text-xs text-gray-500 font-medium mb-1">State *</label>
                                                         {!! html()
                                                             ->select("addresses[$index][state_id]",
                                                                 ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
@@ -385,7 +385,7 @@
                                                     </div>
 
                                                     <div class="edit-view">
-                                                        <label class="text-sm text-gray-700 mb-1">Phone Number *</label>
+                                                        <label class="text-xs text-gray-500 font-medium mb-1">Phone Number *</label>
 
 
                                                         {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
@@ -567,12 +567,12 @@
 <!-- taxdocModalWrapper Wrapper -->
 <div id="taxdocModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
                 <div class="flex items-center gap-2">
                     <h2 class="text-lg font-medium text-gray-900">Upload Tax Exempt Document</h2>
                 </div>
-                <button type="button" id="closetaxdocBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                <button type="button" id="closetaxdocBtn" class="text-gray-400 hover:text-gray-700  text-xl">&times;</button>
             </div>
             <div class=" p-6 overflow-y-auto">
                 <div class="max-w-md mx-auto">

@@ -6,7 +6,7 @@
 @endpush
 
 @section('content')
-<!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
+
 <div class="bg-gray-50 px-4 py-4 border-b border-gray-200">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Left Section -->
@@ -69,7 +69,7 @@
             <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}"
                 method="POST"
                 class="inline delete-customer-form"
-                data-customer-name="{{ $customer->name }}">
+                data-customer-name="{{ $customer->full_name }}">
                 @csrf
                 @method('DELETE')
                 <button type="submit"
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const form = modal.querySelector('form');
 
-            // 🔹 Reset the form when opening (so "Add" always starts fresh)
+            //  Reset the form when opening (so "Add" always starts fresh)
             if (form) {
                 form.reset();
 
@@ -620,16 +620,46 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show modal
             modal.style.display = 'flex';
 
+            const amountInput = modal.querySelector('input[name="amount"]');
+            const paymentTypeSelect = modal.querySelector('select[name="payment_type"]');
+            const cardOptionSelect = modal.querySelector('#cardOption'); 
+            const cardOnFileDropdown = modal.querySelector('#cardOnFileDropdown');
+            const existingCardSelect = modal.querySelector('select[name="existing_card_id"]');
+
+
+            // At the start of modal open (before filling data)
+            if (amountInput) amountInput.readOnly = false;
+            if (paymentTypeSelect) paymentTypeSelect.disabled = false;
+
+            if (cardOptionSelect) {
+                cardOptionSelect.disabled = false;
+                cardOptionSelect.value = ""; // reset to default
+            }
+
+            if (cardOnFileDropdown) cardOnFileDropdown.classList.add('hidden');
+
+            if (existingCardSelect) {
+                existingCardSelect.disabled = false;
+                existingCardSelect.style.display = "";
+
+                // Remove masked <p> if previously added
+                const nextSibling = existingCardSelect.nextElementSibling;
+                if (nextSibling && nextSibling.tagName === "P" && nextSibling.textContent.includes("****")) {
+                    nextSibling.remove();
+                }
+            }
+
+
             // If it’s EDIT → fill with values
             if (button.dataset.action) {
                 if (modal.querySelector('input[name="amount"]')) {
-                    const amountInput = modal.querySelector('input[name="amount"]');
+                  
                     const value = button.dataset.amount || '0.00';
  
                     // Set input value
                     amountInput.value = parseFloat(value).toFixed(2);
  
-                    // 🔹 Sync digits for your custom input handler
+                    //  Sync digits for your custom input handler
                     amountInput.digits = value.replace(/\D/g, '');
                    
                     // Trigger input event to update Parsley/other listeners
@@ -680,8 +710,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     typeInput.value = type;
                 }
+                 // SPECIAL CASE: lock CreditCard payments
+                  if (type === "payment") {
+                      if (button.dataset.payment_type === "CreditCard" && button.dataset.card_id) {
+                          // Lock amount + payment type
+                          if (amountInput) amountInput.readOnly = true;
+                          if (paymentTypeSelect) paymentTypeSelect.disabled = true;
+
+                          // Force Card Option = CardOnFile
+                          if (cardOptionSelect) {
+                              cardOptionSelect.value = "CardOnFile";
+                              cardOptionSelect.disabled = true;
+                          }
+
+                          // Show card-on-file dropdown
+                          if (cardOnFileDropdown) cardOnFileDropdown.classList.remove('hidden');
+
+                          if (existingCardSelect) {
+                              existingCardSelect.value = button.dataset.card_id;
+                              existingCardSelect.disabled = true;
+                              existingCardSelect.style.display = "";
+                          }
+                      } else if (button.dataset.payment_type !== "CreditCard") {
+                          // Remove/hide CreditCard option so user cannot switch to it
+                          if (paymentTypeSelect) {
+                              const creditCardOption = paymentTypeSelect.querySelector('option[value="CreditCard"]');
+                              if (creditCardOption) {
+                                  // creditCardOption.disabled = true;   // disables but keeps it visible
+                                   creditCardOption.remove();    // completely removes it
+                              }
+                          }
+                      }
+                  }
+
+
             } else {
-                // 🔹 If ADD → set default form action/method
+                //  If ADD → set default form action/method
                 if (form) {
                     form.action = form.dataset.createAction || '#';
                     let methodInput = form.querySelector('input[name="_method"]');
@@ -702,7 +766,42 @@ document.addEventListener('DOMContentLoaded', () => {
     //  reset and re-sync form fields inside a modal
     function resetForm(modalWrapper) {
         const form = modalWrapper.querySelector('form');
+
+          const amountInput2 = document.querySelector('input[name="amount"]');
+
+            const paymentTypeSelect2 = document.querySelector('select[name="payment_type"]');
+            const cardOptionSelect2 = document.querySelector('#cardOption'); 
+            const cardOnFileDropdown2 = document.querySelector('#cardOnFileDropdown');
+            const existingCardSelect2 = document.querySelector('select[name="existing_card_id"]');
+
+
+            // At the start of modal open (before filling data)
+            if (amountInput2) amountInput2.readOnly = false;
+            if (paymentTypeSelect2) paymentTypeSelect2.disabled = false;
+
+            if (cardOptionSelect2) {
+                cardOptionSelect2.disabled = false;
+                cardOptionSelect2.value = ""; // reset to default
+            }
+
+            if (cardOnFileDropdown2) cardOnFileDropdown2.classList.add('hidden');
+
+            if (existingCardSelect2) {
+                existingCardSelect2.disabled = false;
+                existingCardSelect2.style.display = "";
+
+                // Remove masked <p> if previously added
+                const nextSibling2 = existingCardSelect2.nextElementSibling;
+                if (nextSibling2 && nextSibling2.tagName === "P" && nextSibling2.textContent.includes("****")) {
+                    nextSibling2.remove();
+                }
+            }
+
+
         if (form) form.reset(); // clear all normal inputs
+
+    
+
 
         // Reset custom digit inputs properly
         const digitInputs = modalWrapper.querySelectorAll("input[data-digit-input='true']");
@@ -850,6 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newNote = document.getElementById('noteTextarea').value;
     const transactionId = document.getElementById('noteTransactionId').value;
 
+    
 
     fetch(`{{ route('admin.crm.customers.customer-account.update_note') }}`, {
         method: "POST",
@@ -883,10 +983,10 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
 
-             // also update the button's data-* attributes so the next time modal opens, it shows fresh values
-           let editBtn = document.querySelector(`.openEditPaymentModalBtn[data-id="${data.id}"]`);
-          if (editBtn) {
-              editBtn.dataset.notes = data.notes ?? "";
+          // also update the button's data-* attributes so the next time modal opens, it shows fresh values
+          let editBtn = document.querySelector(`.openEditPaymentModalBtn[data-id="${data.id}"]`);
+          if (editBtn) {  
+              editBtn.dataset.notes = newNote ?? "";
           }
 
 

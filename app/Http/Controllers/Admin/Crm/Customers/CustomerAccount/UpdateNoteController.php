@@ -23,6 +23,7 @@ class UpdateNoteController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Note updated successfully.',
+            'id' => $transaction->id ,
         ]);
     }
 }

@@ -320,13 +320,13 @@
 <!-- Single Transaction Modal -->
 <div id="transactionViewModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200  overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-eye class="w-5 h-5 text-blue-600" />
                     <h2 class="text-lg font-medium text-gray-900">Transaction Details</h2>
                 </div>
-                <button id="closeTransactionViewModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                <button id="closeTransactionViewModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
             <div class="px-6 overflow-y-auto" id="transactionViewModalBody">
                 <!-- Filled by JS -->
@@ -340,13 +340,13 @@
 <!-- Transaction Note Wrapper -->
 <div id="noteModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
                 <div class="flex items-center gap-2">
                      <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
                     <h2 class="text-lg font-medium text-gray-900">Transaction Note</h2>
                 </div>
-                <button id="closeNoteModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                <button id="closeNoteModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
             <div class=" px-6 overflow-y-auto">
                 <div class="bg-gray-50 rounded-lg mb-4 text-sm space-y-1">

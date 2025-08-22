@@ -10,14 +10,14 @@
                 @include('flash::message')
                 @include('admin.partials.formErrors')
 
-                <div class="border-b border-gray-200 dark:border-gray-800">
+                <div class="border-b border-gray-200">
                     <nav
                         class="-mb-px flex space-x-2 overflow-x-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 dark:[&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:h-1.5">
                         <button
                             class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                             x-bind:class="activeTab === 'dashboard' ?
-                                ' text-brand-500 border-brand-500  dark:text-brand-400 dark:border-brand-400' :
-                                'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                                ' text-brand-500 border-brand-500' :
+                                'bg-transparent text-gray-500 border-transparent hover:text-gray-700 '"
                             x-on:click="activeTab = 'dashboard'" id="tab-dashboard">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -25,15 +25,14 @@
                                 <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
                                 <polyline points="16 7 22 7 22 13"></polyline>
                             </svg>
-                            </svg>
                             Dashboard
                         </button>
 
                         <button
                             class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                             x-bind:class="activeTab === 'orders' ?
-                                ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' :
-                                'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                                ' text-brand-500 border-brand-500' :
+                                'bg-transparent text-gray-500 border-transparent  hover:text-gray-700'"
                             x-on:click="activeTab = 'orders'" id="tab-orders">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -49,8 +48,8 @@
 
                         <button
                             class="inline-flex items-center border-b-2 whitespace-nowrap px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
-                            x-bind:class="activeTab === 'credit' ? ' text-brand-500 border-brand-500   dark:text-brand-500' :
-                                'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                            x-bind:class="activeTab === 'credit' ? ' text-brand-500 border-brand-500' :
+                                'bg-transparent text-gray-500 border-transparent  hover:text-gray-700'"
                             x-on:click="activeTab = 'credit'">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -63,8 +62,8 @@
 
                         <button
                             class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
-                            x-bind:class="activeTab === 'invoices' ? ' text-brand-500 border-brand-500   dark:text-brand-500' :
-                                'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
+                            x-bind:class="activeTab === 'invoices' ? ' text-brand-500 border-brand-500' :
+                                'bg-transparent text-gray-500 border-transparent  hover:text-gray-700'"
                             x-on:click="activeTab = 'invoices'">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -77,8 +76,8 @@
 
                         <button
                             class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
-                            x-bind:class="activeTab === 'account' ? ' text-brand-500 border-brand-500   dark:text-brand-500' :
-                                'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
+                            x-bind:class="activeTab === 'account' ? ' text-brand-500 border-brand-500' :
+                                'bg-transparent text-gray-500 border-transparent  hover:text-gray-700'"
                             x-on:click="activeTab = 'account'">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -137,13 +136,13 @@
         class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
         <div class="modal-scrollable w-full mx-auto">
             <div
-                class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+                class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
                 <div class="flex justify-between items-center px-6 pt-4">
                     <div class="flex items-center gap-2">
                         <h2 class="text-lg font-medium text-gray-900">Order Details</h2>
                     </div>
                     <button id="closeOrderModalBtn"
-                        class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                        class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
                 </div>
                 <div class="px-6 overflow-y-auto">
                     <div class="mx-auto bg-white rounded-md text-sm text-gray-800">
@@ -151,19 +150,19 @@
 
                             <!-- Order Number -->
                             <div class="mt-3">
-                                <p class="text-gray-500 mb-2">Order Number</p>
-                                <p class="font-semibold">ORD-2025-001</p>
+                                <p class="text-gray-500 text-sm mb-1">Order Number</p>
+                                <p class="font-semibold text-md">ORD-2025-001</p>
                             </div>
 
                             <!-- Order Date -->
                             <div class="mt-3">
-                                <p class="text-gray-500 mb-2">Order Date</p>
-                                <p>Jan 15, 2025</p>
+                                <p class="text-gray-500 text-sm mb-1">Order Date</p>
+                                <p class="text-md">Jan 15, 2025</p>
                             </div>
 
                             <!-- Status -->
                             <div class="mt-3">
-                                <p class="text-gray-500 mb-2">Status</p>
+                                <p class="text-gray-500 text-sm mb-1">Status</p>
                                 <span
                                     class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     delivered
@@ -172,27 +171,27 @@
 
                             <!-- Payment Method -->
                             <div class="mt-3">
-                                <p class="text-gray-500 mb-2">Payment Method</p>
-                                <p>Credit / Debit</p>
+                                <p class="text-gray-500 text-sm mb-1">Payment Method</p>
+                                <p class="text-md">Credit / Debit</p>
                             </div>
 
                             <!-- Total Amount -->
                             <div class="mt-3">
-                                <p class="text-gray-500 mb-2">Total Amount</p>
-                                <p class="font-semibold">$1,249.95</p>
+                                <p class="text-gray-500 text-sm mb-1">Total Amount</p>
+                                <p class="font-semibold text-md">$1,249.95</p>
                             </div>
 
                             <!-- Tracking Number -->
                             <div class="mt-3">
-                                <p class="text-gray-500 mb-2">Tracking Number</p>
-                                <p>TRK123456789</p>
+                                <p class="text-gray-500 text-sm mb-1">Tracking Number</p>
+                                <p class="text-md">TRK123456789</p>
                             </div>
 
                             <!-- Primary Product -->
                             <div class="sm:col-span-2 mt-3">
-                                <p class="text-gray-500 mb-2">Primary Product</p>
-                                <p class="font-medium text-gray-900">Premium Widget Set</p>
-                                <p class="text-gray-600 text-sm mt-1">+5 additional items</p>
+                                <p class="text-gray-500 text-sm mb-1">Primary Product</p>
+                                <p class="font-medium text-gray-900 text-md">Premium Widget Set</p>
+                                <p class="text-gray-600 text-sm mt-1 text-md">+5 additional items</p>
                             </div>
 
                         </div>
@@ -233,22 +232,22 @@
 
                     // Inject data into modal
                     document.querySelector('#orderWrapper .modal-scrollable').innerHTML = `
-                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+                    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
                         <div class="flex justify-between items-center px-6 pt-4">
                             <h2 class="text-lg font-medium text-gray-900">Order Details</h2>
-                            <button id="closeOrderModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                            <button id="closeOrderModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
                         </div>
                         <div class="px-6 overflow-y-auto">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 sm:gap-x-10">
-                                <div><p class="text-gray-500 mb-2">Order Number</p><p class="font-semibold">${orderNumber}</p></div>
-                                <div><p class="text-gray-500 mb-2">Order Date</p><p>${orderDate}</p></div>
-                                <div><p class="text-gray-500 mb-2">Status</p>
+                                <div><p class="text-gray-500 text-sm mb-1">Order Number</p><p class="font-semibold  text-md">${orderNumber}</p></div>
+                                <div><p class="text-gray-500 text-sm mb-1">Order Date</p><p class="text-md">${orderDate}</p></div>
+                                <div><p class="text-gray-500 text-sm mb-1">Status</p>
                                 ${status}
 
                                 </div>
-                                <div><p class="text-gray-500 mb-2">Payment Method</p><p>${paymentMethod}</p></div>
-                                <div><p class="text-gray-500 mb-2">Total Amount</p><p class="font-semibold">${totalAmount}</p></div>
-                                <div class="sm:col-span-2"><p class="text-gray-500 mb-2">Primary Product</p><p class="font-medium text-gray-900">${product}</p></div>
+                                <div><p class="text-gray-500 text-sm mb-1">Payment Method</p><p class="text-md">${paymentMethod}</p></div>
+                                <div><p class="text-gray-500 text-sm mb-1">Total Amount</p><p class="font-semibold text-md">${totalAmount}</p></div>
+                                <div class="sm:col-span-2"><p class="text-gray-500 text-sm mb-1">Primary Product</p><p class="font-medium text-gray-900 text-md">${product}</p></div>
                             </div>
                             <div class="flex justify-end gap-2 py-4">
                                 <button id="cancelOrderBtn" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>

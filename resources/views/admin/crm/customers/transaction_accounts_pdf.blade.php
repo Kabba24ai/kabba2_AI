@@ -84,6 +84,34 @@
     <div class="container">
         <div class="title">Customer Transaction</div>
 
+
+  @php
+    // Amount without tax
+    if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+        // Tax is already included in the amount
+        $amountWithoutTax = ($transaction->amount ?? 0) / (1 + $transaction->sales_tax);
+    } else {
+        // No tax included, or tax added on top
+        $amountWithoutTax = $transaction->amount ?? 0;
+    }
+
+    // Tax amount
+    if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+        $taxAmount = ($transaction->amount ?? 0) - $amountWithoutTax;
+    } elseif($transaction->sales_tax > 0) {
+        $taxAmount = ($transaction->amount ?? 0) * $transaction->sales_tax;
+    } else {
+        $taxAmount = 0;
+    }
+
+    // Total with tax
+    $totalWithTax = $transaction->amount;
+    if ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+        $totalWithTax += ($transaction->amount * $transaction->sales_tax);
+    }
+@endphp
+
+
         <table>
             <tr>
                 <th>Transaction ID</th>
@@ -98,27 +126,16 @@
                 <td>{{ ucfirst($transaction->type) }}</td>
             </tr>
             <tr>
-                <th>Amount</th>
-                <td> {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount) }} </td>
+                <th>Amount (without Tax)</th>
+                <td>{{ \App\Helpers\CustomHelper::formatCurrency($amountWithoutTax) }}</td>
             </tr>
-            <tr>
+           <tr>
                 <th>Sales Tax</th>
-                <td>{{ $transaction->sales_tax  }}%</td>
+                <td>{{ \App\Helpers\CustomHelper::formatCurrency($taxAmount) }}</td>
             </tr>
-            @php
-            $totalWithTax = $transaction->amount;
-
-            if ($transaction->sales_tax > 0) {
-                $totalWithTax += ($transaction->amount * ($transaction->sales_tax));
-            }
-            @endphp
-
             <tr>
                 <th>Total (with Tax)</th>
-                <td>
-                     {{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }} 
-                 
-                </td>
+                <td>{{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }}</td>
             </tr>
             <tr>
                 <th>Date</th>

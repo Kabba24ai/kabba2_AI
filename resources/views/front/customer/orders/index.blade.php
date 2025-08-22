@@ -15,7 +15,7 @@
                             <ul
                                 class="border-yellow-400 px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative border-2 border-white">
                                 <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                    <a href="index.php" class="opacity-25">Home</a>
+                                    <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
                                 </li>
                                 <li>
                                     <a href="javascript:void(0)" class="cursor-not-allowed">Order</a>

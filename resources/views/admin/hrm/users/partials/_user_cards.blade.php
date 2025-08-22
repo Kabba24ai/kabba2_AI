@@ -54,8 +54,6 @@
                                         >
                                             <x-heroicon-o-trash class="w-4 h-4 text-red-600" />
                                         </button>
-
-                                    </button>
                                     </div>
                                 </div>
 

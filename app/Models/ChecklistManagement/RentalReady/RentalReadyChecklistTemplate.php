@@ -3,6 +3,7 @@
 namespace App\Models\ChecklistManagement\RentalReady;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Helpers\ModelHelper;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,5 +24,23 @@ class RentalReadyChecklistTemplate extends Model
     {
         return $this->hasMany(RentalReadyChecklistTemplateQuestion::class, 'template_id');
     }
+
+     protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->unique_id)) {
+                // Generate a unique ID with prefix 'TQST'
+                $model->unique_id = ModelHelper::generateUniqueID($model, 'TQS');
+            }
+        });
+    }
+
+    public function equipmentCategory()
+    {
+        return $this->belongsTo(\App\Models\ProductManagement\ProductCategory::class, 'equipment_category_id');
+    }
+
 
 }

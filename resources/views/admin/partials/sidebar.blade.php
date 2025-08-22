@@ -332,7 +332,7 @@
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
                                     <a href="#"
-                                        class="menu-dropdown-item group menu-dropdown-item-active">
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
                                         <x-heroicon-o-wrench-screwdriver class="w-5 h-5" /> Equipment Mgt.
                                     </a>
                                 </li>

@@ -74,6 +74,11 @@ class CustomerAccount extends Model
         return $this->belongsTo(Order::class);
     }
 
-    
+    public function card()
+    {
+        return $this->belongsTo(CustomerCard::class, 'payment_profile_id', 'payment_profile_id');
+    }
+
+
 
 }

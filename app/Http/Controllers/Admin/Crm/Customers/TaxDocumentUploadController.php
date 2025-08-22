@@ -55,7 +55,6 @@ class TaxDocumentUploadController extends Controller
                 'html'           => view('admin.crm.customers.partials.tax_doc_preview', ['customer' => $customer])->render(),
                 'message'        => 'Document uploaded successfully',
                 'upload_date' => CustomHelper::formatDate($customer->tax_document_upload_date),
-
             ]);
 
         } catch (\Throwable $e) {

@@ -15,7 +15,7 @@
                         <ul
                             class="px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative">
                             <li class="tracking-normal whitespace-nowrap after:content-['/'] after:pl-1.5">
-                                <a href="index.php" class="opacity-25">Home</a>
+                                <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
                             </li>
                             <li>
                                 <a href="terms-condition.php">Terms And Condition</a>
@@ -31,7 +31,7 @@
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-8 md:px-[.7rem]">
             <div class="max-w-[800px] border p-6 mx-auto my-10 text-center">
                 <h2 class="text-[24px] font-bold">Rent ‘n King Rental Agreement</h2>
-                <a href="index.php"
+                <a href="{{ route('front.home.index') }}"
                     class="text-blue-500 hover:text-black transition-all duration-500 ease-in-out">www.RentnKing.com</a>
                 <p>Development 360, Inc</p>
             </div>

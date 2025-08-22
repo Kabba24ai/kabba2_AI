@@ -4,3 +4,9 @@
 .choices__inner {
     @apply bg-white dark:bg-gray-800 border border-gray-300 shadow-sm h-10 rounded-md px-3 py-2 text-sm text-gray-900 dark:text-white;
 }
+
+.choices__list--dropdown .choices__item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -344,6 +344,42 @@
                                 </label>
                             @endif
 
+                            @foreach ($productDetail->options as $option)
+                                @if ($option->items->isNotEmpty())
+                                    @foreach ($option->items as $item)
+                                        <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                            <input type="checkbox" class="form-checkbox h-4 w-4"
+                                                {{ $item->value == 'Checked' ? 'checked' : '' }}
+                                                id="options_{{ $item->unique_id }}"
+                                                data-keep="{{ $item->accept_label }}"
+                                                data-discard="{{ $item->decline_label }}"
+                                                data-message="{{ $item->comment }}"
+                                                data-unique_id="{{ $item->unique_id }}"
+                                                data-charged="{{ $item->charged ?? null }}" />
+                                            <span>{{ $item->label }}
+                                                <span class="font-medium">+
+                                                    @php
+                                                        $price = match ($productVariant) {
+                                                            'daily' => $item->daily,
+                                                            'weekend' => $item->weekend,
+                                                            'weekly' => $item->weekly,
+                                                            'monthly' => $item->monthly,
+                                                            default => $item->retail_price,
+                                                        };
+                                                    @endphp
+                                                    {{ App\Helpers\CustomHelper::formatCurrency($price) }}
+
+                                                    @if (!empty($item->charged) && $item->charged !== null)
+                                                        <small style="display: none;"
+                                                            class="text-gray-500">({{ $item->charged }})</small>
+                                                    @endif
+                                                </span>
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                @endif
+                            @endforeach
+
                             @if (
                                 $productDetail->rental_track_insurance_daily !== null ||
                                     $productDetail->rental_track_insurance_weekend !== null ||
@@ -420,44 +456,9 @@
                                     </span>
                                 </label>
                             @endif
-
-                            @foreach ($productDetail->options as $option)
-                                @if ($option->items->isNotEmpty())
-                                    @foreach ($option->items as $item)
-                                        <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                            <input type="checkbox" class="form-checkbox h-4 w-4"
-                                                {{ $item->value == 'Checked' ? 'checked' : '' }}
-                                                id="options_{{ $item->unique_id }}"
-                                                data-keep="{{ $item->accept_label }}"
-                                                data-discard="{{ $item->decline_label }}"
-                                                data-message="{{ $item->comment }}"
-                                                data-unique_id="{{ $item->unique_id }}"
-                                                data-charged="{{ $item->charged ?? null }}" />
-                                            <span>{{ $item->label }}
-                                                <span class="font-medium">+
-                                                    @php
-                                                        $price = match ($productVariant) {
-                                                            'daily' => $item->daily,
-                                                            'weekend' => $item->weekend,
-                                                            'weekly' => $item->weekly,
-                                                            'monthly' => $item->monthly,
-                                                            default => $item->retail_price,
-                                                        };
-                                                    @endphp
-                                                    {{ App\Helpers\CustomHelper::formatCurrency($price) }}
-
-                                                    @if (!empty($item->charged) && $item->charged !== null)
-                                                        <small style="display: none;"
-                                                            class="text-gray-500">({{ $item->charged }})</small>
-                                                    @endif
-                                                </span>
-                                            </span>
-                                        </label>
-                                    @endforeach
-                                @endif
-                            @endforeach
                         </div>
                     @endif
+
                     <div>
                         <button type="button" id="addToCart"
                             class="border-0 bg-yellow-400  font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg text-[14px] hover:bg-yellow-300  transition-all duration-500 ease-in-out"><i

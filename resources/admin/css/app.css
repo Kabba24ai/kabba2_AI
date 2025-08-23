@@ -880,3 +880,13 @@ svg.checkmark {
   .billing-summary-w-13{width: 100%;}
 }
 
+
+
+
+/* Jignesh Custom CSS */
+.bg-indigo-600 {
+    --tw-bg-opacity: 1;
+    background-color: rgb(79 70 229 / var(--tw-bg-opacity, 1));
+}
+
+/* Jignesh End */

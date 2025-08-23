@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
+
+use App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\IndexController;
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,17 +18,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('checklist-management')
-->name('checklist-management.')
+Route::prefix('customer-admin')
+->name('customer-admin.')
 ->group(function ($router) {
 
-    // customers
-    require base_path('routes/admin/checklist_management/rental_ready/routes.php');
-
-    require base_path('routes/admin/checklist_management/customer_admin/routes.php');
+    
+     Route::get('/', IndexController::class)->name('index');
 
 
-    // Checklist_Master
-     require base_path('routes/admin/checklist_management/checklist_master/routes.php');
+     
+      // question
+    require base_path('routes/admin/checklist_management/customer_admin/categories/routes.php');
 
 });

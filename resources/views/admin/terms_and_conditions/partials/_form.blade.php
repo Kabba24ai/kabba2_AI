@@ -64,15 +64,15 @@
 
 </div>
 
-@if (!isset($terms) || $terms->is_global == 'Yes')
+@if (isset($terms) && $terms->is_global == 'Yes')
     <button type="button" id="insert-shortcode-product-initials-btn"
         class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
-        Add Product Initials
+        Add Product Terms
     </button>
 @else
     <button type="button" id="insert-shortcode-customer-initials-btn"
         class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
-        Add Customer Initials
+        Add Customer Approval
     </button>
 @endif
 
@@ -92,6 +92,17 @@
     @enderror
 </div>
 
+@if (isset($terms) && $terms->is_global == 'Yes')
+<div class="flex gap-3 mb-3">
+    <button type="button" id="insert-shortcode-customer-name-btn"
+        class="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
+        Add Customer Name
+    </button>
+    <button type="button" id="insert-shortcode-customer-signature-btn"
+        class="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
+        Add Customer Signature
+    </button>
+</div>
 {{-- Signature --}}
 <div class="mb-8">
     <label for="signature_block"
@@ -100,13 +111,14 @@
             'tinymce w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
         )->attributes([
             'autocomplete' => 'off',
-            'id' => 'signature_block-editor',
-            'placeholder' => 'Enter Description Of The Terms',
-        ]) }}
+            'id' => 'signature-editor',
+            'placeholder' => 'Enter Signature',
+        ])->required() }}
     @error('signature_block')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
     @enderror
 </div>
+@endif
 
 {{-- SEO Meta Section --}}
 <div class="border border-gray-200 rounded-md p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 mb-6">
@@ -185,8 +197,14 @@
             if (insertProductBtn) {
                 insertProductBtn.addEventListener('click', () => {
                     const editor = tinymce.get('content-editor');
+                    const shortcode = '[product_terms][/product_terms]';
                     if (editor) {
-                        editor.insertContent('[product_terms][/product_terms]');
+                        const content = editor.getContent();
+                        if (content.includes(shortcode)) {
+                            notyf.error('Product Terms shortcode already added.');
+                        } else {
+                            editor.insertContent(shortcode);
+                        }
                     } else {
                         console.warn('TinyMCE editor not ready.');
                     }
@@ -198,7 +216,43 @@
                 insertCustomerBtn.addEventListener('click', () => {
                     const editor = tinymce.get('content-editor');
                     if (editor) {
-                        editor.insertContent('[customer_initials][/customer_initials]');
+                        editor.insertContent('[customer_approval][/customer_approval]');
+                    } else {
+                        console.warn('TinyMCE editor not ready.');
+                    }
+                });
+            }
+
+            const insertCustomerNameBtn = document.getElementById('insert-shortcode-customer-name-btn');
+            if (insertCustomerNameBtn) {
+                insertCustomerNameBtn.addEventListener('click', () => {
+                    const editor = tinymce.get('signature-editor');
+                    const shortcode = '[customer_name][/customer_name]';
+                    if (editor) {
+                        const content = editor.getContent();
+                        if (content.includes(shortcode)) {
+                            notyf.error('Customer Name shortcode already added.');
+                        } else {
+                            editor.insertContent(shortcode);
+                        }
+                    } else {
+                        console.warn('TinyMCE editor not ready.');
+                    }
+                });
+            }
+
+            const insertCustomerSignatureBtn = document.getElementById('insert-shortcode-customer-signature-btn');
+            if (insertCustomerSignatureBtn) {
+                insertCustomerSignatureBtn.addEventListener('click', () => {
+                    const editor = tinymce.get('signature-editor');
+                    if (editor) {
+                        const content = editor.getContent();
+                        const shortcode = '[customer_signature][/customer_signature]';
+                        if (content.includes(shortcode)) {
+                            notyf.error('Customer Signature shortcode already added.');
+                        } else {
+                            editor.insertContent(shortcode);
+                        }
                     } else {
                         console.warn('TinyMCE editor not ready.');
                     }

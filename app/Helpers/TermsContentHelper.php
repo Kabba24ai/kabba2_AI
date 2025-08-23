@@ -65,9 +65,9 @@ class TermsContentHelper
         // Replace customer initials placeholder in product terms
         $approvalCheckbox = <<<HTML
         <div>
-            <label for="customer_initials" class="flex items-center space-x-2">
+            <label for="customer_approval" class="flex items-center space-x-2">
                 <input
-                    name="customer_initials[]"
+                    name="customer_approval[]"
                     type="checkbox"
                     class="customer_initials_checkbox h-4 w-4"
                     required
@@ -77,7 +77,7 @@ class TermsContentHelper
         </div>
         HTML;
 
-        $productTermsContent = $productTerms->map(fn($term) => str_replace('[customer_initials][/customer_initials]', $approvalCheckbox, $term['content']))->implode("\n");
+        $productTermsContent = $productTerms->map(fn($term) => str_replace('[customer_approval][/customer_approval]', $approvalCheckbox, $term['content']))->implode("\n");
 
         // Signature button HTML
         $signatureButton = <<<HTML
@@ -107,7 +107,7 @@ class TermsContentHelper
         $termsContent = $globalTerms ? str_replace('[product_terms][/product_terms]', $productTermsContent, $globalTerms['content']) : $productTermsContent;
 
         if ($globalTerms) {
-            $signatureBlock = str_replace(['[customer_name]', '[customer_signature]'], [$customerName, $signatureButton], $globalTerms['signature_block']);
+            $signatureBlock = str_replace(['[customer_name][/customer_name]', '[customer_signature][/customer_signature]'], [$customerName, $signatureButton], $globalTerms['signature_block']);
 
             $termsContent .= $signatureBlock;
         }
@@ -133,9 +133,9 @@ class TermsContentHelper
         // Replace customer initials placeholder in product terms
         $approvalCheckbox = <<<HTML
         <div>
-            <label for="customer_initials" class="flex items-center space-x-2">
+            <label for="customer_approval" class="flex items-center space-x-2">
                 <input
-                    name="customer_initials[]"
+                    name="customer_approval[]"
                     type="checkbox"
                     class="customer_initials_checkbox h-4 w-4"
                     disabled
@@ -147,7 +147,7 @@ class TermsContentHelper
         </div>
         HTML;
 
-        $productTermsContent = $productTerms->map(fn($term) => str_replace('[customer_initials][/customer_initials]', $approvalCheckbox, $term['content']))->implode("\n");
+        $productTermsContent = $productTerms->map(fn($term) => str_replace('[customer_approval][/customer_approval]', $approvalCheckbox, $term['content']))->implode("\n");
 
         // Signature button HTML
         $signatureButton = <<<HTML
@@ -177,7 +177,7 @@ class TermsContentHelper
         $termsContent = $globalTerms ? str_replace('[product_terms][/product_terms]', $productTermsContent, $globalTerms['content']) : $productTermsContent;
 
         if ($globalTerms) {
-            $signatureBlock = str_replace(['[customer_name]', '[customer_signature]'], [$customerName, $signatureButton], $globalTerms['signature_block']);
+            $signatureBlock = str_replace(['[customer_name][/customer_name]', '[customer_signature][/customer_signature]'], [$customerName, $signatureButton], $globalTerms['signature_block']);
 
             $termsContent .= $signatureBlock;
         }

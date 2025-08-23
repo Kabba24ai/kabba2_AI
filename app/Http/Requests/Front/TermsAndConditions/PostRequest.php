@@ -13,12 +13,12 @@ class PostRequest extends ApiBaseFormRequest
     public function rules()
     {
         $order = $this->route('orderUniqueId') ? Order::where('unique_id', $this->route('orderUniqueId'))->first() : null;
-        $customerInitialsRequired = false;
-        if ($order && strpos($order->pending_terms_content, 'customer_initials[]') !== false) {
-            $customerInitialsRequired = true;
+        $customerApprovalRequired = false;
+        if ($order && strpos($order->pending_terms_content, 'customer_approval[]') !== false) {
+            $customerApprovalRequired = true;
         }
         return [
-            'customer_initials' => $customerInitialsRequired ? 'required|array' : 'nullable|array',
+            'customer_approval' => $customerApprovalRequired ? 'required|array' : 'nullable|array',
             'signature' => 'required|string',
         ];
     }
@@ -26,7 +26,7 @@ class PostRequest extends ApiBaseFormRequest
     public function messages()
     {
         return [
-            'customer_initials.required' => 'Please provide your approvals.',
+            'customer_approval.required' => 'Please provide your approvals.',
             'signature.required' => 'Signature is required.',
         ];
     }

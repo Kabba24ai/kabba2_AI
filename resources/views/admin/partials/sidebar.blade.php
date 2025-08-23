@@ -349,38 +349,21 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#"
-                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                    <a href="{{ route('admin.checklist-management.customer-admin.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist-management.customer-admin.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-s-user-group class="w-5 h-5" /> Customer Admin
                                     </a>
                                 </li>
                             </ul>
                         </div>
                     </li>
-                     <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
+                     <li x-data="{ open: 'false' }">
                         <a href="https://projectmanager.kabba.ai/" target="_blank" 
-                            class="menu-item group flex items-center gap-3 {{ $checklistManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-c-squares-plus class="w-6 h-6" />
+                            class="menu-item group flex items-center gap-3 menu-item-inactive }}">
+                            <x-heroicon-o-squares-plus class="w-6 h-6" />
                             
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Project Manager</span>
-                            <span class="menu-item-arrow"
-                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
-                                    'lg:hidden' : ''
-                                ]">
-
-                                <!-- Chevron Left (when open) -->
-                                <template x-if="!open">
-                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
-                                </template>
-
-                                <!-- Chevron Down (when closed) -->
-                                <template x-if="open">
-                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
-                                </template>
-                            </span>
-
                         </a>
-
                         
                     </li>
 

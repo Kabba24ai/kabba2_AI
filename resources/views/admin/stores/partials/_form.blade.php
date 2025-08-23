@@ -1,177 +1,225 @@
-<!-- Basic Info -->
-<div class="grid grid-cols-3 gap-6">
-    <!-- Store Name Input -->
+{{-- Store Form --}}
+<div class="space-y-8">
+
+    {{-- Basic Info --}}
     <div>
-        <label for="store_name" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
-            Store Name
-        </label>
+        <h3 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">Basic Info</h3>
+        <hr class="mb-6 border-gray-300 dark:border-gray-700">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {{-- Store Name --}}
+            <div>
+                <label for="store_name" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Store Name
+                </label>
+                {!! html()->text('store_name', old('store_name', $store->store_name ?? null))->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('store_name'),
+                        'border-red-500' => $errors->has('store_name'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter store name',
+                        'autocomplete' => 'off',
+                        'id' => 'store_name',
+                    ])->required() !!}
+                @error('store_name')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
-        {!! html()->text('store_name', old('store_name', $store->store_name ?? null))->class([
-                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                'border-gray-300' => !$errors->has('store_name'),
-                'border-red-500' => $errors->has('store_name'),
-            ])->attributes([
-                'maxlength' => 240,
-                'data-parsley-maxlength' => 240,
-                'placeholder' => 'Enter Store Name',
-                'autocomplete' => 'off',
-                'id' => 'store_name',
-            ])->required() !!}
+            {{-- Phone --}}
+            <div>
+                <label for="phone" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Phone Number
+                </label>
+                {{ html()->text('phone', old('phone', $store->phone ?? null))->class(
+                        'masked-phone w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                    )->attributes([
+                        'maxlength' => 240,
+                        'placeholder' => '(xxx) xxx-xxxx',
+                        'autocomplete' => 'off',
+                        'id' => 'phone',
+                    ])->required() }}
+                @error('phone')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
-        @error('store_name')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
+            {{-- Email --}}
+            <div>
+                <label for="email" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Email Address
+                </label>
+                {!! html()->email('email', old('email', $store->email ?? null))->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('email'),
+                        'border-red-500' => $errors->has('email'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'store@company.com',
+                        'autocomplete' => 'off',
+                        'id' => 'email',
+                    ])->required() !!}
+                @error('email')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
     </div>
 
+    {{-- Store Address --}}
     <div>
-        <label for="phone"
-            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Phone</label>
-        {!! html()->text('phone', old('phone'))->class([
-                'masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
-                'border-red-500' => $errors->has('phone'),
-            ])->attributes([
-                'placeholder' => '(xxx) xxx-xxxx',
-                'id' => 'phone',
-                'autocomplete' => 'tel',
-            ])->required() !!}
+        <h3 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">Store Address</h3>
+        <hr class="mb-6 border-gray-300 dark:border-gray-700">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {{-- Address --}}
+            <div class="md:col-span-3">
+                <label for="address" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Street Address
+                </label>
+                {!! html()->text('address', old('address', $store->address ?? null))->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('address'),
+                        'border-red-500' => $errors->has('address'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => '123 Main Street',
+                        'autocomplete' => 'off',
+                        'id' => 'address',
+                    ])->required() !!}
+                @error('address')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
-        @error('phone')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
+            {{-- City --}}
+            <div>
+                <label for="city"
+                    class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">City</label>
+                {!! html()->text('city', old('city', $store->city ?? null))->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('city'),
+                        'border-red-500' => $errors->has('city'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter city',
+                        'autocomplete' => 'address-level2',
+                        'id' => 'city',
+                    ])->required() !!}
+                @error('city')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- State --}}
+            <div>
+                <label for="state_id" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    State
+                </label>
+                {!! html()->select('state_id', $states, old('state_id', $store->state_id ?? null))->class([
+                        'choices-select w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('state_id'),
+                        'border-red-500' => $errors->has('state_id'),
+                    ])->attributes([
+                        'data-placeholder' => 'Select State',
+                        'id' => 'state_id',
+                        'data-parsley-errors-container' => '#state_id-errors',
+                    ])->required() !!}
+                <div id="state_id-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
+                @error('state_id')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Zip --}}
+            <div>
+                <label for="zip_code" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Zip Code
+                </label>
+                {{ html()->number('zip_code', old('zip_code', $store->zip_code ?? null))->class(
+                        'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                    )->attributes([
+                        'maxlength' => 8,
+                        'placeholder' => 'Zip code',
+                        'autocomplete' => 'off',
+                        'data-parsley-type' => 'number',
+                        'id' => 'zip_code',
+                    ])->required() }}
+                @error('zip_code')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
     </div>
 
+    {{-- Store Settings --}}
     <div>
-        <label for="email"
-            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Email</label>
-        {!! html()->email('email', old('email', $store->email ?? null))->class([
-                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                'border-gray-300' => !$errors->has('email'),
-                'border-red-500' => $errors->has('email'),
-            ])->attributes([
-                'maxlength' => 240,
-                'data-parsley-maxlength' => 240,
-                'placeholder' => 'Enter Email',
-                'autocomplete' => 'off',
-                'id' => 'email',
-            ])->required() !!}
+        <h3 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">Store Settings</h3>
+        <hr class="mb-6 border-gray-300 dark:border-gray-700">
 
-        @error('email')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
-    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            {{-- Primary vs Alternate (radio) --}}
+            <div>
+                <span class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Store Designation
+                </span>
 
+                @php $isPrimary = old('is_primary', ($store->is_primary ?? 'No')) @endphp
 
-    <!-- Store Code and Status in one row -->
-    <div class="col-span-3 grid grid-cols-2 gap-6">
-        <div>
-            <label for="state_id"
-                class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">State</label>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-3">
+                        <input type="radio" name="is_primary" value="Yes" @checked($isPrimary === 'Yes')
+                            class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <span class="text-sm text-gray-800 dark:text-gray-200">Primary Store</span>
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <input type="radio" name="is_primary" value="No" @checked($isPrimary !== 'Yes')
+                            class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <span class="text-sm text-gray-800 dark:text-gray-200">Alternate Store</span>
+                    </label>
+                </div>
 
-            {!! html()->select('state_id', $states, old('state_id', $store->state_id ?? null))->class([
-                    'choices-select w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                    'border-red-500' => $errors->has('state_id'),
-                ])->attributes([
-                    'data-placeholder' => 'Select State',
-                    'id' => 'state_id',
-                    'data-parsley-errors-container' => '#state_id-errors',
-                ])->required() !!}
+                @error('is_primary')
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
-            @error('state_id')
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-            @enderror
-            <div id="state_id-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-        </div>
+            {{-- Status (toggle + select fallback for submission) --}}
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Store Status
+                </label>
 
-        <div>
-            <label for="city"
-                class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">City</label>
-            {!! html()->text('city', old('city', $store->city ?? null))->class([
-                    'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                    'border-gray-300' => !$errors->has('city'),
-                    'border-red-500' => $errors->has('city'),
-                ])->attributes([
-                    'maxlength' => 240,
-                    'data-parsley-maxlength' => 240,
-                    'placeholder' => 'Enter City',
-                    'autocomplete' => 'off',
-                    'id' => 'city',
-                ])->required() !!}
+                @php $status = old('status', $store->status ?? 'Active') @endphp
 
-            @error('city')
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
+                <div x-data="{ on: @js($status === 'Active') }" class="flex items-center gap-3">
+                    <button type="button" @click="on = !on; $refs.status.value = on ? 'Active' : 'Inactive'"
+                        :aria-pressed="on"
+                        class="relative inline-flex h-6 w-11 items-center rounded-full transition
+                                   bg-gray-200 data-[on=true]:bg-green-500"
+                        :data-on="on">
+                        <span class="inline-block h-5 w-5 transform rounded-full bg-white transition"
+                            :class="on ? 'translate-x-5' : 'translate-x-1'"></span>
+                    </button>
+                    <span class="text-sm text-gray-800 dark:text-gray-200" x-text="on ? 'Active' : 'Inactive'"></span>
 
-        <div>
-            <label for="address"
-                class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Address</label>
-            {!! html()->text('address', old('address', $store->address ?? null))->class([
-                    'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                    'border-gray-300' => !$errors->has('address'),
-                    'border-red-500' => $errors->has('address'),
-                ])->attributes([
-                    'maxlength' => 240,
-                    'data-parsley-maxlength' => 240,
-                    'placeholder' => 'Enter Address',
-                    'autocomplete' => 'off',
-                    'id' => 'address',
-                ])->required() !!}
+                    {{-- real form control --}}
+                    <select x-ref="status" name="status" class="hidden">
+                        <option value="Active" @selected($status === 'Active')>Active</option>
+                        <option value="Inactive" @selected($status === 'Inactive')>Inactive</option>
+                    </select>
+                </div>
 
-            @error('address')
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="zip_code" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Zip
-                Code</label>
-            {!! html()->text('zip_code', old('zip_code', $store->zip_code ?? null))->class([
-                    'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                    'border-gray-300' => !$errors->has('zip_code'),
-                    'border-red-500' => $errors->has('zip_code'),
-                ])->attributes([
-                    'maxlength' => 20,
-                    'data-parsley-maxlength' => 20,
-                    'placeholder' => 'Enter Zip Code',
-                    'autocomplete' => 'off',
-                    'id' => 'zip_code',
-                ])->required() !!}
-
-            @error('zip_code')
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="is_primary" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Is
-                Primary</label>
-            {{ html()->select('is_primary', ['Yes' => 'Yes', 'No' => 'No'], old('is_primary', $store->is_primary ?? 'No'))->class([
-                    'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
-                    'border-red-500' => $errors->has('is_primary'),
-                ])->required()->placeholder('Please Select') }}
-            @error('is_primary')
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="status"
-                class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Status</label>
-            {{ html()->select(
-                    'status',
-                    ['Active' => 'Active', 'Inactive' => 'InActive', 'Archived' => 'Archived'],
-                    old('status', $store->status ?? 'Active'),
-                )->class([
-                    'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
-                    'border-red-500' => $errors->has('status'),
-                ])->required()->placeholder('Please Select') }}
-            @error('status')
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-            @enderror
+                @error('status')
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
         </div>
     </div>
 </div>
-
 
 
 

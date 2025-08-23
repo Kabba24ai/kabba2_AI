@@ -3,6 +3,7 @@
 @section('title', 'Edit Store')
 
 @section('content')
+<div class="max-w-(--breakpoint-2xl) mx-auto">
     {{-- Page header --}}
     <div class="flex items-center justify-between mb-6">
         <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Edit Store</h3>
@@ -53,6 +54,6 @@
             </div>
         </div>
     </div>
-
+</div>
 
 @endsection

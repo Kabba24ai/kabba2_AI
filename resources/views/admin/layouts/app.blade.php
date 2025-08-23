@@ -59,7 +59,7 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
             <!-- ===== Main Content Start ===== -->
             <main>
                 {{-- //max-w-(--breakpoint-2xl) --}}
-                <div class="p-4 mx-auto md:p-6">
+                <div class="{{ $contentClass ?? '' }} mx-auto p-4 md:p-6">
                     <!-- Breadcrumb Start -->
                     {{-- <div x-data="{ pageName: `Blank Page` }">
                         @include('admin.partials.breadcrumb')

@@ -24,20 +24,20 @@
             {{-- Payment Status + Refund Button --}}
             <div class="flex flex-wrap items-center gap-2">
                 @if ($order->last_payment_status === 'Pending')
-                    <span
+                    <button id="pendingPaymentBtn"
                         class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
                         <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                         PENDING PAYMENT
-                    </span>
+                    </button>
                     @if ($order->last_payment_type !== 'Card')
                         <button id="addToAccountBtn"
                             class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
                             Add to Account
                         </button>
-                        <button id="confirmPaymentBtn"
+                        {{-- <button id="confirmPaymentBtn"
                             class="px-4 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700">
                             Confirm payment
-                        </button>
+                        </button> --}}
                     @endif
                 @elseif ($order->last_payment_status === 'Paid')
                     <span
@@ -75,7 +75,7 @@
                             <div class="flex justify-between items-center p-4 border-b">
                                 <h2 class="text-lg font-semibold">Reorder</h2>
                                 <button type="button"
-                                    class="close-reorder-model-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+                                    class="close-reorder-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
                             </div>
                             <!-- Body -->
                             <form id="reorderForm" class="flex-1 flex flex-col justify-between">
@@ -111,7 +111,7 @@
                                 <!-- Footer -->
                                 <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
                                     <button type="button"
-                                        class="close-reorder-model-btn px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                                        class="close-reorder-modal-btn px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                                         Cancel
                                     </button>
                                     <button type="submit"
@@ -157,7 +157,8 @@
                     target="_blank"
                     class="inline-flex items-center hover:underline {{ !$order->referenceOrder ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
                     @if (!$order->referenceOrder) tabindex="-1" aria-disabled="true" @endif>
-                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reference Order: {{ $order->reference_order_number }}
+                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reference Order:
+                    {{ $order->reference_order_number }}
                 </a>
             @endif
         </div>
@@ -181,8 +182,7 @@
                     <input type="hidden" id="billing_last_name_input"
                         data-last-name="{{ $order->billingAddress->last_name ?? '' }}">
                     <input type="hidden" id="billing_email_input" data-email="{{ $order->billingAddress->email ?? '' }}">
-                    <input type="hidden" id="billing_phone_input"
-                        data-phone="{{ $order->billingAddress->phone ?? '' }}">
+                    <input type="hidden" id="billing_phone_input" data-phone="{{ $order->billingAddress->phone ?? '' }}">
                     <input type="hidden" id="billing_address_input"
                         data-address="{{ $order->billingAddress->address ?? '' }}">
                     <input type="hidden" id="billing_state_input"
@@ -1105,10 +1105,159 @@
         </div>
     </div>
 
+    <!-- Process Payment Modal -->
+    <div id="processPaymentModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="addressModalTitle" class="text-lg font-semibold">Process Payment</h2>
+                <button type="button"
+                    class="close-process-payment-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <!-- Body -->
+            {{ html()->form()->attributes([
+                    'data-parsley-validate' => true,
+                    'class' => 'flex-1',
+                    'id' => 'paymentForm',
+                ])->open() }}
+
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                <!-- Payment Method -->
+                <div class="space-y-4">
+                    <label class="text-sm font-medium text-gray-700">Select Payment Method</label>
+
+                    <div class="grid grid-cols-1 gap-3">
+                        <!-- Cash / Manual -->
+                        <label class="cursor-pointer block">
+                            <input type="radio" name="payment_method" value="cash" class="hidden peer" checked>
+                            <div
+                                class="border rounded-lg p-4 flex items-start gap-3 transition peer-checked:border-green-400 peer-checked:bg-green-50 peer-hover:border-blue-400 peer-hover:bg-blue-50">
+                                <div class="mt-1">
+                                    <!-- Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">Confirm Payment Received</p>
+                                    <p class="text-sm text-gray-500">Mark as paid (cash, check, etc.)</p>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Credit Card -->
+                        <label class="cursor-pointer block">
+                            <input type="radio" name="payment_method" value="card" class="hidden peer">
+                            <div
+                                class="border rounded-lg p-4 flex items-start gap-3 transition peer-checked:border-blue-400 peer-checked:bg-blue-50 peer-hover:border-blue-400 peer-hover:bg-blue-50">
+                                <div class="mt-1">
+                                    <!-- Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <rect x="2" y="5" width="20" height="14" rx="2" ry="2"
+                                            stroke-width="2"></rect>
+                                        <line x1="2" y1="10" x2="22" y2="10"
+                                            stroke-width="2"></line>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">Charge Credit Card</p>
+                                    <p class="text-sm text-gray-500">Process card payment now</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Credit card dropdown (hidden by default) -->
+                    <div id="creditCardOptions" class="hidden mt-3 ">
+                        <div class="mb-4">
+                            <label for="cardOption" class="block text-sm font-medium text-gray-700 mb-1 required">Card
+                                Options</label>
+                            <select id="cardOption" name="card_option"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                                <option value="" selected>New Card</option>
+
+                                @if ($order->customer->cards && $order->customer->cards->count() > 0)
+                                    <option value="CardOnFile">Card on File</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- New Card Fields -->
+                        <div id="newCardFields" class="mb-4 hidden">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="md:col-span-1">
+                                    <input type="text" placeholder="First name" id="firstName" name="firstName"
+                                        class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                                </div>
+                                <div class="md:col-span-1">
+                                    <input type="text" placeholder="Last name" id="lastName" name="lastName"
+                                        class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                                </div>
+                                <div class="md:col-span-2">
+                                    <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
+                                        name="cardNumber"
+                                        class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                                </div>
+                                <div class="md:col-span-1">
+                                    <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
+                                        name="expiry"
+                                        class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                                </div>
+                                <div class="md:col-span-1">
+                                    <input type="text" placeholder="CVC" maxlength="4" id="cvc"
+                                        name="cvc"
+                                        class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
+                                </div>
+                            </div>
+                            <input type="hidden" name="opaqueDataValue" id="opaqueDataValue" />
+                            <input type="hidden" name="opaqueDataDescriptor" id="opaqueDataDescriptor" />
+                        </div>
+
+                        <!-- Card on File Dropdown -->
+                        <div id="cardOnFileDropdown" class="mb-4 hidden">
+                            @if ($order->customer->cards && $order->customer->cards->count() > 0)
+                                <label class="block text-sm font-medium text-gray-700 mb-1 required">Select Existing
+                                    Card</label>
+                                <select name="customer_card"
+                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                                    <option value="">-- Select a saved card --</option>
+                                    @foreach ($order->customer->cards as $card)
+                                        <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button"
+                    class="close-process-payment-modal-btn px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    Save
+                </button>
+            </div>
+            </form>
+        </div>
+    </div>
 
 @endsection
 
 @push('js')
+    @if ($paymentSetting['payment_test_mode'] ?? false)
+        <script src="https://jstest.authorize.net/v1/Accept.js"></script>
+    @else
+        <script src="https://js.authorize.net/v1/Accept.js"></script>
+    @endif
     <script>
         // Get the order id (replace with actual variable)
         const orderUniqueId = '{{ $order->unique_id }}';
@@ -1210,10 +1359,7 @@
             document.getElementById('noteModal').classList.remove('hidden');
         });
 
-
-
         document.addEventListener('DOMContentLoaded', function() {
-
             window.closeNoteModal = function() {
                 noteModal.classList.add('hidden');
                 noteForm.reset();
@@ -1308,48 +1454,48 @@
 
 
             // Confirm payment button
-            const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
-            if (confirmPaymentBtn) {
-                confirmPaymentBtn.addEventListener('click', function() {
-                    showConfirm('Do you want to confirm this payment?', 'Are you sure?').then((result) => {
-                        if (result.isConfirmed) {
-                            confirmPaymentBtn.disabled = true;
-                            confirmPaymentBtn.textContent = 'Processing...';
-                            let url =
-                                '{{ route('admin.order-management.orders.confirm-payment', ':unique_id') }}';
-                            url = url.replace(':unique_id', orderUniqueId);
-                            apiFetch(url, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': document.querySelector(
-                                            'meta[name="csrf-token"]').getAttribute(
-                                            'content')
-                                    },
-                                    body: JSON.stringify({
-                                        _method: 'PUT'
-                                    })
-                                })
-                                .then(res => {
-                                    if (res && res.success) {
-                                        notyf.success('Payment confirmed!');
-                                        setTimeout(() => window.location.reload(), 800);
-                                    } else {
-                                        notyf.error(res && res.message ? res.message :
-                                            'Failed to confirm payment.');
-                                    }
-                                })
-                                .catch(() => {
-                                    notyf.error('Failed to confirm payment.');
-                                })
-                                .finally(() => {
-                                    confirmPaymentBtn.disabled = false;
-                                    confirmPaymentBtn.textContent = 'Confirm payment';
-                                });
-                        }
-                    });
-                });
-            }
+            // const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
+            // if (confirmPaymentBtn) {
+            //     confirmPaymentBtn.addEventListener('click', function() {
+            //         showConfirm('Do you want to confirm this payment?', 'Are you sure?').then((result) => {
+            //             if (result.isConfirmed) {
+            //                 confirmPaymentBtn.disabled = true;
+            //                 confirmPaymentBtn.textContent = 'Processing...';
+            //                 let url =
+            //                     '{{ route('admin.order-management.orders.confirm-payment', ':unique_id') }}';
+            //                 url = url.replace(':unique_id', orderUniqueId);
+            //                 apiFetch(url, {
+            //                         method: 'POST',
+            //                         headers: {
+            //                             'Content-Type': 'application/json',
+            //                             'X-CSRF-TOKEN': document.querySelector(
+            //                                 'meta[name="csrf-token"]').getAttribute(
+            //                                 'content')
+            //                         },
+            //                         body: JSON.stringify({
+            //                             _method: 'PUT'
+            //                         })
+            //                     })
+            //                     .then(res => {
+            //                         if (res && res.success) {
+            //                             notyf.success('Payment confirmed!');
+            //                             setTimeout(() => window.location.reload(), 800);
+            //                         } else {
+            //                             notyf.error(res && res.message ? res.message :
+            //                                 'Failed to confirm payment.');
+            //                         }
+            //                     })
+            //                     .catch(() => {
+            //                         notyf.error('Failed to confirm payment.');
+            //                     })
+            //                     .finally(() => {
+            //                         confirmPaymentBtn.disabled = false;
+            //                         confirmPaymentBtn.textContent = 'Confirm payment';
+            //                     });
+            //             }
+            //         });
+            //     });
+            // }
 
 
             // Add To Account button
@@ -1628,7 +1774,8 @@
                 currentAddressData = addressData || {};
 
                 // Set the modal title
-                document.getElementById('addressModalTitle').textContent = `Edit ${(type == 'Billing' ? 'Billing' : 'Delivery')} Address`;
+                document.getElementById('addressModalTitle').textContent =
+                    `Edit ${(type == 'Billing' ? 'Billing' : 'Delivery')} Address`;
 
                 // Set the type select field
                 document.getElementById('type').value = type;
@@ -1864,7 +2011,7 @@
             }
 
             // ✅ attach to BOTH close buttons
-            document.querySelectorAll('.close-reorder-model-btn').forEach(btn => btn.addEventListener('click',
+            document.querySelectorAll('.close-reorder-modal-btn').forEach(btn => btn.addEventListener('click',
                 closeReorderModal));
 
             if (orderTypeSelect) {
@@ -1937,6 +2084,255 @@
                         submitBtn.disabled = false;
                         submitBtn.textContent = originalText;
                     });
+            });
+
+            // Modal open/close logic
+            const pendingPaymentBtn = document.getElementById('pendingPaymentBtn');
+            const processPaymentModal = document.getElementById('processPaymentModal');
+
+            function openProcessPaymentModal() {
+                processPaymentModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeProcessPaymentModal() {
+                processPaymentModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            // 👉 Open the modal when clicking the Pending Payment pill
+            if (pendingPaymentBtn) {
+                pendingPaymentBtn.addEventListener('click', openProcessPaymentModal);
+            }
+
+            // 👉 Close on Escape while open
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !processPaymentModal.classList.contains('hidden')) {
+                    closeProcessPaymentModal();
+                }
+            });
+
+            // 👉 (Optional) Close when clicking the backdrop
+            processPaymentModal.addEventListener('click', (e) => {
+                if (e.target === processPaymentModal) closeProcessPaymentModal();
+            });
+
+            document.querySelectorAll('.close-process-payment-modal-btn').forEach(btn => btn.addEventListener(
+                'click',
+                closeProcessPaymentModal));
+
+            const radios = document.querySelectorAll('input[name="payment_method"]');
+            const creditCardOptions = document.getElementById('creditCardOptions');
+            const cardOption = document.getElementById('cardOption');
+            const newCardFields = document.getElementById('newCardFields');
+            const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
+            const cardNumberInput = document.getElementById('cardNumber');
+            const expiryInput = document.getElementById('expiry');
+            const cvcInput = document.getElementById('cvc');
+            // ===== Input formatting =====
+            cardNumberInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ')
+                    .trim();
+            });
+
+            expiryInput.addEventListener('input', function() {
+                let val = this.value.replace(/[^0-9]/g, '').substring(0, 4);
+                if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2);
+                this.value = val;
+            });
+
+            cvcInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').substring(0, 4);
+            });
+
+            radios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'card') {
+                        creditCardOptions.classList.remove('hidden');
+                        cardOption.dispatchEvent(new Event('change'));
+                    } else {
+                        creditCardOptions.classList.add('hidden');
+                        newCardFields.classList.add('hidden');
+                        cardOnFileDropdown.classList.add('hidden');
+                    }
+                });
+            });
+
+            cardOption.addEventListener('change', function() {
+                console.log("Card option changed:", this.value);
+                if (!this.value) {
+                    newCardFields.classList.remove('hidden');
+                    cardOnFileDropdown.classList.add('hidden');
+                } else {
+                    newCardFields.classList.add('hidden');
+                    cardOnFileDropdown.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('paymentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const form = e.target;
+
+                if (!$(form).parsley().isValid()) {
+                    $(form).parsley().validate();
+                    return;
+                }
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+
+
+                let endpoint = '#';
+                const selectedPaymentMethod = Array.from(radios).find(radio => radio.checked)?.value;
+                console.log("Selected payment method:", selectedPaymentMethod, cardOption.value);
+
+                // Helper to send API request
+                function processApi(endpoint, form) {
+                    const formData = new FormData(form);
+                    formData.set('_method', 'PUT');
+                    // Never send these:
+                    formData.delete('cardNumber');
+                    formData.delete('expiry');
+                    formData.delete('cvc');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Saving...';
+
+                    apiFetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: formData
+                        })
+                        .then(res => {
+                            if (res && res.success) {
+                                notyf.success(res.message);
+                                window.location.reload();
+                            } else {
+                                notyf.error(res && res.message);
+                            }
+                        })
+                        .finally(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                        });
+                }
+
+                if (selectedPaymentMethod === 'cash') {
+                    endpoint =
+                        '{{ route('admin.order-management.orders.confirm-payment', ':unique_id') }}';
+                    endpoint = endpoint.replace(':unique_id', orderUniqueId);
+
+                    showConfirm('Do you want to confirm this payment?', 'Are you sure?').then((result) => {
+                        if (result.isConfirmed) {
+                            processApi(endpoint, form); // ✅ Only proceed if confirmed
+                        }
+                    });
+
+                    return; // ✅ Prevent continuing if cash
+                } else {
+                    endpoint =
+                        '{{ route('admin.order-management.orders.charge-credit-card', ':unique_id') }}';
+                    endpoint = endpoint.replace(':unique_id', orderUniqueId);
+                    const customer_card = document.getElementById('cardOption').value;
+                    if (!customer_card) {
+                        try {
+
+                            // Card fields
+                            const firstName = document.getElementById('firstName').value.trim();
+                            const lastName = document.getElementById('lastName').value.trim();
+                            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g,
+                                '');
+                            const expiry = document.getElementById('expiry').value.trim();
+                            const cvc = document.getElementById('cvc').value.trim();
+
+                            // Basic validation
+                            function luhnCheck(num) {
+                                let arr = (num + '').split('').reverse().map(x => parseInt(x));
+                                let sum = arr.reduce((acc, val, idx) => {
+                                    if (idx % 2) {
+                                        val *= 2;
+                                        if (val > 9) val -= 9;
+                                    }
+                                    return acc + val;
+                                }, 0);
+                                return sum % 10 === 0;
+                            }
+
+                            if (!firstName || !lastName) {
+                                throw new Error('First name and last name are required.');
+                            }
+
+                            if (!/^\d{13,19}$/.test(cardNumber) || !luhnCheck(cardNumber)) {
+                                throw new Error('Invalid or missing card number.');
+                            }
+
+                            if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+                                throw new Error('Invalid or missing expiry date. Use MM/YY.');
+                            }
+
+                            const [mm, yy] = expiry.split('/');
+                            const now = new Date();
+                            const expiryYear = 2000 + parseInt(yy, 10);
+                            const expiryMonth = parseInt(mm, 10);
+
+                            if (
+                                expiryMonth < 1 || expiryMonth > 12 ||
+                                expiryYear < now.getFullYear() ||
+                                (expiryYear === now.getFullYear() && expiryMonth < (now.getMonth() + 1))
+                            ) {
+                                throw new Error('Card expiry is in the past.');
+                            }
+
+                            if (!/^\d{3,4}$/.test(cvc)) {
+                                throw new Error('Invalid or missing CVC code.');
+                            }
+
+                            // Tokenize with Accept.js
+                            const [expMonth, expYearShort] = expiry.split('/');
+                            const expYear = '20' + expYearShort;
+
+                            const authData = {
+                                clientKey: '{{ $paymentSetting['payment_api_public_key'] ?? '' }}',
+                                apiLoginID: '{{ $paymentSetting['payment_api_key'] ?? '' }}'
+                            };
+                            const cardData = {
+                                cardNumber: cardNumber,
+                                month: expMonth,
+                                year: expYear,
+                                cardCode: cvc
+                            };
+                            const secureData = {
+                                authData: authData,
+                                cardData: cardData
+                            };
+
+                            Accept.dispatchData(secureData, function(response) {
+                                if (response.messages.resultCode === "Error") {
+                                    let errorMsg = response.messages.message.map(m => m.text).join(
+                                        ', ');
+                                    return notyf.error('Card Error: ' + errorMsg);
+                                } else {
+                                    document.getElementById('opaqueDataValue').value = response
+                                        .opaqueData.dataValue;
+                                    document.getElementById('opaqueDataDescriptor').value = response
+                                        .opaqueData.dataDescriptor;
+
+
+                                    // ✅ Proceed only after tokenization success
+                                    processApi(endpoint, form);
+                                }
+                            });
+                        } catch (error) {
+                            notyf.error(error.message);
+                            return;
+                        }
+                    }else{
+                        processApi(endpoint, form);
+                    }
+                }
             });
         });
     </script>

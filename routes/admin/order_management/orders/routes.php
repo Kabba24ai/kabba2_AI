@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\IndexController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\EditController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BulkDeleteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\ConfirmPaymentController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\ChargeCreditCardController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateNoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateOrderAddressController;
@@ -33,6 +34,7 @@ Route::prefix('orders')
         Route::put('/{unique_id}/update-note', UpdateNoteController::class)->name('update-note');
         Route::put('/{unique_id}/{product_unique_id}/update-product-schedule', UpdateProductScheduleController::class)->name('update-product-schedule');
         Route::put('/{unique_id}/confirm-payment', ConfirmPaymentController::class)->name('confirm-payment');
+        Route::put('/{unique_id}/charge-credit-card', ChargeCreditCardController::class)->name('charge-credit-card');
 
         Route::put('/{unique_id}/add-to-account', AddToAccountPaymentController::class)->name('add-to-account');
 

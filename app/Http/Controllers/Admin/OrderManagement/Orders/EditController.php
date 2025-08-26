@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
 use App\Http\Controllers\Controller;
 
-// Requests
-use App\Http\Requests\Admin\OrderManagement\Orders\EditRequest;
+// Helpers
+use App\Helpers\ConfigurationHelper;
+
+// Models
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
-// Models
 use App\Models\Orders\Order;
 use App\Models\Stores\Store;
-use Request;
+
 
 class EditController extends Controller
 {
@@ -28,6 +29,8 @@ class EditController extends Controller
         $stores = Store::orderBy('store_name')->get();
         $employees = User::orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states'));
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting'));
     }
 }

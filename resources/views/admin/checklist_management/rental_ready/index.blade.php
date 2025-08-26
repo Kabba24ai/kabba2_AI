@@ -69,7 +69,7 @@
                     </button>
                     <button id="tab-categories-sub" onclick="showTab('categoriessub', this)" 
                             class="inner-tab px-3 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 border-b-2 border-transparent">
-                         Questions Categories ( {{ $rentalreadycategory->count() }} )
+                         Questions Categories ({{ $rentalreadycategory->count() }})
                     </button>
                 </div>
 

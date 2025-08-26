@@ -42,7 +42,7 @@
 
                                     <!-- Customer Info -->
                                     <div>
-                                        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Add New Customer</h3>
+                                        <h3 class="text-xl font-semibold text-gray-800">Add New Customer</h3>
                                     </div>
                                 </div>
 

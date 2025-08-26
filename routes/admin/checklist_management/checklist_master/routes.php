@@ -6,6 +6,9 @@ use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\IndexControll
 
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\CreateController;
 
+use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\StoreController;
+
+
 
 
 /*
@@ -27,6 +30,5 @@ Route::prefix('checklist-master')
 
      Route::get('/create', CreateController::class)->name('create');
 
-
-
+     Route::post('/store', StoreController::class)->name('store');
 });

@@ -8,6 +8,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Customers\Customer;
 
+use Illuminate\Support\Facades\Log;
+
+
 class PasswordResetController extends Controller
 {
     /**
@@ -25,6 +28,7 @@ class PasswordResetController extends Controller
 
             $customer->update([
                 'password' => Hash::make($validated['password']),
+                'is_reset' => 1,
             ]);
 
             return response()->json([
@@ -33,6 +37,13 @@ class PasswordResetController extends Controller
             ]);
         } catch (\Throwable $e) {
             report($e);
+            Log::info('heyyy');
+
+            Log::info($e);
+
+
+            
+
 
             return response()->json([
                 'success' => false,

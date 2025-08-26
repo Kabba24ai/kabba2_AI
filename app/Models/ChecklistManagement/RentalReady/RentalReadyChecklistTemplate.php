@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Helpers\ModelHelper;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ProductManagement\ProductCategory;
+
 
 class RentalReadyChecklistTemplate extends Model
 {
-    
+
     use HasFactory;
 
     protected $fillable = [
@@ -39,7 +41,7 @@ class RentalReadyChecklistTemplate extends Model
 
     public function equipmentCategory()
     {
-        return $this->belongsTo(\App\Models\ProductManagement\ProductCategory::class, 'equipment_category_id');
+        return $this->belongsTo(ProductCategory::class, 'equipment_category_id');
     }
 
 

@@ -44,6 +44,7 @@ class Customer extends Authenticatable
         'account_approved_by',
         'account_application_completed',
         'tax_status_approved_by',
+        'is_reset',
         'tax_document_type',
     ];
 

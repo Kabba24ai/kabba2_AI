@@ -2195,8 +2195,10 @@
                     formData.delete('cardNumber');
                     formData.delete('expiry');
                     formData.delete('cvc');
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Saving...';
+                    if (!submitBtn.disabled) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Saving...';
+                    }
 
                     apiFetch(endpoint, {
                             method: 'POST',
@@ -2238,6 +2240,8 @@
                     endpoint = endpoint.replace(':unique_id', orderUniqueId);
                     const customer_card = document.getElementById('cardOption').value;
                     if (!customer_card) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Saving...';
                         try {
 
                             // Card fields
@@ -2313,6 +2317,8 @@
                                 if (response.messages.resultCode === "Error") {
                                     let errorMsg = response.messages.message.map(m => m.text).join(
                                         ', ');
+                                    submitBtn.disabled = false;
+                                    submitBtn.textContent = originalText;
                                     return notyf.error('Card Error: ' + errorMsg);
                                 } else {
                                     document.getElementById('opaqueDataValue').value = response
@@ -2320,12 +2326,13 @@
                                     document.getElementById('opaqueDataDescriptor').value = response
                                         .opaqueData.dataDescriptor;
 
-
                                     // ✅ Proceed only after tokenization success
                                     processApi(endpoint, form);
                                 }
                             });
                         } catch (error) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
                             notyf.error(error.message);
                             return;
                         }

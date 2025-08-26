@@ -474,9 +474,9 @@
 
 
 <!-- Record Payment Wrapper -->
-<div id="templatesModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+<div id="templatesModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
                 <div class="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-5 h-5 text-green-600">
@@ -484,7 +484,7 @@
                     </svg>
                     <h2 class="text-lg font-medium text-gray-900">Record Payment</h2>
                 </div>
-                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
             <div class=" px-6 overflow-y-auto">
                 <!-- <form> -->
@@ -666,7 +666,7 @@
 <!-- Process Refund Wrapper -->
 <div id="refundModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
                 <div class="flex items-center gap-2">
                     <div class="text-blue-600 rounded-md">
@@ -776,12 +776,10 @@
     </div>
 </div>
 
-
-
 <!-- Apply Discount Wrapper -->
 <div id="discountModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
                 <div class="flex items-center gap-2">
                     <div class="text-purple-600 rounded-md">
@@ -917,7 +915,7 @@
 <!-- New Charge Wrapper -->
 <div id="chargeModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
                 <div class="flex items-center gap-2">
                     <div class="text-red-600 rounded-md">
@@ -1067,11 +1065,10 @@
     </div>
 </div>
 
-
 <!-- Transaction Note Wrapper -->
 <div id="noteModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
             <div class="flex justify-between items-center px-6 pt-4">
                 <div class="flex items-center gap-2">
                      <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
@@ -1228,11 +1225,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
   
-    modalWrapper.addEventListener('click', e => {
-        if (e.target === modalWrapper) {
-            modalWrapper.style.display = 'none';
-        }
-    });
+    // modalWrapper.addEventListener('click', e => {
+    //     if (e.target === modalWrapper) {
+    //         modalWrapper.style.display = 'none';
+    //     }
+    // });
 });
 </script>
 

@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', function () {
     answerOptions.forEach((option, index) => {
         const wrapper = document.createElement('div');
         wrapper.className =
-        'bg-white border border-gray-300 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4';
+        'bg-white border border-gray-300 rounded-md px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4';
         wrapper.setAttribute('data-id', option.id);
 
         wrapper.innerHTML = `

@@ -891,9 +891,9 @@
             const closeModal = () => modalWrapper.style.display = 'none';
             closeBtn.addEventListener('click', closeModal);
             cancelBtn.addEventListener('click', closeModal);
-            modalWrapper.addEventListener('click', (e) => {
-                if (e.target === modalWrapper) closeModal();
-            });
+            // modalWrapper.addEventListener('click', (e) => {
+            //     if (e.target === modalWrapper) closeModal();
+            // });
         }
 
         // Setup all modals
@@ -943,9 +943,9 @@
         closeBtn.addEventListener('click', closeModal);
         cancelBtn?.addEventListener('click', closeModal);
 
-        modalWrapper.addEventListener('click', e => {
-            if (e.target === modalWrapper) closeModal();
-        });
+        // modalWrapper.addEventListener('click', e => {
+        //     if (e.target === modalWrapper) closeModal();
+        // });
     });
 </script>
 

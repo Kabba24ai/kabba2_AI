@@ -110,7 +110,7 @@
                     @enderror
                 </div>
                  <!-- Status  -->
-                <div class="mb-4">
+                <div class="">
                     <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
 
                     {!! html()
@@ -239,7 +239,7 @@
                         <h2 class="text-lg font-semibold">Billing Address</h2>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input type="hidden" name="addresses[0][type]" value="Billing">
                         <input type="hidden" name="addresses[0][is_primary]" value="1">
 
@@ -357,7 +357,7 @@
                             ], old('is_credit_account', $customer->is_credit_account ?? ''))
                             ->id('is_credit_account')
                             ->class([
-                                'w-full border rounded-md px-3 py-2 text-sm shadow-sm ',
+                                'w-full border rounded-md px-3 py-2 text-sm shadow-sm  text-gray-700 bg-white',
                                 'border-red-500' => $errors->has('is_credit_account'),
                                 'border-gray-300' => !$errors->has('is_credit_account'),
                             ])
@@ -377,7 +377,7 @@
                         )
                         ->id('account_approved_by')
                         ->class([
-                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm  text-gray-700 bg-white',
                             'border-red-500' => $errors->has('account_approved_by'),
                             'border-gray-300' => !$errors->has('account_approved_by'),
                         ])
@@ -407,7 +407,7 @@
                         ->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
                         ->id('credit_limit')
                         ->class([
-                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm  text-gray-700 bg-white',
                             'border-red-500' => $errors->has('credit_limit'),
                             'border-gray-300' => !$errors->has('credit_limit'),
                         ])->placeholder('Select Credit Limit')
@@ -422,7 +422,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Completed On</label>
 
                         {!! html()->text('account_application_completed', old('account_application_completed', \App\Helpers\CustomHelper::formatDate($customer->account_application_completed ?? null) ?? null))->class([
-                            'w-full border rounded-md datepicker unded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 bg-white',
+                            'w-full border rounded-md datepicker unded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 bg-white  text-gray-700',
                             'border-red-500' => $errors->has('account_application_completed'),
                             'border-gray-300' => !$errors->has('account_application_completed'),
                         ])->attributes([
@@ -468,7 +468,7 @@
                                 ], old('tax_status', $customer->tax_status ?? ''))
                                 ->id('tax_status')
                                 ->class([
-                                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm ',
+                                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm  text-gray-700 bg-white',
                                     'border-red-500' => $errors->has('tax_status'),
                                     'border-gray-300' => !$errors->has('tax_status'),
                                 ])
@@ -491,7 +491,7 @@
                             )
                             ->id('tax_status_approved_by')
                             ->class([
-                                'w-full border rounded-md px-3 py-2 text-sm shadow-sm',
+                                'w-full border rounded-md px-3 py-2 text-sm shadow-sm text-gray-700 bg-white',
                                 'border-red-500' => $errors->has('tax_status_approved_by'),
                                 'border-gray-300' => !$errors->has('tax_status_approved_by'),
                             ])
@@ -510,7 +510,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Upload Date</label>
 
                         {!! html()->text('tax_document_upload_date', old('tax_document_upload_date', \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) ?? null))->class([
-                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 bg-white datepicker',
+                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2  text-gray-700 bg-white datepicker',
                             'border-red-500' => $errors->has('tax_document_upload_date'),
                             'border-gray-300' => !$errors->has('tax_document_upload_date'),
                         ])->attributes([
@@ -528,7 +528,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
 
                         {!! html()->text('tax_document_valid_until', old('tax_document_valid_until', \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) ?? null))->class([
-                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 bg-white datepicker',
+                            'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2  text-gray-700 bg-white datepicker',
                             'border-red-500' => $errors->has('tax_document_valid_until'),
                             'border-gray-300' => !$errors->has('tax_document_valid_until'),
                         ])->attributes([
@@ -563,7 +563,7 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">Tax Exempt Upload</h2>
             
 
-            <div id="uploadedFileBox" class="hidden flex items-center justify-between bg-gray-200 px-2 w-full rounded-md mb-3 shadow-sm">
+            <div id="uploadedFileBox" class="hidden flex items-center justify-between bg-gray-200 px-2 w-full rounded-md mb-3 shadow-sm ">
                 <div><x-heroicon-o-document-text class="w-5 h-5" /></div>
                 <div class="w-4/6  py-2 text-sm text-gray-600">
                     <div id="uploadedFileName" class="truncate text-nowrap">No file chosen</div>
@@ -582,8 +582,8 @@
             <!-- BROWSE SECTION (initially visible) -->
             <div id="browseBox">
                 <label for="taxDocumentInput" class="cursor-pointer border rounded-l-md flex items-center shadow-sm">
-                    <span class="bg-gray-300 px-2 py-2">Browse...</span>
-                    <span id="file-name" class="truncate w-full text-nowrap px-3 py-2 text-sm text-gray-600">No file chosen</span>
+                    <span class="bg-gray-300 px-2 py-2 rounded-md">Browse...</span>
+                    <span id="file-name" class="truncate w-full text-nowrap px-3 py-2 text-sm text-gray-600 rounded-md">No file chosen</span>
                 </label>
                 <input 
                     type="file" 

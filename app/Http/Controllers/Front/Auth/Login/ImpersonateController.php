@@ -85,6 +85,13 @@ class ImpersonateController extends Controller
         // Log in the customer on the customer guard
         Auth::guard('customer')->login($customer);
 
+
+        // Reset the flag if needed
+        if ($customer->is_reset == 1) {
+            $customer->update(['is_reset' => 0]);
+        }
+
+
         return redirect()->route('front.home.index');
     }
 }

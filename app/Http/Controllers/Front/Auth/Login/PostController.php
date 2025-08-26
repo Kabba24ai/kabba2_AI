@@ -40,6 +40,11 @@ class PostController extends Controller
                     session(['master_passcode' => true]);
                     Auth::guard('customer')->login($customer);
                     $request->session()->regenerate();
+
+                    // Reset the flag
+                    if ($customer->is_reset == 1) {
+                        $customer->update(['is_reset' => 0]);
+                    }
                     return redirect()->route('front.customer.dashboard.index')->with('success', 'Logged in as customer using master passcode.');
                 } else {
                     return redirect()->route('front.auth.login.index')
@@ -58,6 +63,13 @@ class PostController extends Controller
 
             if (Auth::guard('customer')->attempt($credentials)) {
                 $request->session()->regenerate();
+
+                // Reset the flag
+                $customer = Auth::guard('customer')->user();
+                if ($customer->is_reset == 1) {
+                    $customer->update(['is_reset' => 0]);
+                }
+
                 return redirect()->route('front.customer.dashboard.index')->with('success', 'You are already logged in.');
             }
 

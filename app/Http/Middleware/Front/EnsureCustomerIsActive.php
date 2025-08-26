@@ -22,6 +22,17 @@ class EnsureCustomerIsActive
                 ->with('error', 'Your account has been suspended. Please contact support.');
         }
 
+        if ($customer && $customer->is_reset == 1) {
+            Auth::guard('customer')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route('front.auth.login.index')
+                ->with('error', 'Your password has been reset. Please update it before logging in.');
+        }
+
+
         return $next($request);
     }
 }

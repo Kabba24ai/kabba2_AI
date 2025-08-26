@@ -7,7 +7,7 @@
                                 <p class="text-sm text-gray-500">Organize questions into logical categories</p>
                             </div>
                             <a href="javascript:void(0)" onclick="openCategoriesModal()"
-                                class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 mt-3">
+                                class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 mt-3">
                                 + New Category
                             </a>
                         </div>
@@ -63,12 +63,12 @@
 <div id="CategoryModalWrapper" class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
         <div
-        class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-xl space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full"
+        class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-xl space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full"
         onclick="event.stopPropagation()"
         >
             <div class="flex justify-between items-center px-6 pt-4">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Category</h3>
-                <button onclick="closeCategoryModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+                <h3 class="text-lg font-semibold text-gray-800">New Category</h3>
+                <button onclick="closeCategoryModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
 
              
@@ -82,7 +82,7 @@
 
                 @csrf
             
-            <div class="px-6 grid grid-cols-1 gap-6 bg-gray-50">
+            <div class="px-6 grid grid-cols-1 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Category Name *</label>
                     <!-- <input type="text" class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required> -->
@@ -111,7 +111,7 @@
             </div>
 
             <div class="flex justify-end gap-2 px-6 pb-4">
-                <button type="button" onclick="closeCategoryModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
+                <button type="button" onclick="closeCategoryModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Cancel</button>
                  <!-- Submit Button with Loader -->
                 <button type="submit" id="submitCategoryBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700 flex items-center justify-center gap-2">
                     <span id="categoryBtnText">Save Category</span>

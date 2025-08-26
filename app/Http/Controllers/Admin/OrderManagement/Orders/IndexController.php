@@ -20,46 +20,41 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         // Fetch orders from the database, most recent first
-        $query = Order::query()->with('shippingAddress', 'products.product.categories', 'lastPayment');
+        $query = Order::query()
+            ->with('shippingAddress', 'products.product.categories', 'lastPayment')
+            ->when($request->filled('customer_name'), function ($q) use ($request) {
+                $name = trim($request->customer_name);
+                $q->whereHas('shippingAddress', function ($s) use ($name) {
+                    $s->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$name}%"]);
+                });
+            })
 
-        if ($request->filled('customer_name')) {
-            $query->whereHas('shippingAddress', function ($q) use ($request) {
-                $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->customer_name}%"]);
+            ->when($request->filled('customer_company_name'), function ($q) use ($request) {
+                $q->where('company_name', 'like', "%{$request->customer_company_name}%");
+                // or: whereHas('customer', fn ($s) => $s->where('company_name','like',"%{$request->customer_company_name}%"))
+            })
+
+            ->when($request->filled('customer_phone'), function ($q) use ($request) {
+                $q->whereHas('shippingAddress', function ($s) use ($request) {
+                    $s->where('phone', 'like', "%{$request->customer_phone}%");
+                });
+            })
+
+            ->when($request->filled('category'), function ($q) use ($request) {
+                $q->whereHas('products.product.categories', function ($s) use ($request) {
+                    $s->where('product_categories.id', $request->category); // fully qualified
+                });
+            })
+
+            ->when($request->filled('payment_method') && $request->payment_method !== 'All Methods', function ($q) use ($request) {
+                // if lastPayment is a latest-of-many relation:
+                $q->whereRelation('lastPayment', 'payment_method', $request->payment_method);
+            })
+
+            ->when($request->filled('payment_status') && $request->payment_status !== 'All Status', function ($q) use ($request) {
+                // only match the latest payment's status
+                $q->whereRelation('lastPayment', 'status', $request->payment_status);
             });
-            // $query->where('customer_name', 'like', '%' . $request->customer_name . '%');
-        }
-
-        if ($request->filled('customer_company_name')) {
-            $query->where('company_name', 'like', '%' . $request->customer_company_name . '%');
-            // $query->whereHas('customer', function ($q) use ($request) {
-            //     $q->where('company_name', 'like', '%' . $request->customer_company_name . '%');
-            // });
-        }
-
-        if ($request->filled('customer_phone')) {
-            // $query->where('customer_phone', 'like', '%' . $request->customer_phone . '%');
-            $query->whereHas('shippingAddress', function ($q) use ($request) {
-                $q->where('phone', 'like', '%' . $request->customer_phone . '%');
-            });
-        }
-
-        if ($request->filled('category')) {
-            $query->whereHas('products.product.categories', function ($q) use ($request) {
-                $q->where('product_categories.id', $request->category); // Fully qualified!
-            });
-        }
-
-        if ($request->filled('payment_method') && $request->payment_method != 'All Methods') {
-            $query->whereHas('lastPayment', function ($q) use ($request) {
-                $q->where('payment_method', $request->payment_method);
-            });
-        }
-
-        if ($request->filled('payment_status') && $request->payment_status != 'All Status') {
-            $query->whereHas('lastPayment', function ($q) use ($request) {
-                $q->where('status', $request->payment_status);
-            });
-        }
 
         $orders = $query->latest('id')->paginate(10)->withQueryString(); // keeps filters in pagination links
 
@@ -76,7 +71,7 @@ class IndexController extends Controller
 
         return view('admin.order_management.orders.index', [
             'orders' => $orders,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 }

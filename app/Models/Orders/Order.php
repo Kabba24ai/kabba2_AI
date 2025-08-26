@@ -97,7 +97,7 @@ class Order extends Model
 
     public function lastPayment()
     {
-        return $this->hasOne(OrderPayment::class, 'order_id')->latest('id');
+        return $this->hasOne(OrderPayment::class, 'order_id')->latestOfMany('id');
     }
 
     public function history()

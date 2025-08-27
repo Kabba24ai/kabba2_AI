@@ -12,7 +12,7 @@ class Equipment extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'equipments';
+    protected $table = 'equipment';
 
     protected $fillable = [
         'unique_id',
@@ -100,8 +100,8 @@ class Equipment extends Model
         if (!$this->rental_ready_checklist) {
             return '-';
         }
-        
-        return strlen($this->rental_ready_checklist) > 16 
+
+        return strlen($this->rental_ready_checklist) > 16
             ? substr($this->rental_ready_checklist, 0, 16) . '...'
             : $this->rental_ready_checklist;
     }
@@ -111,8 +111,8 @@ class Equipment extends Model
         if (!$this->equipment_service_list) {
             return '-';
         }
-        
-        return strlen($this->equipment_service_list) > 16 
+
+        return strlen($this->equipment_service_list) > 16
             ? substr($this->equipment_service_list, 0, 16) . '...'
             : $this->equipment_service_list;
     }

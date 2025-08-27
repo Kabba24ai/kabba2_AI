@@ -223,7 +223,7 @@
                     @php
 
                     $maintenanceActive = Route::is([
-                        'admin.maintenance-management.equipments.*',
+                        'admin.maintenance-management.equipment.*',
                         'admin.maintenance-management.parts.*',
                         'admin.maintenance-management.suppliers.*',
                     ]);
@@ -275,13 +275,13 @@
                         <div x-show="open" x-transition>
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
-                               
-                                <li>
-                                    <a href="{{ route('admin.maintenance-management.equipments.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.maintenance-management.equipments.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
-                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipments
+                                <li>
+                                    <a href="{{ route('admin.maintenance-management.equipment.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.equipment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+
+                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment
                                     </a>
                                 </li>
                                 <li>
@@ -358,16 +358,16 @@
                         </div>
                     </li>
                      <li x-data="{ open: 'false' }">
-                        <a href="https://projectmanager.kabba.ai/" target="_blank" 
+                        <a href="https://projectmanager.kabba.ai/" target="_blank"
                             class="menu-item group flex items-center gap-3 menu-item-inactive }}">
                             <x-heroicon-o-squares-plus class="w-6 h-6" />
-                            
+
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Project Manager</span>
                         </a>
-                        
+
                     </li>
 
-                   
+
 
 
                     @php
@@ -377,7 +377,7 @@
                         'admin.configurations.*',
                     ]);
 
-                     
+
 
                     @endphp
 
@@ -386,7 +386,7 @@
 
                         $isUsers      = Route::is('admin.hrm.users.*') || Route::is('admin.hrm.*') ;
                         $isRoles      = Route::is('admin.roles.manage.role') || Route::is('admin.roles.create.role') ;
-                        
+
                     @endphp
 
 
@@ -426,7 +426,7 @@
                                     </a>
                                 </li>
 
-                               
+
                             </ul>
                         </div>
                     </li>

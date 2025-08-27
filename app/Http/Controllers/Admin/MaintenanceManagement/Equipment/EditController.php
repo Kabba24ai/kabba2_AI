@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
+namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
@@ -53,6 +53,6 @@ class EditController extends Controller
             'Damage Assessment Checklist',
             'Basic Customer Checklist'
         ];
-        return view('admin.maintenance_management.equipments.edit', compact('equipment', 'categories', 'equipmentServiceList', 'equipmentPartsList','customerChecklist'));
+        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'equipmentServiceList', 'equipmentPartsList','customerChecklist'));
     }
 }

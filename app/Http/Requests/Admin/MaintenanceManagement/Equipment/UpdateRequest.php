@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\MaintenanceManagement\Equipments;
+namespace App\Http\Requests\Admin\MaintenanceManagement\Equipment;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -15,7 +15,7 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         $equipmentId = $this->route('unique_id');
-        
+
         return [
             'equipment_name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
@@ -23,7 +23,7 @@ class UpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('equipments', 'equipment_id')->ignore($equipmentId, 'unique_id')
+                Rule::unique('equipment', 'equipment_id')->ignore($equipmentId, 'unique_id')
             ],
             'equipment_hours' => 'nullable|numeric|min:0',
             'brand' => 'required|string|max:255',

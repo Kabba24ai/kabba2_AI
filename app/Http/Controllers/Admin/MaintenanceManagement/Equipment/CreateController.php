@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
+namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
@@ -10,22 +10,7 @@ class CreateController extends Controller
 {
     public function __invoke()
     {
-        /*
-        $categories = [
-            'Excavators',
-            'Bulldozers',
-            'Loaders',
-            'Generators',
-            'Compressors',
-            'Trucks',
-            'Trailers',
-            'Concrete Equipment',
-            'Lifting Equipment',
-            'Hand Tools'
-        ];
-        */
-
-        $categories     =   ProductCategory::select('title')->get();
+        $categories = ProductCategory::select('title')->get();
 
         $equipmentServiceList = [
             'Excavator Maintenance',
@@ -46,7 +31,6 @@ class CreateController extends Controller
             'Basic Parts List'
         ];
 
-
         $customerChecklist = [
             'Equipment Delivery Checklist',
             'Equipment Return Checklist',
@@ -56,6 +40,6 @@ class CreateController extends Controller
         ];
 
         $equipment = new Equipment();
-        return view('admin.maintenance_management.equipments.create', compact('categories', 'equipment', 'equipmentServiceList', 'equipmentPartsList','customerChecklist'));
+        return view('admin.maintenance_management.equipment.create', compact('categories', 'equipment', 'equipmentServiceList', 'equipmentPartsList','customerChecklist'));
     }
 }

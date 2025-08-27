@@ -104,7 +104,7 @@
                 </svg>
                 <h3 class="text-lg font-bold text-gray-900">Equipment Details</h3>
             </div>
- 
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -368,7 +368,7 @@
                 </svg>
                 <h3 class="text-lg font-bold text-gray-900">Power Source</h3>
             </div>
-        
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Power Type</label>
                 <select id="power-type-select" name="power_source_type"
@@ -379,7 +379,7 @@
                     <option value="batteries">Batteries</option>
                 </select>
             </div>
-        
+
             <div id="power-type-fields" class="mt-4"></div>
         </div>
     -->
@@ -418,7 +418,7 @@
     <!-- Dynamic fields get inserted here -->
     <div id="power-type-fields" class="mt-4">
         @if(old('power_source_type', $equipment->power_source_type ?? ''))
-            @include('admin.maintenance_management.equipments.partials.power_source_fields', [
+            @include('admin.maintenance_management.equipment.partials.power_source_fields', [
                 'powerSourceType' => old('power_source_type', $equipment->power_source_type ?? ''),
                 'equipment' => $equipment
             ])
@@ -560,13 +560,13 @@ document.addEventListener('DOMContentLoaded', function () {
     <div>
         <label class="jsp block text-sm font-medium text-gray-700 mb-1">Diesel Tank Capacity (Gallons)</label>
         <input type="number" name="diesel_tank_capacity" placeholder="0" min="0" max="100000" step="0.1"
-            class="jsp w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 
+            class="jsp w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2
                    focus:ring-blue-500 focus:border-blue-500 transition-colors" value="">
     </div>
     <div id="def-capacity-field" style="display:none;">
         <label class="block text-sm font-medium text-gray-700 mb-1" style="padding-top:15px">DEF Tank Capacity (Gallons)</label>
         <input type="number" name="def_capacity"  placeholder="0" min="0" max="100000" step="0.1"
-            class="jsp w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 
+            class="jsp w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2
                    focus:ring-blue-500 focus:border-blue-500 transition-colors" value="">
     </div>`,
 
@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     {
                         this.value = this.value.slice(0, 6);
                     }
-                        
+
                     }
                 });
                 const defInput = document.querySelector('input[name="def_capacity"]');

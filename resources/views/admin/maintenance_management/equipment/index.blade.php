@@ -25,9 +25,9 @@
             </div>
         @endif
 
-        @include('admin.maintenance_management.equipments.partials._stats')
-        @include('admin.maintenance_management.equipments.partials._filters')
-        @include('admin.maintenance_management.equipments.partials._table')
+        @include('admin.maintenance_management.equipment.partials._stats')
+        @include('admin.maintenance_management.equipment.partials._filters')
+        @include('admin.maintenance_management.equipment.partials._table')
     </div>
 </div>
 @endsection
@@ -61,7 +61,7 @@
                 loader.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
-                fetch("{{ route('admin.maintenance-management.equipments.index') }}?" + params.toString(), {
+                fetch("{{ route('admin.maintenance-management.equipment.index') }}?" + params.toString(), {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
@@ -73,7 +73,7 @@
                     .catch(error => {
                         wrapper.innerHTML =
                             '<div class="text-red-500 p-4">Something went wrong loading the data.</div>';
-                        console.error('Error fetching equipments:', error);
+                        console.error('Error fetching equipment:', error);
                     })
                     .finally(() => {
                         loader.classList.add('hidden');

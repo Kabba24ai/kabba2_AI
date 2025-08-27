@@ -18,7 +18,7 @@ Route::prefix('maintenance-management')
 ->group(function ($router) {
 
     // orders
-    require base_path('routes/admin/maintenance_management/equipments/routes.php');
+    require base_path('routes/admin/maintenance_management/equipment/routes.php');
     require base_path('routes/admin/maintenance_management/parts/routes.php');
     require base_path('routes/admin/maintenance_management/suppliers/routes.php');
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipments;
+namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
@@ -11,22 +11,22 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         $query = Equipment::query();
-        
+
         // Search filter
         if ($request->filled('search')) {
             $query->where('equipment_name', 'like', '%' . $request->search . '%');
         }
-        
+
         // Category filter
         if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
-        
+
         // Status filter
         // if ($request->filled('status')) {
         //     $query->where('status', $request->status);
         // }
-        
+
         // Service due filter
         if ($request->filled('serviceDue')) {
             if ($request->serviceDue === 'due-soon') {
@@ -35,7 +35,7 @@ class IndexController extends Controller
                 $query->whereRaw('(current_hours % service_interval) / service_interval >= 1');
             }
         }
-        
+
         // Rental Ready filter
         if ($request->filled('rentalReady')) {
             if ($request->rentalReady === 'assigned') {
@@ -44,7 +44,7 @@ class IndexController extends Controller
                 $query->whereNull('rental_ready_checklist');
             }
         }
-        
+
         // Equipment Service filter
         if ($request->filled('equipService')) {
             if ($request->equipService === 'assigned') {
@@ -53,9 +53,9 @@ class IndexController extends Controller
                 $query->whereNull('equipment_service_list');
             }
         }
-        
-        $equipments = $query->orderBy('created_at', 'desc')->paginate(50);
-        
+
+        $equipment = $query->orderBy('created_at', 'desc')->paginate(50);
+
         // Calculate stats
         $stats = [
             'total' => Equipment::count(),
@@ -64,14 +64,14 @@ class IndexController extends Controller
             'maintenance' => Equipment::where('status', 'maintenance')->count(),
             'damaged' => Equipment::where('status', 'damaged')->count(),
         ];
-        
+
         $categories = Equipment::distinct()->pluck('category')->filter()->values();
-        
+
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {
-            return view('admin.maintenance_management.equipments.partials._table', compact('equipments'))->render();
+            return view('admin.maintenance_management.equipment.partials._table', compact('equipment'))->render();
         }
-        
-        return view('admin.maintenance_management.equipments.index', compact('equipments', 'stats', 'categories'));
+
+        return view('admin.maintenance_management.equipment.index', compact('equipment', 'stats', 'categories'));
     }
 }

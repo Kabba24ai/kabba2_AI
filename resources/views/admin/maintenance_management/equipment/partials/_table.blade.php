@@ -3,10 +3,10 @@
     <div class="overflow-x-auto">
         <table class="w-full" id="equipment-table-wrapper">
             {{-- Table Header --}}
-            @include('admin.maintenance_management.equipments.partials._table-header')
+            @include('admin.maintenance_management.equipment.partials._table-header')
             <div id="equipment-loading" class="hidden"></div>
             <tbody class="divide-y divide-gray-200">
-                @forelse($equipments as $item)
+                @forelse($equipment as $item)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="py-4 px-6">
                             <span class="text-sm font-medium text-gray-900">{{ $item->category }}</span>
@@ -19,7 +19,7 @@
                                 {{ $item->equipment_id }}
                             </span>
                         </td>
-                        
+
                         <td class="py-3 px-3">
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border {{ $item->status_color }}">
                                 {{ ucfirst($item->status) }}
@@ -73,20 +73,20 @@
                         </td>
                         <td class="py-3 px-3">
                             <div class="flex items-center space-x-1">
-                                <a href="{{ route('admin.maintenance-management.equipments.edit', $item->unique_id) }}" 
-                                   class="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors" 
+                                <a href="{{ route('admin.maintenance-management.equipment.edit', $item->unique_id) }}"
+                                   class="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                                    title="Edit Equipment">
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
                                 </a>
-                                <form action="{{ route('admin.maintenance-management.equipments.delete', $item->unique_id) }}" method="POST" class="inline" 
+                                <form action="{{ route('admin.maintenance-management.equipment.delete', $item->unique_id) }}" method="POST" class="inline"
                                       onsubmit="return confirm('Are you sure you want to delete {{ $item->equipment_name }}? This action cannot be undone.')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" 
-                                            class="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" 
+                                    <button type="submit"
+                                            class="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
                                             title="Delete Equipment">
                                         <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -104,7 +104,7 @@
                             </svg>
                             <h3 class="text-lg font-medium text-gray-900 mb-2">No equipment found</h3>
                             <p class="text-gray-600 mb-4">Try adjusting your search criteria or add new equipment.</p>
-                            <a href="{{ route('admin.maintenance-management.equipments.create') }}" class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                            <a href="{{ route('admin.maintenance-management.equipment.create') }}" class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
@@ -118,9 +118,9 @@
     </div>
 
     {{-- Pagination --}}
-    @if($equipments->hasPages())
+    @if($equipment->hasPages())
         <div class="px-6 py-4 border-t border-gray-200">
-            {{ $equipments->appends(request()->query())->links() }}
+            {{ $equipment->appends(request()->query())->links() }}
         </div>
     @endif
 </div>

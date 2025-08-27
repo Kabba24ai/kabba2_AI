@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\MaintenanceManagement\Equipments;
+namespace App\Http\Requests\Admin\MaintenanceManagement\Equipment;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -16,7 +16,7 @@ class StoreRequest extends FormRequest
         return [
             'equipment_name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'equipment_id' => 'required|string|max:255|unique:equipments,equipment_id',
+            'equipment_id' => 'required|string|max:255|unique:equipment,equipment_id',
             'equipment_hours' => 'nullable|numeric|min:0',
             'brand' => 'required|string|max:255',
             'model' => 'nullable|string|max:255',

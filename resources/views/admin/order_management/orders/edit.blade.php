@@ -1323,7 +1323,7 @@
                             </label>
 
                             <input type="text" id="refund_amount" name="refund_amount" data-digit-input='true'
-                                min="0" data-parsley-maxlength="6"
+                                min="0" data-parsley-maxlength="12"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500"
                                 value="{{ $order->remaining_amount }}" />
                             <p id="rf_err_amount" class="text-red-500 text-xs mt-1 hidden">

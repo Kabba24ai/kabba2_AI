@@ -23,35 +23,49 @@
 
             {{-- Payment Status + Refund Button --}}
             <div class="flex flex-wrap items-center gap-2">
-                @if ($order->last_payment_status === 'Pending')
-                    <button id="pendingPaymentBtn"
+                @if ($order->last_payment_status === 'Pending' || $order->last_payment_status === 'Failed')
+                    <button id="pendingPaymentBtn" type="button"
                         class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
                         <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                         PENDING PAYMENT
                     </button>
-                    @if ($order->last_payment_type !== 'Card')
-                        <button id="addToAccountBtn"
-                            class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
-                            Add to Account
-                        </button>
-                        {{-- <button id="confirmPaymentBtn"
-                            class="px-4 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700">
-                            Confirm payment
-                        </button> --}}
-                    @endif
-                @elseif ($order->last_payment_status === 'Paid')
+                @endif
+                @if ($order->last_payment_status === 'Pending' && $order->last_payment_type !== 'Card')
+                    <button id="addToAccountBtn" type="button"
+                        class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
+                        Add to Account
+                    </button>
+                    {{-- <button id="confirmPaymentBtn"
+                        class="px-4 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700">
+                        Confirm payment
+                    </button> --}}
+                @endif
+                @if ($order->last_payment_status === 'Paid')
                     <span
                         class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
                         <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                         Paid In Full Via -
-                        {{ $order->last_payment_type === 'Card' ? 'Credit/Debit Card' : $order->last_payment_type }}
+                        {{ $order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card ? 'Credit/Debit Card' : $order->last_payment_type }}
                     </span>
-                    <button
-                        class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition rounded-lg">
+                @endif
+                @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount > 0)
+                    {{-- Refund Button --}}
+                    <button id="refundPaymentBtn" type="button"
+                        class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
                         <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
                         Refund
                     </button>
-                @elseif ($order->last_payment_status === 'Failed')
+                @endif
+                @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount == 0)
+                    {{-- Refund Button --}}
+
+                    <button type="button"
+                        class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
+                        <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
+                        Full Refund
+                    </button>
+                @endif
+                @if ($order->last_payment_status === 'Failed')
                     <span
                         class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
                         <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
@@ -181,8 +195,10 @@
                         data-first-name="{{ $order->billingAddress->first_name ?? '' }}">
                     <input type="hidden" id="billing_last_name_input"
                         data-last-name="{{ $order->billingAddress->last_name ?? '' }}">
-                    <input type="hidden" id="billing_email_input" data-email="{{ $order->billingAddress->email ?? '' }}">
-                    <input type="hidden" id="billing_phone_input" data-phone="{{ $order->billingAddress->phone ?? '' }}">
+                    <input type="hidden" id="billing_email_input"
+                        data-email="{{ $order->billingAddress->email ?? '' }}">
+                    <input type="hidden" id="billing_phone_input"
+                        data-phone="{{ $order->billingAddress->phone ?? '' }}">
                     <input type="hidden" id="billing_address_input"
                         data-address="{{ $order->billingAddress->address ?? '' }}">
                     <input type="hidden" id="billing_state_input"
@@ -1247,6 +1263,191 @@
                 </button>
             </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Refund Modal -->
+    <div id="refundModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center"
+        data-order-id="{{ $order->order_number }}" data-customer-name="{{ $order->customer_name }}"
+        data-original-amount="{{ $order->remaining_amount }}"
+        data-action="{{ route('admin.order-management.orders.refund-payment', $order->unique_id) }}">
+        <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="refundModalTitle" class="text-lg font-semibold">Process Refund</h2>
+                <button type="button"
+                    class="close-refund-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+
+            <!-- Body -->
+            {{ html()->form()->attributes([
+                    'id' => 'refundForm',
+                    'class' => 'flex-1 flex flex-col justify-between',
+                    'parsley-validate' => true,
+                ])->open() }}
+            @csrf
+
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                <!-- Order details -->
+                <div class="bg-gray-50 rounded-lg p-4 text-sm">
+                    <h3 class="font-medium text-gray-900 mb-2">Order Details</h3>
+                    <div class="space-y-1 text-gray-600">
+                        <div>Order ID:
+                            <span class="font-medium text-gray-900" id="rf_order_id">{{ $order->order_number }}</span>
+                        </div>
+                        <div>Customer:
+                            <span class="font-medium text-gray-900"
+                                id="rf_customer_name">{{ $order->customer_name }}</span>
+                        </div>
+                        <div>Original Amount:
+                            <span class="font-medium text-gray-900" id="rf_original_amount">
+                                {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
+                            </span>
+                        </div>
+                        <div>Remaining Amount:
+                            <span class="font-medium text-gray-900" id="rf_remaining_amount">
+                                {{ \App\Helpers\CustomHelper::formatCurrency($order->remaining_amount) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 1: FORM -->
+                <div id="refundFormStep">
+                    <div class="space-y-4">
+                        <!-- Amount -->
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 required" for="refund_amount">
+                                Refund Amount
+                            </label>
+
+                            <input type="text" id="refund_amount" name="refund_amount" data-digit-input='true'
+                                min="0" data-parsley-maxlength="6"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500"
+                                value="{{ $order->remaining_amount }}" />
+                            <p id="rf_err_amount" class="text-red-500 text-xs mt-1 hidden">
+                                Please enter a valid refund amount (max:
+                                {{ \App\Helpers\CustomHelper::formatCurrency($order->remaining_amount) }}).
+                            </p>
+
+                            <!-- Quick buttons -->
+                            <div class="flex gap-2 mt-2">
+                                <button type="button"
+                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                    data-percentage="100">
+                                    Full Amount
+                                </button>
+                                <button type="button"
+                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                    data-percentage="50">
+                                    50%
+                                </button>
+                                <button type="button"
+                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                    data-percentage="25">
+                                    25%
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Reason -->
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 required" for="refund_reason">
+                                Reason for Refund
+                            </label>
+                            <input type="text" id="refund_reason" name="reason"
+                                placeholder="Enter reason for refund"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500" />
+                            <p id="rf_err_reason" class="text-red-500 text-xs mt-1 hidden">
+                                Please enter a reason for the refund.
+                            </p>
+                        </div>
+
+                        <!-- Type indicator -->
+                        <div id="rf_type_box" class="hidden rounded-lg p-3">
+                            <div class="flex items-center gap-2">
+                                @svg('heroicon-o-information-circle', 'w-6 h-6 inline-block rounded-full', ['id' => 'rf_type_icon'])
+                                <p id="rf_type_label" class="text-sm font-medium"></p>
+                            </div>
+                            <p id="rf_type_text" class="text-xs mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: CONFIRM -->
+                <div id="refundConfirmStep" class="hidden space-y-4">
+                    <div class="text-center mb-2">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <!-- simple alert icon -->
+                            <svg class="text-red-600 w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                                <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">Confirm Refund</h3>
+                        <p class="text-gray-600 text-sm">Please review the refund details before processing.</p>
+                    </div>
+
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Refund Amount:</span>
+                                <span id="rf_c_amount" class="font-semibold text-red-800">$0.00</span>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <span class="text-gray-600">Reason:</span>
+                                <span id="rf_c_reason"
+                                    class="font-medium text-gray-900 max-w-[220px] break-words whitespace-pre-line">—</span>
+                            </div>
+                            <div id="rf_c_remaining_row" class="flex justify-between hidden">
+                                <span class="text-gray-600">Remaining Balance:</span>
+                                <span id="rf_c_remaining" class="font-semibold text-gray-900">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p class="text-sm font-medium text-yellow-800">Important Notice</p>
+                        <p class="text-xs text-yellow-700 mt-1">
+                            This action cannot be undone. The refund will be processed immediately and the customer will be
+                            notified via email.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <div id="refundFormStepBtnsDiv">
+                    <button type="button"
+                        class="close-refund-modal-btn px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                        Cancel
+                    </button>
+
+                    <!-- Step 1 buttons -->
+                    <button type="button" id="rf_btn_initiate"
+                        class="px-6 py-2 rounded-md bg-red-600 text-white font-medium hover:bg-red-700 shadow-sm transition">
+                        Initiate Refund
+                    </button>
+                </div>
+
+
+                <!-- Step 2 buttons -->
+                <div id="refundConfirmStepBtnsDiv" class="hidden">
+                    <button type="button" id="rf_btn_back"
+                        class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                        Back
+                    </button>
+                    <button type="submit" id="rf_btn_confirm"
+                        class="px-6 py-2 rounded-md bg-red-600 text-white font-medium hover:bg-red-700 shadow-sm transition inline-flex items-center gap-2">
+                        Process Refund
+                    </button>
+                </div>
+            </div>
+            {{ html()->form()->close() }}
         </div>
     </div>
 
@@ -2336,11 +2537,218 @@
                             notyf.error(error.message);
                             return;
                         }
-                    }else{
+                    } else {
                         processApi(endpoint, form);
                     }
                 }
             });
+
+
+            // Modal open/close logic
+            const refundPaymentBtn = document.getElementById('refundPaymentBtn');
+            const refundModal = document.getElementById('refundModal');
+
+            // Elements
+            const orderId = refundModal.dataset.orderId;
+            const customerName = refundModal.dataset.customerName;
+            const originalAmount = parseFloat(refundModal.dataset.originalAmount || '0');
+            const actionUrl = refundModal.dataset.action;
+
+            const refundFormStep = document.getElementById('refundFormStep');
+            const refundConfirmStep = document.getElementById('refundConfirmStep');
+            const amountInput = document.getElementById('refund_amount');
+            const refundReasonInput = document.getElementById('refund_reason');
+            const initiateBtn = document.getElementById('rf_btn_initiate');
+            const refundFormStepBtnDiv = document.getElementById('refundFormStepBtnsDiv');
+            const refundConfirmStepBtnDiv = document.getElementById('refundConfirmStepBtnsDiv');
+            const confirmBtn = document.getElementById('rf_btn_confirm');
+            const backBtn = document.getElementById('rf_btn_back');
+            const errAmount = document.getElementById('rf_err_amount');
+            const errReason = document.getElementById('rf_err_reason');
+            const confirmAmount = document.getElementById('rf_c_amount');
+            const confirmReason = document.getElementById('rf_c_reason');
+            const confirmRemaining = document.getElementById('rf_c_remaining');
+            const confirmRemainingDiv = document.getElementById('rf_c_remaining_row');
+
+
+            // Type indicator
+            const typeBox = document.getElementById('rf_type_box');
+            const typeLabel = document.getElementById('rf_type_label');
+            const typeText = document.getElementById('rf_type_text');
+            const typeIcon = document.getElementById('rf_type_icon');
+
+            // Helpers
+            const fmt = (n) => '{{ config('app.currency.code') }}' + (n || 0).toFixed(2);
+            const show = (el) => el.classList.remove('hidden');
+            const hide = (el) => el.classList.add('hidden');
+
+            function openRefundModal() {
+                refundModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeRefundModal() {
+                refundModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            if (refundPaymentBtn) {
+                refundPaymentBtn.addEventListener('click', openRefundModal);
+            }
+
+            // ✅ attach to BOTH close buttons
+            document.querySelectorAll('.close-refund-modal-btn').forEach(btn => btn.addEventListener('click',
+                closeRefundModal));
+
+
+            function updateTypeIndicator() {
+                const amt = parseFloat(amountInput.value) || 0;
+                if (amt <= 0) {
+                    hide(typeBox);
+                    return;
+                }
+                const remaining = originalAmount - amt;
+                if (remaining < 0) {
+                    hide(typeBox);
+                    return;
+                }
+                const isFull = amt === originalAmount;
+                show(typeBox);
+                typeBox.className = 'rounded-lg p-3 ' + (isFull ? 'bg-red-50 border border-red-200' :
+                    'bg-yellow-50 border border-yellow-200');
+                typeLabel.className = 'text-sm font-medium ' + (isFull ? 'text-red-800' : 'text-yellow-800');
+                typeText.className = 'text-xs mt-1 ' + (isFull ? 'text-red-700' : 'text-yellow-700');
+                typeIcon.style.backgroundColor = isFull ? '#FEE2E2' : '#FEF9C3'; // red-100 / yellow-100
+                typeIcon.style.border = '1px solid ' + (isFull ? '#FECACA' : '#FEF08A'); // red-200 / yellow-200
+                typeIcon.style.color = isFull ? '#FCA5A5' : '#FDE047'; // red-300 / yellow-300
+                typeLabel.textContent = isFull ? 'Full Refund' : 'Partial Refund';
+                typeText.textContent = isFull ?
+                    'The entire order amount will be refunded to the customer.' :
+                    `${fmt(amt)} will be refunded. Remaining balance: ${fmt(originalAmount - amt)}`;
+            }
+
+            // Event handlers
+            amountInput.addEventListener('input', function() {
+                amountInput.value = amountInput.value;
+                if (!errAmount.classList.contains('hidden')) hide(errAmount);
+                updateTypeIndicator();
+            });
+
+            refundReasonInput.addEventListener('input', function() {
+                if (!errReason.classList.contains('hidden')) hide(errReason);
+            });
+
+            document.getElementById('refundForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const form = e.target;
+
+                if (!$(form).parsley().isValid()) {
+                    $(form).parsley().validate();
+                    return;
+                }
+
+                const amt = parseFloat(amountInput.value) || 0;
+                if (amt <= 0 || amt > originalAmount) {
+                    notyf.error('Please enter a valid refund amount.');
+                    return;
+                }
+
+                const reason = refundReasonInput.value.trim();
+                if (!reason) {
+                    notyf.error('Please enter a refund reason.');
+                    return;
+                }
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Processing...';
+
+                let endpoint = actionUrl;
+
+                apiFetch(endpoint, {
+                        method: 'PUT',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content'),
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            amount: amt,
+                            reason: reason
+                        })
+                    })
+                    .then(res => {
+                        if (res && res.success) {
+                            notyf.success(res.message);
+                            window.location.reload();
+                        } else {
+                            notyf.error(res && res.message);
+                        }
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    });
+            });
+
+            const refundCalcBtn = document.getElementsByClassName('refund-calc-btn');
+            Array.from(refundCalcBtn).forEach(btn => {
+                btn.addEventListener('click', function() {
+                    amountInput.value = (originalAmount * (btn.dataset.percentage / 100)).toFixed(
+                    2);
+                    amountInput.dispatchEvent(new Event('input'));
+                });
+            });
+
+            initiateBtn.addEventListener('click', function() {
+                // Handle the initiate refund button click
+
+                const amt = parseFloat(amountInput.value) || 0;
+                const reason = refundReasonInput.value.trim();
+
+                if (amt <= 0 || amt > originalAmount) {
+                    show(errAmount);
+                    return;
+                }
+
+                if (!reason) {
+                    show(errReason);
+                    return;
+                }
+
+                // If all validations pass, proceed with the refund
+                showConfirmationStep();
+            });
+
+            function showConfirmationStep() {
+                hide(refundFormStep);
+                show(refundConfirmStep);
+                hide(refundFormStepBtnDiv);
+                show(refundConfirmStepBtnDiv);
+                confirmAmount.textContent = amountInput.value;
+                confirmReason.textContent = refundReasonInput.value;
+                confirmRemaining.textContent = (originalAmount - parseFloat(amountInput.value)).toFixed(2);
+                if (parseFloat(confirmRemaining.textContent) <= 0) {
+                    hide(confirmRemainingDiv);
+                } else {
+                    show(confirmRemainingDiv);
+                }
+            }
+
+            function showRefundFormStep() {
+                hide(refundConfirmStep);
+                show(refundFormStep);
+                show(refundFormStepBtnDiv);
+                hide(refundConfirmStepBtnDiv);
+            }
+
+
+            backBtn.addEventListener('click', function() {
+                showRefundFormStep();
+            });
+
         });
     </script>
 @endpush

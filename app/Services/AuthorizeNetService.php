@@ -173,7 +173,6 @@ class AuthorizeNetService
         $txnRequest->setAmount($amount);
         $txnRequest->setProfile($profilePayment);
 
-
         // Optional invoice / order number
         if (!empty($options['order_number'])) {
             $order = new AnetAPI\OrderType();
@@ -200,16 +199,16 @@ class AuthorizeNetService
             $cardType = $cardInfo['card_type'] ?? null;
 
             return [
-                'status'              => 'success',
-                'payment_status'      => 'Paid',
-                'message'             => 'Payment successful',
-                'transaction_id'      => ($tr && method_exists($tr, 'getTransId')) ? $tr->getTransId() : null,
-                'auth_code'           => ($tr && method_exists($tr, 'getAuthCode')) ? $tr->getAuthCode() : null,
+                'status' => 'success',
+                'payment_status' => 'Paid',
+                'message' => 'Payment successful',
+                'transaction_id' => $tr && method_exists($tr, 'getTransId') ? $tr->getTransId() : null,
+                'auth_code' => $tr && method_exists($tr, 'getAuthCode') ? $tr->getAuthCode() : null,
                 'customer_profile_id' => $customerProfileId,
-                'payment_profile_id'  => $paymentProfileId,
+                'payment_profile_id' => $paymentProfileId,
                 // Account number and card type may not always be present; fetch type via profile as above
-                'card_number'         => ($tr && method_exists($tr, 'getAccountNumber')) ? $tr->getAccountNumber() : null,
-                'card_type'           => $cardType,
+                'card_number' => $tr && method_exists($tr, 'getAccountNumber') ? $tr->getAccountNumber() : null,
+                'card_type' => $cardType,
             ];
         }
 
@@ -227,14 +226,14 @@ class AuthorizeNetService
         }
 
         return [
-            'status'              => 'failure',
-            'payment_status'      => 'Failed',
-            'message'             => $errorMessage,
+            'status' => 'failure',
+            'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
+            'payment_status' => 'Failed',
+            'message' => $errorMessage,
             'customer_profile_id' => $customerProfileId,
-            'payment_profile_id'  => $paymentProfileId,
+            'payment_profile_id' => $paymentProfileId,
         ];
     }
-
 
     /**
      * Create a payment transaction using Accept.js opaque data, creating/finding both
@@ -339,58 +338,11 @@ class AuthorizeNetService
         }
         return [
             'status' => 'failure',
+            'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
             'payment_status' => 'Failed',
             'message' => $errorMessage,
             'customer_profile_id' => $customerProfileId,
             'payment_profile_id' => $paymentProfileId,
-        ];
-    }
-
-    /**
-     * Validate Accept.js opaque data response.
-     *
-     * @param array $opaqueData
-     * @return bool
-     */
-    public function validateOpaqueData(array $opaqueData): bool
-    {
-        return isset($opaqueData['dataDescriptor'], $opaqueData['dataValue']) && $opaqueData['dataDescriptor'] === 'COMMON.ACCEPT.INAPP.PAYMENT' && !empty($opaqueData['dataValue']);
-    }
-
-    public function getSupportRefundOnline(): bool
-    {
-        return $this->supportRefundOnline;
-    }
-
-    public function setCurrency($currency): static
-    {
-        $this->currency = $currency;
-        return $this;
-    }
-
-    public function getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId): array
-    {
-        $cardType = null;
-        try {
-            $request = new AnetAPI\GetCustomerPaymentProfileRequest();
-            $request->setMerchantAuthentication($this->merchantAuthentication);
-            $request->setCustomerProfileId($customerProfileId);
-            $request->setCustomerPaymentProfileId($paymentProfileId);
-
-            $controller = new AnetController\GetCustomerPaymentProfileController($request);
-            $response = $controller->executeWithApiResponse($this->getApiEnvironment());
-
-            if ($response && $response->getMessages()->getResultCode() === 'Ok') {
-                $card = $response->getPaymentProfile()->getPayment()->getCreditCard();
-                if ($card) {
-                    $cardType = $card->getCardType();
-                }
-            }
-        } catch (\Exception $e) {
-            // Optionally log error
-        }
-        return [
-            'card_type' => $cardType,
         ];
     }
 
@@ -408,6 +360,10 @@ class AuthorizeNetService
 
         if ($transactionDetails === null) {
             return ['status' => 'failure', 'message' => 'Transaction not found'];
+        }
+
+        if (!in_array($transactionDetails->status, ['settledSuccessfully','refundSettledSuccessfully'])) {
+            return ['status' => 'failure', 'message' => 'Transaction not settled; try void instead'];
         }
 
         $creditCard = new AnetAPI\CreditCardType();
@@ -442,14 +398,103 @@ class AuthorizeNetService
         $response = $controller->executeWithApiResponse($this->getApiEnvironment());
 
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
-            return ['status' => 'success', 'message' => 'Refund successful'];
+            $transactionResponse = $response->getTransactionResponse();
+
+            return [
+                'status' => 'success',
+                'message' => 'Refund successful',
+                'transaction_id' => $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null,
+                'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
+                'card_number' => $transactionResponse && method_exists($transactionResponse, 'getAccountNumber') ? $transactionResponse->getAccountNumber() : null,
+                'card_type' => $transactionResponse && method_exists($transactionResponse, 'getAccountType') ? $transactionResponse->getAccountType() : null
+            ];
         }
 
         $errorMessage = 'Refund failed';
         if ($response && $response->getMessages() && isset($response->getMessages()->getMessage()[0])) {
             $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
         }
-        return ['status' => 'failure', 'message' => $errorMessage];
+
+        return [
+            'status' => 'failure',
+            'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
+            'message' => $errorMessage,
+        ];
+    }
+
+    /**
+     * Void an order based on payment ID.
+     *
+     * @param string $paymentId
+     * @param array $options
+     * @return array
+     */
+    public function voidOrder(string $paymentId, array $options = []): array
+    {
+        $transactionRequest = new AnetAPI\TransactionRequestType();
+        $transactionRequest->setTransactionType('voidTransaction');
+        $transactionRequest->setRefTransId($paymentId);
+
+        if (!empty($options['order_number'])) {
+            $order = new AnetAPI\OrderType();
+            $order->setInvoiceNumber($options['order_number']);
+            $transactionRequest->setOrder($order);
+        }
+
+        $request = new AnetAPI\CreateTransactionRequest();
+        $request->setMerchantAuthentication($this->merchantAuthentication);
+        $request->setRefId('ref' . time());
+        $request->setTransactionRequest($transactionRequest);
+
+        $controller = new AnetController\CreateTransactionController($request);
+        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+            $transactionResponse = $response->getTransactionResponse();
+
+            return [
+                'status' => 'success',
+                'message' => 'Void successful',
+                'transaction_id' => $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null,
+                'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
+            ];
+        }
+
+        $errorMessage = 'Void failed';
+        if ($response && $response->getMessages() && isset($response->getMessages()->getMessage()[0])) {
+            $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
+        }
+        return [
+            'status' => 'failure',
+            'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
+            'message' => $errorMessage,
+        ];
+    }
+
+    public function getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId): array
+    {
+        $cardType = null;
+        try {
+            $request = new AnetAPI\GetCustomerPaymentProfileRequest();
+            $request->setMerchantAuthentication($this->merchantAuthentication);
+            $request->setCustomerProfileId($customerProfileId);
+            $request->setCustomerPaymentProfileId($paymentProfileId);
+
+            $controller = new AnetController\GetCustomerPaymentProfileController($request);
+            $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+
+            if ($response && $response->getMessages()->getResultCode() === 'Ok') {
+                $card = $response->getPaymentProfile()->getPayment()->getCreditCard();
+                if ($card) {
+                    $cardType = $card->getCardType();
+                }
+            }
+        } catch (\Exception $e) {
+            // Optionally log error
+        }
+        return [
+            'card_type' => $cardType,
+        ];
     }
 
     /**
@@ -474,9 +519,32 @@ class AuthorizeNetService
             $creditCard = $payment ? $payment->getCreditCard() : null;
             $cardDetails->cardNumber = $creditCard ? $creditCard->getCardNumber() : null;
             $cardDetails->expirationDate = $creditCard ? $creditCard->getExpirationDate() : null;
+            $cardDetails->status = $transaction ? $transaction->getTransactionStatus() : null;
             return $cardDetails;
         }
         return null;
+    }
+
+    /**
+     * Validate Accept.js opaque data response.
+     *
+     * @param array $opaqueData
+     * @return bool
+     */
+    public function validateOpaqueData(array $opaqueData): bool
+    {
+        return isset($opaqueData['dataDescriptor'], $opaqueData['dataValue']) && $opaqueData['dataDescriptor'] === 'COMMON.ACCEPT.INAPP.PAYMENT' && !empty($opaqueData['dataValue']);
+    }
+
+    public function getSupportRefundOnline(): bool
+    {
+        return $this->supportRefundOnline;
+    }
+
+    public function setCurrency($currency): static
+    {
+        $this->currency = $currency;
+        return $this;
     }
 
     /**
@@ -488,4 +556,5 @@ class AuthorizeNetService
     {
         return $this->isTestMode ? \net\authorize\api\constants\ANetEnvironment::SANDBOX : \net\authorize\api\constants\ANetEnvironment::PRODUCTION;
     }
+
 }

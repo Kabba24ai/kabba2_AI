@@ -143,11 +143,11 @@ class ChargeCreditCardController extends Controller
                 'message' => 'Order payment confirmed!',
             ]);
         } catch (\Exception $e) {
-
+            logger()->error('Payment error for Order ID: ' . $uniqueId . ' - ' . $e->getMessage());
             return response()->json(
                 [
                     'success' => false,
-                    'message' => $e->getMessage(),
+                    'message' => 'An error occurred while processing the payment. Please try again.',
                 ],
                 500,
             );

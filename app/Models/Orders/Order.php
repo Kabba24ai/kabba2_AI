@@ -77,12 +77,12 @@ class Order extends Model
 
     public function shippingAddress()
     {
-        return $this->hasOne(OrderAddress::class, 'order_id')->where('type','Shipping');
+        return $this->hasOne(OrderAddress::class, 'order_id')->where('type', 'Shipping');
     }
 
     public function billingAddress()
     {
-        return $this->hasOne(OrderAddress::class, 'order_id')->where('type','Billing');
+        return $this->hasOne(OrderAddress::class, 'order_id')->where('type', 'Billing');
     }
 
     public function products()
@@ -98,6 +98,22 @@ class Order extends Model
     public function lastPayment()
     {
         return $this->hasOne(OrderPayment::class, 'order_id')->latestOfMany('id');
+    }
+
+    public function lastRefundPayment()
+    {
+        return $this->hasOne(OrderPayment::class, 'order_id') ->ofMany(
+            ['id' => 'max'],              // aggregate: take the row with max(id)
+            fn ($query) => $query->refund() // constraint: only refund rows
+        );
+    }
+
+    public function lastPaidPayment()
+    {
+         return $this->hasOne(OrderPayment::class, 'order_id') ->ofMany(
+            ['id' => 'max'],              // aggregate: take the row with max(id)
+            fn ($query) => $query->paid() // constraint: only paid rows
+        );
     }
 
     public function history()
@@ -175,4 +191,15 @@ class Order extends Model
         return $lastPayment ? $lastPayment->status->label() : null;
     }
 
+    public function getTotalRefundedAttribute()
+    {
+        return $this->payments()
+            ->whereIn('status', [\App\Enums\Orders\OrderPaymentStatus::PartialRefund, \App\Enums\Orders\OrderPaymentStatus::Refund])
+            ->sum('refund_amount');
+    }
+
+    public function getRemainingAmountAttribute()
+    {
+        return max(0, (float) $this->grand_total - (float) $this->total_refunded);
+    }
 }

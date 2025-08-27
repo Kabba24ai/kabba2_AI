@@ -8,6 +8,7 @@ enum OrderHistoryAction : string
     case PaymentInitiated = 'payment_initiated';
     case PaymentFailed = 'payment_failed';
     case OrderPaid = 'order_paid';
+    case OrderPartialRefund = 'order_partial_refunded';
     case OrderRefunded = 'order_refunded';
     case AddedToAccount = 'added_to_account';
 
@@ -18,6 +19,7 @@ enum OrderHistoryAction : string
             self::PaymentInitiated => 'Payment Initiated',
             self::PaymentFailed => 'Payment Failed',
             self::OrderPaid => 'Order Paid',
+            self::OrderPartialRefund => 'Order Partial Refund',
             self::OrderRefunded => 'Order Refunded',
             self::AddedToAccount => 'Added To Account',
         };

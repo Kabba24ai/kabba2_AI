@@ -13,6 +13,7 @@ class OrderPayment extends Model
 {
     // Allow mass assignment for these fields
     protected $fillable = [
+        'parent_order_payment_id',
         'unique_id',
         'order_id',
         'payment_method', // e.g., 'COD*', 'Account', 'Card'
@@ -26,8 +27,8 @@ class OrderPayment extends Model
         'payment_profile_id',
         'payment_note',
         'amount',
-        'status',   // e.g., 'Pending', 'Paid', 'Account', 'Partial Refund', 'Refunded', 'Failed'
-        'refunded_amount',
+        'status', // e.g., 'Pending', 'Paid', 'Account', 'Partial Refund', 'Refunded', 'Failed'
+        'refund_amount',
         'refund_note',
         'created_by_id',
         'created_by_type',
@@ -66,6 +67,11 @@ class OrderPayment extends Model
         return $query->where('status', OrderPaymentStatus::Pending);
     }
 
+    public function scopeRefund($query)
+    {
+        return $query->whereIn('status', [OrderPaymentStatus::PartialRefund, OrderPaymentStatus::Refund]);
+    }
+
     public function scopePaid($query)
     {
         return $query->where('status', OrderPaymentStatus::Paid);
@@ -80,4 +86,5 @@ class OrderPayment extends Model
     {
         return $query->where('payment_method', OrderPaymentMethod::COD);
     }
+
 }

@@ -102,8 +102,10 @@
                     <div class="flex items-center gap-2">
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
                         <div class="text-left">
-                            <div class="text-sm text-gray-900">{{ $Master->rentalReadyTemplate->questions->count() }} {{ Str::plural('question', $Master->rentalReadyTemplate->questions->count()) }}</div>
-                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors">{{ $Master->rentalReadyTemplate->template_name }}</a>
+                            <div class="text-sm text-gray-900"> {{ $Master->rentalReadyTemplate?->questions?->count() ?? 0 }}
+                                {{ Str::plural('question', $Master->rentalReadyTemplate?->questions?->count() ?? 0) }}
+                            </div>
+                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors"> {{ $Master->rentalReadyTemplate->template_name ?? 'No template assigned' }} </a>
                         </div>
                     </div>
                 </td>

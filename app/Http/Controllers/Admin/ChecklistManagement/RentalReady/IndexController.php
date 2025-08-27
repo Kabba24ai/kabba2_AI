@@ -25,11 +25,11 @@ class IndexController extends Controller
 
         $checklisttemplate = RentalReadyChecklistTemplate::with([
             'questions',
-        ])->orderBy('id', 'desc')->get();
+        ])->orderBy('template_name', 'asc')->get();
 
 
     $equipmentCategories = ProductCategory::pluck('title','id')->toArray();
-       
+
 
         // Return the view with the settings data
         return view('admin.checklist_management.rental_ready.index',compact('rentalreadycategory','totalQuestions','equipmentCategories','checklisttemplate'));

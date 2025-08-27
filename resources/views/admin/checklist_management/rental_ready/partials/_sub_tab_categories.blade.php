@@ -91,7 +91,6 @@
                         'class' => 'mt-1 w-full px-4 py-2 text-sm border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500',
                         'required' => true,
                         'id' => 'category_name',
-                        'data-parsley-required-message' => 'Category name is required.',
                     ])->placeholder('Enter category name') }}
                     @error('category_name')
                         <p class="text-sm text-red-600">{{ $message }}</p>
@@ -237,5 +236,12 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 </script>
 <!-- Open modal -->
+
+
+
+
+
+
+
 
 @endpush

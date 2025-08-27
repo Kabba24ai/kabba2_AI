@@ -24,13 +24,13 @@ class StoreController extends Controller
        $validated = $request->validated();
 
         DB::beginTransaction();
-        
+
         try {
             // Generate unique_id for new customer
             $uniqueId = Str::uuid()->toString(); // or your custom unique ID generation logic
 
-            $fullWebsite = ($validated['website_protocol'] ?? '') . ($validated['company_website'] ?? '') . ($validated['website_extension'] ?? '');
-            
+
+
             $customerData = [
                 'unique_id' => $uniqueId,
                 'first_name' => $validated['first_name'] ?? null,
@@ -39,17 +39,17 @@ class StoreController extends Controller
                 'email' => $validated['email'] ?? null,
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
-                'company_website' => $validated['company_website'] ?? null, 
+                // 'company_website' => $validated['company_website'] ?? null,
                 'dob' => $validated['dob'] ?? null,
                 'status' => $validated['status'] ?? 'Active',
-                
+
                 'tax_document_status' => $validated['tax_document_review_status'] ?? '',
 
                 'is_guest' => $validated['is_guest'] ?? false,
                 'tax_status' => $validated['tax_status'] ?? 'Taxable',
                 'tax_document_media_id' => $validated['tax_document_media_id'] ?? null,
 
-                 
+
                 'tax_document_upload_date' => CustomHelper::parseDateFromInput($validated['tax_document_upload_date'] ?? null),
             'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
             'account_application_completed' => CustomHelper::parseDateFromInput($validated['account_application_completed'] ?? null),
@@ -71,11 +71,22 @@ class StoreController extends Controller
                 // 'account_application_completed' => !empty($validated['account_application_completed'])
                 // ? Carbon::createFromFormat('m/d/Y', $validated['account_application_completed'])->format('Y-m-d')
                 // : null,
-                
-                'tax_status' => $validated['tax_status'] ?? null,
+
+                // 'tax_status' => $validated['tax_status'] ?? null,
             ];
 
-            $customerData['company_website'] = $fullWebsite;
+
+            // Only set company_website if it has a value
+            if (!empty($validated['company_website'])) {
+                $fullWebsite = trim(
+                    ($validated['website_protocol'] ?? '') .
+                        $validated['company_website'] .
+                        ($validated['website_extension'] ?? '')
+                );
+            }
+            $customerData['company_website'] = $fullWebsite ?? '';
+
+            // $customerData['company_website'] = $fullWebsite;
             // Create the customer
             $customer = Customer::create($customerData);
 
@@ -95,7 +106,7 @@ class StoreController extends Controller
     }
 }
 
-            
+
 
             // Handle tax document upload
             if ($request->hasFile('tax_document')) {

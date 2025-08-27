@@ -36,8 +36,7 @@ class StoreController extends Controller
             session()->flash('active_subtab', 'categories');
 
            return redirect()
-            ->route('admin.checklist-management.rental-ready.index')
-            ->with('success', 'Category created successfully.');
+            ->route('admin.checklist-management.rental-ready.index');
 
         } catch (\Throwable $e) {
 

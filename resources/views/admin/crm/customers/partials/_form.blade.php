@@ -26,7 +26,7 @@
                         'border-red-500' => $errors->has('first_name'),
                         'border-gray-300' => !$errors->has('first_name'),
                     ])->attributes([
-                        
+
                         'data-parsley-maxlength' => 100,
                         'placeholder' => 'Enter First Name',
                         'id' => 'first_name',
@@ -47,7 +47,7 @@
                         'border-red-500' => $errors->has('last_name'),
                         'border-gray-300' => !$errors->has('last_name'),
                     ])->attributes([
-                        
+
                         'data-parsley-maxlength' => 100,
                         'placeholder' => 'Enter Last Name',
                         'id' => 'last_name',
@@ -60,7 +60,7 @@
                 </div>
             </div>
 
-                
+
                 <div class="mb-4">
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
 
@@ -69,11 +69,11 @@
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                         ])->attributes([
-                           
+
                             'placeholder' => 'Enter Email',
                             'id' => 'email',
                             'autocomplete' => 'off',
-                            'name' => 'email', 
+                            'name' => 'email',
                             'data-parsley-type' => 'email',
                             'data-parsley-trigger' => 'change',
                             'data-parsley-remote' => route('admin.crm.customers.check.email.unique', [
@@ -83,7 +83,7 @@
                             'data-parsley-remote-message' => 'This email is already taken by another user.',
                         ])->required() !!}
 
-                    
+
 
                     @error('email')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -158,9 +158,9 @@
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
-           
+
             {{-- Company Phone --}}
-         
+
             <div class="mb-4">
                 <label for="company_phone" class="block text-sm font-medium text-gray-700 mb-1">Company Phone</label>
                 {!! html()->text('company_phone', old('company_phone', $customer->company_phone ?? ''))->class([
@@ -182,7 +182,7 @@
             <!-- {{-- Website --}} -->
             <div>
                 <label for="company_website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-              
+
                 <div class="flex gap-2 mb-4">
                 {{-- Protocol --}}
                 {!! html()->select('website_protocol', [
@@ -195,7 +195,7 @@
                         'border-gray-300' => !$errors->has('website_protocol'),
                     ])
                     ->id('website_protocol') !!}
-                       
+
 
                 {{-- Website Name --}}
                 {!! html()->text('company_website', old('company_website',$company_website))
@@ -265,7 +265,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Zip Code *</label>
-                            <input type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" maxlength="10" required>
+                            <input type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" maxlength="8" required>
                         </div>
 
                         <div>
@@ -382,7 +382,7 @@
                             'border-gray-300' => !$errors->has('account_approved_by'),
                         ])
                         ->placeholder('Select approver')
-                        
+
                     !!}
 
                     @error('account_approved_by')
@@ -396,7 +396,7 @@
                 <div class="w-full">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
 
-                    
+
                     @php
                         $creditOptions = collect(range(1000, 20000, 1000))->mapWithKeys(function ($value) {
                             return [$value => number_format($value)];
@@ -496,7 +496,7 @@
                                 'border-gray-300' => !$errors->has('tax_status_approved_by'),
                             ])
                             ->placeholder('Select approver')
-                            
+
                         !!}
 
                         @error('tax_status_approved_by')
@@ -532,7 +532,7 @@
                             'border-red-500' => $errors->has('tax_document_valid_until'),
                             'border-gray-300' => !$errors->has('tax_document_valid_until'),
                         ])->attributes([
-                            'id' => 'tax_document_valid_until', 
+                            'id' => 'tax_document_valid_until',
                             'placeholder' => 'MM-DD-YYYY',
                             'autocomplete' => 'off',
                         ]) !!}
@@ -546,8 +546,8 @@
 
             @if (!empty($customer))
                 <input type="hidden" id="is_edit_mode" value="1">
-                <input type="hidden" id="customer_id" value="{{ $customer->id }}">                
-                <input type="hidden" id="tax_document_status" value="{{ $customer->tax_document_status }}">  
+                <input type="hidden" id="customer_id" value="{{ $customer->id }}">
+                <input type="hidden" id="tax_document_status" value="{{ $customer->tax_document_status }}">
             @endif
 
            @php
@@ -561,7 +561,7 @@
             <!-- Upload Right Panel -->
             <div class="md:w-1/2 md:pl-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">Tax Exempt Upload</h2>
-            
+
 
             <div id="uploadedFileBox" class="hidden flex items-center justify-between bg-gray-200 px-2 w-full rounded-md mb-3 shadow-sm ">
                 <div><x-heroicon-o-document-text class="w-5 h-5" /></div>
@@ -585,16 +585,16 @@
                     <span class="bg-gray-300 px-2 py-2 rounded-md">Browse...</span>
                     <span id="file-name" class="truncate w-full text-nowrap px-3 py-2 text-sm text-gray-600 rounded-md">No file chosen</span>
                 </label>
-                <input 
-                    type="file" 
-                    id="taxDocumentInput" 
+                <input
+                    type="file"
+                    id="taxDocumentInput"
                     name="tax_document"
                     class="hidden w-full border rounded-r-md px-3 py-2 text-sm shadow-sm"
                     accept="image/*,.pdf,.doc,.docx"
                 />
             </div>
 
-               
+
             <div class="flex flex-col md:flex-row gap-4 mt-3 mb-3">
                     <div class="w-full" id="statusLabelWrapper" style="display: {{ !empty($taxDocumentUrl) ? 'block' : 'none' }}">
                         <label  class="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -605,7 +605,7 @@
                             style="display: {{ !empty($taxDocumentUrl) ? 'inline-block' : 'none' }}">
                             {{ $customer->tax_document_status ?? 'Pending Review' }}
                             </span>
-                        
+
                     </div>
             </div>
 
@@ -644,7 +644,7 @@
             const uploadedDate = document.getElementById("uploadedDate");
             const viewFileBtn = document.getElementById("viewFileBtn");
             const deleteFileBtn = document.getElementById("deleteFileBtn");
-            
+
             const browseBox = document.getElementById("browseBox");
                 // Hide browse, show uploaded box
             browseBox.style.display = 'none';
@@ -654,7 +654,7 @@
             viewFileBtn.setAttribute("onclick", "window.open('{{ $taxDocumentUrl }}', '_blank')");
 
 
-            
+
 
            // Handle delete via hidden form
             deleteFileBtn.addEventListener("click", function () {
@@ -783,7 +783,7 @@ document.addEventListener("DOMContentLoaded", function () {
             updateStatusBasedOnInputs();
 
 
-            
+
         if (isEditMode) {
             sendReviewStatusAjax('Rejected');
         }
@@ -894,7 +894,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateStatusBasedOnInputs();
     });
 
-    
+
 
 });
 </script>
@@ -902,7 +902,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    
+
 });
 </script>
 
@@ -921,7 +921,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const isApproved = accountApproved.value === '1';
             const hasCreditLimit = creditLimit.value !== '';
 
-           
+
               statusWrapper.style.display = isApproved ? 'flex' : 'none';
 
             if (isApproved && hasCreditLimit) {
@@ -938,7 +938,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateStatus();
 
-      
+
         accountApproved.addEventListener('change', updateStatus);
         creditLimit.addEventListener('change', updateStatus);
     });

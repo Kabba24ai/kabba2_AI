@@ -53,8 +53,7 @@ class UpdateController extends Controller
             session()->flash('active_subtab', 'questions');
 
             return redirect()
-                ->route('admin.checklist-management.rental-ready.index')
-                ->with('success', 'Question updated successfully.');
+                ->route('admin.checklist-management.rental-ready.index');
 
         } catch (\Throwable $e) {
             DB::rollBack();

@@ -29,8 +29,7 @@ class DeleteController extends Controller
             session()->flash('active_tab', 'templates');
 
             return redirect()
-                ->route('admin.checklist-management.rental-ready.index')
-                ->with('success', 'Template deleted successfully.');
+                ->route('admin.checklist-management.rental-ready.index');
 
         } catch (\Throwable $e) {
             DB::rollBack();

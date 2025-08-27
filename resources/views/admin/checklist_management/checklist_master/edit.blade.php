@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Create Checklist Master')
+@section('title', 'Edit Checklist Master')
 
 @push('css')
 
@@ -16,10 +16,9 @@
     <div class="flex items-start gap-3">
         <x-heroicon-o-document class="w-8 h-8 text-blue-600" />
         <div>
-            <h2 class="text-xl font-semibold text-gray-900">Create New Checklist System :<span class="checklist-title-display"> - </span> </h2>
-            <p class="text-sm text-gray-600" id="stepSubtitle">Manage complete checklist systems for equipment</p>
-            <!-- <h2 class="text-xl font-semibold text-gray-900">Create Checklist System: <span class="checklist-title-display">-</span></h2>
-                <p class="text-sm text-gray-600">Set up a complete checklist system for equipment</p> -->
+            <h2 class="text-xl font-semibold text-gray-900">Edit Checklist System :<span class="checklist-title-display"> - </span> </h2>
+            <p class="text-sm text-gray-600" id="stepSubtitle">Update the name of your checklist system</p>
+
         </div>
     </div>
 
@@ -103,42 +102,29 @@
                     <path d="M8 11h.01"></path>
                     <path d="M8 16h.01"></path>
                 </svg>
-                <h2 class="text-2xl font-bold text-gray-900">Name Your Checklist System</h2>
-                <p class="text-gray-600 text-sm">Create a complete checklist system by selecting from existing templates.</p>
+                <h2 class="text-2xl font-bold text-gray-900">Edit System Name</h2>
+                <p class="text-gray-600 text-sm">Update the name of this checklist system. This change will be reflected
+                    wherever this system is used.</p>
             </div>
 
-            <!-- Warning Box -->
-            <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-md space-y-3 mb-6">
-                <div class="flex items-start gap-2">
-                    <div>
-                        <p class="font-semibold mb-2">⚠️ Before You Continue</p>
-                        <p class="text-sm">
-                            You will need to select from existing Rental Ready and Customer Checklists. If you need to create a new Rental Ready or Customer Checklist, please do this now before creating a new Checklist System.
-                        </p>
-                    </div>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-cog-6-tooth class="w-4 h-4" /> Rental Ready Admin</a>
-                    <button class="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-users class="w-4 h-4" />Customer Admin</button>
-                </div>
-            </div>
+
 
             <!-- Input -->
             <div class="space-y-1 mb-6">
                 <label for="systemName" class="text-sm font-medium text-gray-700 mb-1">Checklist System Name <span class="text-red-500">*</span></label>
-                <input id="systemName" oninput="toggleContinue()" type="text" placeholder="e.g., Standard Heavy Equipment System" class="w-full border px-3 py-2 rounded-md text-sm text-sm border-gray-300" />
-                <p class="text-sm text-gray-500 mt-2 ">Choose a descriptive name that identifies this checklist system. You can assign it to multiple equipment items later.</p>
+                <input id="systemName" oninput="toggleContinue()" value="{{ $checklistmaster->checklist_system_name }}" type="text" placeholder="e.g., Standard Heavy Equipment System" class="w-full border px-3 py-2 rounded-md text-sm text-sm border-gray-300" />
+                <p class="text-sm text-gray-500 mt-2 ">Choose a descriptive name that identifies this checklist system. </p>
             </div>
 
-            <!-- What Happens Next -->
+            <!-- System Information -->
             <div class="bg-blue-50 border border-blue-100 rounded-md p-4 mb-6">
-                <h4 class="text-sm font-semibold text-blue-900 mb-2">What happens next?</h4>
+                <h4 class="text-sm font-semibold text-blue-900 mb-2">System Information</h4>
                 <ul class="text-sm text-blue-900 list-decimal list-inside space-y-1">
-                    <li>Create or select rental ready checklist questions</li>
-                    <li>Build your rental ready template</li>
-                    <li>Create or select customer checklist questions</li>
-                    <li>Build your customer checklist template</li>
-                    <li>Your complete system will be ready to assign to equipment</li>
+                    <li> <strong>System ID:</strong> {{ $checklistmaster->unique_id }}</li>
+                    <li> <strong>Created: </strong> {{ \App\Helpers\CustomHelper::formatDate($checklistmaster->created_at ?? null)  }}</li>
+                    <li> <strong>Last Updated:</strong> {{ \App\Helpers\CustomHelper::formatDate($checklistmaster->updated_at ?? null)  }} </li>
+                    <li> <strong>Status: </strong> Active </li>
+
                 </ul>
             </div>
 
@@ -147,7 +133,9 @@
                 <x-heroicon-o-document-text class="w-4 h-6 sm:w-6 sm:h-6 md:w-4 md:h-6 text-gray-900 flex-shrink-0" />
                 <div>
                     <p class="font-semibold text-gray-700">System Assignment</p>
-                    <p class="text-sm text-gray-600">Once created, this checklist system can be assigned to multiple equipment items (3, 5, 12, or more) through the Equipment Profile screen in a separate module.</p>
+                    <p class="text-sm text-gray-600">This checklist system can be assigned to multiple equipment items through the
+                        Equipment Profile screen. Changing the name will update it everywhere this
+                        system is used.</p>
                 </div>
             </div>
 
@@ -160,7 +148,7 @@
                     </svg>
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    Continue to Questions
+                    Save Changes
                 </button>
                 <a href="#" class="text-sm text-gray-600 hover:underline">Cancel</a>
 
@@ -182,7 +170,6 @@
         </div>
         <!-- Filters -->
         <div class="grid md:grid-cols-2 gap-4 mb-6">
-
             <div>
                 <label class="text-sm font-medium text-gray-700 mb-1 block">Search Templates</label>
                 <div class="relative">
@@ -190,23 +177,25 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.3-4.3"></path>
                     </svg>
-                    <input id="templateSearch"
-                        type="text" placeholder="Search rental ready templates..." class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md" value="">
+                    <input id="templateSearch" type="text" placeholder="Search rental ready templates..." class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md" value="">
                 </div>
             </div>
-
+            <!-- <div>
+                    <label class="text-sm font-medium text-gray-700 mb-1 block">Search Templates</label>
+                    <input type="text" class="w-full border px-3 py-2 rounded-md text-sm" placeholder="Search rental ready templates..." />
+                </div> -->
             <div>
                 <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
-
                 {!! html()->select(
-                'equipment_category',
+                'equipment_category_id',
                 ['' => '-- Select Category --'] + $equipmentCategories,
-                old('equipment_category')
+                old('equipment_category_id', $checklistmaster->equipment_category_id ?? null)
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm')
                 ->attribute('required', true)
                 ->attribute('data-parsley-required-message', 'Equipment category is required.')
                 !!}
+
 
             </div>
         </div>
@@ -215,12 +204,14 @@
         <!-- Card Options as Radio Buttons -->
         <form id="templateForm" class="space-y-4 grid md:grid-cols-2 gap-4">
             @foreach ($checklisttemplate as $template)
-            <input type="radio"
-                name="template"
+            <input type="radio" name="template"
                 id="template_{{ $template->id }}"
                 class="card-radio-step hidden"
+                name="template"
                 value="{{ $template->template_name }}"
-                data-id="{{ $template->id }}" />
+                data-id="{{ $template->id }}"
+                @checked($checklistmaster->rental_ready_template_id == $template->id)
+            >
 
             <label for="template_{{ $template->id }}"
                 class="template-card flex justify-between mb-0 gap-4 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
@@ -286,9 +277,7 @@
 
             <button id="continueStep2Btn" onclick="validateStep2BeforeContinue()"
 
-                class="bg-gray-200 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium md:w-auto flex items-center gap-2"
-
-                disabled>Continue to Customer Template
+                class=" bg-green-600 text-white hover:bg-green-700 cursor-pointer px-4 py-2 rounded-md text-sm font-medium md:w-auto flex items-center gap-2">Continue to Customer Template
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4">
                     <path d="M5 12h14"></path>
                     <path d="m12 5 7 7-7 7"></path>
@@ -449,20 +438,21 @@
     </div>
 
     <div id="step4" class="hidden max-w-4xl mx-auto text-center py-12">
-
         {{ html()->form()->attributes([
-        'method' => 'POST',
+    'method' => 'POST',   {{-- must stay POST, spoofing will add PUT --}}
         'id' => 'checklistmasterForm',
         'autocomplete' => 'off',
         'data-parsley-validate' => true,
-        'action' => route('admin.checklist-management.checklist-master.store'),
+        'action' => route('admin.checklist-management.checklist-master.update', $checklistmaster->unique_id),
         ])->open() }}
         @csrf
+        @method('PUT')
+
 
         {{-- Hidden fields to collect step values --}}
-        <input type="hidden" name="checklist_system_name" id="checklistSystemName">
-        <input type="hidden" name="equipment_category_id" id="hiddenCategoryId">
-        <input type="hidden" name="rental_ready_template_id" id="hiddenRentalTemplateId">
+        <input type="hidden" name="checklist_system_name" id="checklistSystemName" value="{{ $checklistmaster->checklist_system_name }}">
+        <input type="hidden" name="equipment_category_id" id="hiddenCategoryId" value="{{ $checklistmaster->equipment_category_id }}">
+        <input type="hidden" name="rental_ready_template_id" id="hiddenRentalTemplateId" value="{{ $checklistmaster->rental_ready_template_id }}">
         <input type="hidden" name="customer_admin_template_id" id="hiddenCustomerTemplateId">
 
 
@@ -479,12 +469,12 @@
             <!-- Heading and Description -->
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Checklist System Complete!</h1>
             <p class="text-gray-600 text-sm sm:text-base mb-6">
-                Your checklist system "<strong class="font-semibold text-gray-800 "> <span class="Named-checklist-system"> aa </span> </strong>" has been successfully created with both rental ready and customer checklist templates.
+                Your checklist system "<strong class="font-semibold text-gray-800 "> <span class="Named-checklist-system"> aa </span> </strong>" has been successfully edited with both rental ready and customer checklist templates.
             </p>
 
             <!-- What You've Created -->
             <div class="bg-green-50 border border-green-200 text-green-900 rounded-lg p-4 sm:p-6 w-full shadow-sm mb-6">
-                <h3 class="font-medium text-green-900  sm:text-md mb-4 font-semibold text-lg">✅ What You've Created:</h3>
+                <h3 class="font-medium text-green-900  sm:text-md mb-4 font-semibold text-lg">✅ What You've Edited:</h3>
                 <ul class="space-y-2 text-sm sm:text-sm text-left">
                     <li class="flex items-start sm:items-center gap-2 text-green-800 flex-wrap">
                         <svg class="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -549,6 +539,30 @@
 @push('js')
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const rentalTemplateId = document.getElementById('hiddenRentalTemplateId').value;
+        if (rentalTemplateId) {
+            const selectedRadio = document.querySelector(`input[name="template"][data-id="${rentalTemplateId}"]`);
+            if (selectedRadio) {
+                selectedRadio.checked = true;
+                document.getElementById('templateSummary').classList.remove('hidden');
+                document.getElementById('selectedTemplate').textContent = selectedRadio.value;
+                document.getElementById('Assigned-rental-ready-template').textContent = `"${selectedRadio.value}"`;
+                document.getElementById('continueStep2Btn').disabled = false;
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('systemName');
+        if (input.value.trim() !== '') {
+            toggleContinue(); // enable the button right away
+        }
+    });
+</script>
+
+
+<script>
     function toggleContinue() {
         const input = document.getElementById('systemName');
         const btn = document.getElementById('continueBtn');
@@ -586,7 +600,8 @@
     }
 
     // Keep track of which steps are unlocked
-    let unlockedSteps = [1]; // Step 1 is always unlocked
+    let unlockedSteps = [1, 2, 3, 4]; // for Edit
+    // Step 1 is always unlocked
 
 
     function goToStep(step) {
@@ -622,7 +637,7 @@
         if (subtitle) {
             switch (step) {
                 case 1:
-                    subtitle.textContent = "Manage complete checklist systems for equipment";
+                    subtitle.textContent = "Update the name of your checklist system";
                     break;
                 case 2:
 
@@ -648,13 +663,12 @@
 <script>
     function validateStep2BeforeContinue() {
         const form = document.querySelector('form#templateForm')?.closest('div'); // step2 container
-        const categorySelect = document.querySelector('select[name="equipment_category"]');
+        const categorySelect = document.querySelector('select[name="equipment_category_id"]');
+
 
         if ($(categorySelect).parsley().isValid()) {
             //  Category selected → allow step change
-
             document.getElementById('hiddenCategoryId').value = categorySelect.value;
-
 
             goToStep(3);
         } else {
@@ -746,6 +760,7 @@
         });
     });
 </script>
+
 
 <!--  JS Filter -->
 <script>

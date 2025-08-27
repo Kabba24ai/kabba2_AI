@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Admin\ChecklistManagement\RentalReady\Categories;
+namespace App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
+use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 
 class DeleteController extends Controller
 {
@@ -13,19 +14,18 @@ class DeleteController extends Controller
         DB::beginTransaction();
 
         try {
-            $category = RentalReadyChecklistCategory::where('unique_id', $unique_id)->firstOrFail();
-            $category->delete();
+            $ChecklistMaster = ChecklistMaster::where('unique_id', $unique_id)->firstOrFail();
+            $ChecklistMaster->delete();
 
             DB::commit();
 
-            flash('Category deleted successfully.')->success();
+            flash('Checklist Master deleted successfully.')->success();
 
-            session()->flash('active_tab', 'questions');
-            session()->flash('active_subtab', 'categories');
+            session()->flash('active_tab', 'templates');
+
 
             return redirect()
-                ->route('admin.checklist-management.rental-ready.index');
-
+                ->route('admin.checklist-management.checklist-master.index');
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);

@@ -3,21 +3,27 @@
 namespace App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplate;
+use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 
-class CreateController extends Controller
+
+class EditController extends Controller
 {
-    public function __invoke()
+
+    public function __invoke(Request $request, $unique_id)
     {
+
         $equipmentCategories = ProductCategory::pluck('title', 'id')->toArray();
 
         $checklisttemplate = RentalReadyChecklistTemplate::with([
             'questions',
         ])->orderBy('id', 'desc')->get();
 
-        
-        // Return the view with the settings data
-        return view('admin.checklist_management.checklist_master.create',compact('equipmentCategories','checklisttemplate'));
+        $checklistmaster = ChecklistMaster::with('category', 'rentalReadyTemplate')->where('unique_id', $unique_id)->first();
+
+        return view('admin.checklist_management.checklist_master.edit', compact('equipmentCategories', 'checklisttemplate', 'checklistmaster'));
     }
 }

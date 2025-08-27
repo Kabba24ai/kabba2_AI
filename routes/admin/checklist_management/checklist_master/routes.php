@@ -8,6 +8,11 @@ use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\CreateControl
 
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\StoreController;
 
+use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\EditController;
+
+use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\UpdateController;
+
+use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\DeleteController;
 
 
 
@@ -31,4 +36,10 @@ Route::prefix('checklist-master')
      Route::get('/create', CreateController::class)->name('create');
 
      Route::post('/store', StoreController::class)->name('store');
+
+     Route::get('/edit/{unique_id}', EditController::class)->name('edit');
+
+     Route::put('/update/{unique_id}', UpdateController::class)->name('update');
+
+     Route::delete('/delete/{unique_id}', DeleteController::class)->name('delete');
 });

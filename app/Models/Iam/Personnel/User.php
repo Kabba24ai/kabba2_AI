@@ -132,4 +132,9 @@ class User extends Authenticatable
     {
         return $this->roles->pluck('short_name')->toArray();
     }
+
+    public function stateRelation()
+    {
+        return $this->belongsTo(\App\Models\Locations\State::class, 'state', 'id');
+    }
 }

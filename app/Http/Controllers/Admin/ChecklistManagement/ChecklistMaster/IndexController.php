@@ -12,7 +12,7 @@ class IndexController extends Controller
     public function __invoke()
     {
 
-        $checklistMasters = ChecklistMaster::with('category', 'rentalReadyTemplate')->get();
+        $checklistMasters = ChecklistMaster::with('category', 'rentalReadyTemplate')->orderBy('checklist_system_name', 'asc')->get();
 
         $equipmentCategories = ProductCategory::pluck('title', 'slug')->toArray();
 

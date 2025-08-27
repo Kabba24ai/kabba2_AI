@@ -59,9 +59,9 @@
                           <div>
                               <div class="flex items-center gap-2 mb-2">
                                   <h3 class="text-base font-semibold text-gray-900">{{ $template->template_name }}</h3>
-                              <span class="{{ $template->active_template 
-                                      ? 'bg-green-100 text-green-600' 
-                                      : 'bg-red-100 text-red-600' }} 
+                              <span class="{{ $template->active_template
+                                      ? 'bg-green-100 text-green-600'
+                                      : 'bg-red-100 text-red-600' }}
                                   text-xs px-2 py-0.5 rounded-full font-medium">
                                   {{ $template->active_template ? 'Active' : 'Inactive' }}
                               </span>
@@ -91,8 +91,8 @@
                                   });
                               @endphp
 
-                              <button 
-                                class="edit-template-btn text-green-600 hover:text-green-800" 
+                              <button
+                                class="edit-template-btn text-green-600 hover:text-green-800"
                                 title="Edit"
                                 data-id="{{ $template->id }}"
                                 data-route="{{ route('admin.checklist-management.rental-ready.templates.update', $template->unique_id) }}"
@@ -132,7 +132,7 @@
                       <div class="answerstemp hidden mt-5 border-t pt-5 space-y-2">
                           <!-- <div class="border-t border-gray-300 mt-5 mb-5"></div> -->
                               <h4 class="text-sm font-semibold text-gray-800">Questions in Template:</h4>
-                        
+
 
                             @foreach ($template->questions as $templateQuestion)
                               <div class="bg-white flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm">
@@ -153,20 +153,20 @@
                                   <!-- Required / General -->
                                   @if ($templateQuestion->question->required_question == 1)
                                       <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
-                                  @else 
+                                  @else
                                       <span class="text-xs text-gray-500">General</span>
                                   @endif
                               </div>
                           @endforeach
 
 
-                            
+
                       </div>
                   </div>
                 @endforeach
                </div>
             </div>
-            
+
         </div>
 
 
@@ -179,12 +179,12 @@
          'id' => 'templateForm',
          'autocomplete' => 'off',
          'data-parsley-validate' => true,
-         'class' => 'modal-scrollable w-full mx-auto', 
+         'class' => 'modal-scrollable w-full mx-auto',
         'action' => route('admin.checklist-management.rental-ready.templates.store'),
 
      ])->open() }}
      @csrf
-    
+
      <input type="hidden" name="questions" id="questionsInput">
 
         <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-6xl space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
@@ -193,7 +193,7 @@
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Template</h3>
                 <button type="button" id="closeModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
             </div>
-         
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 overflow-y-auto">
                 <!-- Template Info -->
                 <div class="space-y-4 pr-0 md:pr-6 md:border-r">
@@ -204,8 +204,8 @@
                                 'class' => 'w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500',
                                 'required' => true,
                                 'id' => 'template_name',
-                               
-                            ])->placeholder('Enter template name') 
+
+                            ])->placeholder('Enter template name')
                         }}
 
                     </div>
@@ -221,7 +221,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Equipment Category *</label>
                               {!! html()->select(
-                                          'equipment_category', 
+                                          'equipment_category',
                                           ['' => '-- Select Category --'] + $equipmentCategories,
                                           old('equipment_category')
                                       )
@@ -233,7 +233,7 @@
                     <label class="inline-flex items-center gap-2 text-sm text-gray-700 mt-2">
                         <!-- <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" />  -->
                          {!! html()->checkbox('is_active', old('is_active', false))
-                            ->class('form-checkbox h-4 w-4 text-blue-600') 
+                            ->class('form-checkbox h-4 w-4 text-blue-600')
                         !!}
                         Active Template
                     </label>
@@ -269,17 +269,18 @@
                 <button type="submit" id="submitTemplatesBtn" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-blue-700">Save Template</button>
             </div>
 
-   
+
         </div>
     {{ html()->form()->close() }}
 
-             
+
 
 </div>
 
 
 
 @push('js')
+
 
 
 <!-- tempplet toggal  -->
@@ -347,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const isVisible = !answers.classList.contains('hidden');
       if (isVisible) {
       answers.classList.add('hidden');
-      text.textContent = `Show Questions (${questionCount})`; 
+      text.textContent = `Show Questions (${questionCount})`;
       icon.classList.remove('rotate-90');
       } else {
         answers.classList.remove('hidden');
@@ -360,12 +361,12 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <!-- tempplet toggal  -->
-    
+
 <!-- addd model js  -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
 
-    
+
     const modal = document.getElementById('templatesModalWrapper');
     const openBtn = document.getElementById('openTemplatesModal');
     const closeBtn = document.getElementById('closeModalBtn');
@@ -392,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ];
 
     window.templateData = [];
-  
+
    const openModal = () => {
     const form = document.getElementById('templateForm');
     form.reset();
@@ -416,11 +417,11 @@ document.addEventListener('DOMContentLoaded', function () {
 };
 
 
-  
+
     const closeModal = () => {
       modal.style.display = 'none';
     };
-  
+
     openBtn.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
@@ -428,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (e.target === modal) closeModal();
     });
 
-    
+
 
 
 
@@ -471,7 +472,7 @@ window.syncQuestionsInput = function () {
         });
     }
 
- 
+
       window.renderTemplate = function () {
 
 
@@ -497,7 +498,7 @@ window.syncQuestionsInput = function () {
                     </div>
                     <div class="flex items-center gap-2 mt-1 text-xs text-gray-600 pl-8">
                         <label class="inline-flex items-center">
-                            <input type="checkbox" class="h-3 w-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-1" 
+                            <input type="checkbox" class="h-3 w-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-1"
                                    ${item.required ? 'checked' : ''} data-checkbox="${index}">
                             Required
                         </label>
@@ -513,7 +514,7 @@ window.syncQuestionsInput = function () {
 
         templateCount.textContent = templateData.length;
     }
- 
+
   // Template actions
     templateEl.addEventListener('click', e => {
         const remove = e.target.dataset.remove;
@@ -531,7 +532,7 @@ window.syncQuestionsInput = function () {
         }
         renderTemplate();
         renderAvailable();
-        syncQuestionsInput(); 
+        syncQuestionsInput();
     });
 
     // Checkbox toggle
@@ -539,7 +540,7 @@ window.syncQuestionsInput = function () {
         if (e.target.type === 'checkbox') {
             const index = parseInt(e.target.dataset.checkbox);
             templateData[index].required = e.target.checked;
-                    syncQuestionsInput(); 
+                    syncQuestionsInput();
         }
     });
 
@@ -572,7 +573,7 @@ window.syncQuestionsInput = function () {
     },
 
     onUpdate: evt => {
-       
+
         // Rebuild templateData based on DOM order
         const newOrder = [];
         templateEl.querySelectorAll("[data-remove]").forEach(el => {
@@ -589,7 +590,7 @@ window.syncQuestionsInput = function () {
     },
 
         onEnd: evt => {
-            
+
             syncQuestionsInput();
         }
     });
@@ -614,7 +615,7 @@ window.syncQuestionsInput = function () {
     const questionsInput = document.getElementById('questionsInput');
     const editButtons = document.querySelectorAll('.edit-template-btn');
 
-   
+
 
     //  Handle Edit
     const openModalForEdit = (btn) => {
@@ -639,18 +640,18 @@ window.syncQuestionsInput = function () {
         // Fill inputs
         nameInput.value = btn.dataset.name || "";
         descInput.value = btn.dataset.description || "";
-       
+
 
         categoryInput.value = btn.dataset.equipment || "";
         activeCheckbox.checked = btn.dataset.active === "1";
 
         // Parse questions from dataset
-        
+
         templateData = JSON.parse(btn.dataset.questions || "[]");
 
-        renderTemplate();      
-        renderAvailable();     
-        syncQuestionsInput();  
+        renderTemplate();
+        renderAvailable();
+        syncQuestionsInput();
 
         // Show modal
         modal.style.display = 'flex';
@@ -683,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 'Delete Template'
             ).then((result) => {
                 if (result.isConfirmed) {
-                    form.submit(); 
+                    form.submit();
                 }
             });
         });

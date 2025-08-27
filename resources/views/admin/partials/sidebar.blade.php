@@ -331,8 +331,8 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
-                                    <a href="#"
-                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                    <a href="{{ route('admin.checklist-management.equipment-management.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist-management.equipment-management.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-wrench-screwdriver class="w-5 h-5" /> Equipment Mgt.
                                     </a>
                                 </li>

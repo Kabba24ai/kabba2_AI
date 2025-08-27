@@ -18,7 +18,7 @@
                         <!-- Search -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Search Templates</label>
-                            <input type="text" placeholder="Search Templates..." class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input  type="text" placeholder="Search Templates..." class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
 
                         <!-- Filter -->
@@ -51,6 +51,7 @@
                     </div>
                 </div>
 
+                <div id="cardsWrapper">
                 @foreach ($checklisttemplate as $template)
                   <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-cardtemp mb-6" data-required="true">
                       <!-- Header -->
@@ -163,7 +164,7 @@
                       </div>
                   </div>
                 @endforeach
-               
+               </div>
             </div>
             
         </div>
@@ -203,7 +204,7 @@
                                 'class' => 'w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500',
                                 'required' => true,
                                 'id' => 'template_name',
-                                'data-parsley-required-message' => 'Template name is required.',
+                               
                             ])->placeholder('Enter template name') 
                         }}
 
@@ -226,7 +227,6 @@
                                       )
                                       ->class('w-full border text-sm border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500')
                                       ->attribute('required', true)
-                                      ->attribute('data-parsley-required-message', 'Equipment category is required.') 
                                   !!}
                     </div>
 
@@ -397,6 +397,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('templateForm');
     form.reset();
 
+    form.action = "{{ route('admin.checklist-management.rental-ready.templates.store') }}";
+
     const methodField = form.querySelector('input[name="_method"]');
     if (methodField) methodField.remove();
 
@@ -425,6 +427,9 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal();
     });
+
+    
+
 
 
 window.syncQuestionsInput = function () {
@@ -687,6 +692,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <!-- delete- -->
+
 
 
 @endpush

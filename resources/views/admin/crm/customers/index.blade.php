@@ -18,7 +18,7 @@
         </a>
     </div>
 
-    
+
     <div class="flex flex-wrap items-end gap-4 w-full mb-6">
 
         <!-- Search by name -->
@@ -54,17 +54,17 @@
             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 
-                            19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 
-                            4.11 2h3a2 2 0 0 1 2 1.72 12.44 12.44 0 0 0 .7 2.81 2 2 0 0 1-.45 
-                            2.11L8 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07
+                            19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1
+                            4.11 2h3a2 2 0 0 1 2 1.72 12.44 12.44 0 0 0 .7 2.81 2 2 0 0 1-.45
+                            2.11L8 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45
                             12.44 12.44 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                 </svg>
             </div>
         </div>
         <div class="w-full sm:w-48">
 
-        <select 
+        <select
         class="w-full h-10 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300"
          name="tax_status"
           id="tax_status">
@@ -75,7 +75,7 @@
 
 
         </div>
-        
+
 
         <!-- Total count -->
         <div class="w-full sm:w-auto h-10 px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
@@ -92,13 +92,13 @@
         </div>
     </div>
 
-    
+
 
 
     <div id="customer-table-wrapper">
-   
+
         @include('admin.crm.customers.partials._table', ['customers' => $customers])
-        
+
     </div>
 @endsection
 
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let company_name = document.querySelector('input[name="search_company_name"]');
     let statusSelect = document.querySelector('select[name="tax_status"]');
     let wrapper = document.querySelector('#customer-table-wrapper');
-    
+
     let loader = document.querySelector('#customer-loader');
     let timeout = null;
 
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (tax_status !== 'All') params.append('tax_status', tax_status);
 
          // Show loader
-  
+
 
       loader.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         wrapper.classList.remove('opacity-50', 'pointer-events-none');
 
         });
-        
+
     }
 
     // Delayed filters
@@ -180,8 +180,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 <script>
-    // bulk delete 
-   
+    // bulk delete
+
 
 
       function initOrderCheckboxes() {
@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         notyf.success(data.message, 'Deleted!');
                                         const row = document.getElementById('customer-row-' +
                                             uniqueId);
-                                             
+
                                         if (row) row.remove();
                                     } else {
                                         notyf.error(data.message);
@@ -323,16 +323,16 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
-    
-    
-    
+
+
+
         document.addEventListener('DOMContentLoaded', function () {
             initOrderCheckboxes();
             initSingleDeleteButtons();
         });
 
 
-    // bulk delete 
+    // bulk delete
 </script>
 
 @endpush

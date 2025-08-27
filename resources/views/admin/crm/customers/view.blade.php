@@ -371,7 +371,7 @@
     }
 
     function clearFile() {
-        const fileInput = document.getElementById("fileInput");
+        const fileInput = document.getElementById("tax_document");
         const fileActions = document.getElementById("fileActions");
         const uploadUI = document.getElementById("uploadUI");
         const fileNameDisplay = document.getElementById("fileNameDisplay");

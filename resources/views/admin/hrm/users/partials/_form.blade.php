@@ -1,4 +1,4 @@
-<div class="w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-4xl mx-auto">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
         <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
             <x-heroicon-o-user class="w-5 h-5 text-blue-600" />

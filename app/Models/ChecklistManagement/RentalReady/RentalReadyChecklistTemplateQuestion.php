@@ -6,10 +6,13 @@ namespace App\Models\ChecklistManagement\RentalReady;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Helpers\ModelHelper;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+
 
 class RentalReadyChecklistTemplateQuestion extends Model
 {
-     use HasFactory;
+     use HasFactory , SoftDeletes;
 
     protected $fillable = [
         'template_id',
@@ -40,5 +43,5 @@ class RentalReadyChecklistTemplateQuestion extends Model
         return $this->belongsTo(RentalReadyChecklistQuestion::class, 'question_id');
     }
 
-    
+
 }

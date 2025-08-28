@@ -200,12 +200,10 @@
 
                 {!! html()->select(
                 'equipment_category',
-                ['' => '-- Select Category --'] + $equipmentCategories,
+                ['' => 'All Category'] + $equipmentCategories,
                 old('equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm')
-                ->attribute('required', true)
-                ->attribute('data-parsley-required-message', 'Equipment category is required.')
                 !!}
 
             </div>
@@ -220,7 +218,7 @@
                 id="template_{{ $template->id }}"
                 class="card-radio-step hidden"
                 value="{{ $template->template_name }}"
-                data-id="{{ $template->id }}" />
+                data-id="{{ $template->id }}" data-category-id="{{ $template->equipment_category_id }}" />
 
             <label for="template_{{ $template->id }}"
                 class="template-card flex justify-between mb-0 gap-4 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
@@ -647,19 +645,22 @@
 
 <script>
     function validateStep2BeforeContinue() {
-        const form = document.querySelector('form#templateForm')?.closest('div'); // step2 container
-        const categorySelect = document.querySelector('select[name="equipment_category"]');
 
-        if ($(categorySelect).parsley().isValid()) {
-            //  Category selected → allow step change
+        const selectedTemplate = document.querySelector('input[name="template"]:checked');
+        const hiddenCategoryId = document.getElementById('hiddenCategoryId');
+        const hiddenRentalTemplateId = document.getElementById('hiddenRentalTemplateId');
 
-            document.getElementById('hiddenCategoryId').value = categorySelect.value;
+        if (selectedTemplate) {
+            // Assign category ID from selected card
+            hiddenCategoryId.value = selectedTemplate.getAttribute('data-category-id');
 
+            // console.log('Category ID:', hiddenCategoryId.value);
 
+            // Assign template ID too (if needed)
+            hiddenRentalTemplateId.value = selectedTemplate.getAttribute('data-id');
+
+            //  Proceed to next step
             goToStep(3);
-        } else {
-            // ❌ Trigger parsley error messages
-            $(categorySelect).parsley().validate();
         }
     }
 </script>
@@ -702,7 +703,7 @@
             document.getElementById('hiddenRentalTemplateId').value = radio.dataset.id;
 
 
-
+            document.getElementById('hiddenCategoryId').value = radio.dataset.categoryId;
 
             if (assignedrentalreadytemplate) {
                 assignedrentalreadytemplate.textContent = '"' + radio.value + '"';
@@ -747,22 +748,35 @@
     });
 </script>
 
-<!--  JS Filter -->
+<!-- JS Filter -->
 <script>
-    document.getElementById('templateSearch').addEventListener('input', function() {
-        let search = this.value.toLowerCase();
+    const searchInput = document.getElementById('templateSearch');
+    const categorySelect = document.querySelector('select[name="equipment_category"]');
+    const cards = document.querySelectorAll('#templateForm .template-card');
 
-        document.querySelectorAll('#templateForm .template-card').forEach(function(card) {
+    function filterTemplates() {
+        let search = searchInput.value.toLowerCase();
+        let selectedCategory = categorySelect.value;
+
+        cards.forEach(function(card) {
             let name = card.querySelector('.template-name').innerText.toLowerCase();
             let description = card.querySelector('p.text-sm').innerText.toLowerCase();
+            let category = card.querySelector('.text-sm.text-gray-600').innerText.trim();
 
-            if (name.includes(search) || description.includes(search)) {
-                card.style.display = 'flex'; // show
+            let matchesSearch = name.includes(search) || description.includes(search);
+            let matchesCategory = selectedCategory === "" || category === categorySelect.options[categorySelect.selectedIndex].text;
+
+            if (matchesSearch && matchesCategory) {
+                card.style.display = 'flex';
             } else {
-                card.style.display = 'none'; // hide
+                card.style.display = 'none';
             }
         });
-    });
+    }
+
+    searchInput.addEventListener('input', filterTemplates);
+    categorySelect.addEventListener('change', filterTemplates);
 </script>
+
 
 @endpush

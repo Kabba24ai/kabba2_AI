@@ -71,9 +71,9 @@
             <!-- Checklist Container -->
             <div id="checklistContainer" class="hidden bg-white rounded-md shadow-sm border border-gray-200 p-6">
                 <div class="mb-6">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex flex-wrap items-start gap-2 mb-4">
                         <h2 id="checklistTitle" class="text-xl font-semibold text-gray-900">Rental Ready Checklist</h2>
-                        <div class="text-sm text-gray-600" id="progressTop">0 of 10 items completed</div>
+                        <div class="text-sm text-gray-600 w-full sm:w-auto sm:ml-auto sm:text-right ml-auto" id="progressTop">0 of 10 items completed</div>
                     </div>
 
                     <!-- Header row -->
@@ -95,7 +95,7 @@
                         </div>
                         <div>
                             <label class="text-sm font-medium text-gray-700 mb-1 block">Inspection Date</label>
-                            <input id="inspectionDate" type="date" class="w-full border px-3 py-2 rounded-md text-sm">
+                            <input id="inspectionDate" type="date" class="w-full border px-3 py-2 rounded-md text-sm" readonly>
                         </div>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
 
                 <!-- Footer summary with progress bar -->
                 <div class="mt-8 pt-6 border-t border-gray-200">
-                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div class="bg-gray-50 rounded-md p-4 mb-6">
                         <h4 class="font-medium text-gray-900 mb-2">Inspection Summary</h4>
                         <div class="mb-4">
                             <div class="flex items-center justify-between mb-2">
@@ -118,21 +118,21 @@
                         </div>
                     </div>
                     <div class="space-y-3">
-                        <button id="btnReady" disabled class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                        <button id="btnReady" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                             Mark as Rental Ready
                         </button>
-                        <button id="btnDamaged" disabled class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                        <button id="btnDamaged" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                             Mark as Damaged
                         </button>
-                        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium bg-gray-600 hover:bg-gray-700 text-white transition-all shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <button class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium bg-gray-600 hover:bg-gray-700 text-white transition-all shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                             Save Draft
                         </button>
                     </div>
                     <div class="mt-4 space-y-2">
-                        <div class="text-sm text-red-600 bg-red-50 p-3 rounded-lg hidden" id="reqMsg">Inspector name is required to complete the checklist.</div>
+                        <div class="text-sm text-red-600 bg-red-50 p-3 rounded-md hidden" id="reqMsg">Inspector name is required to complete the checklist.</div>
                     </div>
                 </div>
             </div>
@@ -303,10 +303,19 @@ function renderEquipment() {
     card.innerHTML = `
       <div class="flex items-start justify-between">
         <div class="flex-1">
-          <div class="flex items-center gap-2 mb-2">
-            <h3 class="font-medium text-gray-900">${eq.name}</h3>
-            ${eq.icon}
-          </div>
+            <div class="flex flex-wrap items-start gap-2 mb-2">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <h3 class="font-medium text-sm sm:text-base text-gray-900 truncate">${eq.name}</h3>
+                    ${eq.icon}
+                </div>
+
+                <!-- Status pill: full-width on mobile (drops to 2nd line), inline-right on ≥sm -->
+                <div class="basis-full sm:basis-auto sm:ml-auto">
+                    <span class="inline-flex px-3 py-1 rounded-full text-xs font-medium border ${badgeColors(eq.badge)}">
+                    ${eq.badge}
+                    </span>
+                </div>
+            </div>
           <div class="text-sm text-gray-600 space-y-1">
             <div>Model: ${eq.model}</div>
             <div>Serial: ${eq.serial}</div>
@@ -318,7 +327,7 @@ function renderEquipment() {
             <div>Last Inspection: ${eq.lastInspection}</div>
           </div>
         </div>
-        <div class="px-3 py-1 rounded-full text-xs font-medium border ${badgeColors(eq.badge)}">${eq.badge}</div>
+        
       </div>`;
     card.addEventListener("click", () => {
       document.querySelectorAll(".equipment-card").forEach(c=>{
@@ -348,7 +357,7 @@ function openChecklist(eq){
 
   groups.forEach((g) => {
     const section = document.createElement("div");
-    section.className = "border border-gray-200 rounded-lg p-4";
+    section.className = "border border-gray-200 rounded-md p-4";
     section.innerHTML = `
       <h3 class="font-medium text-gray-900 mb-4 flex items-center gap-2">
         <span>${g.title}</span>
@@ -360,22 +369,24 @@ function openChecklist(eq){
     const body = section.querySelector(`#groupBody-${g.key}`);
     g.items.forEach((item) => {
       const card = document.createElement("div");
-      card.className = "item-card p-4 rounded-lg border-2 transition-all border-gray-200 bg-gray-50";
+      card.className = "item-card p-4 rounded-md border-2 transition-all border-gray-200 bg-white-50";
       card.id = `item-${item.id}`;
       const options = item.options.map((opt) => `
-        <label class="flex items-center justify-between gap-3 p-2 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-          <div class="flex items-center gap-3">
-            <input type="radio" name="answer-${item.id}" class="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                   value="${opt.status}" data-item="${item.id}" data-group="${g.key}">
-            <span class="text-sm text-gray-900">${opt.label}</span>
-          </div>
-          ${statusBadge(opt.status)}
+        <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+                <input type="radio" name="answer-${item.id}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
+                    value="${opt.status}" data-item="${item.id}" data-group="${g.key}">
+                <span class="text-sm text-gray-900">${opt.label}</span>
+            </div>
+            <div class="w-full sm:w-auto sm:ml-auto sm:justify-end flex items-center">
+                ${statusBadge(opt.status)}
+            </div>
         </label>
       `).join("");
 
       card.innerHTML = `
-        <div class="flex items-center gap-2 mb-3">
-          <span id="icon-${item.id}" class="inline-flex">${iconSvg("default")}</span>
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span id="icon-${item.id}" class="inline-flex shrink-0">${iconSvg("default")}</span>
           <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>':''}</span>
           <span id="chip-${item.id}"></span>
         </div>

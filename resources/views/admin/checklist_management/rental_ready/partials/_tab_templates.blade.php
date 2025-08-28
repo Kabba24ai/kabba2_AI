@@ -82,13 +82,14 @@
                               <!-- Edit -->
                               @php
                                   $templateQuestions = $template->questions->map(function($q) {
-                                      return [
-                                          "id" => $q->question->id,
-                                          "text" => $q->question->question_name,
-                                          "category" => $q->question->category->category_name,
-                                          "required" => (bool) $q->question->required_question,
-                                      ];
-                                  });
+    return [
+        "id" => $q->question->id ?? null,
+        "text" => $q->question->question_name ?? 'No Question',
+        "category" => $q->question->category->category_name ?? 'No Category',
+        "required" => (bool) ($q->question->required_question ?? false),
+    ];
+});
+
                               @endphp
 
                               <button
@@ -151,7 +152,7 @@
                                   </span>
 
                                   <!-- Required / General -->
-                                  @if ($templateQuestion->question->required_question == 1)
+                                  @if ($templateQuestion->question?->required_question == 1)
                                       <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
                                   @else
                                       <span class="text-xs text-gray-500">General</span>

@@ -189,7 +189,7 @@
 
                 window.showConfirm(
                     `Delete "${templateName}"? This action cannot be undone!`,
-                    'Delete customer'
+                    'Delete Checklist System'
                 ).then((result) => {
                     if (result.isConfirmed) {
                         form.submit();

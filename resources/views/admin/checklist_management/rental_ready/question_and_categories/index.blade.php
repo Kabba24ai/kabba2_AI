@@ -21,7 +21,7 @@
         <!-- Product Performance -->
         <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]" >
             <div x-data="{selected: 'daily'}">
-                <div class="flex w-full items-center gap-0.5 rounded-lg bg-gray-100 p-0.5" >
+                <div class="flex w-full items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900" >
                     <button
                         @click="selected = 'daily'"
                         :class="selected === 'daily' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'"

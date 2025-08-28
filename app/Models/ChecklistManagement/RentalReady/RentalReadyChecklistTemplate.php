@@ -4,6 +4,7 @@ namespace App\Models\ChecklistManagement\RentalReady;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Helpers\ModelHelper;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ProductManagement\ProductCategory;
@@ -12,7 +13,7 @@ use App\Models\ProductManagement\ProductCategory;
 class RentalReadyChecklistTemplate extends Model
 {
 
-    use HasFactory;
+    use HasFactory , SoftDeletes;
 
     protected $fillable = [
         'template_name',

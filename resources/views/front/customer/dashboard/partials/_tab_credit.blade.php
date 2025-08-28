@@ -468,11 +468,11 @@
                 });
 
             
-                modalWrapper.addEventListener('click', e => {
-                    if (e.target === modalWrapper) {
-                        modalWrapper.style.display = 'none';
-                    }
-                });
+                // modalWrapper.addEventListener('click', e => {
+                //     if (e.target === modalWrapper) {
+                //         modalWrapper.style.display = 'none';
+                //     }
+                // });
             });
             </script>
 
@@ -514,11 +514,11 @@
         closeBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
 
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
+        // modalWrapper.addEventListener('click', (e) => {
+        //     if (e.target === modalWrapper) {
+        //         closeModal();
+        //     }
+        // });
     });
 </script>
 

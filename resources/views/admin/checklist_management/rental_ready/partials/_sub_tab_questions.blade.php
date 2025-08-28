@@ -395,30 +395,40 @@
                wrapper.setAttribute('data-id', option.id);
 
                wrapper.innerHTML = `
-        <div class="flex items-center mb-2 sm:mb-0">
-            <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
+    <div class="flex items-center mb-2 sm:mb-0">
+        <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
                 d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
             </svg>
-            </span>
-        </div>
+        </span>
+    </div>
+
+    <div class="flex-1">
         <input type="text" placeholder="Answer description..."
-            class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value="${option.text}"
             oninput="updateText(${index}, this.value)" required>
+    </div>
 
-        <select class="mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <div>
+        <select class="w-full mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             onchange="updateStatus(${index}, this.value)">
             <option ${option.status === 'Rental Ready' ? 'selected' : ''}>Rental Ready</option>
             <option ${option.status === 'Maint. Hold' ? 'selected' : ''}>Maint. Hold</option>
             <option ${option.status === 'Damaged' ? 'selected' : ''}>Damaged</option>
         </select>
+    </div>
 
-        <button type="button" onclick="removeOption(${index})" class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0" title="Delete">
+    <div>
+        <button type="button" onclick="removeOption(${index})"
+            class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
+            title="Delete">
             <x-heroicon-o-trash class="w-4 h-4" />
         </button>
-        `;
+    </div>
+`;
+
 
                container.appendChild(wrapper);
            });

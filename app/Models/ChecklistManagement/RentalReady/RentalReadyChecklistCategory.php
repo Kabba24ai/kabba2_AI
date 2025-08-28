@@ -3,9 +3,13 @@
 namespace App\Models\ChecklistManagement\RentalReady;
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RentalReadyChecklistCategory extends Model
 {
+
+    use SoftDeletes;
+
     protected $fillable = ['unique_id', 'category_name', 'description'];
 
      protected static function boot()

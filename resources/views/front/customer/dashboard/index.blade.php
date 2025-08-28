@@ -265,11 +265,11 @@
                 });
             });
 
-            modalWrapper.addEventListener('click', (e) => {
-                if (e.target === modalWrapper) {
-                    closeModal();
-                }
-            });
+            // modalWrapper.addEventListener('click', (e) => {
+            //     if (e.target === modalWrapper) {
+            //         closeModal();
+            //     }
+            // });
         });
     </script>
 

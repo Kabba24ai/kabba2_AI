@@ -67,12 +67,12 @@
                 <div class="flex gap-6 border-b" data-tab-group="inner">
                     <button id="tab-questions-sub" onclick="showTab('questionssub', this)" 
                             class="inner-tab px-3 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">
-                        Customer Questions ({{ 5 }})
+                        Customer Questions ({{ $totalQuestions }})
 
                     </button>
                     <button id="tab-categories-sub" onclick="showTab('categoriessub', this)" 
                             class="inner-tab px-3 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 border-b-2 border-transparent">
-                         Categories ( {{ $CustomerAdminCategory->count() }} )
+                         Categories ( {{ $customerAdminCategory->count() }} )
                     </button>
                 </div>
 

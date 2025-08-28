@@ -27,7 +27,10 @@ Route::prefix('customer-admin')
 
 
      
-      // question
     require base_path('routes/admin/checklist_management/customer_admin/categories/routes.php');
+
+    require base_path('routes/admin/checklist_management/customer_admin/question/routes.php');
+      
+    require base_path('routes/admin/checklist_management/customer_admin/templates/routes.php');
 
 });

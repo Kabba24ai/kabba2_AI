@@ -780,7 +780,7 @@
                return nameA.localeCompare(nameB);
            });
 
-           // Re-append sorted cards into wrapper
+         
            cards.forEach(card => wrapper.appendChild(card));
        });
    </script>

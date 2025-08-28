@@ -17,6 +17,10 @@ Route::prefix('checklist-management')
 ->name('checklist-management.')
 ->group(function ($router) {
 
+// equipment-management
+    // 
+    require base_path('routes/admin/checklist_management/equipment_management/routes.php');
+
     // customers
     require base_path('routes/admin/checklist_management/rental_ready/routes.php');
 

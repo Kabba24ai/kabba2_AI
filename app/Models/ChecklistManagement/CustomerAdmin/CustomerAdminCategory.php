@@ -17,4 +17,8 @@ class CustomerAdminCategory extends Model
             }
         });
     }
+
+     public function questions() {
+        return $this->hasMany(CustomerAdminQuestion::class, 'category_id');
+    }
 }

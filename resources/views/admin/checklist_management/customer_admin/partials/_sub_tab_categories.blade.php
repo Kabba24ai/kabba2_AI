@@ -15,7 +15,7 @@
                         </div>
                         <!-- Grid -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach ($CustomerAdminCategory as $category)
+                            @foreach ($customerAdminCategory as $category)
                                 <!-- Category Card -->
                                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition">
                                     <div class="flex justify-between items-start">

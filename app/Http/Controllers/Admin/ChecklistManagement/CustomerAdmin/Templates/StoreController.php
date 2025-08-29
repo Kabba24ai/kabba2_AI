@@ -55,14 +55,13 @@ class StoreController extends Controller
              session()->flash('active_tab', 'templates');
         
             return redirect()
-                ->route('admin.checklist-management.rental-ready.index');
+                ->route('admin.checklist-management.customer-admin.index');
 
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
             session()->flash('active_tab', 'templates');
-
 
             flash('Something went wrong while creating the question.')->error();
 

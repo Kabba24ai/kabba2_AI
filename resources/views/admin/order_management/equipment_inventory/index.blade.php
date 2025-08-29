@@ -131,13 +131,13 @@
                         <td class="px-4 py-4 font-semibold  text-gray-700">Generators</td>
                         <td class="px-4 py-4 break-words">Cat 9 Ton Generator w/Cab</td>
                         <td class="px-4 py-4">
-                            <a href="#" class="text-blue-600 hover:underline">CAT-9T-CAB-002</a>
+                            <a href="#" class="text-blue-600 uppercase">CAT-9T-CAB-002</a>
                         </td>
                         <td class="px-4 py-4">
                             <div class="inline-flex items-center gap-1.5 whitespace-nowrap">
                                 <!-- alert icon -->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle w-3.5 h-3.5 text-red-600"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Damaged</span>
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 uppercase">Damaged</span>
                             </div>
                         </td>
                         <td class="px-4 py-4">
@@ -176,7 +176,7 @@
                         <td class="px-4 py-4 font-semibold  text-gray-700">Chippers</td>
                         <td class="px-4 py-4 break-words">Bandit 12&quot; Wood Chipper</td>
                         <td class="px-4 py-4">
-                            <a href="#" class="text-blue-600 hover:underline">BAN-CH-12-003</a>
+                            <a href="#" class="text-blue-600 uppercase">BAN-CH-12-003</a>
                         </td>
                         <td class="px-4 py-4">
                             <div class="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -184,7 +184,7 @@
                                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z"/>
                                 </svg>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">  Maint. Hold</span>
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 uppercase">  Maint. Hold</span>
                             </div>
 
                         </td>
@@ -224,7 +224,7 @@
                         <td class="px-4 py-4 font-semibold text-gray-700">Excavators</td>
                         <td class="px-4 py-4 break-words">Takeuchi TL12 Skid Steer</td>
                         <td class="px-4 py-4">
-                            <a href="#" class="text-blue-600 hover:underline">TAK-SS-5</a>
+                            <a href="#" class="text-blue-600 uppercase">TAK-SS-5</a>
                         </td>
                         <td class="px-4 py-4">
                             <div class="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -232,7 +232,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/>
                                 </svg>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Rented</span>
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 uppercase">Rented</span>
                             </div>
                         </td>
                         <td class="px-4 py-4">

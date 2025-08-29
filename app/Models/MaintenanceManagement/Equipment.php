@@ -63,7 +63,7 @@ class Equipment extends Model
     {
         parent::boot();
         self::creating(function ($model) {
-            $model->unique_id = ModelHelper::generateUniqueID($model, 'EQ');
+            $model->unique_id = ModelHelper::generateUniqueID($model, 'EQP');
         });
     }
 

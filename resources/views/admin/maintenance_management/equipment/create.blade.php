@@ -1,5 +1,7 @@
 @extends('admin.layouts.app')
 
+@section('title', 'Create Equipment')
+
 @section('content')
 <div class="h-screen bg-gray-50 flex flex-col overflow-hidden">
     <div class="flex-1 overflow-auto">
@@ -23,8 +25,14 @@
         </div>
 
         {{-- Main Content --}}
-        <div class="p-6">
-            <form action="{{ route('admin.maintenance-management.equipment.create') }}" method="POST" class="max-w-5xl">
+        <div class="p-6">            
+            {{ html()->form()->attributes([
+                    'action' => route('admin.maintenance-management.equipment.create'),
+                    'method' => 'POST',
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'max-w-5xl',
+                ])->open() }}
                 @csrf
                 @include('admin.maintenance_management.equipment.partials._form')
 
@@ -36,7 +44,7 @@
                         <span>Create Equipment</span>
                     </button>
                 </div>
-            </form>
+            {{ html()->form()->close() }}
         </div>
     </div>
 </div>

@@ -1,5 +1,7 @@
 @extends('admin.layouts.app')
 
+@section('title', 'Equipment List')
+
 @section('content')
 <div class="h-screen bg-gray-50 flex flex-col overflow-hidden">
     <div class="flex-1 p-6 overflow-auto">
@@ -15,15 +17,6 @@
             <p class="text-gray-600">Manage equipment inventory, assignments, and maintenance schedules</p>
         </div>
 
-        {{-- Success Message --}}
-        @if(session('success'))
-            <div class="mx-0 mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-3">
-                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span class="text-green-800 font-medium">{{ session('success') }}</span>
-            </div>
-        @endif
 
         @include('admin.maintenance_management.equipment.partials._stats')
         @include('admin.maintenance_management.equipment.partials._filters')

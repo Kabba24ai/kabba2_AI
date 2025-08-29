@@ -187,6 +187,10 @@ class CustomHelper
             'yes' => 'bg-green-100 text-green-800',
             'no' => 'bg-red-100 text-red-800',
             'draft' => 'bg-blue-100 text-blue-800',
+            'rented' => 'bg-purple-100 text-purple-800',
+            'available' => 'bg-green-100 text-green-800',
+            'damaged' => 'bg-red-100 text-red-800',
+            'maint. hold' => 'bg-warning-100 text-warning-800'
         ];
 
         $class = $classes[$normalizedStatus] ?? 'bg-gray-200 text-gray-800';

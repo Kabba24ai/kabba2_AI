@@ -5,91 +5,82 @@
         {{-- Basic Information --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex items-center space-x-2 mb-4">
-                <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <x-heroicon-o-document-text class="h-5 w-5 text-blue-600" />
                 <h3 class="text-lg font-bold text-gray-900">Basic Information</h3>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Equipment Name <span class="text-red-500">*</span>
+                <div>
+                    <label for="equipment_name" class="block text-sm font-medium text-gray-700 mb-1 required">
+                        Equipment Name
                     </label>
-                    <input
-                        type="text"
-                        name="equipment_name"
-                        value="{{ old('equipment_name', $equipment->equipment_name ?? '') }}"
-                        placeholder="CAT 320 Excavator"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('equipment_name') border-red-300 bg-red-50 @else border-gray-300 @enderror"
-                    />
+                    {!! html()->text('equipment_name')->class([
+                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('equipment_name'),
+                            'border-red-500' => $errors->has('equipment_name'),
+                        ])->attributes([
+                            'maxlength' => 240,
+                            'data-parsley-maxlength' => 240,
+                            'placeholder' => 'Enter Equipment Name',
+                            'autocomplete' => 'off',
+                        ])->required() !!}
                     @error('equipment_name')
-                        <p class="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{{ $message }}</span>
-                        </p>
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Category <span class="text-red-500">*</span>
+                    <label for="product_category_id" class="block text-sm font-medium text-gray-700 mb-1 required">
+                        Category
                     </label>
-                    <select
-                        name="category"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white @error('category') border-red-300 bg-red-50 @else border-gray-300 @enderror"
-                    >
-                        <option value="">Select</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->title }}" {{ old('category', $equipment->category ?? '') === $category->title ? 'selected' : '' }}>{{ $category->title }}</option>
-                        @endforeach
-                    </select>
-                    @error('category')
-                        <p class="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{{ $message }}</span>
-                        </p>
+                    {!! html()->select('product_category_id', ['' => 'Select Category'] + $categories)->class([
+                            'choices-select w-full px-2 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                            'border-red-300 bg-red-50' => $errors->has('product_category_id'),
+                            'border-gray-300' => !$errors->has('product_category_id'),
+                        ])->attributes([
+                            'data-parsley-errors-container' => '#product_category_id-errors',
+                        ])->required() !!}
+                    <div id="product_category_id-errors"></div>
+                    @error('product_category_id')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="equipment_hours" class="block text-sm font-medium text-gray-700 mb-1">
                         Equipment Hours
                     </label>
-                    <input
-                        type="text"
-                        name="equipment_hours"
-                        value="{{ old('equipment_hours', $equipment->equipment_hours ?? '') }}"
-                        placeholder="10.5"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
-
+                    {!! html()->text('equipment_hours')->class([
+                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('equipment_hours'),
+                            'border-red-500' => $errors->has('equipment_hours'),
+                        ])->attributes([
+                            'maxlength' => 240,
+                            'data-parsley-maxlength' => 240,
+                            'placeholder' => 'Enter Equipment Hours',
+                            'autocomplete' => 'off',
+                        ]) !!}
+                    @error('equipment_hours')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="equipment_id" class="block text-sm font-medium text-gray-700 mb-1">
                         Equipment ID <span class="text-red-500">*</span>
                     </label>
-                    <input
-                        type="text"
-                        name="equipment_id"
-                        value="{{ old('equipment_id', $equipment->equipment_id ?? '') }}"
-                        placeholder="EXC-001"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('equipment_id') border-red-300 bg-red-50 @else border-gray-300 @enderror"
-                    />
+                    {!! html()->text('equipment_id')->class([
+                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('equipment_id'),
+                            'border-red-500' => $errors->has('equipment_id'),
+                        ])->attributes([
+                            'maxlength' => 240,
+                            'data-parsley-maxlength' => 240,
+                            'placeholder' => 'EXC-001',
+                            'autocomplete' => 'off',
+                        ])->required() !!}
                     @error('equipment_id')
-                        <p class="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{{ $message }}</span>
-                        </p>
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -98,80 +89,79 @@
         {{-- Equipment Details --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex items-center space-x-2 mb-4">
-                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0M15 17a2 2 0 104 0" />
-                </svg>
+                <x-heroicon-o-truck class="h-5 w-5 text-green-600" />
                 <h3 class="text-lg font-bold text-gray-900">Equipment Details</h3>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Brand <span class="text-red-500">*</span>
+                    <label for="brand" class="block text-sm font-medium text-gray-700 mb-1 required">
+                        Brand
                     </label>
-                    <input
-                        type="text"
-                        name="brand"
-                        value="{{ old('brand', $equipment->brand ?? '') }}"
-                        placeholder="Caterpillar"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('brand') border-red-300 bg-red-50 @else border-gray-300 @enderror"
-                    />
+                    {!! html()->text('brand')->class([
+                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('brand'),
+                            'border-red-500' => $errors->has('brand'),
+                        ])->attributes([
+                            'maxlength' => 240,
+                            'data-parsley-maxlength' => 240,
+                            'placeholder' => 'EXC-001',
+                            'autocomplete' => 'off',
+                        ])->required() !!}
                     @error('brand')
-                        <p class="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{{ $message }}</span>
-                        </p>
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
-                    <input
-                        type="text"
-                        name="model"
-                        value="{{ old('model', $equipment->model ?? '') }}"
-                        placeholder="320"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+                    <label for="model" class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                    {!! html()->text('model')->class([
+                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('model'),
+                            'border-red-500' => $errors->has('model'),
+                        ])->attributes([
+                            'maxlength' => 240,
+                            'data-parsley-maxlength' => 240,
+                            'placeholder' => '320',
+                            'autocomplete' => 'off',
+                        ]) !!}
+                    @error('model')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Model Year</label>
-                    <input
-                        type="number"
-                        name="model_year"
-                        value="{{ old('model_year', $equipment->model_year ?? '') }}"
-                        placeholder="2023"
-                        min="1900"
-                        max="{{ date('Y') + 1 }}"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('model_year') border-red-300 bg-red-50 @else border-gray-300 @enderror"
-                    />
+                    <label for="model_year" class="block text-sm font-medium text-gray-700 mb-1">Model Year</label>
+                    {!! html()->number('model_year')->class([
+                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('model_year'),
+                            'border-red-500' => $errors->has('model_year'),
+                        ])->attributes([
+                            'min' => 1900,
+                            'max' => date('Y') + 1,
+                            'placeholder' => '2023',
+                        ]) !!}
                     @error('model_year')
-                        <p class="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{{ $message }}</span>
-                        </p>
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Date Acquired</label>
-                    <input
-    type="text"
-    name="date_acquired"
-    placeholder="mm/dd/yyyy"
-    value="{{ old('date_acquired', optional($equipment->date_acquired)->format('Y-m-d')) }}"
-    style="max-width: 200px;"
-    class="w-full px-3 py-2 datepicker text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-/>
+                    <label for="date_acquired" class="block text-sm font-medium text-gray-700 mb-1">
+                        Date Acquired
+                    </label>
+                    {!! html()->text('date_acquired',$equipment->date_acquired ? \App\Helpers\CustomHelper::formatDate($equipment->date_acquired) : '')->class([
+                            'datepicker w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('date_acquired'),
+                            'border-red-500' => $errors->has('date_acquired'),
+                        ])->attributes([
+                            'data-min-date' => now()->format(config('app.date.db_date_format')),
+                            'data-format' => config('app.date.js_date_format'),
+                            'placeholder' => 'mm/dd/yyyy',
+                        ]) !!}
+                    @error('date_acquired')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
         </div>
@@ -182,171 +172,189 @@
         {{-- Financial & Legal --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex items-center space-x-2 mb-4">
-                <svg class="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
+                <x-heroicon-o-currency-dollar class="h-5 w-5 text-yellow-600" />
                 <h3 class="text-lg font-bold text-gray-900">Financial & Legal</h3>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Cost</label>
-                    <div class="relative" style="max-width: 200px;">
-                        <svg class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                        <input
-                            type="number"
-                            name="cost"
-                            value="{{ old('cost', $equipment->cost ?? '') }}"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                            class="w-full pl-8 pr-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('cost') border-red-300 bg-red-50 @else border-gray-300 @enderror"
-                        />
+                    <label for="purchase_cost" class="block text-sm font-medium text-gray-700 mb-1">
+                        Purchase Cost
+                    </label>
+                    <div class="relative">
+                        <x-heroicon-o-currency-dollar
+                            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                        {!! html()->text('purchase_cost')->class([
+                                'w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-gray-300' => !$errors->has('purchase_cost'),
+                                'border-red-500' => $errors->has('purchase_cost'),
+                            ])->attributes([
+                                'data-digit-input' => 'true',
+                                'min' => 0,
+                                'placeholder' => '0.00',
+                                'step' => '0.01',
+                            ]) !!}
                     </div>
-                    @error('cost')
-                        <p class="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{{ $message }}</span>
-                        </p>
+                    @error('purchase_cost')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ownership Type</label>
-                    <select
-                        name="ownership_type"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                    >
-                        <option value="">Select</option>
-                        <option value="owned" {{ old('ownership_type', $equipment->ownership_type ?? '') === 'owned' ? 'selected' : '' }}>Owned</option>
-                        <option value="financed" {{ old('ownership_type', $equipment->ownership_type ?? '') === 'financed' ? 'selected' : '' }}>Financed</option>
-                        <option value="leased" {{ old('ownership_type', $equipment->ownership_type ?? '') === 'leased' ? 'selected' : '' }}>Leased</option>
-                    </select>
+                    <label for="ownership_type" class="block text-sm font-medium text-gray-700 mb-1">Ownership
+                        Type</label>
+                    {!! html()->select('ownership_type', [
+                            '' => 'Select',
+                            'owned' => 'Owned',
+                            'financed' => 'Financed',
+                            'leased' => 'Leased',
+                        ])->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                            'border-red-500' => $errors->has('ownership_type'),
+                        ]) !!}
+                    @error('ownership_type')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Finance Company</label>
-                    <input
-                        type="text"
-                        name="finance_company"
-                        value="{{ old('finance_company', $equipment->finance_company ?? '') }}"
-                        placeholder="Bank/Lender"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+                    <label for="finance_company" class="block text-sm font-medium text-gray-700 mb-1">Finance
+                        Company</label>
+                    {!! html()->text('finance_company')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('finance_company'),
+                        ])->attributes([
+                            'placeholder' => 'Bank/Lender',
+                        ]) !!}
+                    @error('finance_company')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Term (Months)</label>
-                    <input
-                        type="number"
-                        name="term"
-                        value="{{ old('term', $equipment->term ?? '') }}"
-                        placeholder="60"
-                        min="1"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+                    <label for="term_in_months" class="block text-sm font-medium text-gray-700 mb-1">Term (Months)</label>
+                    {!! html()->number('term_in_months')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('term_in_months'),
+                        ])->attributes([
+                            'min' => 1,
+                            'placeholder' => '60',
+                        ]) !!}
+                    @error('term_in_months')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+
+                <div>
+                    <label for="interest_rate" class="block text-sm font-medium text-gray-700 mb-1">
+                        Interest Rate (%)
+                    </label>
+                    {!! html()->number('interest_rate')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('interest_rate'),
+                        ])->attributes([
+                            'min' => 0,
+                            'step' => 0.01,
+                            'placeholder' => '5.25',
+                        ]) !!}
+                    @error('interest_rate')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Interest Rate (%)</label>
-                    <input
-                        type="number"
-                        name="rate"
-                        value="{{ old('rate', $equipment->rate ?? '') }}"
-                        placeholder="5.25"
-                        min="0"
-                        step="0.01"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Payment</label>
-                    <div class="relative" style="max-width: 200px;">
-                        <svg class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                        <input
-                            type="number"
-                            name="monthly_payment"
-                            value="{{ old('monthly_payment', $equipment->monthly_payment ?? '') }}"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                            class="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        />
+                    <label for="monthly_payment" class="block text-sm font-medium text-gray-700 mb-1">
+                        Monthly Payment
+                    </label>
+                    <div class="relative">
+                        <x-heroicon-o-currency-dollar
+                            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        {!! html()->text('monthly_payment')->class([
+                                'w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-gray-300' => !$errors->has('monthly_payment'),
+                                'border-red-500' => $errors->has('monthly_payment'),
+                            ])->attributes([
+                                'data-digit-input' => 'true',
+                                'min' => 0,
+                                'placeholder' => '0.00',
+                                'step' => '0.01',
+                            ]) !!}
+                        @error('monthly_payment')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </div>
         </div>
 
+
         {{-- Identification Numbers --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex items-center space-x-2 mb-4">
-                <svg class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                </svg>
+                <x-heroicon-o-identification class="h-5 w-5 text-purple-600" />
                 <h3 class="text-lg font-bold text-gray-900">Identification Numbers</h3>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">VIN</label>
-                    <input
-                        type="text"
-                        name="vin"
-                        value="{{ old('vin', $equipment->vin ?? '') }}"
-                        placeholder="Vehicle Identification Number"
-                        style="max-width: 175px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
-                    />
+                    <label for="vehicle_identification_number"
+                        class="block text-sm font-medium text-gray-700 mb-1">VIN</label>
+                    {!! html()->text('vehicle_identification_number')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('vehicle_identification_number'),
+                        ])->attributes([
+                            'placeholder' => 'Vehicle Identification Number',
+                        ]) !!}
+                    @error('vehicle_identification_number')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
-                    <input
-                        type="text"
-                        name="serial_number"
-                        value="{{ old('serial_number', $equipment->serial_number ?? '') }}"
-                        placeholder="Serial Number"
-                        style="max-width: 200px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
-                    />
+                    <label for="serial_number" class="block text-sm font-medium text-gray-700 mb-1">
+                        Serial Number
+                    </label>
+                    {!! html()->text('serial_number')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('serial_number'),
+                        ])->attributes([
+                            'placeholder' => 'Serial Number',
+                        ]) !!}
+                    @error('serial_number')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
-                    <input
-                        type="text"
-                        name="plate"
-                        value="{{ old('plate', $equipment->plate ?? '') }}"
-                        placeholder="ABC-1234"
-                        style="max-width: 175px;"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+                    <label for="license_plate" class="block text-sm font-medium text-gray-700 mb-1">
+                        License Plate
+                    </label>
+                    {!! html()->text('license_plate')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('license_plate'),
+                        ])->attributes([
+                            'placeholder' => 'ABC-1234',
+                        ]) !!}
+                    @error('license_plate')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">IMEI (GPS)</label>
-                    <div class="relative" style="max-width: 200px;">
-                        <svg class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                        <input
-                            type="text"
-                            name="imei"
-                            value="{{ old('imei', $equipment->imei ?? '') }}"
-                            placeholder="GPS Tracker IMEI"
-                            class="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
-                        />
+                    <label for="imei" class="block text-sm font-medium text-gray-700 mb-1">IMEI (GPS)</label>
+                    <div class="relative">
+                        <x-heroicon-o-map-pin
+                            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        {!! html()->text('imei')->class([
+                                'w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono',
+                                'border-red-500' => $errors->has('imei'),
+                            ])->attributes([
+                                'placeholder' => 'GPS Tracker IMEI',
+                            ]) !!}
+                        @error('imei')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -359,166 +367,217 @@
 
     {{-- Third Row --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {{-- Power Source --}}
-        <!--
-         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex items-center space-x-3 mb-4">
-                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-                <h3 class="text-lg font-bold text-gray-900">Power Source</h3>
+                <x-heroicon-o-bolt class="h-5 w-5 text-green-600" />
+                <h3 class="text-lg font-bold text-gray-900 required">Power Source</h3>
+            </div>
+
+            <div class="grid grid-cols-1  gap-3">
+                <div>
+                    <label for="power-type-select" class="block text-sm font-medium text-gray-700 mb-1 required">
+                        Power Type
+                    </label>
+                    {!! html()->select('power_source_type', [
+                            '' => 'Select Power Source',
+                            'diesel' => 'Diesel',
+                            'gas' => 'Gas',
+                            'batteries' => 'Batteries',
+                        ])->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                            'border-red-500' => $errors->has('power_source_type'),
+                        ])->required() !!}
+                    @error('power_source_type')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    {!! html()->checkbox('has_def', true)->id('has_def')->checked(old('has_def', isset($equipment) ? ($equipment->has_def === 'Yes' ? true : false) : false))->class('mr-2') !!}
+                    <label for="has_def" class="text-sm font-medium text-gray-700">
+                        Has DEF (Diesel Exhaust Fluid)
+                    </label>
+                    @error('has_def')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="diesel_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
+                        Diesel Tank Capacity (Gallons)
+                    </label>
+                    {!! html()->text('diesel_tank_capacity')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('diesel_tank_capacity'),
+                        ])->attributes([
+                            'min' => 0,
+                            'data-digit-input' => 'true',
+                            'placeholder' => 'Enter capacity in gallons',
+                        ]) !!}
+                    @error('diesel_tank_capacity')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="def_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
+                        DEF Tank Capacity (Gallons)
+                    </label>
+                    {!! html()->text('def_tank_capacity')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('def_tank_capacity'),
+                        ])->attributes([
+                            'min' => 0,
+                            'data-digit-input' => 'true',
+                            'placeholder' => 'Enter DEF tank capacity in gallons',
+                        ]) !!}
+                    @error('def_tank_capacity')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="gas_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
+                        Gas Tank Capacity (Gallons)
+                    </label>
+                    {!! html()->text('gas_tank_capacity')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('gas_tank_capacity'),
+                        ])->attributes([
+                            'min' => 0,
+                            'data-digit-input' => 'true',
+                            'placeholder' => 'Enter gas tank capacity in gallons',
+                        ]) !!}
+                    @error('gas_tank_capacity')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="standard_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
+                        Standard Battery Count
+                    </label>
+                    {!! html()->text('standard_battery_count')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('standard_battery_count'),
+                        ])->attributes([
+                            'min' => 0,
+                            'data-digit-input' => 'true',
+                            'placeholder' => 'Enter number of batteries',
+                        ]) !!}
+                    @error('standard_battery_count')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="expanded_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
+                        Expanded Battery Count
+                    </label>
+                    {!! html()->text('expanded_battery_count')->class([
+                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('expanded_battery_count'),
+                        ])->attributes([
+                            'min' => 0,
+                            'data-digit-input' => 'true',
+                            'placeholder' => 'Enter expanded battery count',
+                        ]) !!}
+                    @error('expanded_battery_count')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+        </div>
+
+        {{-- Customer Checklist --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center space-x-2 mb-4">
+                <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-green-600" />
+                <h3 class="text-lg font-bold text-gray-900">Checklist Master</h3>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Power Type</label>
-                <select id="power-type-select" name="power_source_type"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
-                    <option value="">Select Power Source</option>
-                    <option value="diesel">Diesel</option>
-                    <option value="gas">Gas</option>
-                    <option value="batteries">Batteries</option>
-                </select>
+                <label for="checklist_master_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Checklist Master
+                </label>
+                {!! html()->select('checklist_master_id', $checklistMasters)->class([
+                        'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                        'border-red-500' => $errors->has('checklist_master_id'),
+                    ]) !!}
+                <p class="mt-2 text-xs text-gray-500">
+                    Customer delivery and return inspection checklist
+                </p>
+                @error('checklist_master_id')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        {{-- Equipment Service --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center space-x-2 mb-4">
+                <x-heroicon-o-wrench class="h-5 w-5 text-indigo-600" />
+                <h3 class="text-lg font-bold text-gray-900">Equipment Service</h3>
             </div>
 
-            <div id="power-type-fields" class="mt-4"></div>
+            <div>
+                <label for="equipment_service_id" class="block text-sm font-medium text-gray-700 mb-1">Service
+                    Schedule</label>
+                {!! html()->select('equipment_service_id', ['' => 'Select Equipment Service'])->class([
+                        'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                        'border-red-500' => $errors->has('equipment_service_id'),
+                    ]) !!}
+                <p class="mt-2 text-xs text-gray-500">
+                    Maintenance schedule and service history tracking
+                </p>
+                @error('equipment_service_id')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
         </div>
-    -->
-        {{-- Power Source --}}
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-3 mb-4">
-        <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-        </svg>
-        <h3 class="text-lg font-bold text-gray-900">Power Source</h3>
-    </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Power Type <span class="text-red-500">*</span></label>
-        <select
-            id="power-type-select"
-            name="power_source_type"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-        >
-            <option value="">Select Power Source</option>
-            <option value="diesel" {{ old('power_source_type', $equipment->power_source_type ?? '') === 'diesel' ? 'selected' : '' }}>Diesel</option>
-            <option value="gas" {{ old('power_source_type', $equipment->power_source_type ?? '') === 'gas' ? 'selected' : '' }}>Gas</option>
-            <option value="batteries" {{ old('power_source_type', $equipment->power_source_type ?? '') === 'batteries' ? 'selected' : '' }}>Batteries</option>
-        </select>
-         @error('power_source_type')
-                        <p class="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{{ $message }}</span>
-                        </p>
-                    @enderror
-    </div>
-
-    <!-- Dynamic fields get inserted here -->
-    <div id="power-type-fields" class="mt-4">
-        @if(old('power_source_type', $equipment->power_source_type ?? ''))
-            @include('admin.maintenance_management.equipment.partials.power_source_fields', [
-                'powerSourceType' => old('power_source_type', $equipment->power_source_type ?? ''),
-                'equipment' => $equipment
-            ])
-        @endif
-    </div>
-</div>
-
-        {{-- Customer Checklist --}}
-         {{-- Customer Checklist --}}
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-2 mb-4">
-        <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-        <h3 class="text-lg font-bold text-gray-900">Checklist Master</h3>
-    </div>
-
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Checklist Master</label>
-        <select
-            name="checklist_master"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-        >
-            <option value="">Select Checklist Master</option>
-            @foreach($customerChecklist as $checklist)
-                <option value="{{ $checklist }}" {{ old('checklist_master', $equipment->checklist_master ?? '') === $checklist ? 'selected' : '' }}>{{ $checklist }}</option>
-            @endforeach
-        </select>
-        <p class="mt-2 text-xs text-gray-500">
-            Customer delivery and return inspection checklist
-        </p>
-    </div>
-</div>
-
-
-         {{-- Equipment Service --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-2 mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench h-5 w-5 text-indigo-600"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-        <h3 class="text-lg font-bold text-gray-900">Equipment Service</h3>
-    </div>
-
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Service Schedule</label>
-        <select
-            name="equipment_service_list"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-        >
-            <option value="">Select Equipment Service List</option>
-            @foreach($equipmentServiceList as $val)
-                <option value="{{ $val }}" {{ old('equipment_service_list', $equipment->equipment_service_list ?? '') === $val ? 'selected' : '' }}>{{ $val }}</option>
-            @endforeach
-        </select>
-        <p class="mt-2 text-xs text-gray-500">
-            Maintenance schedule and service history tracking
-        </p>
-    </div>
-</div>
         {{-- Equipment Part List --}}
-         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-3 mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-5 w-5 text-purple-600"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
-        <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
-    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center space-x-3 mb-4">
+                <x-heroicon-o-cube class="h-5 w-5 text-purple-600" />
+                <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
+            </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Parts List Template</label>
-        <select
-            name="equipment_parts_list"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-        >
-            <option value="">Select Equipment Part List</option>
-            @foreach($equipmentPartsList as $parts)
-                <option value="{{ $parts }}" {{ old('equipment_parts_list', $equipment->equipment_parts_list ?? '') === $parts ? 'selected' : '' }}>{{ $parts }}</option>
-            @endforeach
-        </select>
-        <p class="mt-2 text-xs text-gray-500">
-            Assign a parts list template for this equipment
-        </p>
-    </div>
-</div>
+            <div>
+                <label for="part_id" class="block text-sm font-medium text-gray-700 mb-1">Parts List Template</label>
+                {!! html()->select('part_id', ['' => 'Select Parts List Template'])->class([
+                        'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                        'border-red-500' => $errors->has('part_id'),
+                    ]) !!}
+                <p class="mt-2 text-xs text-gray-500">
+                    Assign a parts list template for this equipment
+                </p>
+                @error('part_id')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
     </div>
 
     {{-- Equipment Notes - Full Width --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <div class="flex items-center space-x-2 mb-4">
-            <svg class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <x-heroicon-o-information-circle class="h-5 w-5 text-gray-600" />
             <h3 class="text-lg font-bold text-gray-900">Equipment Notes</h3>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="equipment_notes" class="block text-sm font-medium text-gray-700 mb-2">
                 Additional Notes and Comments
             </label>
-            <textarea
-                name="equipment_notes"
-                rows="4"
-                placeholder="Enter any additional notes, maintenance history, special instructions, or other relevant information about this equipment..."
-                class="tinymce w-full px-4 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-            >{{ old('equipment_notes', $equipment->equipment_notes ?? '') }}</textarea>
+            {!! html()->textarea('equipment_notes')->rows(4)->placeholder(
+                    'Enter any additional notes, maintenance history, special instructions, or other relevant information about this equipment...',
+                )->class([
+                    'tinymce w-full px-4 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none',
+                    'border-red-500' => $errors->has('equipment_notes'),
+                ]) !!}
         </div>
     </div>
 </div>
@@ -526,122 +585,49 @@
 
 
 @push('js')
+    <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+    @vite('resources/admin/js/tinymce.js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const powerTypeSelect = document.querySelector('select[name="power_source_type"]');
+            const hasDefCheckbox = document.getElementById('has_def');
+            const dieselCapacityField = document.querySelector('input[name="diesel_tank_capacity"]').closest('div');
+            const defCapacityField = document.querySelector('input[name="def_tank_capacity"]').closest('div');
+            const gasTankCapacityField = document.querySelector('input[name="gas_tank_capacity"]').closest('div');
+            const standardBatteryCount = document.querySelector('input[name="standard_battery_count"]').closest('div');
+            const expandedBatteryCount = document.querySelector('input[name="expanded_battery_count"]').closest('div');
 
-<script>
-    window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
-</script>
+            function toggleFields() {
+                const powerSourceType = powerTypeSelect.value;
 
+                // Hide all fields first
+                dieselCapacityField.classList.add('hidden');
+                defCapacityField.classList.add('hidden');
+                hasDefCheckbox.closest('div').classList.add('hidden');
+                gasTankCapacityField.classList.add('hidden');
+                standardBatteryCount.classList.add('hidden');
+                expandedBatteryCount.classList.add('hidden');
 
-<!-- Added by Jignesh Parmar -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-    const hasDefCheckbox = document.getElementById('has-def-checkbox');
-    const defField = document.getElementById('def-capacity-field');
+                // Show only relevant fields based on power source type
+                if (powerSourceType === 'diesel') {
+                    dieselCapacityField.classList.remove('hidden');
+                    hasDefCheckbox.closest('div').classList.remove('hidden');
+                    if (hasDefCheckbox.checked) {
+                        defCapacityField.classList.remove('hidden');
+                    }
+                } else if (powerSourceType === 'gas') {
+                    gasTankCapacityField.classList.remove('hidden');
+                } else if (powerSourceType === 'batteries') {
+                    standardBatteryCount.classList.remove('hidden');
+                    expandedBatteryCount.classList.remove('hidden');
+                }
+            }
 
-    if (hasDefCheckbox) {
-        hasDefCheckbox.addEventListener('change', function () {
-            defField.style.display = this.checked ? 'block' : 'none';
+            powerTypeSelect.addEventListener('change', toggleFields);
+            hasDefCheckbox.addEventListener('change', toggleFields);
+
+            // Initial toggle based on existing values
+            toggleFields();
         });
-    }
-});
-
-
-document.addEventListener('DOMContentLoaded', function () {
-    const powerTypeSelect = document.getElementById('power-type-select');
-    const fieldsContainer = document.getElementById('power-type-fields');
-
-    const templates = {
-        diesel: `
-    <div class="flex items-center space-x-2 py-2.5">
-        <input type="checkbox" name="has_def" id="has-def-checkbox"
-            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-        <label class="text-sm font-medium text-gray-700">Has DEF (Diesel Exhaust Fluid)</label>
-    </div>
-    <div>
-        <label class="jsp block text-sm font-medium text-gray-700 mb-1">Diesel Tank Capacity (Gallons)</label>
-        <input type="number" name="diesel_tank_capacity" placeholder="0" min="0" max="100000" step="0.1"
-            class="jsp w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2
-                   focus:ring-blue-500 focus:border-blue-500 transition-colors" value="">
-    </div>
-    <div id="def-capacity-field" style="display:none;">
-        <label class="block text-sm font-medium text-gray-700 mb-1" style="padding-top:15px">DEF Tank Capacity (Gallons)</label>
-        <input type="number" name="def_capacity"  placeholder="0" min="0" max="100000" step="0.1"
-            class="jsp w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2
-                   focus:ring-blue-500 focus:border-blue-500 transition-colors" value="">
-    </div>`,
-
-        gas: `
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Gas Tank Capacity (Gallons)</label>
-                <input type="number" name="gas_tank_capacity" placeholder="0" min="0" step="0.1"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value="">
-            </div>
-        `,
-        batteries: `
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Standard Battery Count</label>
-                <input type="number" name="standard_battery_count" placeholder="0" min="0" step="1"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value="">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Expanded Battery Count</label>
-                <input type="number" name="expanded_battery_count" placeholder="0" min="0" step="1"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value="">
-            </div>
-        `
-    };
-
-    powerTypeSelect.addEventListener('change', function () {
-    const selected = this.value;
-    fieldsContainer.innerHTML = templates[selected] || '';
-
-    if (selected === 'diesel') {
-        const hasDefCheckbox = document.getElementById('has-def-checkbox');
-        const defField = document.getElementById('def-capacity-field');
-        hasDefCheckbox.addEventListener('change', function () {
-            defField.style.display = this.checked ? 'block' : 'none';
-        });
-        // Moved the input restriction code here
-                const input = document.querySelector('input[name="diesel_tank_capacity"]');
-                input.addEventListener('input', function() {
-                    if (this.value.length > 6) {
-                        if(this.value > 100000)
-                    {
-                        this.value = 100000;
-                    }
-                    else
-                    {
-                        this.value = this.value.slice(0, 6);
-                    }
-
-                    }
-                });
-                const defInput = document.querySelector('input[name="def_capacity"]');
-                 defInput.addEventListener('input', function() {
-                    if (this.value.length > 6) {
-                        if(this.value > 100000)
-                    {
-                        this.value = 100000;
-                    }
-                    else
-                    {
-                        this.value = this.value.slice(0, 6);
-                    }
-                    }
-                });
-    }
-});
-
-
-
-
-});
-</script>
-<!-- End By Jignesh Parmar -->
-
-<script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
-@vite('resources/admin/js/tinymce.js')
+    </script>
 @endpush

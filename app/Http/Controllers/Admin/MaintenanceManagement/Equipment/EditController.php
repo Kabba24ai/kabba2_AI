@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\ProductCategory;
 
@@ -11,48 +12,8 @@ class EditController extends Controller
     public function __invoke($unique_id)
     {
         $equipment = Equipment::where('unique_id', $unique_id)->firstOrFail();
-        /*
-        $categories = [
-            'Excavators',
-            'Bulldozers',
-            'Loaders',
-            'Generators',
-            'Compressors',
-            'Trucks',
-            'Trailers',
-            'Concrete Equipment',
-            'Lifting Equipment',
-            'Hand Tools'
-        ];
-        */
-        $categories     =   ProductCategory::select('title')->get();
-
-        $equipmentServiceList = [
-            'Excavator Maintenance',
-            'Generator Service',
-            'Dozer Maintenance',
-            'Loader Service',
-            'Compressor Service',
-            'Basic Maintenance',
-            'Heavy Equipment Service'
-        ];
-
-        $equipmentPartsList = [
-            'Excavator Standard Parts',
-            'Generator Parts Kit',
-            'Dozer Parts List',
-            'Loader Parts Template',
-            'Compressor Parts Kit',
-            'Basic Parts List'
-        ];
-
-        $customerChecklist = [
-            'Equipment Delivery Checklist',
-            'Equipment Return Checklist',
-            'Customer Handoff Checklist',
-            'Damage Assessment Checklist',
-            'Basic Customer Checklist'
-        ];
-        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'equipmentServiceList', 'equipmentPartsList','customerChecklist'));
+        $categories = ProductCategory::getHierarchy();
+        $checklistMasters = ChecklistMaster::oldest('checklist_system_name')->pluck('checklist_system_name', 'id')->prepend('Select Checklist Template', '');
+        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'checklistMasters'));
     }
 }

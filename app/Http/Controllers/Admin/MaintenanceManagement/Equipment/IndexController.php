@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\ProductManagement\ProductCategory;
 use Illuminate\Http\Request;
 
 class IndexController extends Controller
@@ -21,11 +22,6 @@ class IndexController extends Controller
         if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
-
-        // Status filter
-        // if ($request->filled('status')) {
-        //     $query->where('status', $request->status);
-        // }
 
         // Service due filter
         if ($request->filled('serviceDue')) {
@@ -54,18 +50,18 @@ class IndexController extends Controller
             }
         }
 
-        $equipment = $query->orderBy('created_at', 'desc')->paginate(50);
+        $equipment = $query->latest('id')->paginate(10);
 
         // Calculate stats
         $stats = [
             'total' => Equipment::count(),
-            'available' => Equipment::where('status', 'available')->count(),
-            'rented' => Equipment::where('status', 'rented')->count(),
-            'maintenance' => Equipment::where('status', 'maintenance')->count(),
-            'damaged' => Equipment::where('status', 'damaged')->count(),
+            'available' => Equipment::where('current_status', 'available')->count(),
+            'rented' => Equipment::where('current_status', 'rented')->count(),
+            'maintenance' => Equipment::where('current_status', 'maintenance')->count(),
+            'damaged' => Equipment::where('current_status', 'damaged')->count(),
         ];
 
-        $categories = Equipment::distinct()->pluck('category')->filter()->values();
+        $categories = ProductCategory::getHierarchy();
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {

@@ -1,5 +1,7 @@
 @extends('admin.layouts.app')
 
+@section('title', 'Update Equipment')
+
 @section('content')
 <div class="h-screen bg-gray-50 flex flex-col overflow-hidden">
     <div class="flex-1 overflow-auto">
@@ -24,7 +26,14 @@
 
         {{-- Main Content --}}
         <div class="p-6">
-            <form action="{{ route('admin.maintenance-management.equipment.edit', $equipment->unique_id) }}" method="POST" class="max-w-5xl">
+            <!-- Form -->            
+            {{ html()->modelForm($equipment, 'PUT')->attributes([
+                    'action' => route('admin.maintenance-management.equipment.edit', $equipment->unique_id),
+                    'id' => 'productForm',
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'max-w-5xl',
+                ])->acceptsFiles()->open() }}
                 @csrf
                 @method('PUT')
                 @include('admin.maintenance_management.equipment.partials._form')
@@ -37,7 +46,7 @@
                         <span>Save Changes</span>
                     </button>
                 </div>
-            </form>
+            {{ html()->form()->close() }}
         </div>
     </div>
 </div>

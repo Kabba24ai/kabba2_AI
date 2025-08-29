@@ -34,7 +34,7 @@ class StoreRequest extends FormRequest
             }
         }
 
-        
+
     }
 
     public function rules()
@@ -84,8 +84,8 @@ class StoreRequest extends FormRequest
             'gas_tank_capacity'     => 'nullable|required_if:power_source_type,gas|numeric|min:0',
 
             // battery counts only apply for "batteries"
-            'standard_battery_count' => 'nullable|required_if:power_source_type,batteries|integer|min:0',
-            'expanded_battery_count' => 'nullable|required_if:power_source_type,batteries|integer|min:0',
+            'standard_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
+            'expanded_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
             'checklist_master_id' => 'nullable|exists:checklist_masters,id',
 
             // add rules for selects present in form (adjust table names if different)

@@ -82,8 +82,8 @@ class UpdateRequest extends FormRequest
             'def_tank_capacity'     => 'nullable|required_if:has_def,true|numeric|min:0',
             'gas_tank_capacity'     => 'nullable|required_if:power_source_type,gas|numeric|min:0',
 
-            'standard_battery_count' => 'nullable|required_if:power_source_type,batteries|integer|min:0',
-            'expanded_battery_count' => 'nullable|required_if:power_source_type,batteries|integer|min:0',
+            'standard_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
+            'expanded_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
 
             'checklist_master_id' => 'nullable|exists:checklist_masters,id',
             'equipment_service_id' => 'nullable|exists:equipment_services,id',

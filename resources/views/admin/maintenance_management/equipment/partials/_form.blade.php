@@ -150,7 +150,7 @@
                     <label for="date_acquired" class="block text-sm font-medium text-gray-700 mb-1">
                         Date Acquired
                     </label>
-                    {!! html()->text('date_acquired',$equipment->date_acquired ? \App\Helpers\CustomHelper::formatDate($equipment->date_acquired) : '')->class([
+                    {!! html()->text('date_acquired', isset($equipment) ? ($equipment->date_acquired ? \App\Helpers\CustomHelper::formatDate($equipment->date_acquired) : '') : '')->class([
                             'datepicker w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('date_acquired'),
                             'border-red-500' => $errors->has('date_acquired'),

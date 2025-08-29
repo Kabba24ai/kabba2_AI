@@ -16,7 +16,7 @@ class EditController extends Controller
     public function __invoke(Request $request, $unique_id)
     {
 
-        $equipmentCategories = ProductCategory::pluck('title', 'id')->toArray();
+        $equipmentCategories = ProductCategory::getHierarchy();
 
         $checklisttemplate = RentalReadyChecklistTemplate::with([
             'questions',

@@ -14,7 +14,10 @@ class IndexController extends Controller
 
         $checklistMasters = ChecklistMaster::with('category', 'rentalReadyTemplate')->orderBy('checklist_system_name', 'asc')->get();
 
-        $equipmentCategories = ProductCategory::pluck('title', 'slug')->toArray();
+        // $equipmentCategories = ProductCategory::pluck('title', 'slug')->toArray();
+
+        $equipmentCategories = ProductCategory::getHierarchy();
+        // $equipmentCategories = ProductCategory::getHierarchy();
 
 
         // Return the view with the settings data

@@ -7,11 +7,11 @@ use App\Helpers\ModelHelper;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChecklistMaster extends Model
 {
-    use HasFactory;
-
+    use SoftDeletes , HasFactory;
     protected $table = 'checklist_masters';
 
     protected $fillable = [

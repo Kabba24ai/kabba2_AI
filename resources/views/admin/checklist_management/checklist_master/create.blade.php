@@ -230,7 +230,7 @@
                         <x-heroicon-o-document class="w-6 h-6 text-green-600" />
                         <div>
                             <p class="font-semibold text-gray-900 leading-tight template-name">{{ $template->template_name }}</p>
-                            <p class="text-sm text-gray-600">{{ $template->equipmentCategory->title ?? 'No Category' }}</p>
+                            <p class="text-sm text-gray-600">{{ $template->equipmentCategory->getHierarchyLabel() ?? 'No Category' }}</p>
                         </div>
                     </div>
                     <p class="text-sm text-gray-600 mt-1">{{ $template->description ?? 'No description' }}</p>

@@ -95,9 +95,9 @@
 
             @foreach ($checklistMasters as $Master)
 
-            <tr data-status="{{ $Master->category->slug }}">
+            <tr data-status="{{ $Master->equipment_category_id }}">
                 <td class="px-4 py-3 font-semibold text-gray-900">{{ $Master->checklist_system_name }}</td>
-                <td class="px-4 py-3"><span class="bg-gray-100 px-2 py-1 rounded-full text-xs font-medium">{{ $Master->category->title }}</span></td>
+                <td class="px-4 py-3"><span class="bg-gray-100 px-2 py-1 rounded-full text-xs font-medium">{{ $Master->category->getHierarchyLabel() }}</span></td>
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-2">
                         <x-heroicon-o-document-text class="w-4 h-4 text-blue-600" />
@@ -215,11 +215,15 @@
         // Add loading effect
         wrapper.classList.add('opacity-50', 'pointer-events-none');
 
-        const selectedCategory = categoryFilter.value.toLowerCase();
+        const selectedCategory = String(categoryFilter.value);
         const searchQuery = searchInput.value.toLowerCase();
 
+
+
+
+
         rows.forEach(row => {
-            const category = row.getAttribute('data-status')?.toLowerCase() || '';
+            const category = String(row.getAttribute('data-status') || '');
             const systemName = row.querySelector('td')?.textContent.toLowerCase() || '';
 
             const matchesCategory = !selectedCategory || selectedCategory === category;

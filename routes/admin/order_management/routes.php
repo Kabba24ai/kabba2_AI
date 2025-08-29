@@ -22,4 +22,8 @@ Route::prefix('order-management')
 
     // schedules
     require base_path('routes/admin/order_management/schedules/routes.php');
+
+        // orders
+    require base_path('routes/admin/order_management/equipment_inventory/routes.php');
+
 });

@@ -6,7 +6,7 @@
                         </div>
 
                         <!-- Center: Tax Status (Responsive) -->
-                        <div class="text-end md:text-center w-full md:w-auto">
+                        <div class="text-left md:text-center w-full md:w-auto">
                             <p class="text-xs tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
                             <div class="inline-flex items-center gap-2">
                                 <span class="inline-flex items-center px-2 gap-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
@@ -89,7 +89,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-6 h-6"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-500">Open Invoices</p>
+                                <p class="text-sm text-gray-500">Open Invoices</p>
                                 <p class="text-xl font-semibold text-gray-900">2</p>
                             </div>
                         </div>

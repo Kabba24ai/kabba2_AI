@@ -90,7 +90,7 @@
 <section class="">
 
     <!-- Step 1 -->
-    <div id="step1" class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+    <div id="step1" class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
         <div>
             <!-- Header Icon and Title -->
             <div class="flex flex-col items-center text-center space-y-1 mb-8">
@@ -157,7 +157,7 @@
     </div>
 
     <!-- Step 2 -->
-    <div id="step2" class="hidden max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+    <div id="step2" class="hidden max-w-7xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
 
         <!-- Step Title -->
         <div class="bg-green-50 border border-green-200 text-green-800 text-sm p-4 rounded-md mb-6">
@@ -221,7 +221,7 @@
                         <x-heroicon-o-document class="w-6 h-6 text-green-600" />
                         <div>
                             <p class="font-semibold text-gray-900 leading-tight template-name">{{ $template->template_name }}</p>
-                            <p class="text-sm text-gray-600">{{ $template->equipmentCategory->title ?? 'No Category' }}</p>
+                            <p class="text-sm text-gray-600">{{ $template->equipmentCategory->getHierarchyLabel() ?? 'No Category' }}</p>
                         </div>
                     </div>
                     <p class="text-sm text-gray-600 mt-1">{{ $template->description ?? 'No description' }}</p>
@@ -295,7 +295,7 @@
     </div>
 
     <!-- Step 3 -->
-    <div id="step3" class="hidden max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+    <div id="step3" class="hidden max-w-7xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
 
         <!-- Step Title -->
         <div class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-md mb-6">

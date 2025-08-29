@@ -429,7 +429,7 @@
 </script>
 
 <!-- JavaScript -->
-<script>
+<!-- <script>
     document.addEventListener('DOMContentLoaded', () => {
         const modalWrapper = document.getElementById('taxdocModalWrapper');
         const openBtn = document.getElementById('opentaxdocModal');
@@ -454,7 +454,7 @@
             }
         });
     });
-</script>
+</script> -->
 
 
 <script>

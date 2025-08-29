@@ -67,7 +67,7 @@
                               </span>
                               </div>
                               <p class="text-sm text-gray-600 mb-1">{{ $template->description ?? 'N/A'}} </p>
-                              <p class="text-sm text-gray-600 mb-1">Equipment Category: {{ $template->equipmentCategory->title ?? 'No Category Assigned' }}</p>
+                              <p class="text-sm text-gray-600 mb-1">Equipment Category: {{ $template->equipmentCategory->getHierarchyLabel() ?? 'No Category Assigned' }}</p>
                               <p class="text-sm text-gray-600 mt-1">{{ $template->questions->count() }} {{ Str::plural('question', $template->questions->count()) }}</p>
                           </div>
 

@@ -36,16 +36,16 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
 
                         <!-- Personal Information -->
                         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
                             <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
                                 <x-heroicon-o-user class="w-5 h-5 text-gray-900" /> Personal Information
                             </h3>
-                            <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
 
-                                <div>
+                                <div class="min-w-0">
                                     <label class="text-xs text-gray-500 font-medium">First Name *</label>
                                     <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
                                     <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
@@ -66,7 +66,7 @@
 
                                 </div>
 
-                                <div>
+                                <div class="min-w-0">
                                     <label class="text-xs text-gray-500 font-medium">Last Name *</label>
                                     <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
                                     <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
@@ -85,7 +85,7 @@
 
                                 </div>
 
-                                <div class="col-span-2">
+                                <div class="sm:col-span-2 min-w-0">
                                     <label class="text-xs text-gray-500 font-medium">Email Address *</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-1 text-sm">
@@ -117,7 +117,7 @@
 
                                 </div>
 
-                                <div class="col-span-2">
+                                <div class="sm:col-span-2 min-w-0">
                                     <label class="text-xs text-gray-500 font-medium">Phone Number *</label>
                                     <div class=" static-view">
                                         <p class="text-gray-900 flex items-center gap-1 text-gray-900">
@@ -280,7 +280,7 @@
                                     <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
 
 
-                                    <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
+                                    <h3 class="text-base font-semibold mb-4 flex flex-wrap items-start gap-1">
                                         <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
                                         {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
                                         @if ($addresse && $addresse->is_primary)
@@ -290,7 +290,7 @@
 
                                     <div class="space-y-4">
 
-                                    <div class="grid grid-cols-2 gap-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div class="edit-view">
                                                 <label class="text-xs text-gray-500 font-medium mb-1">First Name *</label>
                                                 {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
@@ -341,7 +341,7 @@
                                                 ])->required() !!}
                                         </div>
 
-                                        <div class="grid grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div class="edit-view">
                                                 <label class="text-xs text-gray-500 font-medium mb-1">City *</label>
                                                 {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
@@ -369,7 +369,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="grid grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div class="edit-view">
                                                         <label class="text-xs text-gray-500 font-medium mb-1">State *</label>
                                                         {!! html()
@@ -516,7 +516,7 @@
 
                     <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                            <div class="flex items-center gap-1">
+                            <div class="flex gap-1 flex-wrap items-start ">
                                 <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
                                 <h2 class="text-base font-semibold flex items-center gap-1">Tax Exempt Status</h2>
                                 <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
@@ -769,9 +769,9 @@
         openBtn.addEventListener('click', openModal);
         closeBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) closeModal();
-        });
+        // modalWrapper.addEventListener('click', (e) => {
+        //     if (e.target === modalWrapper) closeModal();
+        // });
 
 
         // Handle AJAX form submission

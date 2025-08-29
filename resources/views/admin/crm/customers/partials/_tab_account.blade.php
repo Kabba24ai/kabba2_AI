@@ -45,9 +45,9 @@
                     <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
                         <x-heroicon-o-user class="w-5 h-5 text-gray-900" /> Personal Information
                     </h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
 
-                        <div>
+                        <div class="min-w-0">
                             <label class="text-xs text-gray-500 font-medium">First Name *</label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
                              <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
@@ -68,7 +68,7 @@
 
                         </div>
 
-                        <div>
+                        <div  class="min-w-0">
                             <label class="text-xs text-gray-500 font-medium">Last Name *</label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
@@ -88,7 +88,7 @@
 
                         </div>
 
-                        <div class="col-span-2">
+                        <div class="sm:col-span-2 min-w-0">
                             <label class="text-xs text-gray-500 font-medium">Email Address *</label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-1 text-sm">
@@ -120,7 +120,7 @@
 
                         </div>
 
-                        <div class="col-span-2">
+                        <div class="sm:col-span-2 min-w-0">
                             <label class="text-xs text-gray-500 font-medium">Phone Number *</label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-1 text-gray-900">
@@ -291,7 +291,7 @@
 
             <div class="space-y-4">
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="edit-view">
                         <label class="text-xs text-gray-500 font-medium">First Name *</label>
                         {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
@@ -349,7 +349,7 @@
                         ])->required() !!}
                       </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="edit-view">
                         <label class="text-xs text-gray-500 font-medium">City *</label>
                         {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
@@ -377,7 +377,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="edit-view">
                                 <label class="text-xs text-gray-500 font-medium">State *</label>
                                 {!! html()
@@ -620,7 +620,7 @@
                             !!}
 
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <span class="text-xs text-gray-500 font-medium">Valid Until:</span>
 
 
@@ -630,7 +630,7 @@
 
                             <div class="edit-view">
                             <input
-                                class="w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                                class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
                                 value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) }}"
                                 type="text"
                                 name="tax_document_valid_until"
@@ -643,7 +643,7 @@
 
 
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <span class="text-xs text-gray-500 font-medium">Uploaded:</span>
 
                             <div class="static-view">
@@ -651,7 +651,7 @@
                             </div>
                             <div class="edit-view">
                                 <input
-                                    class="w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                                    class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
                                     type="text"
                                     value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) }}"
                                     name="tax_document_upload_date"
@@ -967,9 +967,9 @@ function confirmAndDelete(id) {
         closeBtn?.addEventListener('click', closeModal);
         cancelBtn?.addEventListener('click', closeModal);
 
-        resetModal?.addEventListener('click', (e) => {
-            if (e.target === resetModal) closeModal();
-        });
+        // resetModal?.addEventListener('click', (e) => {
+        //     if (e.target === resetModal) closeModal();
+        // });
     });
 </script>
 
@@ -1160,9 +1160,9 @@ function resetTaxDocModalForm() {
     openBtn.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
-    modalWrapper.addEventListener('click', (e) => {
-        if (e.target === modalWrapper) closeModal();
-    });
+    // modalWrapper.addEventListener('click', (e) => {
+    //     if (e.target === modalWrapper) closeModal();
+    // });
 
 
     // Handle AJAX form submission

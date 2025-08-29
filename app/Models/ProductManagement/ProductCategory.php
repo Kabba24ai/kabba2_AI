@@ -196,4 +196,10 @@ class ProductCategory extends Model
             self::flattenCategory($child, $childrenByParent, $result, $level + 1);
         }
     }
+
+    public function getHierarchyLabel(): string
+    {
+        $allHierarchy = self::getHierarchy();
+        return $allHierarchy[$this->id] ?? $this->title ?? 'No Category';
+    }
 }

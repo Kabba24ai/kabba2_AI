@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('equipment', function (Blueprint $table) {
-            $table->dropColumn([
+            $columnsToDrop = [
                 'rental_ready_checklist',
                 'equipment_service_list',
                 'equipment_parts_list',
@@ -21,11 +21,25 @@ return new class extends Migration
                 'service_interval',
                 'current_hours',
                 'last_service',
-            ]);
+            ];
 
-            $table->dropIndex('equipments_category_status_index');
-            $table->dropIndex('equipments_equipment_id_index');
-            $table->dropIndex('equipments_status_index');
+            foreach ($columnsToDrop as $column) {
+                if (Schema::hasColumn('equipment', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
+
+            $indexesToDrop = [
+                'equipments_category_status_index',
+                'equipments_equipment_id_index',
+                'equipments_status_index',
+            ];
+
+            foreach ($indexesToDrop as $index) {
+                if (Schema::hasTable('equipment') && Schema::hasIndex('equipment', $index)) {
+                    $table->dropIndex($index);
+                }
+            }
 
             $table->enum('has_def', ['Yes', 'No'])->default('No')->change();
             $table->enum('power_source_type', ['diesel', 'gas', 'batteries'])->nullable()->change();

@@ -99,8 +99,8 @@
                                         <select id="orderTypeSelect" name="order_type"
                                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
                                             required>
-                                            <option value="new">New Order</option>
-                                            <option value="duplicate">Duplicate Order</option>
+                                            <option value="new">New Independent Order</option>
+                                            <option value="duplicate">Related to Existing Order</option>
                                         </select>
                                     </div>
                                     <div id="duplicateOrderSection" class="hidden">

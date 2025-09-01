@@ -50,14 +50,7 @@ class UserSeeder extends Seeder
                 'email' => 'akshay@kabba.com',
                 'password' => Hash::make('Akshay#1234'),
                 'status' => 'Active',
-            ],
-            [
-                'first_name' => 'Spyro',
-                'last_name' => 'Dennis',
-                'email' => 'Spyro@kabba.com',
-                'password' => Hash::make('Spyro#1234'),
-                'status' => 'Active',
-            ],
+            ]
         ];
 
         $role_item = \Spatie\Permission\Models\Role::orderBy('id', 'ASC')->first();

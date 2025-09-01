@@ -165,7 +165,7 @@
         </div>
     </section>
 
-    <section class="pb-[60px]">
+    {{-- <section class="pb-[60px]">
         <div
             class="container mx-auto md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] px-[30px] md:px-[.7rem] relative overflow-hidden">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-y-10 lg-gap-10 2xl:gap-y-12 md:gap-8 ">
@@ -183,5 +183,5 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> --}}
 @endsection

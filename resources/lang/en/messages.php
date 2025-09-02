@@ -23,6 +23,8 @@ return [
                 'products' => require base_path('resources/lang/en/api/admin/v1/products/messages.php'),
                 'product_categories' => require base_path('resources/lang/en/api/admin/v1/product_categories/messages.php'),
                 'locations' => require base_path('resources/lang/en/api/admin/v1/locations/messages.php'),
+                'equipment' => require base_path('resources/lang/en/api/admin/v1/equipment/messages.php'),
+                'customer_checklists' => require base_path('resources/lang/en/api/admin/v1/customer_checklists/messages.php'),
             ],
         ],
     ],

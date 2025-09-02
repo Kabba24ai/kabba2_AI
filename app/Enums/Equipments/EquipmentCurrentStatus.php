@@ -19,4 +19,8 @@ enum EquipmentCurrentStatus : string
         };
     }
 
+    public static function getValues(): array
+    {
+        return array_map(fn($status) => $status->value, self::cases());
+    }
 }

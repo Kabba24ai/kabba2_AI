@@ -27,6 +27,11 @@ class CustomerAdminTemplate extends Model
         return $this->hasMany(CustomerAdminTemplateQuestion::class, 'template_id');
     }
 
+    public function templateQuestions()
+    {
+        return $this->hasMany(CustomerAdminTemplateQuestion::class, 'template_id')->orderBy('index_number', 'asc');
+    }
+
      protected static function boot()
     {
         parent::boot();

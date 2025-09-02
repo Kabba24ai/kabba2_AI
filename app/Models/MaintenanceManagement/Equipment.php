@@ -12,6 +12,8 @@ use App\Helpers\ModelHelper;
 // Equipments
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Enums\Equipments\EquipmentPowerSourceType;
+use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 use App\Models\ProductManagement\ProductCategory;
 
 class Equipment extends Model
@@ -67,8 +69,25 @@ class Equipment extends Model
         });
     }
 
-    public function product_category()
+    public function productCategory()
     {
         return $this->belongsTo(ProductCategory::class);
+    }
+
+    public function checklistMaster()
+    {
+        return $this->belongsTo(ChecklistMaster::class, 'checklist_master_id');
+    }
+
+    public function customerAdminTemplates()
+    {
+        return $this->hasManyThrough(
+            CustomerAdminTemplate::class, // Final model you want
+            ChecklistMaster::class, // Intermediate model
+            'id', // Foreign key on ChecklistMaster (local key for Equipment)
+            'checklist_master_id', // Foreign key on CustomerChecklist
+            'checklist_master_id', // Local key on Equipment
+            'id', // Local key on ChecklistMaster
+        );
     }
 }

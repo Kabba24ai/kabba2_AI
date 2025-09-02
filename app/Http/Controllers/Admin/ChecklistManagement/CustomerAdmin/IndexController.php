@@ -26,7 +26,8 @@ class IndexController extends Controller
         ])->orderBy('template_name', 'asc')->get();
 
 
-    $equipmentCategories = ProductCategory::pluck('title','id')->toArray();
+    //$equipmentCategories = ProductCategory::pluck('title','id')->toArray();
+    $equipmentCategories = ProductCategory::getHierarchy();
 
 
         // Return the view with the settings data

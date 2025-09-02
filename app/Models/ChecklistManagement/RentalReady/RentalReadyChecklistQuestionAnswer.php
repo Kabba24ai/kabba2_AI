@@ -11,8 +11,7 @@ class RentalReadyChecklistQuestionAnswer extends Model
 
     protected $fillable = ['unique_id', 'answer_name', 'question_id', 'type', 'index_number'];
 
-
-     protected static function boot()
+    protected static function boot()
     {
         parent::boot();
 
@@ -22,7 +21,6 @@ class RentalReadyChecklistQuestionAnswer extends Model
             }
         });
     }
-
 
     public function question() {
         return $this->belongsTo(RentalReadyChecklistQuestion::class, 'question_id');

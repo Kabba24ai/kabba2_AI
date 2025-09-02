@@ -19,7 +19,7 @@ class ChecklistMaster extends Model
         'checklist_system_name',
         'equipment_category_id',
         'rental_ready_template_id',
-        // 'customer_admin_template_id',
+        'customer_admin_template_id',
     ];
 
     /**

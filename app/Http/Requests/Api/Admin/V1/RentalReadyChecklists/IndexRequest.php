@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Requests\Api\Admin\V1\CustomerChecklist;
+namespace App\Http\Requests\Api\Admin\V1\RentalReadyChecklists;
 
-use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Http\Requests\ApiBaseFormRequest;
 
 class IndexRequest extends ApiBaseFormRequest

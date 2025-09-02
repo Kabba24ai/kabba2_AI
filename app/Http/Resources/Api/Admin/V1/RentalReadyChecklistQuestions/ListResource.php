@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Http\Resources\Api\Admin\V1\RentalReadyChecklistQuestions;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistCategories\ListResource as RentalReadyChecklistCategoriesListResource;
+use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistQuestionAnswers\ListResource as RentalReadyChecklistQuestionAnswersListResource;
+
+
+class ListResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray(Request $request)
+    {
+        $return = [
+            'id' => $this->id ?? 0,
+            'unique_id' => $this->unique_id ?? '',
+            'question_name' => $this->question_name ?? '',
+            'category_id' => $this->category_id ?? 0,
+            'required_question' => $this->required_question ?? false,
+            'category' => new RentalReadyChecklistCategoriesListResource($this->whenLoaded('category')),
+            'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this->whenLoaded('answers')),
+        ];
+
+        return $return;
+    }
+}

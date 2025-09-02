@@ -81,13 +81,13 @@ class Equipment extends Model
 
     public function customerAdminTemplates()
     {
-        return $this->hasManyThrough(
-            CustomerAdminTemplate::class, // Final model you want
-            ChecklistMaster::class, // Intermediate model
-            'id', // Foreign key on ChecklistMaster (local key for Equipment)
-            'checklist_master_id', // Foreign key on CustomerChecklist
-            'checklist_master_id', // Local key on Equipment
-            'id', // Local key on ChecklistMaster
+        return $this->hasOneThrough(
+            CustomerAdminTemplate::class, // related
+            ChecklistMaster::class,     // through
+            'id',                       // through.firstKey      -> checklist_masters.id
+            'id',                       // related.secondKey     -> customer_admin_templates.id
+            'checklist_master_id',      // parent.localKey       -> equipment.checklist_master_id
+            'customer_admin_template_id'// through.secondLocalKey-> checklist_masters.customer_admin_template_id
         );
     }
 }

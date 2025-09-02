@@ -8,11 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-
-
 class RentalReadyChecklistTemplateQuestion extends Model
 {
-     use HasFactory , SoftDeletes;
+    use HasFactory , SoftDeletes;
 
     protected $fillable = [
         'template_id',
@@ -21,7 +19,7 @@ class RentalReadyChecklistTemplateQuestion extends Model
         'unique_id',
     ];
 
-     protected static function boot()
+    protected static function boot()
     {
         parent::boot();
 

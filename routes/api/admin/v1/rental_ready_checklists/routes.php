@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 // Controllers
-use App\Http\Controllers\Api\Admin\V1\CustomerChecklists\IndexController;
+use App\Http\Controllers\Api\Admin\V1\RentalReadyChecklists\IndexController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +16,6 @@ use App\Http\Controllers\Api\Admin\V1\CustomerChecklists\IndexController;
 |
 */
 
-Route::group(['prefix' => 'customer-checklists'], function () {
-    Route::post('/question-answers', IndexController::class);
+Route::group(['prefix' => 'rental-ready-checklists'], function () {
+    Route::post('/', IndexController::class);
 });

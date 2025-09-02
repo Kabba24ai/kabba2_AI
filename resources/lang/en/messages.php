@@ -25,6 +25,7 @@ return [
                 'locations' => require base_path('resources/lang/en/api/admin/v1/locations/messages.php'),
                 'equipment' => require base_path('resources/lang/en/api/admin/v1/equipment/messages.php'),
                 'customer_checklists' => require base_path('resources/lang/en/api/admin/v1/customer_checklists/messages.php'),
+                'rental_ready_checklists' => require base_path('resources/lang/en/api/admin/v1/rental_ready_checklists/messages.php'),
             ],
         ],
     ],

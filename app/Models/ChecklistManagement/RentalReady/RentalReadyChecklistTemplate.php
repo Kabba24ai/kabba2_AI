@@ -28,7 +28,12 @@ class RentalReadyChecklistTemplate extends Model
         return $this->hasMany(RentalReadyChecklistTemplateQuestion::class, 'template_id');
     }
 
-     protected static function boot()
+    public function templateQuestions()
+    {
+        return $this->hasMany(RentalReadyChecklistTemplateQuestion::class, 'template_id')->orderBy('index_number', 'asc');
+    }
+
+    protected static function boot()
     {
         parent::boot();
 
@@ -44,6 +49,4 @@ class RentalReadyChecklistTemplate extends Model
     {
         return $this->belongsTo(ProductCategory::class, 'equipment_category_id');
     }
-
-
 }

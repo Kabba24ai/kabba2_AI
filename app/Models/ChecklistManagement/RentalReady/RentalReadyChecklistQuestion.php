@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class RentalReadyChecklistQuestion extends Model
 {
     use SoftDeletes;
+
     protected $fillable = ['unique_id', 'question_name', 'category_id', 'required_question'];
 
     protected static function boot()
@@ -21,12 +22,11 @@ class RentalReadyChecklistQuestion extends Model
         });
     }
 
-
     public function category() {
         return $this->belongsTo(RentalReadyChecklistCategory::class, 'category_id');
     }
 
     public function answers() {
-        return $this->hasMany(RentalReadyChecklistQuestionAnswer::class, 'question_id');
+        return $this->hasMany(RentalReadyChecklistQuestionAnswer::class, 'question_id')->orderBy('index_number', 'asc');
     }
 }

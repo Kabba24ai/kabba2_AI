@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api\Admin\V1\CustomerChecklist;
+namespace App\Http\Controllers\Api\Admin\V1\CustomerChecklists;
 
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
 // Requests
-use App\Http\Requests\Api\Admin\V1\CustomerChecklist\IndexRequest;
+use App\Http\Requests\Api\Admin\V1\CustomerChecklists\IndexRequest;
 
 // Resources
 use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource;
@@ -28,7 +28,7 @@ class IndexController extends BaseController
         $uniqueId = $validated['equipment_unique_id'];
 
         $equipment = Equipment::query()
-            ->with(['checklistMaster.customerAdminTemplate.templateQuestions.question.answers'])
+            ->with(['checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category'])
             ->where('unique_id', $uniqueId)
             ->first();
 

@@ -20,7 +20,7 @@ class EditController extends Controller
 
         $checklisttemplate = RentalReadyChecklistTemplate::with([
             'questions',
-        ])->orderBy('id', 'desc')->get();
+        ])->orderBy('id', 'desc')->where('active_template', 1)->get();
 
         $checklistmaster = ChecklistMaster::with('category', 'rentalReadyTemplate')->where('unique_id', $unique_id)->first();
 

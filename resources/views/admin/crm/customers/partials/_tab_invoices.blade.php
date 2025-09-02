@@ -22,7 +22,7 @@
             <!-- Invoice Status Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 <!-- Paid -->
-                <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm">
                     <div>
                         <p class="text-sm text-gray-500">Paid Invoices</p>
                         <p class="text-xl font-bold text-gray-900">$0.00</p>
@@ -40,7 +40,7 @@
                 </div>
 
                 <!-- Pending -->
-                <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm">
                     <div>
                         <p class="text-sm text-gray-500">Pending Invoices</p>
                         <p class="text-xl font-bold text-gray-900">$0.00</p>
@@ -53,7 +53,7 @@
                 </div>
 
                 <!-- Overdue -->
-                <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm ">
+                <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm ">
                     <div>
                         <p class="text-sm text-gray-500">Overdue Invoices</p>
                         <p class="text-xl font-bold text-gray-900">$0.00</p>

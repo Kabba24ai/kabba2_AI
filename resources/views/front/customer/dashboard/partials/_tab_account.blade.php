@@ -39,7 +39,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
 
                         <!-- Personal Information -->
-                        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+                        <div class="bg-white rounded-md shadow-sm p-5 border border-gray-200">
                             <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
                                 <x-heroicon-o-user class="w-5 h-5 text-gray-900" /> Personal Information
                             </h3>
@@ -147,7 +147,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+                        <div class="bg-white rounded-md shadow-sm p-5 border border-gray-200">
                             <h3 class="text-md font-semibold mb-4 flex items-center gap-1">
                                 <x-heroicon-o-building-office class="w-5 h-5 text-gray-900" /> Company Information
                             </h3>
@@ -414,7 +414,7 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <!-- Account Status -->
-                        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                        <div class="bg-white p-5 rounded-md shadow-sm border border-gray-200">
                             <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
                                 <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -469,8 +469,8 @@
                         </div>
 
                         <!-- Credit Information -->
-                        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-                            <div class="flex gap-2 items-start mb-4">
+                        <div class="bg-white p-5 rounded-md shadow-sm border border-gray-200">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
                                 <h3 class="text-base font-semibold flex items-center gap-1"> 
                                     <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
                                     Credit Information

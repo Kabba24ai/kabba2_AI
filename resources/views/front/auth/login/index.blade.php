@@ -145,10 +145,24 @@
                 </div>
                 <div class="p-4 md:p-5 space-y-4">
                     <form @submit.prevent="">
-                        <input type="password" name="admin_passcode" id="adminPasscodeInput"
+                        <div class="relative mt-2">
+                            <input type="password" name="admin_passcode" id="adminPasscodeInput"
                             class="mt-2 block w-full px-4 py-3 text-sm text-gray-900 bg-light border border-gray-300 rounded focus:border-yellow-400 focus:outline-none focus:ring-0 transition"
                             placeholder="Admin Code" autocomplete="off" />
 
+                            <!-- Toggle visibility button -->
+                            <button
+                                type="button"
+                                id="togglePass"
+                                aria-label="Show password"
+                                class="absolute inset-y-0 right-3 flex items-center text-gray-500  cursor-pointer"
+                                tabindex="-1"
+                            >
+                                <span id="iconEye"><x-heroicon-s-eye class="w-5 h-5" /></span>
+                                <span id="iconEyeOff" class="hidden"><x-heroicon-s-eye-slash class="w-5 h-5" /></span>
+                            </button>
+                        </div>
+                        
                         <div class="flex justify-end gap-2">
                             <button type="button" @click="showAddressModal = false"
                                 class="border-0 bg-gray-300 font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg hover:bg-gray-400  transition-all duration-500 ease-in-out text-sm ">Cancel</button>
@@ -164,20 +178,37 @@
 @endsection
 
 @push('js')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('openAddressModal').addEventListener('click', () => {
-                const modalRoot = document.querySelector('[x-ref="addressRoot"]');
-                if (modalRoot?._x_dataStack?.[0]) {
-                    modalRoot._x_dataStack[0].showAddressModal = true;
-                }
-            });
-
-            document.getElementById('submitPasscodeBtn').addEventListener('click', function() {
-                const passcode = document.getElementById('adminPasscodeInput').value;
-                document.getElementById('master_passcode_input').value = passcode;
-                document.getElementById('loginForm').submit();
-            });
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('openAddressModal').addEventListener('click', () => {
+            const modalRoot = document.querySelector('[x-ref="addressRoot"]');
+            if (modalRoot?._x_dataStack?.[0]) {
+                modalRoot._x_dataStack[0].showAddressModal = true;
+            }
         });
-    </script>
+
+        document.getElementById('submitPasscodeBtn').addEventListener('click', function() {
+            const passcode = document.getElementById('adminPasscodeInput').value;
+            document.getElementById('master_passcode_input').value = passcode;
+            document.getElementById('loginForm').submit();
+        });
+    });
+</script>
+
+<script>
+  const input  = document.getElementById('adminPasscodeInput');
+  const btn    = document.getElementById('togglePass');
+  const eye    = document.getElementById('iconEye');
+  const eyeOff = document.getElementById('iconEyeOff');
+
+  btn.addEventListener('click', () => {
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    eye.classList.toggle('hidden', show);
+    eyeOff.classList.toggle('hidden', !show);
+    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  });
+</script>
+
+
 @endpush

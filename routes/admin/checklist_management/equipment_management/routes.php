@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\IndexController;
+use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\RentalReadyQuestions ;
 
 
 
@@ -22,5 +23,10 @@ Route::prefix('equipment-management')
 ->group(function ($router) {
 
      Route::get('/', IndexController::class)->name('index');
+
+     Route::post('/get-rental-ready-questions', RentalReadyQuestions::class)->name('get-rental-ready-questions');
+
+    //
+
 
     });

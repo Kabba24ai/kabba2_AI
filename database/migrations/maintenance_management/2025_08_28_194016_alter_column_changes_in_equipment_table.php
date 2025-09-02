@@ -12,65 +12,65 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('equipment', function (Blueprint $table) {
-            $columnsToDrop = [
-                'rental_ready_checklist',
-                'equipment_service_list',
-                'equipment_parts_list',
-                'tech_manager',
-                'location',
-                'service_interval',
-                'current_hours',
-                'last_service',
-            ];
+            // $columnsToDrop = [
+            //     'rental_ready_checklist',
+            //     'equipment_service_list',
+            //     'equipment_parts_list',
+            //     'tech_manager',
+            //     'location',
+            //     'service_interval',
+            //     'current_hours',
+            //     'last_service',
+            // ];
 
-            foreach ($columnsToDrop as $column) {
-                if (Schema::hasColumn('equipment', $column)) {
-                    $table->dropColumn($column);
-                }
-            }
+            // foreach ($columnsToDrop as $column) {
+            //     if (Schema::hasColumn('equipment', $column)) {
+            //         $table->dropColumn($column);
+            //     }
+            // }
 
-            $indexesToDrop = [
-                'equipments_category_status_index',
-                'equipments_equipment_id_index',
-                'equipments_status_index',
-            ];
+            // $indexesToDrop = [
+            //     'equipments_category_status_index',
+            //     'equipments_equipment_id_index',
+            //     'equipments_status_index',
+            // ];
 
-            foreach ($indexesToDrop as $index) {
-                if (Schema::hasTable('equipment') && Schema::hasIndex('equipment', $index)) {
-                    $table->dropIndex($index);
-                }
-            }
+            // foreach ($indexesToDrop as $index) {
+            //     if (Schema::hasTable('equipment') && Schema::hasIndex('equipment', $index)) {
+            //         $table->dropIndex($index);
+            //     }
+            // }
 
-            $table->enum('has_def', ['Yes', 'No'])->default('No')->change();
-            $table->enum('power_source_type', ['diesel', 'gas', 'batteries'])->nullable()->change();
-            $table->decimal('diesel_tank_capacity', 10, 2)->nullable()->change();
-            $table->decimal('def_tank_capacity', 10, 2)->nullable()->change();
-            $table->decimal('gas_tank_capacity', 10, 2)->nullable()->change();
-            $table->decimal('standard_battery_count', 10, 2)->nullable()->change();
-            $table->decimal('expanded_battery_count', 10, 2)->nullable()->change();
+            // $table->enum('has_def', ['Yes', 'No'])->default('No')->change();
+            // $table->enum('power_source_type', ['diesel', 'gas', 'batteries'])->nullable()->change();
+            // $table->decimal('diesel_tank_capacity', 10, 2)->nullable()->change();
+            // $table->decimal('def_tank_capacity', 10, 2)->nullable()->change();
+            // $table->decimal('gas_tank_capacity', 10, 2)->nullable()->change();
+            // $table->decimal('standard_battery_count', 10, 2)->nullable()->change();
+            // $table->decimal('expanded_battery_count', 10, 2)->nullable()->change();
 
 
-            $table->renameColumn('category', 'product_category_id');
-            $table->renameColumn('checklist_master', 'checklist_master_id');
-            $table->renameColumn('status', 'current_status');
-            $table->renameColumn('term', 'term_in_months');
-            $table->renameColumn('cost', 'purchase_cost');
-            $table->renameColumn('vin', 'vehicle_identification_number');
-            $table->renameColumn('plate', 'license_plate');
-            $table->renameColumn('rate', 'interest_rate');
+            // $table->renameColumn('category', 'product_category_id');
+            // $table->renameColumn('checklist_master', 'checklist_master_id');
+            //$table->renameColumn('status', 'current_status');
+            // $table->renameColumn('term', 'term_in_months');
+            // $table->renameColumn('cost', 'purchase_cost');
+            // $table->renameColumn('vin', 'vehicle_identification_number');
+            // $table->renameColumn('plate', 'license_plate');
+            // $table->renameColumn('rate', 'interest_rate');
 
-            $table->string('unique_id')->change();
-            $table->unsignedBigInteger('product_category_id')->nullable()->change();
-            $table->unsignedBigInteger('checklist_master_id')->nullable()->change();
-            $table->after('current_status', function (Blueprint $table) {
-                $table->unsignedBigInteger('created_by')->nullable();
-                $table->unsignedBigInteger('updated_by')->nullable();
-            });
+            // $table->string('unique_id')->change();
+            // $table->unsignedBigInteger('product_category_id')->nullable()->change();
+            // $table->unsignedBigInteger('checklist_master_id')->nullable()->change();
+            // $table->after('current_status', function (Blueprint $table) {
+            //     $table->unsignedBigInteger('created_by')->nullable();
+            //     $table->unsignedBigInteger('updated_by')->nullable();
+            // });
 
-            $table->foreign('product_category_id')->references('id')->on('product_categories')->onDelete('set null')->onUpdate('cascade');
-            $table->foreign('checklist_master_id')->references('id')->on('checklist_masters')->onDelete('set null')->onUpdate('cascade');
-            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null')->onUpdate('cascade');
-            $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null')->onUpdate('cascade');
+            //$table->foreign('product_category_id')->references('id')->on('product_categories')->onDelete('set null')->onUpdate('cascade');
+            //$table->foreign('checklist_master_id')->references('id')->on('checklist_masters')->onDelete('set null')->onUpdate('cascade');
+            //$table->foreign('created_by')->references('id')->on('users')->onDelete('set null')->onUpdate('cascade');
+            //$table->foreign('updated_by')->references('id')->on('users')->onDelete('set null')->onUpdate('cascade');
         });
     }
 

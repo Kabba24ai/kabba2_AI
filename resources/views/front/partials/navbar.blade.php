@@ -44,11 +44,11 @@
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">Equipment
                             Rentals</a>
                         <ul
-                            class=" absolute min-w-32 pt-6 pb-5 top-18 right-4 border translate-y-2 bg-neutral-800/90 border-neutral-800/90  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-10 grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-y-4 gap-x-2 before:content-[''] before:h-7 before:absolute before:top-[-1.75rem] before:w-full ">
+                            class=" absolute min-w-32 pt-6 pb-5 top-18 border translate-y-2 bg-neutral-800/90 border-neutral-800/90  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-10 grid grid-cols-4 gap-x-6 gap-y-4 before:content-[''] before:h-7 before:absolute before:top-[-1.75rem] before:w-full ">
 
                             @foreach ($frontCategoryTree as $category)
                                 <li
-                                    class="{{ $category->childCategories->isNotEmpty() ? 'group/item relative' : 'flex w-full whitespace-nowrap' }}">
+                                    class="{{ $category->childCategories->isNotEmpty() ? 'group/item relative' : 'flex w-full' }}">
                                     <a href="{{ route('front.categories.index', $category->slug) }}"
                                         class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out">
                                         {{ $category->title }}

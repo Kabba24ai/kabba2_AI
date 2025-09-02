@@ -30,7 +30,7 @@ class IndexRequest extends ApiBaseFormRequest
         return [
             'status' => [
                 'description' => 'The status to filter equipment.',
-                'example' => 'active',
+                'example' => 'available',
                 'type' => 'string',
                 'enum' => EquipmentCurrentStatus::getValues(),
             ],

@@ -48,7 +48,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
 
                         <div class="min-w-0">
-                            <label class="text-xs text-gray-500 font-medium">First Name *</label>
+                            <label class="text-xs text-gray-500 font-medium required">First Name </label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
                              <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
 
@@ -69,7 +69,7 @@
                         </div>
 
                         <div  class="min-w-0">
-                            <label class="text-xs text-gray-500 font-medium">Last Name *</label>
+                            <label class="text-xs text-gray-500 font-medium required">Last Name </label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
 
@@ -89,7 +89,7 @@
                         </div>
 
                         <div class="sm:col-span-2 min-w-0">
-                            <label class="text-xs text-gray-500 font-medium">Email Address *</label>
+                            <label class="text-xs text-gray-500 font-medium required">Email Address </label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-1 text-sm">
                                     <x-heroicon-o-envelope class="w-4 h-4 text-gray-900" />{{ $customer->email ?? '' }}
@@ -121,7 +121,7 @@
                         </div>
 
                         <div class="sm:col-span-2 min-w-0">
-                            <label class="text-xs text-gray-500 font-medium">Phone Number *</label>
+                            <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
                             <div class=" static-view">
                                 <p class="text-gray-900 flex items-center gap-1 text-gray-900">
                                     <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
@@ -156,9 +156,9 @@
                     <h3 class="text-md font-semibold mb-4 flex items-center gap-1">
                         <x-heroicon-o-building-office class="w-5 h-5 text-gray-900" /> Company Information
                     </h3>
-                    <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                    <div class="grid grid-cols-1 gap-4 text-sm text-gray-700">
                         <div class="col-span-2">
-                            <label class="text-xs text-gray-500 font-medium">Company Name *</label>
+                            <label class="text-xs text-gray-500 font-medium required">Company Name </label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
 
@@ -293,7 +293,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="edit-view">
-                        <label class="text-xs text-gray-500 font-medium">First Name *</label>
+                        <label class="text-xs text-gray-500 font-medium required">First Name </label>
                         {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -305,7 +305,7 @@
                             ])->required() !!}
                     </div>
                     <div class="edit-view">
-                        <label class="text-xs text-gray-500 font-medium">Last Name *</label>
+                        <label class="text-xs text-gray-500 font-medium required">Last Name </label>
                         {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -320,7 +320,7 @@
                 </div>
 
                 <div>
-                    <label class="text-xs text-gray-500 font-medium edit-view">Address *</label>
+                    <label class="text-xs text-gray-500 font-medium edit-view required">Address </label>
                     <div class="static-view text-gray-900 text-sm">
                                           @if($addresse?->full_name)
                                                 {{ $addresse->full_name }}<br>
@@ -351,7 +351,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="edit-view">
-                        <label class="text-xs text-gray-500 font-medium">City *</label>
+                        <label class="text-xs text-gray-500 font-medium required">City </label>
                         {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -363,7 +363,7 @@
                             ])->required() !!}
                     </div>
                     <div class="edit-view">
-                        <label class="text-xs text-gray-500 font-medium">Zip Code *</label>
+                        <label class="text-xs text-gray-500 font-medium required">Zip Code </label>
                         {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                             ->class([
                                 'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -379,7 +379,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="edit-view">
-                                <label class="text-xs text-gray-500 font-medium">State *</label>
+                                <label class="text-xs text-gray-500 font-medium required">State </label>
                                 {!! html()
                                     ->select("addresses[$index][state_id]",
                                           ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
@@ -392,7 +392,7 @@
                             </div>
 
                             <div class="edit-view">
-                                <label class="text-xs text-gray-500 font-medium">Phone Number *</label>
+                                <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
 
 
                                  {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))

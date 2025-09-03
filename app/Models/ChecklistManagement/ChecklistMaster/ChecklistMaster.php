@@ -38,6 +38,11 @@ class ChecklistMaster extends Model
         return $this->belongsTo(\App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplate::class, 'rental_ready_template_id');
     }
 
+    public function customerAdminTemplate()
+    {
+        return $this->belongsTo(\App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate::class, 'customer_admin_template_id');
+    }
+
 
     protected static function boot()
     {
@@ -50,6 +55,7 @@ class ChecklistMaster extends Model
         });
     }
 
+
     /**
      * Customer Admin Template relationship (optional)
      */
@@ -57,4 +63,5 @@ class ChecklistMaster extends Model
     {
         return $this->belongsTo(CustomerAdminTemplate::class, 'customer_admin_template_id');
     }
+
 }

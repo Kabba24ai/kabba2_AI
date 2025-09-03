@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplate;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
@@ -24,6 +24,12 @@ class EditController extends Controller
 
         $checklistmaster = ChecklistMaster::with('category', 'rentalReadyTemplate')->where('unique_id', $unique_id)->first();
 
-        return view('admin.checklist_management.checklist_master.edit', compact('equipmentCategories', 'checklisttemplate', 'checklistmaster'));
+
+        $customeradmintemplate = CustomerAdminTemplate::with([
+            'questions',
+        ])->orderBy('id', 'desc')->get();
+
+
+        return view('admin.checklist_management.checklist_master.edit', compact('equipmentCategories', 'checklisttemplate', 'checklistmaster', 'customeradmintemplate'));
     }
 }

@@ -6,7 +6,7 @@
 
     @include('flash::message')
 
-    <div class="bg-white px-4 py-4">
+    <div class="">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2">
@@ -32,8 +32,8 @@
         </div>
     </div>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="container mt-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div class="container">
         <div class="bg-white border border-gray-200 rounded-md p-4 w-full">
             <div class="flex justify-left">
                 <ul class="flex flex-wrap gap-2 text-sm sm:text-base font-medium">

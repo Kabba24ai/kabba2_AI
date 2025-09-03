@@ -75,6 +75,11 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Select Equipment to Begin</h3>
                 <p class="text-gray-600">Choose equipment from the list to start the rental ready inspection process.</p>
             </div>
+            {{ html()->form('POST', route('admin.checklist-management.equipment-management.store'))->attributes([
+                        'autocomplete' => 'off',
+                        'data-parsley-validate' => true,
+                    ])->acceptsFiles()->open() }}
+
 
             <!-- Checklist Container -->
             <div id="checklistContainer" class="hidden bg-white rounded-md shadow-sm border border-gray-200 p-6">
@@ -87,7 +92,7 @@
                     <!-- Header row -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="text-sm font-medium text-gray-700 mb-1 block">Inspector Name *</label>
+                            <label class="text-sm font-medium text-gray-700 mb-1 block required">Inspector Name </label>
 
                             {!! html()
                             ->select('inspectorSelect',
@@ -104,7 +109,7 @@
                         </div>
                         <div>
                             <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Hours</label>
-                            <input id="equipmentHours" type="number" class="w-full border px-3 py-2 rounded-md text-sm" placeholder="Enter hours" min="0" step="0.1">
+                            <input id="equipmentHours" name="equipmentHours" type="number" class="w-full border px-3 py-2 rounded-md text-sm" placeholder="Enter hours" min="0" step="0.1">
                         </div>
                         <div>
                             <label class="text-sm font-medium text-gray-700 mb-1 block">Inspection Date</label>
@@ -131,14 +136,14 @@
                         </div>
                     </div>
                     <div class="space-y-3">
-                        <button id="btnReady" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
+                        <button type="submit" id="btnReady" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                 <path d="m9 11 3 3L22 4" />
                             </svg>
                             Mark as Rental Ready
                         </button>
-                        <button id="btnDamaged" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
+                        <button type="submit" id="btnDamaged" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                                 <path d="M12 9v4" />
@@ -146,7 +151,7 @@
                             </svg>
                             Mark as Damaged
                         </button>
-                        <button class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium bg-gray-600 hover:bg-gray-700 text-white transition-all shadow-sm">
+                        <button type="submit" class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium bg-gray-600 hover:bg-gray-700 text-white transition-all shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10" />
                                 <polyline points="12 6 12 12 16 14" />
@@ -164,6 +169,9 @@
 
                 </div>
             </div>
+
+            {{ html()->form()->close() }}
+
         </div>
     </div>
 </div>
@@ -177,71 +185,75 @@
         const REQUIRE_INSPECTOR = true;
 
         /* =================== DATA =================== */
-        const equipment = [{
-                id: 1,
-                name: "Compactor CS56",
-                icon: ' <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle w-4 h-4 text-red-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
-                model: "CAT CS56",
-                serial: "CATCS56005",
-                category: "Compact Equipment",
-                hours: 1680,
-                lastInspection: "2024-01-08",
-                badge: "Damaged"
-            },
+        const rawEquipment = @json($equipments);
 
-            {
-                id: 2,
-                name: "Forklift 2.5T",
-                icon: ' <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle w-4 h-4 text-red-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
-                model: "Toyota 8FGU25",
-                serial: "TOY25010",
-                category: "Compact Equipment",
-                hours: 2200,
-                lastInspection: "2024-01-05",
-                badge: "Damaged"
-            },
+        const icons = {
+            damaged: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     class="lucide lucide-alert-triangle w-4 h-4 text-red-500">
+                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8
+                              14A2 2 0 0 0 4 21h16a2 2
+                              0 0 0 1.73-3Z"></path>
+                     <path d="M12 9v4"></path>
+                     <path d="M12 17h.01"></path>
+                 </svg>`,
+            maintenance: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-wrench w-4 h-4 text-orange-500">
+                        <path d="M14.7 6.3a1 1 0 0 0 0
+                                 1.4l1.6 1.6a1 1 0 0 0
+                                 1.4 0l3.77-3.77a6 6 0 0
+                                 1-7.94 7.94l-6.91 6.91a2.12
+                                 2.12 0 0 1-3-3l6.91-6.91a6
+                                 6 0 0 1 7.94-7.94l-3.76
+                                 3.76z"></path>
+                    </svg>`,
+            available: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="lucide lucide-check-circle w-4 h-4 text-green-500">
+                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                       <path d="m9 11 3 3L22 4"></path>
+                   </svg>`,
+            rented: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   class="lucide lucide-truck w-4 h-4 text-blue-500">
+                   <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2
+                            0 0 0-2 2v11a1 1 0 0 0
+                            1 1h2"></path>
+                   <path d="M15 18H9"></path>
+                   <path d="M19 18h2a1 1 0 0 0
+                            1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1
+                            0 0 0 17.52 8H14"></path>
+                   <circle cx="17" cy="18" r="2"></circle>
+                   <circle cx="7" cy="18" r="2"></circle>
+                </svg>`,
+        };
 
-            {
-                id: 3,
-                name: "Air Compressor 185CFM",
-                icon: ' <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench w-4 h-4 text-orange-500"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>',
-                model: "Atlas Copco 185",
-                serial: "AC185006",
-                category: "Power Equipment",
-                hours: 320,
-                lastInspection: "2024-01-18",
-                badge: "Maint. Hold"
-            },
+        const equipment = rawEquipment.map(eq => ({
+            id: eq.id,
+            name: eq.equipment_name,
+            model: eq.model,
+            serial: eq.serial_number,
+            category: eq.product_category?.title ?? 'N/A',
+            checklist_master_id: eq.checklist_master_id,
+            hours: eq.equipment_hours,
+            lastInspection: null,
+            badge: eq.status_label,
+            icon: icons[eq.current_status] ?? icons.available
+        }));
 
-        ];
-
-
+        // console.log(equipment);
         let groups = []; // use 'let' so you can reassign
 
         function renderChecklist(groups) {
-            console.log("Rendering checklist:", groups);
+            // console.log("Rendering checklist:", groups);
         }
 
-        fetch(`{{ route('admin.checklist-management.equipment-management.get-rental-ready-questions') }}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({
-                    transactionId: 123
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    groups = data.questions;
-                    renderChecklist(groups);
-                } else {
-                    console.error('Failed to fetch questions');
-                }
-            })
-            .catch(err => console.error(err));
+
 
         /* =================== ELEMENTS =================== */
         const equipmentList = document.getElementById("equipmentList");
@@ -355,68 +367,115 @@
             equipmentHoursInput.value = eq.hours;
             checklistContent.innerHTML = "";
 
-            groups.forEach((g) => {
-                const section = document.createElement("div");
-                section.className = "border border-gray-200 rounded-md p-4";
-                section.innerHTML = `
-      <h3 class="font-medium text-gray-900 mb-4 flex items-center gap-2">
-        <span>${g.title}</span>
-        <span id="groupCount-${g.key}" class="text-sm text-gray-500">(0/${g.items.length})</span>
-      </h3>
-      <div id="groupBody-${g.key}" class="space-y-4"></div>`;
-                checklistContent.appendChild(section);
-
-                const body = section.querySelector(`#groupBody-${g.key}`);
-                g.items.forEach((item) => {
-                    const card = document.createElement("div");
-                    card.className = "item-card p-4 rounded-md border-2 transition-all border-gray-200 bg-white-50";
-                    card.id = `item-${item.id}`;
-                    const options = item.options.map((opt) => `
-        <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-            <div class="flex items-center gap-3 flex-1 min-w-0">
-                <input type="radio" name="answer-${item.id}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
-                    value="${opt.status}" data-item="${item.id}" data-group="${g.key}">
-                <span class="text-sm text-gray-900">${opt.label}</span>
-            </div>
-            <div class="w-full sm:w-auto sm:ml-auto sm:justify-end flex items-center">
-                ${statusBadge(opt.status)}
-            </div>
-        </label>
-      `).join("");
-
-                    card.innerHTML = `
-        <div class="flex flex-wrap items-center gap-2 mb-3">
-          <span id="icon-${item.id}" class="inline-flex shrink-0">${iconSvg("default")}</span>
-          <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>':''}</span>
-          <span id="chip-${item.id}"></span>
+            // ----- Show loader while fetching -----
+            checklistContent.innerHTML = `
+        <div id="loaderWrapper" class="p-6 flex flex-col gap-4 animate-pulse">
+            ${Array(3).fill(0).map(() => `
+                <div class="h-16 bg-gray-200 rounded-md"></div>
+            `).join("")}
         </div>
-        <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
-        <div class="space-y-2">${options}</div>
-        <div id="notes-${item.id}" class="hidden mt-3">
-          <textarea class="w-full bg-white border px-3 py-2 rounded-md text-sm text-sm border-gray-300" rows="3" placeholder="Add notes about the issue..."></textarea>
-        </div>
-      `;
-                    body.appendChild(card);
+    `;
+            checklistContent.classList.add("opacity-50", "pointer-events-none");
+
+            //  Fetch checklist questions for this equipment
+            fetch(`{{ route('admin.checklist-management.equipment-management.get-checklist-questions') }}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({
+                        checklist_id: eq.checklist_master_id
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // remove loader
+                    checklistContent.classList.remove("opacity-50", "pointer-events-none");
+                    checklistContent.innerHTML = "";
+
+                    if (data.success) {
+                        groups = [{
+                            key: "default",
+                            title: "Checklist Questions",
+                            items: data.questions
+                        }];
+                        renderChecklist(groups);
+
+                        // now render UI
+                        groups.forEach((g) => {
+                            const section = document.createElement("div");
+                            section.className = "border border-gray-200 rounded-md p-4";
+                            section.innerHTML = `
+                    <h3 class="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                        <span>${g.title}</span>
+                        <span id="groupCount-${g.key}" class="text-sm text-gray-500">(0/${g.items.length})</span>
+                        <input type="hidden" name="total_questions" value="${g.items.length}">
+                    </h3>
+                    <div id="groupBody-${g.key}" class="space-y-4"></div>`;
+                            checklistContent.appendChild(section);
+
+                            const body = section.querySelector(`#groupBody-${g.key}`);
+                            g.items.forEach((item) => {
+                                const card = document.createElement("div");
+                                card.className = "item-card p-4 rounded-md border-2 transition-all border-gray-200 bg-white-50";
+                                card.id = `item-${item.id}`;
+
+                                const options = item.options.map((opt) => `
+                        <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                <input type="radio" name="answer-${item.id}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
+                                    value="${opt.status}" data-item="${item.id}" data-group="${g.key}">
+                                <span class="text-sm text-gray-900">${opt.label}</span>
+                            </div>
+                            <div class="w-full sm:w-auto sm:ml-auto sm:justify-end flex items-center">
+                                ${statusBadge(opt.status)}
+                            </div>
+                        </label>
+                    `).join("");
+
+                                card.innerHTML = `
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
+                            <span id="icon-${item.id}" class="inline-flex shrink-0">${iconSvg("default")}</span>
+                            <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>':''}</span>
+                            <span id="chip-${item.id}"></span>
+                        </div>
+                        <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
+                        <div class="space-y-2">${options}</div>
+                        <div id="notes-${item.id}" class="hidden mt-3">
+                            <textarea class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="3" placeholder="Add notes about the issue..."></textarea>
+                        </div>
+                    `;
+
+                                body.appendChild(card);
+                            });
+                        });
+
+                        /* ---------- General Notes card (NEW) ---------- */
+                        const generalNotes = document.createElement("div");
+                        generalNotes.innerHTML = `
+                <h3 class="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <span>General Notes</span>
+                </h3>
+                <textarea id="generalNotes" name="general_notes" class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="4" placeholder="Add any additional notes or observations..."></textarea>
+            `;
+                        checklistContent.appendChild(generalNotes);
+
+                        checklistContent.querySelectorAll('input[type="radio"]').forEach(r => {
+                            r.addEventListener("change", onChoice);
+                        });
+
+                        updateAllCounts();
+                        updateProgress();
+                    } else {
+                        checklistContent.innerHTML = `<p class="text-red-500">⚠️ Failed to load checklist questions.</p>`;
+                    }
+                })
+                .catch(err => {
+                    checklistContent.classList.remove("opacity-50", "pointer-events-none");
+                    checklistContent.innerHTML = `<p class="text-red-500">❌ Error loading questions.</p>`;
+                    console.log(err);
                 });
-            });
-
-            /* ---------- General Notes card (NEW) ---------- */
-            const generalNotes = document.createElement("div");
-            generalNotes.className = "";
-            generalNotes.innerHTML = `
-    <h3 class="font-medium text-gray-700 mb-3 flex items-center gap-2">
-      <span>General Notes</span>
-    </h3>
-    <textarea id="generalNotes" class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="4" placeholder="Add any additional notes or observations..."></textarea>
-  `;
-            checklistContent.appendChild(generalNotes);
-
-            checklistContent.querySelectorAll('input[type="radio"]').forEach(r => {
-                r.addEventListener("change", onChoice);
-            });
-
-            updateAllCounts();
-            updateProgress();
         }
 
         /* =================== HANDLERS =================== */
@@ -531,7 +590,7 @@
             const {
                 req,
                 maint,
-                totalmaint , 
+                totalmaint,
                 dmg
             } = ensureCounters();
             if (req) req.textContent = `${requiredCompleted}/${requiredTotal}`;

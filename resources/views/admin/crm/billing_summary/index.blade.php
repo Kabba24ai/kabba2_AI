@@ -9,7 +9,7 @@
 
     @include('flash::message')
 
-             <div class="bg-white">
+             <div class="">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Left: Title & Description -->
                     <div class="text-2xl font-semibold flex items-center gap-2">

@@ -30,6 +30,8 @@ class UpdateController extends Controller
                 'checklist_system_name'   => $validated['checklist_system_name'],
                 'equipment_category_id'   => $validated['equipment_category_id'],
                 'rental_ready_template_id' => $validated['rental_ready_template_id'] ?? null,
+                'customer_admin_template_id' => $validated['customer_admin_template_id'] ?? null,
+
             ]);
 
 

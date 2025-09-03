@@ -23,8 +23,9 @@ class StoreRequest extends FormRequest
             'checklist_system_name' => ['required'],
             'equipment_category_id' => ['required'],
             'rental_ready_template_id' => ['required'],
+            'customer_admin_template_id' => ['required'],
         ];
-    }
+    }       
 
     public function messages(): array
     {

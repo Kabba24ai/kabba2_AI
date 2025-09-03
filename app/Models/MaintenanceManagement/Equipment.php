@@ -60,6 +60,8 @@ class Equipment extends Model
         'current_status' => EquipmentCurrentStatus::class,
         'power_source_type' => EquipmentPowerSourceType::class,
     ];
+    protected $appends = ['status_label'];
+
 
     public static function boot()
     {
@@ -74,6 +76,11 @@ class Equipment extends Model
         return $this->belongsTo(ProductCategory::class);
     }
 
+
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->current_status?->label() ?? 'Unknown';
+    }
     public function checklistMaster()
     {
         return $this->belongsTo(ChecklistMaster::class, 'checklist_master_id');
@@ -89,5 +96,6 @@ class Equipment extends Model
             'checklist_master_id',      // parent.localKey       -> equipment.checklist_master_id
             'customer_admin_template_id'// through.secondLocalKey-> checklist_masters.customer_admin_template_id
         );
+
     }
 }

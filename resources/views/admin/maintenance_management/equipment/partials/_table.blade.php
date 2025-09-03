@@ -9,7 +9,7 @@
                 @forelse($equipment as $item)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="py-4 px-6">
-                            <span class="text-sm font-medium text-gray-900">{{ $item->product_category->title ?? '-' }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ $item->productCategory->title ?? '-' }}</span>
                         </td>
                         <td class="py-4 px-6">
                             <span class="text-sm text-gray-900">{{ $item->equipment_name }}</span>

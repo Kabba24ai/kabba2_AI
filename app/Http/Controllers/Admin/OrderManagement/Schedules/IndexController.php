@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin\OrderManagement\Schedules;
 
 use App\Http\Controllers\Controller;
+use App\Models\Iam\Personnel\User;
+use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Http\Request;
 
 // Models
@@ -117,7 +119,7 @@ class IndexController extends Controller
 
             if (!empty($scheduleTypes)) {
                 $query->where(function ($q) use ($scheduleTypes, $storeLocations) {
-                    if (in_array('Delivery', $scheduleTypes) ) {
+                    if (in_array('Delivery', $scheduleTypes)) {
                         // For deliveries, filter delivery_store_id
                         if (!empty($storeLocations)) {
                             $q->whereIn('delivery_store_id', $storeLocations);
@@ -138,11 +140,9 @@ class IndexController extends Controller
                 // If no schedule type, apply store location to both delivery & pickup
                 $query->where(function ($q) use ($storeLocations) {
                     if (!empty($storeLocations)) {
-                        $q->whereIn('delivery_store_id', $storeLocations)
-                        ->orWhereIn('pickup_store_id', $storeLocations);
+                        $q->whereIn('delivery_store_id', $storeLocations)->orWhereIn('pickup_store_id', $storeLocations);
                     } else {
-                        $q->whereNull('delivery_store_id')
-                        ->orWhereNull('pickup_store_id');
+                        $q->whereNull('delivery_store_id')->orWhereNull('pickup_store_id');
                     }
                 });
             }
@@ -168,7 +168,15 @@ class IndexController extends Controller
 
         $categories = ProductCategory::getHierarchy();
         $stores = Store::orderBy('store_name')->get();
+        $equipments = Equipment::notRented()->orderBy('equipment_name')->get();
+        $users = User::orderBy('first_name', 'asc')->get()->map(function ($user) {
+            return [
+                'unique_id' => $user->unique_id,
+                'full_name' => $user->full_name,
+            ];
+        });
+        $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
 
-        return view('admin.order_management.schedules.index', ['orderProducts' => $orderProducts, 'categories' => $categories, 'stores' => $stores]);
+        return view('admin.order_management.schedules.index', ['orderProducts' => $orderProducts, 'categories' => $categories, 'stores' => $stores, 'equipments' => $equipments, 'employees' => $employees]);
     }
 }

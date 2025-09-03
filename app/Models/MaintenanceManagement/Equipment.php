@@ -14,6 +14,7 @@ use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Enums\Equipments\EquipmentPowerSourceType;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
+use App\Models\Orders\Order;
 use App\Models\ProductManagement\ProductCategory;
 
 class Equipment extends Model
@@ -52,6 +53,7 @@ class Equipment extends Model
         'checklist_master_id',
         'equipment_notes',
         'current_status', // available, rented, maintenance, damaged
+        'current_order_id',
         'created_by',
         'updated_by',
     ];
@@ -62,13 +64,29 @@ class Equipment extends Model
     ];
     protected $appends = ['status_label', 'category_name'];
 
-
     public static function boot()
     {
         parent::boot();
         self::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'EQP');
         });
+    }
+
+    // scopes
+
+    public function scopeAvailable($query)
+    {
+        return $query->where('current_status', EquipmentCurrentStatus::Available);
+    }
+
+    public function scopeNotRented($query)
+    {
+        return $query->where('current_status', '!=', EquipmentCurrentStatus::Rented);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'current_order_id', 'id');
     }
 
     public function productCategory()
@@ -81,8 +99,6 @@ class Equipment extends Model
         return $this->productCategory?->title ?? 'N/A';
     }
 
-
-
     public function getStatusLabelAttribute(): string
     {
         return $this->current_status?->label() ?? 'Unknown';
@@ -91,6 +107,8 @@ class Equipment extends Model
     {
         return $this->belongsTo(ChecklistMaster::class, 'checklist_master_id');
     }
+
+
 
     public function customerAdminTemplates()
     {
@@ -103,5 +121,29 @@ class Equipment extends Model
             'customer_admin_template_id'// through.secondLocalKey-> checklist_masters.customer_admin_template_id
         );
 
+    }
+
+    public function linkWithTitle()
+    {
+        switch ($this->current_status) {
+            case EquipmentCurrentStatus::Maintenance:
+                return [
+                    'link' => ($this?->order?->unique_id) ? route('admin.order-management.orders.edit', $this?->order?->unique_id) : '#',
+                    'title' => ($this?->order?->unique_id) ? route('admin.order-management.orders.edit', $this?->order?->unique_id) : ''
+                ];
+                break;
+            case EquipmentCurrentStatus::Damaged:
+                return [
+                    'link' => route('admin.checklist-management.equipment-management.index'),
+                    'title' => 'Go to Rental Ready'
+                ];
+                break;
+            default:
+                return [
+                    'link' => '#',
+                    'title' => ''
+                ];
+                break;
+        }
     }
 }

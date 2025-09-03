@@ -11,7 +11,7 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $query = Equipment::query();
+        $query = Equipment::with('productCategory');
 
         // Search filter
         if ($request->filled('search')) {

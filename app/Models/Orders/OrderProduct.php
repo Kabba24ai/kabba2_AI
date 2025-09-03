@@ -43,11 +43,16 @@ class OrderProduct extends Model
         'pickup_date',
         'pickup_time',
         'pickup_by',
+        'equipment_id',
+        'equipment_details',
+        'assigned_by',
+        'assigned_at'
     ];
 
     // In your OrderProduct.php model
     protected $casts = [
         'product_data' => 'array',
+        'equipment_details' => 'array',
     ];
 
     // Relationships

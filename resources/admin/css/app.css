@@ -208,6 +208,12 @@
     scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
 }
 
+button:disabled,
+[role="button"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /*
 
   The default border color has changed to `currentColor` in Tailwind CSS v4,

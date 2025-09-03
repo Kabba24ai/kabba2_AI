@@ -4,7 +4,7 @@
 namespace App\Models\ChecklistManagement\ChecklistMaster;
 
 use App\Helpers\ModelHelper;
-
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -55,5 +55,13 @@ class ChecklistMaster extends Model
         });
     }
 
+
+    /**
+     * Customer Admin Template relationship (optional)
+     */
+    public function customerAdminTemplate()
+    {
+        return $this->belongsTo(CustomerAdminTemplate::class, 'customer_admin_template_id');
+    }
 
 }

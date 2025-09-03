@@ -25,6 +25,6 @@ class CustomerAdminQuestion extends Model
     }
 
     public function answers() {
-        return $this->hasMany(CustomerAdminQuestionAnswer::class, 'question_id');
+        return $this->hasMany(CustomerAdminQuestionAnswer::class, 'question_id')->orderBy('index_number', 'asc');
     }
 }

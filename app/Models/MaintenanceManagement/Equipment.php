@@ -12,6 +12,8 @@ use App\Helpers\ModelHelper;
 // Equipments
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Enums\Equipments\EquipmentPowerSourceType;
+use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 use App\Models\ProductManagement\ProductCategory;
 
 class Equipment extends Model
@@ -69,13 +71,31 @@ class Equipment extends Model
         });
     }
 
-    public function product_category()
+    public function productCategory()
     {
         return $this->belongsTo(ProductCategory::class);
     }
 
+
     public function getStatusLabelAttribute(): string
     {
         return $this->current_status?->label() ?? 'Unknown';
+    }
+    public function checklistMaster()
+    {
+        return $this->belongsTo(ChecklistMaster::class, 'checklist_master_id');
+    }
+
+    public function customerAdminTemplates()
+    {
+        return $this->hasOneThrough(
+            CustomerAdminTemplate::class, // related
+            ChecklistMaster::class,     // through
+            'id',                       // through.firstKey      -> checklist_masters.id
+            'id',                       // related.secondKey     -> customer_admin_templates.id
+            'checklist_master_id',      // parent.localKey       -> equipment.checklist_master_id
+            'customer_admin_template_id'// through.secondLocalKey-> checklist_masters.customer_admin_template_id
+        );
+
     }
 }

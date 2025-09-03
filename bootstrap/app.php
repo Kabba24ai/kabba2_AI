@@ -4,7 +4,7 @@ use App\Exceptions\ExceptionHandling;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Support\Facades\Route; 
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,10 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
             Route::middleware('web')->domain(config('app.domains.admin'))->group(base_path('routes/admin/routes.php'));
 
-            // Route::middleware(['api'])
-            //     ->prefix('api')
-            //     ->domain(config('app.domains.api'))
-            //     ->group(base_path('routes/api/routes.php'));
+            Route::middleware(['api'])
+                ->prefix('api')
+                ->domain(config('app.domains.api'))
+                ->group(base_path('routes/api/routes.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -28,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Front Middleware
             'front.common-front-data' => \App\Http\Middleware\Front\CommonDataMiddleware::class,
-            
+
             // Chehck Middleware that customer active
             'customer.active' => \App\Http\Middleware\Front\EnsureCustomerIsActive::class,
 

@@ -229,7 +229,6 @@
                               'rows' => 3,
                               'id' => 'temp_description',
                           ])->placeholder('Optional description...') }}
-
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Equipment Category *</label>

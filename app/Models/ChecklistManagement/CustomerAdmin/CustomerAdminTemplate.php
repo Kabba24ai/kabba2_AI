@@ -8,7 +8,6 @@ use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ProductManagement\ProductCategory;
 
-
 class CustomerAdminTemplate extends Model
 {
 
@@ -27,7 +26,12 @@ class CustomerAdminTemplate extends Model
         return $this->hasMany(CustomerAdminTemplateQuestion::class, 'template_id');
     }
 
-     protected static function boot()
+    public function templateQuestions()
+    {
+        return $this->hasMany(CustomerAdminTemplateQuestion::class, 'template_id')->orderBy('index_number', 'asc');
+    }
+
+    protected static function boot()
     {
         parent::boot();
 

@@ -24,8 +24,8 @@
 
     <div class="bg-white p-4 rounded-md shadow-sm space-y-4">
         <!-- Row 1: Inputs & Selects -->
-            <div class="flex flex-wrap gap-4 items-center">
-                <div class="w-full sm:w-48">
+        <div class="flex flex-wrap gap-4 items-center">
+            <div class="w-full sm:w-48">
                 <div class="relative bg-white">
                     <input type="text" id="customer_name" placeholder="Customer name" name="customer_name"
                         value="{{ request('customer_name') }}"
@@ -37,8 +37,8 @@
 
             <div class="w-full sm:w-48">
                 <div class="relative bg-white">
-                    <input type="text" id="customer_company_name" placeholder="Customer company" name="customer_company_name"
-                        value="{{ request('customer_company_name') }}"
+                    <input type="text" id="customer_company_name" placeholder="Customer company"
+                        name="customer_company_name" value="{{ request('customer_company_name') }}"
                         class="pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
                     <x-heroicon-o-magnifying-glass
                         class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
@@ -50,8 +50,8 @@
                 {{-- <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-1">Search Phone</label> --}}
                 <div class="relative bg-white">
                     <input type="text" id="customer_phone" placeholder="(xxx) xxx-xxxx" name="customer_phone"
-                    value="{{ request('customer_phone') }}"
-                    class="masked-phone pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-38 focus:ring-blue-500 focus:border-blue-500" />
+                        value="{{ request('customer_phone') }}"
+                        class="masked-phone pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-38 focus:ring-blue-500 focus:border-blue-500" />
                     <x-heroicon-o-phone class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
             </div>
@@ -109,7 +109,7 @@
                 </select>
             </div>
         </div>
-         @php
+        @php
             // If param is not set at all, default both checked. If set (even empty array), use only what is present.
             $transportMode = request()->input('transport_mode');
             $scheduleType = request()->input('schedule_type');
@@ -186,6 +186,61 @@
             ])
         </div>
     </div>
+
+    <!-- Equipment Assign Modal -->
+    <div id="equipmentAssignModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="addressModalTitle" class="text-lg font-semibold">Assign Equipment : <span
+                        id="equipmentAssignModalTitle"></span></h2>
+                <button type="button"
+                    class="close-equipment-assign-modal text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <!-- Body -->
+            {{ html()->form()->attributes([
+                    'data-parsley-validate' => true,
+                    'class' => 'flex-1',
+                    'id' => 'equipmentAssignForm',
+                ])->open() }}
+
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required" for="user_unique_id">User</label>
+                    {!! html()->select('user_unique_id', $employees)->id('user_unique_id')->class([
+                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                        ])->required() !!}
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required" for="equipment_unique_id">Equipment</label>
+                    <select name="equipment_unique_id" id="equipment_unique_id"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
+                        <option value="" data-current-status="">Select Equipment</option>
+                    </select>
+                    <div class="flex items-center justify-between gap-3 mt-2">
+                        <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
+                        <a href="#" class="text-blue-600 hover:underline text-sm font-semibold"
+                            id="equipment-page-link"></a>
+                    </div>
+                </div>
+                <input type="hidden" id="order-product-unique-id" name="order_product_unique_id" value="">
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button"
+                    class="close-equipment-assign-modal px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="submit" id="equipment-assign-submit"
+                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    Assign
+                </button>
+            </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('js')
@@ -212,7 +267,8 @@
                 params.set('page', 1);
                 if (customerNameInput && (customerNameInput.value.length >= 3 || customerNameInput.value.length ===
                         0)) params.append('customer_name', customerNameInput.value);
-                if (customerCompanyNameInput && (customerCompanyNameInput.value.length >= 3 || customerCompanyNameInput.value
+                if (customerCompanyNameInput && (customerCompanyNameInput.value.length >= 3 ||
+                        customerCompanyNameInput.value
                         .length === 0)) params.append('customer_company_name', customerCompanyNameInput.value);
                 if (customerPhoneInput && (customerPhoneInput.value.length >= 3 || customerPhoneInput.value
                         .length === 0)) params.append('customer_phone', customerPhoneInput.value);
@@ -223,7 +279,7 @@
                     paymentMethodInput.value);
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
                 if (rescheduledOnlyInput && rescheduledOnlyInput.checked) params.append('rescheduled_only',
-                rescheduledOnlyInput.value);
+                    rescheduledOnlyInput.value);
 
                 // --- START: Handle schedule_type[] checkboxes ---
                 let anyScheduleTypeChecked = false;
@@ -306,7 +362,7 @@
             if (rescheduledOnlyInput) rescheduledOnlyInput.addEventListener('change', fetchSchedules);
 
             transportModeInputs.forEach(input => {
-                input.addEventListener('change', function (e) {
+                input.addEventListener('change', function(e) {
                     let checked = Array.from(transportModeInputs).filter(i => i.checked);
                     if (checked.length === 0) {
                         e.preventDefault();
@@ -318,7 +374,7 @@
             });
 
             scheduleTypeInputs.forEach(input => {
-                input.addEventListener('change', function (e) {
+                input.addEventListener('change', function(e) {
                     // Collect all checked checkboxes
                     let checked = Array.from(scheduleTypeInputs).filter(i => i.checked);
                     // If this action would uncheck the last one, prevent it
@@ -331,6 +387,199 @@
                     }
                 });
             });
+
+            const modal = document.getElementById('equipmentAssignModal');
+            const equipmentAssignModalTitle = document.getElementById('equipmentAssignModalTitle');
+            const equipmentAssignForm = document.getElementById('equipmentAssignForm');
+            const equipmentSelect = document.getElementById('equipment_unique_id');
+            const assignBtn = document.getElementById('equipment-assign-submit');
+            const statusDisplayId = 'equipment-status-display';
+            const equipmentPageLinkId = 'equipment-page-link';
+
+            // --- Event delegation for OPEN buttons (works after table refresh) ---
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.equipment-assign-btn');
+                if (!btn) return;
+
+                const orderProductUniqueId = btn.getAttribute('data-order-product-unique-id');
+                const orderProductName = btn.getAttribute('data-order-product-name');
+                const orderNumber = btn.getAttribute('data-order');
+
+                document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
+                equipmentAssignModalTitle.textContent = (orderNumber || '') + ' ' + (orderProductName ||
+                '');
+                modal.classList.remove('hidden');
+
+                // Refresh status on open in case select kept previous state
+                updateEquipmentStatus();
+            });
+
+            // --- Event delegation for CLOSE buttons (works after table refresh) ---
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.close-equipment-assign-modal');
+                if (!btn) return;
+                clearModalFields();
+                modal.classList.add('hidden');
+            });
+
+            function clearModalFields() {
+                const userSel = document.getElementById('user_unique_id');
+                const equipSel = document.getElementById('equipment_unique_id');
+                const orderInput = document.getElementById('order-product-unique-id');
+                const statusDiv = document.getElementById('equipment-status-display');
+                const pageLink = document.getElementById('equipment-page-link');
+
+                if (userSel) userSel.selectedIndex = 0;
+                if (equipSel) equipSel.selectedIndex = 0;
+                if (orderInput) orderInput.value = '';
+                if (statusDiv) {
+                    statusDiv.textContent = '';
+                    statusDiv.className = 'mt-2 text-sm font-semibold text-gray-600';
+                }
+                if (pageLink) {
+                    pageLink.href = '';
+                    pageLink.textContent = '';
+                }
+                if (equipmentAssignForm) {
+                    equipmentAssignForm.reset();
+                }
+
+                // Disable assign button until a valid available option is chosen
+                if (assignBtn) assignBtn.disabled = true;
+            }
+
+            // Update status and button
+            function updateEquipmentStatus() {
+                const statusDiv = document.getElementById(statusDisplayId);
+                const pageLink = document.getElementById(equipmentPageLinkId);
+
+                if (!equipmentSelect || !statusDiv || !assignBtn || !pageLink) return;
+
+                const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex] || {};
+                const status = selectedOption.getAttribute?.('data-current-status');
+                const link = selectedOption.getAttribute?.('data-link') || '';
+                const title = selectedOption.getAttribute?.('data-link-title') || '';
+
+                if (!status) {
+                    statusDiv.textContent = '';
+                    statusDiv.className = 'mt-2 text-sm font-semibold text-gray-600';
+                    assignBtn.disabled = true;
+                    pageLink.href = '';
+                    pageLink.textContent = '';
+                    return;
+                }
+
+                let statusText = '';
+                let statusColor = 'text-gray-600';
+                let isAvailable = true;
+
+                switch (status) {
+                    case 'available':
+                        statusText = 'Available';
+                        statusColor = 'text-green-600';
+                        isAvailable = true;
+                        break;
+                    case 'damaged':
+                        statusText = 'Not Available';
+                        statusColor = 'text-red-600';
+                        isAvailable = false;
+                        break;
+                    case 'maintenance':
+                        statusText = 'Maint. Hold';
+                        statusColor = 'text-yellow-600';
+                        isAvailable = false;
+                        break;
+                    default:
+                        statusText = status || '';
+                        statusColor = 'text-gray-600';
+                        isAvailable = true;
+                }
+
+                statusDiv.textContent = `Status: ${statusText}`;
+                statusDiv.className = `mt-2 text-sm font-semibold ${statusColor}`;
+                assignBtn.disabled = !isAvailable;
+                pageLink.href = link;
+                pageLink.textContent = title;
+            }
+
+            // Static elements inside the modal can use normal listeners
+            if (equipmentSelect) {
+                equipmentSelect.addEventListener('change', updateEquipmentStatus);
+                // Initial status update
+                updateEquipmentStatus();
+            }
+
+            // Form submit
+            equipmentAssignForm?.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (window.$ && $(equipmentAssignForm).parsley && !$(equipmentAssignForm).parsley()
+                    .isValid()) {
+                    $(equipmentAssignForm).parsley().validate();
+                    return;
+                }
+
+                const submitBtn = document.getElementById('equipment-assign-submit');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Assigning...';
+                }
+
+                const formData = new FormData(equipmentAssignForm);
+
+                apiFetch('{{ route('admin.order-management.schedules.assign-equipment') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(data => {
+                        if (data?.success) {
+                            modal.classList.add('hidden');
+                            if (window.notyf) notyf.success(data.message);
+                            clearModalFields();
+                            fetchEquipment();
+                            fetchSchedules();
+                        } else {
+                            if (window.notyf) notyf.error(data?.message || 'Something went wrong.');
+                        }
+                    })
+                    .finally(() => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Assign';
+                        }
+                    });
+            });
+
+            fetchEquipment();
+            // Fetch equipment options
+            function fetchEquipment(){
+                apiFetch('{{ route('admin.maintenance-management.equipment.fetch') }}')
+                    .then(data => {
+                        if (data?.success) {
+                            equipmentSelect.innerHTML = '';
+                            const defaultOption = document.createElement('option');
+                            defaultOption.textContent = 'Select Equipment';
+                            defaultOption.disabled = true;
+                            defaultOption.selected = true;
+                            equipmentSelect.appendChild(defaultOption);
+                            data.equipments.forEach(equipment => {
+                                const option = document.createElement('option');
+                                option.value = equipment.unique_id;
+                                option.textContent = equipment.equipment_name;
+                                option.setAttribute('data-current-status', equipment.current_status || '');
+                                option.setAttribute('data-link', equipment.link || '');
+                                option.setAttribute('data-link-title', equipment.link_title || '');
+                                equipmentSelect.appendChild(option);
+                            });
+                        }
+                    });
+            };
+
         });
     </script>
 @endpush

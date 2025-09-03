@@ -168,7 +168,7 @@ class IndexController extends Controller
 
         $categories = ProductCategory::getHierarchy();
         $stores = Store::orderBy('store_name')->get();
-        $equipments = Equipment::notRented()->orderBy('equipment_name')->get();
+        ;
         $users = User::orderBy('first_name', 'asc')->get()->map(function ($user) {
             return [
                 'unique_id' => $user->unique_id,
@@ -177,6 +177,6 @@ class IndexController extends Controller
         });
         $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
 
-        return view('admin.order_management.schedules.index', ['orderProducts' => $orderProducts, 'categories' => $categories, 'stores' => $stores, 'equipments' => $equipments, 'employees' => $employees]);
+        return view('admin.order_management.schedules.index', ['orderProducts' => $orderProducts, 'categories' => $categories, 'stores' => $stores, 'employees' => $employees]);
     }
 }

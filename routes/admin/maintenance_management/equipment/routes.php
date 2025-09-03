@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\StoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\EditController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\UpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\DeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\FetchController;
 
 Route::prefix('equipment')
     ->name('equipment.')
@@ -26,4 +27,7 @@ Route::prefix('equipment')
 
         // Delete
         Route::delete('/{unique_id}', DeleteController::class)->name('delete');
+
+        Route::get('/fetch-equipment', FetchController::class)->name('fetch');
+
     });

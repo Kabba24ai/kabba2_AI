@@ -18,7 +18,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- First Name  -->
             <div class="mb-4">
-                <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1 required">First Name </label>
 
                 {!! html()->text('first_name', old('first_name', $customer->first_name ?? ''))->class([
                 'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2',
@@ -39,7 +39,7 @@
 
             <!-- Last Name  -->
             <div class="mb-4">
-                <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1 required">Last Name </label>
 
                 {!! html()->text('last_name', old('last_name', $customer->last_name ?? ''))->class([
                 'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2',
@@ -61,7 +61,7 @@
 
 
         <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1 required">Email Address </label>
 
             {!! html()->email('email', old('email', $customer->email ?? ''))->class([
             'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2',
@@ -91,7 +91,7 @@
 
 
         <div class="mb-4">
-            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1 required">Phone Number </label>
             {!! html()->text('phone', old('phone', $customer->phone ?? ''))->class([
             'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2',
             'border-red-500' => $errors->has('phone'),
@@ -140,7 +140,7 @@
 
         {{-- Company Name --}}
         <div class="mb-4">
-            <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+            <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1 required">Company Name </label>
 
             {!! html()->text('company_name', old('company_name', $customer->company_name ?? ''))->class([
             'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2',
@@ -243,32 +243,32 @@
             <input type="hidden" name="addresses[0][is_primary]" value="1">
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">First Name </label>
                 <input type="text" name="addresses[0][first_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="First Name" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Last Name </label>
                 <input type="text" name="addresses[0][last_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Last Name" required>
             </div>
 
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Address </label>
                 <input type="text" name="addresses[0][address]" class="w-full border border-gray-300 shadow-sm  rounded-md px-3 py-2 text-sm" placeholder="Street Address" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">City </label>
                 <input type="text" name="addresses[0][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter City" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Zip Code *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Zip Code </label>
                 <input type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter Zip Code" maxlength="8" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">State </label>
                 <select name="addresses[0][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" required>
                     <option value="">-- Select State --</option>
                     @foreach ($states as $state)
@@ -278,7 +278,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Phone Number </label>
                 <input type="text" name="addresses[0][phone]" class=" masked-phone w-full border shadow-sm rounded-md px-3 py-2 text-sm" placeholder="(xxx) xxx-xxxx" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
                     data-parsley-error-message="Please enter phone number in <br> format (xxx) xxx-xxxx" required>
             </div>
@@ -295,32 +295,32 @@
             <input type="hidden" name="addresses[1][is_primary]" value="1">
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">First Name </label>
                 <input type="text" name="addresses[1][first_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="First Name" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Last Name </label>
                 <input type="text" name="addresses[1][last_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Last Name" required>
             </div>
 
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+            <div class="md:col-span-2"> 
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Address </label>
                 <input type="text" name="addresses[1][address]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Street Address" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">City </label>
                 <input type="text" name="addresses[1][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter City" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Zip Code *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Zip Code </label>
                 <input type="text" name="addresses[1][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter Zip Code" maxlength="8" required>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">State </label>
                 <select name="addresses[1][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" required>
                     <option value="">-- Select State --</option>
                     @foreach ($states as $state)
@@ -330,7 +330,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Phone Number </label>
                 <input type="text" name="addresses[1][phone]" class=" masked-phone w-full border shadow-sm rounded-md px-3 py-2 text-sm" placeholder="(xxx) xxx-xxxx" autocomplete="tel"
                     data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
                     data-parsley-error-message="Please enter phone number in <br> format (xxx) xxx-xxxx" required>

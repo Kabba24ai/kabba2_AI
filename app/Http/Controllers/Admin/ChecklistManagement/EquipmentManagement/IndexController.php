@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement;
 use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
+use App\Models\MaintenanceManagement\Equipment;
 
 
 class IndexController extends Controller
@@ -13,6 +14,14 @@ class IndexController extends Controller
     {
         $users = User::where('status', 'Active')->get();
 
-        return view('admin.checklist_management.equipment_management.index',['users' => $users]);
+        $equipments = Equipment::with('product_category')->get();
+
+
+        // dd($equipments);
+
+        return view('admin.checklist_management.equipment_management.index', [
+            'users' => $users,
+            'equipments' => $equipments,
+        ]);
     }
 }

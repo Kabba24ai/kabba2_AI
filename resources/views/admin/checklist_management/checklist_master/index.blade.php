@@ -10,7 +10,7 @@
 
 @include('flash::message')
 
-<div class="bg-white">
+<div class="">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
         <!-- Left: Title and Subtitle -->
@@ -113,11 +113,25 @@
                     <div class="flex items-center gap-2">
                         <x-heroicon-o-document-text class="w-4 h-4 text-purple-600" />
                         <div class="text-left">
-                            <div class="text-sm text-gray-900">3 questions</div>
-                            <button class="text-xs text-purple-600 hover:text-purple-800 hover:underline transition-colors" title="Go to this Rental Ready Template">Heavy Equipment Customer Checklist</button>
+                            <div class="text-sm text-gray-900">
+                                {{ $Master->customerAdminTemplate?->questions?->count() ?? 0 }}
+                                {{ Str::plural('question', $Master->customerAdminTemplate?->questions?->count() ?? 0) }}
+                            </div>
+
+                            @if ($Master->customerAdminTemplate)
+                            <a href="{{ route('admin.checklist-management.customer-admin.index') }}"
+                                class="text-xs text-purple-600 hover:text-purple-800 hover:underline transition-colors"
+                                title="Go to this Customer Admin Template">
+                                {{ $Master->customerAdminTemplate->template_name }}
+                            </a>
+                            @else
+                            <span class="text-xs text-gray-500">No template assigned</span>
+                            @endif
                         </div>
                     </div>
                 </td>
+
+
                 <td class="px-4 py-3 ">
                     <div class="flex gap-2">
                         <a href="{{ route('admin.checklist-management.checklist-master.edit',$Master->unique_id) }}" class="text-blue-600">

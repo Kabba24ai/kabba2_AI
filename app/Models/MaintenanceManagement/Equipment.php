@@ -58,6 +58,8 @@ class Equipment extends Model
         'current_status' => EquipmentCurrentStatus::class,
         'power_source_type' => EquipmentPowerSourceType::class,
     ];
+    protected $appends = ['status_label'];
+
 
     public static function boot()
     {
@@ -70,5 +72,10 @@ class Equipment extends Model
     public function product_category()
     {
         return $this->belongsTo(ProductCategory::class);
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->current_status?->label() ?? 'Unknown';
     }
 }

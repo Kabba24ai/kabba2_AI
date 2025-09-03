@@ -506,7 +506,7 @@
 
                     <!-- Payment Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Payment Amount </label>
                         <div class="relative">
                         <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
@@ -532,7 +532,7 @@
                     </div>
                     <!-- Payment Method -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Payment Method </label>
                         {!! html()->select('payment_type', [
                             '' => 'Select payment method',
                             'CreditCard' => 'Credit / Debit Card',
@@ -549,7 +549,7 @@
 
                  <!-- Card Options -->
                     <div id="creditCardOptions" class="mb-4 hidden">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Options *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Card Options </label>
                         <select id="cardOption" name="card_option"
                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
                             <option value="NewCard" selected>New Card</option>
@@ -592,7 +592,7 @@
                     <!-- Card on File Dropdown -->
                     @if ($customer->cards && $customer->cards->count() > 0)
                         <div id="cardOnFileDropdown" class="mb-4 hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Existing Card *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 required">Select Existing Card </label>
                             <select name="existing_card_id"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
                                 <option value="">-- Select a saved card --</option>
@@ -605,7 +605,7 @@
 
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
 
                        
 
@@ -690,7 +690,7 @@
                  {!! html()->hidden('customer_id', $customer->id ?? '') !!}
                     <!-- Payment Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Refund Amount </label>
                         <div class="relative">
                             <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -709,7 +709,7 @@
                     </div>
                     <!-- Payment Method -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Refund Reason </label>
                         
 
                         {!! html()->select('reason', [
@@ -726,7 +726,7 @@
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
                       
 
                         {!! html()
@@ -812,7 +812,7 @@
 
                     <!-- Discount Amount -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Discount Amount </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 h-[35px] left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -838,7 +838,7 @@
                     </div>
                     <!-- Discount Reason -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Discount Reason </label>
                      
 
 
@@ -856,7 +856,7 @@
                     </div>
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
                         
                          {!! html()
                             ->select('responsible_person',
@@ -949,7 +949,7 @@
 
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Charge Amount </label>
                          <div class="relative">
                             <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                             <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
@@ -994,7 +994,7 @@
 
                     <!-- Charge Reason -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Charge Reason </label>
                         
                          {!! html()->select('reason', [
                         '' => 'Select charge reason',
@@ -1013,7 +1013,7 @@
 
                     <!-- Person Responsible -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
                         
                          {!! html()
                         ->select('responsible_person',

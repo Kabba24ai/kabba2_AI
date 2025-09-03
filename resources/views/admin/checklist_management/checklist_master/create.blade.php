@@ -11,7 +11,7 @@
 @include('flash::message')
 @include('admin.partials.formErrors')
 
-<div class="bg-white  flex flex-col md:flex-row items-start md:items-center justify-between w-full border-b border-gray-200 px-2 py-2">
+<div class=" flex flex-col md:flex-row items-start md:items-center justify-between w-full border-b border-gray-200 px-2 py-2">
     <!-- Left Side: Icon, Title, Description -->
     <div class="flex items-start gap-3">
         <x-heroicon-o-document class="w-8 h-8 text-blue-600" />
@@ -162,7 +162,7 @@
                     </svg>
                     Continue to Questions
                 </button>
-                <a href="#" class="text-sm text-gray-600 hover:underline">Cancel</a>
+                <a href="{{ route('admin.checklist-management.checklist-master.index') }}" class="text-sm text-gray-600 hover:underline">Cancel</a>
 
             </div>
         </div>
@@ -325,81 +325,55 @@
             <input type="text" placeholder="Search customer templates..." class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm" value="">
         </div>
 
-        <!-- Card Options as Radio Buttons -->
+        <!-- Customer Admin Templates -->
         <form id="templateFormcustomer" class="space-y-4 grid md:grid-cols-2 gap-4">
-            <input type="radio" name="templatetwo" id="equipment" class="card-radio-step-two hidden" value="Heavy Equipment Standard" />
-            <label for="equipment" class="flex justify-between gap-4 mb-0 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
-                <!-- Left section: icon and details -->
+            @foreach ($customeradmintemplate as $template)
+            <input type="radio"
+                name="templatetwo"
+                id="customer_template_{{ $template->id }}"
+                class="card-radio-step-two hidden"
+                value="{{ $template->id }}"
+                data-id="{{ $template->id }}"
+                data-category-id="{{ $template->equipment_category_id }}"
+                data-template-name="{{ $template->template_name }}" />
+
+            <label for="customer_template_{{ $template->id }}"
+                class="flex justify-between gap-4 mb-0 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
+
+                <!-- Left section -->
                 <div class="flex flex-col gap-2">
                     <div class="flex items-top gap-3">
-                        <!-- Icon -->
                         <x-heroicon-o-user class="w-6 h-6 text-indigo-600" />
                         <div>
-                            <p class="font-semibold text-gray-900 leading-tight">Heavy Equipment Customer Checklist</p>
-                            <p class="text-sm text-gray-600">Heavy Equipment</p>
+                            <p class="font-semibold text-gray-900 leading-tight">
+                                {{ $template->template_name }}
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                {{ $template->equipmentCategory->getHierarchyLabel() ?? 'No Category' }}
+                            </p>
                         </div>
                     </div>
-                    <p class="text-sm text-gray-600 mt-1">Standard delivery/return checklist for heavy equipment</p>
-                    <p class="text-sm text-gray-600 mt-1">3 questions</p>
+                    <p class="text-sm text-gray-600 mt-1">{{ $template->description ?? 'No description' }}</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                        {{ $template->questions->count() }}
+                        {{ Str::plural('question', $template->questions->count()) }}
+                    </p>
                 </div>
 
-                <!-- Right section: checkmark + status -->
+                <!-- Right section -->
                 <div class="flex flex-col justify-between items-end">
-                    <svg class="checkmark w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg class="checkmark w-6 h-6 text-indigo-600"
+                        fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
+                    <span class="text-xs px-3 py-1 rounded-full mt-auto
+                             {{ $template->active_template ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                        {{ $template->active_template ? 'Active' : 'Inactive' }}
+                    </span>
                 </div>
             </label>
-
-            <input type="radio" name="templatetwo" id="compactequipment" class="card-radio-step-two hidden" value="Compact Equipment Customer Checklist" />
-            <label for="compactequipment" class="flex justify-between gap-4 mb-0 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
-                <!-- Left section: icon and details -->
-                <div class="flex flex-col gap-2">
-                    <div class="flex items-top gap-3">
-                        <!-- Icon -->
-                        <x-heroicon-o-user class="w-6 h-6 text-indigo-600" />
-                        <div>
-                            <p class="font-semibold text-gray-900 leading-tight">Compact Equipment Customer Checklist</p>
-                            <p class="text-sm text-gray-600">Compact Equipment</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1">Standard delivery/return checklist for compact equipment</p>
-                    <p class="text-sm text-gray-600 mt-1">2 questions</p>
-                </div>
-
-                <!-- Right section: checkmark + status -->
-                <div class="flex flex-col justify-between items-end">
-                    <svg class="checkmark w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
-                </div>
-            </label>
-
-            <input type="radio" name="templatetwo" id="powerequipment" class="card-radio-step-two hidden" value="Power Equipment Customer Checklist" />
-            <label for="powerequipment" class="flex justify-between gap-4 mb-0 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
-                <div class="flex flex-col gap-2">
-                    <div class="flex items-top gap-3">
-                        <!-- Icon -->
-                        <x-heroicon-o-user class="w-6 h-6 text-indigo-600" />
-                        <div>
-                            <p class="font-semibold text-gray-900 leading-tight">Power Equipment Customer Checklist</p>
-                            <p class="text-sm text-gray-600">Power Equipment</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1">Standard delivery/return checklist for power equipment</p>
-                    <p class="text-sm text-gray-600 mt-1">1 questions</p>
-                </div>
-
-                <!-- Right section: checkmark + status -->
-                <div class="flex flex-col justify-between items-end">
-                    <svg class="checkmark w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="text-xs bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full mt-auto">Active</span>
-                </div>
-            </label>
+            @endforeach
         </form>
 
         <div id="templatecustomer" class="hidden mt-6 bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-md text-sm">
@@ -441,7 +415,7 @@
                 </svg>Previous Step
             </button>
             <!-- <button onclick="goToStep(1)" class="text-sm text-gray-600">← Previous</button> -->
-            <p class="text-sm text-gray-500 text-center">Step 2 of 4</p>
+            <p class="text-sm text-gray-500 text-center">Step 3 of 4</p>
         </div>
 
     </div>
@@ -730,13 +704,15 @@
         radios.forEach(radio => {
             radio.addEventListener('change', function() {
                 customerBox.classList.remove('hidden');
-                selectedCustomer.textContent = this.value;
+                selectedCustomer.textContent = this.dataset.templateName;
 
                 //  also update final summary box
                 const assignedcustomertemplate = document.getElementById('Assigned-customer-template');
                 if (assignedcustomertemplate) {
-                    assignedcustomertemplate.textContent = '"' + this.value + '"';
+                    assignedcustomertemplate.textContent = '"' + this.dataset.templateName + '"';
                 }
+
+                document.getElementById('hiddenCustomerTemplateId').value = this.value;
 
                 // Enable button when a template is selected
                 continue3Btn.disabled = false;

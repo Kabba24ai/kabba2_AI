@@ -9,7 +9,7 @@
             <!-- Row 1 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                    <label for="firstName" class="text-xs text-gray-500 font-medium">First Name *</label>
+                    <label for="firstName" class="text-xs text-gray-500 font-medium required">First Name </label>
                     <!-- <input type="text" id="firstName" placeholder="John"
                             class="w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300"> -->
 
@@ -38,7 +38,7 @@
 
                 </div>
                 <div>
-                    <label for="lastName" class="text-xs text-gray-500 font-medium">Last Name *</label>
+                    <label for="lastName" class="text-xs text-gray-500 font-medium required">Last Name </label>
 
                     {!! html()->text('last_name', old('last_name', $user->last_name ?? ''))
                     ->id('lastName')
@@ -55,7 +55,7 @@
             <!-- Row 2 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label for="email" class="text-xs text-gray-500 font-medium">Email Address *</label>
+                    <label for="email" class="text-xs text-gray-500 font-medium required">Email Address </label>
 
                     {!! html()->email('email', old('email', $user->email ?? ''))
                     ->id('email')
@@ -96,7 +96,7 @@
 
                 </div>
                 <div>
-                    <label for="phone" class="text-xs text-gray-500 font-medium">Phone Number *</label>
+                    <label for="phone" class="text-xs text-gray-500 font-medium required">Phone Number </label>
 
                     {!! html()->text('phone_number', old('phone_number', $user->phone_number ?? ''))
                     ->id('phone')
@@ -126,7 +126,7 @@
         <div class="space-y-6">
             <!-- Street Address -->
             <div class="mb-4">
-                <label for="street" class="text-xs text-gray-500 font-medium">Street Address *</label>
+                <label for="street" class="text-xs text-gray-500 font-medium required">Street Address </label>
 
                 {!! html()->text('street', old('street', $user->street_address ?? ''))
                 ->id('street')
@@ -142,7 +142,7 @@
             <!-- Grid for City, State, Zip Code, Country -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label for="city" class="text-xs text-gray-500 font-medium">City *</label>
+                    <label for="city" class="text-xs text-gray-500 font-medium required">City </label>
                     {!! html()->text('city', old('city', $user->city ?? ''))
                     ->id('city')
                     ->class('w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
@@ -153,7 +153,7 @@
                     !!}
                 </div>
                 <div>
-                    <label for="state" class="text-xs text-gray-500 font-medium">State *</label>
+                    <label for="state" class="text-xs text-gray-500 font-medium required">State </label>
 
                     <!-- {!! html()
                              ->select('state',
@@ -198,7 +198,7 @@
 
                 </div>
                 <div>
-                    <label for="country" class="text-xs text-gray-500 font-medium">Country *</label>
+                    <label for="country" class="text-xs text-gray-500 font-medium required">Country </label>
 
                     {!! html()->text('country', old('country', $user->country ?? ''))
                     ->id('country')

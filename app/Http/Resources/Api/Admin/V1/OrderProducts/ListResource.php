@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 use App\Helpers\CustomHelper;
-
+use App\Http\Resources\Api\Admin\V1\Equipment\ListResource as EquipmentListResource;
 use App\Http\Resources\Api\Admin\V1\OrderMedias\ListResource as OrderMediasListResource;
 use App\Http\Resources\Api\Admin\V1\Orders\ListResource as OrdersListResource;
 
@@ -53,6 +53,13 @@ class ListResource extends JsonResource
             'pickup_media' => OrderMediasListResource::collection($this->whenLoaded('pickupMedia') ?? []),
 
             'order' => new OrdersListResource($this->whenLoaded('order')),
+
+            'equipment' => new EquipmentListResource($this->whenLoaded('equipment') ?? []),
+
+            'equipment_id' => $this->equipment_id ?? 0,
+            'equipment_details' => $this->equipment_details ?? '',
+            'assigned_by' => $this->equipment_assigned_by ?? '',
+            'assigned_at' => CustomHelper::formatDateTime($this->equipment_assigned_at) ?? '',
         ];
 
         return $return;

@@ -7,10 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 // Helpers
 use App\Helpers\ModelHelper;
-
+use App\Models\MaintenanceManagement\Equipment;
 // Models
 use App\Models\ProductManagement\Product;
-use App\Models\Stores\Store;
 
 class OrderProduct extends Model
 {
@@ -63,6 +62,11 @@ class OrderProduct extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function equipment()
+    {
+        return $this->belongsTo(Equipment::class);
     }
 
     /**

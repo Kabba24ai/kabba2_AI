@@ -285,12 +285,12 @@
                                                 
                                             
                                             <!-- View -->
-                                                <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)'    data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}" >
+                                                <button class="openTransactionViewModalBtn cursor-pointer" title="View" data-transaction='@json($transaction)'    data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}" >
                                                                             <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                                                                         </button>
                                                <!-- Download -->
                                                                             <form method="GET" action="{{ route('front.customer.dashboard.download', $transaction->id) }}" target="_blank" style="display:flex;">
-                                                                                <button title="Download" type="submit">
+                                                                                <button class="cursor-pointer" title="Download" type="submit">
                                                                                     <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
                                                                                 </button>
                                                                             </form>
@@ -349,7 +349,7 @@
                 <button id="closeNoteModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
             <div class=" px-6 overflow-y-auto">
-                <div class="bg-gray-50 rounded-lg mb-4 text-sm space-y-1">
+                <div class="bg-white rounded-lg mb-4 text-sm space-y-1">
                     <div class="flex justify-between">
                         <span class="text-gray-500 font-medium" >Transaction:</span>
                         <span class="text-gray-700" id="Transaction-id">ORD-2025-001</span>

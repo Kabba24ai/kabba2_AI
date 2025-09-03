@@ -14,7 +14,7 @@ class IndexController extends Controller
     {
         $users = User::where('status', 'Active')->get();
 
-        $equipments = Equipment::with('product_category')->get();
+        $equipments = Equipment::with('productCategory')->get();
 
 
         // dd($equipments);

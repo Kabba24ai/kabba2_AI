@@ -238,7 +238,7 @@
             name: eq.equipment_name,
             model: eq.model,
             serial: eq.serial_number,
-            category: eq.product_category?.title ?? 'N/A',
+            category: eq.category_name ?? 'N/A',
             checklist_master_id: eq.checklist_master_id,
             hours: eq.equipment_hours,
             lastInspection: null,

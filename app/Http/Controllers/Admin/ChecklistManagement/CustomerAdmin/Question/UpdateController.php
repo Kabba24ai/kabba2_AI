@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Question;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestion;
-use App\Models\ChecklistManagement\CustomerAdmin\RCustomerAdminQuestionAnswer;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestionAnswer;
 use App\Http\Requests\Admin\ChecklistManagement\CustomerAdmin\Question\UpdateRequest;
 
 class UpdateController extends Controller
@@ -15,34 +15,45 @@ class UpdateController extends Controller
      */
     public function __invoke(UpdateRequest $request, $id)
     {
+        
         $validated = $request->validated();
 
         DB::beginTransaction();
 
         try {
-            //  Find existing question
+            // Find existing question
             $question = CustomerAdminQuestion::findOrFail($id);
 
-            //  Update question fields
+            // Update question fields
             $question->update([
-                'question_name'     => $validated['question_name'],
-                'category_id'       => $validated['category_id'],
-                'required_question' => $validated['required_question'] ?? 0,
+                'question_name'          => $validated['question_name'],
+                'category_id'            => $validated['category_id'],
+                'question_delivery_text' => $validated['question_delivery_text'],
+                'question_return_text'   => $validated['question_return_text'],
+                'required_question'      => $validated['required_question'] ?? 0,
             ]);
 
-            //  Decode JSON options
-            $options = json_decode($validated['options'], true);
+            // Options is already an array (thanks to prepareForValidation in UpdateRequest)
+            $options = $validated['options'];
 
-            // clear old answers and re-insert
+            // Clear old answers
             $question->answers()->delete();
 
+            // Re-insert answers
             foreach ($options as $index => $option) {
-                CustomerAdminQuestionAnswer::create([
-                    'answer_name'  => $option['text'],
-                    'type'         => $option['status'], 
-                    'index_number' => $option['index_number'] ?? ($index + 1), 
-                    'question_id'  => $question->id,
+                $answer = CustomerAdminQuestionAnswer::create([
+                    'question_id'          => $question->id,
+                    'index_number'         => $index + 1,
+                    'answer_delivery_text' => $option['answer_delivery_text'] ?? null,
+                    'answer_return_text'   => $option['answer_return_text'] ?? null,
+                    'delivery_amt'         => $option['delivery_amt'] ?? null,
+                    'return_amt'           => $option['return_amt'] ?? null,
+                    'required'             => $option['syncEnabled'] ?? false,
                 ]);
+
+                if (!$answer || !$answer->id) {
+                    throw new \Exception("Failed to create answer at index $index");
+                }
             }
 
             DB::commit();
@@ -52,12 +63,13 @@ class UpdateController extends Controller
             session()->flash('active_tab', 'questions');
             session()->flash('active_subtab', 'questions');
 
-            return redirect()
-                ->route('admin.checklist-management.rental-ready.index');
+            return redirect()->route('admin.checklist-management.customer-admin.index');
 
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
+            //dd($e->getMessage());
+            //die();
 
             flash('Something went wrong while updating the question.')->error();
 

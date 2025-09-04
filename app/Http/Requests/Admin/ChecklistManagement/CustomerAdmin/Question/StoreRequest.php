@@ -31,11 +31,6 @@ class StoreRequest extends FormRequest
         'question_return_text'   => ['required', 'string'],
         
         'options'            => ['required', 'array'],
-        'options.*.delivery_text' => ['required', 'string'],
-        'options.*.return_text'   => ['required', 'string'],
-        'options.*.delivery_amt'  => ['nullable', 'numeric'],
-        'options.*.return_amt'    => ['nullable', 'numeric'],
-        'options.*.syncEnabled'   => ['nullable', 'boolean'],
     ];
     }
 

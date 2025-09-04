@@ -1,7 +1,7 @@
 
                          {{ html()->form()->id('customerForm')->attributes([
                             'autocomplete' => 'off',
-                            
+
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
                         ])->acceptsFiles()->open() }}
@@ -31,7 +31,7 @@
                                 <button onclick="confirmAndActive({{ $customer->id }})"  type="button" class="bg-green-600 text-white px-4 py-2 rounded text-sm static-view">Activate Account</button>
                             @endif
                             <button type="button" id="openResetPasswordModal" class="bg-yellow-500 text-white px-4 py-2 rounded text-sm static-view">Reset Password</button>
-                            <button id="editBtn" type="button" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"> Edit Information</button>    
+                            <button id="editBtn" type="button" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"> Edit Information</button>
                             <button  type="submit" id="saveBtn" style="display:none;" class="saveBtn bg-green-600 text-white px-4 py-2 rounded text-sm">Save Changes</button>
                             <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Cancel</button>
                         </div>
@@ -58,7 +58,7 @@
                                     'border-red-500' => $errors->has('first_name'),
                                 ])
                                 ->attributes([
-                                    
+
                                     'placeholder' => 'Enter First Name',
                                     'id' => 'first_name',
                                     'autocomplete' => 'off',
@@ -79,7 +79,7 @@
                                 'border-red-500' => $errors->has('last_name'),
                             ])
                             ->attributes([
-                               
+
                                 'placeholder' => 'Enter Last Name',
                                 'id' => 'last_name',
                                 'autocomplete' => 'off',
@@ -104,7 +104,7 @@
                                 'border-red-500' => $errors->has('email'),
                             ])
                             ->attributes([
-                               
+
                                 'placeholder' => 'Enter Email',
                                 'id' => 'email',
                                 'autocomplete' => 'off',
@@ -168,7 +168,7 @@
                                 'border-red-500' => $errors->has('company_name'),
                             ])
                             ->attributes([
-                              
+
                                 'placeholder' => 'Enter Company Name',
                                 'id' => 'company_name',
                             ])
@@ -176,7 +176,7 @@
 
 
                         </div>
-                        
+
                         <div class="col-span-2">
                             <label class="text-xs text-gray-500 font-medium">Company Phone</label>
                             <div class=" static-view">
@@ -228,7 +228,7 @@
                                         'border-gray-300' => !$errors->has('website_protocol'),
                                     ])
                                     ->id('website_protocol') !!}
-                                    
+
 
                                 {{-- Website Name --}}
                                 {!! html()->text('company_website', old('company_website',$company_website ?? null))
@@ -257,7 +257,7 @@
                                     ->id('website_extension') !!}
 
                             </div>
-                          
+
 
                         </div>
                     </div>
@@ -285,7 +285,7 @@
                 <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
                 {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
                 @if ($addresse && $addresse->is_primary)
-                    - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>  
+                    - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>
                 @endif
             </h3>
 
@@ -312,7 +312,7 @@
                                 'border-red-500' => $errors->has("addresses.$index.last_name"),
                             ])
                             ->attributes([
-                                
+
                                 'placeholder' => 'Last Name',
                                 'class' => 'last_name'
                             ])->required() !!}
@@ -411,7 +411,7 @@
 
                             </div>
 
-                </div>                       
+                </div>
             </div>
         </div>
     @endforeach
@@ -443,13 +443,13 @@
                             @else
                                         N/A
                             @endif
-                            
+
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 font-medium">Account Approved:</span>
                             <div class="static-view">
                             @if($customer->is_credit_account == 1)
-                              
+
                                 <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
                                     <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
                                     Approved
@@ -498,20 +498,20 @@
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between items-center">
 
-                        
+
                                 <span class="text-xs text-gray-500 font-medium">Credit Limit:</span>
                                 <span class="text-right static-view">
                                     <span class="text-gray-900 font-semibold">
-                                    
+
             {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
 
                                     </span>
                                     <a href="#" class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /></a>
                                 </span>
 
-                           
 
-                              
+
+
                         @php
                             $creditOptions = collect(range(1000, 20000, 1000))->mapWithKeys(function ($value) {
                                 return [$value => number_format($value)];
@@ -532,27 +532,27 @@
                             <span class="text-xs text-gray-500 font-medium">Current Balance:</span>
 
                             <span class="font-medium ">
-                                
-                        
+
+
             {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}
 
 
                             <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
-                            
-                              
 
-                         
+
+
+
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
                             <span class="text-green-600 font-medium ">
-                                
+
                         {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
 
                         </div>
                         <div class="static-view">
-                            
-                           
+
+
                             @php
                                 $climit = $customer->credit_limit ?? 0;
                             $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
@@ -563,13 +563,13 @@
                             <div class="flex justify-between text-xs text-gray-500 mb-1">
                                 <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
                                 <div class="text-right text-xs text-gray-500 mt-0.5">{{round($per)}}%</div>
-                            </div>  
+                            </div>
                             <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
                                 <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%; max-width: 100%;"></div>
                             </div>
 
-                            
-                            
+
+
                         </div>
                     </div>
                 </div>
@@ -578,7 +578,7 @@
 
             <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-0">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-                   
+
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -637,7 +637,7 @@
                                 id="tax_document_valid_until"
                                 placeholder="MM-DD-YYYY"
                                 autocomplete="off"
-                            />                            
+                            />
                         </div>
 
 
@@ -658,11 +658,11 @@
                                     id="tax_document_upload_date"
                                     placeholder="MM-DD-YYYY"
                                     autocomplete="off"
-                                />                           
+                                />
                             </div>
                         </div>
                     </div>
-                
+
 
                                 <div class="flex flex-col items-start md:items-end gap-2 text-left w-auto">
                             <div class="md:text-right mb-4">
@@ -705,13 +705,13 @@
                     <!-- <form id="taxDocForm" enctype="multipart/form-data"> -->
 
             {{-- Open Form --}}
-                {!! html()->form() 
+                {!! html()->form()
                     ->id('taxDocForm')
                     ->attribute('enctype', 'multipart/form-data')
                     ->attribute('autocomplete', 'off')
                     ->attribute('data-parsley-validate', true)
                     ->class('space-y-8')
-                    ->open() 
+                    ->open()
                 !!}
 
                         <input type="hidden" name="customer_id" value="{{ $customer->id }}">
@@ -799,8 +799,8 @@
             </div>
 
             <div class="px-6 overflow-y-auto">
-                
-             
+
+
                    {{ html()->form()->attributes([
     'class' => 'space-y-5',
     'method' => 'POST',
@@ -823,7 +823,7 @@
                     'id' => 'password',
                     'data-parsley-minlength' => '6',
                     'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
-                    
+
                 ])->placeholder('') }}
                 <button type="button" onclick="toggleVisibility('password', this)" class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
@@ -908,7 +908,7 @@ function toggleVisibility(inputId, btn) {
   const input = document.getElementById(inputId);
   const isPassword = input.type === 'password';
   input.type = isPassword ? 'text' : 'password';
-  
+
   const svg = btn.querySelector('svg');
   svg.innerHTML = isPassword
     ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -951,7 +951,7 @@ function confirmAndDelete(id) {
             document.getElementById(`suspend-customer-form-${id}`).submit();
         }
     }
-    
+
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -997,7 +997,7 @@ document.getElementById('resetPasswordForm').addEventListener('submit', function
 
     const form = e.target;
 
- 
+
     if (!$(form).parsley().isValid()) {
         return; // stop if validation fails
     }
@@ -1139,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('taxDocForm');
     const fileInput = document.getElementById('tax_document');
 
-    
+
 function resetTaxDocModalForm() {
     form.reset();
 
@@ -1152,7 +1152,7 @@ function resetTaxDocModalForm() {
     if (docTypeSelect) docTypeSelect.value = '';
 }
 
-    
+
     // Modal open/close
     const openModal = () => modalWrapper.style.display = 'flex';
     const closeModal = () => modalWrapper.style.display = 'none';
@@ -1205,7 +1205,7 @@ function resetTaxDocModalForm() {
         uploadDateInput.value = result.upload_date;
     }
 
-bindTaxStatusButtons(); 
+bindTaxStatusButtons();
 
 
     notyf.success(result.message || 'Uploaded successfully');

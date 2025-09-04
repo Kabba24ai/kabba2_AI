@@ -17,6 +17,9 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
+
+        // dd($validated);
+
         DB::beginTransaction();
 
         try {
@@ -40,7 +43,7 @@ class UpdateController extends Controller
                 RentalReadyChecklistQuestionAnswer::create([
                     'answer_name'  => $option['text'],
                     'type'         => $option['status'], 
-                    'index_number' => $option['index_number'] ?? ($index + 1), 
+                    'index_number' =>  $index + 1, 
                     'question_id'  => $question->id,
                 ]);
             }

@@ -11,27 +11,31 @@ class UpdateRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->has('options') && is_string($this->options)) {
+        $this->merge([
+            'options' => json_decode($this->options, true),
+        ]);
+    }
+    }
+
     public function rules(): array
     {
         return [
-        'question_name'      => ['required', 'string'],
-        'category_id'        => ['required', 'integer'],
-        'required_question'  => ['nullable', 'boolean'],
+            'question_name'      => ['required', 'string'],
+            'category_id'        => ['required', 'integer'],
+            'required_question'  => ['nullable', 'boolean'],
+            'question_delivery_text' => ['required', 'string'],
+            'question_return_text'   => ['required', 'string'],
 
-        // Validate the array
-        'options'            => ['required', 'array'],
-
-        // Validate each item in the array
-        'options.*.delivery_text' => ['required', 'string'],
-        'options.*.return_text'   => ['required', 'string'],
-        'options.*.delivery_amt'  => ['nullable', 'numeric'],
-        'options.*.return_amt'    => ['nullable', 'numeric'],
-    ];
+            'options'            => ['required', 'array'],
+            
+        ];
     }
 
     public function messages(): array
     {
-        return [
-        ];
+        return [];
     }
 }

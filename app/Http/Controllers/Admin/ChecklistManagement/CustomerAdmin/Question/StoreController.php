@@ -17,18 +17,18 @@ class StoreController extends Controller
 {
     $validated = $request->validated();
     
-
+    
     DB::beginTransaction();
 
     try {
         // Create the Question
         $question = CustomerAdminQuestion::create([
-    'question_name'           => $validated['question_name'],
-    'category_id'             => $validated['category_id'],
-    'question_delivery_text'  => $validated['question_delivery_text'],
-    'question_return_text'    => $validated['question_return_text'],
-    'required_question'       => $validated['required_question'] ?? 0,
-]);
+        'question_name'           => $validated['question_name'],
+        'category_id'             => $validated['category_id'],
+        'question_delivery_text'  => $validated['question_delivery_text'],
+        'question_return_text'    => $validated['question_return_text'],
+        'required_question'       => $validated['required_question'] ?? 0,
+    ]);
 
 if (!$question || !$question->id) {
     throw new \Exception('Failed to create question.');
@@ -39,7 +39,7 @@ if (!$question || !$question->id) {
         $options = $validated['options'];
 
         foreach ($validated['options'] as $index => $option) {
-    $answer = CustomerAdminQuestionAnswer::create([
+        $answer = CustomerAdminQuestionAnswer::create([
         'question_id'          => $question->id,
         'index_number'         => $index + 1,
         'answer_delivery_text' => $option['delivery_text'] ?? null,

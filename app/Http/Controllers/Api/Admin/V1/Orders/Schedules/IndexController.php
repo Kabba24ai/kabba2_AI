@@ -34,7 +34,7 @@ class IndexController extends BaseController
         $transportMode = $validatedData['transport_mode'] ?? null;
 
         $orders = OrderProduct::query()
-            ->with('order', 'order.customer', 'order.shippingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia', 'equipment')
+            ->with('order', 'order.customer', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia', 'equipment')
             ->where('product_data->product_type', 'Rental')
             ->whereNotNull('delivery_date')
             ->when($search, function ($query) use ($search) {

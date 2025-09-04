@@ -136,6 +136,16 @@ class Order extends Model
         return $this->hasMany(OrderMedia::class, 'order_id')->where('type', OrderMediaType::LICENSE);
     }
 
+    public function deliveryMedia()
+    {
+        return $this->hasMany(OrderMedia::class, 'order_id')->where('type', OrderMediaType::DELIVERY);
+    }
+
+    public function pickupMedia()
+    {
+        return $this->hasMany(OrderMedia::class, 'order_id')->where('type', OrderMediaType::PICKUP);
+    }
+
     // Polymorphic relations for created_by and updated_by
     public function createdBy()
     {

@@ -737,7 +737,7 @@
 
                                 {{-- Status Checklist --}}
                                 <div class="border rounded-xl p-4 bg-white">
-                                    <div class="grid grid-cols-3 gap-8 text-center text-xs font-medium text-gray-700 mb-2">
+                                    <div class="grid grid-cols-2 gap-8 text-center text-xs font-medium text-gray-700 mb-2">
                                         <!-- Checklist -->
                                         <div class="flex flex-col items-center">
                                             <div>Checklist</div>
@@ -748,24 +748,16 @@
                                                     class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
                                             </div>
                                         </div>
-                                        <!-- Machine Hours -->
-                                        <div class="flex flex-col items-center">
-                                            <div>Machine Hours</div>
-                                            <div class="flex justify-center gap-2 mb-1">
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                            </div>
-                                        </div>
+
                                         <!-- Video -->
                                         <div class="flex flex-col items-center">
                                             <div>Video</div>
                                             <div class="flex justify-center gap-2 mb-1">
+                                                <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold {{ $orderProduct->deliveryMedia->isNotEmpty() ? 'bg-green-500' : 'bg-red-500' }}">
+                                                    D
+                                                </span>
                                                 <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold {{ $orderProduct->pickupMedia->isNotEmpty() ? 'bg-green-500' : 'bg-red-500' }}">R</span>
                                             </div>
                                         </div>
                                     </div>
@@ -841,10 +833,17 @@
                         <div class="flex flex-col items-center">
                             <div>License</div>
                             <div class="flex justify-center mb-1">
-                                <span
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
-                                    <x-heroicon-o-check class="w-4 h-4" />
-                                </span>
+                                @if ($order->licenseMedia->isNotEmpty())
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
+                                        <x-heroicon-o-check class="w-4 h-4" />
+                                    </span>
+                                @else
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                                    </span>
+                                @endif
                             </div>
                         </div>
                         {{-- <!-- Checklist -->

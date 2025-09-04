@@ -21,6 +21,8 @@ class OrderProduct extends Model
         'price',
         'quantity',
         'allocated_hours',
+        'hour_tracking',
+        'hour_rate',
         'sub_total',
         'tax',
         'total',

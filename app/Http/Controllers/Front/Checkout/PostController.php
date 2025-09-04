@@ -234,6 +234,8 @@ class PostController extends Controller
                         'product_name' => $item['product_name'],
                         'price' => $item['product_price'],
                         'quantity' => $item['quantity'],
+                        'hour_tracking' => $item['hour_tracking'] ?? 'No',
+                        'hour_rate' => $item['hour_rate'] ?? 0,
                         'allocated_hours' => $item['allocated_hours'] ?? 0.00,
                         'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],

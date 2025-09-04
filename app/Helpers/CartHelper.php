@@ -200,6 +200,8 @@ class CartHelper
             'product_sale_active' => $isSale ? true : false,
             'product_price' => $price,
             'quantity' => $quantity,
+            'hour_tracking' => $product->hour_tracking ?? 'No',
+            'hour_rate' => $product->hour_rate ?? 0,
             'allocated_hours' => $allocatedHours,
 
             'service_method' => $validated['service_method'] ?? null,

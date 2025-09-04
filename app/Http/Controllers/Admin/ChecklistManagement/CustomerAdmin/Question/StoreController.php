@@ -17,7 +17,6 @@ class StoreController extends Controller
 {
     $validated = $request->validated();
     
-    
     DB::beginTransaction();
 
     try {
@@ -41,12 +40,12 @@ if (!$question || !$question->id) {
         foreach ($validated['options'] as $index => $option) {
         $answer = CustomerAdminQuestionAnswer::create([
         'question_id'          => $question->id,
-        'index_number'         => $index + 1,
-        'answer_delivery_text' => $option['delivery_text'] ?? null,
-        'answer_return_text'   => $option['return_text'] ?? null,
-        'delivery_amt'         => $option['delivery_amt'] ?? null,
-        'return_amt'           => $option['return_amt'] ?? null,
-        'required'             => $option['syncEnabled'] ?? false,
+                    'index_number'         => $index + 1,
+                    'answer_delivery_text' => $option['answer_delivery_text'] ?? null,
+                    'answer_return_text'   => $option['answer_return_text'] ?? null,
+                    'delivery_amt'         => $option['delivery_amt'] ?? null,
+                    'return_amt'           => $option['return_amt'] ?? null,
+                    'required'             => $option['syncEnabled'] ?? 0,
     ]);
 
     if (!$answer || !$answer->id) {
@@ -67,7 +66,7 @@ if (!$question || !$question->id) {
     } catch (\Throwable $e) {
         DB::rollBack();
         report($e);
-        //dd($e->getMessage(), $e->getTraceAsString());
+        dd($e->getMessage(), $e->getTraceAsString());
 
         flash('Something went wrong while creating the question.')->error();
 

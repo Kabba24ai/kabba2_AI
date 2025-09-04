@@ -496,11 +496,8 @@
 
                        <!-- Required Question Checkbox -->
                        <div>
-                           <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                               {!! html()->checkbox('required_question', false, 1)->class('form-checkbox h-4 w-4 text-blue-600') !!}
-                               Required Question
-                           </label>
-                       </div>
+    {!! html()->hidden('required_question', 1) !!}
+</div>
 
                        <!-- Answer Options -->
                        <div class="space-y-4">
@@ -678,7 +675,7 @@
                     <div class="flex items-center gap-4">
                         <div class="flex items-center gap-2">
                             <input type="hidden" name="options[${index}][index_number]" value="${index}">
-                            <input type="checkbox" name="options[${index}][syncEnabled]" id="sync-${index}" class="sync-toggle rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${option.syncEnabled ? 'checked' : ''}>
+                            <input type="checkbox" name="options[${index}][syncEnabled]" id="sync-${index}" class="sync-toggle rounded border-gray-300 text-blue-600 focus:ring-blue-500" onchange="updateCheckValue()" value="${option.required ? option.required : 0}" ${option.syncEnabled ? 'checked' : ''}>
                             <label for="sync-${index}" class="text-xs text-gray-600 flex items-center gap-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link w-3 h-3">
                                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
@@ -820,6 +817,10 @@
                    syncEnabled: true
                });
                renderOptions();
+           }
+
+           function updateCheckValue(){
+            this.value = 1;
            }
 
            function removeOption(id) {

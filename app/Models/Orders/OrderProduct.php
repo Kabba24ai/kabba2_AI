@@ -20,6 +20,7 @@ class OrderProduct extends Model
         'product_name',
         'price',
         'quantity',
+        'allocated_hours',
         'sub_total',
         'tax',
         'total',

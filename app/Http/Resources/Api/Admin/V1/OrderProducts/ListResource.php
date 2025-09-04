@@ -26,6 +26,7 @@ class ListResource extends JsonResource
             'product_name' => $this->product_name ?? '',
             'price' => $this->price ? CustomHelper::formatCurrency($this->price) : '0.00',
             'quantity' => $this->quantity ?? 0,
+            'allocated_hours' => $this->allocated_hours ?? 0.00,
             'sub_total' => $this->sub_total ? CustomHelper::formatCurrency($this->sub_total) : '0.00',
             'tax' => $this->tax ? CustomHelper::formatCurrency($this->tax) : '0.00',
             'total' => $this->total ? CustomHelper::formatCurrency($this->total) : '0.00',

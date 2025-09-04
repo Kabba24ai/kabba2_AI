@@ -47,7 +47,6 @@ class PostController extends Controller
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
         $employeeCode = $validated['employee_code'] ?? null;
 
-
         if ($employeeCode) {
             // Validate employee code if provided
             $employee = User::where('employee_code', $employeeCode)->active()->first();
@@ -225,14 +224,17 @@ class PostController extends Controller
 
             $primaryStoreId = Store::primary()->value('id');
 
+
             foreach ($cartSummary['cart_items'] as $item) {
                 if ($product = Product::where('unique_id', $item['product_unique_id'])->first()) {
+
                     $order->products()->create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
                         'product_name' => $item['product_name'],
                         'price' => $item['product_price'],
                         'quantity' => $item['quantity'],
+                        'allocated_hours' => $item['allocated_hours'] ?? 0.00,
                         'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],
                         'total' => $item['total'],

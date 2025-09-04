@@ -19,6 +19,7 @@ class CartHelper
 
         // --- Global/Config Settings ---
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
+        $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
         $taxRate = floatval($productSettings['sales_tax'] ?? 0);
 
         // --- Check session for tax exemption ---
@@ -61,7 +62,7 @@ class CartHelper
                 continue;
             }
 
-            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt);
+            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings);
             $items[] = $item;
             $subTotal += $item['sub_total'];
             $taxTotal += $taxExempt ? 0 : $item['tax'];
@@ -85,7 +86,7 @@ class CartHelper
         ];
     }
 
-    private static function buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt)
+    private static function buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings)
     {
         $quantity = $validated['quantity'];
         $variant = $validated['product_variant'] ?? null;
@@ -113,6 +114,9 @@ class CartHelper
 
         // --- Get product base price ---
         $price = $product->product_type === 'Rental' ? $product->getRentalPrice($variant, $isSale) : $product->getRetailPrice($isSale);
+
+        // daily, weekend, weekly, monthly
+        $allocatedHours = $product->product_type === 'Rental' ? floatval($allocatedHoursSettings[$variant.'_hours'] ?? 0) : 0.00;
 
         // --- Collect selected rental add-on items and their prices ---
         $selectedRentalItemsWithPrices = self::resolveRentalItems($product, $validated, $variant);
@@ -184,6 +188,8 @@ class CartHelper
             }
         }
 
+
+
         return [
             'product_unique_id' => $product->unique_id,
             'product_slug' => $product->slug,
@@ -194,6 +200,8 @@ class CartHelper
             'product_sale_active' => $isSale ? true : false,
             'product_price' => $price,
             'quantity' => $quantity,
+            'allocated_hours' => $allocatedHours,
+
             'service_method' => $validated['service_method'] ?? null,
             'distance_type' => $validated['distance_type'] ?? null,
             'distance_range' => $distanceRange,

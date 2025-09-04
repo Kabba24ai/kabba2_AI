@@ -49,6 +49,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
 
                 @php
+                    $galleryImages = [];
                     foreach ($productDetail->mediaChildren as $child) {
                         $galleryImages[] = $child->media->url;
                     }
@@ -63,9 +64,9 @@
                             {{ $productDetail->product_name ?? 'Product' }}
                         </div> --}}
                         <!-- Main image (with lightbox, initially first image) -->
-                        <a href="{{ $galleryImages[0] }}" id="main-image-link" class="relative block w-full h-full">
+                        <a href="{{ $galleryImages[0] ?? $productDetail->hover_image_url }}" id="main-image-link" class="relative block w-full h-full">
                             <!-- Default image -->
-                            <img src="{{ $galleryImages[0] }}" alt="Product" id="main-image"
+                            <img src="{{ $galleryImages[0] ?? $productDetail->hover_image_url }}" alt="Product" id="main-image"
                                 class="w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-0" />
 
                             <!-- Hover image -->

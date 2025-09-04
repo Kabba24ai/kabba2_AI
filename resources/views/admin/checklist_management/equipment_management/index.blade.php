@@ -38,12 +38,14 @@
                 <!-- Category -->
                 <div class="mb-3">
                     <label class="text-sm font-medium text-gray-700 mb-1 block">Category</label>
+
                     <select id="categoryFilter"
                         class="w-full border px-3 py-2 rounded-md text-sm" onclick="applyFilters()">
                         <option>All Categories</option>
                         <option>Compact Equipment</option>
                         <option>Heavy Equipment</option>
                     </select>
+
                 </div>
 
                 <!-- Status -->
@@ -80,6 +82,9 @@
                         'data-parsley-validate' => true,
                     ])->acceptsFiles()->open() }}
 
+            <input type="hidden" name="rental_ready_all_qa_json" id="rentalReadyQaJson">
+            <input type="hidden" name="equipment_id" id="equipmentId">
+            <input type="hidden" name="equipment_status" id="equipment_status">
 
             <!-- Checklist Container -->
             <div id="checklistContainer" class="hidden bg-white rounded-md shadow-sm border border-gray-200 p-6">
@@ -136,14 +141,14 @@
                         </div>
                     </div>
                     <div class="space-y-3">
-                        <button type="submit" id="btnReady" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
+                        <button type="submit" id="btnReady" onclick="setStatus('available')" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                 <path d="m9 11 3 3L22 4" />
                             </svg>
                             Mark as Rental Ready
                         </button>
-                        <button type="submit" id="btnDamaged" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
+                        <button type="submit" id="btnDamaged" onclick="setStatus('damaged')" disabled class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all bg-gray-100 text-gray-400 cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                                 <path d="M12 9v4" />
@@ -151,7 +156,8 @@
                             </svg>
                             Mark as Damaged
                         </button>
-                        <button type="submit" class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium bg-gray-600 hover:bg-gray-700 text-white transition-all shadow-sm">
+                        <button type="submit" onclick="setStatus('maintenance')"
+                            class="text-sm w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium bg-gray-600 hover:bg-gray-700 text-white transition-all shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10" />
                                 <polyline points="12 6 12 12 16 14" />
@@ -181,6 +187,17 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+
+        function setStatus(status) {
+            // prevent accidental submit if disabled
+            const btn = event.currentTarget;
+            if (btn.disabled) {
+                event.preventDefault();
+                return false;
+            }
+            document.getElementById("equipment_status").value = status;
+        }
+
         /* ====== CONFIG ====== */
         const REQUIRE_INSPECTOR = true;
 
@@ -361,11 +378,22 @@
 
         /* =================== RIGHT: OPEN CHECKLIST =================== */
         function openChecklist(eq) {
+
+            if (eq.badge == "Available") {
+                checklistContainer.classList.add("hidden");
+                placeholder.classList.remove("hidden");
+
+                placeholder.innerHTML = `<p class="text-red-500">Equipment is available . So checklist questions cannot be fetched.</p>`;
+                return;
+            }
+
             placeholder.classList.add("hidden");
             checklistContainer.classList.remove("hidden");
             checklistTitle.textContent = `Rental Ready Checklist - ${eq.name}`;
             equipmentHoursInput.value = eq.hours;
             checklistContent.innerHTML = "";
+
+            document.getElementById("equipmentId").value = eq.id;
 
             // ----- Show loader while fetching -----
             checklistContent.innerHTML = `
@@ -385,7 +413,8 @@
                         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     },
                     body: JSON.stringify({
-                        checklist_id: eq.checklist_master_id
+                        checklist_id: eq.checklist_master_id,
+                        equipment_id: eq.id
                     })
                 })
                 .then(res => res.json())
@@ -394,12 +423,25 @@
                     checklistContent.classList.remove("opacity-50", "pointer-events-none");
                     checklistContent.innerHTML = "";
 
-                    if (data.success) {
+                    if (data.success === true) {
+                        console.log("Fetched checklist data:", data);
+
+                        // Normalize: use questions OR existing_data.questions
+                        let items = [];
+                        if (data.questions) {
+                            items = data.questions; // fresh questions
+                        } else if (data.existing_data && data.existing_data.questions) {
+                            items = data.existing_data.questions; // saved data
+                        }
+
                         groups = [{
                             key: "default",
                             title: "Checklist Questions",
-                            items: data.questions
+                            items: items
                         }];
+
+                        window.groups = groups;
+
                         renderChecklist(groups);
 
                         // now render UI
@@ -417,15 +459,12 @@
 
                             const body = section.querySelector(`#groupBody-${g.key}`);
                             g.items.forEach((item) => {
-                                const card = document.createElement("div");
-                                card.className = "item-card p-4 rounded-md border-2 transition-all border-gray-200 bg-white-50";
-                                card.id = `item-${item.id}`;
-
-                                const options = item.options.map((opt) => `
+                                const itemId = item.id || item.question_id; // support both
+                                const options = (item.options || []).map((opt) => `
                         <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
                             <div class="flex items-center gap-3 flex-1 min-w-0">
-                                <input type="radio" name="answer-${item.id}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
-                                    value="${opt.status}" data-item="${item.id}" data-group="${g.key}">
+                                <input type="radio" name="answer-${itemId}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
+                                    value="${opt.status}" data-item="${itemId}" data-opt-id="${opt.id}" data-group="${g.key}">
                                 <span class="text-sm text-gray-900">${opt.label}</span>
                             </div>
                             <div class="w-full sm:w-auto sm:ml-auto sm:justify-end flex items-center">
@@ -434,15 +473,18 @@
                         </label>
                     `).join("");
 
+                                const card = document.createElement("div");
+                                card.className = "item-card p-4 rounded-md border-2 transition-all border-gray-200 bg-white-50";
+                                card.id = `item-${itemId}`;
                                 card.innerHTML = `
                         <div class="flex flex-wrap items-center gap-2 mb-3">
-                            <span id="icon-${item.id}" class="inline-flex shrink-0">${iconSvg("default")}</span>
-                            <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>':''}</span>
-                            <span id="chip-${item.id}"></span>
+                            <span id="icon-${itemId}" class="inline-flex shrink-0">${iconSvg("default")}</span>
+                            <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>' : ''}</span>
+                            <span id="chip-${itemId}"></span>
                         </div>
                         <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
                         <div class="space-y-2">${options}</div>
-                        <div id="notes-${item.id}" class="hidden mt-3">
+                        <div id="notes-${itemId}" class="hidden mt-3">
                             <textarea class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="3" placeholder="Add notes about the issue..."></textarea>
                         </div>
                     `;
@@ -461,6 +503,34 @@
             `;
                         checklistContent.appendChild(generalNotes);
 
+                        // === Apply saved data if available ===
+                        if (data.existing_data && data.existing_data.questions) {
+                            data.existing_data.questions.forEach(saved => {
+                                const itemId = saved.id || saved.question_id;
+                                const radio = document.querySelector(
+                                    `input[name="answer-${itemId}"][data-opt-id="${saved.answer_id}"]`
+                                );
+                                if (radio) {
+                                    radio.checked = true;
+                                    colorItemCard(itemId, saved.status);
+                                    setHeaderIcon(itemId, saved.status);
+                                    updateGroupCount("default");
+                                }
+
+                                if (saved.notes) {
+                                    const notesBox = document.querySelector(`#notes-${itemId} textarea`);
+                                    if (notesBox) {
+                                        notesBox.value = saved.notes;
+                                        notesBox.parentElement.classList.remove("hidden");
+                                    }
+                                }
+                            });
+                        }
+
+                        if (data.existing_data && data.existing_data.general_notes) {
+                            document.getElementById("generalNotes").value = data.existing_data.general_notes;
+                        }
+
                         checklistContent.querySelectorAll('input[type="radio"]').forEach(r => {
                             r.addEventListener("change", onChoice);
                         });
@@ -468,12 +538,12 @@
                         updateAllCounts();
                         updateProgress();
                     } else {
-                        checklistContent.innerHTML = `<p class="text-red-500">⚠️ Failed to load checklist questions.</p>`;
+                        checklistContent.innerHTML = `<p class="text-red-500">${data.message}</p>`;
                     }
                 })
                 .catch(err => {
                     checklistContent.classList.remove("opacity-50", "pointer-events-none");
-                    checklistContent.innerHTML = `<p class="text-red-500">❌ Error loading questions.</p>`;
+                    checklistContent.innerHTML = `<p class="text-red-500"> Error loading questions.</p>`;
                     console.log(err);
                 });
         }
@@ -716,6 +786,8 @@
         /* =================== LISTENERS =================== */
         if (inspectorSelect) inspectorSelect.addEventListener("change", updateProgress);
 
+        window.computeStatusSummary = computeStatusSummary;
+
     }); // DOMContentLoaded
 
 
@@ -762,6 +834,59 @@
     }
 </script>
 
+<script>
+    document.querySelector("form").addEventListener("submit", function(e) {
+        // Build the full JSON object
+        const summary = window.computeStatusSummary(); //  works now
+        const qaData = [];
+
+        window.groups.forEach(g => {
+            g.items.forEach(item => {
+                const picked = document.querySelector(`input[name="answer-${item.id}"]:checked`);
+                const noteEl = document.querySelector(`#notes-${item.id} textarea`);
+
+                qaData.push({
+                    id: item.main_id,
+                    question: item.title,
+                    options: item.options.map(opt => ({
+                        id: opt.id,
+                        status: opt.status,
+                        label: opt.label
+                    })),
+                    is_required: item.required,
+                    selected_answer: picked ? {
+                        id: (() => {
+                            const match = item.options.find(opt => opt.status === picked.value);
+                            return match ? match.id : null;
+                        })(),
+                        status: picked.value, // Rental Ready / Maint. Hold / Damaged
+                        text: picked.closest("label").querySelector("span").innerText
+                    } : null,
+
+                    note: noteEl ? noteEl.value : null
+                });
+            });
+        });
+
+        const finalPayload = {
+            questions: qaData,
+            counts: {
+                total_questions: summary.total,
+                required_questions: summary.requiredTotal,
+                optional_questions: summary.total - summary.requiredTotal,
+                required_items_completed: summary.requiredCompleted,
+                items_requiring_maintenance: summary.hold,
+                damaged_items: summary.damaged
+            }
+        };
+
+        // Put JSON into hidden input
+
+        console.log("Final Payload:", finalPayload);
+
+        document.getElementById("rentalReadyQaJson").value = JSON.stringify(finalPayload);
+    });
+</script>
 
 
 @endpush

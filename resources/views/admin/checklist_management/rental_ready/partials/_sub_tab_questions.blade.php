@@ -208,7 +208,7 @@
    <!--Question Modal -->
    <div id="questionModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
        <div class="modal-scrollable w-full mx-auto">
-           <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-2xl flex flex-col max-h-full overflow-hidden border border-gray-200">
+           <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-3xl flex flex-col max-h-full overflow-hidden border border-gray-200">
                <div class="flex justify-between items-center px-6 pt-4">
                    <h3 class="text-lg font-semibold text-gray-800">New Question</h3>
                    <button onclick="closeQuestionModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
@@ -258,13 +258,13 @@
 
                        </div>
 
-                       <div>
-                           <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                       <div class="hidden">
+                           <label class=" inline-flex items-center gap-2 text-sm text-gray-700">
                                <!-- <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600"> Required Question -->
-                               {!! html()->checkbox('required_question', false, 1)
+                               {!! html()->checkbox('required_question', true, 1)
                                ->class('form-checkbox h-4 w-4 text-blue-600') !!}
 
-                               Required Question
+
                            </label>
                        </div>
 
@@ -420,13 +420,17 @@
         </select>
     </div>
 
-    <div>
-        <button type="button" onclick="removeOption(${index})"
-            class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
-            title="Delete">
-            <x-heroicon-o-trash class="w-4 h-4" />
-        </button>
-    </div>
+   <div>
+                ${
+                    index > 1
+                        ? `<button type="button" onclick="removeOption(${index})"
+                            class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
+                            title="Delete">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </button>`
+                        : `<span class="mt-2 sm:mt-0 sm:ml-2 text-gray-400 w-8 h-8 flex items-center justify-center" title="Cannot delete">--</span>`
+                }
+            </div>
 `;
 
 
@@ -455,9 +459,12 @@
        }
 
        function removeOption(index) {
-           answerOptions.splice(index, 1);
-           renderOptions();
+           if (answerOptions.length > 2) {
+               answerOptions.splice(index, 1);
+               renderOptions();
+           }
        }
+
 
        function updateText(index, value) {
            answerOptions[index].text = value;
@@ -543,7 +550,7 @@
 
                questionNameInput.value = "";
                categorySelect.value = "";
-               requiredCheckbox.checked = false;
+               requiredCheckbox.checked = true;
 
                // Reset options
                // answerOptions = [];

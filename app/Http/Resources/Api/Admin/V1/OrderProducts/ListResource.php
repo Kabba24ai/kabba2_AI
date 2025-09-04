@@ -54,7 +54,7 @@ class ListResource extends JsonResource
 
             'order' => new OrdersListResource($this->whenLoaded('order')),
 
-            'equipment' => new EquipmentListResource($this->whenLoaded('equipment') ?? []),
+            'equipment' => new EquipmentListResource($this->whenLoaded('equipment')),
 
             'equipment_id' => $this->equipment_id ?? 0,
             'equipment_details' => $this->equipment_details ?? '',

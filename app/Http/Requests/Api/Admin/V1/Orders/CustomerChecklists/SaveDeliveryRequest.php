@@ -2,10 +2,41 @@
 
 namespace App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists;
 
+use App\Helpers\PurifyHelper;
 use App\Http\Requests\ApiBaseFormRequest;
+
+use function PHPSTORM_META\type;
 
 class SaveDeliveryRequest extends ApiBaseFormRequest
 {
+    protected function prepareForValidation()
+    {
+        $input = $this->all();
+        // Build checklist[] from keys like checklist_0_question_unique_id
+        $checklist = [];
+        foreach ($input as $key => $value) {
+            if (preg_match('/^checklist_(\d+)_(question_unique_id|answer_unique_id|amount)$/', $key, $m)) {
+                $idx   = (int) $m[1];
+                $field = $m[2];
+                $checklist[$idx][$field] = $value;
+                unset($input[$key]);
+            }
+        }
+
+        if (!empty($checklist)) {
+            // Ensure numeric indices in order
+            ksort($checklist);
+            $input['checklist'] = array_values($checklist);
+        }
+
+        // Purify only non-file inputs
+        $clean = PurifyHelper::purify($input);
+
+        // Replace request payload
+        $this->replace($clean);
+    }
+
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -16,13 +47,18 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
         return [
             'order_product_unique_id' => 'required|string|exists:order_products,unique_id',
             'equipment_unique_id' => 'required|string|exists:equipment,unique_id',
-            'note' => 'nullable|string',
-            //'signature_media' => 'nullable|image|max:2048', // Max 2MB
+            'store_id' => 'required|string|exists:stores,id',
             'user_id' => 'required|string|exists:users,id',
-            'checklist' => 'required|array',
-            'checklist.*.question_unique_id' => 'required|exists:customer_admin_questions,unique_id',
-            'checklist.*.answer_unique_id' => 'required|exists:customer_admin_question_answers,unique_id',
-            'checklist.*.amount' => 'nullable|string',
+            'start_hours' => 'nullable|string',
+            'note' => 'nullable|string',
+
+             // For multipart, Laravel's "max" is in KB; 2048 = 2MB
+            'signature_media'         => 'required|image|max:2048',
+
+            'checklist'             => 'required|array',
+            'checklist.*.question_unique_id' => 'required|string|exists:customer_admin_questions,unique_id',
+            'checklist.*.answer_unique_id'   => 'required|string|exists:customer_admin_question_answers,unique_id',
+            'checklist.*.amount'             => 'nullable|string',
         ];
     }
 
@@ -42,20 +78,26 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
                 'description' => 'The unique identifier of the equipment.',
                 'example' => 'EQP-OBGV-UMHR',
             ],
-            'note' => [
-                'description' => 'An optional note related to the checklist.',
-                'example' => 'Customer requested special handling.',
+            'store_id' => [
+                'description' => 'The ID of the store where the checklist is being saved.',
+                'example' => '1',
             ],
-            // 'signature_media' => [
-            //     'description' => 'Customer signature image (PNG/JPG). Max 2MB.',
-            //     'type' => 'file',
-            // ],
             'user_id' => [
                 'description' => 'The ID of the user saving the checklist.',
                 'example' => '1',
             ],
-
-            // The array itself (optional but nice to show a full sample)
+            'start_hours' => [
+                'description' => 'The start hours for the delivery.',
+                'example' => '14',
+            ],
+            'note' => [
+                'description' => 'An optional note related to the checklist.',
+                'example' => 'Customer requested special handling.',
+            ],
+            'signature_media' => [
+                'description' => 'Customer signature image (PNG/JPG). Max 2MB.',
+                'type' => 'file',
+            ],
             'checklist[]' => [
                 'description' => 'Array of checklist items.',
                 'example' => [

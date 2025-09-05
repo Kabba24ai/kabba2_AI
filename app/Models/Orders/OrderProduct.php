@@ -50,6 +50,10 @@ class OrderProduct extends Model
         'pickup_signature_media_id',
         'pickup_notes',
 
+        'start_hours',
+        'end_hours',
+        'total_charge',
+
         'equipment_id',
         'equipment_details',
         'assigned_by',

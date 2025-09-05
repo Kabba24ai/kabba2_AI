@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists;
 
+use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
@@ -16,7 +17,7 @@ use App\Models\Orders\OrderProduct;
 class SaveDeliveryController extends BaseController
 {
     /**
-     * Order Customer Checklist Save
+     * Order Delivery Checklist Save
      *
      * @group Admin App
      * @authenticated
@@ -134,6 +135,26 @@ class SaveDeliveryController extends BaseController
                 }
             }
         }
+
+        $orderProductData = [
+            'delivery_store_id' => $validated['store_id'],
+            'delivery_date' => now()->format('Y-m-d'),
+            'delivery_time' => now()->format('H:i'),
+            'delivery_by' => $validated['user_id'],
+            'delivery_notes' => $validated['note'] ?? null,
+            'delivery_signature_media_id' => null,
+            'delivery_status' => 'Completed',
+            'start_hours' => $validated['start_hours'] ?? null,
+        ];
+
+        if ($request->hasFile('signature_media')) {
+            $mediaData = MediaHelper::uploadStorageFile('Public Asset', $request->file('signature_media'), 'orders/schedules', $orderProduct);
+            if (!empty($mediaData['mediaObj'])) {
+                $orderProductData['delivery_signature_media_id'] = $mediaData['mediaObj']->id;
+            }
+        }
+
+        $orderProduct->update($orderProductData);
 
         return response()->json([
             'success' => true,

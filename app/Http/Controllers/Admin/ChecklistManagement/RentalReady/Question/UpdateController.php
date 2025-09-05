@@ -17,47 +17,59 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
-
-        // dd($validated);
-
         DB::beginTransaction();
 
         try {
-            //  Find existing question
+            // Find existing question
             $question = RentalReadyChecklistQuestion::findOrFail($id);
 
-            //  Update question fields
+            // Update question fields
             $question->update([
                 'question_name'     => $validated['question_name'],
                 'category_id'       => $validated['category_id'],
                 'required_question' => $validated['required_question'] ?? 0,
             ]);
 
-            //  Decode JSON options
+            // Decode JSON options
             $options = json_decode($validated['options'], true);
 
-            // clear old answers and re-insert
-            $question->answers()->delete();
+            // Collect existing answers keyed by ID
+            $existingAnswers = $question->answers()->get()->keyBy('id');
+
+            $keepIds = []; // To track which ones remain
 
             foreach ($options as $index => $option) {
-                RentalReadyChecklistQuestionAnswer::create([
-                    'answer_name'  => $option['text'],
-                    'type'         => $option['status'], 
-                    'index_number' =>  $index + 1, 
-                    'question_id'  => $question->id,
-                ]);
+                if (!empty($option['id']) && $existingAnswers->has($option['id'])) {
+                    // Update existing
+                    $answer = $existingAnswers[$option['id']];
+                    $answer->update([
+                        'answer_name'  => $option['text'],
+                        'type'         => $option['status'],
+                        'index_number' => $index + 1,
+                    ]);
+                    $keepIds[] = $answer->id;
+                } else {
+                    // Create new
+                    $new = RentalReadyChecklistQuestionAnswer::create([
+                        'answer_name'  => $option['text'],
+                        'type'         => $option['status'],
+                        'index_number' => $index + 1,
+                        'question_id'  => $question->id,
+                    ]);
+                    $keepIds[] = $new->id;
+                }
             }
+
+            // Delete removed answers (not present in new list)
+            $question->answers()->whereNotIn('id', $keepIds)->delete();
 
             DB::commit();
 
             flash('Question updated successfully.')->success();
-
             session()->flash('active_tab', 'questions');
             session()->flash('active_subtab', 'questions');
 
-            return redirect()
-                ->route('admin.checklist-management.rental-ready.index');
-
+            return redirect()->route('admin.checklist-management.rental-ready.index');
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);

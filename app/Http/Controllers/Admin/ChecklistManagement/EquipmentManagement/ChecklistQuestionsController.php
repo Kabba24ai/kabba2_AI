@@ -86,7 +86,7 @@ class ChecklistQuestionsController extends Controller
             // For other statuses → return existing saved data only
             $existingTemplate = EquipmentRentalReadyTemplate::with([
                 'checklistQuestions'
-            ])->where('equipment_id', $equipment_id)->where('status', '!=', 'Rental Ready')
+            ])->where('equipment_id', $equipment_id)->where('status', '!=', 'Rental Ready')->where('is_complete', 0)
                 ->latest()
                 ->first();
 

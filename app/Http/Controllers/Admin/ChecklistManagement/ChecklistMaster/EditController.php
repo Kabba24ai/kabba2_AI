@@ -27,7 +27,7 @@ class EditController extends Controller
 
         $customeradmintemplate = CustomerAdminTemplate::with([
             'questions',
-        ])->orderBy('id', 'desc')->get();
+        ])->orderBy('id', 'desc')->where('active_template', 1)->get();
 
 
         return view('admin.checklist_management.checklist_master.edit', compact('equipmentCategories', 'checklisttemplate', 'checklistmaster', 'customeradmintemplate'));

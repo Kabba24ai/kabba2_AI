@@ -22,7 +22,7 @@ class CreateController extends Controller
 
         $customeradmintemplate = CustomerAdminTemplate::with([
             'questions',
-        ])->orderBy('id', 'desc')->get();
+        ])->orderBy('id', 'desc')->where('active_template', 1)->get();
 
 
 

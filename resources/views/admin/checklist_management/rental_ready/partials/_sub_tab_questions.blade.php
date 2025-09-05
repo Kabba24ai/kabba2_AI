@@ -71,9 +71,9 @@
                            <div class="flex items-center gap-2">
                                <h3 class="text-base font-semibold text-gray-900"> {{ $question->question_name }}</h3>
 
-                               @if($question->required_question)
+                               <!-- @if($question->required_question)
                                <span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-medium">Required</span>
-                               @endif
+                               @endif -->
 
                            </div>
                            <p class="text-sm text-gray-600 mt-1">Category: {{ $category->category_name }} </p>
@@ -421,15 +421,12 @@
     </div>
 
    <div>
-                ${
-                    index > 1
-                        ? `<button type="button" onclick="removeOption(${index})"
-                            class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
-                            title="Delete">
-                            <x-heroicon-o-trash class="w-4 h-4" />
-                        </button>`
-                        : `<span class="mt-2 sm:mt-0 sm:ml-2 text-gray-400 w-8 h-8 flex items-center justify-center" title="Cannot delete">--</span>`
-                }
+                <button type="button" onclick="removeOption(${index})"
+    class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
+    title="Delete">
+    <x-heroicon-o-trash class="w-4 h-4" />
+</button>
+
             </div>
 `;
 
@@ -462,6 +459,8 @@
            if (answerOptions.length > 2) {
                answerOptions.splice(index, 1);
                renderOptions();
+           } else {
+               notyf.error("You must have at least 2 options.");
            }
        }
 

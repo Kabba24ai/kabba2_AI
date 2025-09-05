@@ -40,11 +40,14 @@
                     <label class="text-sm font-medium text-gray-700 mb-1 block">Category</label>
 
                     <select id="categoryFilter"
-                        class="w-full border px-3 py-2 rounded-md text-sm" onclick="applyFilters()">
-                        <option>All Categories</option>
-                        <option>Compact Equipment</option>
-                        <option>Heavy Equipment</option>
+                        class="w-full border px-3 py-2 rounded-md text-sm"
+                        onchange="applyFilters()">
+                        <option value="All Categories">All Categories</option>
+                        @foreach ($categories as $id => $name)
+                        <option value="{{ $name }}">{{ $name }}</option>
+                        @endforeach
                     </select>
+
 
                 </div>
 
@@ -188,21 +191,13 @@
 <script>
     document.addEventListener("DOMContentLoaded", () => {
 
-        function setStatus(status) {
-            // prevent accidental submit if disabled
-            const btn = event.currentTarget;
-            if (btn.disabled) {
-                event.preventDefault();
-                return false;
-            }
-            document.getElementById("equipment_status").value = status;
-        }
 
         /* ====== CONFIG ====== */
         const REQUIRE_INSPECTOR = true;
 
         /* =================== DATA =================== */
         const rawEquipment = @json($equipments);
+      
 
         const icons = {
             damaged: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -258,7 +253,7 @@
             category: eq.category_name ?? 'N/A',
             checklist_master_id: eq.checklist_master_id,
             hours: eq.equipment_hours,
-            lastInspection: null,
+            lastInspection: eq.latest_rental_ready_template?.inspection_time ?? null,
             badge: eq.status_label,
             icon: icons[eq.current_status] ?? icons.available
         }));
@@ -266,9 +261,7 @@
         // console.log(equipment);
         let groups = []; // use 'let' so you can reassign
 
-        function renderChecklist(groups) {
-            // console.log("Rendering checklist:", groups);
-        }
+        function renderChecklist(groups) {}
 
 
 
@@ -376,6 +369,20 @@
             return "bg-gray-100 text-gray-700 border-gray-200";
         }
 
+        window.setStatus = function(status) {
+            // console.log("Setting equipment status:", status);
+
+            // update hidden input
+            const hidden = document.getElementById("equipment_status");
+            if (hidden) {
+                hidden.value = status;
+            } else {
+                console.warn("Hidden input #equipment_status not found in DOM");
+            }
+        };
+
+
+
         /* =================== RIGHT: OPEN CHECKLIST =================== */
         function openChecklist(eq) {
 
@@ -424,7 +431,9 @@
                     checklistContent.innerHTML = "";
 
                     if (data.success === true) {
-                        console.log("Fetched checklist data:", data);
+                        // console.log("Fetched checklist data:", data);
+
+
 
                         // Normalize: use questions OR existing_data.questions
                         let items = [];
@@ -459,7 +468,7 @@
 
                             const body = section.querySelector(`#groupBody-${g.key}`);
                             g.items.forEach((item) => {
-                                const itemId = item.id || item.question_id; // support both
+                                const itemId = item.question_id || item.id;
                                 const options = (item.options || []).map((opt) => `
                         <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
                             <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -506,7 +515,7 @@
                         // === Apply saved data if available ===
                         if (data.existing_data && data.existing_data.questions) {
                             data.existing_data.questions.forEach(saved => {
-                                const itemId = saved.id || saved.question_id;
+                                const itemId = saved.question_id || saved.id;
                                 const radio = document.querySelector(
                                     `input[name="answer-${itemId}"][data-opt-id="${saved.answer_id}"]`
                                 );
@@ -515,7 +524,19 @@
                                     colorItemCard(itemId, saved.status);
                                     setHeaderIcon(itemId, saved.status);
                                     updateGroupCount("default");
+
+                                    //  sync groups
+                                    const group = groups.find(g => g.key === "default");
+                                    if (group) {
+                                        const itemObj = group.items.find(it => (it.question_id || it.id) === itemId);
+                                        if (itemObj) {
+                                            itemObj.answer_id = saved.answer_id;
+                                            itemObj.status = saved.status;
+                                            itemObj.notes = saved.notes || "";
+                                        }
+                                    }
                                 }
+
 
                                 if (saved.notes) {
                                     const notesBox = document.querySelector(`#notes-${itemId} textarea`);
@@ -529,6 +550,14 @@
 
                         if (data.existing_data && data.existing_data.general_notes) {
                             document.getElementById("generalNotes").value = data.existing_data.general_notes;
+                        }
+
+                        if (data.existing_data && data.existing_data.existingTemplate && data.existing_data.existingTemplate.employee_id) {
+                            document.getElementById("inspectorSelect").value = data.existing_data.existingTemplate.employee_id;
+                        }
+
+                        if (data.existing_data && data.existing_data.existingTemplate && data.existing_data.existingTemplate.equipment_hours) {
+                            document.getElementById("equipmentHours").value = data.existing_data.existingTemplate.equipment_hours;
                         }
 
                         checklistContent.querySelectorAll('input[type="radio"]').forEach(r => {
@@ -557,9 +586,20 @@
             colorItemCard(itemId, status);
             setHeaderIcon(itemId, status);
 
+            //  sync groups when user changes
+            const group = groups.find(g => g.key === groupKey);
+            if (group) {
+                const itemObj = group.items.find(it => (it.question_id || it.id) === itemId);
+                if (itemObj) {
+                    itemObj.answer_id = parseInt(e.target.dataset.optId, 10);
+                    itemObj.status = status;
+                }
+            }
+
             updateGroupCount(groupKey);
             updateProgress();
         }
+
 
         function colorItemCard(itemId, status) {
             const box = document.getElementById(`item-${itemId}`);
@@ -615,7 +655,8 @@
 
             groups.forEach(g => {
                 g.items.forEach(item => {
-                    const picked = document.querySelector(`input[name="answer-${item.id}"]:checked`);
+                    const itemId = item.question_id || item.id;
+                    const picked = document.querySelector(`input[name="answer-${itemId}"]:checked`);
                     if (picked) {
                         completed++;
                         if (item.required) requiredCompleted++;
@@ -749,7 +790,8 @@
             if (!group) return;
             let done = 0;
             group.items.forEach(item => {
-                if (document.querySelector(`input[name="answer-${item.id}"]:checked`)) done++;
+                const itemId = item.question_id || item.id;
+                if (document.querySelector(`input[name="answer-${itemId}"]:checked`)) done++;
             });
             const el = document.getElementById(`groupCount-${groupKey}`);
             if (el) el.textContent = `(${done}/${group.items.length})`;
@@ -789,8 +831,6 @@
         window.computeStatusSummary = computeStatusSummary;
 
     }); // DOMContentLoaded
-
-
 
     // --- creates the 3 counters below the progress bar if they don't exist ---
     function ensureCounters() {
@@ -842,11 +882,17 @@
 
         window.groups.forEach(g => {
             g.items.forEach(item => {
-                const picked = document.querySelector(`input[name="answer-${item.id}"]:checked`);
-                const noteEl = document.querySelector(`#notes-${item.id} textarea`);
+                const itemId = item.question_id || item.id;
+
+                const picked = document.querySelector(`input[name="answer-${itemId}"]:checked`);
+
+                // console.log("Processing item:", item, "Picked:", picked);
+
+                const noteEl = document.querySelector(`#notes-${itemId} textarea`);
 
                 qaData.push({
-                    id: item.main_id,
+                    id: item.question_id || item.id,
+                    main_id: item.main_id || null, // DB PK
                     question: item.title,
                     options: item.options.map(opt => ({
                         id: opt.id,
@@ -855,16 +901,15 @@
                     })),
                     is_required: item.required,
                     selected_answer: picked ? {
-                        id: (() => {
-                            const match = item.options.find(opt => opt.status === picked.value);
-                            return match ? match.id : null;
-                        })(),
+                        id: parseInt(picked.dataset.optId, 10), // option ID from data-opt-id
                         status: picked.value, // Rental Ready / Maint. Hold / Damaged
                         text: picked.closest("label").querySelector("span").innerText
                     } : null,
 
                     note: noteEl ? noteEl.value : null
                 });
+
+
             });
         });
 
@@ -883,6 +928,8 @@
         // Put JSON into hidden input
 
         console.log("Final Payload:", finalPayload);
+
+        // e.preventDefault();
 
         document.getElementById("rentalReadyQaJson").value = JSON.stringify(finalPayload);
     });

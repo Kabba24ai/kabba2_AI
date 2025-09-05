@@ -19,7 +19,9 @@ class IndexController extends Controller
         ->with(['questions.answers'])
         ->get();
 
-        $totalQuestions = RentalReadyChecklistQuestion::count();
+        $totalQuestions = RentalReadyChecklistQuestion::whereHas('category')->count();
+
+
 
 
 

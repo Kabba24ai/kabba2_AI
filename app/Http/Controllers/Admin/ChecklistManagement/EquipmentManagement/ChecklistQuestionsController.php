@@ -39,7 +39,7 @@ class ChecklistQuestionsController extends Controller
                 return response()->json(['success' => false, 'message' => 'Equipment not found']);
             }
 
-            Log::info("Equipment status", ['status' => $equipment->current_status]);
+            // Log::info("Equipment status", ['status' => $equipment->current_status]);
 
             if ($equipment->current_status == 'available') {
                 return response()->json([
@@ -86,12 +86,9 @@ class ChecklistQuestionsController extends Controller
             // For other statuses → return existing saved data only
             $existingTemplate = EquipmentRentalReadyTemplate::with([
                 'checklistQuestions'
-            ])->where('equipment_id', $equipment_id)
+            ])->where('equipment_id', $equipment_id)->where('status', '!=', 'Rental Ready')
                 ->latest()
                 ->first();
-
-            Log::info("Fetched existing template", ['template' => $existingTemplate]);
-
 
             if (!$existingTemplate) {
                 return response()->json([
@@ -129,6 +126,7 @@ class ChecklistQuestionsController extends Controller
                     'questions'     => $qaData,
                     'counts'        => $summary,
                     'general_notes' => $existingTemplate->general_notes,
+                    'existingTemplate' => $existingTemplate,
                 ]
             ]);
         } catch (\Throwable $e) {

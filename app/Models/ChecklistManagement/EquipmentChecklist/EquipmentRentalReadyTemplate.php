@@ -6,6 +6,7 @@ use App\Helpers\ModelHelper;
 
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Iam\Personnel\User;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class EquipmentRentalReadyTemplate extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'unique_id',

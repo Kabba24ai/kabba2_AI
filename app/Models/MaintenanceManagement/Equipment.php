@@ -16,6 +16,8 @@ use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 use App\Models\Orders\Order;
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
+
 
 class Equipment extends Model
 {
@@ -145,5 +147,13 @@ class Equipment extends Model
                 ];
                 break;
         }
+    }
+
+
+    public function latestRentalReadyTemplate()
+    {
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
+            ->latest('inspection_date')
+            ->latest('inspection_time');
     }
 }

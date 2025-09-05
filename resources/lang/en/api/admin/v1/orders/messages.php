@@ -20,5 +20,8 @@ return [
     'schedules_not_found' => 'No schedules found',
     'schedule_updated' => 'Schedule updated successfully',
     'schedule_update_failed' => 'Failed to update schedule',
+    'checklist_saved_successfully' => 'Checklist saved successfully',
+    'no_order_product_found' => 'No order product found',
+    'checklist_already_exists' => 'Checklist already exists for this order product',
 ];
 

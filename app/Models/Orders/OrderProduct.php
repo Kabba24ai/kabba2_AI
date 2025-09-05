@@ -35,9 +35,11 @@ class OrderProduct extends Model
         'delivery_status', // 'Pending',  'Completed', 'Reschedule'
         'delivery_transport_mode', // 'Store', 'Truck'
         'delivery_store_id',
-        'delivery_by',
         'delivery_date',
         'delivery_time',
+        'delivery_by',
+        'delivery_signature_media_id',
+        'delivery_notes',
 
         'pickup_status', // 'Pending',  'Completed', 'Reschedule'
         'pickup_transport_mode', // 'Store', 'Truck'
@@ -45,6 +47,9 @@ class OrderProduct extends Model
         'pickup_date',
         'pickup_time',
         'pickup_by',
+        'pickup_signature_media_id',
+        'pickup_notes',
+
         'equipment_id',
         'equipment_details',
         'assigned_by',
@@ -88,6 +93,11 @@ class OrderProduct extends Model
     public function pickupMedia()
     {
         return $this->hasMany(OrderMedia::class)->where('type', OrderMediaType::PICKUP);
+    }
+
+    public function checklistQuestions()
+    {
+        return $this->hasMany(OrderProductChecklistQuestion::class);
     }
 
     protected static function boot()

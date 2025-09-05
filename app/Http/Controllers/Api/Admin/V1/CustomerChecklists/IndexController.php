@@ -13,6 +13,7 @@ use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource;
 
 // Model
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\Orders\OrderProduct;
 
 class IndexController extends BaseController
 {
@@ -25,24 +26,38 @@ class IndexController extends BaseController
     public function __invoke(IndexRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $uniqueId = $validated['equipment_unique_id'];
+        $equipmentUniqueId = $validated['equipment_unique_id'] ?? null;
+        $orderProductUniqueId = $validated['order_product_unique_id'] ?? null;
+        $type = $validated['type'];
 
-        $equipment = Equipment::query()
-            ->with(['checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category'])
-            ->where('unique_id', $uniqueId)
-            ->first();
+        $questions = collect();
 
-        if (!$equipment || !$equipment->checklistMaster?->customer_admin_template_id) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.customer_checklists.no_customer_checklist_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
+        if ($type == "return" && $orderProductUniqueId) {
+            $orderProduct = OrderProduct::with(['checklistQuestions.answers'])
+                ->where('unique_id', $orderProductUniqueId)
+                ->first();
+
+            $questions = optional($orderProduct->checklistQuestions) ?? collect();
         }
 
-        $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map->question->values() ?? collect();
+        if ($type == "delivery" && $equipmentUniqueId) {
+            $equipment = Equipment::query()
+                ->with(['checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category'])
+                ->where('unique_id', $equipmentUniqueId)
+                ->first();
+
+            if (!$equipment || !$equipment->checklistMaster?->customer_admin_template_id) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => trans('messages.api.admin.v1.customer_checklists.no_customer_checklist_found'),
+                    ],
+                    JsonResponse::HTTP_NOT_FOUND,
+                );
+            }
+
+            $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map->question->values() ?? collect();
+        }
 
         if ($questions->isEmpty()) {
             return response()->json(

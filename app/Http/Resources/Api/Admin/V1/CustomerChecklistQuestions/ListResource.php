@@ -18,14 +18,34 @@ class ListResource extends JsonResource
      */
     public function toArray(Request $request)
     {
+
+        if ($this->delivery_question) {
+            $deliveryText = $this->delivery_question ?? '';
+        }else{
+            $deliveryText = $this->question_delivery_text ?? '';
+        }
+
+        if ($this->return_question) {
+            $returnText = $this->return_question ?? '';
+        }else{
+            $returnText = $this->question_return_text ?? '';
+        }
+
+        if ($this->question_category_id) {
+            $categoryId = $this->question_category_id ?? '';
+        }else{
+            $categoryId = $this->category_id ?? '';
+        }
+
+
         $return = [
             'id' => $this->id ?? 0,
             'unique_id' => $this->unique_id ?? '',
             'question_name' => $this->question_name ?? '',
-            'category_id' => $this->category_id ?? 0,
-            'question_delivery_text' => $this->question_delivery_text ?? '',
-            'question_return_text' => $this->question_return_text ?? '',
-            'required_question' => $this->required_question ?? false,
+            'category_id' => $categoryId ?? 0,
+            'question_delivery_text' => $deliveryText ?? '',
+            'question_return_text' => $returnText ?? '',
+            'required_question' => $this->required_question ?? true,
             'category' => new CustomerChecklistCategoriesListResource($this->whenLoaded('category')),
             'answers' => CustomerChecklistQuestionAnswersListResource::collection($this->whenLoaded('answers')),
         ];

@@ -56,6 +56,7 @@ class Equipment extends Model
         'equipment_notes',
         'current_status', // available, rented, maintenance, damaged
         'current_order_id',
+        'current_order_product_id',
         'created_by',
         'updated_by',
     ];

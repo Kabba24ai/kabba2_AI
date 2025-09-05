@@ -39,6 +39,7 @@ class AssignEquipmentController extends Controller
                 ->update([
                     'current_status' => EquipmentCurrentStatus::Available->value,
                     'current_order_id' => null,
+                    'current_order_product_id' => null,
                 ]);
         }
 
@@ -58,6 +59,7 @@ class AssignEquipmentController extends Controller
 
         $equipment->current_status = EquipmentCurrentStatus::Rented->value;
         $equipment->current_order_id = $orderProduct->order_id;
+        $equipment->current_order_product_id = $orderProduct->id;
         $equipment->save();
 
         return response()->json([

@@ -14,7 +14,7 @@ use App\Http\Controllers\Api\Admin\V1\Orders\UpdateAddressController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\IndexController as SchedulesIndexController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\UpdateController as SchedulesUpdateController;
 use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\SaveDeliveryController;
-
+use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\SaveReturnController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -46,5 +46,6 @@ Route::group(['prefix' => 'orders'], function () {
 
     Route::group(['prefix' => 'customer-checklists'], function () {
         Route::post('/save-delivery', SaveDeliveryController::class);
+        Route::post('/save-return', SaveReturnController::class);
     });
 });

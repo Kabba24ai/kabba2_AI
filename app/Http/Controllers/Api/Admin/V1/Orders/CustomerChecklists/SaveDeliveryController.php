@@ -6,6 +6,9 @@ use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
+// Enums
+use App\Enums\Equipments\EquipmentCurrentStatus;
+
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\SaveDeliveryRequest;
 
@@ -146,6 +149,18 @@ class SaveDeliveryController extends BaseController
             'delivery_status' => 'Completed',
             'start_hours' => $validated['start_hours'] ?? null,
         ];
+
+        if (empty($orderProduct->equipment_details) || $orderProduct->equipment_id !== $equipment->id) {
+            $orderProductData['equipment_id'] = $equipment->id;
+            $orderProductData['equipment_details'] = $equipment->toArray();
+            $orderProductData['assigned_by'] = $validated['user_id'];
+            $orderProductData['assigned_at'] = now();
+
+            $equipment->current_status = EquipmentCurrentStatus::Rented->value;
+            $equipment->current_order_id = $orderProduct->order_id;
+            $equipment->current_order_product_id = $orderProduct->order_product_id;
+            $equipment->save();
+        }
 
         if ($request->hasFile('signature_media')) {
             $mediaData = MediaHelper::uploadStorageFile('Public Asset', $request->file('signature_media'), 'orders/schedules', $orderProduct);

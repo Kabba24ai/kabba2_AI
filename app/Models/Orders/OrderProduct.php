@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 // Helpers
 use App\Helpers\ModelHelper;
+use App\Models\Global\Media;
 use App\Models\MaintenanceManagement\Equipment;
 // Models
 use App\Models\ProductManagement\Product;
@@ -98,6 +99,17 @@ class OrderProduct extends Model
     {
         return $this->hasMany(OrderMedia::class)->where('type', OrderMediaType::PICKUP);
     }
+
+    public function deliverySignatureMedia()
+    {
+        return $this->belongsTo(Media::class, 'delivery_signature_media_id');
+    }
+
+    public function returnSignatureMedia()
+    {
+        return $this->belongsTo(Media::class, 'return_signature_media_id');
+    }
+
 
     public function checklistQuestions()
     {

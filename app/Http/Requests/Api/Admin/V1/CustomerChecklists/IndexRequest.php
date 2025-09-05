@@ -15,7 +15,9 @@ class IndexRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'equipment_unique_id' => 'required|string|exists:equipment,unique_id',
+            'type' => 'required|string|in:delivery,return',
+            'equipment_unique_id' => 'nullable|required_if:type,delivery|string|exists:equipment,unique_id',
+            'order_product_unique_id' => 'nullable|required_if:type,return|string|exists:order_products,unique_id', // only when the return checklist is needed
         ];
     }
 
@@ -27,9 +29,19 @@ class IndexRequest extends ApiBaseFormRequest
     public function bodyParameters(): array
     {
         return [
+            'type' => [
+                'description' => 'The type of checklist to retrieve. Use "delivery" for delivery checklists and "return" for return checklists.',
+                'example' => 'delivery',
+                'type' => 'string',
+            ],
             'equipment_unique_id' => [
                 'description' => 'The unique ID of the equipment.',
                 'example' => 'EQ123456',
+                'type' => 'string',
+            ],
+            'order_product_unique_id' => [
+                'description' => 'The unique ID of the order product. Required only when fetching return checklist questions.',
+                'example' => 'ORD-PROD-123456',
                 'type' => 'string',
             ],
         ];

@@ -5,7 +5,7 @@ namespace App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists;
 use App\Helpers\PurifyHelper;
 use App\Http\Requests\ApiBaseFormRequest;
 
-class SaveDeliveryRequest extends ApiBaseFormRequest
+class SaveReturnRequest extends ApiBaseFormRequest
 {
     protected function prepareForValidation()
     {
@@ -44,18 +44,18 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
     {
         return [
             'order_product_unique_id' => 'required|string|exists:order_products,unique_id',
-            'equipment_unique_id' => 'required|string|exists:equipment,unique_id',
             'store_id' => 'required|string|exists:stores,id',
             'user_id' => 'required|string|exists:users,id',
-            'start_hours' => 'nullable|string',
+            'end_hours' => 'nullable|string',
+            'total_charge' => 'nullable|string',
             'note' => 'nullable|string',
 
              // For multipart, Laravel's "max" is in KB; 2048 = 2MB
             //'signature_media'         => 'required|image|max:2048',
 
             'checklist'             => 'required|array',
-            'checklist.*.question_unique_id' => 'required|string|exists:customer_admin_questions,unique_id',
-            'checklist.*.answer_unique_id'   => 'required|string|exists:customer_admin_question_answers,unique_id',
+            'checklist.*.question_unique_id' => 'required|string|exists:order_product_checklist_questions,unique_id',
+            'checklist.*.answer_unique_id'   => 'required|string|exists:order_product_checklist_question_answers,unique_id',
             'checklist.*.amount'             => 'nullable|string',
         ];
     }
@@ -84,9 +84,13 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
                 'description' => 'The ID of the user saving the checklist.',
                 'example' => '1',
             ],
-            'start_hours' => [
+            'end_hours' => [
                 'description' => 'The start hours for the delivery.',
                 'example' => '14',
+            ],
+            'total_charge' => [
+                'description' => 'Total charge for the return.',
+                'example' => '150.00',
             ],
             'note' => [
                 'description' => 'An optional note related to the checklist.',
@@ -100,8 +104,8 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
                 'description' => 'Array of checklist items.',
                 'example' => [
                     [
-                        'question_unique_id' => 'CAQST-ENWR-V9FJ',
-                        'answer_unique_id' => 'CAANS-PTCJ-NDIB',
+                        'question_unique_id' => 'ORD-QUE-CDVS-ZHWB',
+                        'answer_unique_id' => 'ORD-ANS-MKFA-7VJU',
                         'amount' => '5.00',
                     ],
                 ],
@@ -110,11 +114,11 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
             // Crucial: examples for nested fields
             'checklist.*.question_unique_id' => [
                 'description' => 'The unique_id of an existing record in the customer_admin_questions table.',
-                'example' => 'CAQST-ENWR-V9FJ',
+                'example' => 'ORD-QUE-CDVS-ZHWB',
             ],
             'checklist.*.answer_unique_id' => [
                 'description' => 'The unique_id of an existing record in the customer_admin_question_answers table.',
-                'example' => 'CAANS-PTCJ-NDIB',
+                'example' => 'ORD-ANS-MKFA-7VJU',
             ],
             'checklist.*.amount' => [
                 'description' => 'Optional amount.',

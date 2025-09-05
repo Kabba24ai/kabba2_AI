@@ -31,7 +31,7 @@ class Store extends Model
 
     public function scopeOrderByAdmin($query)
     {
-        return $query->orderBy('title', 'asc');
+        return $query->orderBy('store_name', 'asc');
     }
 
     public function scopeActive($query)

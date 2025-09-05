@@ -59,6 +59,20 @@
                    </div>
                </div>
            </div>
+
+           <style>
+               .drag-handle {
+                   touch-action: none;
+                   -webkit-user-select: none;
+                   -webkit-touch-callout: none;
+               }
+
+
+               .drag-handle svg {
+                   pointer-events: none;
+               }
+           </style>
+
            <!-- Wrapper around all cards -->
            <div id="cardsWrapper">
                @foreach($rentalreadycategory as $category)
@@ -366,7 +380,7 @@
    </script>
    <!-- Question -->
 
-
+   <!-- dragg js  -->
    <script>
        let answerOptions = [{
            id: 1,
@@ -383,6 +397,9 @@
        function closeQuestionModal() {
            document.getElementById('questionModal').classList.add('hidden');
        }
+
+       let sortableInstance;
+
 
        function renderOptions() {
            const container = document.getElementById('sortable-list');
@@ -434,16 +451,30 @@
                container.appendChild(wrapper);
            });
 
-           // Re-init Sortable
-           Sortable.create(container, {
-               handle: '.drag-handle',
-               animation: 150,
-               onEnd: function(evt) {
-                   const movedItem = answerOptions.splice(evt.oldIndex, 1)[0];
-                   answerOptions.splice(evt.newIndex, 0, movedItem);
-                   renderOptions();
-               }
-           });
+          
+
+           // Initialize only once
+           if (!sortableInstance) {
+               sortableInstance = Sortable.create(container, {
+                   handle: '.drag-handle',
+                   animation: 150,
+                   delay: 150,
+                   delayOnTouchOnly: true,
+                   touchStartThreshold: 5,
+                   fallbackOnBody: true,
+                   onStart: function(evt) {
+                    //    console.log("✅ Drag started", evt);
+                   },
+                   onEnd: function(evt) {
+                    //    console.log("✅ Drag ended", evt);
+                       const movedItem = answerOptions.splice(evt.oldIndex, 1)[0];
+                       answerOptions.splice(evt.newIndex, 0, movedItem);
+                       renderOptions();
+                   }
+               });
+           }
+
+
        }
 
        function addOption() {
@@ -478,6 +509,7 @@
            document.getElementById('optionsInput').value = JSON.stringify(answerOptions);
        });
    </script>
+   <!-- dragg js -->
 
 
    <!-- Question Modal Script -->

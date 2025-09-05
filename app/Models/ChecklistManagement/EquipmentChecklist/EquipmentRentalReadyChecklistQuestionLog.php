@@ -3,6 +3,7 @@
 namespace App\Models\ChecklistManagement\EquipmentChecklist;
 
 use App\Helpers\ModelHelper;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +11,7 @@ use App\Models\Iam\Personnel\User;
 
 class EquipmentRentalReadyChecklistQuestionLog extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'unique_id',
@@ -21,7 +22,7 @@ class EquipmentRentalReadyChecklistQuestionLog extends Model
         'action_user_name',
     ];
 
- 
+
     public function checklistQuestion()
     {
         return $this->belongsTo(EquipmentRentalReadyChecklistQuestion::class, 'equipment_checklist_question_id');

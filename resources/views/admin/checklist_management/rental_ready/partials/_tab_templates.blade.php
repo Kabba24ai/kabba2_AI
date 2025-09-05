@@ -233,7 +233,7 @@
 
                     <label class="inline-flex items-center gap-2 text-sm text-gray-700 mt-2">
                         <!-- <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" />  -->
-                         {!! html()->checkbox('is_active', old('is_active', false))
+                         {!! html()->checkbox('is_active', old('is_active', true))
                             ->class('form-checkbox h-4 w-4 text-blue-600')
                         !!}
                         Active Template

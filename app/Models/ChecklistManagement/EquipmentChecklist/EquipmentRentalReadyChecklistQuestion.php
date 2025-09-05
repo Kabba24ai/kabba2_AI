@@ -9,11 +9,12 @@ use App\Helpers\ModelHelper;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistQuestion ;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistQuestionAnswer;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 class EquipmentRentalReadyChecklistQuestion extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'unique_id',
@@ -47,7 +48,7 @@ class EquipmentRentalReadyChecklistQuestion extends Model
     protected static function boot()
     {
         parent::boot();
-       
+
         static::creating(function ($model) {
             if (empty($model->unique_id)) {
                 // Generate a unique ID with prefix 'ERCQ'

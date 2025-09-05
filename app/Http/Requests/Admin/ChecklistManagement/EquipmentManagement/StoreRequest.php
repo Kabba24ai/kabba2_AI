@@ -1,79 +1,63 @@
 <?php
 
-namespace App\Http\Requests\Admin\Crm\Customers;
-use Illuminate\Validation\Rule;
-use App\Helpers\PurifyHelper;
-use Illuminate\Foundation\Http\FormRequest;
+namespace App\Http\Requests\Admin\ChecklistManagement\EquipmentManagement;
 
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-    public function authorize()
+    public function authorize(): bool
     {
-        return true;
+        return auth()->check();
     }
 
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        //$this->merge(PurifyHelper::purify($this->all(),['content']));
-        $cleaned = PurifyHelper::purify($this->all(), ['content']);
-        $cleaned['account_approved_by'] = isset($cleaned['account_approved_by']) ? (int) $cleaned['account_approved_by'] : 0;
-        $cleaned['tax_status_approved_by'] = isset($cleaned['tax_status_approved_by']) ? (int) $cleaned['tax_status_approved_by'] : 0;
+        // Normalize status
+        if ($this->has('equipment_status')) {
+            $this->merge([
+                'equipment_status' => strtolower($this->input('equipment_status')),
+            ]);
+        }
 
-        $this->merge($cleaned);
+        // Trim general notes
+        if ($this->has('general_notes')) {
+            $this->merge([
+                'general_notes' => trim($this->input('general_notes')),
+            ]);
+        }
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
-     */
     public function rules(): array
     {
         return [
-            'first_name' => ['nullable'],
-            'last_name' => ['nullable'],
-            'company_name' => ['nullable'],
-            'email' => ['required', 'email', 'unique:customers,email'],
-            'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
-            'dob' => ['nullable', 'date'],
-            'status' => ['required', Rule::in(['Active', 'Inactive', 'Archived'])],
-            'is_guest' => ['boolean'],
-            'tax_status' => ['required', Rule::in(['Taxable', 'Exempt'])],
-            'tax_document_media_id' => ['nullable'],
-            'tax_document_upload_date' => ['nullable', 'date'],
-            'tax_document_valid_until' => ['nullable', 'date'],
+            'equipment_id' => ['required', 'integer', 'exists:equipment,id'],
+            'equipment_status' => ['required', Rule::in(['available', 'damaged', 'maintenance'])],
+            'inspectorSelect' => ['required', 'integer', 'exists:users,id'],
+            'equipmentHours' => ['nullable', 'numeric'],
 
-            'tax_document_review_status' => ['nullable'],
+            'inspection_date' => ['nullable'],
+            'inspection_time' => ['nullable'],
 
+            'general_notes' => ['nullable', 'string'],
 
-            'account_approved_by' => ['nullable', 'sometimes', 'integer', 'min:0'],
-            'tax_status_approved_by' => ['nullable', 'sometimes', 'integer', 'min:0'],
+            'rental_ready_all_qa_json' => ['required', 'json'],
 
-            'is_credit_account' => ['boolean'],
-            'credit_limit' => ['nullable'],
-            'company_website' => ['nullable'],
-            'company_phone' => ['nullable'],
-
-            'billing_address' => ['nullable', 'string'],
-            'account_application_completed' => ['nullable', 'date'],
-
-            'alladdresslist'=>['nullable'],
-            'website_protocol' => ['nullable', 'string'],
-            'website_extension' => ['nullable', 'string'],
+            // Optional helpers
+            'total_questions' => ['nullable'],
+            'answer-*' => ['nullable', 'string'], 
         ];
     }
 
     public function messages(): array
     {
         return [
-            'status.in' => 'The selected status is invalid.',
-            'tax_status.in' => 'The selected tax status is invalid.',
+            'equipment_id.required' => 'Equipment ID is required.',
+            'equipment_id.exists' => 'Selected equipment does not exist.',
+            'equipment_status.in' => 'Equipment status must be available, damaged, or maintenance.',
+            'inspectorSelect.exists' => 'Selected inspector does not exist.',
+            'rental_ready_all_qa_json.json' => 'Checklist data must be valid JSON.',
         ];
     }
 }

@@ -463,10 +463,10 @@
                    touchStartThreshold: 5,
                    fallbackOnBody: true,
                    onStart: function(evt) {
-                    //    console.log("✅ Drag started", evt);
+                   
                    },
                    onEnd: function(evt) {
-                    //    console.log("✅ Drag ended", evt);
+                
                        const movedItem = answerOptions.splice(evt.oldIndex, 1)[0];
                        answerOptions.splice(evt.newIndex, 0, movedItem);
                        renderOptions();

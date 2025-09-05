@@ -753,11 +753,14 @@
                                         <div class="flex flex-col items-center">
                                             <div>Video</div>
                                             <div class="flex justify-center gap-2 mb-1">
-                                                <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold {{ $orderProduct->deliveryMedia->isNotEmpty() ? 'bg-green-500' : 'bg-red-500' }}">
-                                                    D
-                                                </span>
+                                               <span
+                class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer bg-green-500"
+                onclick="openAllMedia({{ $orderProduct->id }})">
+                D
+            </span>
+                                                
                                                 <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold {{ $orderProduct->pickupMedia->isNotEmpty() ? 'bg-green-500' : 'bg-red-500' }}">R</span>
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold bg-red-500">R</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1450,9 +1453,49 @@
         </div>
     </div>
 
+<!-- Media Grid Modal -->
+<div id="allMediaModal"
+    class="fixed inset-0 z-[99999] hidden bg-black/70 backdrop-blur-sm flex justify-center items-center transition-opacity duration-300">
+    
+    <div class="relative bg-white rounded-2xl shadow-xl max-w-6xl w-full mx-4 overflow-hidden">
+        <!-- Header -->
+        <div class="flex justify-between items-center px-6 py-4 border-b bg-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800">All Media</h2>
+            <button type="button" onclick="closeAllMedia()"
+                class="text-2xl text-gray-500 hover:text-gray-800 leading-none">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div id="allMediaContent"
+            class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto bg-gray-50">
+            <!-- Media items injected here -->
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50">
+            <button type="button" onclick="closeAllMedia()"
+                class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+
 @endsection
 
 @push('js')
+
+{{-- Hidden JSON for JS --}}
+<script type="application/json" id="media-{{ $orderProduct->id }}">
+    {!! $orderProduct->deliveryMedia->merge($orderProduct->pickupMedia)->map(function($m) {
+        return [
+            'url' => optional($m->media)->url,
+            'type' => $m->type
+        ];
+    }) !!}
+</script>
+
     @if ($paymentSetting['payment_test_mode'] ?? false)
         <script src="https://jstest.authorize.net/v1/Accept.js"></script>
     @else
@@ -2750,4 +2793,64 @@
 
         });
     </script>
+
+<script>
+   function openAllMedia(orderProductId) {
+    const modal = document.getElementById('allMediaModal');
+    const content = document.getElementById('allMediaContent');
+
+    // Get media list from hidden JSON
+    const mediaData = JSON.parse(document.getElementById(`media-${orderProductId}`).textContent);
+
+    // Build grid items
+    let html = '';
+    mediaData.forEach(m => {
+        if (!m.url) return;
+
+        let mediaHtml = '';
+        if (m.url.endsWith('.mp4') || m.url.endsWith('.mov') || m.url.endsWith('.webm')) {
+            mediaHtml = `
+                <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
+                    <video class="w-full h-48 object-cover" muted>
+                        <source src="${m.url}" type="video/mp4">
+                    </video>
+                    <a href="${m.url}" target="_blank"
+                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+       <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
+   </svg>
+                    </a>
+                </div>
+            `;
+        } else if (m.url.match(/\.(jpeg|jpg|png|gif|webp)$/)) {
+            mediaHtml = `
+                <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
+                    <img src="${m.url}" class="w-full h-48 object-cover" />
+                    <a href="${m.url}" target="_blank"
+                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+       <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
+   </svg>
+                    </a>
+                </div>
+            `;
+        }
+
+        html += mediaHtml;
+    });
+
+    content.innerHTML = html || `<p class="text-gray-500">No media available.</p>`;
+    modal.classList.remove('hidden');
+}
+
+function closeAllMedia() {
+    const modal = document.getElementById('allMediaModal');
+    const content = document.getElementById('allMediaContent');
+    modal.classList.add('hidden');
+    content.innerHTML = ''; // cleanup
+}
+
+</script>
+
+
 @endpush

@@ -165,13 +165,10 @@ class StoreController extends Controller
                 if ($existingTemplate && $existingTemplate->status === 'Rental Ready') {
                     Log::info('Removing previous Rental Ready template', ['template_id' => $existingTemplate->id]);
 
-                    // delete logs for each question
-                    foreach ($existingTemplate->checklistQuestions as $oldQ) {
-                        $oldQ->logs()->delete();
-                    }
-
-                    $existingTemplate->checklistQuestions()->delete();
-                    $existingTemplate->delete();
+                    $existingTemplate->update([
+                        'is_complete' => 1,
+                        'updated_by' => auth()->id(),
+                    ]);
                 }
 
                 $template = EquipmentRentalReadyTemplate::create([

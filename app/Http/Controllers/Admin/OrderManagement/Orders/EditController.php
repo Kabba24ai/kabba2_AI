@@ -16,15 +16,10 @@ use App\Models\Stores\Store;
 
 class EditController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+  
     public function __invoke($uniqueid)
     {
-        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes'])->where('unique_id', $uniqueid)->firstOrFail();
+        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes', 'media.media'])->where('unique_id', $uniqueid)->firstOrFail();
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::orderBy('first_name')->get();

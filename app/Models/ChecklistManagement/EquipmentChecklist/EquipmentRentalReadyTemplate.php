@@ -27,6 +27,7 @@ class EquipmentRentalReadyTemplate extends Model
         'equipment_hours',
         'general_notes',
         'status',
+        'is_complete',
         'total_questions',
         'required_questions',
         'optional_questions',

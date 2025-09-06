@@ -140,7 +140,6 @@ class SaveDeliveryController extends BaseController
         }
 
         $orderProductData = [
-            'delivery_store_id' => $validated['store_id'],
             'delivery_date' => now()->format('Y-m-d'),
             'delivery_time' => now()->format('H:i'),
             'delivery_by' => $validated['user_id'],
@@ -151,6 +150,10 @@ class SaveDeliveryController extends BaseController
             'is_returned' => false,
             'start_hours' => $validated['start_hours'] ?? null,
         ];
+
+        if($storeId = $validated['store_id'] ?? null){
+            $orderProductData['delivery_store_id'] = $storeId;
+        }
 
         if (empty($orderProduct->equipment_details) || $orderProduct->equipment_id !== $equipment->id) {
             $orderProductData['equipment_id'] = $equipment->id;

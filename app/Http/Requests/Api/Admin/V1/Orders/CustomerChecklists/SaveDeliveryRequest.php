@@ -45,7 +45,7 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
         return [
             'order_product_unique_id' => 'required|string|exists:order_products,unique_id',
             'equipment_unique_id' => 'required|string|exists:equipment,unique_id',
-            'store_id' => 'required|string|exists:stores,id',
+            'store_id' => 'nullable|string|exists:stores,id',
             'user_id' => 'required|string|exists:users,id',
             'start_hours' => 'nullable|string',
             'note' => 'nullable|string',

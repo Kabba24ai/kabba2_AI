@@ -56,7 +56,10 @@ class IndexController extends BaseController
                 );
             }
 
-            $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map->question->values() ?? collect();
+            $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)
+                    ->pluck('question')   // same as map->question but clearer
+                    ->filter()            // remove nulls
+                    ->values() ?? collect();
         }
 
         if ($questions->isEmpty()) {

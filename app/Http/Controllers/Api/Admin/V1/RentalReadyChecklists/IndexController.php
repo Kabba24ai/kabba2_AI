@@ -13,6 +13,7 @@ use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistQuestions\ListResource;
 
 // Model
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\Orders\OrderProduct;
 
 class IndexController extends BaseController
 {
@@ -25,14 +26,19 @@ class IndexController extends BaseController
     public function __invoke(IndexRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $uniqueId = $validated['equipment_unique_id'];
+        $uniqueId = $validated['order_product_unique_id'];
 
-        $equipment = Equipment::query()
-            ->with(['checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])
+        $orderProduct = OrderProduct::query()
+            ->with(['equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])
             ->where('unique_id', $uniqueId)
             ->first();
 
-        if (!$equipment || !$equipment->checklistMaster?->rental_ready_template_id) {
+        // $equipment = Equipment::query()
+        //     ->with(['checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])
+        //     ->where('unique_id', $uniqueId)
+        //     ->first();
+
+        if (!$orderProduct->equipment || !$orderProduct->equipment->checklistMaster?->rental_ready_template_id) {
             return response()->json(
                 [
                     'success' => false,
@@ -42,7 +48,10 @@ class IndexController extends BaseController
             );
         }
 
-        $questions = optional($equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)->map->question->values() ?? collect();
+        $questions = optional($orderProduct->equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
+                    ->pluck('question')   // same as map->question but clearer
+                    ->filter()            // remove nulls
+                    ->values() ?? collect();
 
         if ($questions->isEmpty()) {
             return response()->json(

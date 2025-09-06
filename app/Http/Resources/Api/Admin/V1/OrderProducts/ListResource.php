@@ -63,8 +63,8 @@ class ListResource extends JsonResource
             'delivery_signature_media_url' => $this->whenLoaded('deliverySignatureMedia')->url ?? '',
             'return_signature_media_url' => $this->whenLoaded('returnSignatureMedia')->url ?? '',
 
-            'is_delivered' => $this->is_delivered ?? false,
-            'is_returned' => $this->is_returned ?? false,
+            'is_delivered' => (bool) $this->is_delivered ?? false,
+            'is_returned' => (bool) $this->is_returned ?? false,
 
             'order' => new OrdersListResource($this->whenLoaded('order')),
 

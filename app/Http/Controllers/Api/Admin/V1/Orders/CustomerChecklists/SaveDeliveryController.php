@@ -147,6 +147,7 @@ class SaveDeliveryController extends BaseController
             'delivery_notes' => $validated['note'] ?? null,
             'delivery_signature_media_id' => null,
             'delivery_status' => 'Completed',
+            'is_delivered' => true,
             'start_hours' => $validated['start_hours'] ?? null,
         ];
 

@@ -41,6 +41,7 @@ class OrderProduct extends Model
         'delivery_by',
         'delivery_signature_media_id',
         'delivery_notes',
+        'is_delivered',
 
         'pickup_status', // 'Pending',  'Completed', 'Reschedule'
         'pickup_transport_mode', // 'Store', 'Truck'
@@ -50,6 +51,7 @@ class OrderProduct extends Model
         'pickup_by',
         'pickup_signature_media_id',
         'pickup_notes',
+        'is_returned',
 
         'start_hours',
         'end_hours',

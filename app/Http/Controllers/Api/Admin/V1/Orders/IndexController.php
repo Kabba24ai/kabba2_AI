@@ -33,7 +33,7 @@ class IndexController extends BaseController
         $categoryId = $validatedData['category_id'] ?? null;
 
         $orders = Order::query()
-            ->with('shippingAddress', 'billingAddress', 'licenseMedia', 'products.product', 'lastPayment', 'notes', 'products.deliveryMedia', 'products.pickupMedia')
+            ->with('shippingAddress', 'billingAddress', 'licenseMedia', 'products.product', 'lastPayment', 'notes', 'products.deliveryMedia', 'products.pickupMedia', 'products.deliverySignatureMedia', 'products.returnSignatureMedia')
             ->when(
                 $status && $status !== 'All',
                 fn($query) => $query->whereHas('lastPayment', function ($q) use ($status) {

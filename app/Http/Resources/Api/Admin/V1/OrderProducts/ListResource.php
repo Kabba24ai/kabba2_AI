@@ -34,7 +34,7 @@ class ListResource extends JsonResource
             'sub_total' => $this->sub_total ? CustomHelper::formatCurrency($this->sub_total) : '0.00',
             'tax' => $this->tax ? CustomHelper::formatCurrency($this->tax) : '0.00',
             'total' => $this->total ? CustomHelper::formatCurrency($this->total) : '0.00',
-            'product_data' => $this->product_data ?? [],
+            //'product_data' => $this->product_data ?? [],
             'service_method' => $this->service_method ?? '',
             'service_option' => $this->service_option ?? '',
             'distance_type' => $this->distance_type ?? '',
@@ -57,6 +57,15 @@ class ListResource extends JsonResource
 
             'pickup_media' => OrderMediasListResource::collection($this->whenLoaded('pickupMedia') ?? []),
 
+            'delivery_signature_media_id' => $this->delivery_signature_media_id ?? 0,
+            'return_signature_media_id' => $this->return_signature_media_id ?? 0,
+
+            'delivery_signature_media_url' => $this->whenLoaded('deliverySignatureMedia')->url ?? '',
+            'return_signature_media_url' => $this->whenLoaded('returnSignatureMedia')->url ?? '',
+
+            'is_delivered' => $this->is_delivered ?? false,
+            'is_returned' => $this->is_returned ?? false,
+
             'order' => new OrdersListResource($this->whenLoaded('order')),
 
             'start_hours' => (float) ($this->start_hours ?? 0.0),
@@ -69,6 +78,7 @@ class ListResource extends JsonResource
             'equipment_details' => $this->equipment_details ?? '',
             'assigned_by' => $this->equipment_assigned_by ?? '',
             'assigned_at' => CustomHelper::formatDateTime($this->equipment_assigned_at) ?? '',
+
         ];
 
         return $return;

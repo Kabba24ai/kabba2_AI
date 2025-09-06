@@ -84,6 +84,7 @@ class SaveReturnController extends BaseController
             'pickup_notes' => $validated['note'] ?? null,
             'pickup_signature_media_id' => null,
             'pickup_status' => 'Completed',
+            'is_returned' => true,
             'end_hours' => $validated['end_hours'] ?? null,
             'total_charge' => $validated['total_charge'] ?? null,
         ];

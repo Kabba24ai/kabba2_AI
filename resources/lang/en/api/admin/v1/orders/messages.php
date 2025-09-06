@@ -23,5 +23,7 @@ return [
     'checklist_saved_successfully' => 'Checklist saved successfully',
     'no_order_product_found' => 'No order product found',
     'checklist_already_exists' => 'Checklist already exists for this order product',
+    'no_equipment_found' => 'No equipment found',
+    'equipment_status' => 'Equipment Status is :status, it needs to be Rented',
 ];
 

@@ -23,4 +23,24 @@ enum EquipmentCurrentStatus : string
     {
         return array_map(fn($status) => $status->value, self::cases());
     }
+
+    public function isRented(): bool
+    {
+        return $this === self::Rented;
+    }
+
+    public function isAvailable(): bool
+    {
+        return $this === self::Available;
+    }
+
+    public function isMaintenance(): bool
+    {
+        return $this === self::Maintenance;
+    }
+
+    public function isDamaged(): bool
+    {
+        return $this === self::Damaged;
+    }
 }

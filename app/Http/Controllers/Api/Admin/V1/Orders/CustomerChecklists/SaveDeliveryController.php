@@ -164,7 +164,7 @@ class SaveDeliveryController extends BaseController
             $equipment->current_status = EquipmentCurrentStatus::Rented->value;
             $equipment->current_order_id = $orderProduct->order_id;
             $equipment->current_order_product_id = $orderProduct->order_product_id;
-            $equipment->save();
+            $equipment->saveQuietly();
         }
 
         if ($request->hasFile('signature_media')) {

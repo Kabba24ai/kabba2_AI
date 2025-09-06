@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists;
 
+use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +25,7 @@ class SaveReturnController extends BaseController
     {
         $validated = $request->validated();
 
-        $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'returnSignatureMedia'])
+        $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'returnSignatureMedia', 'equipment'])
             ->where('unique_id', $validated['order_product_unique_id'])
             ->first();
 
@@ -35,6 +36,27 @@ class SaveReturnController extends BaseController
                     'message' => trans('messages.api.admin.v1.orders.no_order_product_found'),
                 ],
                 JsonResponse::HTTP_NOT_FOUND,
+            );
+        }
+
+        $equipment = $orderProduct->equipment;
+        if (!$equipment) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => trans('messages.api.admin.v1.orders.no_equipment_found'),
+                ],
+                JsonResponse::HTTP_NOT_FOUND,
+            );
+        }
+
+        if (!$equipment->current_status->isRented()) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => trans('messages.api.admin.v1.orders.equipment_status', ['status' => $equipment->current_status->label()]),
+                ],
+                JsonResponse::HTTP_FORBIDDEN,
             );
         }
 
@@ -97,6 +119,11 @@ class SaveReturnController extends BaseController
         }
 
         $orderProduct->update($orderProductData);
+
+        if ($equipment) {
+            $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
+            $equipment->saveQuietly();
+        }
 
         return response()->json([
             'success' => true,

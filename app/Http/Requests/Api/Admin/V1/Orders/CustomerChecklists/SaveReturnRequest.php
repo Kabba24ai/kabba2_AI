@@ -51,7 +51,7 @@ class SaveReturnRequest extends ApiBaseFormRequest
             'note' => 'nullable|string',
 
              // For multipart, Laravel's "max" is in KB; 2048 = 2MB
-            //'signature_media'         => 'required|image|max:2048',
+            'signature_media'         => 'nullable|image|max:2048',
 
             'checklist'             => 'required|array',
             'checklist.*.question_unique_id' => 'required|string|exists:order_product_checklist_questions,unique_id',
@@ -96,10 +96,10 @@ class SaveReturnRequest extends ApiBaseFormRequest
                 'description' => 'An optional note related to the checklist.',
                 'example' => 'Customer requested special handling.',
             ],
-            // 'signature_media' => [
-            //     'description' => 'Customer signature image (PNG/JPG). Max 2MB.',
-            //     'type' => 'file',
-            // ],
+            'signature_media' => [
+                'description' => 'Customer signature image (PNG/JPG). Max 2MB.',
+                'type' => 'file',
+            ],
             'checklist[]' => [
                 'description' => 'Array of checklist items.',
                 'example' => [

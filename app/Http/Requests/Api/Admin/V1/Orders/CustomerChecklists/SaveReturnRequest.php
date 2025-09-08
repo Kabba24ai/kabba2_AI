@@ -13,36 +13,36 @@ class SaveReturnRequest extends ApiBaseFormRequest
 
         $input = $this->all();
 
-        if (isset($input['checklist'])) {
-            $raw = $input['checklist'];
+        // if (isset($input['checklist'])) {
+        //     $raw = $input['checklist'];
 
-            // Case: ["<json>"]
-            if (is_array($raw) && count($raw) === 1 && is_string($raw[0])) {
-                $raw = $raw[0];
-            }
+        //     // Case: ["<json>"]
+        //     if (is_array($raw) && count($raw) === 1 && is_string($raw[0])) {
+        //         $raw = $raw[0];
+        //     }
 
-            // Case: string JSON or weird iOS string
-            if (is_string($raw)) {
-                // Try decode directly
-                $decoded = json_decode($raw, true);
+        //     // Case: string JSON or weird iOS string
+        //     if (is_string($raw)) {
+        //         // Try decode directly
+        //         $decoded = json_decode($raw, true);
 
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    // Try to fix weird iOS format: "\"question_unique_id\": \"...\", \"answer_unique_id\": \"...\""
-                    $candidate = trim($raw, "[]\""); // strip [ ] and quotes
-                    $candidate = '{' . $candidate . '}'; // wrap into object
-                    $decoded   = json_decode($candidate, true);
-                }
+        //         if (json_last_error() !== JSON_ERROR_NONE) {
+        //             // Try to fix weird iOS format: "\"question_unique_id\": \"...\", \"answer_unique_id\": \"...\""
+        //             $candidate = trim($raw, "[]\""); // strip [ ] and quotes
+        //             $candidate = '{' . $candidate . '}'; // wrap into object
+        //             $decoded   = json_decode($candidate, true);
+        //         }
 
-                // Wrap into array if single object
-                if (is_array($decoded) && !array_is_list($decoded)) {
-                    $decoded = [$decoded];
-                }
+        //         // Wrap into array if single object
+        //         if (is_array($decoded) && !array_is_list($decoded)) {
+        //             $decoded = [$decoded];
+        //         }
 
-                $input['checklist'] = $decoded;
-            }
-        }
+        //         $input['checklist'] = $decoded;
+        //     }
+        // }
 
-        $this->replace($input);
+        //$this->replace($input);
 
         \Log::debug('SaveReturnRequest::prepareForValidation', $this->all());
         \Log::debug('SaveReturnRequest::prepareForValidation - checklist', $this->input('checklist') ?? []);

@@ -34,9 +34,9 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
         // Replace request payload
         $this->replace($clean);
 
-        \Log::debug('SaveDeliveryRequest::prepareForValidation', $this->all());
-        \Log::debug('SaveDeliveryRequest::prepareForValidation - checklist', $this->input('checklist') ?? []);
 
+        \Log::debug('SaveDeliveryRequest::prepareForValidation - checklist', $this->input('checklist') ?? []);
+        dd($this->all());
     }
 
 

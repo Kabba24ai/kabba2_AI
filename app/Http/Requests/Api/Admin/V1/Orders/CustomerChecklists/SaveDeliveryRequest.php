@@ -9,6 +9,8 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
 {
     protected function prepareForValidation()
     {
+        \Log::info('Request Payload Before Purification: ' . json_encode($this->all()));
+
         $input = $this->all();
         // Build checklist[] from keys like checklist_0_question_unique_id
         $checklist = [];
@@ -32,6 +34,9 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
 
         // Replace request payload
         $this->replace($clean);
+
+        \Log::info('Request Payload After Purification: ' . json_encode($input));
+        dd($this->all());
     }
 
 

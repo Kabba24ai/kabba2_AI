@@ -28,15 +28,15 @@ class IndexController extends BaseController
 
         $equipment = Equipment::with('productCategory')->when($validated['status'], fn($query) => $query->where('current_status', $validated['status']))->get();
 
-        if ($equipment->isEmpty()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.equipment.no_equipment_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND
-            );
-        }
+        // if ($equipment->isEmpty()) {
+        //     return response()->json(
+        //         [
+        //             'success' => false,
+        //             'message' => trans('messages.api.admin.v1.equipment.no_equipment_found'),
+        //         ],
+        //         JsonResponse::HTTP_NOT_FOUND
+        //     );
+        // }
 
         return response()->json([
             'success' => true,

@@ -109,7 +109,7 @@ class OrderProduct extends Model
 
     public function returnSignatureMedia()
     {
-        return $this->belongsTo(Media::class, 'return_signature_media_id');
+        return $this->belongsTo(Media::class, 'pickup_signature_media_id');
     }
 
 

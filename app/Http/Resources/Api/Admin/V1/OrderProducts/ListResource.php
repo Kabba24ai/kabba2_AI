@@ -63,7 +63,7 @@ class ListResource extends JsonResource
             'pickup_notes' => $this->pickup_notes ?? '',
 
             'delivery_signature_media_id' => $this->delivery_signature_media_id ?? 0,
-            'return_signature_media_id' => $this->return_signature_media_id ?? 0,
+            'return_signature_media_id' => $this->pickup_signature_media_id ?? 0,
 
             'delivery_signature_media_url' => $this->whenLoaded('deliverySignatureMedia')->url ?? '',
             'return_signature_media_url' => $this->whenLoaded('returnSignatureMedia')->url ?? '',

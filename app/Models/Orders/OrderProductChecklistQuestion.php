@@ -58,4 +58,14 @@ class OrderProductChecklistQuestion extends Model
     {
         return $this->hasMany(OrderProductChecklistQuestionAnswers::class, 'order_product_checklist_question_id');
     }
+
+    public function deliverySelectedAnswer()
+    {
+        return $this->hasOne(OrderProductChecklistQuestionAnswers::class, 'order_product_checklist_question_id')->where('is_delivery_answer', true);
+    }
+
+    public function returnSelectedAnswer()
+    {
+        return $this->hasOne(OrderProductChecklistQuestionAnswers::class, 'order_product_checklist_question_id')->where('is_return_answer', true);
+    }
 }

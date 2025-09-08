@@ -48,6 +48,8 @@ class ListResource extends JsonResource
             'required_question' => $this->required_question ?? true,
             'category' => new CustomerChecklistCategoriesListResource($this->whenLoaded('category')),
             'answers' => CustomerChecklistQuestionAnswersListResource::collection($this->whenLoaded('answers')),
+            'delivery_selected_answer' => new CustomerChecklistQuestionAnswersListResource($this->whenLoaded('deliverySelectedAnswer')),
+            'return_selected_answer' => new CustomerChecklistQuestionAnswersListResource($this->whenLoaded('returnSelectedAnswer')),
         ];
 
         return $return;

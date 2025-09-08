@@ -33,7 +33,7 @@ class IndexController extends BaseController
         $questions = collect();
 
         if ($type == "return" && $orderProductUniqueId) {
-            $orderProduct = OrderProduct::with(['checklistQuestions.answers'])
+            $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'checklistQuestions.deliverySelectedAnswer', 'checklistQuestions.returnSelectedAnswer'])
                 ->where('unique_id', $orderProductUniqueId)
                 ->first();
 

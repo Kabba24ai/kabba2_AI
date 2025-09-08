@@ -12,6 +12,9 @@ use App\Models\MaintenanceManagement\Equipment;
 // Models
 use App\Models\ProductManagement\Product;
 
+use App\Models\Iam\Personnel\User;
+
+
 class OrderProduct extends Model
 {
     protected $fillable = [
@@ -109,7 +112,7 @@ class OrderProduct extends Model
 
     public function returnSignatureMedia()
     {
-        return $this->belongsTo(Media::class, 'pickup_signature_media_id');
+        return $this->belongsTo(Media::class, 'return_signature_media_id');
     }
 
 
@@ -162,5 +165,13 @@ class OrderProduct extends Model
         ];
     }
 
+    public function deliveryEmployee()
+    {
+        return $this->belongsTo(User::class, 'delivery_by');
+    }
 
+    public function pickupEmployee()
+    {
+        return $this->belongsTo(User::class, 'pickup_by');
+    }
 }

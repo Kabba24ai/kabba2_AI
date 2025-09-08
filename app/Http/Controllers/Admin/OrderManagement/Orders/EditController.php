@@ -19,12 +19,18 @@ class EditController extends Controller
   
     public function __invoke($uniqueid)
     {
-        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes', 'media.media'])->where('unique_id', $uniqueid)->firstOrFail();
+        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes', 'media.media',
+            'products.checklistQuestions.answers',
+            'products.checklistQuestions.deliverySelectedAnswer',
+            'products.checklistQuestions.returnSelectedAnswer'])->where('unique_id', $uniqueid)->firstOrFail();
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+
+
+        // dd($order->products);
 
         return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting'));
     }

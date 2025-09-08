@@ -742,7 +742,7 @@
                                                 <span
                                                     class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold cursor-pointer" onclick="openChecklistModal()">D</span>
                                                 <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold" onclick="openChecklistModal()">R</span>
                                             </div>
                                         </div>
 
@@ -964,6 +964,9 @@
                 </div>
             </div>
         </div>
+		
+
+		
     </div>
 
     <!-- Add/Edit Note Modal -->
@@ -1523,7 +1526,7 @@
                     <h3 class="text-base sm:text-lg font-semibold text-gray-800">Checklist</h3>
                     <button
                     type="button"
-                    class="text-2xl text-gray-500 leading-none"
+                    class="text-2xl text-gray-500 leading-none focus:outline-none"
                     onclick="closeChecklistModal()"
                     aria-label="Close"
                     >&times;</button>
@@ -1534,104 +1537,158 @@
                     <div class="px-2 sm:px-4 py-3 modal-scrollable w-full mx-auto">
                         <div class="bg-white border border-gray-200 rounded-md overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
-                                <thead class="bg-gray-100 text-gray-600">
-                                    <tr class="text-left text-gray-600 border-b">
-                                        <th class="py-2 px-2">Checklist Item</th>
-                                        <th class="py-2 px-2">Delivered</th>
-                                        <th class="py-2 px-2">Returned</th>
-                                        <th class="py-2 px-2">Balance</th>
-                                        <th class="py-2 px-2">Value</th>
-                                        <th class="py-2 px-2">Customer Owes</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-gray-800">
-                                    <tr class="border-b">
-                                        <td class="py-2 px-2">Fuel (Diesel)</td>
-                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2">
-                                        </td>
-                                        <td class="py-2 px-2 whitespace-nowrap">
-                                            <a class="text-blue-600 hover:underline">$3.70 / Gallon</a>
-                                        </td>
-                                        <td class="py-2 px-2">
-                                            <span class="inline-block border-b border-gray-300 min-w-10">$0</span>
-                                        </td>
-                                    </tr>
+    <thead class="bg-gray-100 text-gray-600">
+        <tr class="text-left text-gray-600 border-b">
+            <th class="py-2 px-2">Checklist Item</th>
+            <th class="py-2 px-2">Delivered</th>
+            <th class="py-2 px-2">Returned</th>
+            <th class="py-2 px-2">Balance</th>
+            <th class="py-2 px-2">Value</th>
+            <th class="py-2 px-2">Customer Owes</th>
+        </tr>
+    </thead>
+    <tbody class="text-gray-800">
+        @foreach($order->products as $product)
+            @foreach($product->checklistQuestions()->indexOrder()->get() as $question)
+                <tr class="border-b">
+                    <!-- Checklist Item -->
+                    <td class="py-2 px-2">{{ $question->question_name }}</td>
 
-                                    <tr class="border-b">
-                                        <td class="py-2 px-2">Clean</td>
-                                        <td class="py-2 px-2"> </td>
-                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                    </tr>
+                    <!-- Delivered -->
+                    <td class="py-2 px-2 align-top">
 
-                                    <tr class="border-b">
-                                        <td class="py-2 px-2">Cylinder Covers</td>
-                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                    </tr>
+                        @if($question->deliverySelectedAnswer && $question->deliverySelectedAnswer->is_delivery_answer == 1 )
+                            <div class="max-w-[200px] whitespace-normal break-words">
+                                {{ $question->deliverySelectedAnswer->delivery_answer }}
+                            </div>
+                        @endif
+                    </td>
 
-                                    <!-- Bucket Teeth -->
-                                    <tr class="border-b">
-                                        <td class="py-2 px-2">Bucket Teeth</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                    </tr>
+                    <!-- Returned -->
+                    <td class="py-2 px-2 align-top">
+                        @if($question->returnSelectedAnswer && $question->deliverySelectedAnswer->is_return_answer == 1)
+                            <div class="max-w-[200px] whitespace-normal break-words">
+                                {{ $question->returnSelectedAnswer->return_answer }}
+                            </div>
+                        @endif
+                    </td>
 
-                                    <!-- Bucket Pin -->
-                                    <tr class="border-b">
-                                        <td class="py-2 px-2">Bucket Pin</td>
-                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                    </tr>
+                    <!-- Balance -->
+                    <td class="py-2 px-2">
+                        {{ 
+                            ($question->deliverySelectedAnswer->delivery_amount ?? 0) 
+                            - ($question->returnSelectedAnswer->return_amount ?? 0) 
+                        }}
+                    </td>
 
-                                    <!-- Bucket Pin -->
-                                    <tr class="border-b">
-                                        <td class="py-2 px-2">Bucket Pin</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                    </tr>
+                    <!-- Value -->
+                    <td class="py-2 px-2 whitespace-nowrap">
+                        <span class="inline-block border-b border-gray-300 min-w-10">
+                            ${{ $question->deliverySelectedAnswer->delivery_amount ?? 0 }}
+                        </span>
+                    </td>
 
-                                    <!-- Bucket Pin -->
-                                    <tr class="border-b">
-                                        <td class="py-2 px-2">Bucket Pin</td>
-                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                    </tr>
+                    <!-- Customer Owes -->
+                    <td class="py-2 px-2">
+                        <span class="inline-block border-b border-gray-300 min-w-10">
+                            ${{ $question->deliverySelectedAnswer->user_delivery_amount ?? 0 }}
+                        </span>
+                    </td>
+                </tr>
+            @endforeach
+        @endforeach
+    </tbody>
+</table>
 
-                                    <!-- Bucket Pin -->
-                                    <tr class="border-b">
-                                        <td class="py-2 px-2">Bucket Pin</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
-                                        <td class="py-2 px-2"></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
-                                    </tr>
 
-                                </tbody>
-                            </table>
+
+
                         </div>
+
+ @foreach ($order->products as $orderProduct)
+                                                @if (!empty($orderProduct->product))
+	<div class="px-3 py-2">
+	  <form class="bg-white">
+		<!-- 2-column grid (1 column on mobile) -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+		  <!-- LEFT COLUMN -->
+		  <div class="flex flex-col gap-4">
+			<!-- Delivery Notes -->
+			<div>
+			  <label for="delivery_notes" class="block text-sm text-gray-700 mb-1">Delivery Notes</label>
+			  <div class="text-sm text-gray-700 border border-gray-200 shadow-sm rounded-lg p-4">            {{ $orderProduct->delivery_notes ?? '—' }}
+</div>
+			</div>
+
+			<!-- Delivery Employee -->
+			<div>
+			  <label for="delivery_employee" class="block text-sm text-gray-700 mb-1">Delivery Employee</label>
+			  <div class="w-full md:w-56 border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm">
+				{{ $orderProduct->deliveryEmployee->full_name ?? '—' }}
+
+			  </div>
+			</div>
+
+			<!-- Delivery Signature (Photo) -->
+			<div>
+			  <label class="block text-sm text-gray-700 mb-1">Delivery Signature</label>
+@if(!empty($order->signature_image))
+        <img src="{{ $order->signature_image }}" 
+             class="w-50 border rounded shadow-sm" 
+             alt="Signature">
+    @else
+        <p class="text-gray-500 italic">No signature available</p>
+    @endif	
+		</div>
+		  </div>
+
+		  <!-- RIGHT COLUMN -->
+		  <div class="flex flex-col gap-4">
+			<!-- Returned Notes -->
+			<div>
+			  <label for="returned_notes" class="block text-sm text-gray-700 mb-1">Returned Notes</label>
+			  <div class="text-sm text-gray-700 border border-gray-200 shadow-sm rounded-lg p-4">{{ $orderProduct->pickup_notes ?? '—' }}</div>
+			</div>
+
+			<!-- Returned Employee -->
+			<div>
+			  <label for="returned_employee" class="block text-sm text-gray-700 mb-1">Returned Employee</label>
+			  <div class="w-full md:w-56 border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm">
+				{{ $orderProduct->pickupEmployee->full_name ?? '—' }}
+			  </div>
+			</div>
+			
+			<div>
+			  <label class="block text-sm text-gray-700 mb-1">Returned Signature</label>
+@if(!empty($order->signature_image))
+        <img src="{{ $order->signature_image }}" 
+             class="w-50 border rounded shadow-sm" 
+             alt="Signature">
+    @else
+        <p class="text-gray-500 italic">No signature available</p>
+    @endif			</div>
+
+			<!-- Save button pinned to bottom on md+ -->
+			<!-- <div class="mt-auto flex justify-end">
+			  <button type="submit"
+				class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
+				Save
+			  </button>
+			</div> -->
+		  </div>
+
+		</div>
+	  </form>
+	</div>
+
+     @endif
+                                            @endforeach
+
                     </div>
                 </div>
+
+
 
                 <!-- Footer -->
                 <div class="px-4 sm:px-6 py-3 border-t flex items-center justify-end gap-2">

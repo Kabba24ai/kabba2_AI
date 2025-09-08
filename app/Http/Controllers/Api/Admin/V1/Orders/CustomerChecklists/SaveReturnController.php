@@ -114,7 +114,7 @@ class SaveReturnController extends BaseController
         if ($request->hasFile('signature_media')) {
             $mediaData = MediaHelper::uploadStorageFile('Public Asset', $request->file('signature_media'), 'orders/schedules', $orderProduct);
             if (!empty($mediaData['mediaObj'])) {
-                $orderProductData['delivery_signature_media_id'] = $mediaData['mediaObj']->id;
+                $orderProductData['pickup_signature_media_id'] = $mediaData['mediaObj']->id;
             }
         }
 

@@ -11,32 +11,30 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
     {
         \Log::info('Request Payload Before Purification: ' . json_encode($this->all()));
 
-        $input = $this->all();
-        // Build checklist[] from keys like checklist_0_question_unique_id
-        $checklist = [];
-        foreach ($input as $key => $value) {
-            if (preg_match('/^checklist_(\d+)_(question_unique_id|answer_unique_id|amount)$/', $key, $m)) {
-                $idx   = (int) $m[1];
-                $field = $m[2];
-                $checklist[$idx][$field] = $value;
-                unset($input[$key]);
-            }
-        }
+        // $input = $this->all();
+        // // Build checklist[] from keys like checklist_0_question_unique_id
+        // $checklist = [];
+        // foreach ($input as $key => $value) {
+        //     if (preg_match('/^checklist_(\d+)_(question_unique_id|answer_unique_id|amount)$/', $key, $m)) {
+        //         $idx   = (int) $m[1];
+        //         $field = $m[2];
+        //         $checklist[$idx][$field] = $value;
+        //         unset($input[$key]);
+        //     }
+        // }
 
-        if (!empty($checklist)) {
-            // Ensure numeric indices in order
-            ksort($checklist);
-            $input['checklist'] = array_values($checklist);
-        }
+        // if (!empty($checklist)) {
+        //     // Ensure numeric indices in order
+        //     ksort($checklist);
+        //     $input['checklist'] = array_values($checklist);
+        // }
 
-        // Purify only non-file inputs
-        $clean = PurifyHelper::purify($input);
+        // // Purify only non-file inputs
+        // $clean = PurifyHelper::purify($input);
 
-        // Replace request payload
-        $this->replace($clean);
+        // // Replace request payload
+        // $this->replace($clean);
 
-        \Log::info('Request Payload After Purification: ' . json_encode($input));
-        dd($this->all());
     }
 
 

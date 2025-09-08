@@ -9,35 +9,107 @@ class SaveReturnRequest extends ApiBaseFormRequest
 {
     protected function prepareForValidation()
     {
-        \Log::warning(json_encode($this->all(),true ,JSON_PRETTY_PRINT));
+        // Start with all inputs
         $input = $this->all();
-        // Build checklist[] from keys like checklist_0_question_unique_id
-        // $checklist = [];
-        // foreach ($input as $key => $value) {
-        //     if (preg_match('/^checklist_(\d+)_(question_unique_id|answer_unique_id|amount)$/', $key, $m)) {
-        //         $idx   = (int) $m[1];
-        //         $field = $m[2];
-        //         $checklist[$idx][$field] = $value;
-        //         unset($input[$key]);
-        //     }
-        // }
 
-        // if (!empty($checklist)) {
-        //     // Ensure numeric indices in order
-        //     ksort($checklist);
-        //     $input['checklist'] = array_values($checklist);
-        // }
+        /**
+         * 1) Build checklist[] from keys like:
+         *    - checklist_0_question_unique_id
+         *    - checklist_0_answer_unique_id
+         *    - checklist_0_amount
+         */
+        $checklistFromKeys = [];
+        foreach ($input as $key => $value) {
+            if (preg_match('/^checklist_(\d+)_(question_unique_id|answer_unique_id|amount)$/', $key, $m)) {
+                $idx = (int) $m[1];
+                $field = $m[2];
+                $checklistFromKeys[$idx][$field] = $value;
+                unset($input[$key]); // remove the flattened key
+            }
+        }
 
-        // // Purify only non-file inputs
-        // $clean = PurifyHelper::purify($input);
+        if (!empty($checklistFromKeys)) {
+            ksort($checklistFromKeys); // ensure numeric order
+            $input['checklist'] = array_values($checklistFromKeys);
+        }
 
-        // // Replace request payload
-        // $this->replace($clean);
+        /**
+         * 2) Handle incoming `checklist` that is a JSON string OR ["<json>"].
+         *    After this step, $input['checklist'] will be a proper array of objects.
+         */
+        if (isset($input['checklist'])) {
+            // Case: checklist is a single-element array with JSON string inside
+            if (is_array($input['checklist']) && count($input['checklist']) === 1 && is_string($input['checklist'][0])) {
+                $decoded = json_decode($input['checklist'][0], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $input['checklist'] = $decoded;
+                }
+            }
+            // Case: checklist is a raw JSON string
+            elseif (is_string($input['checklist'])) {
+                $decoded = json_decode($input['checklist'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $input['checklist'] = $decoded;
+                }
+            }
+            // Case: checklist is an array of JSON strings (rare, but normalize)
+            elseif (is_array($input['checklist'])) {
+                $first = reset($input['checklist']);
+                if (is_string($first) && str_starts_with(trim($first), '[')) {
+                    $decoded = json_decode($first, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $input['checklist'] = $decoded;
+                    }
+                }
+            }
+
+            // 2b) Normalize shape & cast amount (if present)
+            if (is_array($input['checklist'])) {
+                $input['checklist'] = array_values(
+                    array_map(function ($row) {
+                        // keep only known keys
+                        $normalized = [
+                            'question_unique_id' => $row['question_unique_id'] ?? null,
+                            'answer_unique_id' => $row['answer_unique_id'] ?? null,
+                        ];
+                        if (array_key_exists('amount', $row)) {
+                            $normalized['amount'] = is_null($row['amount']) || $row['amount'] === '' ? null : (float) $row['amount'];
+                        }
+                        return $normalized;
+                    }, $input['checklist']),
+                );
+            }
+        }
+
+        /**
+         * 3) Light casting for common numeric fields (only if present)
+         */
+        $ints = ['user_id', 'store_id'];
+        $floats = ['start_hours', 'total_charge'];
+        foreach ($ints as $f) {
+            if (isset($input[$f]) && $input[$f] !== '' && $input[$f] !== null) {
+                $input[$f] = (int) $input[$f];
+            }
+        }
+        foreach ($floats as $f) {
+            if (isset($input[$f]) && $input[$f] !== '' && $input[$f] !== null) {
+                $input[$f] = (float) $input[$f];
+            }
+        }
+
+        /**
+         * 4) Purify only non-file inputs
+         */
+        $clean = PurifyHelper::purify($input);
+
+        /**
+         * 5) Replace request payload
+         */
+        $this->replace($clean);
 
         \Log::debug('SaveReturnRequest::prepareForValidation', $this->all());
         \Log::debug('SaveReturnRequest::prepareForValidation - checklist', $this->input('checklist') ?? []);
     }
-
 
     /**
      * Get the validation rules that apply to the request.
@@ -54,13 +126,13 @@ class SaveReturnRequest extends ApiBaseFormRequest
             'total_charge' => 'nullable|string',
             'note' => 'nullable|string',
 
-             // For multipart, Laravel's "max" is in KB; 2048 = 2MB
-            'signature_media'         => 'nullable|image|max:2048',
+            // For multipart, Laravel's "max" is in KB; 2048 = 2MB
+            'signature_media' => 'nullable|image|max:2048',
 
-            'checklist'             => 'required|array',
+            'checklist' => 'required|array',
             'checklist.*.question_unique_id' => 'required|string|exists:order_product_checklist_questions,unique_id',
-            'checklist.*.answer_unique_id'   => 'required|string|exists:order_product_checklist_question_answers,unique_id',
-            'checklist.*.amount'             => 'nullable|string',
+            'checklist.*.answer_unique_id' => 'required|string|exists:order_product_checklist_question_answers,unique_id',
+            'checklist.*.amount' => 'nullable|string',
         ];
     }
 

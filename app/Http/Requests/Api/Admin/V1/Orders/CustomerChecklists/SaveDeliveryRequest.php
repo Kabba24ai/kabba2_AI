@@ -9,34 +9,30 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
 {
     protected function prepareForValidation()
     {
-        \Log::warning(json_encode($this->all(),true ,JSON_PRETTY_PRINT));
-        $input = $this->all();
-        // Build checklist[] from keys like checklist_0_question_unique_id
-        $checklist = [];
-        foreach ($input as $key => $value) {
-            if (preg_match('/^checklist_(\d+)_(question_unique_id|answer_unique_id|amount)$/', $key, $m)) {
-                $idx   = (int) $m[1];
-                $field = $m[2];
-                $checklist[$idx][$field] = $value;
-                unset($input[$key]);
-            }
-        }
 
-        if (!empty($checklist)) {
-            // Ensure numeric indices in order
-            ksort($checklist);
-            $input['checklist'] = array_values($checklist);
-        }
+        // $input = $this->all();
+        // // Build checklist[] from keys like checklist_0_question_unique_id
+        // $checklist = [];
+        // foreach ($input as $key => $value) {
+        //     if (preg_match('/^checklist_(\d+)_(question_unique_id|answer_unique_id|amount)$/', $key, $m)) {
+        //         $idx   = (int) $m[1];
+        //         $field = $m[2];
+        //         $checklist[$idx][$field] = $value;
+        //         unset($input[$key]);
+        //     }
+        // }
 
-        // Purify only non-file inputs
-        $clean = PurifyHelper::purify($input);
+        // if (!empty($checklist)) {
+        //     // Ensure numeric indices in order
+        //     ksort($checklist);
+        //     $input['checklist'] = array_values($checklist);
+        // }
 
-        // Replace request payload
-        $this->replace($clean);
+        // // Purify only non-file inputs
+        // $clean = PurifyHelper::purify($input);
 
-
-        \Log::debug('SaveDeliveryRequest::prepareForValidation - checklist', $this->input('checklist') ?? []);
-        dd($this->all());
+        // // Replace request payload
+        // $this->replace($clean);
     }
 
 

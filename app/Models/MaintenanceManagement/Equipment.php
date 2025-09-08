@@ -17,7 +17,7 @@ use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 use App\Models\Orders\Order;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
-
+use App\Models\Orders\OrderProduct;
 
 class Equipment extends Model
 {
@@ -90,6 +90,11 @@ class Equipment extends Model
     public function order()
     {
         return $this->belongsTo(Order::class, 'current_order_id', 'id');
+    }
+
+    public function orderProduct()
+    {
+        return $this->belongsTo(OrderProduct::class, 'current_order_product_id', 'id');
     }
 
     public function productCategory()

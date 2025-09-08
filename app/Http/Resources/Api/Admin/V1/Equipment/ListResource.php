@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\Admin\V1\Equipment;
 
+use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource as OrderProductsListResource;
 use App\Http\Resources\Api\Admin\V1\ProductCategories\ListResource as ProductCategoriesListResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -49,6 +50,12 @@ class ListResource extends JsonResource
             'equipment_notes' => $this->equipment_notes ?? '',
             'current_status' => $this?->current_status->label() ?? '',
             'product_category' => new ProductCategoriesListResource($this->whenLoaded('productCategory') ?? []),
+
+            'current_order_id' => $this->current_order_id ?? 0,
+            'current_order_product_id' => $this->current_order_product_id ?? 0,
+
+            'order_product' => new OrderProductsListResource($this->whenLoaded('orderProduct')),
+
         ];
 
         return $return;

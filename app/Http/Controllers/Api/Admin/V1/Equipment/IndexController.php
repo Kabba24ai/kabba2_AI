@@ -25,8 +25,13 @@ class IndexController extends BaseController
     public function __invoke(IndexRequest $request): JsonResponse
     {
         $validated = $request->validated();
+        $status = $validated['status'] ?? null;
 
-        $equipment = Equipment::with('productCategory')->when($validated['status'], fn($query) => $query->where('current_status', $validated['status']))->get();
+        $order = ['damaged', 'maintenance', 'rented', 'available'];
+        $equipment = Equipment::with('productCategory', 'orderProduct')
+            ->when($status, fn($query) => $query->where('current_status', $status))
+            ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")
+            ->get();
 
         // if ($equipment->isEmpty()) {
         //     return response()->json(

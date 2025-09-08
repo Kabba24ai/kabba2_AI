@@ -52,22 +52,17 @@ class IndexRequest extends ApiBaseFormRequest
             ],
             'search' => [
                 'description' => 'The search term to filter orders upon the customer name.',
-                'example' => 'Raj',
+                'example' => '',
                 'type' => 'string',
             ],
             'category_id' => [
                 'description' => 'The ID of the category to filter orders.',
-                'example' => 1,
+                'example' => null,
                 'type' => 'integer',
             ],
             'payment_method' => [
                 'description' => 'The payment method to filter orders.',
                 'example' => 'All',
-                'type' => 'string',
-            ],
-            'payment_status' => [
-                'description' => 'The payment status to filter orders.',
-                'example' => 'Pending',
                 'type' => 'string',
             ],
         ];

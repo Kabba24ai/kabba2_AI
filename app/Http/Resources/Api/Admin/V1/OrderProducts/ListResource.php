@@ -48,6 +48,9 @@ class ListResource extends JsonResource
             'delivery_time' => CustomHelper::formatTime($this->delivery_time) ?? '',
 
             'delivery_media' => OrderMediasListResource::collection($this->whenLoaded('deliveryMedia') ?? []),
+
+            'delivery_notes' => $this->delivery_notes ?? '',
+
             'pickup_status' => $this->pickup_status ?? '',
             'pickup_transport_mode' => $this->pickup_transport_mode ?? '',
             'pickup_store_id' => $this->pickup_store_id ?? '',
@@ -56,6 +59,8 @@ class ListResource extends JsonResource
             'pickup_by' => $this->pickup_by ?? '',
 
             'pickup_media' => OrderMediasListResource::collection($this->whenLoaded('pickupMedia') ?? []),
+
+            'pickup_notes' => $this->pickup_notes ?? '',
 
             'delivery_signature_media_id' => $this->delivery_signature_media_id ?? 0,
             'return_signature_media_id' => $this->return_signature_media_id ?? 0,

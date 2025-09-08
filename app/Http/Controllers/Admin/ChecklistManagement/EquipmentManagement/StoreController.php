@@ -165,10 +165,18 @@ class StoreController extends Controller
                 if ($existingTemplate && $existingTemplate->status === 'Rental Ready') {
                     Log::info('Removing previous Rental Ready template', ['template_id' => $existingTemplate->id]);
 
-                    $existingTemplate->update([
-                        'is_complete' => 1,
-                        'updated_by' => auth()->id(),
-                    ]);
+                        // $existingTemplate->update([
+                        //     'is_complete' => 1,
+                        //     'updated_by' => auth()->id(),
+                        // ]);
+                        
+                        EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'))
+                            ->where('status', 'Rental Ready')
+                            ->update([
+                                'is_complete' => 1,
+                                'updated_by' => auth()->id(),
+                            ]);
+
                 }
 
                 $template = EquipmentRentalReadyTemplate::create([

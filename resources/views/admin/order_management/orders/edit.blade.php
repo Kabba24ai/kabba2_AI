@@ -369,10 +369,7 @@
                         <div>
                             @php
                                 if ($orderProduct?->product) {
-                                    $href = route(
-                                        'admin.product-management.products.edit',
-                                        $orderProduct->product->unique_id,
-                                    );
+                                    $href = route('admin.product-management.products.edit',$orderProduct->product->unique_id,);
                                 }
                             @endphp
                             <a href="{{ $href ?? 'javascript:void(0);' }}"
@@ -743,7 +740,7 @@
                                             <div>Checklist</div>
                                             <div class="flex justify-center gap-2 mb-1">
                                                 <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold cursor-pointer" onclick="openChecklistModal()">D</span>
                                                 <span
                                                     class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
                                             </div>
@@ -753,14 +750,23 @@
                                         <div class="flex flex-col items-center">
                                             <div>Video</div>
                                             <div class="flex justify-center gap-2 mb-1">
-                                               <span
-                class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer bg-green-500"
-                onclick="openAllMedia({{ $orderProduct->id }})">
-                D
-            </span>
-                                                
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold bg-red-500">R</span>
+                                               {{-- D = Delivery --}}
+                <span
+                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer {{ $orderProduct->deliveryMedia->count() ? 'bg-green-500' : 'bg-red-500' }}"
+                    @if($orderProduct->deliveryMedia->count())
+        onclick="openAllMedia({{ $orderProduct->id }}, 'delivery')"
+    @endif >
+                    D
+                </span>
+
+                {{-- R = Pickup --}}
+                <span
+                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer {{ $orderProduct->pickupMedia->count() ? 'bg-green-500' : 'bg-red-500' }}"
+                   @if($orderProduct->pickupMedia->count())
+        onclick="openAllMedia({{ $orderProduct->id }}, 'pickup')"
+    @endif >
+                    R
+                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -784,6 +790,18 @@
                                         <span>R=Return</span>
                                     </div>
                                 </div>
+
+                                {{-- Hidden JSON for THIS product --}}
+      {{-- Hidden JSON --}}
+    <script type="application/json" id="media-{{ $orderProduct->id }}-delivery">
+        {!! $orderProduct->deliveryMedia->map(fn($m) => ['url'=> optional($m->media)->url, 'type'=>$m->type])->toJson() !!}
+    </script>
+
+    <script type="application/json" id="media-{{ $orderProduct->id }}-pickup">
+        {!! $orderProduct->pickupMedia->map(fn($m) => ['url'=> optional($m->media)->url, 'type'=>$m->type])->toJson() !!}
+    </script>
+
+
                             @else
                                 <div class="text-gray-500 text-sm">
                                     <p>No delivery or return schedules available for this product.</p>
@@ -833,22 +851,36 @@
                             </div>
                         </div>
                         <!-- License -->
-                        <div class="flex flex-col items-center">
-                            <div>License</div>
-                            <div class="flex justify-center mb-1">
-                                @if ($order->licenseMedia->isNotEmpty())
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
-                                        <x-heroicon-o-check class="w-4 h-4" />
-                                    </span>
-                                @else
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
-                                        <x-heroicon-o-x-mark class="w-4 h-4" />
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
+                       <!-- License -->
+<div class="flex flex-col items-center">
+    <div>License</div>
+    <div class="flex justify-center mb-1">
+        @if ($order->licenseMedia->isNotEmpty())
+            <span
+                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold cursor-pointer"
+                onclick="openAllMedia({{ $order->id }}, 'license')"
+            >
+                <x-heroicon-o-check class="w-4 h-4" />
+            </span>
+
+            <script type="application/json" id="media-{{ $order->id }}-license">
+    {!! $order->licenseMedia->map(fn($m) => [
+        'url'  => optional($m->media)->url,
+        'type' => $m->type, // "image" or "video"
+    ])->toJson() !!}
+</script>
+
+
+        @else
+            <span
+                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold"
+            >
+                <x-heroicon-o-x-mark class="w-4 h-4" />
+            </span>
+        @endif
+    </div>
+</div>
+
                         {{-- <!-- Checklist -->
                         <div>
                             <div>Checklist</div>
@@ -1481,20 +1513,165 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div id="checklistModal" class="fixed inset-0 z-[99999] hidden bg-black/70 backdrop-blur-sm flex justify-center items-center transition-opacity duration-300" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="relative mx-auto my-10 w-[95vw] max-w-5xl">
+            <div class="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-4 sm:px-6 py-3 border-b">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Checklist</h3>
+                    <button
+                    type="button"
+                    class="text-2xl text-gray-500 leading-none"
+                    onclick="closeChecklistModal()"
+                    aria-label="Close"
+                    >&times;</button>
+                </div>
+        
+                <div class=" overflow-y-auto max-h-[70vh]">
+                    <!-- Content -->
+                    <div class="px-2 sm:px-4 py-3 modal-scrollable w-full mx-auto">
+                        <div class="bg-white border border-gray-200 rounded-md overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
+                                <thead class="bg-gray-100 text-gray-600">
+                                    <tr class="text-left text-gray-600 border-b">
+                                        <th class="py-2 px-2">Checklist Item</th>
+                                        <th class="py-2 px-2">Delivered</th>
+                                        <th class="py-2 px-2">Returned</th>
+                                        <th class="py-2 px-2">Balance</th>
+                                        <th class="py-2 px-2">Value</th>
+                                        <th class="py-2 px-2">Customer Owes</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-800">
+                                    <tr class="border-b">
+                                        <td class="py-2 px-2">Fuel (Diesel)</td>
+                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2">
+                                        </td>
+                                        <td class="py-2 px-2 whitespace-nowrap">
+                                            <a class="text-blue-600 hover:underline">$3.70 / Gallon</a>
+                                        </td>
+                                        <td class="py-2 px-2">
+                                            <span class="inline-block border-b border-gray-300 min-w-10">$0</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="border-b">
+                                        <td class="py-2 px-2">Clean</td>
+                                        <td class="py-2 px-2"> </td>
+                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                    </tr>
+
+                                    <tr class="border-b">
+                                        <td class="py-2 px-2">Cylinder Covers</td>
+                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                    </tr>
+
+                                    <!-- Bucket Teeth -->
+                                    <tr class="border-b">
+                                        <td class="py-2 px-2">Bucket Teeth</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                    </tr>
+
+                                    <!-- Bucket Pin -->
+                                    <tr class="border-b">
+                                        <td class="py-2 px-2">Bucket Pin</td>
+                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                    </tr>
+
+                                    <!-- Bucket Pin -->
+                                    <tr class="border-b">
+                                        <td class="py-2 px-2">Bucket Pin</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                    </tr>
+
+                                    <!-- Bucket Pin -->
+                                    <tr class="border-b">
+                                        <td class="py-2 px-2">Bucket Pin</td>
+                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                    </tr>
+
+                                    <!-- Bucket Pin -->
+                                    <tr class="border-b">
+                                        <td class="py-2 px-2">Bucket Pin</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2">Lorem Ipsum is simply dummy text of the printing.</td>
+                                        <td class="py-2 px-2"></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                        <td class="py-2 px-2"><span class="inline-block border-b border-gray-300 min-w-10">$0</span></td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-4 sm:px-6 py-3 border-t flex items-center justify-end gap-2">
+                    <button class="px-4 py-2 text-sm rounded border border-gray-300 bg-white" onclick="closeChecklistModal()">Cancel</button>
+                    <button class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @endsection
 
 @push('js')
 
-{{-- Hidden JSON for JS --}}
-<script type="application/json" id="media-{{ $orderProduct->id }}">
-    {!! $orderProduct->deliveryMedia->merge($orderProduct->pickupMedia)->map(function($m) {
-        return [
-            'url' => optional($m->media)->url,
-            'type' => $m->type
-        ];
-    }) !!}
+<script>
+  const modalEl = document.getElementById('checklistModal');
+
+  function openChecklistModal() {
+    modalEl.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // scroll-lock
+    // focus first control for a11y
+    setTimeout(() => {
+      const first = modalEl.querySelector('select, input, button');
+      first && first.focus();
+    }, 0);
+  }
+  function closeChecklistModal() {
+    modalEl.classList.add('hidden');
+    document.body.style.overflow = ''; // restore scroll
+  }
+  // ESC to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modalEl.classList.contains('hidden')) {
+      closeChecklistModal();
+    }
+  });
 </script>
+
 
     @if ($paymentSetting['payment_test_mode'] ?? false)
         <script src="https://jstest.authorize.net/v1/Accept.js"></script>
@@ -2795,48 +2972,61 @@
     </script>
 
 <script>
-   function openAllMedia(orderProductId) {
+function openAllMedia(orderProductId, type) {
     const modal = document.getElementById('allMediaModal');
     const content = document.getElementById('allMediaContent');
 
-    // Get media list from hidden JSON
-    const mediaData = JSON.parse(document.getElementById(`media-${orderProductId}`).textContent);
+    const jsonEl = document.getElementById(`media-${orderProductId}-${type}`);
+    if (!jsonEl) {
+        content.innerHTML = `<p class="text-gray-500">No media found for this product.</p>`;
+        modal.classList.remove('hidden');
+        return;
+    }
 
-    // Build grid items
+    let mediaData = [];
+    try {
+        mediaData = JSON.parse(jsonEl.textContent);
+    } catch (e) {
+        console.error("Invalid JSON", e);
+    }
+
     let html = '';
     mediaData.forEach(m => {
         if (!m.url) return;
 
-        let mediaHtml = '';
-        if (m.url.endsWith('.mp4') || m.url.endsWith('.mov') || m.url.endsWith('.webm')) {
-            mediaHtml = `
+        // Video
+        if (m.url.match(/\.(mp4|mov|webm)$/)) {
+            html += `
                 <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
                     <video class="w-full h-48 object-cover" muted>
                         <source src="${m.url}" type="video/mp4">
                     </video>
                     <a href="${m.url}" target="_blank"
                         class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-       <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
-   </svg>
-                    </a>
-                </div>
-            `;
-        } else if (m.url.match(/\.(jpeg|jpg|png|gif|webp)$/)) {
-            mediaHtml = `
-                <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
-                    <img src="${m.url}" class="w-full h-48 object-cover" />
-                    <a href="${m.url}" target="_blank"
-                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-       <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
-   </svg>
+                        <!-- Play Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
+                        </svg>
                     </a>
                 </div>
             `;
         }
 
-        html += mediaHtml;
+        // Image
+        else if (m.url.match(/\.(jpeg|jpg|png|gif|webp)$/)) {
+            html += `
+                <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
+                    <img src="${m.url}" class="w-full h-48 object-cover" />
+                    <a href="${m.url}" target="_blank"
+                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
+                        <!-- Zoom Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/>
+                        </svg>
+                    </a>
+                </div>
+            `;
+        }
     });
 
     content.innerHTML = html || `<p class="text-gray-500">No media available.</p>`;
@@ -2849,8 +3039,8 @@ function closeAllMedia() {
     modal.classList.add('hidden');
     content.innerHTML = ''; // cleanup
 }
-
 </script>
+
 
 
 @endpush

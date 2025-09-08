@@ -25,5 +25,6 @@ return [
     'checklist_already_exists' => 'Checklist already exists for this order product',
     'no_equipment_found' => 'No equipment found',
     'equipment_status' => 'Equipment Status is :status, it needs to be Rented',
+    'checklist_removed_successfully' => 'Checklist removed successfully',
 ];
 

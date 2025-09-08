@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\RemoveController as CustomerChecklistsRemoveController;
 use Illuminate\Support\Facades\Route;
 
 // Controllers
@@ -45,6 +46,7 @@ Route::group(['prefix' => 'orders'], function () {
     });
 
     Route::group(['prefix' => 'customer-checklists'], function () {
+        Route::post('/remove', CustomerChecklistsRemoveController::class);
         Route::post('/save-delivery', SaveDeliveryController::class);
         Route::post('/save-return', SaveReturnController::class);
     });

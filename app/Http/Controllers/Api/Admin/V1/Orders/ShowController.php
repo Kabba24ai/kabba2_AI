@@ -31,6 +31,7 @@ class ShowController extends BaseController
         $order = Order::query()->with('shippingAddress', 'billingAddress', 'licenseMedia', 'products.product', 'lastPayment', 'notes', 'products.deliveryMedia', 'products.pickupMedia', 'products.deliverySignatureMedia', 'products.returnSignatureMedia')
             ->where('unique_id', $uniqueId)
             ->first();
+            dd($order->toArray());
         if (!$order) {
             return response()->json([
                 'success' => false,

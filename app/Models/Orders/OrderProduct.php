@@ -118,7 +118,7 @@ class OrderProduct extends Model
 
     public function equipmentRentalReadyTemplate()
     {
-        return $this->hasOne(EquipmentRentalReadyTemplate::class);
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'order_product_id')->latestOfMany('id');
     }
 
     public function checklistQuestions()
@@ -180,4 +180,3 @@ class OrderProduct extends Model
         return $this->belongsTo(User::class, 'pickup_by');
     }
 }
-    

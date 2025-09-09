@@ -18,15 +18,26 @@ class ListResource extends JsonResource
      */
     public function toArray(Request $request)
     {
-        $return = [
-            'id' => $this->id ?? 0,
-            'unique_id' => $this->unique_id ?? '',
-            'question_name' => $this->question_name ?? '',
-            'category_id' => $this->category_id ?? 0,
-            'required_question' => $this->required_question ?? false,
-            'category' => new RentalReadyChecklistCategoriesListResource($this->whenLoaded('category')),
-            'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this->whenLoaded('answers')),
-        ];
+        // Handle both array and object cases
+        if (is_array($this->resource)) {
+            $return = [
+                'id' => $this['main_id'] ?? 0,
+                'unique_id' => $this['id'] ?? '',
+                'question_name' => $this['question'] ?? '',
+                'required_question' => $this['is_required'] ?? false,
+                'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this['options'] ?? []),
+                'note' => $this['note'] ?? '',
+            ];
+        } else {
+            $return = [
+                'id' => $this->id ?? 0,
+                'unique_id' => $this->unique_id ?? '',
+                'question_name' => $this->question_name ?? '',
+                'required_question' => $this->required_question ?? false,
+                'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this->whenLoaded('answers')),
+                'note' => '',
+            ];
+        }
 
         return $return;
     }

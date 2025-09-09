@@ -8,7 +8,6 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Iam\Personnel\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -22,6 +21,7 @@ class EquipmentRentalReadyTemplate extends Model
         'employee_id',
         'employee_name',
         'order_id',
+        'order_product_id',
         'inspection_date',
         'inspection_time',
         'equipment_hours',

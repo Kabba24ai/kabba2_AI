@@ -735,16 +735,37 @@
                                 {{-- Status Checklist --}}
                                 <div class="border rounded-xl p-4 bg-white">
                                     <div class="grid grid-cols-2 gap-8 text-center text-xs font-medium text-gray-700 mb-2">
-                                        <!-- Checklist -->
-                                        <div class="flex flex-col items-center">
-                                            <div>Checklist</div>
-                                            <div class="flex justify-center gap-2 mb-1">
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold cursor-pointer" onclick="openChecklistModal()">D</span>
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold cursor-pointer" onclick="openChecklistModal()">R</span>
-                                            </div>
-                                        </div>
+                                       <!-- Checklist -->
+<div class="flex flex-col items-center">
+    <div>Checklist</div>
+    <div class="flex justify-center gap-2 mb-1">
+
+        {{-- Delivery --}}
+        <span
+            class="inline-flex items-center justify-center w-6 h-6 rounded 
+                   {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
+                   text-white text-xs font-bold"
+            @if($orderProduct->is_delivered == 1) 
+                onclick="openChecklistModal()" 
+            @endif
+        >
+            D
+        </span>
+
+        {{-- Return --}}
+        <span
+            class="inline-flex items-center justify-center w-6 h-6 rounded 
+                   {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
+                   text-white text-xs font-bold"
+            @if($orderProduct->is_returned == 1) 
+                onclick="openChecklistModal()" 
+            @endif
+        >
+            R
+        </span>
+    </div>
+</div>
+
 
                                         <!-- Video -->
                                         <div class="flex flex-col items-center">
@@ -1581,12 +1602,12 @@
                                                     @endif
                                                 </td>
 
-                                            
+
 
                                                 @php
 
 
-   
+
 
     // Get the last valid answer (delivery or return != 0), sorted by index_number
     $valid = $question->answers
@@ -1648,8 +1669,8 @@
                 <th class="py-2 px-2">Allocated</th>
                 <th class="py-2 px-2">Additional</th>
                 <th class="py-2 px-2">Rate</th>
-                <th class="py-2 px-2">Charge</th>
-                <th class="py-2 px-2 text-right">Customer Owes</th>
+                <th class="py-2 px-2 text-right">Charge</th>
+                <th class="py-2 px-2 text-right w-20">Customer Owes</th>
             </tr>
         </thead>
         <tbody class="text-gray-800">
@@ -1678,7 +1699,7 @@
                         <td class="py-2 px-2">{{ $allocatedHours }} h</td>
                         <td class="py-2 px-2">{{ $additionalHours }} h</td>
                         <td class="py-2 px-2">${{ number_format($hourRate, 2) }}</td>
-                        <td class="py-2 px-2">${{ number_format($charge, 2) }}</td>
+                        <td class="py-2 px-2 text-right text-right">${{ number_format($charge, 2) }}</td>
                         <td class="py-2 px-2 font-semibold text-right">${{ number_format($totalAmount, 2) }}</td>
                     </tr>
                 @endif
@@ -1693,7 +1714,8 @@
                         <td colspan="7" class="py-2 px-2 text-right">Hour Tracking Total:</td>
                         <td class="py-2 px-2 text-right">${{ number_format($hourTrackingTotal, 2) }}</td>
                     </tr>
-                    <tr>
+
+                    <tr class="font-bold">
                         <td colspan="7" class="py-2 px-2 text-right ">Grand Total:</td>
                         <td class="py-2 px-2 text-right ">
                             ${{ number_format($checklistTotal + $hourTrackingTotal, 2) }}
@@ -1703,10 +1725,10 @@
 
     </table>
 </div>
-                    
+
                                             @foreach ($order->products as $orderProduct)
                                                                                 @if (!empty($orderProduct->product))
-                                                                                    <div class="px-3 py-2">
+                                                                                    <div class=" py-2">
                                                                                     <form class="bg-white">
                                                                                         <!-- 2-column grid (1 column on mobile) -->
                                                                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

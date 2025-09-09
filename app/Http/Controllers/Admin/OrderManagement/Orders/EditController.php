@@ -22,7 +22,9 @@ class EditController extends Controller
         $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes', 'media.media',
             'products.checklistQuestions.answers',
             'products.checklistQuestions.deliverySelectedAnswer',
-            'products.checklistQuestions.returnSelectedAnswer'])->where('unique_id', $uniqueid)->firstOrFail();
+            'products.checklistQuestions.returnSelectedAnswer',
+            'products.checklistQuestions.latestAnswer',
+            'products.checklistQuestions.latestValidAnswer'])->where('unique_id', $uniqueid)->firstOrFail();
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::orderBy('first_name')->get();

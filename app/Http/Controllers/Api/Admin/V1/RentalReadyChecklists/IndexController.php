@@ -33,7 +33,8 @@ class IndexController extends BaseController
             ->where('unique_id', $uniqueId)
             ->first();
 
-        if ($orderProduct->equipment->current_status->isRented() || $orderProduct->equipment->current_status->isAvailable()) {
+        if ($orderProduct && $orderProduct->equipment &&
+            ($orderProduct->equipment->current_status->isRented() || $orderProduct->equipment->current_status->isAvailable())) {
             return response()->json(
                 [
                     'success' => false,

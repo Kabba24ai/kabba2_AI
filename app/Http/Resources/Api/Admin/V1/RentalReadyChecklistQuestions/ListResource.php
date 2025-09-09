@@ -26,6 +26,7 @@ class ListResource extends JsonResource
                 'question_name' => $this['question'] ?? '',
                 'required_question' => $this['is_required'] ?? false,
                 'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this['options'] ?? []),
+                'selected_answer' => new RentalReadyChecklistQuestionAnswersListResource($this['selected_answer'] ?? null),
                 'note' => $this['note'] ?? '',
             ];
         } else {
@@ -35,6 +36,7 @@ class ListResource extends JsonResource
                 'question_name' => $this->question_name ?? '',
                 'required_question' => $this->required_question ?? false,
                 'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this->whenLoaded('answers')),
+                'selected_answer' => null,
                 'note' => '',
             ];
         }

@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\RemoveController as CustomerChecklistsRemoveController;
 use Illuminate\Support\Facades\Route;
 
 // Controllers
@@ -16,6 +15,9 @@ use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\IndexController as Schedu
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\UpdateController as SchedulesUpdateController;
 use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\SaveDeliveryController;
 use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\SaveReturnController;
+use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\RemoveController as CustomerChecklistsRemoveController;
+use App\Http\Controllers\Api\Admin\V1\Orders\RentalReadyChecklists\SaveController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -49,5 +51,6 @@ Route::group(['prefix' => 'orders'], function () {
         Route::post('/remove', CustomerChecklistsRemoveController::class);
         Route::post('/save-delivery', SaveDeliveryController::class);
         Route::post('/save-return', SaveReturnController::class);
+        Route::post('/save-rental-ready', SaveController::class);
     });
 });

@@ -15,20 +15,21 @@ class ListResource extends JsonResource
      */
     public function toArray(Request $request)
     {
-       if (is_array($this->resource)) {
-            $label = $this['label'] ?? '';
-            $status = $this['status'] ?? '';
+        if (is_array($this->resource)) {
+            $label = $this['text'] ?? $this['label'] ?? '';
+            $return = [
+                'id' => $this['id'] ?? 0,
+                'label' => $label  ?? '',
+                'status' => $this['status'] ?? '',
+            ];
         } else {
-            $label = $this->answer_name ?? '';
-            $status = $this->type ?? '';
+
+            $return = [
+                'id' => $this->id ?? 0,
+                'label' => $this->answer_name ?? '',
+                'status' => $this->type ?? '',
+            ];
         }
-
-
-        $return = [
-            'id' => $this->id ?? 0,
-            'label' => $label ?? '',
-            'status' => $status ?? '',
-        ];
 
         return $return;
     }

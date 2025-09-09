@@ -54,12 +54,11 @@ class IndexController extends BaseController
                 );
             }
 
+            $questions = optional($orderProduct->equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
+                        ->pluck('question')   // same as map->question but clearer
+                        ->filter()            // remove nulls
+                        ->values() ?? collect();
         }
-
-        $questions = optional($orderProduct->equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
-                    ->pluck('question')   // same as map->question but clearer
-                    ->filter()            // remove nulls
-                    ->values() ?? collect();
 
         if ($questions->isEmpty()) {
             return response()->json(

@@ -68,4 +68,25 @@ class OrderProductChecklistQuestion extends Model
     {
         return $this->hasOne(OrderProductChecklistQuestionAnswers::class, 'order_product_checklist_question_id')->where('is_return_answer', true);
     }
+
+
+    public function latestAnswer()
+    {
+        return $this->hasOne(OrderProductChecklistQuestionAnswers::class, 'order_product_checklist_question_id')
+            ->latestOfMany('index_number'); // always get last one
+    }
+
+    public function latestValidAnswer()
+    {
+        return $this->hasOne(OrderProductChecklistQuestionAnswers::class, 'order_product_checklist_question_id')
+            ->latestOfMany('index_number'); // get last valid one
+    }
+
+    /**
+     * Accessor: prefer latest valid (like row 106), fallback to latest (row 107).
+     */
+    public function getEffectiveLatestAnswerAttribute()
+    {
+        return $this->latestValidAnswer ?? $this->latestAnswer;
+    }
 }

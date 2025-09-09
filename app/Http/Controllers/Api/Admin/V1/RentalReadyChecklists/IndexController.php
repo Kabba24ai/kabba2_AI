@@ -33,6 +33,16 @@ class IndexController extends BaseController
             ->where('unique_id', $uniqueId)
             ->first();
 
+        if ($orderProduct->equipment->current_status->isRented() || $orderProduct->equipment->current_status->isAvailable()) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => trans('messages.api.admin.v1.rental_ready_checklists.invalid_equipment_status'),
+                ],
+                JsonResponse::HTTP_NOT_FOUND,
+            );
+        }
+
         if (isset($orderProduct->equipmentRentalReadyTemplate)) {
 
             $questions = optional($orderProduct->equipmentRentalReadyTemplate->checklistQuestions)

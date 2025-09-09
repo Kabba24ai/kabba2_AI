@@ -16,5 +16,6 @@ return [
     'no_rental_ready_checklist_found' => 'No rental ready checklist found.',
     'rental_ready_checklist_found' => 'Rental ready checklist found.',
     'no_questions_found' => 'No questions found for the rental ready checklist.',
+    'invalid_equipment_status' => 'Invalid equipment status for this operation, It should be in maintenance or damaged state',
 
 ];

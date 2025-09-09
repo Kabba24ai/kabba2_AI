@@ -5,9 +5,6 @@ namespace App\Http\Resources\Api\Admin\V1\EquipmentRentalReadyChecklist;
 use App\Helpers\CustomHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistCategories\ListResource as RentalReadyChecklistCategoriesListResource;
-use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistQuestionAnswers\ListResource as RentalReadyChecklistQuestionAnswersListResource;
-
 
 class ListResource extends JsonResource
 {

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api\Admin\V1\Orders\RentalReadyChecklists;
 
+use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\RentalReadyChecklists\SaveRequest;
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyChecklistQuestionLog;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
 use App\Models\Iam\Personnel\User;
 // Resources
@@ -96,54 +98,215 @@ class SaveController extends BaseController
         $validatedChecklist = collect($validatedChecklist)->keyBy('question_unique_id')->toArray();
 
         $newQuestions = [];
-        $statuses = [];
         foreach ($questions as $key => $question) {
             if(is_array($question)){
-                $questionUniqueId = $question['id'] ?? null;
+                $questionUniqueId = $question['unique_id'] ?? null;
                 $newQuestions[$key] = $question;
                 $newQuestions[$key]['note'] = $validatedChecklist[$questionUniqueId]['note'] ?? '';
                 if(isset($questionUniqueId) && isset($validatedChecklist[$questionUniqueId])){
-                    $answer = collect($question['options'])->firstWhere('id', $validatedChecklist[$questionUniqueId]['answer_id']);
+                   foreach($newQuestions[$key]['answers'] as &$ans){
+                        if($ans['unique_id'] == $validatedChecklist[$questionUniqueId]['answer_unique_id']){
+                            $ans['is_selected'] = true;
+                            $answer = $ans;
+                        }else{
+                            $ans['is_selected'] = false;
+                        }
+                    }
+                    unset($ans);
                     $newQuestions[$key]['selected_answer'] = $answer ?? null;
-                    $statuses[] = $answer['status'] ?? null;
                 }else{
                     $newQuestions[$key]['selected_answer'] = null;
+                }
+            }else{
+                $existsQuestion = isset($question->unique_id) && isset($validatedChecklist[$question->unique_id]);
+                // if question is not an array, keep it as is
+                $newQuestions[$key]['id'] = $question->id ?? null;
+                $newQuestions[$key]['unique_id'] = $question->unique_id ?? null;
+                $newQuestions[$key]['question_name'] = $question->question_name ?? null;
+                $newQuestions[$key]['category_id'] = $question->category_id ?? null;
+                $newQuestions[$key]['required_question'] = (bool)$question->required_question ?? false;
+                $newQuestions[$key]['note'] = $existsQuestion ? $validatedChecklist[$question->unique_id]['note'] ?? '' : '';
+                $newQuestions[$key]['answers'] = $question->answers->map(function ($answer) use ($question,$validatedChecklist, $existsQuestion) {
+                    return [
+                        'id' => $answer->id,
+                        'type' => $answer->type,
+                        'unique_id' => $answer->unique_id,
+                        'answer_name' => $answer->answer_name,
+                        'is_selected' => ($existsQuestion && $answer->unique_id === $validatedChecklist[$question->unique_id]['answer_unique_id']),
+                    ];
+                })->toArray();
+                $newQuestions[$key]['selected_answer'] = null;
+
+                if(isset($question->unique_id) && isset($validatedChecklist[$question->unique_id])){
+                    $answer = collect($newQuestions[$key]['answers'])->firstWhere('unique_id', $validatedChecklist[$question->unique_id]['answer_unique_id']);
+                    $newQuestions[$key]['selected_answer'] = $answer ?? null;
                 }
             }
         }
 
-        $allAnswers = collect($validatedChecklist)->pluck('answer_id')->flatten()->filter();
-
-        dd($questions);
-
         $counts = [
-            'total_questions' => $questions->count(),
-            'required_questions' => $questions->where('is_required', true)->count(),
-            'optional_questions' => $questions->where('is_required', false)->count(),
-            'required_items_completed' => 0,
-            'items_requiring_maintenance' => 0,
-            'damaged_items' => 0,
+            'total_questions' => collect($newQuestions)->count(),
+            'required_questions' => collect($newQuestions)->whereStrict('required_question', true)->count(),
+            'optional_questions' => collect($newQuestions)->whereStrict('required_question', false)->count(),
+            'required_items_completed' => collect($newQuestions)
+                    ->filter(fn ($q) => (bool)($q['required_question'] ?? false))
+                    ->filter(fn ($q) => !is_null(data_get($q, 'selected_answer')))
+                    ->filter(fn ($q) => data_get($q, 'selected_answer.type') === 'Rental Ready')
+                    ->count(),
+
+            'items_requiring_maintenance' => collect($newQuestions)
+                    ->filter(fn ($q) => data_get($q, 'selected_answer.type') === 'Maint. Hold')
+                    ->count(),
+
+            'damaged_items' => collect($newQuestions)
+                    ->filter(fn ($q) => data_get($q, 'selected_answer.type') === 'Damaged')
+                    ->count(),
         ];
 
-        dd('asd');
-        $template = EquipmentRentalReadyTemplate::create([
-                        'equipment_id' => $orderProduct->equipment_id,
-                        'employee_id' => $employee->id,
-                        'employee_name' => $employee->full_name,
-                        'inspection_date' => now()->toDateString(),
-                        'inspection_time' => now()->toTimeString(),
-                        'equipment_hours' => $validated['equipment_hours'] ?? 0,
-                        'general_notes' => $validated['general_notes'] ?? '',
-                        'status' => $status,
-                        'total_questions' => $counts['total_questions'],
-                        'required_questions' => $counts['required_questions'],
-                        'optional_questions' => $counts['optional_questions'],
-                        'required_items_completed' => $counts['required_items_completed'],
-                        'items_requiring_maintenance' => $counts['items_requiring_maintenance'],
-                        'damaged_items' => $counts['damaged_items'],
-                        'created_by' => auth()->id(),
-                    ]);
 
+        $logArray = [
+            'counts' => $counts,
+            'questions' => $newQuestions,
+        ];
+
+        // Check if all questions have no selected answer
+        // $anyAnswerMissing = collect($newQuestions)->contains(function ($q) {
+        //     return empty($q['selected_answer']);
+        // });
+
+        // if ($anyAnswerMissing) {
+        //     return response()->json(
+        //         [
+        //             'success' => false,
+        //             'message' => trans('messages.api.admin.v1.rental_ready_checklists.all_questions_unanswered'),
+        //         ],
+        //         JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
+        //     );
+        // }
+
+
+        $status = null;
+        $currentStatus = $orderProduct->equipment->current_status->status_name ?? null;
+
+        // Flag: does any selected answer have type 'Damaged'?
+        $hasDamaged = collect($newQuestions)
+            ->contains(fn($q) => data_get($q, 'selected_answer.type') === 'Damaged');
+
+        $hasMaintenance = collect($newQuestions)
+            ->contains(fn($q) => data_get($q, 'selected_answer.type') === 'Maint. Hold');
+
+        // Check if all required questions have 'Rental Ready' as selected answer
+        $allRentalReady = collect($newQuestions)
+            ->filter(fn ($q) => (bool)($q['required_question'] ?? false))
+            ->every(fn ($q) => data_get($q, 'selected_answer.type') === 'Rental Ready');
+
+        if ($hasDamaged) {
+            $status = 'Damaged';
+            $currentStatus = EquipmentCurrentStatus::Damaged;
+        } elseif ($allRentalReady) {
+            $status = 'Rental Ready';
+            $currentStatus = EquipmentCurrentStatus::Available;
+        } else {
+            // if $hasMaintenance is true, set status to Maintenance, else Draft
+            $status = 'Draft';
+            $currentStatus = EquipmentCurrentStatus::Maintenance;
+        }
+
+
+        if($template = EquipmentRentalReadyTemplate::with('checklistQuestions')->where('equipment_id', $orderProduct->equipment_id)
+                    ->where('order_id', $orderProduct->order_id)
+                    ->where('order_product_id', $orderProduct->id)
+                    ->latest('id')
+                    ->first()) {
+            $template->employee_id = $employee->id;
+            $template->employee_name = $employee->full_name;
+            $template->inspection_date = now()->format('Y-m-d');
+            $template->inspection_time = now()->format('H:i');
+            $template->equipment_hours = $validated['equipment_hours'] ?? null;
+            $template->status = $status ?? $template->status;
+            $template->general_notes = $validated['general_notes'] ?? null;
+            $template->total_questions = $counts['total_questions'];
+            $template->required_questions = $counts['required_questions'];
+            $template->optional_questions = $counts['optional_questions'];
+            $template->required_items_completed = $counts['required_items_completed'];
+            $template->items_requiring_maintenance = $counts['items_requiring_maintenance'];
+            $template->damaged_items = $counts['damaged_items'];
+            $template->is_complete = $allRentalReady;
+            $template->updated_by = auth()->id();
+            $template->save();
+
+            foreach ($newQuestions as $key => $question) {
+                $existingQuestion = $template->checklistQuestions()->where('rental_ready_checklist_questions_id', $question['id'] ?? null)->first();
+                if ($existingQuestion) {
+                     $existingQuestion->selected_answer_id = $question['selected_answer']['id'] ?? null;
+                    $existingQuestion->rental_ready_qa_json = json_encode($question);
+                    $existingQuestion->general_notes = $question['note'] ?? null;
+                    $existingQuestion->save();
+                } else {
+                    $template->checklistQuestions()->create([
+                        'rental_ready_checklist_questions_id' => $question['id'] ?? null,
+                        'selected_answer_id' => $question['selected_answer']['id'] ?? null,
+                        'general_notes' => $question['note'] ?? null,
+                        'rental_ready_qa_json' => json_encode($question),
+                    ]);
+                }
+            }
+        }else{
+            $template = new EquipmentRentalReadyTemplate();
+            $template->equipment_id = $orderProduct->equipment_id;
+            $template->employee_id = $employee->id;
+            $template->employee_name = $employee->full_name;
+            $template->order_id = $orderProduct->order_id;
+            $template->order_product_id = $orderProduct->id;
+            $template->inspection_date = now()->format('Y-m-d');
+            $template->inspection_time = now()->format('H:i');
+            $template->equipment_hours = $validated['equipment_hours'] ?? null;
+            $template->general_notes = $validated['general_notes'] ?? null;
+            $template->status = $status ?? null;
+            $template->total_questions = $counts['total_questions'];
+            $template->required_questions = $counts['required_questions'];
+            $template->optional_questions = $counts['optional_questions'];
+            $template->required_items_completed = $counts['required_items_completed'];
+            $template->items_requiring_maintenance = $counts['items_requiring_maintenance'];
+            $template->damaged_items = $counts['damaged_items'];
+            $template->is_complete = $allRentalReady;
+            $template->created_by = auth()->id();
+            $template->save();
+
+            foreach ($newQuestions as $key => $question) {
+                $template->checklistQuestions()->create([
+                    'rental_ready_checklist_questions_id' => $question['id'] ?? null,
+                    'selected_answer_id' => $question['selected_answer']['id'] ?? null,
+                    'general_notes' => $question['note'] ?? null,
+                    'rental_ready_qa_json' => json_encode($question),
+                    'created_by' => auth()->id(),
+                ]);
+            }
+        }
+
+        // Consolidated log after processing all questions
+        EquipmentRentalReadyChecklistQuestionLog::create([
+            'equipment_rental_ready_template_id' => $template->id,
+            'rental_ready_all_qa_json' => json_encode($logArray),
+            'action_by' => auth()->id(),
+            'action_user_name' => optional(auth()->user())->full_name,
+            'inspection_date' => $template->inspection_date ?? null,
+            'equipment_hours' => $template->equipment_hours ?? null,
+            'inspector_name' => $employee->full_name ?? null,
+        ]);
+
+
+
+        $equipmentData = [
+            'current_status' => $currentStatus,
+        ];
+
+        if($currentStatus === EquipmentCurrentStatus::Available){
+            $equipmentData['current_order_id'] = null;
+            $equipmentData['current_order_product_id'] = null;
+        }
+
+        $orderProduct->equipment()->update($equipmentData);
 
 
         return response()->json([

@@ -21,7 +21,7 @@ class SaveRequest extends ApiBaseFormRequest
             'general_notes' => 'nullable|string',
             'checklist' => 'required|array',
             'checklist.*.question_unique_id' => 'required',
-            'checklist.*.answer_id' => 'required',
+            'checklist.*.answer_unique_id' => 'required',
             'checklist.*.note' => 'nullable|string',
         ];
     }
@@ -55,7 +55,7 @@ class SaveRequest extends ApiBaseFormRequest
                 'example' => [
                     [
                         'question_unique_id' => 'QST-V9ZN-Z77W',
-                        'answer_id' => '7',
+                        'answer_unique_id' => 'ANS-T2GV-MGUG',
                         'note' => 'The equipment is in good condition.',
                     ],
                 ],
@@ -66,9 +66,9 @@ class SaveRequest extends ApiBaseFormRequest
                 'description' => 'The unique_id of an existing record in the customer_admin_questions table.',
                 'example' => 'QST-V9ZN-Z77W',
             ],
-            'checklist.*.answer_id' => [
+            'checklist.*.answer_unique_id' => [
                 'description' => 'The unique_id of an existing record in the customer_admin_question_answers table.',
-                'example' => '7',
+                'example' => 'ANS-T2GV-MGUG',
             ],
             'checklist.*.note' => [
                 'description' => 'Optional note.',

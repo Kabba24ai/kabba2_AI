@@ -23,9 +23,10 @@ class ListResource extends JsonResource
             $return = [
                 'id' => $this['main_id'] ?? 0,
                 'unique_id' => $this['id'] ?? '',
-                'question_name' => $this['question'] ?? '',
-                'required_question' => $this['is_required'] ?? false,
-                'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this['options'] ?? []),
+                'category_id' => $this['category_id'] ?? '',
+                'question_name' => $this['question_name'] ?? '',
+                'required_question' => $this['required_question'] ?? false,
+                'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this['answers'] ?? []),
                 'selected_answer' => new RentalReadyChecklistQuestionAnswersListResource($this['selected_answer'] ?? null),
                 'note' => $this['note'] ?? '',
             ];
@@ -33,6 +34,7 @@ class ListResource extends JsonResource
             $return = [
                 'id' => $this->id ?? 0,
                 'unique_id' => $this->unique_id ?? '',
+                'category_id' => $this->category_id ?? '',
                 'question_name' => $this->question_name ?? '',
                 'required_question' => $this->required_question ?? false,
                 'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this->whenLoaded('answers')),

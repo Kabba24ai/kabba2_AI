@@ -17,5 +17,5 @@ return [
     'rental_ready_checklist_found' => 'Rental ready checklist found.',
     'no_questions_found' => 'No questions found for the rental ready checklist.',
     'invalid_equipment_status' => 'Invalid equipment status for this operation, It should be in maintenance or damaged state',
-
+    'all_questions_unanswered' => 'All questions cannot be unanswered. Please answer all questions before submitting the checklist.',
 ];

@@ -40,10 +40,7 @@ class EquipmentRentalReadyChecklistQuestion extends Model
         return $this->belongsTo(RentalReadyChecklistQuestionAnswer::class, 'selected_answer_id');
     }
 
-    public function logs()
-    {
-        return $this->hasMany(EquipmentRentalReadyChecklistQuestionLog::class, 'equipment_checklist_question_id');
-    }
+   
 
     protected static function boot()
     {

@@ -86,9 +86,39 @@ class ChecklistQuestionsController extends Controller
                 ->first();
 
             if (!$existingTemplate) {
+                 $template = RentalReadyChecklistTemplate::with([
+                    'questions.question.answers'
+                ])->find($checklist->rental_ready_template_id);
+
+                if (!$template) {
+                    return response()->json(['success' => false, 'message' => 'Template not found']);
+                }
+
+                $questions = $template->questions->map(function ($templateQuestion) {
+                    $q = $templateQuestion->question;
+                    if (!$q) return null;
+
+                    return [
+                        'main_id'   => $q->id,
+                        'id'        => $q->unique_id,
+                        'title'     => $q->question_name,
+                        'required'  => (bool) $q->required_question,
+                        'answers'   => $q->answers->map(fn($answer) => [
+                            'id'        => $answer->id,
+                            'unique_id' => $answer->unique_id,
+                            'label'     => $answer->answer_name,
+                            'status'    => $answer->type,
+                        ])->toArray(),
+                        'answer_id' => null,
+                        'status'    => null,
+                        'notes'     => null,
+                    ];
+                })->filter()->values();
+
                 return response()->json([
-                    'success' => false,
-                    'message' => 'No saved checklist found for this equipment.'
+                    'success'   => true,
+                    'message' => 'No saved checklist found for this equipment.',
+                    'questions' => $questions
                 ]);
             }
 

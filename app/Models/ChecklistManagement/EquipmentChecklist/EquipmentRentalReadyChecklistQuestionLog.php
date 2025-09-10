@@ -15,18 +15,16 @@ class EquipmentRentalReadyChecklistQuestionLog extends Model
 
     protected $fillable = [
         'unique_id',
-        'equipment_checklist_question_id',
         'equipment_rental_ready_template_id',
         'rental_ready_all_qa_json',
         'action_by',
         'action_user_name',
+        'inspector_name',
+        'inspection_date',
+        'equipment_hours'
     ];
 
 
-    public function checklistQuestion()
-    {
-        return $this->belongsTo(EquipmentRentalReadyChecklistQuestion::class, 'equipment_checklist_question_id');
-    }
 
     public function template()
     {

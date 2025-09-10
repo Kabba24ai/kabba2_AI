@@ -153,25 +153,36 @@ class StoreController extends Controller
                     );
 
                     // Always create a log record
-                    $log = EquipmentRentalReadyChecklistQuestionLog::create([
-                        'equipment_checklist_question_id' => $question->id,
-                        'equipment_rental_ready_template_id' => $template->id,
-                        'rental_ready_all_qa_json' => json_encode($qaPayload),
-                        'action_by' => auth()->id(),
-                        'action_user_name' => optional(auth()->user())->full_name,
-                    ]);
+                    // $log = EquipmentRentalReadyChecklistQuestionLog::create([
+                    //     'equipment_rental_ready_template_id' => $template->id,
+                    //     'rental_ready_all_qa_json' => json_encode($qaPayload),
+                    //     'action_by' => auth()->id(),
+                    //     'action_user_name' => optional(auth()->user())->full_name,
+                    // ]);
 
-                    Log::debug('Created question log', ['log_id' => $log->id, 'question_id' => $question->id]);
+                    // Log::debug('Created question log', ['log_id' => $log->id, 'question_id' => $question->id]);
                 }
+
+                // Consolidated log after processing all questions
+                EquipmentRentalReadyChecklistQuestionLog::create([
+                    'equipment_rental_ready_template_id' => $template->id,
+                    'rental_ready_all_qa_json' => json_encode($qaPayload),
+                    'action_by' => auth()->id(),
+                    'action_user_name' => optional(auth()->user())->full_name,
+                    'inspection_date' => $inspectionDate ?? null,
+                    'equipment_hours' => $request->input('equipmentHours') ?? null,
+                    'inspector_name' => optional($inspectionUser)->full_name ?? null,
+                ]);
+
+                Log::info('Created consolidated checklist log', [
+                    'template_id' => $template->id,
+                    'questions_count' => count(data_get($qaPayload, 'questions', []))
+                ]);
+
             } else {
                 // Create new template. If existing was Rental Ready, delete it first (and its questions/logs)
                 if ($existingTemplate && $existingTemplate->status === 'Rental Ready') {
                     Log::info('Removing previous Rental Ready template', ['template_id' => $existingTemplate->id]);
-
-                        // $existingTemplate->update([
-                        //     'is_complete' => 1,
-                        //     'updated_by' => auth()->id(),
-                        // ]);
 
                         EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'))
                             ->where('status', 'Rental Ready')
@@ -179,7 +190,6 @@ class StoreController extends Controller
                                 'is_complete' => 1,
                                 'updated_by' => auth()->id(),
                             ]);
-
                 }
 
                 $template = EquipmentRentalReadyTemplate::create([
@@ -254,16 +264,31 @@ class StoreController extends Controller
 
                     Log::info('Created checklist question', ['checklist_question_id' => $question->id, 'question_db_id' => $questionDbId]);
 
-                    $log = EquipmentRentalReadyChecklistQuestionLog::create([
-                        'equipment_checklist_question_id' => $question->id,
-                        'equipment_rental_ready_template_id' => $template->id,
-                        'rental_ready_all_qa_json' => json_encode($qaPayload),
-                        'action_by' => auth()->id(),
-                        'action_user_name' => optional(auth()->user())->full_name,
-                    ]);
+                    // $log = EquipmentRentalReadyChecklistQuestionLog::create([
+                    //     'equipment_rental_ready_template_id' => $template->id,
+                    //     'rental_ready_all_qa_json' => json_encode($qaPayload),
+                    //     'action_by' => auth()->id(),
+                    //     'action_user_name' => optional(auth()->user())->full_name,
+                    // ]);
 
-                    Log::debug('Created question log (create)', ['log_id' => $log->id, 'question_id' => $question->id]);
+                    // Log::debug('Created question log (create)', ['log_id' => $log->id, 'question_id' => $question->id]);
                 }
+
+                // Consolidated log after processing all questions
+                EquipmentRentalReadyChecklistQuestionLog::create([
+                    'equipment_rental_ready_template_id' => $template->id,
+                    'rental_ready_all_qa_json' => json_encode($qaPayload),
+                    'action_by' => auth()->id(),
+                    'action_user_name' => optional(auth()->user())->full_name,
+                    'inspection_date' => $inspectionDate ?? null,
+                    'equipment_hours' => $request->input('equipmentHours') ?? null,
+                    'inspector_name' => optional($inspectionUser)->full_name ?? null,
+                ]);
+
+                Log::info('Created consolidated checklist log', [
+                    'template_id' => $template->id,
+                    'questions_count' => count(data_get($qaPayload, 'questions', []))
+                ]);
             }
 
             // Update equipment status

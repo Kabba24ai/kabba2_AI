@@ -41,15 +41,15 @@ class ChecklistQuestionsController extends Controller
 
             // Log::info("Equipment status", ['status' => $equipment->current_status]);
 
-            if ($equipment->current_status == 'available') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Equipment is available; checklist questions cannot be fetched.'
-                ]);
-            }
+            // if ($equipment->current_status == 'available') {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Equipment is available; checklist questions cannot be fetched.'
+            //     ]);
+            // }
 
             // If rented → return fresh questions only
-            if ($equipment->status_label == 'Rented') {
+            if ($equipment->status_label == 'Rented' || $equipment->status_label == 'Available') {
                 $template = RentalReadyChecklistTemplate::with([
                     'questions.question.answers'
                 ])->find($checklist->rental_ready_template_id);

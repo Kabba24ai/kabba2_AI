@@ -90,51 +90,76 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-  const inputs = document.querySelectorAll("input[data-digit-input='true']");
+    const inputs = document.querySelectorAll("input[data-digit-input='true']");
 
-inputs.forEach((input) => {
-    // Use property on input element
-    if (!input.digits) input.digits = ""; // initialize if not set
+    inputs.forEach((input) => {
+        // Use property on input element
+        if (!input.digits) input.digits = ""; // initialize if not set
 
-    // Initialize digits from existing value
-    if (input.value) {
-        input.digits = input.value.replace(/\D/g, "");
-    }
+        // Initialize digits from existing value
+        if (input.value) {
+            input.digits = input.value.replace(/\D/g, "");
+        }
 
-    const updateInput = () => {
-        let num = parseFloat(input.digits || "0") / 100;
-        input.value = num.toFixed(2);
+        const updateInput = () => {
+            let num = parseFloat(input.digits || "0") / 100;
+            input.value = num.toFixed(2);
 
-        const event = new Event("input", { bubbles: true });
-        input.dispatchEvent(event);
-    };
+            const event = new Event("input", { bubbles: true });
+            input.dispatchEvent(event);
+        };
 
-    if (input.digits) updateInput();
+        if (input.digits) updateInput();
 
-    input.addEventListener("keydown", function (e) {
-        const allowedKeys = ["Backspace", "Tab", "ArrowLeft", "ArrowRight"];
-        if (allowedKeys.includes(e.key)) {
-            if (e.key === "Backspace") {
+        input.addEventListener("keydown", function (e) {
+            const allowedKeys = [
+                "Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Control", "Meta", "Shift", "Alt", "Home", "End"
+            ];
+
+            // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z, Ctrl+Shift+Z, Cmd+A, Cmd+C, Cmd+V, Cmd+X, Cmd+Z, Cmd+Shift+Z
+            if (
+                (e.ctrlKey || e.metaKey) &&
+                ["a", "c", "v", "x", "z", "A", "C", "V", "X", "Z"].includes(e.key)
+            ) {
+                return;
+            }
+
+            // Allow navigation and editing keys
+            if (allowedKeys.includes(e.key)) {
+                if (e.key === "Backspace") {
+                    e.preventDefault();
+                    input.digits = input.digits.slice(0, -1);
+                    updateInput();
+                } else if (e.key === "Delete") {
+                    input.digits = "";
+                }
+                return;
+            }
+
+            // Allow numbers
+            if (/^[0-9]$/.test(e.key)) {
                 e.preventDefault();
-                input.digits = input.digits.slice(0, -1);
+                input.digits += e.key;
+                updateInput();
+                return;
+            }
+
+            // Block all other input
+            e.preventDefault();
+        });
+
+        // Allow paste, but filter to digits only
+        input.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData("text");
+            if (pasted) {
+                input.digits = pasted.replace(/\D/g, "");
                 updateInput();
             }
-            return;
-        }
+        });
 
-        if (/^[0-9]$/.test(e.key)) {
-            e.preventDefault();
-            input.digits += e.key;
-            updateInput();
-            return;
-        }
-
-        e.preventDefault();
+        // Allow select all, copy, cut, etc.
+        input.placeholder = "0.00";
     });
-
-    input.addEventListener("paste", (e) => e.preventDefault());
-
-    input.placeholder = "0.00";
-});
 });
 

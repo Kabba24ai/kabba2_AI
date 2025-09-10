@@ -23,9 +23,8 @@ class StoreController extends Controller
 {
     public function __invoke(StoreRequest $request)
     {
-        // Basic validation (tune as needed)
-
         // Fetch the inspection user
+
 
         $inspectionUser = User::find($request->input('inspectorSelect'));
         $status = $request->input('equipment_status') ?? 'maintenance';
@@ -48,6 +47,8 @@ class StoreController extends Controller
                 return back()->withInput()->withErrors(['rental_ready_all_qa_json' => 'Invalid checklist payload.']);
             }
 
+            // dd(data_get($qaPayload, 'order_product_id', 0));
+            // die();
 
             $counts = [
                 'total_questions' => data_get($qaPayload, 'counts.total_questions', 0),
@@ -66,7 +67,7 @@ class StoreController extends Controller
             $inspectionTime = CustomHelper::formatTime(now(), 'H:i:s');
 
             // Find the last template (if any)
-            $existingTemplate = EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'))
+            $existingTemplate = EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'))->where('order_product_id', data_get($qaPayload, 'order_product_id', 0))
                 ->latest('id')
                 ->first();
 
@@ -152,15 +153,6 @@ class StoreController extends Controller
                         $updData
                     );
 
-                    // Always create a log record
-                    // $log = EquipmentRentalReadyChecklistQuestionLog::create([
-                    //     'equipment_rental_ready_template_id' => $template->id,
-                    //     'rental_ready_all_qa_json' => json_encode($qaPayload),
-                    //     'action_by' => auth()->id(),
-                    //     'action_user_name' => optional(auth()->user())->full_name,
-                    // ]);
-
-                    // Log::debug('Created question log', ['log_id' => $log->id, 'question_id' => $question->id]);
                 }
 
                 // Consolidated log after processing all questions
@@ -196,6 +188,7 @@ class StoreController extends Controller
                     'equipment_id' => $request->input('equipment_id'),
                     'employee_id' => $request->input('inspectorSelect'),
                     'employee_name' => optional($inspectionUser)->full_name,
+                    'order_product_id' => data_get($qaPayload, 'order_product_id', 0),
                     'inspection_date' => $inspectionDate,
                     'inspection_time' => $inspectionTime,
                     'equipment_hours' => $request->input('equipmentHours'),
@@ -264,14 +257,6 @@ class StoreController extends Controller
 
                     Log::info('Created checklist question', ['checklist_question_id' => $question->id, 'question_db_id' => $questionDbId]);
 
-                    // $log = EquipmentRentalReadyChecklistQuestionLog::create([
-                    //     'equipment_rental_ready_template_id' => $template->id,
-                    //     'rental_ready_all_qa_json' => json_encode($qaPayload),
-                    //     'action_by' => auth()->id(),
-                    //     'action_user_name' => optional(auth()->user())->full_name,
-                    // ]);
-
-                    // Log::debug('Created question log (create)', ['log_id' => $log->id, 'question_id' => $question->id]);
                 }
 
                 // Consolidated log after processing all questions

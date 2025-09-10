@@ -39,16 +39,7 @@ class ChecklistQuestionsController extends Controller
                 return response()->json(['success' => false, 'message' => 'Equipment not found']);
             }
 
-            // Log::info("Equipment status", ['status' => $equipment->current_status]);
-
-            // if ($equipment->current_status == 'available') {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'Equipment is available; checklist questions cannot be fetched.'
-            //     ]);
-            // }
-
-            // If rented → return fresh questions only
+            // ---------------- FRESH QUESTIONS ----------------
             if ($equipment->status_label == 'Rented' || $equipment->status_label == 'Available') {
                 $template = RentalReadyChecklistTemplate::with([
                     'questions.question.answers'
@@ -63,17 +54,19 @@ class ChecklistQuestionsController extends Controller
                     if (!$q) return null;
 
                     return [
-                        'main_id' => $q->id,
-                        'id'       => $q->unique_id,
-                        'title'    => $q->question_name,
-                        'required' => (bool) $q->required_question,
-                        'options'  => $q->answers->map(function ($answer) {
-                            return [
-                                'label'  => $answer->answer_name,
-                                'status' => $answer->type,
-                                'id'     => $answer->id
-                            ];
-                        })->toArray()
+                        'main_id'   => $q->id,
+                        'id'        => $q->unique_id,
+                        'title'     => $q->question_name,
+                        'required'  => (bool) $q->required_question,
+                        'answers'   => $q->answers->map(fn($answer) => [
+                            'id'        => $answer->id,
+                            'unique_id' => $answer->unique_id,
+                            'label'     => $answer->answer_name,
+                            'status'    => $answer->type,
+                        ])->toArray(),
+                        'answer_id' => null,
+                        'status'    => null,
+                        'notes'     => null,
                     ];
                 })->filter()->values();
 
@@ -83,10 +76,12 @@ class ChecklistQuestionsController extends Controller
                 ]);
             }
 
-            // For other statuses → return existing saved data only
+            // ---------------- EXISTING SAVED QUESTIONS ----------------
             $existingTemplate = EquipmentRentalReadyTemplate::with([
                 'checklistQuestions'
-            ])->where('equipment_id', $equipment_id)->where('status', '!=', 'Rental Ready')->where('is_complete', 0)
+            ])->where('equipment_id', $equipment_id)
+                ->where('status', '!=', 'Rental Ready')
+                ->where('is_complete', 0)
                 ->latest()
                 ->first();
 
@@ -110,22 +105,28 @@ class ChecklistQuestionsController extends Controller
                 $qa = json_decode($q->rental_ready_qa_json, true);
 
                 return [
-                    'question_id' => $qa['id'] ?? null, // unique_id saved from frontend
-                    'title'       => $qa['question'] ?? null,
-                    'required'    => $qa['is_required'] ?? false,
-                    'options'     => $qa['options'] ?? [],
-                    'answer_id'   => $q->selected_answer_id,
-                    'status'      => $qa['selected_answer']['status'] ?? null,
-                    'notes'       => $q->general_notes,
+                    'main_id'   => $qa['main_id'] ?? null,
+                    'id'        => $qa['unique_id'] ?? $qa['id'] ?? null,
+                    'title'     => $qa['question_name'] ?? null,
+                    'required'  => $qa['required_question'] ?? false,
+                    'answers'   => collect($qa['answers'] ?? [])->map(fn($a) => [
+                        'id'        => $a['id'],
+                        'unique_id' => $a['unique_id'],
+                        'label'     => $a['answer_name'] ?? $a['label'],
+                        'status'    => $a['type'] ?? $a['status'],
+                    ])->toArray(),
+                    'answer_id' => $q->selected_answer_id,
+                    'status'    => $qa['selected_answer']['type'] ?? null,
+                    'notes'     => $q->general_notes,
                 ];
             })->toArray();
 
             return response()->json([
                 'success'       => true,
                 'existing_data' => [
-                    'questions'     => $qaData,
-                    'counts'        => $summary,
-                    'general_notes' => $existingTemplate->general_notes,
+                    'questions'       => $qaData,
+                    'counts'          => $summary,
+                    'general_notes'   => $existingTemplate->general_notes,
                     'existingTemplate' => $existingTemplate,
                 ]
             ]);

@@ -250,6 +250,7 @@
             name: eq.equipment_name,
             model: eq.model,
             serial: eq.serial_number,
+            category_id: eq.category_id,
             category: eq.category_name ?? 'N/A',
             checklist_master_id: eq.checklist_master_id,
             hours: eq.equipment_hours,
@@ -407,14 +408,6 @@
                 if (footerButton) footerButton.classList.remove("hidden");
             }
 
-            // if (eq.badge == "Available") {
-            //     checklistContainer.classList.add("hidden");
-            //     placeholder.classList.remove("hidden");
-
-            //     placeholder.innerHTML = `<p class="text-red-500">Equipment is available . So checklist questions cannot be fetched.</p>`;
-            //     return;
-            // }
-
             placeholder.classList.add("hidden");
             checklistContainer.classList.remove("hidden");
             checklistTitle.textContent = `Rental Ready Checklist - ${eq.name}`;
@@ -447,13 +440,17 @@
                 })
                 .then(res => res.json())
                 .then(data => {
+
+                    console.log('this is all api feach data');
+                    console.log(data);
+                    console.log('this is all api feach data');
+
                     // remove loader
                     checklistContent.classList.remove("opacity-50", "pointer-events-none");
                     checklistContent.innerHTML = "";
 
                     if (data.success === true) {
                         // console.log("Fetched checklist data:", data);
-
 
 
                         // Normalize: use questions OR existing_data.questions
@@ -490,7 +487,7 @@
                             const body = section.querySelector(`#groupBody-${g.key}`);
                             g.items.forEach((item) => {
                                 const itemId = item.question_id || item.id;
-                                const options = (item.options || []).map((opt) => `
+                                const answers = (item.answers || []).map((opt) => `
                         <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
                             <div class="flex items-center gap-3 flex-1 min-w-0">
                                 <input type="radio" name="answer-${itemId}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
@@ -513,7 +510,7 @@
                             <span id="chip-${itemId}"></span>
                         </div>
                         <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
-                        <div class="space-y-2">${options}</div>
+                        <div class="space-y-2">${answers}</div>
                         <div id="notes-${itemId}" class="hidden mt-3">
                             <textarea class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="3" placeholder="Add notes about the issue..."></textarea>
                         </div>
@@ -897,39 +894,57 @@
 
 <script>
     document.querySelector("form").addEventListener("submit", function(e) {
-        // Build the full JSON object
-        const summary = window.computeStatusSummary(); //  works now
+        // e.preventDefault();
+
+        const summary = window.computeStatusSummary();
         const qaData = [];
+
+
 
         window.groups.forEach(g => {
             g.items.forEach(item => {
                 const itemId = item.question_id || item.id;
-
                 const picked = document.querySelector(`input[name="answer-${itemId}"]:checked`);
-
-                // console.log("Processing item:", item, "Picked:", picked);
-
                 const noteEl = document.querySelector(`#notes-${itemId} textarea`);
 
-                qaData.push({
-                    id: item.question_id || item.id,
-                    main_id: item.main_id || null, // DB PK
-                    question: item.title,
-                    options: item.options.map(opt => ({
-                        id: opt.id,
-                        status: opt.status,
-                        label: opt.label
-                    })),
-                    is_required: item.required,
-                    selected_answer: picked ? {
-                        id: parseInt(picked.dataset.optId, 10), // option ID from data-opt-id
-                        status: picked.value, // Rental Ready / Maint. Hold / Damaged
-                        text: picked.closest("label").querySelector("span").innerText
-                    } : null,
-
-                    note: noteEl ? noteEl.value : null
+                // Build answers array
+                const answers = (item.answers || []).map(opt => {
+                    const isSelected = picked && parseInt(picked.dataset.optId, 10) === opt.id;
+                    return {
+                        id: opt.id, // numeric db id
+                        unique_id: opt.unique_id || `ANS-${opt.id}`, // string fallback
+                        answer_name: opt.label,
+                        type: opt.status,
+                        is_selected: isSelected
+                    };
                 });
 
+
+                // Build selected_answer if chosen
+                let selectedAnswer = null;
+                if (picked) {
+                    const chosenOpt = item.answers.find(opt => opt.id === parseInt(picked.dataset.optId, 10));
+                    if (chosenOpt) {
+                        selectedAnswer = {
+                            id: chosenOpt.id,
+                            unique_id: chosenOpt.unique_id || `ANS-${chosenOpt.id}`,
+                            answer_name: chosenOpt.label,
+                            type: chosenOpt.status,
+                            is_selected: true
+                        };
+                    }
+                }
+
+                qaData.push({
+                    id: item.main_id || item.id, // numeric db id if possible
+                    unique_id: item.unique_id || `${item.id}`, // string fallback
+                    question_name: item.title,
+                    answers: answers,
+                    note: noteEl ? noteEl.value : "",
+                    category_id: item.category_id || null,
+                    required_question: !!item.required,
+                    selected_answer: selectedAnswer
+                });
 
             });
         });
@@ -946,11 +961,12 @@
             }
         };
 
-        // Put JSON into hidden input
 
-        console.log("Final Payload:", finalPayload);
+        console.log('this is final groups values');
+        console.log(groups);
 
-        // e.preventDefault();
+        console.log('this is final submited values');
+        console.log(finalPayload);
 
         document.getElementById("rentalReadyQaJson").value = JSON.stringify(finalPayload);
     });

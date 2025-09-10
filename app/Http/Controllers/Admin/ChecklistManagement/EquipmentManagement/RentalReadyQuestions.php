@@ -23,6 +23,7 @@ class RentalReadyQuestions extends Controller
                 'items' => $category->questions->map(function ($question) {
                     return [
                         'id' => $question->unique_id,
+                        'category_id' => $question->category->id,
                         'title' => $question->question_name,
                         'required' => $question->required_question,
                         'options' => $question->answers->map(function ($answer) {

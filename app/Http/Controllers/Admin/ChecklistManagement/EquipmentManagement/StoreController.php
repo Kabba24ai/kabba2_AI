@@ -126,8 +126,11 @@ class StoreController extends Controller
                         if (is_numeric($selectedRaw)) {
                             $answerModel = RentalReadyChecklistQuestionAnswer::find((int)$selectedRaw);
                         } else {
-                            $answerModel = RentalReadyChecklistQuestionAnswer::where('unique_id', $selectedRaw)->orWhere('id', $selectedRaw)->first();
+                            $answerModel = RentalReadyChecklistQuestionAnswer::where('unique_id', $selectedRaw)
+                                ->orWhere('id', $selectedRaw)
+                                ->first();
                         }
+
                         if ($answerModel) {
                             $selectedAnswerId = $answerModel->id;
                         } else {
@@ -169,7 +172,7 @@ class StoreController extends Controller
                         //     'is_complete' => 1,
                         //     'updated_by' => auth()->id(),
                         // ]);
-                        
+
                         EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'))
                             ->where('status', 'Rental Ready')
                             ->update([

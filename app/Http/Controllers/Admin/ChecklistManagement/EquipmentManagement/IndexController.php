@@ -15,11 +15,11 @@ class IndexController extends Controller
     {
         $users = User::where('status', 'Active')->get();
 
-        $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate'])->get();
+        $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct'])->get();
 
         $categories = ProductCategory::getHierarchy();
 
-        // dd($equipments);
+        // dd($equipments->checklistMaster->rentalReadyTemplate->);
 
         return view('admin.checklist_management.equipment_management.index', [
             'users' => $users,

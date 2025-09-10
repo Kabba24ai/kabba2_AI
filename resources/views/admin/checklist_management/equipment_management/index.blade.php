@@ -198,6 +198,9 @@
         /* =================== DATA =================== */
         const rawEquipment = @json($equipments);
 
+        console.log('rawEquipment');
+        console.log(rawEquipment);
+        console.log('rawEquipment');
 
         const icons = {
             damaged: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -254,7 +257,9 @@
             category: eq.category_name ?? 'N/A',
             checklist_master_id: eq.checklist_master_id,
             hours: eq.equipment_hours,
-            lastInspection: eq.latest_rental_ready_template?.inspection_time ?? null,
+            lastInspection: eq.latest_rental_ready_template?.inspection_time ?? '-',
+            orderproduct: eq.order_product?.product_name ?? '-',
+            orderproductid: eq.order_product?.id ?? '-',
             badge: eq.status_label,
             icon: icons[eq.current_status] ?? icons.available
         }));
@@ -353,6 +358,7 @@
             <div>Model: ${eq.model}</div>
             <div>Serial: ${eq.serial}</div>
             <div>Category: ${eq.category}</div>
+            <div>Order Product: ${eq.orderproduct}</div>
             <div class="flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Hours: ${eq.hours.toLocaleString()}
@@ -398,6 +404,11 @@
 
         /* =================== RIGHT: OPEN CHECKLIST =================== */
         function openChecklist(eq) {
+            window.currentEquipment = eq;
+            // console.log('checklist_id', eq.checklist_master_id);
+            // console.log('equipment_id', eq.id);
+            // console.log('order_product_id', eq.orderproductid);
+
 
             const footerButton = document.getElementById("footerbutton"); // get the footer button
 
@@ -435,15 +446,13 @@
                     },
                     body: JSON.stringify({
                         checklist_id: eq.checklist_master_id,
-                        equipment_id: eq.id
+                        equipment_id: eq.id,
+                        order_product_id: eq.orderproductid
                     })
                 })
                 .then(res => res.json())
                 .then(data => {
 
-                    console.log('this is all api feach data');
-                    console.log(data);
-                    console.log('this is all api feach data');
 
                     // remove loader
                     checklistContent.classList.remove("opacity-50", "pointer-events-none");
@@ -585,6 +594,9 @@
                         updateAllCounts();
                         updateProgress();
                     } else {
+                        notyf.error(data.message);
+
+
                         checklistContent.innerHTML = `<p class="text-red-500">${data.message}</p>`;
                     }
                 })
@@ -900,7 +912,6 @@
         const qaData = [];
 
 
-
         window.groups.forEach(g => {
             g.items.forEach(item => {
                 const itemId = item.question_id || item.id;
@@ -951,6 +962,7 @@
 
         const finalPayload = {
             questions: qaData,
+            order_product_id: window.currentEquipment?.orderproductid ?? null,
             counts: {
                 total_questions: summary.total,
                 required_questions: summary.requiredTotal,

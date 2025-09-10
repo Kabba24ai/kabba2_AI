@@ -5,6 +5,10 @@ namespace App\Models\ChecklistManagement\EquipmentChecklist;
 use App\Helpers\ModelHelper;
 
 use App\Models\MaintenanceManagement\Equipment;
+
+use App\Models\Orders\OrderProduct;
+
+
 use App\Models\Iam\Personnel\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -78,6 +82,11 @@ class EquipmentRentalReadyTemplate extends Model
     public function logs()
     {
         return $this->hasMany(EquipmentRentalReadyChecklistQuestionLog::class, 'equipment_rental_ready_template_id');
+    }
+
+    public function orderProduct()
+    {
+        return $this->belongsTo(OrderProduct::class, 'order_product_id');
     }
 
 }

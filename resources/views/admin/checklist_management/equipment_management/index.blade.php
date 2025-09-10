@@ -130,7 +130,7 @@
                 <div id="checklistContent" class="space-y-6"></div>
 
                 <!-- Footer summary with progress bar -->
-                <div class="mt-8 pt-6 border-t border-gray-200">
+                <div class="mt-8 pt-6 border-t border-gray-200" id="footerbutton">
                     <div class="bg-gray-50 rounded-md p-4 mb-6">
                         <h4 class="font-medium text-gray-900 mb-2">Inspection Summary</h4>
                         <div class="mb-4">
@@ -197,7 +197,7 @@
 
         /* =================== DATA =================== */
         const rawEquipment = @json($equipments);
-      
+
 
         const icons = {
             damaged: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -317,6 +317,18 @@
                 return matchesSearch && matchesCategory && matchesStatus;
             });
 
+            //  Add sorting by badge priority
+            const badgeOrder = {
+                "Damaged": 1,
+                "Maint. Hold": 2,
+                "Rented": 3,
+                "Available": 4
+            };
+
+            filtered.sort((a, b) => {
+                return (badgeOrder[a.badge] || 99) - (badgeOrder[b.badge] || 99);
+            });
+
             filtered.forEach(eq => {
                 const card = document.createElement("div");
                 card.className = "equipment-card p-4 rounded-md border-1 transition-all cursor-pointer hover:shadow-md border-gray-200 hover:border-gray-300";
@@ -386,13 +398,22 @@
         /* =================== RIGHT: OPEN CHECKLIST =================== */
         function openChecklist(eq) {
 
-            if (eq.badge == "Available") {
-                checklistContainer.classList.add("hidden");
-                placeholder.classList.remove("hidden");
+            const footerButton = document.getElementById("footerbutton"); // get the footer button
 
-                placeholder.innerHTML = `<p class="text-red-500">Equipment is available . So checklist questions cannot be fetched.</p>`;
-                return;
+            // Hide footer if badge is "Available" or "Rented"
+            if (eq.badge === "Available" || eq.badge === "Rented") {
+                if (footerButton) footerButton.classList.add("hidden");
+            } else {
+                if (footerButton) footerButton.classList.remove("hidden");
             }
+
+            // if (eq.badge == "Available") {
+            //     checklistContainer.classList.add("hidden");
+            //     placeholder.classList.remove("hidden");
+
+            //     placeholder.innerHTML = `<p class="text-red-500">Equipment is available . So checklist questions cannot be fetched.</p>`;
+            //     return;
+            // }
 
             placeholder.classList.add("hidden");
             checklistContainer.classList.remove("hidden");

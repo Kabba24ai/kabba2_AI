@@ -167,4 +167,11 @@ class Equipment extends Model
             ->latest('inspection_date')
             ->latest('inspection_time');
     }
+
+    public function activeEquipmentRentalReadyTemplate()
+    {
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
+            ->where('status', '!=', 'Rental Ready') 
+            ->latest('id');
+    }
 }

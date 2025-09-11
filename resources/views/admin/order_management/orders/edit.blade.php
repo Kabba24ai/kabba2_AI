@@ -1629,10 +1629,11 @@
         {{-- Case 2: Delivery only --}}
         @elseif($latest->is_delivery_answer == 1 && $latest->is_return_answer == 0)
             <span class="inline-block border-b border-gray-300 min-w-10 text-green-600">
-                ${{ $latest->user_delivery_amount ?? $latest->delivery_amount ?? 0 }}
+                <!-- ${{ $latest->user_delivery_amount ?? $latest->delivery_amount ?? 0 }} -->
+                 $0
             </span>
-            @php $checklistTotal += $latest->user_delivery_amount ?? $latest->delivery_amount ?? 0; @endphp
-
+            @php $checklistTotal +=  0; @endphp
+ <!-- @php $checklistTotal += $latest->user_delivery_amount ?? $latest->delivery_amount ?? 0; @endphp -->
         {{-- Case 3: Return only --}}
         @elseif($latest->is_return_answer == 1 && $latest->is_delivery_answer == 0)
             <span class="inline-block border-b border-gray-300 min-w-10 text-red-600">

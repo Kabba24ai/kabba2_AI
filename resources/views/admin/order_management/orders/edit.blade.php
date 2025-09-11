@@ -1636,11 +1636,15 @@
  <!-- @php $checklistTotal += $latest->user_delivery_amount ?? $latest->delivery_amount ?? 0; @endphp -->
         {{-- Case 3: Return only --}}
         @elseif($latest->is_return_answer == 1 && $latest->is_delivery_answer == 0)
+             @php
+                $deliveryAmount = $question->deliverySelectedAnswer->delivery_amount ?? 0;
+                $returnAmount = $latest->user_return_amount ?? $latest->return_amount ?? 0;
+                $netAmount = max($returnAmount - $deliveryAmount, 0);
+                 $checklistTotal += $netAmount;
+            @endphp
             <span class="inline-block border-b border-gray-300 min-w-10 text-red-600">
-                ${{ $latest->user_return_amount ?? $latest->return_amount ?? 0 }}
+                ${{ $netAmount }}
             </span>
-            @php $checklistTotal += $latest->user_return_amount ?? $latest->return_amount ?? 0; @endphp
-
         {{-- Case 4: Nothing selected --}}
         @else
             <span class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
@@ -1754,8 +1758,8 @@
                                                                                             <!-- Delivery Signature (Photo) -->
                                                                                             <div>
                                                                                             <label class="block text-sm text-gray-700 mb-1">Delivery Signature</label>
-                                                                                                @if(!empty($order->signature_image))
-                                                                                                    <img src="{{ $order->signature_image }}"
+                                                                                                @if(!empty($orderProduct->deliverySignatureMedia))
+                                                                                                    <img src="{{ $orderProduct->returnSignatureMedia->url }}"
                                                                                                         class="w-50 border rounded shadow-sm"
                                                                                                         alt="Signature">
                                                                                                 @else
@@ -1782,8 +1786,8 @@
 
                                                                                             <div>
                                                                                             <label class="block text-sm text-gray-700 mb-1">Returned Signature</label>
-                                                                                @if(!empty($order->signature_image))
-                                                                                        <img src="{{ $order->signature_image }}"
+                                                                                @if(!empty($orderProduct->returnSignatureMedia))
+                                                                                        <img src="{{ $orderProduct->returnSignatureMedia->url }}"
                                                                                             class="w-50 border rounded shadow-sm"
                                                                                             alt="Signature">
                                                                                     @else

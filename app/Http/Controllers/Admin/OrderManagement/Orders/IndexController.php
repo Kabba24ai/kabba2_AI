@@ -21,7 +21,7 @@ class IndexController extends Controller
     {
         // Fetch orders from the database, most recent first
         $query = Order::query()
-            ->with('shippingAddress', 'products.product.categories', 'lastPayment')
+            ->with('shippingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia' , 'products.returnSignatureMedia')
             ->when($request->filled('customer_name'), function ($q) use ($request) {
                 $name = trim($request->customer_name);
                 $q->whereHas('shippingAddress', function ($s) use ($name) {
@@ -68,6 +68,8 @@ class IndexController extends Controller
         }
 
         $categories = ProductCategory::getHierarchy();
+
+        
 
         return view('admin.order_management.orders.index', [
             'orders' => $orders,

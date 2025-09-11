@@ -43,12 +43,9 @@ class StoreController extends Controller
             // Decode payload
             $qaPayload = json_decode($request->input('rental_ready_all_qa_json'), true);
             if (!is_array($qaPayload)) {
-                Log::error('QA payload is invalid JSON', ['payload' => $request->input('rental_ready_all_qa_json')]);
+                // Log::error('QA payload is invalid JSON', ['payload' => $request->input('rental_ready_all_qa_json')]);
                 return back()->withInput()->withErrors(['rental_ready_all_qa_json' => 'Invalid checklist payload.']);
             }
-
-            // dd(data_get($qaPayload, 'order_product_id', 0));
-            // die();
 
             $counts = [
                 'total_questions' => data_get($qaPayload, 'counts.total_questions', 0),
@@ -66,10 +63,20 @@ class StoreController extends Controller
 
             $inspectionTime = CustomHelper::formatTime(now(), 'H:i:s');
 
-            // Find the last template (if any)
-            $existingTemplate = EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'))->where('order_product_id', data_get($qaPayload, 'order_product_id', 0))
-                ->latest('id')
-                ->first();
+            // Start base query
+            $query = EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'));
+
+            $orderProductId = data_get($qaPayload, 'order_product_id'); // no default
+
+            if ($orderProductId !== null && $orderProductId !== '') {
+                // If order_product_id exists, filter by it
+                $query->where('order_product_id', $orderProductId);
+            } else {
+                // If it's missing/null, filter for null in DB
+                $query->whereNull('order_product_id');
+            }
+
+            $existingTemplate = $query->latest('id')->first();
 
 
             if ($existingTemplate && $existingTemplate->status !== 'Rental Ready') {
@@ -188,7 +195,7 @@ class StoreController extends Controller
                     'equipment_id' => $request->input('equipment_id'),
                     'employee_id' => $request->input('inspectorSelect'),
                     'employee_name' => optional($inspectionUser)->full_name,
-                    'order_product_id' => data_get($qaPayload, 'order_product_id', 0),
+                    'order_product_id' => $orderProductId,
                     'inspection_date' => $inspectionDate,
                     'inspection_time' => $inspectionTime,
                     'equipment_hours' => $request->input('equipmentHours'),

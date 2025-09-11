@@ -198,9 +198,9 @@
         /* =================== DATA =================== */
         const rawEquipment = @json($equipments);
 
-        console.log('rawEquipment');
-        console.log(rawEquipment);
-        console.log('rawEquipment');
+        // console.log('rawEquipment');
+        // console.log(rawEquipment);
+        // console.log('rawEquipment');
 
         const icons = {
             damaged: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -259,7 +259,7 @@
             hours: eq.equipment_hours,
             lastInspection: eq.latest_rental_ready_template?.inspection_time ?? '-',
             orderproduct: eq.order_product?.product_name ?? '-',
-            orderproductid: eq.order_product?.id ?? '-',
+            orderproductid: eq.order_product?.id ?? null,
             badge: eq.status_label,
             icon: icons[eq.current_status] ?? icons.available
         }));
@@ -358,7 +358,7 @@
             <div>Model: ${eq.model}</div>
             <div>Serial: ${eq.serial}</div>
             <div>Category: ${eq.category}</div>
-            <div>Order Product: ${eq.orderproduct}</div>
+            <div>Order Product: ${eq.orderproduct ?? '-'}</div>
             <div class="flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Hours: ${eq.hours.toLocaleString()}
@@ -405,18 +405,21 @@
         /* =================== RIGHT: OPEN CHECKLIST =================== */
         function openChecklist(eq) {
             window.currentEquipment = eq;
-            // console.log('checklist_id', eq.checklist_master_id);
-            // console.log('equipment_id', eq.id);
-            // console.log('order_product_id', eq.orderproductid);
 
+            console.log(eq.orderproductid);
 
             const footerButton = document.getElementById("footerbutton"); // get the footer button
 
-            // Hide footer if badge is "Available" or "Rented"
-            if (eq.badge === "Available" || eq.badge === "Rented") {
-                if (footerButton) footerButton.classList.add("hidden");
+            if (eq.orderproductid == null) {
+                // Fresh template (no order product linked)
+                footerButton.classList.remove("hidden");
             } else {
-                if (footerButton) footerButton.classList.remove("hidden");
+                // Has order product → hide/show based on status
+                if (eq.badge === "Available" || eq.badge === "Rented") {
+                    footerButton.classList.add("hidden");
+                } else {
+                    footerButton.classList.remove("hidden");
+                }
             }
 
             placeholder.classList.add("hidden");

@@ -12,7 +12,7 @@ use App\Models\Global\Media;
 use App\Models\MaintenanceManagement\Equipment;
 // Models
 use App\Models\ProductManagement\Product;
-
+use App\Models\Stores\Store;
 use App\Models\Iam\Personnel\User;
 
 
@@ -178,5 +178,15 @@ class OrderProduct extends Model
     public function pickupEmployee()
     {
         return $this->belongsTo(User::class, 'pickup_by');
+    }
+
+    public function deliveryStore()
+    {
+        return $this->belongsTo(Store::class, 'delivery_store_id');
+    }
+
+    public function pickupStore()
+    {
+        return $this->belongsTo(Store::class, 'pickup_store_id');
     }
 }

@@ -406,7 +406,7 @@
         function openChecklist(eq) {
             window.currentEquipment = eq;
 
-            console.log(eq.orderproductid);
+            // console.log(eq.orderproductid);
 
             const footerButton = document.getElementById("footerbutton"); // get the footer button
 
@@ -977,11 +977,11 @@
         };
 
 
-        console.log('this is final groups values');
-        console.log(groups);
+        // console.log('this is final groups values');
+        // console.log(groups);
 
-        console.log('this is final submited values');
-        console.log(finalPayload);
+        // console.log('this is final submited values');
+        // console.log(finalPayload);
 
         document.getElementById("rentalReadyQaJson").value = JSON.stringify(finalPayload);
     });

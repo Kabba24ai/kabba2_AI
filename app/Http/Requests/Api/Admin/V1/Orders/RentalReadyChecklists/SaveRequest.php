@@ -15,7 +15,7 @@ class SaveRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'order_product_unique_id' => 'required|string|exists:order_products,unique_id',
+            'equipment_unique_id' => 'required|string|exists:equipment,unique_id',
             'user_id' => 'required|string|exists:users,id',
             'equipment_hours' => 'required|string',
             'general_notes' => 'nullable|string',
@@ -34,9 +34,9 @@ class SaveRequest extends ApiBaseFormRequest
     public function bodyParameters(): array
     {
         return [
-            'order_product_unique_id' => [
-                'description' => 'The unique_id of an existing record in the order_products table.',
-                'example' => 'ORD-SCH-DFVD-X6GT',
+            'equipment_unique_id' => [
+                'description' => 'The unique_id of an existing record in the equipment table.',
+                'example' => 'EQP-VL04-IVRC',
             ],
             'user_id' => [
                 'description' => 'The ID of an existing user in the users table.',

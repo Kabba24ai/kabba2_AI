@@ -15,7 +15,7 @@ class IndexRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'order_product_unique_id' => 'required|exists:order_products,unique_id',
+            'equipment_unique_id' => 'required|exists:equipment,unique_id',
         ];
     }
 
@@ -27,9 +27,9 @@ class IndexRequest extends ApiBaseFormRequest
     public function bodyParameters(): array
     {
         return [
-            'order_product_unique_id' => [
-                'description' => 'The unique ID of the order product.',
-                'example' => 'ORD-SCH-OTQ0-OBSO',
+            'equipment_unique_id' => [
+                'description' => 'The unique ID of the equipment.',
+                'example' => 'EQP-VL04-IVRC',
                 'type' => 'string',
             ],
         ];

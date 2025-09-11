@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Api\Admin\V1\Equipment;
 
-use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Http\Requests\ApiBaseFormRequest;
 
 class IndexRequest extends ApiBaseFormRequest
@@ -16,7 +15,7 @@ class IndexRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'status' => 'nullable|string|in:' . implode(',', EquipmentCurrentStatus::getValues()),
+            'type' => 'nullable|string|in:RentalReady,Checklist',
         ];
     }
 
@@ -28,11 +27,11 @@ class IndexRequest extends ApiBaseFormRequest
     public function bodyParameters(): array
     {
         return [
-            'status' => [
-                'description' => 'The status to filter equipment.',
-                'example' => 'available',
+            'type' => [
+                'description' => 'The type to filter equipment.',
+                'example' => 'RentalReady',
                 'type' => 'string',
-                'enum' => EquipmentCurrentStatus::getValues(),
+                'enum' => ['RentalReady', 'Checklist'],
             ],
         ];
     }

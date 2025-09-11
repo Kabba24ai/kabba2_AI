@@ -51,6 +51,8 @@ Route::group(['prefix' => 'orders'], function () {
         Route::post('/remove', CustomerChecklistsRemoveController::class);
         Route::post('/save-delivery', SaveDeliveryController::class);
         Route::post('/save-return', SaveReturnController::class);
+    });
+    Route::group(['prefix' => 'rental-ready-checklists'], function () {
         Route::post('/save-rental-ready', SaveController::class);
     });
 });

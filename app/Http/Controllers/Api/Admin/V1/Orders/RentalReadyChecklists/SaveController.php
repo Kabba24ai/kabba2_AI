@@ -11,6 +11,7 @@ use App\Http\Requests\Api\Admin\V1\Orders\RentalReadyChecklists\SaveRequest;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyChecklistQuestionLog;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
 use App\Models\Iam\Personnel\User;
+use App\Models\MaintenanceManagement\Equipment;
 // Resources
 
 // Model
@@ -27,27 +28,23 @@ class SaveController extends BaseController
     public function __invoke(SaveRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $uniqueId = $validated['order_product_unique_id'];
+        $uniqueId = $validated['equipment_unique_id'];
 
-        $orderProduct = OrderProduct::query()
-            ->with(['equipmentRentalReadyTemplate','equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])
-            ->where('unique_id', $uniqueId)
-            ->first();
+        $equipment = Equipment::with(['lastRentalReadyTemplate','orderProduct','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])->where('unique_id', $uniqueId)->first();
 
-         if ($orderProduct && $orderProduct->equipment &&
-            ($orderProduct->equipment->current_status->isRented() || $orderProduct->equipment->current_status->isAvailable())) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.rental_ready_checklists.invalid_equipment_status'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
-        }
+        // if ($equipment && (!$equipment->current_status->isAvailable())) {
+        //     return response()->json(
+        //         [
+        //             'success' => false,
+        //             'message' => trans('messages.api.admin.v1.rental_ready_checklists.invalid_equipment_status'),
+        //         ],
+        //         JsonResponse::HTTP_NOT_FOUND,
+        //     );
+        // }
 
-        if (isset($orderProduct->equipmentRentalReadyTemplate)) {
-
-            $questions = optional($orderProduct->equipmentRentalReadyTemplate->checklistQuestions)
+        if (isset($equipment->orderProduct->equipmentRentalReadyTemplate)) {
+            // fetch questions from order products equipment template
+            $questions = optional($equipment->orderProduct->equipmentRentalReadyTemplate->checklistQuestions)
                         ->pluck('rental_ready_qa_json')   // same as map->question but clearer
                         ->filter()            // remove nulls
                         ->values() ?? collect();
@@ -56,7 +53,8 @@ class SaveController extends BaseController
                             return is_string($item) ? json_decode($item, true) : $item; // decode to array
                         });
         }else{
-            if (!$orderProduct->equipment || !$orderProduct->equipment->checklistMaster?->rental_ready_template_id) {
+            // fetch questions from equipment's checklist master rental ready template
+            if (!$equipment || !$equipment->checklistMaster?->rental_ready_template_id) {
                 return response()->json(
                     [
                         'success' => false,
@@ -66,7 +64,7 @@ class SaveController extends BaseController
                 );
             }
 
-            $questions = optional($orderProduct->equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
+            $questions = optional($equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
                         ->pluck('question')   // same as map->question but clearer
                         ->filter()            // remove nulls
                         ->values() ?? collect();
@@ -184,9 +182,8 @@ class SaveController extends BaseController
         //     );
         // }
 
-
         $status = null;
-        $currentStatus = $orderProduct->equipment->current_status->status_name ?? null;
+        $currentStatus = $equipment->current_status->value ?? null;
 
         // Flag: does any selected answer have type 'Damaged'?
         $hasDamaged = collect($newQuestions)
@@ -202,20 +199,20 @@ class SaveController extends BaseController
 
         if ($hasDamaged) {
             $status = 'Damaged';
-            $currentStatus = EquipmentCurrentStatus::Damaged;
+            $currentStatus = EquipmentCurrentStatus::Damaged->value;
         } elseif ($allRentalReady) {
             $status = 'Rental Ready';
-            $currentStatus = EquipmentCurrentStatus::Available;
+            $currentStatus = EquipmentCurrentStatus::Available->value;
         } else {
             // if $hasMaintenance is true, set status to Maintenance, else Draft
             $status = 'Draft';
-            $currentStatus = EquipmentCurrentStatus::Maintenance;
+            $currentStatus = EquipmentCurrentStatus::Maintenance->value;
         }
 
-
-        if($template = EquipmentRentalReadyTemplate::with('checklistQuestions')->where('equipment_id', $orderProduct->equipment_id)
-                    ->where('order_id', $orderProduct->order_id)
-                    ->where('order_product_id', $orderProduct->id)
+        if($template = EquipmentRentalReadyTemplate::with('checklistQuestions')->where('equipment_id', $equipment->id)
+                    ->where('order_id', $equipment->current_order_id ?? null)
+                    ->where('order_product_id', $equipment->current_order_product_id ?? null)
+                    ->where('status', '!=', "Rental Ready")
                     ->latest('id')
                     ->first()) {
             $template->employee_id = $employee->id;
@@ -253,11 +250,11 @@ class SaveController extends BaseController
             }
         }else{
             $template = new EquipmentRentalReadyTemplate();
-            $template->equipment_id = $orderProduct->equipment_id;
+            $template->equipment_id = $equipment->id;
             $template->employee_id = $employee->id;
             $template->employee_name = $employee->full_name;
-            $template->order_id = $orderProduct->order_id;
-            $template->order_product_id = $orderProduct->id;
+            $template->order_id = $equipment->current_order_id ?? null;
+            $template->order_product_id = $equipment->current_order_product_id ?? null;
             $template->inspection_date = now()->format('Y-m-d');
             $template->inspection_time = now()->format('H:i');
             $template->equipment_hours = $validated['equipment_hours'] ?? null;
@@ -306,7 +303,7 @@ class SaveController extends BaseController
             $equipmentData['current_order_product_id'] = null;
         }
 
-        $orderProduct->equipment()->update($equipmentData);
+        $equipment->update($equipmentData);
 
 
         return response()->json([

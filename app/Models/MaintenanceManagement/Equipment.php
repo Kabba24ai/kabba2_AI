@@ -155,6 +155,11 @@ class Equipment extends Model
         }
     }
 
+    public function lastRentalReadyTemplate()
+    {
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')->latestOfMany('id');
+    }
+
 
     public function latestRentalReadyTemplate()
     {

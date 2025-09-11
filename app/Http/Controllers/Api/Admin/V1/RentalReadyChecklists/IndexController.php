@@ -26,27 +26,24 @@ class IndexController extends BaseController
     public function __invoke(IndexRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $uniqueId = $validated['order_product_unique_id'];
+        $uniqueId = $validated['equipment_unique_id'];
 
-        $orderProduct = OrderProduct::query()
-            ->with(['equipmentRentalReadyTemplate','equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])
-            ->where('unique_id', $uniqueId)
-            ->first();
+        $equipment = Equipment::with(['lastRentalReadyTemplate','orderProduct','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])->where('unique_id', $uniqueId)->first();
 
-        if ($orderProduct && $orderProduct->equipment &&
-            ($orderProduct->equipment->current_status->isRented() || $orderProduct->equipment->current_status->isAvailable())) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.rental_ready_checklists.invalid_equipment_status'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
-        }
+        // if ($equipment && $equipment->orderProduct &&
+        //     ($equipment->current_status->isRented() || $equipment->current_status->isAvailable())) {
+        //     return response()->json(
+        //         [
+        //             'success' => false,
+        //             'message' => trans('messages.api.admin.v1.rental_ready_checklists.invalid_equipment_status'),
+        //         ],
+        //         JsonResponse::HTTP_NOT_FOUND,
+        //     );
+        // }
 
-        if (isset($orderProduct->equipmentRentalReadyTemplate)) {
-
-            $questions = optional($orderProduct->equipmentRentalReadyTemplate->checklistQuestions)
+        if (isset($equipment->orderProduct)) {
+            // find from order product's rental ready checklist if exists
+            $questions = optional($equipment->orderProduct->equipmentRentalReadyTemplate->checklistQuestions)
                         ->pluck('rental_ready_qa_json')   // same as map->question but clearer
                         ->filter()            // remove nulls
                         ->values() ?? collect();
@@ -54,8 +51,10 @@ class IndexController extends BaseController
             $questions = collect($questions)->map(function ($item) {
                             return is_string($item) ? json_decode($item, true) : $item; // decode to array
                         });
+
         }else{
-            if (!$orderProduct->equipment || !$orderProduct->equipment->checklistMaster?->rental_ready_template_id) {
+            // find from equipment rental ready checklist if exists
+            if (!$equipment || !$equipment->checklistMaster?->rental_ready_template_id) {
                 return response()->json(
                     [
                         'success' => false,
@@ -65,7 +64,7 @@ class IndexController extends BaseController
                 );
             }
 
-            $questions = optional($orderProduct->equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
+            $questions = optional($equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
                         ->pluck('question')   // same as map->question but clearer
                         ->filter()            // remove nulls
                         ->values() ?? collect();
@@ -81,10 +80,17 @@ class IndexController extends BaseController
             );
         }
 
+        if($equipment->current_status->isAvailable()){
+            $equipmentRentalReadyData = null;
+        }else{
+            $equipmentRentalReadyData = $equipment->lastRentalReadyTemplate;
+        }
+
+
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.rental_ready_checklists.rental_ready_checklist_found'),
-            'equipment_rental_ready' => new EquipmentRentalReadyChecklistListResource($orderProduct->equipmentRentalReadyTemplate ?? []),
+            'equipment_rental_ready' => new EquipmentRentalReadyChecklistListResource($equipmentRentalReadyData),
             'rental_ready_checklist_questions' => ListResource::collection($questions),
         ]);
     }

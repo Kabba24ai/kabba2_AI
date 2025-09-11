@@ -171,7 +171,7 @@ class ChecklistQuestionsController extends Controller
             $qa = json_decode($q->rental_ready_qa_json, true);
 
             return [
-                'main_id'   => $qa['main_id'] ?? null,
+                'main_id'   => $qa['id'] ?? null,
                 'id'        => $qa['unique_id'] ?? $qa['id'] ?? null,
                 'title'     => $qa['question_name'] ?? null,
                 'category_id' => $qa['category_id'] ?? null,

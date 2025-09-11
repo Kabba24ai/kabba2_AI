@@ -34,9 +34,9 @@ class IndexController extends Controller
         }
 
         // Status filter
-        if ($request->filled('status')) {
-            $query->where('current_status', $request->status);
-        }
+        // if ($request->filled('status')) {
+        //     $query->where('current_status', $request->status);
+        // }
 
         // Store filter
         if ($request->filled('store')) {

@@ -61,7 +61,7 @@
 
     {{-- Select Price --}}
     <div class="w-full sm:w-48">
-        <select name="status"
+        <!-- <select name="status"
             class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
             <option value="">All Status</option>
             @foreach ($statuses as $status)
@@ -69,7 +69,28 @@
                 {{ $status->label() }}
             </option>
             @endforeach
+        </select> -->
+
+        <select name="statusnew"
+            class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
+            <option value="">All Status</option>
+
+            <option>
+                In Stoke
+            </option>
+
+            <option>
+                Buy Now
+            </option>
+            <option>
+                Out Of Stoke
+            </option>
+            <option>
+                DNI
+            </option>
+
         </select>
+
     </div>
 
 
@@ -142,7 +163,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         let searchInput = document.querySelector('input[name="search"]');
         let categorySelect = document.querySelector('select[name="category"]');
-        let statusSelect = document.querySelector('select[name="status"]');
+        // let statusSelect = document.querySelector('select[name="status"]');
         let storeSelect = document.querySelector('select[name="store"]');
         let wrapper = document.querySelector('.equipment-table-wrapper');
         let equipmentStatusCheckboxes = document.querySelectorAll('input[name="equipment_status[]"]');
@@ -152,7 +173,7 @@
             const params = new URLSearchParams();
             if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput.value);
             if (categorySelect.value) params.append('category', categorySelect.value);
-            if (statusSelect.value) params.append('status', statusSelect.value);
+            // if (statusSelect.value) params.append('status', statusSelect.value);
             if (storeSelect.value) params.append('store', storeSelect.value);
 
             // Add all checked equipment_status checkboxes
@@ -189,7 +210,8 @@
         });
 
         // Immediate filters
-        [categorySelect, statusSelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipment));
+        // [categorySelect, statusSelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipment));
+        [categorySelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipment));
 
         // Immediate filter for checkboxes
         equipmentStatusCheckboxes.forEach(cb => cb.addEventListener('change', fetchEquipment));

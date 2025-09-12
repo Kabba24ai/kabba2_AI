@@ -198,10 +198,6 @@
         /* =================== DATA =================== */
         const rawEquipment = @json($equipments);
 
-        // console.log('rawEquipment');
-        // console.log(rawEquipment);
-        // console.log('rawEquipment');
-
         const icons = {
             damaged: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                      viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -250,6 +246,7 @@
 
         const equipment = rawEquipment.map(eq => ({
             id: eq.id,
+            unique_id: eq.unique_id,
             name: eq.equipment_name,
             model: eq.model,
             serial: eq.serial_number,
@@ -260,9 +257,12 @@
             lastInspection: eq.latest_rental_ready_template?.inspection_time ?? '-',
             orderproduct: eq.order_product?.product_name ?? '-',
             orderproductid: eq.order_product?.id ?? null,
+            orderid: eq.order?.id ?? null,
             badge: eq.status_label,
             icon: icons[eq.current_status] ?? icons.available
         }));
+
+        // console.log('equipment :- ', equipment);
 
         // console.log(equipment);
         let groups = []; // use 'let' so you can reassign
@@ -298,7 +298,7 @@
         };
 
         /* =================== LEFT LIST =================== */
-        function renderEquipment() {
+        function renderEquipment(selectedId = null) {
 
             const searchValue = document.getElementById("searchInput").value.toLowerCase();
             const selectedCategory = document.getElementById("categoryFilter").value;
@@ -368,6 +368,8 @@
         </div>
 
       </div>`;
+
+                // Card click handler
                 card.addEventListener("click", () => {
                     document.querySelectorAll(".equipment-card").forEach(c => {
                         c.classList.remove("border-blue-500", "bg-blue-50");
@@ -377,6 +379,14 @@
                     openChecklist(eq);
                 });
                 equipmentList.appendChild(card);
+
+
+                //  Auto-select if it matches selectedEquipmentId
+                if (selectedId && eq.unique_id == selectedId) {
+                    card.classList.add("border-blue-500", "bg-blue-50");
+                    openChecklist(eq);
+                }
+
             });
         }
 
@@ -400,13 +410,22 @@
             }
         };
 
+        @if($selectedEquipmentId)
+        const selectedEquipmentId = @json($selectedEquipmentId);
+        renderEquipment(selectedEquipmentId);
+        @else
+        renderEquipment();
+        @endif
+
 
 
         /* =================== RIGHT: OPEN CHECKLIST =================== */
         function openChecklist(eq) {
             window.currentEquipment = eq;
 
-            // console.log(eq.orderproductid);
+            // console.log('openChecklist :-');
+            // console.log(currentEquipment);
+
 
             const footerButton = document.getElementById("footerbutton"); // get the footer button
 
@@ -463,7 +482,6 @@
 
                     if (data.success === true) {
                         // console.log("Fetched checklist data:", data);
-
 
                         // Normalize: use questions OR existing_data.questions
                         let items = [];
@@ -865,6 +883,7 @@
 
     }); // DOMContentLoaded
 
+
     // --- creates the 3 counters below the progress bar if they don't exist ---
     function ensureCounters() {
         const pb = document.getElementById("progressBottom");
@@ -906,6 +925,8 @@
         };
     }
 </script>
+
+
 
 <script>
     document.querySelector("form").addEventListener("submit", function(e) {
@@ -966,6 +987,7 @@
         const finalPayload = {
             questions: qaData,
             order_product_id: window.currentEquipment?.orderproductid ?? null,
+            order_id: window.currentEquipment?.orderid ?? null,
             counts: {
                 total_questions: summary.total,
                 required_questions: summary.requiredTotal,
@@ -975,10 +997,6 @@
                 damaged_items: summary.damaged
             }
         };
-
-
-        // console.log('this is final groups values');
-        // console.log(groups);
 
         // console.log('this is final submited values');
         // console.log(finalPayload);

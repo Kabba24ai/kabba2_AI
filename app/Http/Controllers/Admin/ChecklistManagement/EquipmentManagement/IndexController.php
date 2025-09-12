@@ -11,11 +11,11 @@ use App\Models\ProductManagement\ProductCategory;
 
 class IndexController extends Controller
 {
-    public function __invoke()
+    public function __invoke($equipment = null)
     {
         $users = User::where('status', 'Active')->get();
 
-        $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct'])->get();
+        $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct','order'])->get();
 
         $categories = ProductCategory::getHierarchy();
 
@@ -25,6 +25,7 @@ class IndexController extends Controller
             'users' => $users,
             'equipments' => $equipments,
             'categories' => $categories,
+            'selectedEquipmentId' => $equipment,
         ]);
     }
 }

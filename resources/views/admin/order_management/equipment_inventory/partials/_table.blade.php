@@ -20,7 +20,7 @@
              <td class="px-4 py-4 font-semibold  text-gray-700">{{ $eq->category_name }}</td>
              <td class="px-4 py-4 break-words">{{ $eq->equipment_name }}</td>
              <td class="px-4 py-4">
-                 <a href="#" class="text-blue-600 uppercase">{{ $eq->unique_id }}</a>
+                 <a href="{{ route('admin.maintenance-management.equipment.edit', $eq->unique_id) }}" class="text-blue-600 uppercase">{{ $eq->equipment_id }}</a>
              </td>
              <td class="px-4 py-4">
                  <div class="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -66,26 +66,32 @@
              </td>
              <td class="px-4 py-4">
                  <div class="font-medium">{{ $eq->activeEquipmentRentalReadyTemplate?->employee_name ?? '-' }}</div>
-                 <div class="text-xs text-gray-500"> {{ \App\Helpers\CustomHelper::formatDate( $eq->activeEquipmentRentalReadyTemplate?->inspection_date) }} <br>
-                     {{ \App\Helpers\CustomHelper::formatTime( $eq->activeEquipmentRentalReadyTemplate?->inspection_time) }}
+                 <div class="text-xs text-gray-500">
+                 
                  </div>
              </td>
              <td class="px-4 py-4">
                  <div class="inline-flex items-center gap-1">
 
-                     @if ($eq->status_label == 'Rented')
-                     <a href="#" class="text-blue-600 hover:underline">{{ $eq->order?->customer_name ?? '-' }}</a>
+                     @if ($eq->status_label == 'Rented' && $eq->order?->customer?->unique_id)
+                     <a href="{{ route('admin.crm.customers.view', $eq->order->customer->unique_id) }}" target="_blank" class="text-blue-600 hover:underline">
+                         {{ $eq->order->customer_name ?? '-' }}
+                     </a>
                      @else
-                     @if($eq->orderProduct?->deliveryStore->store_name)
-                     <svg class="w-3 h-3 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none"
+
+
+                     -
+
+                     <!-- @if($eq->orderProduct?->deliveryStore->store_name) -->
+                     <!-- <svg class="w-3 h-3 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none"
                          viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                          <path stroke-linecap="round" stroke-linejoin="round"
                              d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                          <path stroke-linecap="round" stroke-linejoin="round"
                              d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                      </svg>
-                     {{ $eq->orderProduct->deliveryStore->store_name }}
-                     @endif
+                     {{ $eq->orderProduct->deliveryStore->store_name }} -->
+                     <!-- @endif -->
                      @endif
 
 
@@ -98,9 +104,13 @@
                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                          <path d="M8 2v4M16 2v4M3 10h18M5 22h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path>
                      </svg>
-                     {{ \App\Helpers\CustomHelper::formatDate($eq->orderproduct?->delivery_date) }}
 
+                     {{ \Carbon\Carbon::parse($eq->orderproduct?->delivery_date)->format('M d') }}
+
+                     @else
+                     -
                      @endif
+
                  </div>
              </td>
              <td class="px-4 py-4">
@@ -113,17 +123,19 @@
                          <path d="M8 2v4M16 2v4M3 10h18M5 22h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path>
                      </svg>
 
-                     {{ \App\Helpers\CustomHelper::formatDate($eq->orderproduct?->pickup_date) }}
+                     {{ \Carbon\Carbon::parse($eq->orderproduct?->pickup_date)->format('M d') }}
+                     @else
+                     -
+                     @endif
                  </div>
-                 @endif
              </td>
              <td class="px-4 py-4">
                  <div class="flex items-center justify-end gap-3">
-                     <button class="p-1.5 rounded text-green-600" aria-label="Edit">
+                     <a href="{{ route('admin.checklist-management.equipment-management.show', $eq->unique_id) }}" class="p-1.5 rounded text-green-600" aria-label="Edit">
                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                              <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"></path>
                          </svg>
-                     </button>
+                     </a>
 
                  </div>
              </td>

@@ -171,7 +171,6 @@ class Equipment extends Model
     public function activeEquipmentRentalReadyTemplate()
     {
         return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
-            ->where('status', '!=', 'Rental Ready') 
             ->latest('id');
     }
 }

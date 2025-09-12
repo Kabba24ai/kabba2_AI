@@ -60,7 +60,7 @@
     </div>
 
     {{-- Select Price --}}
-    <div class="w-full sm:w-48">
+    <!-- <div class="w-full sm:w-48"> -->
         <!-- <select name="status"
             class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
             <option value="">All Status</option>
@@ -71,7 +71,7 @@
             @endforeach
         </select> -->
 
-        <select name="statusnew"
+        <!-- <select name="statusnew"
             class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
             <option value="">All Status</option>
 
@@ -88,10 +88,9 @@
             <option>
                 DNI
             </option>
+        </select> -->
 
-        </select>
-
-    </div>
+    <!-- </div> -->
 
 
     {{-- Type Dropdown --}}

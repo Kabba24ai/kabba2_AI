@@ -742,11 +742,11 @@
 
         {{-- Delivery --}}
         <span
-            class="inline-flex items-center justify-center w-6 h-6 rounded 
+            class="inline-flex items-center justify-center w-6 h-6 rounded
                    {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
                    text-white text-xs font-bold"
-            @if($orderProduct->is_delivered == 1) 
-                onclick="openChecklistModal()" 
+            @if($orderProduct->is_delivered == 1)
+                onclick="openChecklistModal()"
             @endif
         >
             D
@@ -754,11 +754,11 @@
 
         {{-- Return --}}
         <span
-            class="inline-flex items-center justify-center w-6 h-6 rounded 
+            class="inline-flex items-center justify-center w-6 h-6 rounded
                    {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
                    text-white text-xs font-bold"
-            @if($orderProduct->is_returned == 1) 
-                onclick="openChecklistModal()" 
+            @if($orderProduct->is_returned == 1)
+                onclick="openChecklistModal()"
             @endif
         >
             R
@@ -1633,7 +1633,6 @@
                  $0
             </span>
             @php $checklistTotal +=  0; @endphp
- <!-- @php $checklistTotal += $latest->user_delivery_amount ?? $latest->delivery_amount ?? 0; @endphp -->
         {{-- Case 3: Return only --}}
         @elseif($latest->is_return_answer == 1 && $latest->is_delivery_answer == 0)
              @php
@@ -1759,9 +1758,10 @@
                                                                                             <div>
                                                                                             <label class="block text-sm text-gray-700 mb-1">Delivery Signature</label>
                                                                                                 @if(!empty($orderProduct->deliverySignatureMedia))
-                                                                                                    <img src="{{ $orderProduct->returnSignatureMedia->url }}"
-                                                                                                        class="w-50 border rounded shadow-sm"
-                                                                                                        alt="Signature">
+                                                                                                   <img src="{{ optional($orderProduct->deliverySignatureMedia)->url }}"
+                                                                                                    class="w-50 border rounded shadow-sm"
+                                                                                                    alt="Signature">
+
                                                                                                 @else
                                                                                                     <p class="text-gray-500 italic">No signature available</p>
                                                                                                 @endif
@@ -1787,9 +1787,10 @@
                                                                                             <div>
                                                                                             <label class="block text-sm text-gray-700 mb-1">Returned Signature</label>
                                                                                 @if(!empty($orderProduct->returnSignatureMedia))
-                                                                                        <img src="{{ $orderProduct->returnSignatureMedia->url }}"
-                                                                                            class="w-50 border rounded shadow-sm"
-                                                                                            alt="Signature">
+                                                                                       <img src="{{ optional($orderProduct->returnSignatureMedia)->url }}"
+                                                                                    class="w-50 border rounded shadow-sm"
+                                                                                    alt="Signature">
+
                                                                                     @else
                                                                                         <p class="text-gray-500 italic">No signature available</p>
                                                                                     @endif			</div>

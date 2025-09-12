@@ -25,7 +25,10 @@ Route::prefix('equipment-management')
 
      Route::get('/', IndexController::class)->name('index');
 
-     Route::post('/get-checklist-questions', ChecklistQuestionsController::class)->name('get-checklist-questions');
+    Route::get('/{equipment}', IndexController::class)->name('show');
+
+
+    Route::post('/get-checklist-questions', ChecklistQuestionsController::class)->name('get-checklist-questions');
 
     Route::post('/store', StoreController::class)->name('store');
 });

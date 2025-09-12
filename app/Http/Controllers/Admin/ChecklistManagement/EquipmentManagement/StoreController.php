@@ -67,6 +67,9 @@ class StoreController extends Controller
             $query = EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'));
 
             $orderProductId = data_get($qaPayload, 'order_product_id'); // no default
+            $orderId = data_get($qaPayload, 'order_id'); // no default
+
+
 
             if ($orderProductId !== null && $orderProductId !== '') {
                 // If order_product_id exists, filter by it
@@ -196,6 +199,7 @@ class StoreController extends Controller
                     'employee_id' => $request->input('inspectorSelect'),
                     'employee_name' => optional($inspectionUser)->full_name,
                     'order_product_id' => $orderProductId,
+                    'order_id' => $orderId,
                     'inspection_date' => $inspectionDate,
                     'inspection_time' => $inspectionTime,
                     'equipment_hours' => $request->input('equipmentHours'),
@@ -303,7 +307,11 @@ class StoreController extends Controller
             Log::info('CHECKLIST SAVE COMMIT', ['template_id' => $template->id]);
 
             flash('Checklist saved successfully.')->success();
-            return redirect()->route('admin.checklist-management.equipment-management.index');
+            // return redirect()->route('admin.checklist-management.equipment-management.index');
+
+            // {{ route('admin.checklist-management.equipment-management.show', $eq->unique_id) }}
+            return redirect()->route('admin.checklist-management.equipment-management.show', $equipment->unique_id);
+
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('CHECKLIST SAVE ERROR', [

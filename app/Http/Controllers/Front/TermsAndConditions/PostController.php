@@ -7,6 +7,7 @@ use App\Http\Requests\Front\TermsAndConditions\PostRequest;
 
 // Enums
 use App\Enums\Orders\OrderTermsStatus;
+use App\Events\Front\Checkout\OrderTermsSignedEvent;
 use App\Helpers\SignedUrlHelper;
 use App\Helpers\TermsContentHelper;
 // Models
@@ -34,6 +35,10 @@ class PostController extends Controller
             $order->accepted_terms_content = $termsArr['accepted_terms_content'] ?? '';
             $order->terms_accepted_at = now();
             $order->save();
+
+
+            // Fire OrderTermsSigned event
+            event(new OrderTermsSignedEvent($order));
 
             $signedUrl = SignedUrlHelper::make(
                 'front.checkout.thank-you',

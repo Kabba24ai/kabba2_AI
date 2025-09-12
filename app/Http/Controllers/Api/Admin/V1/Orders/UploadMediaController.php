@@ -11,6 +11,9 @@ use Illuminate\Http\JsonResponse;
 // Enums
 use App\Enums\Orders\OrderMediaType;
 
+// Events
+use App\Events\Admin\Orders\OrderMediaUploadedEvent;
+
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\UploadMediaRequest;
 
@@ -63,6 +66,10 @@ class UploadMediaController extends Controller
                     }
                 }
             }
+
+
+            // Fire OrderMediaUploaded event
+            event(new OrderMediaUploadedEvent($order, $typeEnum, auth('api_user')->user()));
 
             return response()->json([
                 'success' => true,

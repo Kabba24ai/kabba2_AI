@@ -39,9 +39,9 @@
                invisible opacity-0 transition-opacity duration-150
                md:static md:flex-row md:gap-2 md:p-0 md:bg-transparent md:shadow-none md:visible md:opacity-100
                text-gray-400">
-                <a href="#" title="View" class="hover:text-blue-500 flex items-center justify-center">
+                {{-- <a href="#" title="View" class="hover:text-blue-500 flex items-center justify-center">
                     <x-heroicon-o-eye class="w-5 h-5" />
-                </a>
+                </a> --}}
                 @if ($addFlag)
                     <a href="{{ route('admin.product-management.categories.create', ['categoryId' => $category->id]) }}"
                         title="Add Subcategory" class="hover:text-green-500 flex items-center justify-center">

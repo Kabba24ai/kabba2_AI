@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 // Models
 use App\Models\Orders\Order;
+use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
 
 class IndexController extends Controller
@@ -46,6 +47,12 @@ class IndexController extends Controller
                 });
             })
 
+            ->when($request->filled('product'), function ($q) use ($request) {
+                $q->whereHas('products', function ($s) use ($request) {
+                    $s->where('product_id', $request->product); // fully qualified
+                });
+            })
+
             ->when($request->filled('payment_method') && $request->payment_method !== 'All Methods', function ($q) use ($request) {
                 // if lastPayment is a latest-of-many relation:
                 $q->whereRelation('lastPayment', 'payment_method', $request->payment_method);
@@ -69,11 +76,12 @@ class IndexController extends Controller
 
         $categories = ProductCategory::getHierarchy();
 
-        
+        $products = Product::order()->pluck('product_name', 'id');
 
         return view('admin.order_management.orders.index', [
             'orders' => $orders,
             'categories' => $categories,
+            'products' => $products,
         ]);
     }
 }

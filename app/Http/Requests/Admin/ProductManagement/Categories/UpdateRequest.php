@@ -52,7 +52,7 @@ class UpdateRequest extends FormRequest
             'content'=>['nullable'],
             'media' => [
                 $this->isMethod('post') ? 'required' : 'nullable',
-                'image', 'mimes:jpeg,jpg,png', 'max:2048'
+                'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'
             ],
             'status' => ['required', 'in:Published,Draft,Pending'],
             'is_featured' => ['nullable', 'in:Yes,No'],

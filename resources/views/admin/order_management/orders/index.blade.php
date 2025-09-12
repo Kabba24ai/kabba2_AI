@@ -58,6 +58,17 @@
                     @endforeach
                 </select>
             </div>
+            <div class="w-full sm:w-48">
+                <select name="product"
+                    class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                    <option value="">Select Products</option>
+                    @foreach ($products as $id => $title)
+                        <option value="{{ $id }}" @selected(request('product') == $id)>
+                            {{ $title }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
             <div class="w-full sm:w-38">
                 <select id="payment_method" name="payment_method"
                     class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
@@ -248,6 +259,7 @@
             let categoryInput = document.querySelector('select[name="category"]');
             let paymentMethodInput = document.querySelector('select[name="payment_method"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
+            let productInput = document.querySelector('select[name="product"]');
 
 
             let wrapper = document.querySelector('#order-table-wrapper');
@@ -260,6 +272,7 @@
                 const category = categoryInput.value;
                 const paymentMethod = paymentMethodInput.value;
                 const paymentStatus = paymentStatusInput.value;
+                const product = productInput.value;
 
                 const params = new URLSearchParams();
                 params.set('page', 1); // Always reset to first page on filter
@@ -273,6 +286,7 @@
                 if (category) params.append('category', category);
                 if (paymentMethod) params.append('payment_method', paymentMethod);
                 if (paymentStatus) params.append('payment_status', paymentStatus);
+                if (product) params.append('product', product);
 
                 // Show loader
 
@@ -310,7 +324,9 @@
             });
 
 
+
             // Instant change on selects
+            productInput.addEventListener('change', fetchOrders);
             categoryInput.addEventListener('change', fetchOrders);
             paymentMethodInput.addEventListener('change', fetchOrders);
             paymentStatusInput.addEventListener('change', fetchOrders);

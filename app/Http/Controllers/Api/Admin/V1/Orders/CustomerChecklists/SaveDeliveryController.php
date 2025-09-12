@@ -69,6 +69,16 @@ class SaveDeliveryController extends BaseController
             );
         }
 
+        if($equipment->current_status->isRented()){
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => trans('messages.api.admin.v1.orders.equipment_is_rented'),
+                ],
+                JsonResponse::HTTP_CONFLICT,
+            );
+        }
+
         $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map->question->values() ?? collect();
 
         if ($questions->isEmpty()) {

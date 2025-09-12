@@ -22,7 +22,7 @@ class IndexController extends Controller
         // Search filter
         if ($request->filled('search')) {
             $query->where('equipment_name', 'like', '%' . $request->search . '%')
-                ->orWhere('unique_id', 'like', '%' . $request->search . '%')
+                ->orWhere('equipment_id', 'like', '%' . $request->search . '%')
                 ->orWhereHas('order', function ($q) use ($request) {
                     $q->where('customer_name', 'like', '%' . $request->search . '%');
                 });
@@ -40,9 +40,9 @@ class IndexController extends Controller
 
         // Store filter
         if ($request->filled('store')) {
-            $query->whereHas('orderProduct.deliveryStore', function ($q) use ($request) {
-                $q->where('id', $request->store);
-            });
+            // $query->whereHas('orderProduct.deliveryStore', function ($q) use ($request) {
+            //     $q->where('id', $request->store);
+            // });
         }
 
         // Equipment Status checkboxes

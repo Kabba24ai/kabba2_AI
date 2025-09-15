@@ -1,15 +1,15 @@
  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
      <thead class="bg-gray-100 text-gray-600 ">
          <tr>
-             <th class="px-4 py-3 text-left font-semibold">Category</th>
-             <th class="px-4 py-3 text-left font-semibold">Equipment Name</th>
-             <th class="px-4 py-3 text-left font-semibold">Equip. ID</th>
-             <th class="px-4 py-3 text-left font-semibold">Status</th>
-             <th class="px-4 py-3 text-left font-semibold">Tech / Mgt.</th>
-             <th class="px-4 py-3 text-left font-semibold">Location</th>
-             <th class="px-4 py-3 text-left font-semibold">Delivery Date</th>
-             <th class="px-4 py-3 text-left font-semibold">Return Date</th>
-             <th class="px-4 py-3 text-right font-semibold">Actions</th>
+             <th class="px-4 py-3 cus-width-15 text-left font-semibold whitespace-nowrap">Category</th>
+             <th class="px-4 py-3 cus-width-20 text-left font-semibold whitespace-nowrap">Equipment Name</th>
+             <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Equip. ID</th>
+             <th class="px-4 py-3 cus-width-10 text-left font-semibold">Status</th>
+             <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Tech / Mgt.</th>
+             <th class="px-4 py-3 cus-width-10 text-left font-semibold">Location</th>
+             <th class="px-4 py-3 cus-width-10 text-right font-semibold whitespace-nowrap">Delivery Date</th>
+             <th class="px-4 py-3 cus-width-10 text-right font-semibold whitespace-nowrap">Return Date</th>
+             <th class="px-4 py-3 cus-width-5 text-right font-semibold">Actions</th>
          </tr>
      </thead>
      <tbody class="divide-y divide-gray-100 text-gray-900">
@@ -98,7 +98,7 @@
 
                  </div>
              </td>
-             <td class="px-4 py-4">
+             <td class="px-4 py-4 text-right">
                  <div class="inline-flex items-center gap-1">
                      @if ($eq->orderproduct?->delivery_date)
                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -113,7 +113,7 @@
 
                  </div>
              </td>
-             <td class="px-4 py-4">
+             <td class="px-4 py-4 text-right">
                  <div class="inline-flex items-center gap-1">
 
 

@@ -3,155 +3,609 @@
 @section('title', 'System Configuration')
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">System Configuration</h3>
-    </div>
 
-    @include('flash::message')
+@php
+$secureFields = ['Admin Settings', 'Payment Settings'];
 
-    {{ html()->form()->attributes([
+$eyetoggle = ['master_passcode', 'payment_api_key' , 'payment_api_secret'];
+
+@endphp
+
+
+<div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">System Configuration</h3>
+</div>
+
+@include('flash::message')
+
+{{ html()->form()->attributes([
             'autocomplete' => 'off',
             'data-parsley-validate' => true,
             'class' => 'space-y-6',
         ])->open() }}
 
-    @foreach ($settings as $type => $group)
-        {{-- Card / Accordion --}}
-        <section x-data="{ open: true }" class="border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
-            {{-- Card Header --}}
-            <button type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between gap-3 text-left
-                           bg-brand-50/60 dark:bg-brand-900/10 px-4 sm:px-5 py-3 border-b
+@foreach ($settings as $type => $group)
+
+@php
+switch ($type) {
+case 'Social Media Settings':
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2 w-6 h-6 text-blue-600">
+    <circle cx="18" cy="5" r="3"></circle>
+    <circle cx="6" cy="12" r="3"></circle>
+    <circle cx="18" cy="19" r="3"></circle>
+    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+</svg>';
+break;
+
+case 'Product Settings':
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package w-6 h-6 text-blue-600">
+    <path d="m7.5 4.27 9 5.15"></path>
+    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+    <path d="m3.3 7 8.7 5 8.7-5"></path>
+    <path d="M12 22V12"></path>
+</svg>';
+break;
+
+case 'Admin Settings':
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-cog w-6 h-6 text-blue-600">
+    <circle cx="18" cy="15" r="3"></circle>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="M10 15H6a4 4 0 0 0-4 4v2"></path>
+    <path d="m21.7 16.4-.9-.3"></path>
+    <path d="m15.2 13.9-.9-.3"></path>
+    <path d="m16.6 18.7.3-.9"></path>
+    <path d="m19.1 12.2.3-.9"></path>
+    <path d="m19.6 18.7-.4-1"></path>
+    <path d="m16.8 12.3-.4-1"></path>
+    <path d="m14.3 16.6 1-.4"></path>
+    <path d="m20.7 13.8 1-.4"></path>
+</svg>';
+break;
+
+case 'Payment Settings':
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-6 h-6 text-blue-600">
+    <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+    <line x1="2" x2="22" y1="10" y2="10"></line>
+</svg>';
+break;
+
+case 'Contact Us Settings':
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-6 h-6 text-blue-600">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+</svg>';
+break;
+
+default:
+// Default icog icon
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    class="lucide lucide-clock w-6 h-6 text-blue-600">
+    <circle cx="12" cy="12" r="10"></circle>
+    <polyline points="12 6 12 12 16 14"></polyline>
+</svg>';
+}
+@endphp
+
+
+{{-- Card / Accordion --}}
+<section x-data="{ open: true }" class="border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden max-w-4xl mx-auto text-center">
+    {{-- Card Header --}}
+    <button type="button"
+        @click="open = !open"
+        class="w-full flex items-center justify-between gap-3 text-left bg-white
+                           dark:bg-brand-900/10 px-4 sm:px-5 py-3 border-b
                            border-gray-200 dark:border-gray-800">
-                <span class="inline-flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-100">
-                    <x-heroicon-m-cog-6-tooth class="w-5 h-5" />
-                    {{ $type }}
-                </span>
-                <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 transition-transform"
-                     :class="open ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/>
+        <span class="inline-flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-100">
+
+            {!! $icon !!}
+            @php
+            $typeEnum = \App\Enums\Configurations\SettingType::tryFrom($type) ?? \App\Enums\Configurations\SettingType::OTHER;
+            @endphp
+
+            {{ $typeEnum->label() }}
+        </span>
+        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 transition-transform"
+            :class="open ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd" />
+        </svg>
+    </button>
+
+    {{-- Card Body --}}
+    <div x-show="open" x-collapse class="bg-white dark:bg-gray-900 px-4 sm:px-6 py-5">
+
+        @if ($type == 'Social Media Settings')
+        <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-5 text-left">
+            <div class="flex items-start space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2 w-5 h-5 text-blue-600 mt-0.5">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+                    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
                 </svg>
-            </button>
-
-            {{-- Card Body --}}
-            <div x-show="open" x-collapse class="bg-white dark:bg-gray-900 px-4 sm:px-6 py-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    @foreach ($group as $setting)
-                        @php
-                            $inputValue = old("settings.{$setting->id}", $setting->setting_value);
-
-                            // Base classes (full width; let the grid control sizing)
-                            $baseClasses = "w-full rounded border border-gray-300 px-3 py-2 text-sm
-                                            focus:ring-2 focus:ring-brand-500 focus:border-brand-500
-                                            dark:bg-gray-800 dark:text-white";
-
-                            $errorClass = $errors->has("settings.{$setting->id}") ? 'border-red-500' : '';
-
-                            switch ($setting->value_type) {
-                                case 'number':
-                                    $input = html()
-                                        ->number("settings[{$setting->id}]")
-                                        ->value($inputValue)
-                                        ->class("$baseClasses $errorClass")
-                                        ->id("setting_{$setting->id}")
-                                        ->attributes([
-                                            'data-parsley-type' => 'number',
-                                            'placeholder' => 'Enter Here',
-                                        ]);
-                                    break;
-
-                                case 'boolean':
-                                    $input = html()
-                                        ->select(
-                                            "settings[{$setting->id}]",
-                                            ['1' => 'Yes', '0' => 'No'],
-                                            $inputValue,
-                                        )
-                                        ->class("$baseClasses $errorClass")
-                                        ->id("setting_{$setting->id}");
-                                    break;
-
-                                case 'options':
-                                    $rawOptions = is_array($setting->setting_options)
-                                        ? $setting->setting_options
-                                        : json_decode($setting->setting_options, true) ?? [];
-                                    $options = array_combine($rawOptions, $rawOptions);
-
-                                    $input = html()
-                                        ->select("settings[{$setting->id}]", $options, $inputValue)
-                                        ->class("$baseClasses $errorClass")
-                                        ->id("setting_{$setting->id}")
-                                        ->placeholder('Select');
-                                    break;
-
-                                case 'email':
-                                    $input = html()
-                                        ->email("settings[{$setting->id}]")
-                                        ->value($inputValue)
-                                        ->class("$baseClasses $errorClass")
-                                        ->id("setting_{$setting->id}")
-                                        ->attributes(['placeholder' => 'Enter Here']);
-                                    break;
-
-                                case 'textarea':
-                                    $input = html()
-                                        ->textarea("settings[{$setting->id}]")
-                                        ->value($inputValue)
-                                        ->class("$baseClasses $errorClass")
-                                        ->id("setting_{$setting->id}")
-                                        ->attributes([
-                                            'placeholder' => 'Enter Here',
-                                            'rows' => 4,
-                                        ]);
-                                    break;
-
-                                case 'password':
-                                    $input = html()
-                                        ->password("settings[{$setting->id}]")
-                                        ->value($inputValue)
-                                        ->class("$baseClasses $errorClass")
-                                        ->id("setting_{$setting->id}")
-                                        ->attributes(['placeholder' => 'Enter Here']);
-                                    break;
-
-                                default:
-                                    $input = html()
-                                        ->text("settings[{$setting->id}]")
-                                        ->value($inputValue)
-                                        ->class("$baseClasses $errorClass")
-                                        ->id("setting_{$setting->id}")
-                                        ->attributes(['placeholder' => 'Enter Here']);
-                            }
-                        @endphp
-
-                        {{-- Field --}}
-                        <div class="space-y-1.5">
-                            <label for="setting_{{ $setting->id }}"
-                                   class="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                {{ $setting->setting_title }}
-                            </label>
-
-                            {!! $input !!}
-
-                            <span class="parsley-errors-list"></span>
-                            @error("settings.{$setting->id}")
-                                <p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    @endforeach
+                <div>
+                    <h4 class="text-sm font-medium text-blue-800">Social Media Integration</h4>
+                    <p class="text-sm text-blue-700 mt-1">Configure your social media presence. These links will appear on your website's footer, contact page, and can be used for social sharing functionality.</p>
                 </div>
             </div>
-        </section>
-    @endforeach
+        </div>
+        @endif
 
-    {{-- Footer actions --}}
-    <div class="flex flex-wrap justify-end gap-3 pt-4">
-        <button type="submit" name="action" value="save"
-                class="inline-flex items-center px-5 py-2 bg-brand-500 text-white text-sm font-medium rounded-md hover:bg-brand-600 transition">
-            Save <x-heroicon-m-check-circle class="w-5 h-5 ml-2" />
-        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @foreach ($group as $setting)
+            @php
+            $inputValue = old("settings.{$setting->id}", $setting->setting_value);
+
+            // Base classes (full width; let the grid control sizing)
+            $baseClasses = "w-full rounded border border-gray-300 px-3 py-2 text-sm
+            focus:ring-2 focus:ring-brand-500 focus:border-brand-500
+            dark:bg-gray-800 dark:text-white";
+
+            $errorClass = $errors->has("settings.{$setting->id}") ? 'border-red-500' : '';
+
+            switch ($setting->value_type) {
+            case 'number':
+            $input = html()
+            ->number("settings[{$setting->id}]")
+            ->value($inputValue)
+            ->class("$baseClasses $errorClass")
+            ->id("setting_{$setting->id}")
+            ->attributes([
+            'data-parsley-type' => 'number',
+            'placeholder' => 'Enter Here',
+            ]);
+            break;
+
+            case 'boolean':
+            $input = html()
+            ->select(
+            "settings[{$setting->id}]",
+            ['1' => 'Yes', '0' => 'No'],
+            $inputValue,
+            )
+            ->class("$baseClasses $errorClass")
+            ->id("setting_{$setting->id}");
+            break;
+
+            case 'options':
+            $rawOptions = is_array($setting->setting_options)
+            ? $setting->setting_options
+            : json_decode($setting->setting_options, true) ?? [];
+            $options = array_combine($rawOptions, $rawOptions);
+
+            $input = html()
+            ->select("settings[{$setting->id}]", $options, $inputValue)
+            ->class("$baseClasses $errorClass")
+            ->id("setting_{$setting->id}")
+            ->placeholder('Select');
+            break;
+
+            case 'email':
+            $input = html()
+            ->email("settings[{$setting->id}]")
+            ->value($inputValue)
+            ->class("$baseClasses $errorClass")
+            ->id("setting_{$setting->id}")
+            ->attributes(['placeholder' => 'Enter Here']);
+            break;
+
+            case 'textarea':
+            $input = html()
+            ->textarea("settings[{$setting->id}]")
+            ->value($inputValue)
+            ->class("$baseClasses $errorClass tinymce")
+            ->id("setting_{$setting->id}")
+            ->attributes([
+            'placeholder' => 'Enter Here',
+            'rows' => 4,
+            ]);
+            break;
+
+            case 'password':
+            $input = html()
+            ->password("settings[{$setting->id}]")
+            ->value($inputValue)
+            ->class("$baseClasses $errorClass")
+            ->id("setting_{$setting->id}")
+            ->attributes(['placeholder' => 'Enter Here']);
+            break;
+
+            default:
+            $input = html()
+            ->text("settings[{$setting->id}]")
+            ->value($inputValue)
+            ->class("$baseClasses $errorClass")
+            ->id("setting_{$setting->id}")
+            ->attributes(['placeholder' => 'Enter Here']);
+            }
+            @endphp
+
+
+            @php
+            // If field belongs to secure group, disable it by default
+            $isSecure = in_array($type, $secureFields);
+            if ($isSecure) {
+            $input = $input->attribute('disabled', true)->class('bg-gray-100');
+            }
+
+            @endphp
+
+
+
+            {{-- Field --}}
+            <div class="space-y-1.5 {{ $setting->value_type === 'textarea' ? 'md:col-span-2' : '' }}">
+                <label for="setting_{{ $setting->id }}"
+                    class="block text-sm font-medium text-gray-700 mb-1 text-left">
+                    {{ $setting->setting_title }}
+                </label>
+
+
+                <div class="relative">
+                    {!! $input !!}
+
+                    @if(in_array($setting->setting_name, $eyetoggle))
+
+                    <button type="button"
+                        class="pw-toggle absolute inset-y-0 right-10 px-2 text-gray-500 hover:text-gray-700 disabled-eye"
+                        data-target="#setting_{{ $setting->id }}"
+                        aria-pressed="false" title="Show/Hide passcode">
+                        <svg data-eye xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-5 h-5">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+
+                        <svg data-eye-off xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off w-5 h-5 hidden">
+                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                            <line x1="2" x2="22" y1="2" y2="22"></line>
+                        </svg>
+                    </button>
+
+                    @endif
+                    {{-- Lock button only for secure groups --}}
+                    @if(in_array($type, $secureFields))
+                    <button type="button"
+                        class="opensecurityModal lock-trigger absolute inset-y-0 right-2 px-2 flex items-center text-blue-600 hover:text-gray-600 lock-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-lock w-4 h-4">
+                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </button>
+                    @endif
+
+
+                </div>
+
+                <span class="parsley-errors-list"></span>
+                @error("settings.{$setting->id}")
+                <p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            @endforeach
+        </div>
+
+        @if ($type == 'Admin Settings')
+        <div class="mt-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-left">
+            <div class="flex items-start gap-3 p-3">
+                <svg class="w-5 h-5 mt-0.5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.516 11.59c.75 1.334-.213 2.99-1.742 2.99H3.483c-1.53 0-2.492-1.656-1.743-2.99L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V8a1 1 0 112 0v3a1 1 0 01-1 1z"
+                        clip-rule="evenodd" />
+                </svg>
+                <p class="text-sm leading-6">
+                    <span class="font-semibold">Security Notice</span><br>
+                    Both fields are critical for system security. The Master Passcode is encrypted and the
+                    Master Password is required to access/edit it. Always use strong, unique passwords and store them securely.
+                </p>
+            </div>
+        </div>
+        @endif
+
+
+        @if ($type == 'Payment Settings')
+        <div class="mt-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-left">
+            <div class="flex items-start gap-3 p-3">
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-lock w-4 h-4 text-amber-500">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+
+
+                <p class="text-sm leading-6">
+                    <span class="font-semibold">Security Notice</span><br>
+                    Payment integration settings contain sensitive API keys and credentials. Master Passcode verification is required to
+                    view or modify these settings for security purposes.
+                </p>
+            </div>
+        </div>
+        @endif
+
+        @if ($type == 'Contact Us Settings')
+        <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mt-5">
+            <p class="text-sm text-blue-800"><strong>Note:</strong> Store locations/addresses that appear on the Contact Us page are managed in Store Settings.<a href="{{ route('admin.stores.index') }}" class="text-blue-600 hover:text-blue-800 underline ml-1">Go to Store Settings page</a></p>
+        </div>
+
+        @endif
+
     </div>
+</section>
+@endforeach
 
-    {{ html()->form()->close() }}
+{{-- Footer actions --}}
+<div class="flex flex-wrap justify-end gap-3 pt-4">
+    <button type="submit" name="action" value="save"
+        class="inline-flex items-center px-5 py-2 bg-brand-500 text-white text-sm font-medium rounded-md hover:bg-brand-600 transition">
+        Save <x-heroicon-m-check-circle class="w-5 h-5 ml-2" />
+    </button>
+</div>
+
+{{ html()->form()->close() }}
+
+<div id="securityModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock w-6 h-6 text-red-600">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <h2 class="text-lg font-medium text-gray-900">Security Verification Required</h2>
+                </div>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+            <div class=" px-6 overflow-y-auto">
+                <div class="w-[92vw] max-w-md bg-white">
+                    <div class="flex items-start gap-2 mb-2">
+                        <p class="text-sm text-gray-600">Enter your Master Password to edit the Master Passcode.</p>
+                    </div>
+
+                    <div class="relative mt-3">
+                        <input id="masterPwd" type="password" placeholder="Enter Master Password" class="w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-sm shadow-sm"
+                            autocomplete="current-password" />
+                        <button type="button" id="pwdEye" class="absolute inset-y-0 right-2 flex items-center px-2 text-gray-500 hover:text-gray-700" aria-label="Show/Hide password" aria-pressed="false">
+                            <svg id="eyeOn" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-5 h-5">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+
+                            <svg id="eyeOff" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off w-5 h-5 hidden">
+                                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                                <line x1="2" x2="22" y1="2" y2="22"></line>
+                            </svg>
+
+                            <!-- <svg id="eyeOn" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/>
+                                <circle cx="12" cy="12" r="3" stroke-width="1.8"/>
+                            </svg>
+                            <svg id="eyeOff" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3 3l18 18M10.6 10.6A3 3 0 0012 15a3 3 0 002.4-4.4M6.5 6.9C4 8.5 2 12 2 12s4 7 10 7c2.1 0 3.9-.6 5.3-1.5M17.5 7.6C15.9 6.6 14.1 5 12 5 6 5 2 12 2 12"/>
+                            </svg> -->
+                        </button>
+                    </div>
+
+                    <div class="mt-4 flex flex-col sm:flex-row gap-2 pb-4">
+                        <button id="verifyBtn" type="button" disabled class="inline-flex items-center justify-center rounded px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-unlock w-4 h-4 mr-2">
+                                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                            </svg>
+                            Verify & Edit
+                        </button>
+
+                        <button type="button" id="canceltempBtn" class="inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm border border-gray-300 bg-white hover:bg-gray-50">
+                            <svg class="w-4 h-4 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 8.586l4.95-4.95 1.414 1.414L11.414 10l4.95 4.95-1.414 1.414L10 11.414l-4.95 4.95-1.414-1.414L8.586 10l-4.95-4.95L5.05 3.636 10 8.586z" clip-rule="evenodd" />
+                            </svg>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('js')
+
+<script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+@vite('resources/admin/js/tinymce.js')
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalWrapper = document.getElementById('securityModalWrapper');
+        // const openBtn = document.getElementById('opensecurityModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const cancelBtn = document.getElementById('canceltempBtn');
+
+        // Open modal from ANY .opensecurityModal button
+        document.querySelectorAll('.opensecurityModal').forEach(button => {
+            button.addEventListener('click', () => {
+                modalWrapper.style.display = 'flex';
+            });
+        });
+
+
+        // openBtn.addEventListener('click', () => {
+        //     modalWrapper.style.display = 'flex';
+        // });
+
+        const closeModal = () => {
+            modalWrapper.style.display = 'none';
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        modalWrapper.addEventListener('click', (e) => {
+            if (e.target === modalWrapper) {
+                closeModal();
+            }
+        });
+    });
+</script>
+
+<script>
+    (function() {
+        const pwd = document.getElementById('masterPwd');
+        const btn = document.getElementById('verifyBtn');
+        const eye = document.getElementById('pwdEye');
+        const eyeOn = document.getElementById('eyeOn');
+        const eyeOff = document.getElementById('eyeOff');
+
+        function updateState() {
+            const hasValue = pwd.value.trim().length > 0;
+            btn.disabled = !hasValue;
+        }
+        pwd.addEventListener('input', updateState);
+        updateState();
+
+        eye.addEventListener('click', () => {
+            const show = pwd.type === 'password';
+            pwd.type = show ? 'text' : 'password';
+            eye.setAttribute('aria-pressed', String(show));
+            eyeOn.classList.toggle('hidden', show);
+            eyeOff.classList.toggle('hidden', !show);
+            pwd.focus();
+            const val = pwd.value;
+            pwd.value = '';
+            pwd.value = val;
+        });
+    })();
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const verifyBtn = document.getElementById('verifyBtn');
+        const pwd = document.getElementById('masterPwd');
+        const modalWrapper = document.getElementById('securityModalWrapper');
+        let currentFieldId = null;
+
+        // Disable eye toggle if input is locked
+        document.querySelectorAll('.pw-toggle').forEach(btn => {
+            const input = document.querySelector(btn.dataset.target);
+            if (input && input.disabled) {
+                btn.classList.add('pointer-events-none', 'opacity-50'); // disable click
+                btn.querySelector('[data-eye]').classList.add('hidden');
+                btn.querySelector('[data-eye-off]').classList.remove('hidden');
+            }
+        });
+
+        // Lock button click → open modal
+        document.querySelectorAll('.opensecurityModal').forEach(button => {
+            button.addEventListener('click', () => {
+                currentFieldId = button.closest('.relative')
+                    .querySelector('input, select, textarea')
+                    ?.id.replace('setting_', '');
+                modalWrapper.style.display = 'flex';
+            });
+        });
+
+        // Verify Master Password
+        verifyBtn.addEventListener('click', () => {
+            if (!currentFieldId) return;
+
+            fetch("{{ route('admin.configurations.verifyMaster') }}", {
+                    method: 'POST',
+                    headers: {
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        password: pwd.value,
+                        field_id: currentFieldId
+                    }),
+                })
+                .then(res => res.json().then(data => ({
+                    ok: res.ok,
+                    data
+                })))
+                .then(({
+                    ok,
+                    data
+                }) => {
+                    if (ok && data.status === 'success') {
+                        const field = document.getElementById(`setting_${data.field_id}`);
+                        if (field) {
+                            // Enable input
+                            field.removeAttribute('disabled');
+                            field.classList.remove('bg-gray-100');
+
+                            // Enable eye toggle if present
+                            const eyeBtn = field.closest('.relative').querySelector('.pw-toggle');
+                            if (eyeBtn) {
+                                eyeBtn.classList.remove('pointer-events-none', 'opacity-50');
+                            }
+
+                            // Change lock → unlock
+                            const lockWrapper = field.closest('.relative').querySelector('.lock-wrapper');
+                            if (lockWrapper) {
+                                lockWrapper.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="lucide lucide-unlock w-4 h-4 mr-2">
+                                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                            </svg>
+                        `;
+                            }
+                        }
+                        modalWrapper.style.display = 'none';
+                        pwd.value = '';
+                        notyf.success(data.message);
+                    } else {
+                        notyf.error(data.message || 'Verification failed');
+                    }
+                })
+                .catch(() => notyf.error('Something went wrong.'));
+        });
+
+
+    });
+</script>
+
+<script>
+    document.querySelectorAll('.pw-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const input = document.querySelector(btn.dataset.target);
+            if (!input) return;
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            btn.setAttribute('aria-pressed', String(show));
+            btn.querySelector('[data-eye]').classList.toggle('hidden', show);
+            btn.querySelector('[data-eye-off]').classList.toggle('hidden', !show);
+        });
+    });
+
+    (function() {
+        const btn = document.getElementById('adminCardBtn');
+        const body = document.getElementById('adminCardBody');
+        const chev = document.getElementById('adminChevron');
+        btn.addEventListener('click', (e) => {
+            if (e.target.closest('.pw-toggle')) return; // don't collapse when clicking eye
+            const open = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', String(!open));
+            body.classList.toggle('hidden', open);
+            chev.classList.toggle('rotate-180', !open);
+        });
+    })();
+</script>
+@endpush

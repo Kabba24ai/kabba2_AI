@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 // Controllers
 use App\Http\Controllers\Admin\Configurations\IndexController;
 use App\Http\Controllers\Admin\Configurations\UpdateController;
+use App\Http\Controllers\Admin\Configurations\VerifyMasterController;
+
 
 Route::prefix('configurations')
 ->name('configurations.')
@@ -12,5 +14,7 @@ Route::prefix('configurations')
 
     Route::get('/', IndexController::class)->name('index');
     Route::post('/', UpdateController::class);
+
+    Route::post('/verify-master', VerifyMasterController::class)->name('verifyMaster');
 
 });

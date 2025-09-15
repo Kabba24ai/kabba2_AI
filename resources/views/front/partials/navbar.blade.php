@@ -28,11 +28,11 @@
 
 <nav class="text-dark border-b border-b-neutral-800 fixed w-full mt-0 z-[9999] bg-neutral-800 bg-opacity-100 ">
     <div class="container !px-0">
-        <div class="max-w-7xl mx-auto py-1 flex items-center  px-4">
+        <div class="max-w-7xl mx-auto py-1 flex items-center px-4">
             <a href="#" class="1/6">
                 <img src="{{ asset('storage/front/images/logo.png') }}" alt="" class="h-full md:w-23 w-40">
             </a>
-            <div class="flex space-x-4 5/6 w-full items-center justify-end text-white">
+            <div class="flex space-x-4 5/6 w-full items-center justify-right text-white">
                 <ul class="lg:flex hidden">
                     <li
                         class=" px-5 {{ Route::is('front.home.index') ? 'active' : '' }}  group-[.active]:font-bold group">
@@ -44,22 +44,22 @@
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out">Equipment
                             Rentals</a>
                         <ul
-                            class=" absolute min-w-32 pt-6 pb-5 top-18 border translate-y-2 bg-neutral-800/90 border-neutral-800/90  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-10 grid grid-cols-4 gap-x-6 gap-y-4 before:content-[''] before:h-7 before:absolute before:top-[-1.75rem] before:w-full ">
+                            class=" absolute min-w-32 pt-6 pb-5 top-18 border translate-y-2 border-gray-300  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-10 grid grid-cols-4 gap-x-3 gap-y-3 before:content-[''] before:h-7 before:absolute before:top-[-1.75rem] before:w-full bg-white">
 
                             @foreach ($frontCategoryTree as $category)
                                 <li
                                     class="{{ $category->childCategories->isNotEmpty() ? 'group/item relative' : 'flex w-full' }}">
                                     <a href="{{ route('front.categories.index', $category->slug) }}"
-                                        class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out">
+                                        class="hover:text-yellow-400 px-5 text-md transition-all duration-300 ease-in-out text-gray-700">
                                         {{ $category->title }}
                                     </a>
                                     @if ($category->childCategories->isNotEmpty())
                                         <ul
-                                            class="absolute w-auto min-w-32 pt-4 pb-0 top-3 border translate-y-2 bg-black/70 opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-300 ease-in-out z-10 grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-4">
+                                            class="absolute w-auto min-w-32 pt-4 pb-0 top-3 border border-gray-300 translate-y-2 bg-black/70 opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-300 ease-in-out z-10 grid grid-flow-col grid-rows-[repeat(4,_auto)] gap-4 bg-white">
                                             @foreach ($category->childCategories as $child)
                                                 <li class="flex w-full whitespace-nowrap">
                                                     <a href="{{ route('front.categories.sub-category', ['slug' => $category->slug, 'childCategorySlug' => $child->slug]) }}"
-                                                        class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out">
+                                                        class="hover:text-yellow-400 px-5 text-md transition-all duration-300 ease-in-out text-gray-700">
                                                         {{ $child->title }}
                                                     </a>
                                                 </li>

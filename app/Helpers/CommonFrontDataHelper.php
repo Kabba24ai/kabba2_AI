@@ -34,6 +34,7 @@ class CommonFrontDataHelper
                 },
             ])
             ->whereNull('parent_id')
+            ->orderBy('title', 'asc')
             ->get();
     }
 }

@@ -844,6 +844,9 @@ span.flatpickr-weekday,
 .cus-width-3{
   width: 3%;
 }
+.cus-width-5{
+  width: 5%;
+}
 .hidden-step-header { display: none; }
 .card-radio-step:checked + label {
   border-color: #22c55e;

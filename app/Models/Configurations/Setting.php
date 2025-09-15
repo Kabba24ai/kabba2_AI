@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use App\Helpers\ModelHelper;
+use App\Enums\Configurations\SettingType;
 
 class Setting extends Model
 {
@@ -22,8 +23,13 @@ class Setting extends Model
         'created_by',
         'updated_by',
     ];
+    public function getSettingTypeEnum(): SettingType
+    {
+        return SettingType::tryFrom($this->setting_type) ?? SettingType::OTHER;
+    }
 
-   	public static function boot()
+
+    public static function boot()
     {
         parent::boot();
         self::creating(function ($model) {

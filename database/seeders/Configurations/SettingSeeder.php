@@ -49,37 +49,37 @@ class SettingSeeder extends Seeder
 
     private function addAllocatedHoursSettings()
     {
-        $sortOrder = 1;
+        $sortOrder = 0;
 
         $this->settings['Allocated Hours Settings'] = [
-            [
-                'value_type' => 'number',
-                'setting_name' => 'daily_hours',
-                'setting_title' => 'Daily Hours',
-                'default_value' => 8,
-                'sort_order' => $sortOrder++,
-            ],
-            [
-                'value_type' => 'number',
-                'setting_name' => 'weekend_hours',
-                'setting_title' => 'Weekend Hours',
-                'default_value' => 14,
-                'sort_order' => $sortOrder++,
-            ],
-            [
-                'value_type' => 'number',
-                'setting_name' => 'weekly_hours',
-                'setting_title' => 'Weekly Hours',
-                'default_value' => 40,
-                'sort_order' => $sortOrder++,
-            ],
-            [
-                'value_type' => 'number',
-                'setting_name' => 'monthly_hours',
-                'setting_title' => 'Monthly Hours',
-                'default_value' => 160,
-                'sort_order' => $sortOrder++,
-            ],
+            // [
+            //     'value_type' => 'number',
+            //     'setting_name' => 'daily_hours',
+            //     'setting_title' => 'Daily Hours',
+            //     'default_value' => 8,
+            //     'sort_order' => $sortOrder++,
+            // ],
+            // [
+            //     'value_type' => 'number',
+            //     'setting_name' => 'weekend_hours',
+            //     'setting_title' => 'Weekend Hours',
+            //     'default_value' => 14,
+            //     'sort_order' => $sortOrder++,
+            // ],
+            // [
+            //     'value_type' => 'number',
+            //     'setting_name' => 'weekly_hours',
+            //     'setting_title' => 'Weekly Hours',
+            //     'default_value' => 40,
+            //     'sort_order' => $sortOrder++,
+            // ],
+            // [
+            //     'value_type' => 'number',
+            //     'setting_name' => 'monthly_hours',
+            //     'setting_title' => 'Monthly Hours',
+            //     'default_value' => 160,
+            //     'sort_order' => $sortOrder++,
+            // ],
         ];
     }
 
@@ -110,7 +110,7 @@ class SettingSeeder extends Seeder
                 'sort_order' => $sortOrder++,
             ],
             [
-                'value_type' => 'boolean',
+                'value_type' => 'checkbox',
                 'setting_name' => 'include_extended_range',
                 'setting_title' => 'Include Extended Range Option',
                 'default_value' => true,
@@ -225,46 +225,46 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'text',
                 'setting_name' => 'mobile',
-                'setting_title' => 'Mobile',
+                'setting_title' => 'Phone',
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'email',
                 'setting_name' => 'email',
-                'setting_title' => 'Email',
+                'setting_title' => 'Email - General',
                 'sort_order' => $sortOrder++,
             ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'address1',
-                'setting_title' => 'Address 1',
-                'sort_order' => $sortOrder++,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'address2',
-                'setting_title' => 'Address 2',
-                'sort_order' => $sortOrder++,
-            ],
+            // [
+            //     'value_type' => 'text',
+            //     'setting_name' => 'address1',
+            //     'setting_title' => 'Address 1',
+            //     'sort_order' => $sortOrder++,
+            // ],
+            // [
+            //     'value_type' => 'text',
+            //     'setting_name' => 'address2',
+            //     'setting_title' => 'Address 2',
+            //     'sort_order' => $sortOrder++,
+            // ],
             // Enquiry
             [
                 'value_type' => 'text',
                 'setting_name' => 'enquiry-email',
-                'setting_title' => 'Enquiry Email',
+                'setting_title' => 'Email - Sales Inquiry',
                 'sort_order' => $sortOrder++,
             ],
             // Complaint
             [
                 'value_type' => 'text',
                 'setting_name' => 'complaint-email',
-                'setting_title' => 'Complaint Email',
+                'setting_title' => 'Email - Complaints',
                 'sort_order' => $sortOrder++,
             ],
             // Feedback
             [
                 'value_type' => 'text',
                 'setting_name' => 'feedback-email',
-                'setting_title' => 'Feedback Email',
+                'setting_title' => 'Email - Feedback',
                 'sort_order' => $sortOrder++,
             ],
         ];
@@ -292,6 +292,48 @@ class SettingSeeder extends Seeder
                 'setting_title' => 'Twitter Page Link',
                 'sort_order' => $sortOrder++,
             ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'instagram_page_link',
+                'setting_title' => 'Instagram URL',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'youtube_page_link',
+                'setting_title' => 'Youtube Page Link',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'tiktok_page_link',
+                'setting_title' => 'Tiktok Page Link',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'pinterest_page_link',
+                'setting_title' => 'Pinterest Page Link',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'snapchat_page_link',
+                'setting_title' => 'Snapchat Page Link',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'show_social_media_icons',
+                'setting_title' => 'Show Social Media Icons',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'enable_social_sharing',
+                'setting_title' => 'Enable Social Sharing',
+                'sort_order' => $sortOrder++,
+            ],
         ];
     }
 
@@ -305,6 +347,14 @@ class SettingSeeder extends Seeder
                 'default_value' => 12345678,
                 'sort_order' => 0,
             ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'master_passcode_entry',
+                'setting_title' => 'Master Password - Entry',
+                'default_value' => 12345678,
+                'sort_order' => 0,
+            ],
+            
         ];
     }
 
@@ -322,7 +372,7 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'text',
                 'setting_name' => 'payment_api_public_key',
-                'setting_title' => 'Payment Api Public Key',
+                'setting_title' => 'Payment API - Public Key',
                 'default_value' => '2BPBatfc47rsUN2za54WjY48Bc3395AemHWDSL86zbbUyuvhHcQ9LVXw873HYV5D',
                 'sort_order' => $sortOrder++,
             ],
@@ -336,7 +386,7 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'text',
                 'setting_name' => 'payment_api_secret',
-                'setting_title' => 'Payment API Secret',
+                'setting_title' => 'Payment API Secret Key',
                 'default_value' => '6X2E6Xk46bK7c9xP',
                 'sort_order' => $sortOrder++,
             ],

@@ -55,7 +55,7 @@
            opacity-0 invisible group-hover:opacity-100 group-hover:visible 
            transition-all duration-300 ease-in-out z-10 
            columns-5 gap-x-1 gap-y-3 leading-8
-           before:content-[''] before:h-7 before:absolute before:top-[-1.75rem] before:w-full bg-white overflow-visible">
+           before:content-[''] before:h-7 before:absolute before:top-[-1.75rem] before:w-full bg-white overflow-visible width-60">
 
                             @foreach ($frontCategoryTree as $category)
                                 <?php /*<li

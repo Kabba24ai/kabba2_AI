@@ -745,7 +745,7 @@ input:-webkit-autofill ~ label{
     color: #fb2c36;
     margin-left: .25rem;
 }
-
+.width-60{width: 60%;}
 /* ============== */
 
 

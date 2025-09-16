@@ -39,6 +39,13 @@ class StoreController extends Controller
             $objProductCategory->save();
         }
 
+        // If hover media is uploaded, associate it with the product category
+        if ($request->hasFile('hover_media')) {
+            $hoverMediaData = MediaHelper::uploadStorageFile('Public Asset', $request->file('hover_media'), 'product-categories', $objProductCategory);
+            $objProductCategory->hover_media_id = $hoverMediaData['mediaObj']->id ?? null;
+            $objProductCategory->save();
+        }
+
         // Sync products if provided
         $objProductCategory->products()->sync($validatedData['products'] ?? []);
 

@@ -51,9 +51,16 @@
                         class="border py-5 px-5 md:px-1 lg:py-4 lg:px-4 rounded-lg text-center shadow-[0_2px_5px_rgba(0,0,0,0.05)] transition-transform duration-300 hover:-translate-y-1">
                         <a href="{{ route('front.categories.index', $category->slug) }}"
                             class=" transition-all duration-300 ease-in-out hover:text-black">
-                            <div class="w-full">
-                                <img src="{{ $category->media?->url }}" alt="Skid Steer"
-                                    class="mx-auto category-product rounded-md object-cover h-[auto]" />
+                            <div class="w-full relative group">
+                                <img src="{{ $category->image_url }}" alt="{{ $category->title }}"
+                                    class="mx-auto category-product rounded-md object-cover h-auto transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+                                    loading="lazy" />
+
+                                <!-- Hover image (first gallery image) -->
+                                <img src="{{ $category->hover_image_url }}"
+                                    alt="{{ $category->title }} hover"
+                                    class="absolute inset-0 w-full h-full object-cover rounded-md opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
+                                    loading="lazy" />
                             </div>
                             <div>
                                 <h3

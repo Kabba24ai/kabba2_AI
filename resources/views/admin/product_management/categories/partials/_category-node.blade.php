@@ -1,9 +1,9 @@
 <li class="sortable-category-item" data-id="{{ $category->id }}">
     <div
-        class="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition group">
-        <div class="flex items-center gap-3">
+        class="overflow-hidden flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition group min-w-0">
+        <div class="flex items-center gap-3 min-w-0">
             <!-- Drag Handle -->
-            <div data-drag-handle class="text-gray-400 hover:text-gray-600 cursor-move">
+            <div data-drag-handle class="text-gray-400 hover:text-gray-600 cursor-move shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 group-hover:text-gray-600"
                     fill="currentColor" viewBox="0 0 20 20">
                     <circle cx="5" cy="5" r="1.5" />
@@ -16,16 +16,18 @@
             </div>
 
             <!-- Title -->
-            <span class="text-gray-800 dark:text-white font-medium truncate max-w-[110px]">
+            <span class="flex-1 min-w-0 truncate text-gray-800 dark:text-white font-medium">
                 {{ html_entity_decode($category->title) }}
             </span>
 
-            <!-- Status -->
-            {!! \App\Helpers\CustomHelper::statusBadge($category->status) !!}
+            <div class="shrink-0">
+                <!-- Status -->
+                {!! \App\Helpers\CustomHelper::statusBadge($category->status) !!}
+            </div>
 
         </div>
 
-        <div class="relative flex items-center">
+        <div class="relative flex items-center shrink-0">
             <!-- More actions button: hidden on desktop -->
             <button class="block md:hidden p-1 hover:bg-gray-200 rounded"
                 onclick="toggleCategoryActionsMenu(event, '{{ $category->id }}')" aria-label="Show Actions">
@@ -63,10 +65,6 @@
                 </form>
             </div>
         </div>
-
-
-
-
     </div>
 
     @if ($category->childCategories->isNotEmpty())

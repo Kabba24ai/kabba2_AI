@@ -41,6 +41,15 @@ class UpdateController extends Controller
             $objProductCategory->media_id = $mediaData['mediaObj']->id ?? null;
         }
 
+        // Handle hover media
+        if ($request->has('hover_media') && !is_null($request->file('hover_media'))) {
+            if (!is_null($objProductCategory->hover_media_id)) {
+                MediaHelper::removeFile($objProductCategory->hoverMedia);
+            }
+            $hoverMediaData = MediaHelper::uploadStorageFile("Public Asset", $request->file('hover_media'), 'product-categories', $objProductCategory);
+            $objProductCategory->hover_media_id = $hoverMediaData['mediaObj']->id ?? null;
+        }
+
         $objProductCategory->save();
 
         // Sync products

@@ -25,6 +25,7 @@ class ProductCategory extends Model
         'seo_title',
         'seo_description',
         'media_id',
+        'hover_media_id',
         'status', // Published, Draft, Pending
         'is_featured', // Yes, No
         'sort_order',
@@ -34,12 +35,17 @@ class ProductCategory extends Model
 
     protected $table = 'product_categories';
 
+    protected $appends = [
+        'image_url',
+        'hover_image_url'
+    ];
+
     public function sluggable(): array
     {
         return [
             'slug' => [
                 'source' => 'title',
-                'onUpdate' => true,
+                'onUpdate' => false,
             ],
         ];
     }
@@ -86,6 +92,11 @@ class ProductCategory extends Model
         return $this->belongsTo(Media::class, 'media_id', 'id');
     }
 
+    public function hoverMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'hover_media_id', 'id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'Active');
@@ -95,6 +106,17 @@ class ProductCategory extends Model
     {
         return $query->whereNull('parent_id');
     }
+
+    public function getHoverImageUrlAttribute()
+    {
+        return $this->hoverMedia ? $this->hoverMedia->getUrl() : asset('storage/admin/images/error/No_Image_Available.jpg');
+    }
+
+    public function getImageUrlAttribute()
+    {
+        return $this->media->url ?? asset('storage/admin/images/error/No_Image_Available.jpg');
+    }
+
 
     public static function boot()
     {

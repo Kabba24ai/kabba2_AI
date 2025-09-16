@@ -9,6 +9,7 @@ use App\Helpers\CustomHelper;
 use App\Http\Resources\Api\Admin\V1\Equipment\ListResource as EquipmentListResource;
 use App\Http\Resources\Api\Admin\V1\OrderMedias\ListResource as OrderMediasListResource;
 use App\Http\Resources\Api\Admin\V1\Orders\ListResource as OrdersListResource;
+use App\Http\Resources\Api\Admin\V1\Stores\ListResource as StoresListResource;
 
 class ListResource extends JsonResource
 {
@@ -34,7 +35,7 @@ class ListResource extends JsonResource
             'sub_total' => $this->sub_total ? CustomHelper::formatCurrency($this->sub_total) : '0.00',
             'tax' => $this->tax ? CustomHelper::formatCurrency($this->tax) : '0.00',
             'total' => $this->total ? CustomHelper::formatCurrency($this->total) : '0.00',
-            //'product_data' => $this->product_data ?? [],
+            'product_data' => $this->product_data ?? [],
             'service_method' => $this->service_method ?? '',
             'service_option' => $this->service_option ?? '',
             'distance_type' => $this->distance_type ?? '',
@@ -83,6 +84,10 @@ class ListResource extends JsonResource
             'equipment_details' => $this->equipment_details ?? '',
             'assigned_by' => $this->equipment_assigned_by ?? '',
             'assigned_at' => CustomHelper::formatDateTime($this->equipment_assigned_at) ?? '',
+
+            'delivery_store' => new StoresListResource($this->whenLoaded('deliveryStore')),
+
+            'pickup_store' => new StoresListResource($this->whenLoaded('pickupStore')),
 
         ];
 

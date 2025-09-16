@@ -28,7 +28,7 @@ class ShowController extends BaseController
 
         $uniqueId = $validatedData['unique_id'];
 
-        $order = Order::query()->with('shippingAddress', 'billingAddress', 'licenseMedia', 'products.product', 'lastPayment', 'notes', 'products.deliveryMedia', 'products.pickupMedia', 'products.deliverySignatureMedia', 'products.returnSignatureMedia')
+        $order = Order::query()->with('shippingAddress', 'billingAddress', 'licenseMedia', 'products.product', 'lastPayment', 'notes', 'products.deliveryMedia', 'products.pickupMedia', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.deliveryStore','products.pickupStore')
             ->where('unique_id', $uniqueId)
             ->first();
 

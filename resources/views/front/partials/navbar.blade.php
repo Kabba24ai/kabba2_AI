@@ -92,7 +92,7 @@
                                     {{-- 2nd level submenu --}}
                                     @if ($category->childCategories->isNotEmpty())
                                         <ul
-                                        class="absolute top-3 left-0 ml-2 w-max min-w-56 pt-3 pb-3
+                                        class="absolute top-6 left-0 ml-2 w-max min-w-56 pt-3 pb-3
                                                 border border-gray-300 bg-white shadow-lg rounded-md
                                                 opacity-0 invisible transition-all duration-200 ease-in-out
                                                 group-hover/item:opacity-100 group-hover/item:visible z-20
@@ -100,7 +100,7 @@
                                         @foreach ($category->childCategories as $child)
                                             <li class="{{ $child->childCategories->isNotEmpty() ? 'relative group/subitem' : '' }}">
                                             <a href="{{ route('front.categories.sub-category', ['slug' => $category->slug, 'childCategorySlug' => $child->slug]) }}"
-                                                class="block px-4 py-1 text-sm text-gray-700 hover:text-yellow-400 leading-7 whitespace-nowrap">
+                                                class="block px-4 py-1 text-sm text-gray-700 hover:text-yellow-400 leading-6 whitespace-nowrap">
                                                 {{ $child->title }}
                                             </a>
 

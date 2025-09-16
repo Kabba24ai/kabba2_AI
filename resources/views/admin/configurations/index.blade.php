@@ -139,7 +139,7 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
             $inputValue = old("settings.{$setting->id}", $setting->setting_value);
 
             // Base classes (full width; let the grid control sizing)
-            $baseClasses = "w-full rounded border border-gray-300 px-3 py-2 text-sm
+            $baseClasses = "w-full rounded border border-gray-300 px-3 py-2 pr-[35px] text-sm
             focus:ring-2 focus:ring-brand-500 focus:border-brand-500
             dark:bg-gray-800 dark:text-white";
 

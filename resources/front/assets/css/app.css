@@ -747,13 +747,36 @@ input:-webkit-autofill ~ label{
 }
 .width-60{width: 60%;}
 /* ============== */
-
-
-@media screen and (min-width:1500px) and (max-width:2500px) {
+@media screen and (min-width:2500px) and (max-width:2599px){
+    .width-60{width: 34%;}
+}
+@media screen and (min-width:2400px) and (max-width:2499px){
+    .width-60{width: 36%;}
+}
+@media screen and (min-width:2300px) and (max-width:2399px){
+    .width-60{width: 38%;}
+}
+@media screen and (min-width:2200px) and (max-width:2299px){
+    .width-60{width: 41%;}
+}
+@media screen and (min-width:2100px) and (max-width:2199px){
+    .width-60{width: 41%;}
+}
+ 
+@media screen and (min-width:2000px) and (max-width:2099px){
+    .width-60{width: 43%;}
+}
+@media screen and (min-width:1900px) and (max-width:1999px){
+    .width-60{width: 45%;}
+}
+@media screen and (min-width:1800px) and (max-width:1899px){
+    .width-60{width: 48%;}
+}
+@media screen and (min-width:1500px) and (max-width:1700px) {
     .container {
         max-width: 1320px;
     }
-    .width-60{width: 40%;}
+    .width-60{width: 60%;}
 }
 
 @media screen and (min-width:992px) and (max-width:1400px) {

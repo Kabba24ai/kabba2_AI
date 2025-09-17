@@ -685,18 +685,58 @@
             const extendedDeliveryFeeInput = document.querySelector('input[name="extended_delivery_fee"]');
             const deliveryAndPickupInput = document.querySelector('input[name="delivery_and_pickup"]');
 
+            standardDeliveryFeeInput?.addEventListener('input', function() {
+                if (this.value && deliveryAndPickupInput.checked) {
+                    // If user manually changes, uncheck sizes
+                    sizeCheckboxes.forEach(cb => cb.checked = false);
+                }
+            });
+
+            extendedDeliveryFeeInput?.addEventListener('input', function() {
+                if (this.value && deliveryAndPickupInput.checked) {
+                    // If user manually changes, uncheck sizes
+                    sizeCheckboxes.forEach(cb => cb.checked = false);
+                }
+            });
+
+            deliveryAndPickupInput?.addEventListener('change', function() {
+                if (!this.checked) {
+                    // If delivery is unchecked, clear fees and sizes
+                    if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = '';
+                    if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = '';
+                    sizeCheckboxes.forEach(cb => cb.checked = false);
+                } else {
+                    // If checked and a size is selected, auto-fill fees
+                    const selectedSize = sizeCheckboxes.find(cb => cb.checked);
+                    if (selectedSize) {
+                        const fees = sizeFeeMap[selectedSize.value];
+                        if (fees) {
+                            if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = fees.standard;
+                            if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = fees.extended;
+                        }
+                    }
+                }
+            });
+
             // Make size checkboxes behave like single-select (no radios)
             const sizeCheckboxes = Array.from(document.querySelectorAll('input[name="size"]'));
 
             sizeCheckboxes.forEach(cb => {
                 cb.addEventListener('change', function (e) {
+                    // Prevent checking if delivery is not enabled
+                    if (!deliveryAndPickupInput.checked) {
+                        cb.checked = false;
+                        return;
+                    }
+
+                    // Auto-fill delivery fees if delivery is enabled
                     if (cb.checked && deliveryAndPickupInput.checked) {
                         const fees = sizeFeeMap[cb.value];
                         if (fees) {
                             if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = fees.standard;
                             if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = fees.extended;
                         }
-                    }else{
+                    } else {
                         // If unchecked, clear fees
                         if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = '';
                         if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = '';

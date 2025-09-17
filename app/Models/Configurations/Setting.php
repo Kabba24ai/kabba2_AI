@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 use App\Helpers\ModelHelper;
 use App\Enums\Configurations\SettingType;
+use Illuminate\Support\Facades\Crypt;
 
 class Setting extends Model
 {
@@ -19,10 +20,43 @@ class Setting extends Model
         'setting_title', // e.g., 'Customer Development/Staging Email'
         'setting_value', // e.g., example@example.com
         'setting_options', // For options like dropdowns
+        'placeholder',
+        'is_secure_field',
+        'is_required',
+        'is_eye_toggle',
+        'is_encrypted',
         'sort_order',
         'created_by',
         'updated_by',
     ];
+
+
+    //  Auto encrypt/decrypt setting_value
+    public function setSettingValueAttribute($value)
+    {
+        if ($this->is_encrypted) {
+            $this->attributes['setting_value'] = Crypt::encryptString($value);
+        } else {
+            $this->attributes['setting_value'] = $value;
+        }
+    }
+
+    public function getSettingValueAttribute($value)
+    {
+        if ($this->is_encrypted && !is_null($value)) {
+            try {
+                // Try to decrypt
+                return Crypt::decryptString($value);
+            } catch (\Exception $e) {
+                // Value wasn't encrypted yet, just return as-is
+                return $value;
+            }
+        }
+        return $value;
+    }
+
+
+
     public function getSettingTypeEnum(): SettingType
     {
         return SettingType::tryFrom($this->setting_type) ?? SettingType::OTHER;
@@ -72,5 +106,10 @@ class Setting extends Model
 
     public function getSetting(){
         return $this->setting_value;
+    }
+
+    public function getEncryptedValue(): ?string
+    {
+        return $this->getRawOriginal('setting_value');
     }
 }

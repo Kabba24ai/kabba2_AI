@@ -92,6 +92,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'number',
                 'setting_name' => 'sales_tax',
                 'setting_title' => 'Sales Tax',
+                'placeholder' => '8.25',
                 'default_value' => 0.0975,
                 'sort_order' => $sortOrder++,
             ],
@@ -100,6 +101,7 @@ class SettingSeeder extends Seeder
                 'setting_name' => 'standard_delivery_range',
                 'setting_title' => 'Standard Delivery Range Up To',
                 'default_value' => 15,
+                'placeholder' => 'Enter numerical distance',
                 'sort_order' => $sortOrder++,
             ],
             [
@@ -107,6 +109,7 @@ class SettingSeeder extends Seeder
                 'setting_name' => 'extended_delivery_range',
                 'setting_title' => 'Extended Delivery Range Up To',
                 'default_value' => 30,
+                'placeholder' => 'Enter numerical distance',
                 'sort_order' => $sortOrder++,
             ],
             [
@@ -129,6 +132,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'textarea',
                 'setting_name' => 'prepaid_fuel_info',
                 'setting_title' => 'Prepaid Fuel Message',
+                'placeholder' => 'Enter message for prepaid fuel popup...',
                 'default_value' => "I understand that the machine is delivered full of fuel and I’m responsible for returning it full of fuel. If returned without a full tank, I will be charged $8/gallon. If I take the 'Pre-Paid Fuel' option, I can just walk away from this obligation.",
                 'sort_order' => $sortOrder++,
             ],
@@ -136,6 +140,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_fuel_decline_label',
                 'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
                 'default_value' => self::DECLINE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -143,6 +148,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_fuel_approve_label',
                 'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -151,6 +157,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'textarea',
                 'setting_name' => 'prepaid_cleaning_info',
                 'setting_title' => 'Prepaid Cleaning Message',
+                'placeholder' => 'Enter message for prepaid cleaning popup...',
                 'default_value' => "I understand I’ll be responsible for bringing the equipment back clean or be charged. This does not cover 'Extreme' cleaning, only standard.",
                 'sort_order' => $sortOrder++,
             ],
@@ -158,6 +165,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_cleaning_decline_label',
                 'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
                 'default_value' => self::DECLINE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -165,17 +173,19 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_cleaning_approve_label',
                 'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
 
-            
+
 
             // --- Track Insurance ---
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'track_insurance_info',
                 'setting_title' => 'Thrown Track Insurance Message',
+                'placeholder' => 'Enter message for thrown track insurance popup...',
                 'default_value' => 'By removing the Track Insurance, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance.',
                 'sort_order' => $sortOrder++,
             ],
@@ -183,6 +193,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'track_insurance_decline_label',
                 'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
                 'default_value' => self::DECLINE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -190,6 +201,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'track_insurance_approve_label',
                 'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -199,6 +211,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'textarea',
                 'setting_name' => 'damage_waiver_info',
                 'setting_title' => 'Damage Waiver Protection Message',
+                'placeholder' => 'Enter message for damage waiver protection popup...',
                 'default_value' => 'By removing the Damage Waiver, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance.',
                 'sort_order' => $sortOrder++,
             ],
@@ -206,6 +219,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'damage_waiver_decline_label',
                 'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
                 'default_value' => self::DECLINE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -213,6 +227,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'damage_waiver_approve_label',
                 'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -227,6 +242,7 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'text',
                 'setting_name' => 'mobile',
+                'placeholder' => 'USA (xxx) xxx-xxxx',
                 'setting_title' => 'Phone',
                 'sort_order' => $sortOrder++,
             ],
@@ -234,6 +250,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'email',
                 'setting_name' => 'email',
                 'setting_title' => 'Email - General',
+                'placeholder' => 'general@company.com',
                 'sort_order' => $sortOrder++,
             ],
             // [
@@ -253,6 +270,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'enquiry-email',
                 'setting_title' => 'Email - Sales Inquiry',
+                'placeholder' => 'sales@company.com',
                 'sort_order' => $sortOrder++,
             ],
             // Complaint
@@ -260,6 +278,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'complaint-email',
                 'setting_title' => 'Email - Complaints',
+                'placeholder' => 'complaints@company.com',
                 'sort_order' => $sortOrder++,
             ],
             // Feedback
@@ -267,6 +286,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'feedback-email',
                 'setting_title' => 'Email - Feedback',
+                'placeholder' => 'feedback@company.com',
                 'sort_order' => $sortOrder++,
             ],
         ];
@@ -280,51 +300,59 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'facebook_page_link',
                 'setting_title' => 'Facebook Page Link',
+                'placeholder' => 'https://www.facebook.com/yourpage',
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'twitter_page_link',
                 'setting_title' => 'Twitter Page Link',
+                'placeholder' => 'https://www.twitter.com/youraccount',
                 'sort_order' => $sortOrder++,
             ],
-            
+
             [
                 'value_type' => 'text',
                 'setting_name' => 'instagram_page_link',
                 'setting_title' => 'Instagram URL',
+                'placeholder' => 'https://www.instagram.com/youracount',
                 'sort_order' => $sortOrder++,
             ],
-            
+
             [
                 'value_type' => 'text',
                 'setting_name' => 'linkedin_page_link',
                 'setting_title' => 'LinkedIn Page Link',
+                'placeholder' => 'https://www.linkedIn.com/company/yourcompany',
                 'sort_order' => $sortOrder++,
             ],
-            
+
             [
                 'value_type' => 'text',
                 'setting_name' => 'youtube_page_link',
                 'setting_title' => 'Youtube Page Link',
+                'placeholder' => 'https://www.youtube.com/c/yourchannel',
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'tiktok_page_link',
                 'setting_title' => 'Tiktok Page Link',
+                'placeholder' => 'https://www.tiktok.com/@youraccount',
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'pinterest_page_link',
                 'setting_title' => 'Pinterest Page Link',
+                'placeholder' => 'https://www.pinterest.com/youraccount',
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'snapchat_page_link',
                 'setting_title' => 'Snapchat Page Link',
+                'placeholder' => 'https://www.snapchat.com/add/youraccount',
                 'sort_order' => $sortOrder++,
             ],
             [
@@ -346,20 +374,29 @@ class SettingSeeder extends Seeder
     {
         $this->settings['Admin Settings'] = [
             [
-                'value_type' => 'text',
+                'value_type' => 'password',
                 'setting_name' => 'master_passcode',
                 'setting_title' => 'Master Passcode',
                 'default_value' => 12345678,
                 'sort_order' => 0,
+                'placeholder' => 'Enter master passcode',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
             ],
             [
-                'value_type' => 'text',
+                'value_type' => 'password',
                 'setting_name' => 'master_password_entry',
                 'setting_title' => 'Master Password - Entry',
                 'default_value' => 12345678,
                 'sort_order' => 0,
+                'placeholder' => 'Enter Password for access/edit',
+                'is_secure_field' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
             ],
-            
+
         ];
     }
 
@@ -371,6 +408,8 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'payment_gateway',
                 'setting_title' => 'Payment Gateway',
+                'placeholder' => 'Enter payment gateway name',
+                'is_secure_field' => 1,
                 'default_value' => 'Authorize.Net',
                 'sort_order' => $sortOrder++,
             ],
@@ -378,13 +417,19 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'payment_api_public_key',
                 'setting_title' => 'Payment API - Public Key',
+                'placeholder' => 'Enter public API key',
+                'is_secure_field' => 1,
                 'default_value' => '2BPBatfc47rsUN2za54WjY48Bc3395AemHWDSL86zbbUyuvhHcQ9LVXw873HYV5D',
                 'sort_order' => $sortOrder++,
             ],
             [
-                'value_type' => 'text',
+                'value_type' => 'password',
                 'setting_name' => 'payment_api_key',
                 'setting_title' => 'Payment API Key',
+                'placeholder' => 'Enter API key',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_eye_toggle'     => 1,
                 'default_value' => '2Y7eAt88',
                 'sort_order' => $sortOrder++,
             ],
@@ -392,6 +437,10 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'payment_api_secret',
                 'setting_title' => 'Payment API Secret Key',
+                'placeholder' => 'Enter secret key',
+                'is_secure_field' => 1,
+                'is_required' => 1,
+                'is_eye_toggle'     => 1,
                 'default_value' => '6X2E6Xk46bK7c9xP',
                 'sort_order' => $sortOrder++,
             ],
@@ -399,6 +448,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'boolean',
                 'setting_name' => 'payment_test_mode',
                 'setting_title' => 'Payment Test Mode',
+                'is_secure_field' => 1,
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
@@ -433,23 +483,44 @@ class SettingSeeder extends Seeder
                         'setting_name' => $setting['setting_name'],
                     ],
                     [
-                        'setting_title' => $setting['setting_title'],
-                        'value_type' => $setting['value_type'],
-                        'setting_options' => $setting['setting_options'] ?? null,
-                        'setting_value' => $setting['default_value'] ?? null,
-                        'sort_order' => $setting['sort_order'] ?? 0,
-                    ],
+                        'setting_title'     => $setting['setting_title'],
+                        'value_type'        => $setting['value_type'],
+                        'setting_options'   => $setting['setting_options'] ?? null,
+                        'sort_order'        => $setting['sort_order'] ?? 0,
+                        'placeholder'       => $setting['placeholder'] ?? null,
+                        'is_secure_field'   => $setting['is_secure_field'] ?? 0,
+                        'is_required'       => $setting['is_required'] ?? 0,
+                        'is_encrypted'      => $setting['is_encrypted'] ?? 0,
+                        'is_eye_toggle'     => $setting['is_eye_toggle'] ?? 0,
+                    ]
                 );
 
+                //  Now trigger mutator
+                if (isset($setting['default_value'])) {
+                    $setting_item->setting_value = $setting['default_value'];
+                    $setting_item->save();
+                }
+
+
+
                 if ($updateExisting && !$setting_item->wasRecentlyCreated) {
-                    $updateData = [
-                        'setting_title' => $setting['setting_title'],
-                        'value_type' => $setting['value_type'],
-                        'setting_value' => $setting['default_value'] ?? null,
-                        'setting_options' => $setting['setting_options'] ?? null,
-                        'sort_order' => $setting['sort_order'] ?? 0,
-                    ];
-                    $setting_item->update($updateData);
+                    $setting_item->fill([
+                        'setting_title'     => $setting['setting_title'],
+                        'value_type'        => $setting['value_type'],
+                        'setting_options'   => $setting['setting_options'] ?? null,
+                        'sort_order'        => $setting['sort_order'] ?? 0,
+                        'placeholder'       => $setting['placeholder'] ?? null,
+                        'is_secure_field'   => $setting['is_secure_field'] ?? 0,
+                        'is_required'       => $setting['is_required'] ?? 0,
+                        'is_encrypted'      => $setting['is_encrypted'] ?? 0,
+                        'is_eye_toggle'     => $setting['is_eye_toggle'] ?? 0,
+                    ]);
+
+                    if (isset($setting['default_value'])) {
+                        $setting_item->setting_value = $setting['default_value']; //  goes through mutator
+                    }
+
+                    $setting_item->save();
                 }
             }
         }

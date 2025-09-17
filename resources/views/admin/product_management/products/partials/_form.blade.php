@@ -404,7 +404,7 @@
 
     <!-- Categories Column -->
     <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
-        <h3 class="text-md font-semibold text-gray-700 dark:text-white mb-4 ">Category Hierarchy</h3>
+        <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Add 1 or More Categories</h4>
 
         @if ($categoryTree->isNotEmpty())
             <div class="max-h-64 overflow-y-auto pr-2 custom-scroll">
@@ -423,7 +423,7 @@
 
     <!-- Sales Funnels Column -->
     <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
-        <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-3">Sales Funnels</h3>
+        <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Add 1 or More Sales Funnels</h4>
 
         @if ($funnels->isNotEmpty())
             <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">

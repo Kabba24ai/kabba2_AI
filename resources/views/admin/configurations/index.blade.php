@@ -7,7 +7,7 @@
 @php
 $secureFields = ['Admin Settings', 'Payment Settings'];
 
-$eyetoggle = ['master_passcode', 'payment_api_key' , 'payment_api_secret'];
+$eyetoggle = ['master_passcode', 'payment_api_key' , 'payment_api_secret','master_password_entry'];
 
 @endphp
 
@@ -143,6 +143,10 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
             focus:ring-2 focus:ring-brand-500 focus:border-brand-500
             dark:bg-gray-800 dark:text-white";
 
+            if ($setting->setting_name === 'mobile') {
+    $baseClasses .= ' masked-phone';
+}
+
             $errorClass = $errors->has("settings.{$setting->id}") ? 'border-red-500' : '';
 
             switch ($setting->value_type) {
@@ -214,11 +218,11 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
 
             case 'checkbox':
             $input = html()
-                ->checkbox("settings[{$setting->id}]", $inputValue) // use checkbox here
-                ->class("h-4 w-4 text-brand-600 border-gray-300 rounded $errorClass")
-                ->id("setting_{$setting->id}");
+            ->checkbox("settings[{$setting->id}]", $inputValue) // use checkbox here
+            ->class("h-4 w-4 text-brand-600 border-gray-300 rounded $errorClass")
+            ->id("setting_{$setting->id}");
             break;
-            
+
 
             default:
             $input = html()
@@ -237,152 +241,224 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
             if ($isSecure) {
             $input = $input->attribute('disabled', true)->class('bg-gray-100');
             }
-
+ // If field is "mobile", add placeholder
+    if ($setting->setting_name === 'mobile') {
+        $input = $input->attribute('placeholder', 'USA (xxx) xxx-xxxx');
+    }
             @endphp
 
 
 
             {{-- Field --}}
-            @if($setting->setting_title=="Prepaid Fuel Information")
+            @if($setting->setting_title=="Prepaid Fuel Message")
 
-                <div class="space-y-4 md:col-span-2 border-t border-gray-200 pt-6">
-                    <div class="flex items-center space-x-2  overflow-visible">
-                        <h3 class="text-lg font-medium text-gray-900">Prepaid Fuel</h3>
-                        <div class="relative group overflow-visible">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">This feeds into a pop-up on the website when people deselect this option. <br> Pop-up appears with a message and 2 option buttons (Accept or Decline)
-                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                            </div>
+            <div class="space-y-4 md:col-span-2 border-t border-gray-200 pt-6">
+                <div class="flex items-center space-x-2  overflow-visible">
+                    <h3 class="text-lg font-medium text-gray-900">Prepaid Fuel</h3>
+                    <div class="relative group overflow-visible">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">This feeds into a pop-up on the website when people deselect this option. <br> Pop-up appears with a message and 2 option buttons (Accept or Decline)
+                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                         </div>
                     </div>
                 </div>
-            @elseif($setting->setting_title=="Prepaid Cleaning Information")
+            </div>
+            @elseif($setting->setting_title=="Prepaid Cleaning Message")
 
-                <div class="space-y-4 md:col-span-2 border-t border-gray-200 pt-6">
-                    <div class="flex items-center space-x-2  overflow-visible">
-                        <h3 class="text-lg font-medium text-gray-900">Prepaid Cleaning</h3>
-                        <div class="relative group overflow-visible">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">This feeds into a pop-up on the website when people deselect this option.<br> Pop-up appears with a message and 2 option buttons (Accept or Decline)
-                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                            </div>
+            <div class="space-y-4 md:col-span-2 border-t border-gray-200 pt-6">
+                <div class="flex items-center space-x-2  overflow-visible">
+                    <h3 class="text-lg font-medium text-gray-900">Prepaid Cleaning</h3>
+                    <div class="relative group overflow-visible">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">This feeds into a pop-up on the website when people deselect this option.<br> Pop-up appears with a message and 2 option buttons (Accept or Decline)
+                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                         </div>
                     </div>
                 </div>
+            </div>
+             @elseif($setting->setting_title=="Facebook Page Link")
+            <div class="md:col-span-2 ">
+                <div class="text-left">
+                    <h2 class="text-xl font-semibold text-gray-900">Social Media Profiles</h2>
+                </div>
+            </div>
+            
             @elseif($setting->setting_title=="Show Social Media Icons")
             <div class="md:col-span-2 border-t border-gray-200 pt-6">
                 <div class="text-left">
                     <h2 class="text-xl font-semibold text-gray-900">Display Settings</h2>
                 </div>
             </div>
-                
+
             @endif
 
-            @if($setting->setting_title=="Damage Waiver Information")
+            @if($setting->setting_title=="Damage Waiver Protection Message")
 
-                <div class="space-y-4 md:col-span-2 border-t border-gray-200 pt-6">
-                    <div class="flex items-center space-x-2  overflow-visible">
-                        <h3 class="text-lg font-medium text-gray-900">Damage Waiver Protection</h3>
-                        <div class="relative group overflow-visible">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">This feeds into a pop-up on the website when people deselect this option. <br> Pop-up appears with a message and 2 option buttons (Accept or Decline)
-                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                            </div>
+            <div class="space-y-4 md:col-span-2 border-t border-gray-200 pt-6">
+                <div class="flex items-center space-x-2  overflow-visible">
+                    <h3 class="text-lg font-medium text-gray-900">Damage Waiver Protection</h3>
+                    <div class="relative group overflow-visible">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">This feeds into a pop-up on the website when people deselect this option. <br> Pop-up appears with a message and 2 option buttons (Accept or Decline)
+                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                         </div>
                     </div>
                 </div>
+            </div>
             @endif
 
-            @if($setting->setting_title=="Track Insurance Information")
+            @if($setting->setting_title=="Thrown Track Insurance Message")
 
-                <div class="space-y-4 md:col-span-2 border-t border-gray-200 pt-6">
-                    <div class="flex items-center space-x-2  overflow-visible">
-                        <h3 class="text-lg font-medium text-gray-900">Thrown Track Insurance</h3>
-                        <div class="relative group overflow-visible">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">This feeds into a pop-up on the website when people deselect this option. <br> Pop-up appears with a message and 2 option buttons (Accept or Decline)
-                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                            </div>
+            <div class="space-y-4 md:col-span-2 border-t border-gray-200 pt-6">
+                <div class="flex items-center space-x-2  overflow-visible">
+                    <h3 class="text-lg font-medium text-gray-900">Thrown Track Insurance</h3>
+                    <div class="relative group overflow-visible">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">This feeds into a pop-up on the website when people deselect this option. <br> Pop-up appears with a message and 2 option buttons (Accept or Decline)
+                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                         </div>
                     </div>
                 </div>
+            </div>
             @endif
 
-            <div class="space-y-1.5 {{ $setting->value_type === 'textarea' ? 'md:col-span-2' : '' }}">
+
+
+            <div class="space-y-1.5 {{ ($setting->value_type === 'textarea' || $setting->setting_name === 'sales_tax' ) ? 'md:col-span-2' : '' }}">
+
                 @if($setting->setting_title=="Show Social Media Icons" || $setting->setting_title=="Enable Social Sharing")
-                    <div class="flex items-center space-x-2">
-                        {!! $input !!}
-                        
-                        
+                <div class="flex items-start space-x-2">
+                    {!! $input !!}
 
-                        @if(in_array($setting->setting_name, $eyetoggle))
+                    @if(in_array($setting->setting_name, $eyetoggle))
 
-                        <button type="button"
-                            class="pw-toggle absolute inset-y-0 right-10 px-2 text-gray-500 hover:text-gray-700 disabled-eye"
-                            data-target="#setting_{{ $setting->id }}"
-                            aria-pressed="false" title="Show/Hide passcode">
-                            <svg data-eye xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-5 h-5">
-                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
+                    <button type="button"
+                        class="pw-toggle absolute inset-y-0 right-10 px-2 text-gray-500 hover:text-gray-700 disabled-eye"
+                        data-target="#setting_{{ $setting->id }}"
+                        aria-pressed="false" title="Show/Hide passcode">
+                        <svg data-eye xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-5 h-5">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
 
-                            <svg data-eye-off xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off w-5 h-5 hidden">
-                                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
-                                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
-                                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
-                                <line x1="2" x2="22" y1="2" y2="22"></line>
-                            </svg>
-                        </button>
+                        <svg data-eye-off xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off w-5 h-5 hidden">
+                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                            <line x1="2" x2="22" y1="2" y2="22"></line>
+                        </svg>
+                    </button>
 
-                        @endif
-                        {{-- Lock button only for secure groups --}}
-                        @if(in_array($type, $secureFields))
-                        <button type="button"
-                            class="opensecurityModal lock-trigger absolute inset-y-0 right-2 px-2 flex items-center text-blue-600 hover:text-gray-600 lock-wrapper">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                class="lucide lucide-lock w-4 h-4">
-                                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
-                        </button>
-                        @endif
+                    @endif
+                    {{-- Lock button only for secure groups --}}
+                    @if(in_array($type, $secureFields))
+                    <button type="button"
+                        class="opensecurityModal lock-trigger absolute inset-y-0 right-2 px-2 flex items-center text-blue-600 hover:text-gray-600 lock-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-lock w-4 h-4">
+                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </button>
+                    @endif
 
-                         <div>
+                    <div>
                         <label for="setting_{{ $setting->id }}"
-                            class="block font-medium text-gray-700 text-left">
+                            class="block font-medium text-gray-700 text-left leading-4">
                             {{ $setting->setting_title }}
                         </label>
-                        
-                       
-                            <span class="block text-gray-500 text-sm">
-                                @if($setting->setting_title=="Enable Social Sharing")
-                                    Allow visitors to share your content on social media platforms
-                                @elseif($setting->setting_title=="Show Social Media Icons")
-                                    Display social media icons in website footer and contact page
-                                @endif
-                            </span>
-                        </div>
 
+
+                        <span class="block text-gray-500 text-sm mt-1">
+                            @if($setting->setting_title=="Enable Social Sharing")
+                            Allow visitors to share your content on social media platforms
+                            @elseif($setting->setting_title=="Show Social Media Icons")
+                            Display social media icons in website footer and contact page
+                            @endif
+                        </span>
                     </div>
 
-                    <span class="parsley-errors-list"></span>
-                    @error("settings.{$setting->id}")
-                    <p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                   
+                </div>
 
-                    
+                <span class="parsley-errors-list"></span>
+                @error("settings.{$setting->id}")
+                <p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+
+
+
                 @else
+
+                @if($setting->setting_name !== 'include_extended_range')
+
                 <label for="setting_{{ $setting->id }}"
-                    class="block text-sm font-medium text-gray-700 mb-1 text-left">
+                    class="block text-sm font-medium text-gray-700 mb-1 text-left ">
+
                     {{ $setting->setting_title }}
+
+                    @if (in_array($setting->setting_name, ['master_passcode', 'master_password_entry', 'payment_api_secret']))
+                    <span class="text-red-500 ml-1">*</span>
+                    @endif
+
+                    @if (in_array($setting->setting_name, ['master_passcode', 'payment_api_key', 'payment_api_secret']))
+                    <span class="text-blue-600 ml-2 text-xs">(Encrypted)</span>
+                    @endif
                 </label>
 
+                @endif
 
-                <div class="relative">
+                <div class=" @if($setting->setting_name == 'include_extended_range') flex items-start space-x-2 @else relative @endif">
+
+
+                    @if ($setting->setting_name == "sales_tax" )
+                    <div class="space-y-2">
+
+                        <div class="flex items-center space-x-2">
+                            <input type="number" placeholder="8.25" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" step="any" min="0" max="100" value="{{ $setting->setting_value }}" name="settings[{{ $setting->id}}]" id="setting_{{ $setting->id}}">
+                            <span class="text-sm text-gray-500">%</span>
+                        </div>
+                        <p class="text-sm text-gray-500 text-left">Enter percentage (e.g., 8.25 for 8.25%)</p>
+                    </div>
+
+                    @else
                     {!! $input !!}
+                    @endif
+
+                     @if($setting->setting_name == 'include_extended_range')
+
+                <label for="setting_{{ $setting->id }}"
+                    class="block text-sm font-medium text-gray-700 mb-1 text-left ">
+
+                    {{ $setting->setting_title }}
+
+                    @if (in_array($setting->setting_name, ['master_passcode', 'master_password_entry', 'payment_api_secret']))
+                    <span class="text-red-500 ml-1">*</span>
+                    @endif
+
+                    @if (in_array($setting->setting_name, ['master_passcode', 'payment_api_key', 'payment_api_secret']))
+                    <span class="text-blue-600 ml-2 text-xs">(Encrypted)</span>
+                    @endif
+                </label>
+
+                @endif
 
                     @if(in_array($setting->setting_name, $eyetoggle))
 
@@ -427,26 +503,28 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                 @enderror
                 @endif
 
-                
+
             </div>
             @if($setting->setting_title=="Enable Social Sharing")
-                        <div class="bg-gray-50 border border-gray-200 rounded-md p-4 md:col-span-2 text-left">
-                            <h3 class="text-sm font-medium text-gray-800 mb-3">Preview</h3>
-                            <p class="mt-2 text-sm text-gray-600">
-                            Social media links that have URLs will appear as clickable icons on your website:
-                            </p>
-                            <p class="mt-1 text-sm italic text-gray-400">
-                            Add social media URLs to see preview icons
-                            </p>
-                        </div>
-                    @endif
+            <div class="bg-gray-50 border border-gray-200 rounded-md p-4 md:col-span-2 text-left">
+                <h3 class="text-sm font-medium text-gray-800 mb-3">Preview</h3>
+                <p class="mt-2 text-sm text-gray-600">
+                    Social media links that have URLs will appear as clickable icons on your website:
+                </p>
+                <p class="mt-1 text-sm italic text-gray-400">
+                    Add social media URLs to see preview icons
+                </p>
+            </div>
+            @endif
             @endforeach
         </div>
 
         @if ($type == 'Admin Settings')
         <div class="mt-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-left p-3">
             <div class="flex items-start space-x-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock w-5 h-5 text-amber-600 mt-0.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock w-5 h-5 text-amber-600 mt-0.5">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
                 <div>
                     <h4 class="text-sm font-medium text-amber-800">Security Notice</h4>
@@ -460,7 +538,9 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
         @if ($type == 'Payment Settings')
         <div class="mt-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-left p-3">
             <div class="flex items-start space-x-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock w-5 h-5 text-amber-600 mt-0.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock w-5 h-5 text-amber-600 mt-0.5">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
                 <div>
                     <h4 class="text-sm font-medium text-amber-800">Security Notice</h4>
@@ -481,15 +561,17 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
 </section>
 @endforeach
 
-
-
 {{-- Footer actions --}}
 <div class="mt-8  max-w-4xl mx-auto flex justify-end space-x-4 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
     <button class="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500">
         Reset to Defaults
     </button>
     <button type="submit" name="action" value="save" class="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4 mr-2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4 mr-2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
         Save All Settings
     </button>
 </div>

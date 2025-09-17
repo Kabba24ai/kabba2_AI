@@ -113,7 +113,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'checkbox',
                 'setting_name' => 'include_extended_range',
                 'setting_title' => 'Include Extended Range Option',
-                'default_value' => true,
+                // 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [
@@ -128,21 +128,21 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'prepaid_fuel_info',
-                'setting_title' => 'Prepaid Fuel Information',
+                'setting_title' => 'Prepaid Fuel Message',
                 'default_value' => "I understand that the machine is delivered full of fuel and I’m responsible for returning it full of fuel. If returned without a full tank, I will be charged $8/gallon. If I take the 'Pre-Paid Fuel' option, I can just walk away from this obligation.",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_fuel_decline_label',
-                'setting_title' => 'Prepaid Fuel Decline Label',
+                'setting_title' => 'Decline Button Label',
                 'default_value' => self::DECLINE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_fuel_approve_label',
-                'setting_title' => 'Prepaid Fuel Approve Label',
+                'setting_title' => 'Accept Button Label',
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -150,21 +150,46 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'prepaid_cleaning_info',
-                'setting_title' => 'Prepaid Cleaning Information',
+                'setting_title' => 'Prepaid Cleaning Message',
                 'default_value' => "I understand I’ll be responsible for bringing the equipment back clean or be charged. This does not cover 'Extreme' cleaning, only standard.",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_cleaning_decline_label',
-                'setting_title' => 'Prepaid Cleaning Decline Label',
+                'setting_title' => 'Decline Button Label',
                 'default_value' => self::DECLINE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_cleaning_approve_label',
-                'setting_title' => 'Prepaid Cleaning Approve Label',
+                'setting_title' => 'Accept Button Label',
+                'default_value' => self::APPROVE_LABEL,
+                'sort_order' => $sortOrder++,
+            ],
+
+            
+
+            // --- Track Insurance ---
+            [
+                'value_type' => 'textarea',
+                'setting_name' => 'track_insurance_info',
+                'setting_title' => 'Thrown Track Insurance Message',
+                'default_value' => 'By removing the Track Insurance, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance.',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'track_insurance_decline_label',
+                'setting_title' => 'Decline Button Label',
+                'default_value' => self::DECLINE_LABEL,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'track_insurance_approve_label',
+                'setting_title' => 'Accept Button Label',
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -173,44 +198,21 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'damage_waiver_info',
-                'setting_title' => 'Damage Waiver Information',
+                'setting_title' => 'Damage Waiver Protection Message',
                 'default_value' => 'By removing the Damage Waiver, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance.',
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'damage_waiver_decline_label',
-                'setting_title' => 'Damage Waiver Decline Label',
+                'setting_title' => 'Decline Button Label',
                 'default_value' => self::DECLINE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'damage_waiver_approve_label',
-                'setting_title' => 'Damage Waiver Approve Label',
-                'default_value' => self::APPROVE_LABEL,
-                'sort_order' => $sortOrder++,
-            ],
-
-            // --- Track Insurance ---
-            [
-                'value_type' => 'textarea',
-                'setting_name' => 'track_insurance_info',
-                'setting_title' => 'Track Insurance Information',
-                'default_value' => 'By removing the Track Insurance, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance.',
-                'sort_order' => $sortOrder++,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'track_insurance_decline_label',
-                'setting_title' => 'Track Insurance Decline Label',
-                'default_value' => self::DECLINE_LABEL,
-                'sort_order' => $sortOrder++,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'track_insurance_approve_label',
-                'setting_title' => 'Track Insurance Approve Label',
+                'setting_title' => 'Accept Button Label',
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
@@ -282,22 +284,25 @@ class SettingSeeder extends Seeder
             ],
             [
                 'value_type' => 'text',
-                'setting_name' => 'linkedin_page_link',
-                'setting_title' => 'LinkedIn Page Link',
-                'sort_order' => $sortOrder++,
-            ],
-            [
-                'value_type' => 'text',
                 'setting_name' => 'twitter_page_link',
                 'setting_title' => 'Twitter Page Link',
                 'sort_order' => $sortOrder++,
             ],
+            
             [
                 'value_type' => 'text',
                 'setting_name' => 'instagram_page_link',
                 'setting_title' => 'Instagram URL',
                 'sort_order' => $sortOrder++,
             ],
+            
+            [
+                'value_type' => 'text',
+                'setting_name' => 'linkedin_page_link',
+                'setting_title' => 'LinkedIn Page Link',
+                'sort_order' => $sortOrder++,
+            ],
+            
             [
                 'value_type' => 'text',
                 'setting_name' => 'youtube_page_link',
@@ -349,7 +354,7 @@ class SettingSeeder extends Seeder
             ],
             [
                 'value_type' => 'text',
-                'setting_name' => 'master_passcode_entry',
+                'setting_name' => 'master_password_entry',
                 'setting_title' => 'Master Password - Entry',
                 'default_value' => 12345678,
                 'sort_order' => 0,

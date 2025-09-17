@@ -161,5 +161,31 @@ document.addEventListener('DOMContentLoaded', () => {
         // Allow select all, copy, cut, etc.
         input.placeholder = "0.00";
     });
+
+    const numericInputs = document.querySelectorAll("input[data-numeric-input='true']");
+
+    numericInputs.forEach(function (input) {
+        input.addEventListener("keypress", function (e) {
+            // Allow only digits (0-9) and one dot
+            const char = String.fromCharCode(e.charCode);
+            if (!/[0-9.]/.test(char)) {
+                e.preventDefault();
+            }
+            // Prevent more than one dot
+            if (char === '.' && this.value.includes('.')) {
+                e.preventDefault();
+            }
+        });
+
+        input.addEventListener("input", function () {
+            // Remove all except digits and dot, and allow only one dot
+            let val = this.value.replace(/[^\d.]/g, "");
+            const parts = val.split('.');
+            if (parts.length > 2) {
+                val = parts[0] + '.' + parts.slice(1).join('');
+            }
+            this.value = val;
+        });
+    });
 });
 

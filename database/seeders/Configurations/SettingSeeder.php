@@ -52,34 +52,34 @@ class SettingSeeder extends Seeder
         $sortOrder = 0;
 
         $this->settings['Allocated Hours Settings'] = [
-            // [
-            //     'value_type' => 'number',
-            //     'setting_name' => 'daily_hours',
-            //     'setting_title' => 'Daily Hours',
-            //     'default_value' => 8,
-            //     'sort_order' => $sortOrder++,
-            // ],
-            // [
-            //     'value_type' => 'number',
-            //     'setting_name' => 'weekend_hours',
-            //     'setting_title' => 'Weekend Hours',
-            //     'default_value' => 14,
-            //     'sort_order' => $sortOrder++,
-            // ],
-            // [
-            //     'value_type' => 'number',
-            //     'setting_name' => 'weekly_hours',
-            //     'setting_title' => 'Weekly Hours',
-            //     'default_value' => 40,
-            //     'sort_order' => $sortOrder++,
-            // ],
-            // [
-            //     'value_type' => 'number',
-            //     'setting_name' => 'monthly_hours',
-            //     'setting_title' => 'Monthly Hours',
-            //     'default_value' => 160,
-            //     'sort_order' => $sortOrder++,
-            // ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'daily_hours',
+                'setting_title' => 'Daily Hours',
+                'default_value' => 8,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'weekend_hours',
+                'setting_title' => 'Weekend Hours',
+                'default_value' => 14,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'weekly_hours',
+                'setting_title' => 'Weekly Hours',
+                'default_value' => 40,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'monthly_hours',
+                'setting_title' => 'Monthly Hours',
+                'default_value' => 160,
+                'sort_order' => $sortOrder++,
+            ],
         ];
     }
 
@@ -125,6 +125,20 @@ class SettingSeeder extends Seeder
                 'setting_title' => 'Distance Unit',
                 'setting_options' => json_encode(['Miles', 'Kilometers']),
                 'default_value' => 'Miles',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'damage_waiver_percentage',
+                'setting_title' => 'Damage Waiver Percentage',
+                'default_value' => 0.0,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'overage_rate_percentage',
+                'setting_title' => 'Overage Rate Percentage',
+                'default_value' => 0.0,
                 'sort_order' => $sortOrder++,
             ],
             // --- Prepaid Fuel ---

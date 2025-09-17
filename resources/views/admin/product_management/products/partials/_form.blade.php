@@ -281,7 +281,6 @@
                     'placeholder' => '0',
                     'autocomplete' => 'off',
                     'id' => 'retail_price',
-                    'data-digit-input' => 'true',
                     'data-parsley-maxlength' => 8,
                     'data-parsley-errors-container' => '#retail-price-errors',
                     'maxlength' => 8,
@@ -308,7 +307,6 @@
                     'placeholder' => '0',
                     'autocomplete' => 'off',
                     'id' => 'retail_sale_price',
-                    'data-digit-input' => 'true',
                     'data-parsley-maxlength' => 8,
                     'maxlength' => 8,
                     'data-parsley-errors-container' => '#retail-sale-price-errors',
@@ -336,7 +334,6 @@
                     'placeholder' => '0',
                     'autocomplete' => 'off',
                     'id' => 'retail_product_cost',
-                    'data-digit-input' => 'true',
                     'data-parsley-maxlength' => 8,
                     'maxlength' => 8,
                     'data-parsley-errors-container' => '#retail-product-cost-errors',
@@ -493,6 +490,7 @@
     <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
     @vite('resources/admin/js/tinymce.js')
     <script>
+
         document.addEventListener('alpine:init', () => {
             // Alpine store for shared state
             Alpine.store('productForm', {

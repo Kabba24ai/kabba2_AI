@@ -10,7 +10,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_daily')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-daily-errors',
@@ -30,7 +30,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_weekend')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-weekend-errors',
@@ -49,7 +49,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_weekly')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-weekly-errors',
@@ -68,7 +68,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_monthly')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-monthly-errors',
@@ -93,7 +93,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_daily')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-damage-waiver-daily-errors',
@@ -112,7 +112,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_weekend')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-damage-waiver-weekend-errors',
@@ -131,7 +131,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_weekly')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-damage-waiver-weekly-errors',
@@ -150,7 +150,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_monthly')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-damage-waiver-monthly-errors',
@@ -174,7 +174,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_daily')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-track-insurance-daily-errors',
@@ -193,7 +193,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_weekend')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-track-insurance-weekend-errors',
@@ -212,7 +212,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_weekly')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-track-insurance-weekly-errors',
@@ -231,7 +231,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_monthly')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-truck-insurance-monthly-errors',
@@ -255,7 +255,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_daily')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#sale-price-daily-errors',
@@ -276,7 +276,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_weekend')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#sale-price-weekend-errors',
@@ -297,7 +297,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_weekly')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#sale-price-weekly-errors',
@@ -318,7 +318,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_monthly')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#sale-price-monthly-errors',
@@ -350,7 +350,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_prepaid_cleaning')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-prepaid-cleaning-errors',
@@ -369,7 +369,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_prepaid_fuel')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#rental-prepaid-fuel-errors',
@@ -388,7 +388,7 @@
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('hour_rate')->attributes([
                             'placeholder' => '0',
-                            'data-digit-input' => 'true',
+                            'data-numeric-input' => 'true',
                             'data-parsley-maxlength' => 8,
                             'maxlength' => 8,
                             'data-parsley-errors-container' => '#hour-rate-errors',
@@ -437,7 +437,7 @@
                             <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                             {!! html()->text('standard_delivery_fee')->attributes([
                                     'placeholder' => '0',
-                                    'data-digit-input' => 'true',
+                                    'data-numeric-input' => 'true',
                                     'data-parsley-errors-container' => '#delivery-fee-error',
                                     'class' =>
                                         'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
@@ -456,7 +456,7 @@
                                 <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                                 {!! html()->text('extended_delivery_fee')->attributes([
                                         'placeholder' => '0',
-                                        'data-digit-input' => 'true',
+                                        'data-numeric-input' => 'true',
                                         'data-parsley-errors-container' => '#delivery-fee-error',
                                         'class' =>
                                             'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
@@ -530,23 +530,90 @@
 
 @push('js')
     <script>
+        const damageWaiverPercentage = "{{ $productSettings['damage_waiver_percentage'] }}"
+        const overageRatePercentage = "{{ $productSettings['overage_rate_percentage'] }}";
+
+
         document.addEventListener("DOMContentLoaded", function() {
             const hourTracking = document.querySelector('input[name="hour_tracking"]');
-            const hourRate = document.querySelector('input[name="hour_rate"]');
+            const hourRateInput = document.querySelector('input[name="hour_rate"]');
 
             function toggleHourRateReadonly() {
                 if (hourTracking.checked) {
-                    hourRate.removeAttribute("readonly");
+                    hourRateInput.removeAttribute("readonly");
                 } else {
-                    hourRate.value = "";
-                    hourRate.setAttribute("readonly", true);
+                    hourRateInput.value = "";
+                    hourRateInput.setAttribute("readonly", true);
                 }
             }
 
-            if (hourTracking && hourRate) {
+            if (hourTracking && hourRateInput) {
                 hourTracking.addEventListener("change", toggleHourRateReadonly);
                 toggleHourRateReadonly();
             }
+
+            // Damage Waiver Auto-Calculation
+            const dailyPriceInput = document.querySelector('input[name="rental_daily"]');
+            const weekendPriceInput = document.querySelector('input[name="rental_weekend"]');
+            const weeklyPriceInput = document.querySelector('input[name="rental_weekly"]');
+            const monthlyPriceInput = document.querySelector('input[name="rental_monthly"]');
+
+            const damageWaiverDailyInput = document.querySelector('input[name="rental_damage_waiver_daily"]');
+            const damageWaiverWeekendInput = document.querySelector('input[name="rental_damage_waiver_weekend"]');
+            const damageWaiverWeeklyInput = document.querySelector('input[name="rental_damage_waiver_weekly"]');
+            const damageWaiverMonthlyInput = document.querySelector('input[name="rental_damage_waiver_monthly"]');
+
+            function calculateOverageRate(price) {
+                const percentage = parseFloat(overageRatePercentage);
+                if (isNaN(price) || isNaN(percentage)) return 0;
+                return Math.round((price * percentage) / 100).toFixed(2);
+            }
+
+            function updateOverageRate(inputElement, overageElement) {
+                const price = parseFloat(inputElement.value);
+                if (!isNaN(price) && price > 0) {
+                    overageElement.value = calculateOverageRate(price);
+                } else {
+                    overageElement.value = "";
+                }
+            }
+
+            function calculateDamageWaiver(price) {
+                const percentage = parseFloat(damageWaiverPercentage);
+                if (isNaN(price) || isNaN(percentage)) return 0;
+                return Math.round((price * percentage) / 100).toFixed(2);
+            }
+
+
+            function updateDamageWaiver(inputElement, waiverElement) {
+                const price = parseFloat(inputElement.value);
+                if (!isNaN(price) && price > 0) {
+                    waiverElement.value = calculateDamageWaiver(price);
+                } else {
+                    waiverElement.value = "";
+                }
+            }
+
+            dailyPriceInput.addEventListener("input", () => {
+                if (hourTracking.checked) {
+                    updateOverageRate(dailyPriceInput, hourRateInput);
+                }
+                updateDamageWaiver(dailyPriceInput, damageWaiverDailyInput);
+            });
+
+            weekendPriceInput.addEventListener("input", () => {
+                updateDamageWaiver(weekendPriceInput, damageWaiverWeekendInput);
+            });
+
+            weeklyPriceInput.addEventListener("input", () => {
+                updateDamageWaiver(weeklyPriceInput, damageWaiverWeeklyInput);
+            });
+
+            monthlyPriceInput.addEventListener("input", () => {
+                updateDamageWaiver(monthlyPriceInput, damageWaiverMonthlyInput);
+            });
+
+
         });
     </script>
 @endpush

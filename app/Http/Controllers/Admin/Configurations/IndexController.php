@@ -10,15 +10,14 @@ class IndexController extends Controller
     public function __invoke()
     {
         // Group by string key (no enum)
-        $settings = Setting::whereNotIn('setting_type', ['Email Settings'])
+        $settings = Setting::whereNotIn('setting_type', ['Email Settings', 'Allocated Hours Settings'])
             ->orderBy('sort_order', 'asc')
             ->get()
             ->groupBy('setting_type'); // keys are strings
 
         $settings = $settings->sortKeys();
 
-        $master_passcode = Setting::where('setting_name', 'master_passcode')->value('setting_value');
 
-        return view('admin.configurations.index', compact('settings', 'master_passcode'));
+        return view('admin.configurations.index', compact('settings'));
     }
 }

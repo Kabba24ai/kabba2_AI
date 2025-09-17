@@ -512,16 +512,57 @@
                 @error('delivery_and_pickup')
                     <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
                 @enderror
+
             </div>
         </div>
 
+        {{-- Sizes --}}
+        <div class="mt-3">
+
+            <div class="flex items-center flex-wrap gap-6">
+                <label for="size_small" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'Small', 'Small')->id('size_small')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    Small
+                </label>
+
+                <label for="size_medium" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'Medium', 'Medium')->id('size_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    Medium
+                </label>
+
+                <label for="size_large" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'Large', 'Large')->id('size_large')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    Large
+                </label>
+
+                <label for="size_xlarge" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'X-Large', 'X-Large')->id('size_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    X-Large
+                </label>
+
+                <label for="size_2xlarge" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === '2X-Large', '2X-Large')->id('size_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    2X-Large
+                </label>
+
+                <label for="size_commercial" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'Commercial', 'Commercial')->id('size_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    Commercial
+                </label>
+            </div>
+
+            <div id="sizes-errors"></div>
+            @error('sizes')
+                <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+            @enderror
+        </div>
 
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
         <div class="mt-auto flex justify-end pt-25">
             <a href="{{ route('admin.configurations.index') }}" target="_blank"
-            class="text-sm text-blue-500 hover:underline font-medium">
+                class="text-sm text-blue-500 hover:underline font-medium">
                 Update Settings
             </a>
         </div>
@@ -533,6 +574,33 @@
         const damageWaiverPercentage = "{{ $productSettings['damage_waiver_percentage'] }}"
         const overageRatePercentage = "{{ $productSettings['overage_rate_percentage'] }}";
 
+         // Auto-fill delivery fees based on selected size
+        const sizeFeeMap = {
+            Small: {
+                standard: "{{ $productSettings['small_standard_delivery_fee_formatted'] ?? '' }}",
+                extended: "{{ $productSettings['small_extended_delivery_fee_formatted'] ?? '' }}"
+            },
+            Medium: {
+                standard: "{{ $productSettings['medium_standard_delivery_fee_formatted'] ?? '' }}",
+                extended: "{{ $productSettings['medium_extended_delivery_fee_formatted'] ?? '' }}"
+            },
+            Large: {
+                standard: "{{ $productSettings['large_standard_delivery_fee_formatted'] ?? '' }}",
+                extended: "{{ $productSettings['large_extended_delivery_fee_formatted'] ?? '' }}"
+            },
+            "X-Large": {
+                standard: "{{ $productSettings['x_large_standard_delivery_fee_formatted'] ?? '' }}",
+                extended: "{{ $productSettings['x_large_extended_delivery_fee_formatted'] ?? '' }}"
+            },
+            "2X-Large": {
+                standard: "{{ $productSettings['2x_large_standard_delivery_fee_formatted'] ?? '' }}",
+                extended: "{{ $productSettings['2x_large_extended_delivery_fee_formatted'] ?? '' }}"
+            },
+            Commercial: {
+                standard: "{{ $productSettings['commercial_standard_delivery_fee_formatted'] ?? '' }}",
+                extended: "{{ $productSettings['commercial_extended_delivery_fee_formatted'] ?? '' }}"
+            }
+        };
 
         document.addEventListener("DOMContentLoaded", function() {
             const hourTracking = document.querySelector('input[name="hour_tracking"]');
@@ -613,7 +681,46 @@
                 updateDamageWaiver(monthlyPriceInput, damageWaiverMonthlyInput);
             });
 
+            const standardDeliveryFeeInput = document.querySelector('input[name="standard_delivery_fee"]');
+            const extendedDeliveryFeeInput = document.querySelector('input[name="extended_delivery_fee"]');
+            const deliveryAndPickupInput = document.querySelector('input[name="delivery_and_pickup"]');
 
+            // Make size checkboxes behave like single-select (no radios)
+            const sizeCheckboxes = Array.from(document.querySelectorAll('input[name="size"]'));
+
+            sizeCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function (e) {
+                    if (cb.checked && deliveryAndPickupInput.checked) {
+                        const fees = sizeFeeMap[cb.value];
+                        if (fees) {
+                            if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = fees.standard;
+                            if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = fees.extended;
+                        }
+                    }else{
+                        // If unchecked, clear fees
+                        if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = '';
+                        if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = '';
+                    }
+                    enforceSingleSizeSelection(e.target);
+                });
+            });
+
+            function enforceSingleSizeSelection(changed) {
+                if (!sizeCheckboxes.length) return;
+                if (changed && changed.checked) {
+                    sizeCheckboxes.forEach(cb => {
+                        if (cb !== changed) cb.checked = false;
+                    });
+                } else {
+                    const checked = sizeCheckboxes.filter(cb => cb.checked);
+                    if (checked.length > 1) {
+                        checked.slice(1).forEach(cb => (cb.checked = false));
+                    }
+                }
+            }
+
+            // Normalize initial state in case old()/model sets multiple
+            enforceSingleSizeSelection();
         });
     </script>
 @endpush

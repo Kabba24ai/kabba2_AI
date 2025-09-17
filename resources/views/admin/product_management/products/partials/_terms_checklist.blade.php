@@ -5,7 +5,7 @@
 @endphp
 
 <!-- Terms -->
-<div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4 space-y-3">
+<div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4 pb-10 space-y-3 relative">
     <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Terms</h4>
 
     <div class="flex items-center gap-4">
@@ -55,19 +55,12 @@
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
-    {{-- <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-    </div> --}}
 
-    {{-- <!-- Checklist -->
-    <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
-        <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Checklist</h4>
-        <select name="checklist_id"
-            class="w-full rounded border-gray-300 text-sm dark:bg-gray-900 dark:text-white dark:border-gray-700">
-            <option value="">Select Checklist</option>
-            <option value="1">Checklist A</option>
-            <option value="2">Checklist B</option>
-        </select>
-    </div> --}}
+    <div class="absolute bottom-4 right-4">
+        <a href="{{ route('admin.terms-and-conditions.index') }}" target="_blank" class="text-sm text-blue-500 hover:underline font-medium">
+            Update Terms Settings
+        </a>
+    </div>
 </div>
 
 @push('js')

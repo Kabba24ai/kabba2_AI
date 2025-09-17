@@ -121,6 +121,8 @@ class UpdateRequest extends ApiBaseFormRequest
 
             'related_products' => ['nullable', 'array'],
             'related_products.*' => ['exists:products,id'],
+
+            'size' => ['nullable', 'string', 'max:255'],
         ];
     }
 

@@ -165,6 +165,49 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        {{-- Sizes --}}
+        <div class="mt-3">
+            <div class="flex items-center flex-wrap gap-6">
+                <label for="track_insurance_small"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'Small')->id('track_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    Small
+                </label>
+
+                <label for="track_insurance_medium"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'Medium')->id('track_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    Medium
+                </label>
+
+                <label for="track_insurance_large"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'Large')->id('track_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    Large
+                </label>
+
+                <label for="track_insurance_xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'X-Large')->id('track_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    X-Large
+                </label>
+
+                <label for="track_insurance_2xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, '2X-Large')->id('track_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    2X-Large
+                </label>
+
+                <label for="track_insurance_commercial"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'Commercial')->id('track_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    Commercial
+                </label>
+            </div>
+
+            <div id="track-insurance-sizes-errors"></div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
@@ -344,7 +387,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Prepaid Cleaning -->
             <div>
-                <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prepaid
+                <label
+                    class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prepaid
                     Cleaning</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
@@ -363,7 +407,8 @@
 
             <!-- Prepaid Fuel -->
             <div>
-                <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prepaid
+                <label
+                    class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prepaid
                     Fuel</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
@@ -520,41 +565,44 @@
         <div class="mt-3">
 
             <div class="flex items-center flex-wrap gap-6">
-                <label for="size_small" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'Small', 'Small')->id('size_small')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                <label for="size_small"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', null, 'Small')->id('size_small')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Small
                 </label>
 
-                <label for="size_medium" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'Medium', 'Medium')->id('size_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                <label for="size_medium"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', null, 'Medium')->id('size_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Medium
                 </label>
 
-                <label for="size_large" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'Large', 'Large')->id('size_large')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                <label for="size_large"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', null, 'Large')->id('size_large')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Large
                 </label>
 
-                <label for="size_xlarge" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'X-Large', 'X-Large')->id('size_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                <label for="size_xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', null, 'X-Large')->id('size_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     X-Large
                 </label>
 
-                <label for="size_2xlarge" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === '2X-Large', '2X-Large')->id('size_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                <label for="size_2xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', null, '2X-Large')->id('size_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     2X-Large
                 </label>
 
-                <label for="size_commercial" class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', old('size', $objProduct->size ?? '') === 'Commercial', 'Commercial')->id('size_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                <label for="size_commercial"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('size', null, 'Commercial')->id('size_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Commercial
                 </label>
             </div>
 
             <div id="sizes-errors"></div>
-            @error('sizes')
-                <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
-            @enderror
         </div>
 
         <!-- Spacer -->
@@ -574,7 +622,7 @@
         const damageWaiverPercentage = "{{ $productSettings['damage_waiver_percentage'] }}"
         const overageRatePercentage = "{{ $productSettings['overage_rate_percentage'] }}";
 
-         // Auto-fill delivery fees based on selected size
+        // Auto-fill delivery fees based on selected size
         const sizeFeeMap = {
             Small: {
                 standard: "{{ $productSettings['small_standard_delivery_fee_formatted'] ?? '' }}",
@@ -602,6 +650,48 @@
             }
         };
 
+
+        // Auto-fill track insurance based on selected size
+        const sizeTrackInsuranceFeeMap = {
+            Small: {
+                daily: "{{ $productSettings['small_daily_track_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['small_weekend_track_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['small_weekly_track_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['small_monthly_track_insurance_fee'] ?? '' }}"
+            },
+            Medium: {
+                daily: "{{ $productSettings['medium_daily_track_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['medium_weekend_track_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['medium_weekly_track_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['medium_monthly_track_insurance_fee'] ?? '' }}"
+            },
+            Large: {
+                daily: "{{ $productSettings['large_daily_track_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['large_weekend_track_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['large_weekly_track_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['large_monthly_track_insurance_fee'] ?? '' }}"
+            },
+            "X-Large": {
+                daily: "{{ $productSettings['x_large_daily_track_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['x_large_weekend_track_insurance_fee']  ?? '' }}",
+                weekly: "{{ $productSettings['x_large_weekly_track_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['x_large_monthly_track_insurance_fee'] ?? '' }}"
+            },
+            "2X-Large": {
+                daily: "{{ $productSettings['2x_large_daily_track_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['2x_large_weekend_track_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['2x_large_weekly_track_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['2x_large_monthly_track_insurance_fee'] ?? '' }}"
+            },
+            Commercial: {
+                daily: "{{ $productSettings['commercial_daily_track_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['commercial_weekend_track_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['commercial_weekly_track_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['commercial_monthly_track_insurance_fee'] ?? '' }}"
+            }
+        };
+
+        console.log(sizeFeeMap,sizeTrackInsuranceFeeMap);
         document.addEventListener("DOMContentLoaded", function() {
             const hourTracking = document.querySelector('input[name="hour_tracking"]');
             const hourRateInput = document.querySelector('input[name="hour_rate"]');
@@ -651,7 +741,6 @@
                 if (isNaN(price) || isNaN(percentage)) return 0;
                 return Math.round((price * percentage) / 100).toFixed(2);
             }
-
 
             function updateDamageWaiver(inputElement, waiverElement) {
                 const price = parseFloat(inputElement.value);
@@ -722,7 +811,7 @@
             const sizeCheckboxes = Array.from(document.querySelectorAll('input[name="size"]'));
 
             sizeCheckboxes.forEach(cb => {
-                cb.addEventListener('change', function (e) {
+                cb.addEventListener('change', function(e) {
                     // Prevent checking if delivery is not enabled
                     if (!deliveryAndPickupInput.checked) {
                         cb.checked = false;
@@ -733,8 +822,10 @@
                     if (cb.checked && deliveryAndPickupInput.checked) {
                         const fees = sizeFeeMap[cb.value];
                         if (fees) {
-                            if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = fees.standard;
-                            if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = fees.extended;
+                            if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = fees
+                                .standard;
+                            if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = fees
+                                .extended;
                         }
                     } else {
                         // If unchecked, clear fees
@@ -761,6 +852,63 @@
 
             // Normalize initial state in case old()/model sets multiple
             enforceSingleSizeSelection();
+
+
+            const rentalTrackInsuranceInputs = [
+                document.querySelector('input[name="rental_track_insurance_daily"]'),
+                document.querySelector('input[name="rental_track_insurance_weekend"]'),
+                document.querySelector('input[name="rental_track_insurance_weekly"]'),
+                document.querySelector('input[name="rental_track_insurance_monthly"]')
+            ];
+            // Make size checkboxes behave like single-select (no radios)
+            const sizeTrackInsuranceCheckboxes = Array.from(document.querySelectorAll('input[name="track_insurance_size"]'));
+
+            rentalTrackInsuranceInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value) {
+                        // If user manually changes, uncheck sizes
+                        sizeTrackInsuranceCheckboxes.forEach(cb => cb.checked = false);
+                    }
+                });
+            });
+
+            sizeTrackInsuranceCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    // Auto-fill track insurance fees if track insurance is enabled
+                    if (cb.checked) {
+                        const fees = sizeTrackInsuranceFeeMap[cb.value];
+                        if (fees) {
+                            if (rentalTrackInsuranceInputs[0]) rentalTrackInsuranceInputs[0].value = fees
+                                .daily;
+                            if (rentalTrackInsuranceInputs[1]) rentalTrackInsuranceInputs[1].value = fees
+                                .weekend;
+                            if (rentalTrackInsuranceInputs[2]) rentalTrackInsuranceInputs[2].value = fees
+                                .weekly;
+                            if (rentalTrackInsuranceInputs[3]) rentalTrackInsuranceInputs[3].value = fees
+                                .monthly;
+                        }
+                    } else {
+                        // If unchecked, clear track insurance fees
+                        rentalTrackInsuranceInputs.forEach(input => input.value = '');
+                    }
+                    enforceTrackInsuranceSingleSizeSelection(e.target);
+                });
+            });
+
+            function enforceTrackInsuranceSingleSizeSelection(changed) {
+                if (!sizeTrackInsuranceCheckboxes.length) return;
+                if (changed && changed.checked) {
+                    sizeTrackInsuranceCheckboxes.forEach(cb => {
+                        if (cb !== changed) cb.checked = false;
+                    });
+                } else {
+                    const checked = sizeTrackInsuranceCheckboxes.filter(cb => cb.checked);
+                    if (checked.length > 1) {
+                        checked.slice(1).forEach(cb => (cb.checked = false));
+                    }
+                }
+            }
+            enforceTrackInsuranceSingleSizeSelection();
         });
     </script>
 @endpush

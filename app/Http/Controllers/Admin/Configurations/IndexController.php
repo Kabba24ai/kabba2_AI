@@ -11,6 +11,7 @@ class IndexController extends Controller
     {
         // Group by string key (no enum)
         $settings = Setting::whereNotIn('setting_type', ['Email Settings', 'Allocated Hours Settings'])
+            ->whereNotIn('setting_name', ['prepaid_cleaning_rates', 'prepaid_fuel_rates'])
             ->orderBy('sort_order', 'asc')
             ->get()
             ->groupBy('setting_type'); // keys are strings

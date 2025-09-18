@@ -14,6 +14,194 @@ This project uses a standard **Laravel** application structure. Below is a simpl
 
 ---
 
+### PSR Standards
+
+Laravel projects commonly follow PHP-FIG's [PSR standards](https://www.php-fig.org/psr/):
+
+- **Line Length:**  
+    Limit lines to **120 characters** for readability.  
+    Avoid horizontal scrolling; break long lines as needed.
+
+- **Page Length:**  
+    No strict limit, but keep files concise and focused.  
+    Split large files into smaller, logical units (ideally under **300–400 lines**).
+
+- **Variable Naming:**  
+    Use **camelCase** for variables (`$orderStatus`, `$userEmail`).  
+    Names should be descriptive and meaningful.
+
+- **Function/Method Naming:**  
+    Use **camelCase** (`getOrderStatus()`, `updateProductPrice()`).  
+    Methods should clearly describe their action.
+
+- **File Naming:**  
+    Use **StudlyCase** (PascalCase) for class files (`OrderStatus.php`, `ProductCustomStaticLabel.php`).  
+    Use lowercase with hyphens for config and view files (`app.php`, `edit.blade.php`).
+
+
+# 📖 Coding Standards (PSR-12 with Project Conventions)
+
+This project follows **[PSR-1](https://www.php-fig.org/psr/psr-1/)** and **[PSR-12](https://www.php-fig.org/psr/psr-12/)** coding style guidelines with some additional conventions.
+
+---
+
+## 📄 File & Folder Structure
+
+* **One class per file**.
+* File names **match class names** (in `StudlyCase`).
+* Directory names follow **StudlyCase** for PSR-4 autoloading.
+
+**Example:**
+
+```
+app/
+ ├── Http/
+ │    ├── Controllers/
+ │    │    └── UserController.php
+ │    ├── Middleware/
+ │    │    └── Authenticate.php
+ │    └── Requests/
+ │         └── StoreUserRequest.php
+ ├── Models/
+ │    └── User.php
+ └── Services/
+      └── BillingService.php
+```
+
+---
+
+## 📌 Formatting
+
+* **Line Length**: Max **120 characters**, 80 preferred.
+* **Indentation**: 4 spaces (no tabs).
+* **Encoding**: UTF-8 without BOM.
+* **Blank Lines**:
+
+  * After namespace
+  * After `use` statements
+  * Before return statements
+
+---
+
+## 📝 Naming Conventions
+
+* **Classes / Interfaces / Traits** → `StudlyCase`
+
+  ```php
+  class UserProfile {}
+  interface CacheDriver {}
+  trait LogsActivity {}
+  ```
+* **Methods / Functions** → `camelCase`
+
+  ```php
+  public function getUserById() {}
+  ```
+* **Variables / Properties** → `camelCase`
+
+  ```php
+  $userName = 'John';
+  protected $createdAt;
+  ```
+* **Constants** → `UPPER_CASE_WITH_UNDERSCORES`
+
+  ```php
+  const MAX_RETRIES = 3;
+  ```
+
+---
+
+## 🔧 Functions & Methods
+
+* Always declare **visibility** (`public`, `protected`, `private`).
+* Use **type hints** and **return types**.
+* Keep methods **≤ 50 lines**.
+
+**Example:**
+
+```php
+/**
+ * Calculate the total price with tax.
+ *
+ * @param int   $quantity Number of items
+ * @param float $price    Price per item
+ * @param float $taxRate  Tax rate (e.g., 0.0825 for 8.25%)
+ *
+ * @return float Total price including tax
+ */
+public function calculateTotal(int $quantity, float $price, float $taxRate = 0.0): float
+{
+    return ($quantity * $price) * (1 + $taxRate);
+}
+```
+
+---
+
+## ⚡ Control Structures
+
+* Always use braces `{}` even for one-line statements.
+* Space after control keywords.
+
+**Example:**
+
+```php
+if ($user->isActive()) {
+    $this->sendNotification();
+}
+```
+
+---
+
+## 📚 DocBlocks
+
+Use **DocBlocks** for:
+
+* Classes
+* Public methods
+* Complex private methods
+
+**Class Example:**
+
+```php
+/**
+ * Handles billing operations for user subscriptions.
+ *
+ * @category  Services
+ * @package   App\Services
+ */
+class BillingService
+{
+    /**
+     * Charge a user for their subscription.
+     *
+     * @param \App\Models\User $user
+     * @param float            $amount
+     *
+     * @return bool True if charge succeeded
+     */
+    public function charge(User $user, float $amount): bool
+    {
+        // Billing logic here...
+        return true;
+    }
+}
+```
+
+---
+
+## ✅ Summary
+
+* **80–120 chars per line**
+* **StudlyCase** → Classes & Files
+* **camelCase** → Methods & Variables
+* **UPPER\_CASE** → Constants
+* **One class per file, file name = class name**
+* **Use DocBlocks** for clarity
+
+---
+
+> Following PSR standards ensures code consistency, maintainability, and easier collaboration.
+
 ## Main Folders
 
 ### app/

@@ -462,6 +462,32 @@
                 @enderror
 
             </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <select id="prepaid_cleaning_rates" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
+                        <option value="" disabled selected>Select Rate</option>
+                        @foreach($productSettings['prepaid_cleaning_rates'] ?? [] as $prepaidCleaningRate)
+                            <option value="{{ $prepaidCleaningRate['amount'] }}" >
+                                {{ $prepaidCleaningRate['description'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <select id="prepaid_fuel_rates" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
+                        <option value="" disabled selected>Select Rate</option>
+                        @foreach($productSettings['prepaid_fuel_rates'] ?? [] as $prepaidFuelRate)
+                            <option value="{{ $prepaidFuelRate['amount'] }}" >
+                                {{ $prepaidFuelRate['description'] }} {{ $prepaidFuelRate['amount'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
         </div>
 
         <!-- Spacer -->
@@ -908,7 +934,43 @@
                     }
                 }
             }
+
             enforceTrackInsuranceSingleSizeSelection();
+
+            const prepaidCleaningRates = document.getElementById('prepaid_cleaning_rates');
+            const prepaidFuelRates = document.getElementById('prepaid_fuel_rates');
+
+            const prepaidCleaningInput = document.querySelector('input[name="rental_prepaid_cleaning"]');
+            const prepaidFuelInput = document.querySelector('input[name="rental_prepaid_fuel"]');
+
+            prepaidCleaningRates?.addEventListener('change', function() {
+                if (this.value) {
+                    prepaidCleaningInput.value = this.value;
+                } else {
+                    prepaidCleaningInput.value = '';
+                }
+            });
+
+            prepaidFuelRates?.addEventListener('change', function() {
+                if (this.value) {
+                    prepaidFuelInput.value = this.value;
+                } else {
+                    prepaidFuelInput.value = '';
+                }
+            });
+
+            prepaidFuelInput?.addEventListener('input', function() {
+                if (this.value) {
+                    prepaidFuelRates.value = '';
+                }
+            });
+
+            prepaidCleaningInput?.addEventListener('input', function() {
+                if (this.value) {
+                    prepaidCleaningRates.value = '';
+                }
+            });
+
         });
     </script>
 @endpush

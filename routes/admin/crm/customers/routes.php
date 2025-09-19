@@ -28,7 +28,7 @@ Route::prefix('customers')
 ->name('customers.')
 ->group(function ($router) {
 
-    Route::get('/', IndexController::class)->name('index');
+    Route::get('/', action: IndexController::class)->name('index');
 
     // Create
     Route::get('/create', CreateController::class)->name('create');
@@ -72,5 +72,5 @@ Route::prefix('customers')
     require base_path('routes/admin/crm/customers/invoice/routes.php');
 
 
-    
+
 });

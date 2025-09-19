@@ -322,7 +322,7 @@
                 <div>
                     <label class="text-xs text-gray-500 font-medium edit-view required">Address </label>
                     <div class="static-view text-gray-900 text-sm">
-                                          @if($addresse?->full_name)
+                                            @if($addresse?->full_name)
                                                 {{ $addresse->full_name }}<br>
                                             @endif
 

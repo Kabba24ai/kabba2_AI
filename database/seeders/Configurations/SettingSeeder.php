@@ -56,6 +56,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'number',
                 'setting_name' => 'daily_hours',
                 'setting_title' => 'Daily Hours',
+                'placeholder' => 'Enter Daily Hours',
                 'default_value' => 8,
                 'sort_order' => $sortOrder++,
             ],
@@ -63,6 +64,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'number',
                 'setting_name' => 'weekend_hours',
                 'setting_title' => 'Weekend Hours',
+                'placeholder' => 'Enter Weekend Hours',
                 'default_value' => 14,
                 'sort_order' => $sortOrder++,
             ],
@@ -70,6 +72,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'number',
                 'setting_name' => 'weekly_hours',
                 'setting_title' => 'Weekly Hours',
+                'placeholder' => 'Enter Weekly Hours',
                 'default_value' => 40,
                 'sort_order' => $sortOrder++,
             ],
@@ -77,6 +80,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'number',
                 'setting_name' => 'monthly_hours',
                 'setting_title' => 'Monthly Hours',
+                'placeholder' => 'Enter Monthly Hours',
                 'default_value' => 160,
                 'sort_order' => $sortOrder++,
             ],
@@ -433,6 +437,28 @@ class SettingSeeder extends Seeder
             ],
 
             // --- Prepaid Fuel ---
+
+            [
+                'value_type'   => 'setting_tooltip',
+                'setting_name' => 'prepaid_fuel_tooltip',
+                'setting_title' => 'Prepaid Fuel',
+                'setting_options' => json_encode([
+                    'layout' => 'info',
+                    'icon'   => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"
+                                    class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4"></path>
+                                    <path d="M12 8h.01"></path>
+                                </svg>',
+                    'description' => 'This feeds into a pop-up on the website when people deselect this option. <br>
+                            Pop-up appears with a message and 2 option buttons (Accept or Decline)',
+                    'title_color' => 'text-gray-900',
+                ]),
+                'sort_order'   => $sortOrder++,
+            ],
+
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'prepaid_fuel_info',
@@ -458,6 +484,28 @@ class SettingSeeder extends Seeder
                 'sort_order' => $sortOrder++,
             ],
             // --- Prepaid Cleaning ---
+
+            [
+                'value_type'   => 'setting_tooltip',
+                'setting_name' => 'prepaid_cleaning_tooltip',
+                'setting_title' => 'Prepaid Cleaning',
+                'setting_options' => json_encode([
+                    'layout' => 'info',
+                    'icon'   => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>',
+                    'description' => 'This feeds into a pop-up on the website when people deselect this option.<br>
+                            Pop-up appears with a message and 2 option buttons (Accept or Decline)',
+                    'title_color' => 'text-gray-900',
+                ]),
+                'sort_order'   => $sortOrder++,
+            ],
+
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'prepaid_cleaning_info',
@@ -484,6 +532,27 @@ class SettingSeeder extends Seeder
             ],
 
             // --- Track Insurance ---
+
+            [
+                'value_type'   => 'setting_tooltip',
+                'setting_name' => 'thrown_track_insurance',
+                'setting_title' => 'Thrown Track Insurance',
+                'setting_options' => json_encode([
+                    'layout' => 'info',
+                    'icon'   => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>',
+                    'description' => 'This feeds into a pop-up on the website when people deselect this option. <br>
+                            Pop-up appears with a message and 2 option buttons (Accept or Decline)',
+                    'title_color' => 'text-gray-900',
+                ]),
+                'sort_order'   => $sortOrder++,
+            ],
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'track_insurance_info',
@@ -510,6 +579,28 @@ class SettingSeeder extends Seeder
             ],
 
             // --- Damage Waiver ---
+
+            [
+                'value_type'   => 'setting_tooltip',
+                'setting_name' => 'damage_waiver_protection',
+                'setting_title' => 'Damage Waiver Protection',
+                'setting_options' => json_encode([
+                    'layout' => 'info',
+                    'icon'   => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>',
+                    'description' => ' This feeds into a pop-up on the website when people deselect this option. <br>
+                            Pop-up appears with a message and 2 option buttons (Accept or Decline)',
+                    'title_color' => 'text-gray-900',
+                ]),
+                'sort_order'   => $sortOrder++,
+            ],
+
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'damage_waiver_info',
@@ -592,6 +683,20 @@ class SettingSeeder extends Seeder
                 'placeholder' => 'feedback@company.com',
                 'sort_order' => $sortOrder++,
             ],
+            [
+                'value_type' => 'setting_note',
+                'setting_name' => 'contact_us_notice',
+                'setting_title' => '',
+                'setting_options' => json_encode([
+                    'icon' => '',
+                    'color' => 'bg-blue-50 border border-blue-200 text-blue-800',
+                    'title_color' => 'text-blue-900',
+                    'desc_color' => 'text-blue-800',
+                    'description' => '<strong>Note:</strong>  Store locations/addresses that appear on the Contact Us page are managed in Store Settings. <a href="' . route('admin.stores.index') . '" class="text-blue-600 hover:text-blue-800 underline ml-1">Go to Store Settings page</a>',
+                ]),
+                'sort_order' => $sortOrder++,
+            ],
+
         ];
     }
 
@@ -599,6 +704,37 @@ class SettingSeeder extends Seeder
     {
         $sortOrder = 1;
         $this->settings['Social Media Settings'] = [
+            [
+                'value_type' => 'setting_note',
+                'setting_name' => 'social_media_integration',
+                'setting_title' => 'Social Media Integration',
+                'setting_options' => json_encode([
+                    'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="lucide lucide-share2 w-5 h-5 text-blue-600 mt-0.5">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+                    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+                </svg>',
+                    'color' => 'bg-blue-50 border border-blue-200 text-blue-900',
+                    'title_color' => 'text-blue-800',
+                    'desc_color' => 'text-blue-700',
+                    'description' => 'Configure your social media presence. These links will
+                        appear on your website footer, contact page, and can be used for social sharing
+                        functionality.',
+                ]),
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'setting_module_title',
+                'setting_name' => 'social_media_profiles_title',
+                'setting_title' => 'Social Media Profiles',
+                'sort_order' => $sortOrder++,
+            ],
+
             [
                 'value_type' => 'text',
                 'setting_name' => 'facebook_page_link',
@@ -658,6 +794,14 @@ class SettingSeeder extends Seeder
                 'placeholder' => 'https://www.snapchat.com/add/youraccount',
                 'sort_order' => $sortOrder++,
             ],
+
+            [
+                'value_type' => 'setting_module_title',
+                'setting_name' => 'display_settings_title',
+                'setting_title' => 'Display Settings',
+                'sort_order' => $sortOrder++,
+            ],
+
             [
                 'value_type' => 'checkbox',
                 'setting_name' => 'show_social_media_icons',
@@ -675,30 +819,50 @@ class SettingSeeder extends Seeder
 
     private function addAdminSettings()
     {
+        $sortOrder = 1;
         $this->settings['Admin Settings'] = [
             [
                 'value_type' => 'password',
                 'setting_name' => 'master_passcode',
                 'setting_title' => 'Master Passcode',
                 'default_value' => 12345678,
-                'sort_order' => 0,
                 'placeholder' => 'Enter master passcode',
                 'is_secure_field' => 1,
                 'is_encrypted' => 1,
                 'is_required' => 1,
                 'is_eye_toggle' => 1,
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'password',
                 'setting_name' => 'master_password_entry',
                 'setting_title' => 'Master Password - Entry',
                 'default_value' => 12345678,
-                'sort_order' => 0,
                 'placeholder' => 'Enter Password for access/edit',
                 'is_secure_field' => 1,
                 'is_required' => 1,
                 'is_eye_toggle' => 1,
+                'sort_order' => $sortOrder++,
             ],
+            [
+                'value_type' => 'setting_note',
+                'setting_name' => 'admin_security_notice',
+                'setting_title' => 'Security Notice',
+                'setting_options' => json_encode([
+                    'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="lucide lucide-lock w-5 h-5 text-amber-600 mt-0.5">
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>',
+                    'color' => 'bg-amber-50 border border-amber-200 text-amber-900',
+                    'title_color' => 'text-amber-800',
+                    'desc_color' => 'text-amber-700',
+                    'description' => 'Both fields are critical for system security. The Master Passcode is encrypted and the Master Password is required to access/edit it. Always use strong, unique passwords and store them securely.',
+                ]),
+                'sort_order' => $sortOrder++,
+            ],
+
         ];
     }
 
@@ -754,6 +918,25 @@ class SettingSeeder extends Seeder
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
+            [
+                'value_type' => 'setting_note',
+                'setting_name' => 'payment_security_notice',
+                'setting_title' => 'Security Notice',
+                'setting_options' => json_encode([
+                    'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="lucide lucide-lock w-5 h-5 text-amber-600 mt-0.5">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>',
+                    'color' => 'bg-amber-50 border border-amber-200 text-amber-900',
+                    'title_color' => 'text-amber-800',
+                    'desc_color' => 'text-amber-700',
+                    'description' => 'Payment integration settings contain sensitive API keys and credentials. Master Passcode verification is required to view or modify these settings for security purposes.',
+                ]),
+                'sort_order' => $sortOrder++,
+            ],
+
         ];
     }
 

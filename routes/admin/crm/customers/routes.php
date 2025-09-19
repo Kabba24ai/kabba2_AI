@@ -66,5 +66,11 @@ Route::prefix('customers')
 
     // customer_account
     require base_path('routes/admin/crm/customers/customer_account/routes.php');
+
+
+    // invoice
+    require base_path('routes/admin/crm/customers/invoice/routes.php');
+
+
     
 });

@@ -7,9 +7,9 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                        <button class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md font-medium">
+                        <a href="{{ route('admin.crm.customers.invoice.create') }}" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md font-medium">
                             + Create Invoice
-                        </button>
+                        </a>
                         <div class="text-left sm:text-right">
                             <p class="text-sm text-gray-600">Current Balance</p>
                             <p class="text-lg font-bold text-gray-900">$0.00</p>

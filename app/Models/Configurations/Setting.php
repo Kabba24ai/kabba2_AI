@@ -15,7 +15,7 @@ class Setting extends Model
     protected $fillable = [
         'unique_id',
         'setting_type', // e.g., 'Email Settings', 'Product Settings'
-        'value_type', // e.g., 'string', 'integer', 'boolean', 'value', 'content'
+        'value_type', // e.g., 'test', 'number', 'checkbox', 'options', 'email', 'textarea', 'password', 'boolean', 'json'
         'setting_name', // e.g., 'customer_email_send_email_address'
         'setting_title', // e.g., 'Customer Development/Staging Email'
         'setting_value', // e.g., example@example.com
@@ -52,9 +52,13 @@ class Setting extends Model
                 return $value;
             }
         }
+
+        if($this->value_type == 'json' && !is_null($value)){
+            return json_decode($value, true);
+        }
+
         return $value;
     }
-
 
 
     public function getSettingTypeEnum(): SettingType

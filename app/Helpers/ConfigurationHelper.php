@@ -8,32 +8,31 @@ class ConfigurationHelper
 {
     public static function getSettings($setting_type = null, $key = null)
     {
-        // If key is provided, fetch just that setting (with optional type)
+        // Build base query
+        $query = Setting::query();
+
         if (!is_null($key)) {
-            $query = Setting::where('setting_name', $key);
-            if (!is_null($setting_type)) {
-                $query->where('setting_type', $setting_type);
-            }
-            $setting_item = $query->first();
-            if ($setting_item) {
-                return [
-                    $setting_item->setting_name => $setting_item->getSetting(),
-                    $setting_item->setting_name . '_formatted' => $setting_item->getSetting() > 0 ? number_format(floatval($setting_item->getSetting())) : '',
-                ];
-            }
-            return []; // Not found
+            $query->where('setting_name', $key);
+        }
+        if (!is_null($setting_type)) {
+            $query->where('setting_type', $setting_type);
         }
 
-        // Else: fetch all (optionally by type)
-        $setting_list = !is_null($setting_type) ? Setting::where('setting_type', $setting_type)->get() : Setting::get();
+        // Fetch settings
+        $settings = $query->get();
 
-        $settingArr = [];
-        if ($setting_list && count($setting_list) > 0) {
-            foreach ($setting_list as $setting_item) {
-                $settingArr[$setting_item->setting_name] = $setting_item->getSetting();
-                $settingArr[$setting_item->setting_name . '_formatted'] = $setting_item->getSetting() > 0 ? number_format(floatval($setting_item->getSetting())) : '';
-            }
+        $result = [];
+
+        foreach ($settings as $setting) {
+            $value = $setting->getSetting();
+            $result[$setting->setting_name] = $value;
+            $result[$setting->setting_name . '_formatted'] = $value > 0 ? number_format((float)$value) : '';
         }
-        return $settingArr;
+
+        if (!is_null($key)) {
+            return $result[$key] ?? null;
+        }
+
+        return $result;
     }
 }

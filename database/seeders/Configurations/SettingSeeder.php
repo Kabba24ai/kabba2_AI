@@ -131,104 +131,311 @@ class SettingSeeder extends Seeder
                 'default_value' => 'Miles',
                 'sort_order' => $sortOrder++,
             ],
+
+            [
+                'value_type' => 'json',
+                'setting_name' => 'prepaid_cleaning_rates',
+                'setting_title' => 'Prepaid Cleaning Rates',
+                'default_value' => json_encode([
+                    [
+                        "description" => "Standard Cleaning",
+                        "amount" => 25.0
+                    ],
+                    [
+                        "description" => "Heavy Cleaning",
+                        "amount" => 50.0
+                    ]
+                ], JSON_UNESCAPED_UNICODE),
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'json',
+                'setting_name' => 'prepaid_fuel_rates',
+                'setting_title' => 'Prepaid Fuel Rates',
+                'default_value' => json_encode([
+                    [
+                        "description" => "Full Tank Prepaid",
+                        "amount" => 59.99
+                    ],
+                    [
+                        "description" => "Half Tank Prepaid",
+                        "amount" => 34.5
+                    ]
+                ], JSON_UNESCAPED_UNICODE),
+                // 'default_value' => json_encode([]),
+                'sort_order' => $sortOrder++,
+            ],
+
             [
                 'value_type' => 'number',
                 'setting_name' => 'damage_waiver_percentage',
                 'setting_title' => 'Damage Waiver Percentage',
-                'default_value' => 0.0,
+                'default_value' => 10,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'overage_rate_percentage',
                 'setting_title' => 'Overage Rate Percentage',
-                'default_value' => 0.0,
+                'default_value' => 10,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'small_standard_delivery_fee',
                 'setting_title' => 'Small Standard Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 10,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'small_extended_delivery_fee',
                 'setting_title' => 'Small Extended Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 10,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'medium_standard_delivery_fee',
                 'setting_title' => 'Medium Standard Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 20,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'medium_extended_delivery_fee',
                 'setting_title' => 'Medium Extended Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 20,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'large_standard_delivery_fee',
                 'setting_title' => 'Large Standard Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 30,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'large_extended_delivery_fee',
                 'setting_title' => 'Large Extended Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 30,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'x_large_standard_delivery_fee',
                 'setting_title' => 'X-Large Standard Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 40,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'x_large_extended_delivery_fee',
                 'setting_title' => 'X-Large Extended Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 40,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => '2x_large_standard_delivery_fee',
                 'setting_title' => '2X-Large Standard Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 50,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => '2x_large_extended_delivery_fee',
                 'setting_title' => '2X-Large Extended Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 50,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'commercial_standard_delivery_fee',
                 'setting_title' => 'Commercial Standard Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 60,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'commercial_extended_delivery_fee',
                 'setting_title' => 'Commercial Extended Delivery Fee',
-                'default_value' => 0.0,
+                'default_value' => 60,
                 'sort_order' => $sortOrder++,
             ],
+
+            //--- Track Insurance ---
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_daily_track_insurance_fee',
+                'setting_title' => 'Small Daily Track Insurance Fee',
+                'default_value' => 10,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_daily_track_insurance_fee',
+                'setting_title' => 'Medium Daily Track Insurance Fee',
+                'default_value' => 20,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_daily_track_insurance_fee',
+                'setting_title' => 'Large Daily Track Insurance Fee',
+                'default_value' => 30,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_daily_track_insurance_fee',
+                'setting_title' => 'X-Large Daily Track Insurance Fee',
+                'default_value' => 40,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_daily_track_insurance_fee',
+                'setting_title' => '2X-Large Daily Track Insurance Fee',
+                'default_value' => 50,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_daily_track_insurance_fee',
+                'setting_title' => 'Commercial Daily Track Insurance Fee',
+                'default_value' => 60,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_weekend_track_insurance_fee',
+                'setting_title' => 'Small Weekend Track Insurance Fee',
+                'default_value' => 70,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_weekend_track_insurance_fee',
+                'setting_title' => 'Medium Weekend Track Insurance Fee',
+                'default_value' => 80,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_weekend_track_insurance_fee',
+                'setting_title' => 'Large Weekend Track Insurance Fee',
+                'default_value' => 90,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_weekend_track_insurance_fee',
+                'setting_title' => 'X-Large Weekend Track Insurance Fee',
+                'default_value' => 100,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_weekend_track_insurance_fee',
+                'setting_title' => '2X-Large Weekend Track Insurance Fee',
+                'default_value' => 110,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_weekend_track_insurance_fee',
+                'setting_title' => 'Commercial Weekend Track Insurance Fee',
+                'default_value' => 120,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_weekly_track_insurance_fee',
+                'setting_title' => 'Small Weekly Track Insurance Fee',
+                'default_value' => 130,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_weekly_track_insurance_fee',
+                'setting_title' => 'Medium Weekly Track Insurance Fee',
+                'default_value' => 140,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_weekly_track_insurance_fee',
+                'setting_title' => 'Large Weekly Track Insurance Fee',
+                'default_value' => 150,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_weekly_track_insurance_fee',
+                'setting_title' => 'X-Large Weekly Track Insurance Fee',
+                'default_value' => 160,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_weekly_track_insurance_fee',
+                'setting_title' => '2X-Large Weekly Track Insurance Fee',
+                'default_value' => 170,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_weekly_track_insurance_fee',
+                'setting_title' => 'Commercial Weekly Track Insurance Fee',
+                'default_value' => 180,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_monthly_track_insurance_fee',
+                'setting_title' => 'Small Monthly Track Insurance Fee',
+                'default_value' => 190,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_monthly_track_insurance_fee',
+                'setting_title' => 'Medium Monthly Track Insurance Fee',
+                'default_value' => 200,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_monthly_track_insurance_fee',
+                'setting_title' => 'Large Monthly Track Insurance Fee',
+                'default_value' => 210,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_monthly_track_insurance_fee',
+                'setting_title' => 'X-Large Monthly Track Insurance Fee',
+                'default_value' => 220,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_monthly_track_insurance_fee',
+                'setting_title' => '2X-Large Monthly Track Insurance Fee',
+                'default_value' => 230,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_monthly_track_insurance_fee',
+                'setting_title' => 'Commercial Monthly Track Insurance Fee',
+                'default_value' => 240,
+                'sort_order' => $sortOrder++,
+            ],
+
             // --- Prepaid Fuel ---
 
             [
@@ -323,8 +530,6 @@ class SettingSeeder extends Seeder
                 'default_value' => self::APPROVE_LABEL,
                 'sort_order' => $sortOrder++,
             ],
-
-
 
             // --- Track Insurance ---
 
@@ -658,7 +863,6 @@ class SettingSeeder extends Seeder
                 'sort_order' => $sortOrder++,
             ],
 
-
         ];
     }
 
@@ -691,7 +895,7 @@ class SettingSeeder extends Seeder
                 'placeholder' => 'Enter API key',
                 'is_secure_field' => 1,
                 'is_encrypted' => 1,
-                'is_eye_toggle'     => 1,
+                'is_eye_toggle' => 1,
                 'default_value' => '2Y7eAt88',
                 'sort_order' => $sortOrder++,
             ],
@@ -702,7 +906,7 @@ class SettingSeeder extends Seeder
                 'placeholder' => 'Enter secret key',
                 'is_secure_field' => 1,
                 'is_required' => 1,
-                'is_eye_toggle'     => 1,
+                'is_eye_toggle' => 1,
                 'default_value' => '6X2E6Xk46bK7c9xP',
                 'sort_order' => $sortOrder++,
             ],
@@ -764,16 +968,16 @@ class SettingSeeder extends Seeder
                         'setting_name' => $setting['setting_name'],
                     ],
                     [
-                        'setting_title'     => $setting['setting_title'],
-                        'value_type'        => $setting['value_type'],
-                        'setting_options'   => $setting['setting_options'] ?? null,
-                        'sort_order'        => $setting['sort_order'] ?? 0,
-                        'placeholder'       => $setting['placeholder'] ?? null,
-                        'is_secure_field'   => $setting['is_secure_field'] ?? 0,
-                        'is_required'       => $setting['is_required'] ?? 0,
-                        'is_encrypted'      => $setting['is_encrypted'] ?? 0,
-                        'is_eye_toggle'     => $setting['is_eye_toggle'] ?? 0,
-                    ]
+                        'setting_title' => $setting['setting_title'],
+                        'value_type' => $setting['value_type'],
+                        'setting_options' => $setting['setting_options'] ?? null,
+                        'sort_order' => $setting['sort_order'] ?? 0,
+                        'placeholder' => $setting['placeholder'] ?? null,
+                        'is_secure_field' => $setting['is_secure_field'] ?? 0,
+                        'is_required' => $setting['is_required'] ?? 0,
+                        'is_encrypted' => $setting['is_encrypted'] ?? 0,
+                        'is_eye_toggle' => $setting['is_eye_toggle'] ?? 0,
+                    ],
                 );
 
                 //  Now trigger mutator
@@ -782,19 +986,17 @@ class SettingSeeder extends Seeder
                     $setting_item->save();
                 }
 
-
-
                 if ($updateExisting && !$setting_item->wasRecentlyCreated) {
                     $setting_item->fill([
-                        'setting_title'     => $setting['setting_title'],
-                        'value_type'        => $setting['value_type'],
-                        'setting_options'   => $setting['setting_options'] ?? null,
-                        'sort_order'        => $setting['sort_order'] ?? 0,
-                        'placeholder'       => $setting['placeholder'] ?? null,
-                        'is_secure_field'   => $setting['is_secure_field'] ?? 0,
-                        'is_required'       => $setting['is_required'] ?? 0,
-                        'is_encrypted'      => $setting['is_encrypted'] ?? 0,
-                        'is_eye_toggle'     => $setting['is_eye_toggle'] ?? 0,
+                        'setting_title' => $setting['setting_title'],
+                        'value_type' => $setting['value_type'],
+                        'setting_options' => $setting['setting_options'] ?? null,
+                        'sort_order' => $setting['sort_order'] ?? 0,
+                        'placeholder' => $setting['placeholder'] ?? null,
+                        'is_secure_field' => $setting['is_secure_field'] ?? 0,
+                        'is_required' => $setting['is_required'] ?? 0,
+                        'is_encrypted' => $setting['is_encrypted'] ?? 0,
+                        'is_eye_toggle' => $setting['is_eye_toggle'] ?? 0,
                     ]);
 
                     if (isset($setting['default_value'])) {

@@ -25,6 +25,7 @@ class SettingSeeder extends Seeder
         $this->addSocialMediaSettings();
         $this->addAdminSettings();
         $this->addPaymentSettings();
+        $this->addCommunicationSettings();
     }
 
     private function addEmailSettings()
@@ -136,16 +137,19 @@ class SettingSeeder extends Seeder
                 'value_type' => 'json',
                 'setting_name' => 'prepaid_cleaning_rates',
                 'setting_title' => 'Prepaid Cleaning Rates',
-                'default_value' => json_encode([
+                'default_value' => json_encode(
                     [
-                        "description" => "Standard Cleaning",
-                        "amount" => 25.0
+                        [
+                            'description' => 'Standard Cleaning',
+                            'amount' => 25.0,
+                        ],
+                        [
+                            'description' => 'Heavy Cleaning',
+                            'amount' => 50.0,
+                        ],
                     ],
-                    [
-                        "description" => "Heavy Cleaning",
-                        "amount" => 50.0
-                    ]
-                ], JSON_UNESCAPED_UNICODE),
+                    JSON_UNESCAPED_UNICODE,
+                ),
                 'sort_order' => $sortOrder++,
             ],
 
@@ -153,16 +157,19 @@ class SettingSeeder extends Seeder
                 'value_type' => 'json',
                 'setting_name' => 'prepaid_fuel_rates',
                 'setting_title' => 'Prepaid Fuel Rates',
-                'default_value' => json_encode([
+                'default_value' => json_encode(
                     [
-                        "description" => "Full Tank Prepaid",
-                        "amount" => 59.99
+                        [
+                            'description' => 'Full Tank Prepaid',
+                            'amount' => 59.99,
+                        ],
+                        [
+                            'description' => 'Half Tank Prepaid',
+                            'amount' => 34.5,
+                        ],
                     ],
-                    [
-                        "description" => "Half Tank Prepaid",
-                        "amount" => 34.5
-                    ]
-                ], JSON_UNESCAPED_UNICODE),
+                    JSON_UNESCAPED_UNICODE,
+                ),
                 // 'default_value' => json_encode([]),
                 'sort_order' => $sortOrder++,
             ],
@@ -439,12 +446,12 @@ class SettingSeeder extends Seeder
             // --- Prepaid Fuel ---
 
             [
-                'value_type'   => 'setting_tooltip',
+                'value_type' => 'setting_tooltip',
                 'setting_name' => 'prepaid_fuel_tooltip',
                 'setting_title' => 'Prepaid Fuel',
                 'setting_options' => json_encode([
                     'layout' => 'info',
-                    'icon'   => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                    'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                     stroke-linecap="round" stroke-linejoin="round"
                                     class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
@@ -456,7 +463,7 @@ class SettingSeeder extends Seeder
                             Pop-up appears with a message and 2 option buttons (Accept or Decline)',
                     'title_color' => 'text-gray-900',
                 ]),
-                'sort_order'   => $sortOrder++,
+                'sort_order' => $sortOrder++,
             ],
 
             [
@@ -486,12 +493,12 @@ class SettingSeeder extends Seeder
             // --- Prepaid Cleaning ---
 
             [
-                'value_type'   => 'setting_tooltip',
+                'value_type' => 'setting_tooltip',
                 'setting_name' => 'prepaid_cleaning_tooltip',
                 'setting_title' => 'Prepaid Cleaning',
                 'setting_options' => json_encode([
                     'layout' => 'info',
-                    'icon'   => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                    'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round"
                             class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
@@ -503,7 +510,7 @@ class SettingSeeder extends Seeder
                             Pop-up appears with a message and 2 option buttons (Accept or Decline)',
                     'title_color' => 'text-gray-900',
                 ]),
-                'sort_order'   => $sortOrder++,
+                'sort_order' => $sortOrder++,
             ],
 
             [
@@ -534,12 +541,12 @@ class SettingSeeder extends Seeder
             // --- Track Insurance ---
 
             [
-                'value_type'   => 'setting_tooltip',
+                'value_type' => 'setting_tooltip',
                 'setting_name' => 'thrown_track_insurance',
                 'setting_title' => 'Thrown Track Insurance',
                 'setting_options' => json_encode([
                     'layout' => 'info',
-                    'icon'   => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                    'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round"
                             class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
@@ -551,7 +558,7 @@ class SettingSeeder extends Seeder
                             Pop-up appears with a message and 2 option buttons (Accept or Decline)',
                     'title_color' => 'text-gray-900',
                 ]),
-                'sort_order'   => $sortOrder++,
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'textarea',
@@ -581,12 +588,12 @@ class SettingSeeder extends Seeder
             // --- Damage Waiver ---
 
             [
-                'value_type'   => 'setting_tooltip',
+                'value_type' => 'setting_tooltip',
                 'setting_name' => 'damage_waiver_protection',
                 'setting_title' => 'Damage Waiver Protection',
                 'setting_options' => json_encode([
                     'layout' => 'info',
-                    'icon'   => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                    'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round"
                             class="lucide lucide-info w-4 h-4 text-gray-400 cursor-help">
@@ -598,7 +605,7 @@ class SettingSeeder extends Seeder
                             Pop-up appears with a message and 2 option buttons (Accept or Decline)',
                     'title_color' => 'text-gray-900',
                 ]),
-                'sort_order'   => $sortOrder++,
+                'sort_order' => $sortOrder++,
             ],
 
             [
@@ -696,7 +703,6 @@ class SettingSeeder extends Seeder
                 ]),
                 'sort_order' => $sortOrder++,
             ],
-
         ];
     }
 
@@ -862,7 +868,6 @@ class SettingSeeder extends Seeder
                 ]),
                 'sort_order' => $sortOrder++,
             ],
-
         ];
     }
 
@@ -936,7 +941,71 @@ class SettingSeeder extends Seeder
                 ]),
                 'sort_order' => $sortOrder++,
             ],
+        ];
+    }
 
+    private function addCommunicationSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Communication Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'sms_gateway',
+                'setting_title' => 'SMS Gateway',
+                'placeholder' => 'Enter SMS gateway name',
+                'is_secure_field' => 1,
+                'default_value' => 'Twilio',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'twilio_sid',
+                'setting_title' => 'Twilio SID',
+                'placeholder' => 'Enter Twilio SID',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => 'AC9bf505b331e6e08f428ea0f143194c9f',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'twilio_auth_token',
+                'setting_title' => 'Twilio Auth Token',
+                'placeholder' => 'Enter Twilio Auth Token',
+                'is_secure_field' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => '423d79bcf93860d3dd112d76a6d0495d',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'twilio_from_number',
+                'setting_title' => 'Twilio From Number',
+                'placeholder' => 'Enter Twilio from number',
+                'is_secure_field' => 1,
+                'default_value' => '+16157032809',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'twilio_messaging_service_sid',
+                'setting_title' => 'Twilio Messaging Service SID',
+                'placeholder' => 'Enter Twilio Messaging Service SID',
+                'is_secure_field' => 1,
+                'default_value' => 'MGaadb9b9a99198fb912890dd06a1fb2fc',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'boolean',
+                'setting_name' => 'sms_test_mode',
+                'setting_title' => 'SMS Test Mode',
+                'is_secure_field' => 1,
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
         ];
     }
 

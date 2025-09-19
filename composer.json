@@ -24,6 +24,7 @@
         "spatie/laravel-permission": "^6.18",
         "stevebauman/location": "^7.5",
         "stevebauman/purify": "^6.3",
+        "twilio/sdk": "^8.8",
         "yajra/laravel-datatables-oracle": "^12.2"
     },
     "require-dev": {

@@ -24,6 +24,9 @@ Route::name('admin.')->group(function ($router) {
     Route::middleware(['auth', 'prevent-back-history'])->group(function ($router) {
         Route::get('logs', [LogViewerController::class, 'index']);
 
+        // Test Route
+        require base_path('routes/admin/tests/routes.php');
+
         // Dashboard
         require base_path('routes/admin/dashboard/routes.php');
 

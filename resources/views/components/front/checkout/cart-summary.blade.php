@@ -85,11 +85,11 @@
 
                                 $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey);
                                 $name = $case?->value ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
-
+                                $quantity = $case?->value ? $item['quantity'] : 1;;
                                 $optionRows[] = [
                                     'name' =>
-                                        $name . ' ' . App\Helpers\CustomHelper::formatCurrency($optPrice) . ' (x1)',
-                                    'price' => App\Helpers\CustomHelper::formatCurrency($optPrice),
+                                        $name . ' ' . App\Helpers\CustomHelper::formatCurrency($optPrice) . " (x{$quantity})",
+                                    'price' => App\Helpers\CustomHelper::formatCurrency($optPrice * $quantity),
                                 ];
                             }
 

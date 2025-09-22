@@ -48,7 +48,7 @@
     "isEntry": true
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-C_boxyQA.css",
+    "file": "assets/app-DV8Rbjy2.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
@@ -71,17 +71,17 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-Tb86Wikh.css",
+    "file": "assets/app-lv2E9wwa.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-xDtNwZmu.css",
+    "file": "assets/app-DKIg_voD.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-DnciBKY7.js",
+    "file": "assets/app-BGLRSIXd.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
@@ -93,7 +93,7 @@
     ]
   },
   "resources/front/assets/js/products/product-details-page.js": {
-    "file": "assets/product-details-page-Bj9h7Oev.js",
+    "file": "assets/product-details-page-C7jKzCE4.js",
     "name": "product-details-page",
     "src": "resources/front/assets/js/products/product-details-page.js",
     "isEntry": true

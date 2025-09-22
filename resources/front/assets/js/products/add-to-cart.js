@@ -1,5 +1,6 @@
 export function initAddToCart(context) {
     const addToCartBtn = document.getElementById('addToCart');
+
     if (!addToCartBtn) return;
 
     addToCartBtn.addEventListener('click', function() {
@@ -11,6 +12,7 @@ export function initAddToCart(context) {
         const qty = parseInt(document.getElementById('qty').value);
         const storeId = document.getElementById('storeSelect')?.value || '';
         const scheduleDate = document.getElementById('scheduleStartDateInput').value;
+        const deliveryOption = document.getElementById('deliveryOptionSelect')?.value || '';
         const dateError = document.getElementById('dateError');
         const qtyError = document.getElementById('qtyError');
         const storeError = document.getElementById('storeError');
@@ -21,29 +23,29 @@ export function initAddToCart(context) {
         if (qtyError) qtyError.classList.add('hidden');
 
         let errorMsg = '';
-        if (context.productType === 'Rental' && !storeId) {
+        if (context.productType === 'Rental' && !storeId && deliveryOption !== 'Delivery + Pickup') {
             errorMsg = 'Please select a store before adding to cart.';
             if (storeError) {
-            storeError.textContent = errorMsg;
-            storeError.classList.remove('hidden');
+                storeError.textContent = errorMsg;
+                storeError.classList.remove('hidden');
             }
         }
         if (!scheduleDate) {
             errorMsg = 'Please select a date before adding to cart.';
             if (dateError) {
-            dateError.textContent = errorMsg;
-            dateError.classList.remove('hidden');
+                dateError.textContent = errorMsg;
+                dateError.classList.remove('hidden');
             }
         }
         if (!qty) {
             errorMsg = 'Please enter a valid quantity.';
             if (qtyError) {
-            qtyError.textContent = errorMsg;
-            qtyError.classList.remove('hidden');
+                qtyError.textContent = errorMsg;
+                qtyError.classList.remove('hidden');
             }
         }
 
-        if ((context.productType === 'Rental' && !storeId) || !scheduleDate || !qty) {
+        if ((context.productType === 'Rental' && !storeId && deliveryOption !== 'Delivery + Pickup') || !scheduleDate || !qty) {
             if (loader) loader.classList.add('hidden');
             addToCartBtn.disabled = false;
             addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');

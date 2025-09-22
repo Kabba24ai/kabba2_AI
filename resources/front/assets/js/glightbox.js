@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
             mainImage.src = images[idx];
             mainLink.href = images[idx];
             // Highlight
-            thumbs.forEach(t => t.classList.remove('ring-2', 'ring-yellow-400'));
-            thumb.classList.add('ring-2', 'ring-yellow-400');
+            thumbs.forEach(t => t.classList.remove('ring-2', 'ring-gray-300'));
+            thumb.classList.add('ring-2', 'ring-gray-300');
             current = idx;
         });
     });

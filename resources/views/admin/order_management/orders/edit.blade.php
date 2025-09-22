@@ -435,9 +435,15 @@
                                 @foreach ($orderProduct->product_data['product_rental_items_prices'] as $rentalKey => $rentalPrice)
                                     <li class="flex justify-between">
                                         <span>
-                                            {{ collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey)?->value ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
-                                            <span
-                                                class="text-xs text-gray-400">(x{{ $orderProduct->quantity ?? 1 }})</span>
+                                            @php
+                                                $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey)?->value;
+                                                $quantity = $case ? $orderProduct->quantity : 1;
+                                            @endphp
+
+                                            {{ $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
+                                            <span class="text-xs text-gray-400">
+                                                (x{{ $quantity }})
+                                            </span>
                                         </span>
                                         <span>
                                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice) }}

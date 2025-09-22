@@ -119,7 +119,7 @@ class CartHelper
         $allocatedHours = $product->product_type === 'Rental' ? floatval($allocatedHoursSettings[$variant.'_hours'] ?? 0) : 0.00;
 
         // --- Collect selected rental add-on items and their prices ---
-        $selectedRentalItemsWithPrices = self::resolveRentalItems($product, $validated, $variant);
+        [$selectedRentalItemsWithPrices, $rentalItemsTotal] = self::resolveRentalItems($product, $validated, $variant, $quantity);
 
         // --- Calculate delivery/service option price ---
         $serviceOptionPrice = self::resolveServiceOptionPrice($product, $validated);
@@ -127,8 +127,6 @@ class CartHelper
         // --- Calculate options/add-ons from product_option_items ---
         [$resolvedOptions, $optionsTotal] = self::resolveProductOptions($product, $validated, $variant, $quantity);
 
-        // --- Calculate all totals ---
-        $rentalItemsTotal = array_sum($selectedRentalItemsWithPrices);
 
         $itemSubTotal = $price * $quantity + $optionsTotal + $serviceOptionPrice + $rentalItemsTotal;
         $itemTax = $taxExempt ? 0 : $itemSubTotal * $taxRate;
@@ -231,8 +229,9 @@ class CartHelper
         ];
     }
 
-    private static function resolveRentalItems($product, $validated, $variant)
+    private static function resolveRentalItems($product, $validated, $variant, $quantity)
     {
+        $rentalItemsTotal = 0;
         $selectedRentalItemsWithPrices = [];
         if ($product->product_type === 'Rental') {
             $productRentalItems = $validated['product_rental_items'] ?? [];
@@ -240,13 +239,17 @@ class CartHelper
                 $case = collect(ProductCustomStaticLabel::cases())->firstWhere('name', $itemKey);
                 if ($case) {
                     $priceKey = $case->name."_".strtolower($variant);
-                    $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$priceKey ?? 0);
+                    $price = floatval($product->$priceKey ?? 0);
+                    $selectedRentalItemsWithPrices[$itemKey] = $price;
+                    $rentalItemsTotal += $price * $quantity;
                 } else {
-                    $selectedRentalItemsWithPrices[$itemKey] = floatval($product->$itemKey ?? 0);
+                    $price = floatval($product->$itemKey ?? 0);
+                    $selectedRentalItemsWithPrices[$itemKey] = $price;
+                    $rentalItemsTotal += $price;
                 }
             }
         }
-        return $selectedRentalItemsWithPrices;
+        return [$selectedRentalItemsWithPrices, $rentalItemsTotal];
     }
 
     private static function resolveServiceOptionPrice($product, $validated)

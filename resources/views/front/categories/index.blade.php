@@ -89,7 +89,7 @@
                                                     </span>
                                                 @endif --}}
                                                 <span class="z-30">
-                                                    {{ ucfirst($type) }}
+                                                    {{ ucfirst(($type === 'weekend') ? 'Weekend Spcl.' : $type) }}
                                                     @if ($product->isRentalOnSale($type))
                                                         - <span
                                                             class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>

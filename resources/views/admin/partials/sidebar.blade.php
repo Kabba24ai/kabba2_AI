@@ -59,6 +59,7 @@
                     $crmActive = Route::is([
                         'admin.crm.customers.*',
                         'admin.crm.billing-summary.*',
+                        'admin.crm.funnels.*',
                     ]);
 
                 @endphp
@@ -97,7 +98,6 @@
                                     <x-heroicon-o-chevron-down class="w-5 h-5" />
                                 </template>
                             </span>
-
                         </a>
 
                         <div x-show="open" x-transition>
@@ -122,7 +122,7 @@
                                     <a href="{{ route('admin.order-management.equipment-inventory.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.order-management.equipment-inventory.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-inventory w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><path d="M3 7h7"/><rect x="14" y="3" width="7" height="7" rx="1"/><path d="M14 7h7"/><rect x="8.5" y="14" width="7" height="7" rx="1"/><path d="M8.5 18h7"/></svg> Equipment Inventory 
+                                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-inventory w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><path d="M3 7h7"/><rect x="14" y="3" width="7" height="7" rx="1"/><path d="M14 7h7"/><rect x="8.5" y="14" width="7" height="7" rx="1"/><path d="M8.5 18h7"/></svg> Equipment Inventory
                                     </a>
                                 </li>
 
@@ -223,7 +223,14 @@
                                     <a href="{{ route('admin.crm.billing-summary.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.crm.billing-summary.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-5 h-5 mr-1"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg> Billing Summary
+                                        <x-heroicon-o-document-text class="w-5 h-5 mr-1" /> Billing Summary
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.crm.funnels.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.crm.funnels.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-chart-bar class="w-5 h-5 mr-1" /> Default Sales Funnel
                                     </a>
                                 </li>
                             </ul>
@@ -393,7 +400,7 @@
                     @endphp
 
                     @php
-                        $PlatformAdministration = Route::is('admin.hrm.*');
+                        $platformAdministration = Route::is('admin.hrm.*');
 
                         $isUsers      = Route::is('admin.hrm.users.*') || Route::is('admin.hrm.*') ;
                         $isRoles      = Route::is('admin.roles.manage.role') || Route::is('admin.roles.create.role') ;
@@ -403,9 +410,9 @@
 
 
                      <!-- Platform Administration -->
-                    <li x-data="{ open: {{ $PlatformAdministration ? 'true' : 'false' }} }">
+                    <li x-data="{ open: {{ $platformAdministration ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
-                            class="menu-item group flex items-center gap-3 {{ $PlatformAdministration ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            class="menu-item group flex items-center gap-3 {{ $platformAdministration ? 'menu-item-active' : 'menu-item-inactive' }}">
                             <x-heroicon-o-briefcase class="w-6 h-6" />
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">HRM</span>
                             <span class="menu-item-arrow"

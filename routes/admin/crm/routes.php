@@ -22,4 +22,6 @@ Route::prefix('crm')
 
     require base_path('routes/admin/crm/billing_summary/routes.php');
 
+    require base_path('routes/admin/crm/funnels/routes.php');
+
 });

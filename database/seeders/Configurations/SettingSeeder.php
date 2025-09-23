@@ -26,6 +26,49 @@ class SettingSeeder extends Seeder
         $this->addAdminSettings();
         $this->addPaymentSettings();
         $this->addCommunicationSettings();
+        $this->addDefaultSalesFunnelSettings();
+    }
+
+    private function addDefaultSalesFunnelSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Default Sales Funnel Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_day_before_truck_message',
+                'setting_title' => 'Rental Day Before Truck Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return. Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_day_before_store_message',
+                'setting_title' => 'Rental Day Before Store Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_same_day_truck_message',
+                'setting_title' => 'Rental Same Day Truck Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_same_day_store_message',
+                'setting_title' => 'Rental Same Day Store Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+        ];
     }
 
     private function addEmailSettings()

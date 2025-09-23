@@ -7,6 +7,22 @@ use App\Services\TwilioService;
 
 class IndexController extends Controller
 {
+    // new method here
+
+    public function sendDayBeforeJob()
+    {
+        // Dispatch the job to send day-before rental reminders
+        \App\Jobs\SendDayBeforeRentalReminderJob::dispatch();
+        return response()->json(['status' => 'Day-before rental reminder job dispatched.']);
+    }
+
+    public function sendSameDayJob()
+    {
+        // Dispatch the job to send same-day rental reminders
+        \App\Jobs\SendSameDayRentalReminderJob::dispatch();
+        return response()->json(['status' => 'Same-day rental reminder job dispatched.']);
+    }
+
     public function sendSms()
     {
         $twilio = new TwilioService();

@@ -194,14 +194,27 @@ class TwilioService
     protected function normalizePhone(string $phone): string
     {
         $digits = preg_replace('/\D/', '', $phone);
-        if (str_starts_with($digits, '00')) {
+        $normalized = '';
+
+        // If already starts with country code (e.g., 91 for India, 1 for US)
+        if (str_starts_with($digits, '91') && strlen($digits) === 12) {
+            $normalized = '+'.$digits;
+        } elseif (strlen($digits) === 10) {
+            // If number is 10 digits, assume India (+91)
+            $normalized = '+91'.$digits;
+        } elseif (str_starts_with($digits, '00')) {
+            // If starts with 00, remove it and add +
             $digits = substr($digits, 2);
+            $normalized = '+'.$digits;
+        } elseif (str_starts_with($digits, '1') && strlen($digits) === 11) {
+            // If already starts with 1 and is 11 digits, assume US
+            $normalized = '+'.$digits;
+        } else {
+            // Fallback: just add +
+            $normalized = '+'.$digits;
         }
-        if (!str_starts_with($digits, '1') && strlen($digits) === 10) {
-            // Assume default country e.g., US (1). Adjust as necessary.
-            $digits = '1' . $digits;
-        }
-        return '+' . $digits;
+
+        return $normalized;
     }
 
     protected function isValidPhone(string $phone): bool

@@ -369,7 +369,10 @@
                         <div>
                             @php
                                 if ($orderProduct?->product) {
-                                    $href = route('admin.product-management.products.edit',$orderProduct->product->unique_id,);
+                                    $href = route(
+                                        'admin.product-management.products.edit',
+                                        $orderProduct->product->unique_id,
+                                    );
                                 }
                             @endphp
                             <a href="{{ $href ?? 'javascript:void(0);' }}"
@@ -436,7 +439,9 @@
                                     <li class="flex justify-between">
                                         <span>
                                             @php
-                                                $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey)?->value;
+                                                $case = collect(
+                                                    \App\Enums\Products\ProductCustomStaticLabel::cases(),
+                                                )->firstWhere('name', $rentalKey)?->value;
                                                 $quantity = $case ? $orderProduct->quantity : 1;
                                             @endphp
 
@@ -500,9 +505,9 @@
                                 <div class="flex items-center justify-between">
                                 </div>
                                 {{-- Delivery Schedule --}}
-                                <div class="space-y-2 mb-4">
+                                <div class="space-y-2 mb-4" x-data="{ deliveryStatus: '{{ $orderProduct->delivery_status ?? 'Pending' }}' }">
                                     <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-                                        <x-heroicon-s-truck class="w-5 h-5 text-red-500 mr-1" /> Delivery Schedule
+                                        <x-heroicon-o-arrow-right-circle class="w-5 h-5" /> Delivery Schedule
                                     </div>
                                     <div class="bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
                                         <div class="flex flex-wrap items-center gap-2 w-full">
@@ -537,11 +542,10 @@
                                                         type="button" @click="open = !open"
                                                         class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_transport_mode">
                                                         <template x-if="selected === 'Store'">
-                                                            <x-heroicon-o-building-storefront
-                                                                class="w-4 h-4 text-yellow-600" />
+                                                            <x-heroicon-o-building-storefront class="w-4 h-4" x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
                                                         </template>
                                                         <template x-if="selected === 'Truck'">
-                                                            <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
+                                                            <x-heroicon-o-truck class="w-4 h-4" x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
                                                         </template>
                                                     </button>
                                                     <div x-show="open" @click.away="open = false"
@@ -552,14 +556,14 @@
                                                                     @click="selected = 'Store'; open = false;  $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
                                                                     <x-heroicon-o-building-storefront
-                                                                        class="w-4 h-4 text-yellow-600" />
+                                                                        class="w-4 h-4" x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                             <li>
                                                                 <button type="button"
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                    <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
+                                                                    <x-heroicon-o-truck class="w-4 h-4" x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                         </ul>
@@ -572,7 +576,7 @@
                                             <div class="flex flex-col items-start min-w-[70px] flex-1">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="delivery_status_{{ $orderProduct->unique_id }}">Status</label>
-                                                <select id="delivery_status_{{ $orderProduct->unique_id }}"
+                                                <select id="delivery_status_{{ $orderProduct->unique_id }}" x-model="deliveryStatus"
                                                     class="delivery_status border rounded px-1.5 py-1 text-xs w-full">
                                                     <option value="Pending"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
@@ -620,9 +624,9 @@
                                 </div>
 
                                 {{-- Return Schedule --}}
-                                <div class="space-y-2 mb-4">
+                                <div class="space-y-2 mb-4" x-data="{ pickupStatus: '{{ $orderProduct->pickup_status ?? 'Pending' }}' }">
                                     <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-                                        <x-heroicon-s-cube class="w-5 h-5 text-[#BB9167] mr-1" /> Return Schedule
+                                        <x-heroicon-o-arrow-left-circle class="w-5 h-5" /> Return Schedule
                                     </div>
                                     <div class="bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
                                         <div class="flex flex-wrap items-center gap-2 w-full">
@@ -657,10 +661,10 @@
                                                         class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront
-                                                                class="w-4 h-4 text-yellow-600" />
+                                                                class="w-4 h-4" x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
                                                         </template>
                                                         <template x-if="selected === 'Truck'">
-                                                            <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
+                                                            <x-heroicon-o-truck class="w-4 h-4" x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
                                                         </template>
                                                     </button>
                                                     <div x-show="open" @click.away="open = false"
@@ -671,14 +675,14 @@
                                                                     @click="selected = 'Store'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
                                                                     <x-heroicon-o-building-storefront
-                                                                        class="w-4 h-4 text-yellow-600" />
+                                                                        class="w-4 h-4" x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                             <li>
                                                                 <button type="button"
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                    <x-heroicon-o-truck class="w-4 h-4 text-yellow-600" />
+                                                                    <x-heroicon-o-truck class="w-4 h-4" x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                         </ul>
@@ -691,7 +695,7 @@
                                             <div class="flex flex-col items-start min-w-[70px] flex-1">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="pickup_status_{{ $orderProduct->unique_id }}">Status</label>
-                                                <select id="pickup_status_{{ $orderProduct->unique_id }}"
+                                                <select id="pickup_status_{{ $orderProduct->unique_id }}"  x-model="pickupStatus"
                                                     class="pickup_status border rounded px-1.5 py-1 text-xs w-full">
                                                     <option value="Pending"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}>
@@ -741,59 +745,49 @@
                                 {{-- Status Checklist --}}
                                 <div class="border rounded-xl p-4 bg-white">
                                     <div class="grid grid-cols-2 gap-8 text-center text-xs font-medium text-gray-700 mb-2">
-                                       <!-- Checklist -->
-<div class="flex flex-col items-center">
-    <div>Checklist</div>
-    <div class="flex justify-center gap-2 mb-1">
+                                        <!-- Checklist -->
+                                        <div class="flex flex-col items-center">
+                                            <div>Checklist</div>
+                                            <div class="flex justify-center gap-2 mb-1">
 
-        {{-- Delivery --}}
-        <span
-            class="inline-flex items-center justify-center w-6 h-6 rounded
+                                                {{-- Delivery --}}
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded
                    {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
                    text-white text-xs font-bold"
-            @if($orderProduct->is_delivered == 1)
-                onclick="openChecklistModal()"
-            @endif
-        >
-            D
-        </span>
+                                                    @if ($orderProduct->is_delivered == 1) onclick="openChecklistModal()" @endif>
+                                                    D
+                                                </span>
 
-        {{-- Return --}}
-        <span
-            class="inline-flex items-center justify-center w-6 h-6 rounded
+                                                {{-- Return --}}
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded
                    {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
                    text-white text-xs font-bold"
-            @if($orderProduct->is_returned == 1)
-                onclick="openChecklistModal()"
-            @endif
-        >
-            R
-        </span>
-    </div>
-</div>
+                                                    @if ($orderProduct->is_returned == 1) onclick="openChecklistModal()" @endif>
+                                                    R
+                                                </span>
+                                            </div>
+                                        </div>
 
 
                                         <!-- Video -->
                                         <div class="flex flex-col items-center">
                                             <div>Video</div>
                                             <div class="flex justify-center gap-2 mb-1">
-                                               {{-- D = Delivery --}}
-                <span
-                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer {{ $orderProduct->deliveryMedia->count() ? 'bg-green-500' : 'bg-red-500' }}"
-                    @if($orderProduct->deliveryMedia->count())
-        onclick="openAllMedia({{ $orderProduct->id }}, 'delivery')"
-    @endif >
-                    D
-                </span>
+                                                {{-- D = Delivery --}}
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer {{ $orderProduct->deliveryMedia->count() ? 'bg-green-500' : 'bg-red-500' }}"
+                                                    @if ($orderProduct->deliveryMedia->count()) onclick="openAllMedia({{ $orderProduct->id }}, 'delivery')" @endif>
+                                                    D
+                                                </span>
 
-                {{-- R = Pickup --}}
-                <span
-                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer {{ $orderProduct->pickupMedia->count() ? 'bg-green-500' : 'bg-red-500' }}"
-                   @if($orderProduct->pickupMedia->count())
-        onclick="openAllMedia({{ $orderProduct->id }}, 'pickup')"
-    @endif >
-                    R
-                </span>
+                                                {{-- R = Pickup --}}
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer {{ $orderProduct->pickupMedia->count() ? 'bg-green-500' : 'bg-red-500' }}"
+                                                    @if ($orderProduct->pickupMedia->count()) onclick="openAllMedia({{ $orderProduct->id }}, 'pickup')" @endif>
+                                                    R
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -819,16 +813,14 @@
                                 </div>
 
                                 {{-- Hidden JSON for THIS product --}}
-      {{-- Hidden JSON --}}
-    <script type="application/json" id="media-{{ $orderProduct->id }}-delivery">
-        {!! $orderProduct->deliveryMedia->map(fn($m) => ['url'=> optional($m->media)->url, 'type'=>$m->type])->toJson() !!}
-    </script>
+                                {{-- Hidden JSON --}}
+                                <script type="application/json" id="media-{{ $orderProduct->id }}-delivery">
+                                    {!! $orderProduct->deliveryMedia->map(fn($m) => ['url'=> optional($m->media)->url, 'type'=>$m->type])->toJson() !!}
+                                </script>
 
-    <script type="application/json" id="media-{{ $orderProduct->id }}-pickup">
-        {!! $orderProduct->pickupMedia->map(fn($m) => ['url'=> optional($m->media)->url, 'type'=>$m->type])->toJson() !!}
-    </script>
-
-
+                                <script type="application/json" id="media-{{ $orderProduct->id }}-pickup">
+                                    {!! $orderProduct->pickupMedia->map(fn($m) => ['url'=> optional($m->media)->url, 'type'=>$m->type])->toJson() !!}
+                                </script>
                             @else
                                 <div class="text-gray-500 text-sm">
                                     <p>No delivery or return schedules available for this product.</p>
@@ -878,35 +870,31 @@
                             </div>
                         </div>
                         <!-- License -->
-                       <!-- License -->
-<div class="flex flex-col items-center">
-    <div>License</div>
-    <div class="flex justify-center mb-1">
-        @if ($order->licenseMedia->isNotEmpty())
-            <span
-                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold cursor-pointer"
-                onclick="openAllMedia({{ $order->id }}, 'license')"
-            >
-                <x-heroicon-o-check class="w-4 h-4" />
-            </span>
+                        <!-- License -->
+                        <div class="flex flex-col items-center">
+                            <div>License</div>
+                            <div class="flex justify-center mb-1">
+                                @if ($order->licenseMedia->isNotEmpty())
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold cursor-pointer"
+                                        onclick="openAllMedia({{ $order->id }}, 'license')">
+                                        <x-heroicon-o-check class="w-4 h-4" />
+                                    </span>
 
-            <script type="application/json" id="media-{{ $order->id }}-license">
-    {!! $order->licenseMedia->map(fn($m) => [
-        'url'  => optional($m->media)->url,
-        'type' => $m->type, // "image" or "video"
-    ])->toJson() !!}
-</script>
-
-
-        @else
-            <span
-                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold"
-            >
-                <x-heroicon-o-x-mark class="w-4 h-4" />
-            </span>
-        @endif
-    </div>
-</div>
+                                    <script type="application/json" id="media-{{ $order->id }}-license">
+                                        {!! $order->licenseMedia->map(fn($m) => [
+                                            'url'  => optional($m->media)->url,
+                                            'type' => $m->type, // "image" or "video"
+                                        ])->toJson() !!}
+                                    </script>
+                                @else
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
 
                         {{-- <!-- Checklist -->
                         <div>
@@ -1515,351 +1503,378 @@
         </div>
     </div>
 
-<!-- Media Grid Modal -->
-<div id="allMediaModal"
-    class="fixed inset-0 z-[99999] hidden bg-black/70 backdrop-blur-sm flex justify-center items-center transition-opacity duration-300 px-4">
+    <!-- Media Grid Modal -->
+    <div id="allMediaModal"
+        class="fixed inset-0 z-[99999] hidden bg-black/70 backdrop-blur-sm flex justify-center items-center transition-opacity duration-300 px-4">
 
-    <div class="relative bg-white rounded-2xl shadow-xl max-w-6xl w-full mx-4 overflow-hidden">
-        <!-- Header -->
-        <div class="flex justify-between items-center px-6 py-4 border-b bg-gray-100">
-            <h2 class="text-lg font-semibold text-gray-800">All Media</h2>
-            <button type="button" onclick="closeAllMedia()"
-                class="text-2xl text-gray-500 hover:text-gray-800 leading-none">&times;</button>
-        </div>
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-6xl w-full mx-4 overflow-hidden">
+            <!-- Header -->
+            <div class="flex justify-between items-center px-6 py-4 border-b bg-gray-100">
+                <h2 class="text-lg font-semibold text-gray-800">All Media</h2>
+                <button type="button" onclick="closeAllMedia()"
+                    class="text-2xl text-gray-500 hover:text-gray-800 leading-none">&times;</button>
+            </div>
 
-        <!-- Body -->
-        <div id="allMediaContent"
-            class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto bg-gray-50">
-            <!-- Media items injected here -->
-        </div>
+            <!-- Body -->
+            <div id="allMediaContent"
+                class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto bg-gray-50">
+                <!-- Media items injected here -->
+            </div>
 
-        <!-- Footer -->
-        <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50">
-            <button type="button" onclick="closeAllMedia()"
-                class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
-                Close
-            </button>
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50">
+                <button type="button" onclick="closeAllMedia()"
+                    class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Modal -->
-<div id="checklistModal" class="fixed inset-0 z-[99999] hidden bg-black/70 backdrop-blur-sm flex transition-opacity duration-300" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="modal-scrollable w-full mx-auto">
-        <div class="relative mx-auto my-10 px-4 w-[95vw] max-w-5xl">
-            <div class="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
-                <!-- Header -->
-                <div class="flex items-center justify-between px-4 sm:px-6 py-3 border-b">
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Checklist</h3>
-                    <button
-                    type="button"
-                    class="text-2xl text-gray-500 leading-none focus:outline-none"
-                    onclick="closeChecklistModal()"
-                    aria-label="Close"
-                    >&times;</button>
-                </div>
-
-                <div class=" overflow-y-auto max-h-[70vh]">
-                    <!-- Content -->
-                    <div class="px-2 sm:px-4 py-3 modal-scrollable w-full mx-auto">
-                        <div class="bg-white border border-gray-200 rounded-md overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
-                                <thead class="bg-gray-100 text-gray-600">
-                                    <tr class="text-left text-gray-600 border-b">
-                                        <th class="py-2 px-2">Checklist Item</th>
-                                        <th class="py-2 px-2">Delivered</th>
-                                        <th class="py-2 px-2">Returned</th>
-                                        <!-- <th class="py-2 px-2">Balance</th>
-                                        <th class="py-2 px-2">Value</th> -->
-                                        <th class="py-2 px-2 text-right">Customer Owes</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-gray-800">
-
-                                @php
-                                 $checklistTotal = 0;
-    $hourTrackingTotal = 0;
-
-@endphp
-
-                                    @foreach($order->products as $product)
-                                        @foreach($product->checklistQuestions()->indexOrder()->get() as $question)
-
-                                            <tr class="border-b">
-                                                <!-- Checklist Item -->
-                                                <td class="py-2 px-2">{{ $question->question_name }}</td>
-
-                                                <!-- Delivered -->
-                                                <td class="py-2 px-2 align-top">
-
-                                                @if($question->deliverySelectedAnswer && $question->deliverySelectedAnswer->is_delivery_answer == 1)
-                                                        <div class="max-w-[200px] whitespace-normal break-words">
-                                                            {{ $question->deliverySelectedAnswer->delivery_answer }}
-                                                        </div>
-                                                    @endif
-                                                </td>
-
-                                                <!-- Returned -->
-                                                <td class="py-2 px-2 align-top">
-                                                    @if($question->returnSelectedAnswer && $question->returnSelectedAnswer->is_return_answer == 1)
-                                                        <div class="max-w-[200px] whitespace-normal break-words">
-                                                            {{ $question->returnSelectedAnswer->return_answer }}
-                                                        </div>
-                                                    @endif
-                                                </td>
-
-
-
-                                                @php
-
-
-
-
-    // Get the last valid answer (delivery or return != 0), sorted by index_number
-    $valid = $question->answers
-        ->filter(fn($a) => $a->is_delivery_answer == 1 || $a->is_return_answer == 1)
-        ->sortByDesc('index_number')
-        ->first();
-
-    // If no valid answer, fallback to the last entry (even if 0/0)
-    $latest = $valid ?? $question->answers->sortByDesc('index_number')->first();
-@endphp
-
-<td class="py-2 px-2 text-right">
-    @if($latest)
-        {{-- Case 1: Both selected --}}
-        @if($latest->is_delivery_answer == 1 && $latest->is_return_answer == 1)
-            <span class="inline-block border-b border-gray-300 min-w-10 text-gray-600">$0.00</span>
-            @php $checklistTotal += 0; @endphp
-
-        {{-- Case 2: Delivery only --}}
-        @elseif($latest->is_delivery_answer == 1 && $latest->is_return_answer == 0)
-            <span class="inline-block border-b border-gray-300 min-w-10 text-green-600">
-                <!-- ${{ $latest->user_delivery_amount ?? $latest->delivery_amount ?? 0 }} -->
-                 $0
-            </span>
-            @php $checklistTotal +=  0; @endphp
-        {{-- Case 3: Return only --}}
-        @elseif($latest->is_return_answer == 1 && $latest->is_delivery_answer == 0)
-             @php
-                $deliveryAmount = $question->deliverySelectedAnswer->delivery_amount ?? 0;
-                $returnAmount = $latest->user_return_amount ?? $latest->return_amount ?? 0;
-                $netAmount = max($returnAmount - $deliveryAmount, 0);
-                 $checklistTotal += $netAmount;
-            @endphp
-            <span class="inline-block border-b border-gray-300 min-w-10 text-red-600">
-                ${{ $netAmount }}
-            </span>
-        {{-- Case 4: Nothing selected --}}
-        @else
-            <span class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
-            @php $checklistTotal += 0; @endphp
-        @endif
-    @else
-        <span class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
-        @php $checklistTotal += 0; @endphp
-    @endif
-</td>
-
-
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-{{-- Second Table: Hour Tracking --}}
-<div class="bg-white border border-gray-200 rounded-md overflow-x-auto mt-6">
-    <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
-        <thead class="bg-gray-100 text-gray-600">
-            <tr class="text-left text-gray-600 border-b">
-                <th class="py-2 px-2">Product</th>
-                <th class="py-2 px-2">Start Hour</th>
-                <th class="py-2 px-2">End Hour</th>
-                <th class="py-2 px-2">Allocated</th>
-                <th class="py-2 px-2">Additional</th>
-                <th class="py-2 px-2">Rate</th>
-                <th class="py-2 px-2 text-right">Charge</th>
-                <th class="py-2 px-2 text-right w-20">Customer Owes</th>
-            </tr>
-        </thead>
-        <tbody class="text-gray-800">
-            @foreach($order->products as $product)
-            <!-- {{ $product->unique_id }}  -->
-                @if($product->hour_tracking == 'Yes')
-                    @php
-                        $startHours     = (float) $product->start_hours;
-                        $endHours       = (float) $product->end_hours;
-                        $allocatedHours = (float) $product->allocated_hours;
-                        $hourRate       = (float) $product->hour_rate;
-
-                        $usedHours = max(0, $endHours - $startHours);
-                        $additionalHours = max(0, $usedHours - $allocatedHours);
-                        $charge = $additionalHours * $hourRate;
-                        $totalAmount = $charge;
-
-                            $hourTrackingTotal += $totalAmount;
-
-                    @endphp
-
-                    <tr class="border-b">
-                        <td class="py-2 px-2">{{ $product->product_name }}</td>
-                        <td class="py-2 px-2">{{ $startHours }}</td>
-                        <td class="py-2 px-2">{{ $endHours }}</td>
-                        <td class="py-2 px-2">{{ $allocatedHours }} h</td>
-                        <td class="py-2 px-2">{{ $additionalHours }} h</td>
-                        <td class="py-2 px-2">${{ number_format($hourRate, 2) }}</td>
-                        <td class="py-2 px-2 text-right text-right">${{ number_format($charge, 2) }}</td>
-                        <td class="py-2 px-2 font-semibold text-right">${{ number_format($totalAmount, 2) }}</td>
-                    </tr>
-                @endif
-            @endforeach
-        </tbody>
-            <tfoot class="bg-gray-50 text-gray-800">
-                    <tr>
-                        <td colspan="7" class="py-2 px-2 text-right">Checklist Total:</td>
-                        <td class="py-2 px-2 text-right">${{ number_format($checklistTotal, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="7" class="py-2 px-2 text-right">Hour Tracking Total:</td>
-                        <td class="py-2 px-2 text-right">${{ number_format($hourTrackingTotal, 2) }}</td>
-                    </tr>
-
-                    <tr class="font-bold">
-                        <td colspan="7" class="py-2 px-2 text-right ">Grand Total:</td>
-                        <td class="py-2 px-2 text-right ">
-                            ${{ number_format($checklistTotal + $hourTrackingTotal, 2) }}
-                        </td>
-                    </tr>
-                </tfoot>
-
-    </table>
-</div>
-
-                                            @foreach ($order->products as $orderProduct)
-                                                                                @if (!empty($orderProduct->product))
-                                                                                    <div class=" py-2">
-                                                                                    <form class="bg-white">
-                                                                                        <!-- 2-column grid (1 column on mobile) -->
-                                                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                                                                                        <!-- LEFT COLUMN -->
-                                                                                        <div class="flex flex-col gap-4">
-                                                                                            <!-- Delivery Notes -->
-                                                                                            <div>
-                                                                                            <label for="delivery_notes" class="block text-sm text-gray-700 mb-1">Delivery Notes</label>
-                                                                                            <div class="text-sm text-gray-700 border border-gray-200 shadow-sm rounded-lg p-4">{{ $orderProduct->delivery_notes ?? '—' }}</div>
-                                                                                            </div>
-
-                                                                                            <!-- Delivery Employee -->
-                                                                                            <div>
-                                                                                            <label for="delivery_employee" class="block text-sm text-gray-700 mb-1">Delivery Employee</label>
-                                                                                            <div class="w-full md:w-56 border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm">
-                                                                                                {{ $orderProduct->deliveryEmployee->full_name ?? '—' }}
-
-                                                                                            </div>
-                                                                                            </div>
-
-                                                                                            <!-- Delivery Signature (Photo) -->
-                                                                                            <div>
-                                                                                            <label class="block text-sm text-gray-700 mb-1">Delivery Signature</label>
-                                                                                                @if(!empty($orderProduct->deliverySignatureMedia))
-                                                                                                   <img src="{{ optional($orderProduct->deliverySignatureMedia)->url }}"
-                                                                                                    class="w-50 border rounded shadow-sm"
-                                                                                                    alt="Signature">
-
-                                                                                                @else
-                                                                                                    <p class="text-gray-500 italic">No signature available</p>
-                                                                                                @endif
-                                                                                            </div>
-                                                                                        </div>
-
-                                                                                        <!-- RIGHT COLUMN -->
-                                                                                        <div class="flex flex-col gap-4">
-                                                                                            <!-- Returned Notes -->
-                                                                                            <div>
-                                                                                            <label for="returned_notes" class="block text-sm text-gray-700 mb-1">Returned Notes</label>
-                                                                                            <div class="text-sm text-gray-700 border border-gray-200 shadow-sm rounded-lg p-4">{{ $orderProduct->pickup_notes ?? '—' }}</div>
-                                                                                            </div>
-
-                                                                                            <!-- Returned Employee -->
-                                                                                            <div>
-                                                                                            <label for="returned_employee" class="block text-sm text-gray-700 mb-1">Returned Employee</label>
-                                                                                            <div class="w-full md:w-56 border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm">
-                                                                                                {{ $orderProduct->pickupEmployee->full_name ?? '—' }}
-                                                                                            </div>
-                                                                                            </div>
-
-                                                                                            <div>
-                                                                                            <label class="block text-sm text-gray-700 mb-1">Returned Signature</label>
-                                                                                @if(!empty($orderProduct->returnSignatureMedia))
-                                                                                       <img src="{{ optional($orderProduct->returnSignatureMedia)->url }}"
-                                                                                    class="w-50 border rounded shadow-sm"
-                                                                                    alt="Signature">
-
-                                                                                    @else
-                                                                                        <p class="text-gray-500 italic">No signature available</p>
-                                                                                    @endif			</div>
-
-                                                                                            <!-- Save button pinned to bottom on md+ -->
-                                                                                            <!-- <div class="mt-auto flex justify-end">
-                                                                                            <button type="submit"
-                                                                                                class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
-                                                                                                Save
-                                                                                            </button>
-                                                                                            </div> -->
-                                                                                        </div>
-
-                                                                                        </div>
-                                                                                    </form>
-                                                                                    </div>
-
-                                                                                @endif
-                                            @endforeach
-
+    <!-- Modal -->
+    <div id="checklistModal"
+        class="fixed inset-0 z-[99999] hidden bg-black/70 backdrop-blur-sm flex transition-opacity duration-300"
+        aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-scrollable w-full mx-auto">
+            <div class="relative mx-auto my-10 px-4 w-[95vw] max-w-5xl">
+                <div class="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between px-4 sm:px-6 py-3 border-b">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-800">Checklist</h3>
+                        <button type="button" class="text-2xl text-gray-500 leading-none focus:outline-none"
+                            onclick="closeChecklistModal()" aria-label="Close">&times;</button>
                     </div>
-                </div>
+
+                    <div class=" overflow-y-auto max-h-[70vh]">
+                        <!-- Content -->
+                        <div class="px-2 sm:px-4 py-3 modal-scrollable w-full mx-auto">
+                            <div class="bg-white border border-gray-200 rounded-md overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
+                                    <thead class="bg-gray-100 text-gray-600">
+                                        <tr class="text-left text-gray-600 border-b">
+                                            <th class="py-2 px-2">Checklist Item</th>
+                                            <th class="py-2 px-2">Delivered</th>
+                                            <th class="py-2 px-2">Returned</th>
+                                            <!-- <th class="py-2 px-2">Balance</th>
+                                            <th class="py-2 px-2">Value</th> -->
+                                            <th class="py-2 px-2 text-right">Customer Owes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-800">
+
+                                        @php
+                                            $checklistTotal = 0;
+                                            $hourTrackingTotal = 0;
+
+                                        @endphp
+
+                                        @foreach ($order->products as $product)
+                                            @foreach ($product->checklistQuestions()->indexOrder()->get() as $question)
+                                                <tr class="border-b">
+                                                    <!-- Checklist Item -->
+                                                    <td class="py-2 px-2">{{ $question->question_name }}</td>
+
+                                                    <!-- Delivered -->
+                                                    <td class="py-2 px-2 align-top">
+
+                                                        @if ($question->deliverySelectedAnswer && $question->deliverySelectedAnswer->is_delivery_answer == 1)
+                                                            <div class="max-w-[200px] whitespace-normal break-words">
+                                                                {{ $question->deliverySelectedAnswer->delivery_answer }}
+                                                            </div>
+                                                        @endif
+                                                    </td>
+
+                                                    <!-- Returned -->
+                                                    <td class="py-2 px-2 align-top">
+                                                        @if ($question->returnSelectedAnswer && $question->returnSelectedAnswer->is_return_answer == 1)
+                                                            <div class="max-w-[200px] whitespace-normal break-words">
+                                                                {{ $question->returnSelectedAnswer->return_answer }}
+                                                            </div>
+                                                        @endif
+                                                    </td>
 
 
 
-                <!-- Footer -->
-                <div class="px-4 sm:px-6 py-3 border-t flex items-center justify-end gap-2">
-                    <button class="px-4 py-2 text-sm rounded border border-gray-300 bg-white" onclick="closeChecklistModal()">Cancel</button>
-                    <button class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Save</button>
+                                                    @php
+
+                                                        // Get the last valid answer (delivery or return != 0), sorted by index_number
+                                                        $valid = $question->answers
+                                                            ->filter(
+                                                                fn($a) => $a->is_delivery_answer == 1 ||
+                                                                    $a->is_return_answer == 1,
+                                                            )
+                                                            ->sortByDesc('index_number')
+                                                            ->first();
+
+                                                        // If no valid answer, fallback to the last entry (even if 0/0)
+                                                        $latest =
+                                                            $valid ??
+                                                            $question->answers->sortByDesc('index_number')->first();
+                                                    @endphp
+
+                                                    <td class="py-2 px-2 text-right">
+                                                        @if ($latest)
+                                                            {{-- Case 1: Both selected --}}
+                                                            @if ($latest->is_delivery_answer == 1 && $latest->is_return_answer == 1)
+                                                                <span
+                                                                    class="inline-block border-b border-gray-300 min-w-10 text-gray-600">$0.00</span>
+                                                                @php $checklistTotal += 0; @endphp
+
+                                                                {{-- Case 2: Delivery only --}}
+                                                            @elseif($latest->is_delivery_answer == 1 && $latest->is_return_answer == 0)
+                                                                <span
+                                                                    class="inline-block border-b border-gray-300 min-w-10 text-green-600">
+                                                                    <!-- ${{ $latest->user_delivery_amount ?? ($latest->delivery_amount ?? 0) }} -->
+                                                                    $0
+                                                                </span>
+                                                                @php $checklistTotal +=  0; @endphp
+                                                                {{-- Case 3: Return only --}}
+                                                            @elseif($latest->is_return_answer == 1 && $latest->is_delivery_answer == 0)
+                                                                @php
+                                                                    $deliveryAmount =
+                                                                        $question->deliverySelectedAnswer
+                                                                            ->delivery_amount ?? 0;
+                                                                    $returnAmount =
+                                                                        $latest->user_return_amount ??
+                                                                        ($latest->return_amount ?? 0);
+                                                                    $netAmount = max(
+                                                                        $returnAmount - $deliveryAmount,
+                                                                        0,
+                                                                    );
+                                                                    $checklistTotal += $netAmount;
+                                                                @endphp
+                                                                <span
+                                                                    class="inline-block border-b border-gray-300 min-w-10 text-red-600">
+                                                                    ${{ $netAmount }}
+                                                                </span>
+                                                                {{-- Case 4: Nothing selected --}}
+                                                            @else
+                                                                <span
+                                                                    class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
+                                                                @php $checklistTotal += 0; @endphp
+                                                            @endif
+                                                        @else
+                                                            <span
+                                                                class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
+                                                            @php $checklistTotal += 0; @endphp
+                                                        @endif
+                                                    </td>
+
+
+                                                </tr>
+                                            @endforeach
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            {{-- Second Table: Hour Tracking --}}
+                            <div class="bg-white border border-gray-200 rounded-md overflow-x-auto mt-6">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
+                                    <thead class="bg-gray-100 text-gray-600">
+                                        <tr class="text-left text-gray-600 border-b">
+                                            <th class="py-2 px-2">Product</th>
+                                            <th class="py-2 px-2">Start Hour</th>
+                                            <th class="py-2 px-2">End Hour</th>
+                                            <th class="py-2 px-2">Allocated</th>
+                                            <th class="py-2 px-2">Additional</th>
+                                            <th class="py-2 px-2">Rate</th>
+                                            <th class="py-2 px-2 text-right">Charge</th>
+                                            <th class="py-2 px-2 text-right w-20">Customer Owes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-800">
+                                        @foreach ($order->products as $product)
+                                            <!-- {{ $product->unique_id }}  -->
+                                            @if ($product->hour_tracking == 'Yes')
+                                                @php
+                                                    $startHours = (float) $product->start_hours;
+                                                    $endHours = (float) $product->end_hours;
+                                                    $allocatedHours = (float) $product->allocated_hours;
+                                                    $hourRate = (float) $product->hour_rate;
+
+                                                    $usedHours = max(0, $endHours - $startHours);
+                                                    $additionalHours = max(0, $usedHours - $allocatedHours);
+                                                    $charge = $additionalHours * $hourRate;
+                                                    $totalAmount = $charge;
+
+                                                    $hourTrackingTotal += $totalAmount;
+
+                                                @endphp
+
+                                                <tr class="border-b">
+                                                    <td class="py-2 px-2">{{ $product->product_name }}</td>
+                                                    <td class="py-2 px-2">{{ $startHours }}</td>
+                                                    <td class="py-2 px-2">{{ $endHours }}</td>
+                                                    <td class="py-2 px-2">{{ $allocatedHours }} h</td>
+                                                    <td class="py-2 px-2">{{ $additionalHours }} h</td>
+                                                    <td class="py-2 px-2">${{ number_format($hourRate, 2) }}</td>
+                                                    <td class="py-2 px-2 text-right text-right">
+                                                        ${{ number_format($charge, 2) }}</td>
+                                                    <td class="py-2 px-2 font-semibold text-right">
+                                                        ${{ number_format($totalAmount, 2) }}</td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="bg-gray-50 text-gray-800">
+                                        <tr>
+                                            <td colspan="7" class="py-2 px-2 text-right">Checklist Total:</td>
+                                            <td class="py-2 px-2 text-right">${{ number_format($checklistTotal, 2) }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="7" class="py-2 px-2 text-right">Hour Tracking Total:</td>
+                                            <td class="py-2 px-2 text-right">${{ number_format($hourTrackingTotal, 2) }}
+                                            </td>
+                                        </tr>
+
+                                        <tr class="font-bold">
+                                            <td colspan="7" class="py-2 px-2 text-right ">Grand Total:</td>
+                                            <td class="py-2 px-2 text-right ">
+                                                ${{ number_format($checklistTotal + $hourTrackingTotal, 2) }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+
+                                </table>
+                            </div>
+
+                            @foreach ($order->products as $orderProduct)
+                                @if (!empty($orderProduct->product))
+                                    <div class=" py-2">
+                                        <form class="bg-white">
+                                            <!-- 2-column grid (1 column on mobile) -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                                <!-- LEFT COLUMN -->
+                                                <div class="flex flex-col gap-4">
+                                                    <!-- Delivery Notes -->
+                                                    <div>
+                                                        <label for="delivery_notes"
+                                                            class="block text-sm text-gray-700 mb-1">Delivery Notes</label>
+                                                        <div
+                                                            class="text-sm text-gray-700 border border-gray-200 shadow-sm rounded-lg p-4">
+                                                            {{ $orderProduct->delivery_notes ?? '—' }}</div>
+                                                    </div>
+
+                                                    <!-- Delivery Employee -->
+                                                    <div>
+                                                        <label for="delivery_employee"
+                                                            class="block text-sm text-gray-700 mb-1">Delivery
+                                                            Employee</label>
+                                                        <div
+                                                            class="w-full md:w-56 border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm">
+                                                            {{ $orderProduct->deliveryEmployee->full_name ?? '—' }}
+
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Delivery Signature (Photo) -->
+                                                    <div>
+                                                        <label class="block text-sm text-gray-700 mb-1">Delivery
+                                                            Signature</label>
+                                                        @if (!empty($orderProduct->deliverySignatureMedia))
+                                                            <img src="{{ optional($orderProduct->deliverySignatureMedia)->url }}"
+                                                                class="w-50 border rounded shadow-sm" alt="Signature">
+                                                        @else
+                                                            <p class="text-gray-500 italic">No signature available</p>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                <!-- RIGHT COLUMN -->
+                                                <div class="flex flex-col gap-4">
+                                                    <!-- Returned Notes -->
+                                                    <div>
+                                                        <label for="returned_notes"
+                                                            class="block text-sm text-gray-700 mb-1">Returned Notes</label>
+                                                        <div
+                                                            class="text-sm text-gray-700 border border-gray-200 shadow-sm rounded-lg p-4">
+                                                            {{ $orderProduct->pickup_notes ?? '—' }}</div>
+                                                    </div>
+
+                                                    <!-- Returned Employee -->
+                                                    <div>
+                                                        <label for="returned_employee"
+                                                            class="block text-sm text-gray-700 mb-1">Returned
+                                                            Employee</label>
+                                                        <div
+                                                            class="w-full md:w-56 border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm">
+                                                            {{ $orderProduct->pickupEmployee->full_name ?? '—' }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="block text-sm text-gray-700 mb-1">Returned
+                                                            Signature</label>
+                                                        @if (!empty($orderProduct->returnSignatureMedia))
+                                                            <img src="{{ optional($orderProduct->returnSignatureMedia)->url }}"
+                                                                class="w-50 border rounded shadow-sm" alt="Signature">
+                                                        @else
+                                                            <p class="text-gray-500 italic">No signature available</p>
+                                                        @endif
+                                                    </div>
+
+                                                    <!-- Save button pinned to bottom on md+ -->
+                                                    <!-- <div class="mt-auto flex justify-end">
+                                                        <button type="submit"
+                                                            class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
+                                                            Save
+                                                        </button>
+                                                    </div> -->
+                                                </div>
+
+                                            </div>
+                                        </form>
+                                    </div>
+                                @endif
+                            @endforeach
+
+                        </div>
+                    </div>
+
+
+
+                    <!-- Footer -->
+                    <div class="px-4 sm:px-6 py-3 border-t flex items-center justify-end gap-2">
+                        <button class="px-4 py-2 text-sm rounded border border-gray-300 bg-white"
+                            onclick="closeChecklistModal()">Cancel</button>
+                        <button class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Save</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
 @endsection
 
 @push('js')
 
-<script>
-  const modalEl = document.getElementById('checklistModal');
+    <script>
+        const modalEl = document.getElementById('checklistModal');
 
-  function openChecklistModal() {
-    modalEl.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // scroll-lock
-    // focus first control for a11y
-    setTimeout(() => {
-      const first = modalEl.querySelector('select, input, button');
-      first && first.focus();
-    }, 0);
-  }
-  function closeChecklistModal() {
-    modalEl.classList.add('hidden');
-    document.body.style.overflow = ''; // restore scroll
-  }
-  // ESC to close
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !modalEl.classList.contains('hidden')) {
-      closeChecklistModal();
-    }
-  });
-</script>
+        function openChecklistModal() {
+            modalEl.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // scroll-lock
+            // focus first control for a11y
+            setTimeout(() => {
+                const first = modalEl.querySelector('select, input, button');
+                first && first.focus();
+            }, 0);
+        }
+
+        function closeChecklistModal() {
+            modalEl.classList.add('hidden');
+            document.body.style.overflow = ''; // restore scroll
+        }
+        // ESC to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modalEl.classList.contains('hidden')) {
+                closeChecklistModal();
+            }
+        });
+    </script>
 
 
     @if ($paymentSetting['payment_test_mode'] ?? false)
@@ -3105,7 +3120,7 @@
             Array.from(refundCalcBtn).forEach(btn => {
                 btn.addEventListener('click', function() {
                     amountInput.value = (originalAmount * (btn.dataset.percentage / 100)).toFixed(
-                    2);
+                        2);
                     amountInput.dispatchEvent(new Event('input'));
                 });
             });
@@ -3160,32 +3175,32 @@
         });
     </script>
 
-<script>
-function openAllMedia(orderProductId, type) {
-    const modal = document.getElementById('allMediaModal');
-    const content = document.getElementById('allMediaContent');
+    <script>
+        function openAllMedia(orderProductId, type) {
+            const modal = document.getElementById('allMediaModal');
+            const content = document.getElementById('allMediaContent');
 
-    const jsonEl = document.getElementById(`media-${orderProductId}-${type}`);
-    if (!jsonEl) {
-        content.innerHTML = `<p class="text-gray-500">No media found for this product.</p>`;
-        modal.classList.remove('hidden');
-        return;
-    }
+            const jsonEl = document.getElementById(`media-${orderProductId}-${type}`);
+            if (!jsonEl) {
+                content.innerHTML = `<p class="text-gray-500">No media found for this product.</p>`;
+                modal.classList.remove('hidden');
+                return;
+            }
 
-    let mediaData = [];
-    try {
-        mediaData = JSON.parse(jsonEl.textContent);
-    } catch (e) {
-        console.error("Invalid JSON", e);
-    }
+            let mediaData = [];
+            try {
+                mediaData = JSON.parse(jsonEl.textContent);
+            } catch (e) {
+                console.error("Invalid JSON", e);
+            }
 
-    let html = '';
-    mediaData.forEach(m => {
-        if (!m.url) return;
+            let html = '';
+            mediaData.forEach(m => {
+                if (!m.url) return;
 
-        // Video
-        if (m.url.match(/\.(mp4|mov|webm)$/)) {
-            html += `
+                // Video
+                if (m.url.match(/\.(mp4|mov|webm)$/)) {
+                    html += `
                 <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
                     <video class="w-full h-48 object-cover" muted>
                         <source src="${m.url}" type="video/mp4">
@@ -3199,11 +3214,11 @@ function openAllMedia(orderProductId, type) {
                     </a>
                 </div>
             `;
-        }
+                }
 
-        // Image
-        else if (m.url.match(/\.(jpeg|jpg|png|gif|webp)$/)) {
-            html += `
+                // Image
+                else if (m.url.match(/\.(jpeg|jpg|png|gif|webp)$/)) {
+                    html += `
                 <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
                     <img src="${m.url}" class="w-full h-48 object-cover" />
                     <a href="${m.url}" target="_blank"
@@ -3215,20 +3230,20 @@ function openAllMedia(orderProductId, type) {
                     </a>
                 </div>
             `;
+                }
+            });
+
+            content.innerHTML = html || `<p class="text-gray-500">No media available.</p>`;
+            modal.classList.remove('hidden');
         }
-    });
 
-    content.innerHTML = html || `<p class="text-gray-500">No media available.</p>`;
-    modal.classList.remove('hidden');
-}
-
-function closeAllMedia() {
-    const modal = document.getElementById('allMediaModal');
-    const content = document.getElementById('allMediaContent');
-    modal.classList.add('hidden');
-    content.innerHTML = ''; // cleanup
-}
-</script>
+        function closeAllMedia() {
+            const modal = document.getElementById('allMediaModal');
+            const content = document.getElementById('allMediaContent');
+            modal.classList.add('hidden');
+            content.innerHTML = ''; // cleanup
+        }
+    </script>
 
 
 

@@ -192,7 +192,9 @@
                                 // Determine default checked value
                                 $checkedDistanceType = $hasStandard ? 'Standard' : ($hasExtended ? 'Extended' : 'Custom');
                             @endphp
+                            @if ($showInStore || $showDelivery)
                             <label for="rentalDeliveryMethod" class="font-medium">Rental Delivery Method</label>
+                            @endif
                             @if ($showInStore)
                                 <div class="space-y-2">
                                     <label class="inline-flex items-center space-x-2">
@@ -560,21 +562,14 @@
 
     <section class="pb-16">
         <div class="container mx-auto max-w-screen-2xl px-4 md:px-6">
-            <div class="pb-10">
-                <a href="javascript:void(0)"
-                    class="border border-gray-300 px-6 py-3 text-sm font-medium rounded-lg shadow transition-colors cursor-default">
-                    Details
-                </a>
+            <div class="pb-5">
+                <h2 class="md:text-xl font-bold text-left">Product Details</h2>
             </div>
             <div class="flex flex-col gap-4 text-gray-700 leading-relaxed  rich-content">
                 {!! $productDetail->description !!}
             </div>
         </div>
     </section>
-
-
-
-
 
     <!-- clean Modal -->
     <div id="modalBackdropClean" class="fixed inset-0 bg-black/50 flex items-center justify-center z-99999 hidden">

@@ -35,8 +35,8 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label for="rental_day_before_truck_message"
-                                        class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                    <label for="rental_day_before_truck_message" class="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                        <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
                                         Rental Day Before Truck Message
                                     </label>
                                     {!! html()->textarea(
@@ -57,10 +57,11 @@
                                     @error('rental_day_before_truck_message')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
+                                    <span id="rental_day_before_truck_message_count" class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
                                 <div>
-                                    <label for="rental_day_before_store_message"
-                                        class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                    <label for="rental_day_before_store_message" class="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                        <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
                                         Rental Day Before Store Message
                                     </label>
                                     {!! html()->textarea(
@@ -81,6 +82,7 @@
                                     @error('rental_day_before_store_message')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
+                                    <span id="rental_day_before_store_message_count" class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
                             </div>
                         </div>
@@ -91,8 +93,8 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label for="rental_same_day_truck_message"
-                                        class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                    <label for="rental_same_day_truck_message" class="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                        <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
                                         Rental Same Day Truck Message
                                     </label>
                                     {!! html()->textarea(
@@ -113,10 +115,11 @@
                                     @error('rental_same_day_truck_message')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
+                                    <span id="rental_same_day_truck_message_count" class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
                                 <div>
-                                    <label for="rental_same_day_store_message"
-                                        class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                    <label for="rental_same_day_store_message" class="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                        <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
                                         Rental Same Day Store Message
                                     </label>
                                     {!! html()->textarea(
@@ -135,8 +138,9 @@
                                             'id' => 'rental_same_day_store_message',
                                         ])->required() !!}
                                     @error('rental_same_day_store_message')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
+                                    <span id="rental_same_day_store_message_count" class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
                             </div>
                         </div>
@@ -157,4 +161,20 @@
 @endsection
 
 @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character count for all textareas with maxlength
+            document.querySelectorAll('textarea[maxlength]').forEach(function(textarea) {
+                var id = textarea.id;
+                if (!id) return;
+                var counter = document.getElementById(id + '_count');
+                if (!counter) return;
+                textarea.addEventListener('input', function() {
+                    counter.textContent = textarea.value.length + '/500';
+                });
+                // Initialize on page load
+                counter.textContent = textarea.value.length + '/500';
+            });
+        });
+    </script>
 @endpush

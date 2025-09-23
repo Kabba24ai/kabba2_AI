@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 // Models
 use App\Models\Iam\Personnel\User;
 use App\Models\Customers\Customer;
-
-
+use App\Models\Orders\Order;
+use App\Helpers\ConfigurationHelper;
 
 class CreateController extends Controller
 {
@@ -22,8 +22,15 @@ class CreateController extends Controller
             ->where('unique_id', $unique_id)
             ->firstOrFail();
 
-        // dd($customer);
+        $order = Order::with('shippingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia')->where('customer_id', $customer->id)->get();
 
-        return view('admin.crm.customers.create_invoice', ['customer' => $customer]);
+        $users = User::where('status', 'Active')->get();
+
+        $sales_tax = ConfigurationHelper::getSettings(null , 'sales_tax');
+
+        // dd($sales_tax);
+
+
+        return view('admin.crm.customers.create_invoice', ['customer' => $customer , 'orders'=> $order, 'users' => $users,'sales_tax' => $sales_tax,]);
     }
 }

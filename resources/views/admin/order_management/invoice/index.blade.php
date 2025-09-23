@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="min-h-screen p-6 flex flex-col items-center">
+<div class="min-h-screen  flex flex-col items-center">
     <!-- Header -->
     <div class="text-center mb-6">
         <h2 class="text-xl font-semibold">Receipt Preview</h2>
@@ -98,10 +98,10 @@
                 <!-- Table Head -->
                 <thead>
                     <tr class="border-b border-gray-300 mb-4">
-                        <th class="text-left py-2 font-semibold text-gray-700">Item</th>
-                        <th class="text-center py-2 font-semibold text-gray-700">Qty</th>
-                        <th class="text-right py-2 font-semibold text-gray-700">Unit Price</th>
-                        <th class="text-right py-2 font-semibold text-gray-700">Total</th>
+                        <th class="text-left py-2 font-semibold text-gray-700 whitespace-nowrap">Item</th>
+                        <th class="text-center py-2 font-semibold text-gray-700 whitespace-nowrap">Qty</th>
+                        <th class="text-right py-2 font-semibold text-gray-700 whitespace-nowrap">Unit Price</th>
+                        <th class="text-right py-2 font-semibold text-gray-700 whitespace-nowrap">Total</th>
                     </tr>
                 </thead>
 
@@ -109,48 +109,48 @@
                 <tbody>
                     <!-- Row 1 -->
                     <tr>
-                        <td class="pt-2 pb-2 align-top">
-                        <div class="font-medium text-gray-900">Heavy Duty Excavator Rental</div>
+                        <td class="pt-2 pb-2 align-top whitespace-nowrap">
+                            <div class="font-medium text-gray-900">Heavy Duty Excavator Rental</div>
                         </td>
-                        <td class="pt-2 text-center align-top">2</td>
-                        <td class="pt-2 text-right align-top">$450.00</td>
-                        <td class="pt-2 text-right align-top font-semibold">$900.00</td>
+                        <td class="pt-2 text-center align-top whitespace-nowrap">2</td>
+                        <td class="pt-2 text-right align-top whitespace-nowrap">$450.00</td>
+                        <td class="pt-2 text-right align-top font-semibold whitespace-nowrap">$900.00</td>
                     </tr>
                     <tr>
-                        <td class="pl-6 pb-2 text-gray-500 text-sm">+ Insurance Coverage</td>
+                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">+ Insurance Coverage</td>
                         <td></td>
-                        <td class="text-right pb-2 text-gray-500 text-sm">$85.00</td>
-                        <td class="text-right pb-2 text-gray-500 text-sm">$85.00</td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$85.00</td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$85.00</td>
                     </tr>
                     <tr class="border-b ">
-                        <td class="pl-6 pb-2 text-gray-500 text-sm">+ Delivery & Pickup</td>
+                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">+ Delivery & Pickup</td>
                         <td></td>
-                        <td class="text-right pb-2 text-gray-500 text-sm">$125.00</td>
-                        <td class="text-right pb-2 text-gray-500 text-sm">$125.00</td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$125.00</td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$125.00</td>
                     </tr>
 
                     <!-- Row 2 -->
                     <tr>
                         <td class="pt-2 pb-2 align-top">
-                        <div class="font-medium text-gray-900">Safety Equipment Package</div>
+                            <div class="font-medium text-gray-900 whitespace-nowrap">Safety Equipment Package</div>
                         </td>
                         <td class="pt-2 text-center align-top">1</td>
-                        <td class="pt-2 text-right align-top">$75.00</td>
-                        <td class="pt-2 text-right align-top font-semibold">$75.00</td>
+                        <td class="pt-2 text-right align-top whitespace-nowrap">$75.00</td>
+                        <td class="pt-2 text-right align-top font-semibold whitespace-nowrap">$75.00</td>
                     </tr>
                     <tr class="border-b pb-2">
-                        <td class="pl-6 pb-2 text-gray-500 text-sm">+ Extended Coverage Plan</td>
+                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">+ Extended Coverage Plan</td>
                         <td></td>
-                        <td class="text-right pb-2 text-gray-500 text-sm">$25.00</td>
-                        <td class="text-right pb-2 text-gray-500 text-sm">$25.00</td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$25.00</td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$25.00</td>
                     </tr>
 
                     <!-- Row 3 -->
                     <tr class="border-b">
-                        <td class="py-3 font-medium text-gray-900">Portable Generator</td>
+                        <td class="py-3 font-medium text-gray-900 whitespace-nowrap">Portable Generator</td>
                         <td class="text-center">1</td>
-                        <td class="text-right">$120.00</td>
-                        <td class="text-right font-semibold">$120.00</td>
+                        <td class="text-right whitespace-nowrap">$120.00</td>
+                        <td class="text-right font-semibold whitespace-nowrap">$120.00</td>
                     </tr>
                 </tbody>
             </table>

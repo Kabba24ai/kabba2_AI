@@ -90,7 +90,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="invoiceTable" class="divide-y divide-gray-200">
-                                    <!-- <tr>
+                                    <tr>
                                         <td class="px-4 py-3 font-medium text-gray-900">INV-2025-001</td>
                                         <td class="px-4 py-3">Jan 15, 2025</td>
                                         <td class="px-4 py-3">Feb 14, 2025</td>
@@ -99,9 +99,9 @@
                                             <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <button class="text-blue-600 inline-flex items-center cursor-pointer">
+                                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                                            </button>
+                                            </a>
                                             <button class="text-green-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                                             </button>
@@ -117,16 +117,16 @@
                                             <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">overdue</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <button class="text-blue-600 inline-flex items-center cursor-pointer">
+                                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                                            </button>
+                                            </a>
                                             <button class="text-green-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                                             </button>
                                             
-                                            <button class="text-purple-600 inline-flex items-center cursor-pointer">
+                                            <a href="javascript:void(0)" id="openDiscountModal" class="text-purple-600 inline-flex items-center cursor-pointer">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg> 
-                                            </button>
+                                            </a>
                                         </td>
                                     </tr>
 
@@ -139,9 +139,9 @@
                                             <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">pending</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <button class="text-blue-600 inline-flex items-center cursor-pointer">
+                                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                                            </button>
+                                            </a>
                                             <button class="text-green-600 inline-flex items-center cursor-pointer">
                                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                                             </button>
@@ -150,11 +150,88 @@
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>  
                                             </button>
                                         </td>
-                                    </tr> -->
-                                    <tr>
-                                        <td align="center" colspan="6">No invoices found</td>
                                     </tr>
+                                    <!-- <tr>
+                                        <td align="center" colspan="6">No invoices found</td>
+                                    </tr> -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
+
+<!-- New Discount Wrapper -->
+<div id="discountModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-medium text-gray-900">Pay Invoice</h2>
+                </div>
+                <button id="closeDiscountModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 space-y-5">
+                <!-- Invoice Info -->
+                <div class="bg-gray-50 rounded-md space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-sm font-medium text-gray-500">Invoice Number:</span>
+                        <span class="text-sm font-semibold text-gray-900">INV-2025-002</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-sm font-medium text-gray-500">Due Date:</span>
+                        <span class="text-sm text-gray-900">Feb 19, 2025</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-sm font-medium text-gray-500">Amount Due:</span>
+                        <span class="text-lg font-bold text-gray-900">$875.50</span>
+                    </div>
+                </div>
+
+                <!-- Secure Payment Info -->
+                <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-5 h-5 text-blue-600 mr-3"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+                        <div>
+                            <p class="text-sm font-medium text-blue-900">Secure Payment Processing</p>
+                            <p class="text-xs text-blue-700 mt-1">Payments are processed securely through our payment gateway. You'll enter your payment details on the next step.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex space-x-3 gap-3 px-6 py-4">
+                <button class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
+                    Cancel
+                </button>
+                <button class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                    Pay $875.50
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+ <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalWrapper = document.getElementById('discountModalWrapper');
+        const openBtn = document.getElementById('openDiscountModal');
+        const closeBtn = document.getElementById('closeDiscountModalBtn');
+        const cancelBtn = document.getElementById('cancelDiscountBtn');
+
+        openBtn.addEventListener('click', () => {
+            modalWrapper.style.display = 'flex';
+        });
+
+         const closeModal = () => {
+            modalWrapper.style.display = 'none';
+       };
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+    });
+</script>

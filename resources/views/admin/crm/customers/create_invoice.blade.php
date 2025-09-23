@@ -44,6 +44,7 @@
 
 <div class="min-h-screen bg-gray-50 mt-6">
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <input type="hidden" value="{{ $sales_tax }}" data-sales-tax-rate>
         <!-- Left side -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Invoice Details -->
@@ -127,6 +128,7 @@
                                 <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Description</th>
                                 <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">Qty</th>
                                 <th class="px-4 py-2 text-right text-sm font-semibold text-gray-700 whitespace-nowrap">Unit Price</th>
+                                <th class="px-4 py-2 text-right text-sm font-semibold text-gray-700 whitespace-nowrap">Tax</th>
                                 <th class="px-4 py-2 text-right text-sm font-semibold text-gray-700 whitespace-nowrap">Total</th>
                                 <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">Actions</th>
                             </tr>
@@ -229,13 +231,14 @@
                 <h3 class="text-lg font-semibold mb-4">Invoice Summary</h3>
                 <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Subtotal:</span>
-                    <span class="font-medium text-gray-900">$40.61</span>
+                    <span class="font-medium text-gray-900" id="invoice-subtotal">$0.00</span>
                 </div>
 
                 <!-- Sales Tax -->
+                <!-- Sales Tax -->
                 <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Sales Tax:</span>
-                    <span class="text-green-600 font-medium">Tax Exempt</span>
+                    <span class="text-green-600 font-medium" id="invoice-tax">$0.00</span>
                 </div>
 
                 <!-- Divider -->
@@ -244,7 +247,7 @@
                 <!-- Total -->
                 <div class="flex justify-between pt-2 font-bold text-lg">
                     <span>Total:</span>
-                    <span class="text-gray-900">$40.61</span>
+                    <span class="text-gray-900" id="invoice-total">$0.00</span>
                 </div>
             </div>
 
@@ -275,86 +278,121 @@
             </div>
 
             <div class="px-6 overflow-y-auto">
-                <form class="space-y-8" id="chargeForm">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                            <input id="amount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm">
+                <!-- <form class="space-y-8" id="chargeForm"> -->
+
+                {{ html()->form()->id('chargeForm')->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'space-y-8',
+                ])->open() }}
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
+                        <!-- <input id="amount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"> -->
+
+                        {!! html()->text('amount')->attributes([
+                        'placeholder' => '0',
+                        'autocomplete' => 'off',
+                        'data-digit-input' => 'true',
+                        'data-parsley-maxlength' => 8,
+                        'maxlength' => 8,
+                        ])
+                        ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                        ->placeholder('0.00')->required() !!}
+
+                    </div>
+
+                    <div id="clueBox" class="hidden mt-3 bg-blue-50 border border-blue-200 rounded-md p-4 text-sm space-y-1">
+                        <p class="font-semibold text-gray-700">Calculation Preview</p>
+                        <div class="flex justify-between">
+                            <span class="text-blue-700">Amount:</span>
+                            <span id="amountPreview" class="text-blue-900">$0.00</span>
                         </div>
-
-                        <div id="clueBox" class="hidden mt-3 bg-blue-50 border border-blue-200 rounded-md p-4 text-sm space-y-1">
-                            <p class="font-semibold text-gray-700">Calculation Preview</p>
-                            <div class="flex justify-between">
-                                <span class="text-blue-700">Amount:</span>
-                                <span id="amountPreview" class="text-blue-900">$0.00</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-blue-700">Sales Tax:</span>
-                                <span id="taxPreview" class="text-blue-900">$0.00</span>
-                            </div>
-                            <div class="flex justify-between font-semibold border-t border-blue-300 pt-1">
-                                <span class="text-blue-700">Total Balance Change:</span>
-                                <span class="text-blue-900" id="totalPreview">$0.00</span>
-                            </div>
+                        <div class="flex justify-between">
+                            <span class="text-blue-700">Sales Tax:</span>
+                            <span id="taxPreview" class="text-blue-900">$0.00</span>
                         </div>
-                    </div>
-                    <!-- Charge Reason -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason </label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" name="reason" id="reason" required="">
-                            <option value="">Select charge reason</option>
-                            <option value="New Rental">New Rental</option>
-                            <option value="Rental Extension">Rental Extension</option>
-                            <option value="Damages">Damages</option>
-                            <option value="Fuel Charge">Fuel Charge</option>
-                            <option value="Cleaning Charge">Cleaning Charge</option>
-                            <option value="Missing Items">Missing Items</option>
-                            <option value="Product Purchase">Product Purchase</option>
-                        </select>
-                    </div>
-
-                    <!-- Person Responsible -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible </label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="responsible_person" id="responsible_person" required="">
-                            <option value="">Select person responsible</option>
-                            <option value="1">Raj Chotaliya</option>
-                            <option value="2">Jigar Khatri</option>
-                            <option value="3">Nipa Soni</option>
-                            <option value="4">Gary Jezorski</option>
-                            <option value="5">Akshay Vyas</option>
-                            <option value="9">Jigar khatri</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
-                        <div class="relative">
-                            <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
+                        <div class="flex justify-between font-semibold border-t border-blue-300 pt-1">
+                            <span class="text-blue-700">Total Balance Change:</span>
+                            <span class="text-blue-900" id="totalPreview">$0.00</span>
                         </div>
                     </div>
+                </div>
+                <!-- Charge Reason -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason </label>
 
-                    <!-- Notes -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                        <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this charge..."></textarea>
+                    {!! html()->select('reason', [
+                    '' => 'Select charge reason',
+                    'New Rental' => 'New Rental',
+                    'Rental Extension' => 'Rental Extension',
+                    'Damages' => 'Damages',
+                    'Fuel Charge' => 'Fuel Charge',
+                    'Cleaning Charge' => 'Cleaning Charge',
+                    'Missing Items' => 'Missing Items',
+                    'Product Purchase' => 'Product Purchase',
+                    ], old('reason'))
+                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500')
+                    ->required() !!}
+
+                </div>
+
+                <!-- Person Responsible -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible </label>
+
+                    {!! html()
+                    ->select('responsible_person',
+                    $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
+                    old('responsible_person')
+                    )
+                    ->id('responsible_person')
+                    ->class([
+                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                    'border-red-500' => $errors->has('responsible_person'),
+                    ])
+                    ->required()
+                    !!}
+
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
+                    <div class="relative">
+                        <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
                     </div>
+                </div>
 
-                    <div class="flex  gap-2 pb-4">
-                        <button type="button" id="cancelChargeBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
-                            Cancel
-                        </button>
-                        <button type="submit" id="submitChargeBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
-                            <span id="chargeBtnText">Add Charge</span>
-                            <svg id="chargeBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                            </svg>
-                        </button>
+                <!-- Notes -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <!-- <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this charge..."></textarea> -->
 
-                    </div>
-                </form>
+                    {!! html()->textarea('notes', old('notes'))
+                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                    ->rows(3)
+                    ->placeholder('Describe the reason for this charge...') !!}
+
+                </div>
+
+                <div class="flex  gap-2 pb-4">
+                    <button type="button" id="cancelChargeBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submitChargeBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
+                        <span id="chargeBtnText">Add Charge</span>
+                        <svg id="chargeBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+
+                </div>
+
+                {{ html()->form()->close() }}
+                <!-- </form> -->
             </div>
         </div>
     </div>
@@ -378,70 +416,107 @@
             </div>
 
             <div class="px-6 overflow-y-auto">
-                <form class="space-y-8">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                            <input id="damount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm">
-                        </div>
+                <!-- <form class="space-y-8"> -->
+
+                {{ html()->form()->id('discountForm')->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'space-y-8',
+                ])->open() }}
 
 
-                    </div>
-                    <!-- Discount Reason -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason </label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="reason" id="reason" required="">
-                            <option value="">Select discount reason</option>
-                            <option value="Volume Discount">Volume Discount</option>
-                            <option value="Repeat Customer Discount">Repeat Customer Discount</option>
-                            <option value="Damage Waiver Protection">Damage Waiver Protection</option>
-                            <option value="Misc. Management Discount">Misc. Management Discount</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
-                    <!-- Person Responsible -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible </label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="responsible_person" id="responsible_person" required="">
-                            <option value="">Select person responsible</option>
-                            <option value="1">Raj Chotaliya</option>
-                            <option value="2">Jigar Khatri</option>
-                            <option value="3">Nipa Soni</option>
-                            <option value="4">Gary Jezorski</option>
-                            <option value="5">Akshay Vyas</option>
-                            <option value="9">Jigar khatri</option>
-                        </select>
-                    </div>
+                        <!-- <input id="damount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"> -->
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
-                        <div class="relative">
-                            <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
-                        </div>
-                    </div>
-
-                    <!-- Notes -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                        <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this discount..."></textarea>
-                    </div>
-
-                    <div class="flex  gap-2 pb-4">
-                        <button type="button" id="cancelDiscountBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
-                            Cancel
-                        </button>
-                        <button type="submit" id="submitDiscountBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
-                            <span id="discountBtnText">Add Discount</span>
-                            <svg id="discountBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                            </svg>
-                        </button>
+                        {!! html()->text('damount')->attributes([
+                        'placeholder' => '0',
+                        'autocomplete' => 'off',
+                        'data-digit-input' => 'true',
+                        'data-parsley-maxlength' => 8,
+                        'maxlength' => 8,
+                        ])
+                        ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                        ->placeholder('0.00')->required() !!}
 
                     </div>
-                </form>
+
+
+                </div>
+                <!-- Discount Reason -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason </label>
+
+                    {!! html()->select('reason', [
+                    '' => 'Select discount reason',
+                    'Volume Discount' => 'Volume Discount',
+                    'Repeat Customer Discount' => 'Repeat Customer Discount',
+                    'Damage Waiver Protection' => 'Damage Waiver Protection',
+                    'Misc. Management Discount' => 'Misc. Management Discount',
+                    'Other' => 'Other',
+                    ])
+                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                    ->required() !!}
+
+                </div>
+
+                <!-- Person Responsible -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible </label>
+
+                    {!! html()
+                    ->select('responsible_person',
+                    $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
+                    old('responsible_person')
+                    )
+                    ->id('responsible_person')
+                    ->class([
+                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                    'border-red-500' => $errors->has('responsible_person'),
+                    ])
+                    ->required()
+                    !!}
+
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
+                    <div class="relative">
+                        <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+
+                    <!-- <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this discount..."></textarea> -->
+
+                    {!! html()->textarea('notes', old('notes'))
+                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                    ->rows(3)
+                    ->placeholder('Describe the reason for this discount...') !!}
+
+                </div>
+
+                <div class="flex  gap-2 pb-4">
+                    <button type="button" id="cancelDiscountBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submitDiscountBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
+                        <span id="discountBtnText">Add Discount</span>
+                        <svg id="discountBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+
+                </div>
+                {{ html()->form()->close() }}
+                <!-- </form> -->
             </div>
         </div>
     </div>
@@ -465,71 +540,95 @@
             </div>
 
             <div class="px-6 overflow-y-auto">
-                <form class="space-y-8">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                            <input id="ramount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm">
-                        </div>
 
+                {{ html()->form()->id('refundForm')->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'space-y-8',
+                ])->open() }}
 
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
+                        <!-- <input id="ramount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"> -->
+                        {!! html()->text('ramount')->attributes([
+                        'placeholder' => '0',
+                        'autocomplete' => 'off',
+                        'data-digit-input' => 'true',
+                        'data-parsley-maxlength' => 8,
+                        'maxlength' => 8,
+                        ])
+                        ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                        ->placeholder('0.00')->required() !!}
                     </div>
-                    <!-- Refund Reason -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason</label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="reason" id="reason" required="">
-                            <option value="">Select refund reason</option>
-                            <option value="Damaged Item">Damaged Item</option>
-                            <option value="Wrong Item Shipped">Wrong Item Shipped</option>
-                            <option value="Customer Cancellation">Customer Cancellation</option>
-                            <option value="Billing Overcharge">Billing Overcharge</option>
-                            <option value="Duplicate Charge">Duplicate Charge</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
+                </div>
+                <!-- Refund Reason -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason</label>
 
-                    <!-- Person Responsible -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
-                        <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="responsible_person" id="responsible_person" required="">
-                            <option value="">Select person responsible</option>
-                            <option value="1">Raj Chotaliya</option>
-                            <option value="2">Jigar Khatri</option>
-                            <option value="3">Nipa Soni</option>
-                            <option value="4">Gary Jezorski</option>
-                            <option value="5">Akshay Vyas</option>
-                            <option value="9">Jigar khatri</option>
-                        </select>
-                    </div>
+                    {!! html()->select('reason', [
+                    '' => 'Select refund reason',
+                    'Damaged Item' => 'Damaged Item',
+                    'Wrong Item Shipped' => 'Wrong Item Shipped',
+                    'Damage Waiver Protection' => 'Damage Waiver Protection',
+                    'Customer Cancellation' => 'Customer Cancellation',
+                    'Billing Overcharge' => 'Billing Overcharge',
+                    'Duplicate Charge' => 'Duplicate Charge',
+                    'Other' => 'Other',
+                    ])
+                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                    ->required() !!}
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
-                        <div class="relative">
-                            <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
-                        </div>
-                    </div>
+                </div>
 
-                    <!-- Notes -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                        <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this refund..."></textarea>
-                    </div>
+                <!-- Person Responsible -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
 
-                    <div class="flex  gap-2 pb-4">
-                        <button type="button" id="cancelRefundBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
-                            Cancel
-                        </button>
-                        <button type="submit" id="submitRefundBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
-                            <span id="refundBtnText">Add Discount</span>
-                            <svg id="refundBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                            </svg>
-                        </button>
+                    {!! html()
+                    ->select('responsible_person',
+                    $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
+                    old('responsible_person')
+                    )
+                    ->id('responsible_person')
+                    ->class([
+                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                    'border-red-500' => $errors->has('responsible_person'),
+                    ])
+                    ->required()
+                    !!}
 
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
+                    <div class="relative">
+                        <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
                     </div>
-                </form>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this refund..."></textarea>
+                </div>
+
+                <div class="flex  gap-2 pb-4">
+                    <button type="button" id="cancelRefundBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submitRefundBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
+                        <span id="refundBtnText">Add Discount</span>
+                        <svg id="refundBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+
+                </div>
+                {{ html()->form()->close() }}
+                <!-- </form> -->
             </div>
         </div>
     </div>
@@ -553,9 +652,9 @@
                 <button id="closeOrderModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
 
-            <div class="px-6 pb-6">
-                <div class="overflow-x-auto rounded-lg shadow border border-gray-200">
-                    <table class="w-full text-left">
+            <div class="px-6 pb-6 overflow-y-auto">
+                <div class="overflow-x-auto rounded-lg shadow border border-gray-200 ">
+                    <table class="w-full text-left" id="orders-table">
                         <thead class="bg-gray-100 text-sm font-semibold text-gray-700">
                             <tr>
                                 <th class="px-4 py-3 whitespace-nowrap">Order ID</th>
@@ -567,57 +666,25 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y text-sm ">
+
+                            @foreach ($orders as $order)
                             <tr>
-                                <td class="px-4 py-3 font-medium whitespace-nowrap">ORD-2025-001</td>
-                                <td class="px-4 py-3 whitespace-nowrap">Jan 15, 2025</td>
-                                <td class="px-4 py-3 whitespace-nowrap">Premium Widget Set</td>
-                                <td class="px-4 py-3 font-semibold whitespace-nowrap">$1,249.95</td>
+                                <td class="px-4 py-3 font-medium whitespace-nowrap"> {!! $order->view_link !!} </td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ $order->created_at->format(config('app.date.date_format')) }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
+                                <td class="px-4 py-3 font-semibold whitespace-nowrap">{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                                        Delivered
-                                    </span>
+                                    {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
                                 </td>
                                 <td class="px-4 py-3 space-x-2 whitespace-nowrap">
-                                    <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="javascript:void(0)" id="openviewdetailsModal"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
-                                    <button class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn">
+                                    <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" id="openviewdetailsModal" target="_blank"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
+                                    <button class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn" data-order-id="{{ $order->unique_id }}">
                                         + Add to Invoice
                                     </button>
                                 </td>
                             </tr>
-                            <tr>
-                                <td class="px-4 py-3 font-medium whitespace-nowrap">ORD-2025-002</td>
-                                <td class="px-4 py-3 whitespace-nowrap">Jan 20, 2025</td>
-                                <td class="px-4 py-3 whitespace-nowrap">Standard Widget Pack</td>
-                                <td class="px-4 py-3 font-semibold whitespace-nowrap">$875.50</td>
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
-                                        Shipped
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 space-x-2 whitespace-nowrap">
-                                    <button class="text-blue-600 gap-2 inline-flex items-center justify-center"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</button>
-                                    <button class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
-                                        + Add to Invoice
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-3 font-medium whitespace-nowrap">ORD-2025-003</td>
-                                <td class="px-4 py-3 whitespace-nowrap">Jan 25, 2025</td>
-                                <td class="px-4 py-3 whitespace-nowrap">Widget Accessories Kit</td>
-                                <td class="px-4 py-3 font-semibold whitespace-nowrap">$624.50</td>
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
-                                        Processing
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 space-x-2 whitespace-nowrap">
-                                    <button class="text-blue-600 gap-2 inline-flex items-center justify-center"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</button>
-                                    <button class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
-                                        + Add to Invoice
-                                    </button>
-                                </td>
-                            </tr>
+                            @endforeach
+
                         </tbody>
                     </table>
                 </div>
@@ -703,8 +770,6 @@
     </div>
 </div>
 
-
-
 @endsection
 
 @push('js')
@@ -721,8 +786,88 @@
 
 <script>
     window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
+
+    // Select the hidden input by its data attribute
+    const salesTaxInput = document.querySelector('[data-sales-tax-rate]');
+
+    // Assign its value (converted to a number) to the global variable
+    window.SALES_TAX_RATE = parseFloat(salesTaxInput.value) || 0;
+
+    // Global array to store all product data
+    const invoice_data = [];
+
+    // Global function to add products to the invoice_data array
+    function addInvoiceProduct(products) {
+        products.forEach(p => {
+            const product = {
+                ...p, // Spread operator to copy all properties from the original product object
+                type: 'order', // Add the 'type' property
+            };
+            invoice_data.push(product); // Add the new product object to the array
+        });
+        console.log('Current Invoice Data:', invoice_data); // Log the array to check
+    }
+
+    (function() {
+        // Helper to recalculate invoice totals dynamically
+        function updateInvoiceSummary() {
+            const subtotalElem = document.querySelector('#invoice-subtotal');
+            const totalElem = document.querySelector('#invoice-total');
+            const taxElem = document.querySelector('#invoice-tax');
+            const createBtn = document.querySelector('button[name="action"][value="save_new"]');
+            const invoiceItemsTBody = document.getElementById("invoiceItems"); // Make sure to get this element
+
+            let subtotal = 0;
+            let totalTax = 0;
+
+            const rows = invoiceItemsTBody.querySelectorAll("tr");
+
+            rows.forEach(row => {
+
+                const type = row.dataset.type; // "charge", "order", "discount", "refund"
+
+                const priceCell = row.querySelector("td:nth-child(3)"); // This should be the price per item
+                const taxCell = row.querySelector("td:nth-child(4)"); // This should be the tax amount
+
+                let price = parseFloat(priceCell?.textContent.replace('$', '')) || 0;
+                let tax = parseFloat(taxCell?.textContent.replace('$', '')) || 0;
+
+                if (type === "charge" || type === "order") {
+                    subtotal += price;
+                    totalTax += tax;
+                } else if (type === "discount" || type === "refund") {
+                    subtotal -= price;
+                    totalTax -= tax;
+                }
+            });
+
+            //  Check for negative values and set to 0 if found 
+            subtotal = Math.max(0, subtotal);
+
+            if (subtotal == 0) {
+                totalTax = 0;
+            } else {
+                totalTax = Math.max(0, totalTax);
+            }
+
+            let finalTotal = subtotal + totalTax;
+            finalTotal = Math.max(0, finalTotal);
+
+            if (subtotalElem) subtotalElem.textContent = `$${subtotal.toFixed(2)}`;
+            if (taxElem) taxElem.textContent = totalTax > 0 ? `$${totalTax.toFixed(2)}` : 'Tax Exempt';
+            if (totalElem) totalElem.textContent = `$${finalTotal.toFixed(2)}`;
+
+            if (createBtn) {
+                createBtn.disabled = rows.length === 0;
+            }
+        }
+
+        // Attach the function to the window object to make it global
+        window.updateInvoiceSummary = updateInvoiceSummary;
+    })();
 </script>
 
+<!-- openChargeModal -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const modalWrapper = document.getElementById('chargeModalWrapper');
@@ -736,6 +881,7 @@
         const invoiceItems = document.getElementById("invoiceItems");
 
         const amountInput = document.getElementById("amount");
+
         const clueBox = document.getElementById("clueBox");
         const amountPreview = document.getElementById("amountPreview");
         const taxPreview = document.getElementById("taxPreview");
@@ -743,11 +889,30 @@
 
         // open/close modal
         openBtn.addEventListener('click', () => modalWrapper.style.display = 'flex');
+
         const closeModal = () => {
             modalWrapper.style.display = 'none';
             form.reset();
+
+            // Explicitly reset your custom data property
+            if (amountInput.digits) {
+                amountInput.digits = "";
+            }
+
+            // Also reset the displayed value and preview
+            amountInput.value = "";
+
+            amountPreview.textContent = "$0.00";
+            taxPreview.textContent = "$0.00";
+            totalPreview.textContent = "$0.00";
+
+            // Use a small delay to ensure the DOM has updated
+            setTimeout(() => {
+                $(form).parsley().reset();
+            }, 50);
             clueBox.classList.add("hidden");
         };
+
         closeBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
 
@@ -755,7 +920,7 @@
         amountInput.addEventListener("input", function() {
             this.value = this.value.replace(/[^0-9.]/g, "");
             const amount = parseFloat(this.value) || 0;
-            const taxRate = 0.098;
+            const taxRate = window.SALES_TAX_RATE;
             const tax = amount * taxRate;
             const total = amount + tax;
             amountPreview.textContent = `$${amount.toFixed(2)}`;
@@ -767,26 +932,38 @@
         // handle submit
         form.addEventListener("submit", e => {
             e.preventDefault();
-            const desc = document.getElementById("reason").value || "New Charge";
-            const notes = document.getElementById("notes").value.trim();
-            const price = parseFloat(amountInput.value) || 0;
-            const qty = 1;
-            const taxRate = 0.098;
-            const total = price + (price * taxRate);
 
-            if (price <= 0) {
-                alert("Enter valid amount");
-                return;
-            }
+            // Check if the form is valid using Parsley.js
+            if ($(form).parsley().isValid()) {
 
-            const row = document.createElement("tr");
-            row.innerHTML = `
+                const desc = document.getElementById("reason").value || "New Charge";
+                const notes = document.getElementById("notes").value.trim();
+                const price = parseFloat(amountInput.value) || 0;
+                const qty = 1;
+                const taxRate = window.SALES_TAX_RATE;
+                const taxPrice = price * taxRate;
+                const total = price + taxPrice;
+
+                if (price <= 0) {
+                    notyf.error("Enter valid amount");
+                    return;
+                }
+
+                const row = document.createElement("tr");
+                row.dataset.type = "charge";
+                row.innerHTML = `
             <td class="px-4 py-3 whitespace-nowrap">
-                <div class="font-medium text-gray-900">${desc}</div>
+                <div class="font-medium text-gray-900">${desc} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-600 text-white">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5v14"></path>
+                        </svg><span class="ml-1 capitalize text-xs">charge</span>
+                                      </span></div>
                 ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
             </td>
             <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
             <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${price.toFixed(2)}</td>
+            <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
             <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
             <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
                 <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
@@ -794,23 +971,31 @@
             </td>
         `;
 
-            row.querySelector(".delete-btn").addEventListener("click", () => {
-                row.remove();
-                if (!invoiceItems.children.length) {
-                    itemsTable.classList.add("hidden");
-                    emptyState.classList.remove("hidden");
-                }
-            });
+                row.querySelector(".delete-btn").addEventListener("click", () => {
+                    row.remove();
+                    if (!invoiceItems.children.length) {
+                        itemsTable.classList.add("hidden");
+                        emptyState.classList.remove("hidden");
+                    }
+                });
 
-            invoiceItems.appendChild(row);
-            emptyState.classList.add("hidden");
-            itemsTable.classList.remove("hidden");
+                invoiceItems.appendChild(row);
+                emptyState.classList.add("hidden");
+                itemsTable.classList.remove("hidden");
 
-            closeModal();
+                closeModal();
+
+                window.updateInvoiceSummary();
+
+            } else {
+                console.log("Form is not valid.");
+            }
         });
     });
 </script>
+<!-- openChargeModal -->
 
+<!-- discount  -->
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const discountModal = document.getElementById("discountModalWrapper");
@@ -819,11 +1004,11 @@
         const invoiceItemsTBody = document.getElementById("invoiceItems");
         const emptyState = document.getElementById("emptyState"); // if present
 
+        const discountamountInput = discountModal.querySelector("#damount");
+
         const openBtn = document.getElementById("openDiscountModal");
         const closeBtn = document.getElementById("closeDiscountModalBtn");
         const cancelBtn = document.getElementById("cancelDiscountBtn");
-
-        const TAX_RATE = 0.098; // 9.8%
 
         // ---- Modal Open/Close ----
         openBtn.addEventListener("click", () => {
@@ -831,7 +1016,22 @@
         });
 
         const closeModal = () => {
-            discountModal.style.display = "none";
+            discountModal.style.display = 'none';
+            discountForm.reset();
+
+            // Explicitly reset your custom data property
+            if (discountamountInput.digits) {
+                discountamountInput.digits = "";
+            }
+
+            // Also reset the displayed value and preview
+            discountamountInput.value = "";
+
+            // Use a small delay to ensure the DOM has updated
+            setTimeout(() => {
+                $(discountForm).parsley().reset();
+            }, 50);
+            clueBox.classList.add("hidden");
         };
 
         closeBtn.addEventListener("click", closeModal);
@@ -855,22 +1055,32 @@
             const notes = (notesEl.value || "").trim();
 
             if (!rawAmount || !reason) {
-                alert("Please enter a discount amount and select a reason.");
+                notyf.error("Please enter a discount amount and select a reason.");
                 return;
             }
 
             const amount = parseFloat(rawAmount.replace(/[^0-9.]/g, "")) || 0;
             const qty = 1;
-            const total = amount + (amount * TAX_RATE); // adjust if needed
+            const total = amount; // adjust if needed
 
             const tr = document.createElement("tr");
+
+            tr.dataset.type = "discount";
+
             tr.innerHTML = `
       <td class="px-4 py-3 whitespace-nowrap">
-        <div class="font-medium text-gray-900">${reason}</div>
+        <div class="font-medium text-gray-900">${reason} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-600 text-white">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award w-3 h-3">
+                                                    <circle cx="12" cy="8" r="6"></circle>
+                                                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                                                    </svg>      
+                                                                                              <span class="ml-1 capitalize text-xs">Discount</span>
+                                      </span></div>
         ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
       </td>
       <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
       <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${amount.toFixed(2)}</td>
+       <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$0.00</td>
       <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
       <td class="px-4 py-3 whitespace-nowrap">
         <div class="flex items-center justify-center gap-3">
@@ -886,24 +1096,19 @@
             itemsTableWrap.classList.remove("hidden");
 
             discountForm.reset();
+
+            // Attach the function to the window object to make it global
+            window.updateInvoiceSummary();
+
             closeModal();
         });
 
-        // ---- Delete Row ----
-        invoiceItemsTBody.addEventListener("click", (e) => {
-            const btn = e.target.closest(".delete-btn");
-            if (!btn) return;
-            const row = btn.closest("tr");
-            if (row) row.remove();
 
-            if (!invoiceItemsTBody.querySelector("tr")) {
-                itemsTableWrap.classList.add("hidden");
-                if (emptyState) emptyState.classList.remove("hidden");
-            }
-        });
     });
 </script>
+<!-- discount  -->
 
+<!-- refundModalWrapper -->
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const refundModal = document.getElementById("refundModalWrapper");
@@ -916,7 +1121,9 @@
         const invoiceItemsTBody = document.getElementById("invoiceItems");
         const emptyState = document.getElementById("emptyState");
 
-        const TAX_RATE = 0.098;
+        const refundamountInput = refundModal.querySelector("#ramount");
+
+        const TAX_RATE = window.SALES_TAX_RATE;
 
         // ---- Modal Open/Close ----
         if (openBtn) {
@@ -924,10 +1131,25 @@
                 refundModal.style.display = "flex";
             });
         }
-
         const closeModal = () => {
-            refundModal.style.display = "none";
+            refundModal.style.display = 'none';
+            refundForm.reset();
+
+            // Explicitly reset your custom data property
+            if (refundamountInput.digits) {
+                refundamountInput.digits = "";
+            }
+
+            // Also reset the displayed value and preview
+            refundamountInput.value = "";
+
+            // Use a small delay to ensure the DOM has updated
+            setTimeout(() => {
+                $(refundForm).parsley().reset();
+            }, 50);
+            clueBox.classList.add("hidden");
         };
+
 
         closeBtn.addEventListener("click", closeModal);
         cancelBtn.addEventListener("click", closeModal);
@@ -949,22 +1171,34 @@
             const notes = (notesEl.value || "").trim();
 
             if (!rawAmount || !reason) {
-                alert("Please enter a refund amount and select a reason.");
+                notyf.error("Please enter a refund amount and select a reason.");
                 return;
             }
 
+            const taxRate = window.SALES_TAX_RATE;
             const amount = parseFloat(rawAmount.replace(/[^0-9.]/g, "")) || 0;
             const qty = 1;
-            const total = amount + (amount * TAX_RATE);
+            const taxPrice = amount * taxRate;
+            const total = amount + taxPrice;
+
+            // const taxPrice = price * taxRate;
+            // const total = price + taxPrice;
 
             const tr = document.createElement("tr");
+            tr.dataset.type = "refund";
             tr.innerHTML = `
       <td class="px-4 py-3 whitespace-nowrap">
-        <div class="font-medium text-gray-900">${reason}</div>
+        <div class="font-medium text-gray-900">${reason} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-600 text-white">
+                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-3 h-3">
+                            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                            <polyline points="16 7 22 7 22 13"></polyline>
+                        </svg>        <span class="ml-1 capitalize text-xs">refund</span>
+                                      </span> </div>
         ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
       </td>
       <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
       <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${amount.toFixed(2)}</td>
+      <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
       <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
       <td class="px-4 py-3 whitespace-nowrap">
         <div class="flex items-center justify-center gap-3">
@@ -978,26 +1212,15 @@
 
             if (emptyState) emptyState.classList.add("hidden");
             itemsTableWrap.classList.remove("hidden");
-
+            window.updateInvoiceSummary();
             refundForm.reset();
             closeModal();
         });
-
-        // ---- Delete Row ----
-        invoiceItemsTBody.addEventListener("click", (e) => {
-            const btn = e.target.closest(".delete-btn");
-            if (!btn) return;
-            const row = btn.closest("tr");
-            if (row) row.remove();
-
-            if (!invoiceItemsTBody.querySelector("tr")) {
-                itemsTableWrap.classList.add("hidden");
-                if (emptyState) emptyState.classList.remove("hidden");
-            }
-        });
     });
 </script>
+<!-- refundModalWrapper -->
 
+<!-- orderModalWrapper -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const orderModal = document.getElementById('orderModalWrapper');
@@ -1029,11 +1252,24 @@
 
         // Add products into invoice table
         function addProductsToTable(products) {
+
+            // Use the global function to add products to the data array
+            addInvoiceProduct(products);
+
             products.forEach(p => {
                 const tr = document.createElement("tr");
+
+                tr.dataset.type = "order";
+
                 tr.innerHTML = `
                 <td class="px-4 py-3 whitespace-nowrap">
-                    <div class="font-medium text-gray-900">${p.name}</div>
+                    <div class="font-medium text-gray-900">${p.name} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-600 text-white">
+                                                                                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart w-3 h-3">
+                            <circle cx="8" cy="21" r="1"></circle>
+                            <circle cx="19" cy="21" r="1"></circle>
+                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                        </svg> <span class="ml-1 capitalize text-xs">Order</span>
+                                      </span></div>
                     <div class="text-gray-500 text-xs"> SKU: ${p.sku} • Order: ${p.orderId}</div>
                     <div class="flex flex-wrap gap-2 mt-1">
                     ${p.extras.map(tag => `<span class="px-2 py-1 text-xs bg-gray-100 rounded">${tag}</span>`).join("")}
@@ -1042,10 +1278,11 @@
                 </td>
                 <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${p.qty}</td>
                 <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${p.unit.toFixed(2)}</td>
+                       <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${p.tax.toFixed(2)}</td>
                 <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${p.total.toFixed(2)}</td>
                 <td class="px-4 py-3 whitespace-nowrap">
                     <div class="flex items-center justify-center gap-3">
-                        <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+
                         <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
                     </div>
                 </td>
@@ -1055,42 +1292,85 @@
 
             if (emptyState) emptyState.classList.add("hidden");
             itemsTableWrap.classList.remove("hidden");
+
+            window.updateInvoiceSummary();
         }
 
         // Handle Add to Invoice buttons
-        document.body.addEventListener("click", (e) => {
+        document.body.addEventListener("click", async (e) => { // <--- async here
             const btn = e.target.closest(".add-to-invoice-btn");
             if (!btn) return;
 
-            // Example products (replace with your real data)
-            const products = [{
-                    name: "Premium Widget Set",
-                    sku: "PWS-001",
-                    qty: 5,
-                    unit: 199.99,
-                    total: 999.95,
-                    extras: ["Color: Blue", "Size: Large", "Material: Aluminum"],
-                    orderId: "ORD-2025-001"
-                },
-                {
-                    name: "Installation Service",
-                    sku: "INST-001",
-                    qty: 1,
-                    unit: 250.00,
-                    total: 250.00,
-                    extras: ["Service Type: On-site Installation", "Technician Level: Senior"],
-                    orderId: "ORD-2025-001"
-                }
-            ];
-            addProductsToTable(products);
+            const orderId = btn.dataset.orderId;
 
-            // Close modals: if from 2nd modal → close both
-            if (btn.closest("#viewdetailsModalWrapper")) {
-                detailsModal.style.display = "none";
-                orderModal.style.display = "none"; // <-- closes parent too
-            } else if (btn.closest("#orderModalWrapper")) {
-                orderModal.style.display = "none";
+            // console.log('orderId', orderId);
+
+            const orderDetailsBaseUrl = "{{ route('admin.crm.customers.invoice.orders.details', ['unique_id' => ':id']) }}";
+
+
+            const wrapper = document.getElementById('orders-table'); // loader wrapper
+            if (wrapper) {
+                wrapper.classList.add('opacity-50', 'pointer-events-none'); // show loader
             }
+
+            try {
+                const url = orderDetailsBaseUrl.replace(':id', orderId);
+                const res = await fetch(url, {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json"
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error ${res.status}`);
+                }
+
+                let data;
+                try {
+                    data = await res.json();
+                } catch (jsonErr) {
+                    throw new Error("Response was not valid JSON");
+                }
+
+                if (data.success === false) {
+                    throw new Error(data.message || "Server returned an error");
+                }
+
+
+
+                const products = (data.products || []).map(p => ({
+                    name: p.name,
+                    sku: p.sku ?? "-",
+                    qty: p.qty,
+                    unit: parseFloat(p.unit_price),
+                    tax: parseFloat(p.tax) || 0,
+                    total: parseFloat(p.total),
+                    extras: (p.extras || []).filter(x => x),
+                    orderId: data.unique_id
+                }));
+
+
+                addProductsToTable(products);
+
+                // Close modals: if from 2nd modal → close both
+                if (btn.closest("#viewdetailsModalWrapper")) {
+                    detailsModal.style.display = "none";
+                    orderModal.style.display = "none";
+                } else if (btn.closest("#orderModalWrapper")) {
+                    orderModal.style.display = "none";
+                }
+
+            } catch (error) {
+                console.error(" Failed to fetch order products:", error);
+                notyf.error(error.message || "Unable to load order products.");
+            } finally {
+                // Always remove loader
+                if (wrapper) {
+                    wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                }
+            }
+
         });
 
         // Delete row
@@ -1103,11 +1383,12 @@
                 itemsTableWrap.classList.add("hidden");
                 if (emptyState) emptyState.classList.remove("hidden");
             }
+
+            window.updateInvoiceSummary();
         });
     });
 </script>
-
-
+<!-- orderModalWrapper -->
 
 <script>
     const amountInput = document.getElementById("amount");
@@ -1120,7 +1401,7 @@
         this.value = this.value.replace(/[^0-9.]/g, ""); // only digits & dot
 
         const amount = parseFloat(this.value) || 0;
-        const taxRate = 0.098; // 9.8%
+        const taxRate = window.SALES_TAX_RATE;
         const tax = amount * taxRate;
         const total = amount + tax;
 
@@ -1143,4 +1424,6 @@
         document.getElementById("itemsTable").classList.remove("hidden");
     }
 </script>
+
+
 @endpush

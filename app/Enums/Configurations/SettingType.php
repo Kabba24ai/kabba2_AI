@@ -13,6 +13,8 @@ enum SettingType: string
 
     case CONTACT_US = 'Contact Us Settings';
 
+    case COMMUNICATION  = 'Communication Settings';
+
     case OTHER = 'Other Settings';
 
     public function label(): string
@@ -25,6 +27,7 @@ enum SettingType: string
             self::SOCIAL => 'Social Media Integration',
             self::CONTACT_US => 'Contact Us - Website Contact Page',
             self::ALLOCATED_HOURS => 'Allocated Hours Settings',
+            self::COMMUNICATION => 'Communication Settings',
             self::OTHER => 'Other Settings',
         };
     }

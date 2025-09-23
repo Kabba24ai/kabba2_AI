@@ -121,18 +121,18 @@
                      </td>
                      <td class="px-4 py-3  whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
-                             <button class="text-blue-600 inline-flex items-center">
+                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                             </button>
-                             <button class="text-green-600 inline-flex items-center">
+                            </a>
+                            <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                             </button>
-                             <button class="text-green-600 inline-flex items-center">
+                            </button>
+                            <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
-                             </button>
-                             <button class="text-purple-600 inline-flex items-center">
+                            </button>
+                            <button class="text-purple-600 inline-flex items-center">
                                  <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                             </button>
+                            </button>
                          </div>
                      </td>
                  </tr>
@@ -153,18 +153,18 @@
                      </td>
                      <td class="px-4 py-3  whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
-                             <button class="text-blue-600 inline-flex items-center">
+                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                             </button>
-                             <button class="text-green-600 inline-flex items-center">
+                            </a>
+                            <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                             </button>
-                             <button class="text-green-600 inline-flex items-center">
+                            </button>
+                            <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
-                             </button>
-                             <button class="text-purple-600 inline-flex items-center">
+                            </button>
+                            <button class="text-purple-600 inline-flex items-center">
                                  <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                             </button>
+                            </button>
                          </div>
                      </td>
                  </tr>
@@ -185,18 +185,18 @@
                      </td>
                      <td class="px-4 py-3  whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
-                             <button class="text-blue-600 inline-flex items-center">
+                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                             </button>
-                             <button class="text-green-600 inline-flex items-center">
+                            </a>
+                            <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                             </button>
-                             <button class="text-green-600 inline-flex items-center">
+                            </button>
+                            <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
-                             </button>
-                             <button class="text-purple-600 inline-flex items-center">
+                            </button>
+                            <button class="text-purple-600 inline-flex items-center">
                                  <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                             </button>
+                            </button>
                          </div>
                      </td>
                  </tr>

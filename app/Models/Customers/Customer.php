@@ -216,4 +216,10 @@ class Customer extends Authenticatable
             return 'danger'; // Pink
         }
     }
+
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

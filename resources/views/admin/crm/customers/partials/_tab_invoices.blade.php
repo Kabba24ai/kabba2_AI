@@ -97,109 +97,76 @@
                      <th class="px-4 w-32 py-3">Date</th>
                      <th class="px-4 w-32 py-3">Due Date</th>
                      <th class="px-4 w-32 py-3 text-right">Amount</th>
+                     <th class="px-4 w-32 py-3 text-right">Mail Status</th>
                      <th class="px-4 w-32 py-3 text-right">Status</th>
                      <th class="px-4 py-3 w-24 text-right">Action</th>
                  </tr>
              </thead>
              <tbody id="invoiceTable" class="divide-y divide-gray-200">
-                 <!-- <tr>
-                                <td align="center" colspan="6">No invoices found</td>
-                            </tr> -->
-                 <tr class="invoice-row" data-status="paid">
-                     <td class="px-4 py-3 font-medium text-gray-900">INV-2025-001</td>
+             <tbody id="invoiceTable" class="divide-y divide-gray-200">
+                 @forelse($customer->invoices as $invoice)
+                 <tr class="invoice-row" data-status="{{ $invoice->invoice_status }}">
+                     <td class="px-4 py-3 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
                      <td class="px-4 py-3 whitespace-nowrap  truncate min-w-3xs max-w-3xs">
                          <div class="text-sm">
-                             <div class="font-medium text-gray-900">Acme Corp</div>
-                             <div class="text-gray-500">John Doe</div>
+                             <div class="font-medium text-gray-900">{{ $customer->company_name }}</div>
+                             <div class="text-gray-500">{{ $customer->full_name }}</div>
                          </div>
                      </td>
-                     <td class="px-4 py-3">01/15/2025</td>
-                     <td class="px-4 py-3">02/14/2025</td>
-                     <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">$1,250.00</td>
-                     <td class="px-4 py-3 text-right">
-                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span>
-                     </td>
-                     <td class="px-4 py-3  whitespace-nowrap">
-                         <div class="flex gap-2 items-center justify-end">
-                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
-                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                            </a>
-                            <button class="text-green-600 inline-flex items-center">
-                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                            </button>
-                            <button class="text-green-600 inline-flex items-center">
-                                 <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
-                            </button>
-                            <button class="text-purple-600 inline-flex items-center">
-                                 <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                            </button>
-                         </div>
-                     </td>
-                 </tr>
+                     <td class="px-4 py-3">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('m/d/Y') }}</td>
+                     <td class="px-4 py-3">{{ \Carbon\Carbon::parse($invoice->due_date)->format('m/d/Y') }}</td>
+                     <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
-                 <tr class="invoice-row" data-status="overdue">
-                     <td class="px-4 py-3 font-medium text-gray-900">INV-2025-002</td>
-                     <td class="px-4 py-3 whitespace-nowrap">
-                         <div class="text-sm">
-                             <div class="font-medium text-gray-900">Acme Corp</div>
-                             <div class="text-gray-500">John Doe</div>
-                         </div>
-                     </td>
-                     <td class="px-4 py-3">01/20/2025</td>
-                     <td class="px-4 py-3">02/15/2025</td>
-                     <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">$875.50</td>
                      <td class="px-4 py-3 text-right">
-                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">overdue</span>
+                         @php
+                         $mailstatusColors = [
+                         'send' => 'green',
+                         'unsend' => 'red',
+                         ];
+                         $color = $mailstatusColors[$invoice->is_email_send] ?? 'gray';
+                         @endphp
+                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                             {{ $invoice->is_email_send }}
+                         </span>
                      </td>
-                     <td class="px-4 py-3  whitespace-nowrap">
-                         <div class="flex gap-2 items-center justify-end">
-                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
-                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                            </a>
-                            <button class="text-green-600 inline-flex items-center">
-                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                            </button>
-                            <button class="text-green-600 inline-flex items-center">
-                                 <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
-                            </button>
-                            <button class="text-purple-600 inline-flex items-center">
-                                 <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                            </button>
-                         </div>
-                     </td>
-                 </tr>
 
-                 <tr class="invoice-row" data-status="pending">
-                     <td class="px-4 py-3 font-medium text-gray-900">INV-2025-003</td>
-                     <td class="px-4 py-3 whitespace-nowrap">
-                         <div class="text-sm">
-                             <div class="font-medium text-gray-900">Acme Corp</div>
-                             <div class="text-gray-500">John Doe</div>
-                         </div>
-                     </td>
-                     <td class="px-4 py-3">01/25/2025</td>
-                     <td class="px-4 py-3">02/24/2025</td>
-                     <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">$624.50</td>
                      <td class="px-4 py-3 text-right">
-                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">pending</span>
+                         @php
+                         $statusColors = [
+                         'paid' => 'green',
+                         'overdue' => 'red',
+                         'pending' => 'yellow',
+                         ];
+                         $color = $statusColors[$invoice->invoice_status] ?? 'gray';
+                         @endphp
+                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                             {{ $invoice->invoice_status }}
+                         </span>
                      </td>
-                     <td class="px-4 py-3  whitespace-nowrap">
+                     <td class="px-4 py-3 whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
-                            <a href="https://admin.kabba.local/order-management/invoice" target="_blank" class="text-blue-600 inline-flex items-center">
+                             <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}" target="_blank" class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                            </a>
-                            <button class="text-green-600 inline-flex items-center">
+                             </a>
+                             <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                            </button>
-                            <button class="text-green-600 inline-flex items-center">
+                             </button>
+                             <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
-                            </button>
-                            <button class="text-purple-600 inline-flex items-center">
+                             </button>
+                             <button class="text-purple-600 inline-flex items-center">
                                  <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                            </button>
+                             </button>
                          </div>
                      </td>
                  </tr>
+                 @empty
+                 <tr>
+                     <td colspan="7" class="text-center px-4 py-3">No invoices found</td>
+                 </tr>
+                 @endforelse
+             </tbody>
+
              </tbody>
          </table>
      </div>

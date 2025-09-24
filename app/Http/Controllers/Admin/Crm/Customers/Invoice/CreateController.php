@@ -28,8 +28,6 @@ class CreateController extends Controller
 
         $sales_tax = ConfigurationHelper::getSettings(null , 'sales_tax');
 
-        // dd($sales_tax);
-
 
         return view('admin.crm.customers.create_invoice', ['customer' => $customer , 'orders'=> $order, 'users' => $users,'sales_tax' => $sales_tax,]);
     }

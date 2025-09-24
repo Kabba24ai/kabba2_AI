@@ -10,14 +10,14 @@ Artisan::command('inspire', function () {
 
 // Schedule your job
 Schedule::job(new \App\Jobs\SendDayBeforeRentalReminderJob())
-    ->dailyAt('07:00')
+    ->dailyAt('15:00')
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()
     ->name('send-day-before-rental-reminder-job');
 
 Schedule::job(new SendSameDayRentalReminderJob)
-    ->dailyAt('07:00')
+    ->dailyAt('09:30')
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()

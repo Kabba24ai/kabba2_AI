@@ -27,16 +27,33 @@ class IndexController extends BaseController
         $validated = $request->validated();
         $type = $validated['type'] ?? null;
 
+        // that is use for the ordering of the equipment based on the type
         if($type === 'RentalReady'){
             $order = ['damaged', 'maintenance', 'rented', 'available'];
         }else{
             $order = ['available', 'rented', 'maintenance', 'damaged'];
         }
 
-        $equipment = Equipment::with('productCategory', 'orderProduct')
-            ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")
+        $equipment = Equipment::with(['productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer'])
+            ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')") // order by current_status based on the defined order
             ->get();
 
+
+        $equipment->map(function($item) {
+            $isRentedAndDelivered = $item->current_status->isRented()
+                && $item->orderProduct
+                && ($item->orderProduct->is_delivered == 1);
+            if ($isRentedAndDelivered) {
+                $questions = optional($item->orderProduct->checklistQuestions) ?? collect();
+            } else {
+                $questions = optional($item->checklistMaster?->customerAdminTemplate?->templateQuestions)
+                        ->pluck('question')   // same as map->question but clearer
+                        ->filter()            // remove nulls
+                        ->values() ?? collect();
+            }
+            $item->setRelation('checklistQA', $questions);
+            return $item;
+        });
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.equipment.equipment_found'),

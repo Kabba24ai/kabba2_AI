@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\Admin\V1\Equipment;
 
+use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource as CustomerChecklistQuestionsListResource;
 use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource as OrderProductsListResource;
 use App\Http\Resources\Api\Admin\V1\ProductCategories\ListResource as ProductCategoriesListResource;
 use Illuminate\Http\Request;
@@ -55,6 +56,8 @@ class ListResource extends JsonResource
             'current_order_product_id' => $this->current_order_product_id ?? 0,
 
             'order_product' => new OrderProductsListResource($this->whenLoaded('orderProduct')),
+
+            'checklist_qas' => CustomerChecklistQuestionsListResource::collection($this->whenLoaded('checklistQA')),
 
         ];
 

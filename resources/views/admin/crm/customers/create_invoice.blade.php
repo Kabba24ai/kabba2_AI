@@ -8,7 +8,19 @@
 @section('content')
 
 @include('flash::message')
+@include('admin.partials.formErrors')
+{{ html()->form()->id('invoiceForm')->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'space-y-8',
+                ])->open() }}
 
+
+<input type="hidden" name="invoice_data" id="invoiceDataInput">
+<input type="hidden" name="subtotal" id="invoiceSubtotalInput">
+<input type="hidden" name="tax" id="invoiceTaxInput">
+<input type="hidden" name="total" id="invoiceTotalInput">
+<input type="hidden" name="customer_id" id="customer_id" value="{{ $customer->id }}">
 
 <div class="bg-gray-50 px-4 py-4 border-b border-gray-200">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -22,12 +34,12 @@
             <div class="hidden sm:block h-6 border-l border-gray-300"></div>
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Create Invoice</h1>
-                <p class="text-sm text-gray-500">Invoice <span id="invoiceNumberDisplay">#INV-2025-920 </span> for {{ $customer->company_name ?? ' ' }}</p>
+                <p class="text-sm text-gray-500">Invoice <span id="invoiceNumberDisplay">#{{ \App\Helpers\CustomHelper::generateInvoiceNumber() }} </span> for {{ $customer->company_name ?? ' ' }}</p>
             </div>
         </div>
 
         <div class="flex flex-wrap gap-3">
-            <button type="cancel" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
+            <button type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
             </button>
 
             <button type="submit" name="action" value="save_new" disabled="" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium shadow transition">
@@ -62,15 +74,48 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
-                        <input id="invoiceNumberInput" type="text" class=" w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="INV-2025-153">
+                        <!-- <input id="invoiceNumberInput" name="invoicenumber" type="text" class=" w-full border border-gray-300 rounded-md px-3 py-2 text-sm" readonly value="{{ \App\Helpers\CustomHelper::generateInvoiceNumber() }}"> -->
+
+                        {!! html()->text('invoice_number')->attributes([
+                        'id' => 'invoiceNumberInput',
+                        'readonly' => true,
+                        ])
+                        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
+                        ->value(\App\Helpers\CustomHelper::generateInvoiceNumber())
+                        ->required() !!}
+
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
-                        <input class="w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300" type="text" name="invoice_date" id="invoice_date" placeholder="MM-DD-YYYY" autocomplete="off">
+                        <!-- <input name="invoice_date" class="w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300" type="text" name="invoice_date" id="invoice_date" placeholder="MM-DD-YYYY" autocomplete="off"> -->
+
+                        {!! html()->text('invoice_date')->class([
+                        'w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300',
+                        'border-red-500' => $errors->has('account_application_completed'),
+                        'border-gray-300' => !$errors->has('account_application_completed'),
+                        ])->attributes([
+                        'id' => 'invoice_date',
+                        'placeholder' => 'MM-DD-YYYY',
+                        'autocomplete' => 'off',
+
+                        ])->required() !!}
+
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                        <input class="w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300" type="text" name="due_date" id="due_date" placeholder="MM-DD-YYYY" autocomplete="off">
+                        <!-- <input name="due_date" class="w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300" type="text" name="due_date" id="due_date" placeholder="MM-DD-YYYY" autocomplete="off"> -->
+
+                        {!! html()->text('due_date')->class([
+                        'w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300',
+                        'border-red-500' => $errors->has('account_application_completed'),
+                        'border-gray-300' => !$errors->has('account_application_completed'),
+                        ])->attributes([
+                        'id' => 'invoice_date',
+                        'placeholder' => 'MM-DD-YYYY',
+                        'autocomplete' => 'off',
+
+                        ]) !!}
+
                     </div>
                 </div>
             </div>
@@ -143,7 +188,7 @@
             <!-- Invoice Notes -->
             <div class="bg-white rounded-lg shadow p-5">
                 <h3 class="text-lg font-semibold mb-4">Invoice Notes</h3>
-                <textarea rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter any additional notes for this invoice..."></textarea>
+                <textarea rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" name="invoice_notes" placeholder="Enter any additional notes for this invoice..."></textarea>
             </div>
         </div>
 
@@ -255,384 +300,15 @@
     </div>
 </div>
 
-
-
+{{ html()->form()->close() }}
 <!-- New Charge Wrapper -->
-<div id="chargeModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
-    <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
-            <div class="flex justify-between items-center px-6 pt-4">
-                <div class="flex items-center gap-2">
-                    <div class="text-red-600 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="lucide lucide-plus w-5 h-5">
-                            <path d="M5 12h14" />
-                            <path d="M12 5v14" />
-                        </svg>
-                    </div>
-                    <h2 class="text-lg font-medium text-gray-900">New Charge</h2>
-                </div>
-                <button id="closeChargeModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
-            </div>
-
-            <div class="px-6 overflow-y-auto">
-                <!-- <form class="space-y-8" id="chargeForm"> -->
-
-                {{ html()->form()->id('chargeForm')->attributes([
-                    'autocomplete' => 'off',
-                    'data-parsley-validate' => true,
-                    'class' => 'space-y-8',
-                ])->open() }}
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
-                        <!-- <input id="amount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"> -->
-
-                        {!! html()->text('amount')->attributes([
-                        'placeholder' => '0',
-                        'autocomplete' => 'off',
-                        'data-digit-input' => 'true',
-                        'data-parsley-maxlength' => 8,
-                        'maxlength' => 8,
-                        ])
-                        ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
-                        ->placeholder('0.00')->required() !!}
-
-                    </div>
-
-                    <div id="clueBox" class="hidden mt-3 bg-blue-50 border border-blue-200 rounded-md p-4 text-sm space-y-1">
-                        <p class="font-semibold text-gray-700">Calculation Preview</p>
-                        <div class="flex justify-between">
-                            <span class="text-blue-700">Amount:</span>
-                            <span id="amountPreview" class="text-blue-900">$0.00</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-blue-700">Sales Tax:</span>
-                            <span id="taxPreview" class="text-blue-900">$0.00</span>
-                        </div>
-                        <div class="flex justify-between font-semibold border-t border-blue-300 pt-1">
-                            <span class="text-blue-700">Total Balance Change:</span>
-                            <span class="text-blue-900" id="totalPreview">$0.00</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Charge Reason -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason </label>
-
-                    {!! html()->select('reason', [
-                    '' => 'Select charge reason',
-                    'New Rental' => 'New Rental',
-                    'Rental Extension' => 'Rental Extension',
-                    'Damages' => 'Damages',
-                    'Fuel Charge' => 'Fuel Charge',
-                    'Cleaning Charge' => 'Cleaning Charge',
-                    'Missing Items' => 'Missing Items',
-                    'Product Purchase' => 'Product Purchase',
-                    ], old('reason'))
-                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500')
-                    ->required() !!}
-
-                </div>
-
-                <!-- Person Responsible -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible </label>
-
-                    {!! html()
-                    ->select('responsible_person',
-                    $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
-                    old('responsible_person')
-                    )
-                    ->id('responsible_person')
-                    ->class([
-                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
-                    'border-red-500' => $errors->has('responsible_person'),
-                    ])
-                    ->required()
-                    !!}
-
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
-                    <div class="relative">
-                        <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
-                    </div>
-                </div>
-
-                <!-- Notes -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                    <!-- <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this charge..."></textarea> -->
-
-                    {!! html()->textarea('notes', old('notes'))
-                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
-                    ->rows(3)
-                    ->placeholder('Describe the reason for this charge...') !!}
-
-                </div>
-
-                <div class="flex  gap-2 pb-4">
-                    <button type="button" id="cancelChargeBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
-                        Cancel
-                    </button>
-                    <button type="submit" id="submitChargeBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
-                        <span id="chargeBtnText">Add Charge</span>
-                        <svg id="chargeBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                        </svg>
-                    </button>
-
-                </div>
-
-                {{ html()->form()->close() }}
-                <!-- </form> -->
-            </div>
-        </div>
-    </div>
-</div>
+@include('admin.crm.customers.partials._invoice_charge')
 
 <!-- New Discount Wrapper -->
-<div id="discountModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
-    <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
-            <div class="flex justify-between items-center px-6 pt-4">
-                <div class="flex items-center gap-2">
-                    <div class="text-purple-600 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award w-5 h-5">
-                            <circle cx="12" cy="8" r="6"></circle>
-                            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-lg font-medium text-gray-900">Apply Discount</h2>
-                </div>
-                <button id="closeDiscountModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
-            </div>
-
-            <div class="px-6 overflow-y-auto">
-                <!-- <form class="space-y-8"> -->
-
-                {{ html()->form()->id('discountForm')->attributes([
-                    'autocomplete' => 'off',
-                    'data-parsley-validate' => true,
-                    'class' => 'space-y-8',
-                ])->open() }}
-
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
-
-                        <!-- <input id="damount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"> -->
-
-                        {!! html()->text('damount')->attributes([
-                        'placeholder' => '0',
-                        'autocomplete' => 'off',
-                        'data-digit-input' => 'true',
-                        'data-parsley-maxlength' => 8,
-                        'maxlength' => 8,
-                        ])
-                        ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
-                        ->placeholder('0.00')->required() !!}
-
-                    </div>
-
-
-                </div>
-                <!-- Discount Reason -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason </label>
-
-                    {!! html()->select('reason', [
-                    '' => 'Select discount reason',
-                    'Volume Discount' => 'Volume Discount',
-                    'Repeat Customer Discount' => 'Repeat Customer Discount',
-                    'Damage Waiver Protection' => 'Damage Waiver Protection',
-                    'Misc. Management Discount' => 'Misc. Management Discount',
-                    'Other' => 'Other',
-                    ])
-                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
-                    ->required() !!}
-
-                </div>
-
-                <!-- Person Responsible -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible </label>
-
-                    {!! html()
-                    ->select('responsible_person',
-                    $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
-                    old('responsible_person')
-                    )
-                    ->id('responsible_person')
-                    ->class([
-                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
-                    'border-red-500' => $errors->has('responsible_person'),
-                    ])
-                    ->required()
-                    !!}
-
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
-                    <div class="relative">
-                        <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
-                    </div>
-                </div>
-
-                <!-- Notes -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-
-                    <!-- <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this discount..."></textarea> -->
-
-                    {!! html()->textarea('notes', old('notes'))
-                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
-                    ->rows(3)
-                    ->placeholder('Describe the reason for this discount...') !!}
-
-                </div>
-
-                <div class="flex  gap-2 pb-4">
-                    <button type="button" id="cancelDiscountBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
-                        Cancel
-                    </button>
-                    <button type="submit" id="submitDiscountBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
-                        <span id="discountBtnText">Add Discount</span>
-                        <svg id="discountBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                        </svg>
-                    </button>
-
-                </div>
-                {{ html()->form()->close() }}
-                <!-- </form> -->
-            </div>
-        </div>
-    </div>
-</div>
+@include('admin.crm.customers.partials._invoice_discount')
 
 <!-- New Refund Wrapper -->
-<div id="refundModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
-    <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
-            <div class="flex justify-between items-center px-6 pt-4">
-                <div class="flex items-center gap-2">
-                    <div class="text-purple-600 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-5 h-5 mr-2 text-blue-600">
-                            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-                            <polyline points="16 7 22 7 22 13"></polyline>
-                        </svg>
-                    </div>
-                    <h2 class="text-lg font-medium text-gray-900">Process Refund</h2>
-                </div>
-                <button id="closeRefundModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
-            </div>
-
-            <div class="px-6 overflow-y-auto">
-
-                {{ html()->form()->id('refundForm')->attributes([
-                    'autocomplete' => 'off',
-                    'data-parsley-validate' => true,
-                    'class' => 'space-y-8',
-                ])->open() }}
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
-                        <!-- <input id="ramount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"> -->
-                        {!! html()->text('ramount')->attributes([
-                        'placeholder' => '0',
-                        'autocomplete' => 'off',
-                        'data-digit-input' => 'true',
-                        'data-parsley-maxlength' => 8,
-                        'maxlength' => 8,
-                        ])
-                        ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
-                        ->placeholder('0.00')->required() !!}
-                    </div>
-                </div>
-                <!-- Refund Reason -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason</label>
-
-                    {!! html()->select('reason', [
-                    '' => 'Select refund reason',
-                    'Damaged Item' => 'Damaged Item',
-                    'Wrong Item Shipped' => 'Wrong Item Shipped',
-                    'Damage Waiver Protection' => 'Damage Waiver Protection',
-                    'Customer Cancellation' => 'Customer Cancellation',
-                    'Billing Overcharge' => 'Billing Overcharge',
-                    'Duplicate Charge' => 'Duplicate Charge',
-                    'Other' => 'Other',
-                    ])
-                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
-                    ->required() !!}
-
-                </div>
-
-                <!-- Person Responsible -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
-
-                    {!! html()
-                    ->select('responsible_person',
-                    $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
-                    old('responsible_person')
-                    )
-                    ->id('responsible_person')
-                    ->class([
-                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
-                    'border-red-500' => $errors->has('responsible_person'),
-                    ])
-                    ->required()
-                    !!}
-
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference (Optional)</label>
-                    <div class="relative">
-                        <input class="px-3 py-2 w-full border border-gray-300 rounded-md text-sm" type="text" placeholder="Enter reference number or ID...">
-                    </div>
-                </div>
-
-                <!-- Notes -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                    <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" name="notes" id="notes" rows="3" placeholder="Describe the reason for this refund..."></textarea>
-                </div>
-
-                <div class="flex  gap-2 pb-4">
-                    <button type="button" id="cancelRefundBtn" class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
-                        Cancel
-                    </button>
-                    <button type="submit" id="submitRefundBtn" class="relative flex-1 px-4 py-2 text-sm rounded bg-blue-600 text-white flex items-center justify-center gap-2">
-                        <span id="refundBtnText">Add Discount</span>
-                        <svg id="refundBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                        </svg>
-                    </button>
-
-                </div>
-                {{ html()->form()->close() }}
-                <!-- </form> -->
-            </div>
-        </div>
-    </div>
-</div>
+@include('admin.crm.customers.partials._invoice_refund')
 
 <!-- From Order Wrapper -->
 <div id="orderModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
@@ -649,7 +325,7 @@
                     </div>
                     <h2 class="text-lg font-medium text-gray-900">Select Order to Add to Invoice</h2>
                 </div>
-                <button id="closeOrderModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+                <button id="closeOrderModalBtn" type="button" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
 
             <div class="px-6 pb-6 overflow-y-auto">
@@ -678,7 +354,7 @@
                                 </td>
                                 <td class="px-4 py-3 space-x-2 whitespace-nowrap">
                                     <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" id="openviewdetailsModal" target="_blank"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
-                                    <button class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn" data-order-id="{{ $order->unique_id }}">
+                                    <button type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn" data-order-id="{{ $order->unique_id }}">
                                         + Add to Invoice
                                     </button>
                                 </td>
@@ -701,7 +377,7 @@
                 <div class="flex items-center gap-2">
                     <h2 class="text-lg font-medium text-gray-900">Order Details - ORD-2025-001</h2>
                 </div>
-                <button id="closeViewdetailsModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+                <button type="button" id="closeViewdetailsModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
 
             <div class="p-6 space-y-6 overflow-y-auto">
@@ -724,7 +400,7 @@
                         <p class="text-sm font-medium text-blue-900">Add All Products from Order</p>
                         <p class="text-xs text-blue-700 mt-1 mb-2">This will add each product as individual line items. Total: $1,249.95</p>
                     </div>
-                    <button class="bg-green-600 text-white px-6 py-2 rounded-md add-to-invoice-btn text-sm">
+                    <button type="button" class="bg-green-600 text-white px-6 py-2 rounded-md add-to-invoice-btn text-sm">
                         + Add to Invoice
                     </button>
                 </div>
@@ -797,16 +473,27 @@
     const invoice_data = [];
 
     // Global function to add products to the invoice_data array
-    function addInvoiceProduct(products) {
+    function addInvoiceProduct(products, type) {
         products.forEach(p => {
             const product = {
                 ...p, // Spread operator to copy all properties from the original product object
-                type: 'order', // Add the 'type' property
+                type: type, // Add the 'type' property
             };
             invoice_data.push(product); // Add the new product object to the array
         });
-        console.log('Current Invoice Data:', invoice_data); // Log the array to check
+
+
+        console.log('Current Invoice Data:'); // Log the array to check
+        console.table(invoice_data);
     }
+
+    // generate a unique ID for every arry item
+
+    function generateUniqueId(prefix = "item") {
+        return prefix + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    }
+
+    const invoiceItemsTBody = document.getElementById("invoiceItems"); // Make sure to get this element
 
     (function() {
         // Helper to recalculate invoice totals dynamically
@@ -815,7 +502,11 @@
             const totalElem = document.querySelector('#invoice-total');
             const taxElem = document.querySelector('#invoice-tax');
             const createBtn = document.querySelector('button[name="action"][value="save_new"]');
-            const invoiceItemsTBody = document.getElementById("invoiceItems"); // Make sure to get this element
+
+            const subtotalInput = document.getElementById("invoiceSubtotalInput");
+            const taxInput = document.getElementById("invoiceTaxInput");
+            const totalInput = document.getElementById("invoiceTotalInput");
+            const invoiceDataInput = document.getElementById("invoiceDataInput");
 
             let subtotal = 0;
             let totalTax = 0;
@@ -841,7 +532,7 @@
                 }
             });
 
-            //  Check for negative values and set to 0 if found 
+            //  Check for negative values and set to 0 if found
             subtotal = Math.max(0, subtotal);
 
             if (subtotal == 0) {
@@ -860,365 +551,23 @@
             if (createBtn) {
                 createBtn.disabled = rows.length === 0;
             }
+
+
+            //  Update hidden inputs for form submission
+            if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
+            if (taxInput) taxInput.value = totalTax.toFixed(2);
+            if (totalInput) totalInput.value = finalTotal.toFixed(2);
+            if (invoiceDataInput) invoiceDataInput.value = JSON.stringify(invoice_data);
+
         }
+
+
 
         // Attach the function to the window object to make it global
         window.updateInvoiceSummary = updateInvoiceSummary;
     })();
 </script>
 
-<!-- openChargeModal -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('chargeModalWrapper');
-        const openBtn = document.getElementById('openChargeModal');
-        const closeBtn = document.getElementById('closeChargeModalBtn');
-        const cancelBtn = document.getElementById('cancelChargeBtn');
-        const form = document.getElementById('chargeForm');
-
-        const emptyState = document.getElementById("emptyState");
-        const itemsTable = document.getElementById("itemsTable");
-        const invoiceItems = document.getElementById("invoiceItems");
-
-        const amountInput = document.getElementById("amount");
-
-        const clueBox = document.getElementById("clueBox");
-        const amountPreview = document.getElementById("amountPreview");
-        const taxPreview = document.getElementById("taxPreview");
-        const totalPreview = document.getElementById("totalPreview");
-
-        // open/close modal
-        openBtn.addEventListener('click', () => modalWrapper.style.display = 'flex');
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-            form.reset();
-
-            // Explicitly reset your custom data property
-            if (amountInput.digits) {
-                amountInput.digits = "";
-            }
-
-            // Also reset the displayed value and preview
-            amountInput.value = "";
-
-            amountPreview.textContent = "$0.00";
-            taxPreview.textContent = "$0.00";
-            totalPreview.textContent = "$0.00";
-
-            // Use a small delay to ensure the DOM has updated
-            setTimeout(() => {
-                $(form).parsley().reset();
-            }, 50);
-            clueBox.classList.add("hidden");
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // preview calculation
-        amountInput.addEventListener("input", function() {
-            this.value = this.value.replace(/[^0-9.]/g, "");
-            const amount = parseFloat(this.value) || 0;
-            const taxRate = window.SALES_TAX_RATE;
-            const tax = amount * taxRate;
-            const total = amount + tax;
-            amountPreview.textContent = `$${amount.toFixed(2)}`;
-            taxPreview.textContent = `$${tax.toFixed(2)}`;
-            totalPreview.textContent = `$${total.toFixed(2)}`;
-            clueBox.classList.toggle("hidden", this.value.trim() === "");
-        });
-
-        // handle submit
-        form.addEventListener("submit", e => {
-            e.preventDefault();
-
-            // Check if the form is valid using Parsley.js
-            if ($(form).parsley().isValid()) {
-
-                const desc = document.getElementById("reason").value || "New Charge";
-                const notes = document.getElementById("notes").value.trim();
-                const price = parseFloat(amountInput.value) || 0;
-                const qty = 1;
-                const taxRate = window.SALES_TAX_RATE;
-                const taxPrice = price * taxRate;
-                const total = price + taxPrice;
-
-                if (price <= 0) {
-                    notyf.error("Enter valid amount");
-                    return;
-                }
-
-                const row = document.createElement("tr");
-                row.dataset.type = "charge";
-                row.innerHTML = `
-            <td class="px-4 py-3 whitespace-nowrap">
-                <div class="font-medium text-gray-900">${desc} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-600 text-white">
-                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3">
-                            <path d="M5 12h14"></path>
-                            <path d="M12 5v14"></path>
-                        </svg><span class="ml-1 capitalize text-xs">charge</span>
-                                      </span></div>
-                ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
-            </td>
-            <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-            <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${price.toFixed(2)}</td>
-            <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
-            <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
-            <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
-                <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
-                <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
-            </td>
-        `;
-
-                row.querySelector(".delete-btn").addEventListener("click", () => {
-                    row.remove();
-                    if (!invoiceItems.children.length) {
-                        itemsTable.classList.add("hidden");
-                        emptyState.classList.remove("hidden");
-                    }
-                });
-
-                invoiceItems.appendChild(row);
-                emptyState.classList.add("hidden");
-                itemsTable.classList.remove("hidden");
-
-                closeModal();
-
-                window.updateInvoiceSummary();
-
-            } else {
-                console.log("Form is not valid.");
-            }
-        });
-    });
-</script>
-<!-- openChargeModal -->
-
-<!-- discount  -->
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const discountModal = document.getElementById("discountModalWrapper");
-        const discountForm = discountModal.querySelector("form");
-        const itemsTableWrap = document.getElementById("itemsTable");
-        const invoiceItemsTBody = document.getElementById("invoiceItems");
-        const emptyState = document.getElementById("emptyState"); // if present
-
-        const discountamountInput = discountModal.querySelector("#damount");
-
-        const openBtn = document.getElementById("openDiscountModal");
-        const closeBtn = document.getElementById("closeDiscountModalBtn");
-        const cancelBtn = document.getElementById("cancelDiscountBtn");
-
-        // ---- Modal Open/Close ----
-        openBtn.addEventListener("click", () => {
-            discountModal.style.display = "flex";
-        });
-
-        const closeModal = () => {
-            discountModal.style.display = 'none';
-            discountForm.reset();
-
-            // Explicitly reset your custom data property
-            if (discountamountInput.digits) {
-                discountamountInput.digits = "";
-            }
-
-            // Also reset the displayed value and preview
-            discountamountInput.value = "";
-
-            // Use a small delay to ensure the DOM has updated
-            setTimeout(() => {
-                $(discountForm).parsley().reset();
-            }, 50);
-            clueBox.classList.add("hidden");
-        };
-
-        closeBtn.addEventListener("click", closeModal);
-        cancelBtn.addEventListener("click", closeModal);
-
-        // Close modal if clicking outside
-        discountModal.addEventListener("click", (e) => {
-            if (e.target === discountModal) closeModal();
-        });
-
-        // ---- Add Discount Row ----
-        discountForm.addEventListener("submit", function(e) {
-            e.preventDefault();
-
-            const amountEl = discountModal.querySelector("#damount");
-            const reasonEl = discountModal.querySelector("#reason");
-            const notesEl = discountModal.querySelector("#notes");
-
-            const rawAmount = (amountEl.value || "").trim();
-            const reason = (reasonEl.value || "").trim();
-            const notes = (notesEl.value || "").trim();
-
-            if (!rawAmount || !reason) {
-                notyf.error("Please enter a discount amount and select a reason.");
-                return;
-            }
-
-            const amount = parseFloat(rawAmount.replace(/[^0-9.]/g, "")) || 0;
-            const qty = 1;
-            const total = amount; // adjust if needed
-
-            const tr = document.createElement("tr");
-
-            tr.dataset.type = "discount";
-
-            tr.innerHTML = `
-      <td class="px-4 py-3 whitespace-nowrap">
-        <div class="font-medium text-gray-900">${reason} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-600 text-white">
-                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award w-3 h-3">
-                                                    <circle cx="12" cy="8" r="6"></circle>
-                                                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
-                                                    </svg>      
-                                                                                              <span class="ml-1 capitalize text-xs">Discount</span>
-                                      </span></div>
-        ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
-      </td>
-      <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-      <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${amount.toFixed(2)}</td>
-       <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$0.00</td>
-      <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
-      <td class="px-4 py-3 whitespace-nowrap">
-        <div class="flex items-center justify-center gap-3">
-          <button type="button" class="text-blue-600 edit-btn mr-2" title="Edit"><x-heroicon-o-pencil class="w-4 h-4" /></button>
-          <button type="button" class="text-red-600 delete-btn" title="Delete"><x-heroicon-o-trash class="w-4 h-4" /></button>
-        </div>
-      </td>
-    `;
-
-            invoiceItemsTBody.appendChild(tr);
-
-            if (emptyState) emptyState.classList.add("hidden");
-            itemsTableWrap.classList.remove("hidden");
-
-            discountForm.reset();
-
-            // Attach the function to the window object to make it global
-            window.updateInvoiceSummary();
-
-            closeModal();
-        });
-
-
-    });
-</script>
-<!-- discount  -->
-
-<!-- refundModalWrapper -->
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const refundModal = document.getElementById("refundModalWrapper");
-        const refundForm = refundModal.querySelector("form");
-        const openBtn = document.getElementById("openRefundModal"); // button that triggers opening
-        const closeBtn = document.getElementById("closeRefundModalBtn");
-        const cancelBtn = document.getElementById("cancelRefundBtn");
-
-        const itemsTableWrap = document.getElementById("itemsTable");
-        const invoiceItemsTBody = document.getElementById("invoiceItems");
-        const emptyState = document.getElementById("emptyState");
-
-        const refundamountInput = refundModal.querySelector("#ramount");
-
-        const TAX_RATE = window.SALES_TAX_RATE;
-
-        // ---- Modal Open/Close ----
-        if (openBtn) {
-            openBtn.addEventListener("click", () => {
-                refundModal.style.display = "flex";
-            });
-        }
-        const closeModal = () => {
-            refundModal.style.display = 'none';
-            refundForm.reset();
-
-            // Explicitly reset your custom data property
-            if (refundamountInput.digits) {
-                refundamountInput.digits = "";
-            }
-
-            // Also reset the displayed value and preview
-            refundamountInput.value = "";
-
-            // Use a small delay to ensure the DOM has updated
-            setTimeout(() => {
-                $(refundForm).parsley().reset();
-            }, 50);
-            clueBox.classList.add("hidden");
-        };
-
-
-        closeBtn.addEventListener("click", closeModal);
-        cancelBtn.addEventListener("click", closeModal);
-
-        refundModal.addEventListener("click", (e) => {
-            if (e.target === refundModal) closeModal();
-        });
-
-        // ---- Add Refund Row ----
-        refundForm.addEventListener("submit", function(e) {
-            e.preventDefault();
-
-            const amountEl = refundModal.querySelector("#ramount");
-            const reasonEl = refundModal.querySelector("#reason");
-            const notesEl = refundModal.querySelector("#notes");
-
-            const rawAmount = (amountEl.value || "").trim();
-            const reason = (reasonEl.value || "").trim();
-            const notes = (notesEl.value || "").trim();
-
-            if (!rawAmount || !reason) {
-                notyf.error("Please enter a refund amount and select a reason.");
-                return;
-            }
-
-            const taxRate = window.SALES_TAX_RATE;
-            const amount = parseFloat(rawAmount.replace(/[^0-9.]/g, "")) || 0;
-            const qty = 1;
-            const taxPrice = amount * taxRate;
-            const total = amount + taxPrice;
-
-            // const taxPrice = price * taxRate;
-            // const total = price + taxPrice;
-
-            const tr = document.createElement("tr");
-            tr.dataset.type = "refund";
-            tr.innerHTML = `
-      <td class="px-4 py-3 whitespace-nowrap">
-        <div class="font-medium text-gray-900">${reason} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-600 text-white">
-                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-3 h-3">
-                            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-                            <polyline points="16 7 22 7 22 13"></polyline>
-                        </svg>        <span class="ml-1 capitalize text-xs">refund</span>
-                                      </span> </div>
-        ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
-      </td>
-      <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-      <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${amount.toFixed(2)}</td>
-      <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
-      <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
-      <td class="px-4 py-3 whitespace-nowrap">
-        <div class="flex items-center justify-center gap-3">
-          <button type="button" class="text-blue-600 edit-btn mr-2" title="Edit"><x-heroicon-o-pencil class="w-4 h-4" /></button>
-          <button type="button" class="text-red-600 delete-btn" title="Delete"><x-heroicon-o-trash class="w-4 h-4" /></button>
-        </div>
-      </td>
-    `;
-
-            invoiceItemsTBody.appendChild(tr);
-
-            if (emptyState) emptyState.classList.add("hidden");
-            itemsTableWrap.classList.remove("hidden");
-            window.updateInvoiceSummary();
-            refundForm.reset();
-            closeModal();
-        });
-    });
-</script>
-<!-- refundModalWrapper -->
 
 <!-- orderModalWrapper -->
 <script>
@@ -1254,13 +603,13 @@
         function addProductsToTable(products) {
 
             // Use the global function to add products to the data array
-            addInvoiceProduct(products);
+            addInvoiceProduct(products, 'order');
 
             products.forEach(p => {
                 const tr = document.createElement("tr");
 
                 tr.dataset.type = "order";
-
+                tr.dataset.id = p.id;
                 tr.innerHTML = `
                 <td class="px-4 py-3 whitespace-nowrap">
                     <div class="font-medium text-gray-900">${p.name} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-600 text-white">
@@ -1303,10 +652,7 @@
 
             const orderId = btn.dataset.orderId;
 
-            // console.log('orderId', orderId);
-
             const orderDetailsBaseUrl = "{{ route('admin.crm.customers.invoice.orders.details', ['unique_id' => ':id']) }}";
-
 
             const wrapper = document.getElementById('orders-table'); // loader wrapper
             if (wrapper) {
@@ -1337,9 +683,8 @@
                     throw new Error(data.message || "Server returned an error");
                 }
 
-
-
                 const products = (data.products || []).map(p => ({
+                    id: data.unique_id,
                     name: p.name,
                     sku: p.sku ?? "-",
                     qty: p.qty,
@@ -1347,7 +692,7 @@
                     tax: parseFloat(p.tax) || 0,
                     total: parseFloat(p.total),
                     extras: (p.extras || []).filter(x => x),
-                    orderId: data.unique_id
+                    orderId: data.unique_id,
                 }));
 
 
@@ -1377,7 +722,18 @@
         invoiceItemsTBody.addEventListener("click", (e) => {
             const btn = e.target.closest(".delete-btn");
             if (!btn) return;
-            btn.closest("tr").remove();
+
+            const row = btn.closest("tr");
+            const itemId = row.dataset.id;
+
+            // Remove row
+            row.remove();
+
+            // Remove from global array
+            const index = invoice_data.findIndex(p => p.id === itemId);
+            if (index !== -1) {
+                invoice_data.splice(index, 1);
+            }
 
             if (!invoiceItemsTBody.querySelector("tr")) {
                 itemsTableWrap.classList.add("hidden");
@@ -1385,6 +741,7 @@
             }
 
             window.updateInvoiceSummary();
+            console.log("After delete:", invoice_data);
         });
     });
 </script>

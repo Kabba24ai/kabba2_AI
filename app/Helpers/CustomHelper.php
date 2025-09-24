@@ -10,9 +10,31 @@ use App\Enums\Orders\OrderPaymentMethod;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Symfony\Component\Mime\DraftEmail;
+use App\Models\Customers\Invoice;
+
+
 
 class CustomHelper
 {
+    public static function generateInvoiceNumber(): string
+    {
+        $year = Carbon::now()->format('Y');
+
+        // Find last invoice of current year
+        $lastInvoice = Invoice::whereYear('invoice_date', $year)
+            ->orderByDesc('id')
+            ->first();
+
+        $lastNumber = 0;
+
+        if ($lastInvoice && preg_match('/INV-' . $year . '-(\d+)/', $lastInvoice->invoice_number, $matches)) {
+            $lastNumber = (int) $matches[1];
+        }
+
+        $nextNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+
+        return "INV-{$year}-{$nextNumber}";
+    }
     public static function formatCurrency($value)
     {
         if (is_null($value)) {

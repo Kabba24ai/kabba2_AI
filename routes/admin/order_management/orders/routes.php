@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleContr
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateOrderAddressController;
 
 use App\Http\Controllers\Admin\OrderManagement\Orders\AddToAccountPaymentController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\SendTermsAndConditionsController;
 
 use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\IndexController as NotesIndexController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\StoreController as NotesStoreController;
@@ -47,6 +48,9 @@ Route::prefix('orders')
 
         // Reorder
         Route::post('/{unique_id}/reorder', ReorderPostController::class)->name('reorder');
+
+        // Send Terms and Conditions
+        Route::post('/{unique_id}/send-terms', SendTermsAndConditionsController::class)->name('send-terms');
 
         // Notes
         Route::prefix('notes')

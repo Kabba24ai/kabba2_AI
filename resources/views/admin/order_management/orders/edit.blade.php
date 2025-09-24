@@ -542,10 +542,14 @@
                                                         type="button" @click="open = !open"
                                                         class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_transport_mode">
                                                         <template x-if="selected === 'Store'">
-                                                            <x-heroicon-o-building-storefront class="w-4 h-4" x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
+                                                            <x-heroicon-o-building-storefront class="w-4 h-4"
+                                                                x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' :
+                                                                    'text-yellow-600'" />
                                                         </template>
                                                         <template x-if="selected === 'Truck'">
-                                                            <x-heroicon-o-truck class="w-4 h-4" x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
+                                                            <x-heroicon-o-truck class="w-4 h-4"
+                                                                x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' :
+                                                                    'text-yellow-600'" />
                                                         </template>
                                                     </button>
                                                     <div x-show="open" @click.away="open = false"
@@ -555,15 +559,18 @@
                                                                 <button type="button"
                                                                     @click="selected = 'Store'; open = false;  $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                    <x-heroicon-o-building-storefront
-                                                                        class="w-4 h-4" x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
+                                                                    <x-heroicon-o-building-storefront class="w-4 h-4"
+                                                                        x-bind:class="deliveryStatus === 'Completed' ?
+                                                                            'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                             <li>
                                                                 <button type="button"
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                    <x-heroicon-o-truck class="w-4 h-4" x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
+                                                                    <x-heroicon-o-truck class="w-4 h-4"
+                                                                        x-bind:class="deliveryStatus === 'Completed' ?
+                                                                            'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                         </ul>
@@ -576,7 +583,8 @@
                                             <div class="flex flex-col items-start min-w-[70px] flex-1">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="delivery_status_{{ $orderProduct->unique_id }}">Status</label>
-                                                <select id="delivery_status_{{ $orderProduct->unique_id }}" x-model="deliveryStatus"
+                                                <select id="delivery_status_{{ $orderProduct->unique_id }}"
+                                                    x-model="deliveryStatus"
                                                     class="delivery_status border rounded px-1.5 py-1 text-xs w-full">
                                                     <option value="Pending"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
@@ -660,11 +668,14 @@
                                                         type="button" @click="open = !open"
                                                         class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_transport_mode">
                                                         <template x-if="selected === 'Store'">
-                                                            <x-heroicon-o-building-storefront
-                                                                class="w-4 h-4" x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
+                                                            <x-heroicon-o-building-storefront class="w-4 h-4"
+                                                                x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' :
+                                                                    'text-yellow-600'" />
                                                         </template>
                                                         <template x-if="selected === 'Truck'">
-                                                            <x-heroicon-o-truck class="w-4 h-4" x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
+                                                            <x-heroicon-o-truck class="w-4 h-4"
+                                                                x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' :
+                                                                    'text-yellow-600'" />
                                                         </template>
                                                     </button>
                                                     <div x-show="open" @click.away="open = false"
@@ -674,15 +685,18 @@
                                                                 <button type="button"
                                                                     @click="selected = 'Store'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                    <x-heroicon-o-building-storefront
-                                                                        class="w-4 h-4" x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
+                                                                    <x-heroicon-o-building-storefront class="w-4 h-4"
+                                                                        x-bind:class="pickupStatus === 'Completed' ?
+                                                                            'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                             <li>
                                                                 <button type="button"
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
-                                                                    <x-heroicon-o-truck class="w-4 h-4" x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' : 'text-yellow-600'" />
+                                                                    <x-heroicon-o-truck class="w-4 h-4"
+                                                                        x-bind:class="pickupStatus === 'Completed' ?
+                                                                            'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                         </ul>
@@ -695,7 +709,8 @@
                                             <div class="flex flex-col items-start min-w-[70px] flex-1">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="pickup_status_{{ $orderProduct->unique_id }}">Status</label>
-                                                <select id="pickup_status_{{ $orderProduct->unique_id }}"  x-model="pickupStatus"
+                                                <select id="pickup_status_{{ $orderProduct->unique_id }}"
+                                                    x-model="pickupStatus"
                                                     class="pickup_status border rounded px-1.5 py-1 text-xs w-full">
                                                     <option value="Pending"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}>
@@ -845,8 +860,8 @@
                                             <x-heroicon-o-x-mark class="w-4 h-4" />
                                         </span>
                                     </a>
-                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                        target="_blank" title="View Terms">
+                                    <button id="send-terms"
+                                        data-url="{{ route('admin.order-management.orders.send-terms', ['unique_id' => $order->unique_id]) }}">
                                         <span
                                             class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
                                             <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
@@ -857,7 +872,7 @@
                                                 Send terms signature request
                                             </span>
                                         </span>
-                                    </a>
+                                    </button>
                                 @else
                                     <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
                                         target="_blank" title="View Terms">
@@ -1556,7 +1571,7 @@
                                             <th class="py-2 px-2">Delivered</th>
                                             <th class="py-2 px-2">Returned</th>
                                             <!-- <th class="py-2 px-2">Balance</th>
-                                            <th class="py-2 px-2">Value</th> -->
+                                                            <th class="py-2 px-2">Value</th> -->
                                             <th class="py-2 px-2 text-right">Customer Owes</th>
                                         </tr>
                                     </thead>
@@ -1817,11 +1832,11 @@
 
                                                     <!-- Save button pinned to bottom on md+ -->
                                                     <!-- <div class="mt-auto flex justify-end">
-                                                        <button type="submit"
-                                                            class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
-                                                            Save
-                                                        </button>
-                                                    </div> -->
+                                                                        <button type="submit"
+                                                                            class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
+                                                                            Save
+                                                                        </button>
+                                                                    </div> -->
                                                 </div>
 
                                             </div>
@@ -3172,6 +3187,31 @@
                 showRefundFormStep();
             });
 
+        });
+
+        document.getElementById('send-terms').addEventListener('click', function() {
+            const btn = this;
+            btn.disabled = true;
+
+            const endpoint = btn.dataset.url;
+
+            apiFetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                            .getAttribute('content')
+                    }
+                })
+                .then(res => {
+                    if (res && res.success) {
+                        notyf.success(res.message);
+                    } else {
+                        notyf.error(res && res.message);
+                    }
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                });
         });
     </script>
 

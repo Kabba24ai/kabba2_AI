@@ -47,7 +47,7 @@ class TwilioService
         $to = $this->normalizePhone($to);
 
         $result = [
-            'status' => 'failure',
+            'success' => false,
             'message' => 'Unknown error',
             'sid' => null,
             'to' => $to,
@@ -69,7 +69,7 @@ class TwilioService
             }
 
             $twilioMessage = $this->client->messages->create($to, $data);
-            $result['status'] = 'success';
+            $result['success'] = true;
             $result['message'] = 'SMS sent';
             $result['sid'] = $twilioMessage->sid ?? null;
             $result['segments'] = $twilioMessage->numSegments ?? null;
@@ -102,14 +102,9 @@ class TwilioService
                 $failed++;
             }
         }
-        $overallStatus = 'failure';
-        if ($failed === 0) {
-            $overallStatus = 'success';
-        } elseif ($success > 0) {
-            $overallStatus = 'partial';
-        }
+
         return [
-            'status' => $overallStatus,
+            'success' => true,
             'total' => count($recipients),
             'success' => $success,
             'failed' => $failed,
@@ -163,7 +158,7 @@ class TwilioService
             $twilioMessage = $this->client->messages->create($to, $data);
 
             return [
-                'status' => 'success',
+                'success' => true,
                 'message' => 'WhatsApp message sent',
                 'sid' => $twilioMessage->sid ?? null,
                 'to' => $to,
@@ -174,7 +169,7 @@ class TwilioService
                 'exception' => $e,
             ]);
             return [
-                'status' => 'failure',
+                'success' => false,
                 'message' => $e->getMessage(),
                 'to' => $to,
             ];

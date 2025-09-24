@@ -54,8 +54,10 @@ class SendSameDayRentalReminderJob implements ShouldQueue
                 $message = $messages['rental_same_day_truck_message'];
             }
             if ($phoneNumber) {
-                $twilio->sendSms($phoneNumber, $message);
-                $sentCount++;
+                $response = $twilio->sendSms($phoneNumber, $message);
+                if($response['success']){
+                    $sentCount++;
+                }
             }
         }
 

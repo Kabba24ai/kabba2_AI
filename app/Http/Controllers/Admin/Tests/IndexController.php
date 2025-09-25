@@ -3,11 +3,21 @@
 namespace App\Http\Controllers\Admin\Tests;
 
 use App\Http\Controllers\Controller;
+use App\Models\Iam\Personnel\User;
 use App\Services\TwilioService;
 
 class IndexController extends Controller
 {
     // new method here
+    public function updateUsersEmail()
+    {
+        $users = User::all();
+        foreach ($users as $user) {
+            $user->email = str_replace('@kabba.com', '@kabba.ai', $user->email);
+            $user->save();
+        }
+        return response()->json(['status' => 'User emails updated successfully.']);
+    }
 
     public function sendDayBeforeJob()
     {

@@ -540,13 +540,14 @@
                     rentalWeekend.removeAttribute('required');
                     rentalWeekly.removeAttribute('required');
                     rentalMonthly.removeAttribute('required');
+                    isDefaultFunnel.checked = false;
                 } else {
                     rentalDaily.setAttribute('required', 'required');
                     rentalWeekend.setAttribute('required', 'required');
                     rentalWeekly.setAttribute('required', 'required');
                     rentalMonthly.setAttribute('required', 'required');
                     retailPrice.removeAttribute('required');
-                    isDefaultFunnel.checked = false;
+
                 }
             });
 

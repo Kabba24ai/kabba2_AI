@@ -26,28 +26,28 @@ class UserSeeder extends Seeder
             [
                 'first_name' => 'Jigar',
                 'last_name' => 'Khatri',
-                'email' => 'jigar.khatri@kabba.com',
+                'email' => 'jigar.khatri@kabba.ai',
                 'password' => Hash::make('Jigar#1234'),
                 'status' => 'Active',
             ],
             [
                 'first_name' => 'Nipa',
                 'last_name' => 'Soni',
-                'email' => 'nipa.soni@kabba.com',
+                'email' => 'nipa.soni@kabba.ai',
                 'password' => Hash::make('Nipa#1234'),
                 'status' => 'Active',
             ],
             [
                 'first_name' => 'Gary',
                 'last_name' => 'Jezorski',
-                'email' => 'gary.jezorski@kabba.com',
+                'email' => 'gary.jezorski@kabba.ai',
                 'password' => Hash::make('Gary#1234'),
                 'status' => 'Active',
             ],
             [
                 'first_name' => 'Akshay',
                 'last_name' => 'Vyas',
-                'email' => 'akshay@kabba.com',
+                'email' => 'akshay@kabba.ai',
                 'password' => Hash::make('Akshay#1234'),
                 'status' => 'Active',
             ]

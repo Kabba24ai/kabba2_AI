@@ -9,13 +9,14 @@ use Database\Seeders\Configurations\SettingSeeder;
 use Database\Seeders\Configurations\ColorSeeder;
 use Database\Seeders\Configurations\EncryptedSettingSeeder;
 
-use Database\Seeders\Iam\ModuleSeeder;
-use Database\Seeders\Iam\RoleSeeder;
 
 // Seeders
+use Database\Seeders\Iam\ModuleSeeder;
+use Database\Seeders\Iam\RoleSeeder;
 use Database\Seeders\Iam\UserSeeder;
 use Database\Seeders\Locations\StateSeeder;
 use Database\Seeders\Stores\StoreSeeder;
+use Database\Seeders\TermsAndConditions\TermsSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -33,6 +34,7 @@ class DatabaseSeeder extends Seeder
         $this->call(StateSeeder::class); // fourth to create settings
         $this->call(StoreSeeder::class); // fourth to create settings
         $this->call(ColorSeeder::class); // fourth to create settings
+        $this->call(TermsSeeder::class); // fourth to create settings
 
     }
 }

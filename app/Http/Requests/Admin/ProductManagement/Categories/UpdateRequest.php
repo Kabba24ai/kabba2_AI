@@ -56,12 +56,12 @@ class UpdateRequest extends FormRequest
             'short_content' => ['max:1000'],
             'content'=>['nullable'],
             'media' => [
-                $this->isMethod('post') ? 'required' : 'nullable',
+                'nullable',
                 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048',
                 'dimensions:width=650,height=650',
             ],
             'hover_media' => [
-                $this->isMethod('post') ? 'required' : 'nullable',
+                'nullable',
                 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048',
                 'dimensions:width=650,height=650',
             ],

@@ -17,8 +17,8 @@
         @enderror
     </div>
 
-    @if (!isset($objProductCategory) || (isset($objProductCategory) && $objProductCategory->childCategories()->count() <= 0))
-        <div class="space-y-2">
+    {{-- @if (!isset($objProductCategory) || (isset($objProductCategory) && $objProductCategory->childCategories()->count() <= 0))
+         <div class="space-y-2">
             <label for="parent_id"
                 class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Category</label>
             {{ html()->select('parent_id', $categories, isset($categoryId) ? $categoryId : null)->class([
@@ -30,6 +30,15 @@
             @error('parent_id')
                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
+        </div>
+    @endif --}}
+    @if (isset($objProductCategory->parentCategory) || isset($categoryId))
+        <div class="space-y-2">
+            <label for="category">Parent category</label>
+            <input type="hidden" name="parent_id" value="{{ isset($category) ? $category->id : '' }}">
+            <input type="text" readonly
+                class="w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white bg-gray-100"
+                value="{{ isset($category) ? $category->title : 'None' }}">
         </div>
     @endif
 
@@ -145,7 +154,7 @@
     {{-- Image Upload --}}
     <div class="mb-8">
         <label
-            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 {{ isset($objProductCategory) && $objProductCategory->media ? '' : 'required' }}">
+            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 ">
             Image <span class="text-xs font-normal text-gray-500">(Optimum Image Size: 650 × 650 pixels)</span>
         </label>
 
@@ -161,14 +170,12 @@
         {{-- File input --}}
         <input type="file" name="media" id="image-input" accept="image/*"
             class="block text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            @if (!isset($objProductCategory) || (isset($objProductCategory) && !$objProductCategory->media)) data-parsley-required="true"
                 data-parsley-required-message="Please upload an image."
                 accept="image/png,image/jpeg,image/webp"
                 data-parsley-fileextension="jpg,jpeg,png,webp"
                 data-parsley-fileextension-message="Only JPG, PNG, or WEBP images are allowed."
                 data-parsley-max-file-size="2048"
-                data-parsley-max-file-size-message="Maximum file size is 2 MB." @endif>
-
+                data-parsley-max-file-size-message="Maximum file size is 2 MB." >
         @error('media')
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
@@ -181,7 +188,7 @@
     <!-- Column 2 content here -->
     <div class="mb-8">
         <label
-            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 {{ isset($objProductCategory) && $objProductCategory->hoverMedia ? '' : 'required' }}">
+            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 ">
             Hover Image <span class="text-xs font-normal text-gray-500">(Optimum Image Size: 650 × 650 pixels)</span>
         </label>
 
@@ -197,13 +204,12 @@
         {{-- File input --}}
         <input type="file" name="hover_media" id="hover-image-input" accept="image/*"
             class="block text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            @if (!isset($objProductCategory) || (isset($objProductCategory) && !$objProductCategory->media)) data-parsley-required="true"
                 data-parsley-required-message="Please upload an image."
                 accept="image/png,image/jpeg,image/webp"
                 data-parsley-fileextension="jpg,jpeg,png,webp"
                 data-parsley-fileextension-message="Only JPG, PNG, or WEBP images are allowed."
                 data-parsley-max-file-size="2048"
-                data-parsley-max-file-size-message="Maximum file size is 2 MB." @endif>
+                data-parsley-max-file-size-message="Maximum file size is 2 MB." >
 
         @error('hover_media')
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>

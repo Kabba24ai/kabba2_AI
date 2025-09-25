@@ -19,9 +19,9 @@ class EditController extends Controller
 
     public function __invoke($unique_id, Request $request)
     {
-        $objProductCategory = ProductCategory::with('products')->where('unique_id', $unique_id)->firstOrFail();
+        $objProductCategory = ProductCategory::with('products','parentCategory')->where('unique_id', $unique_id)->firstOrFail();
 
-        $categories = ProductCategory::whereNull('parent_id')->where('unique_id', '!=', $unique_id)->orderByAdmin()->pluck('title', 'id');
+        // $categories = ProductCategory::whereNull('parent_id')->where('unique_id', '!=', $unique_id)->orderByAdmin()->pluck('title', 'id');
 
         $category_tree = ProductCategory::with([
             'childCategories' => function ($q) {
@@ -34,7 +34,7 @@ class EditController extends Controller
 
         return view('admin.product_management.categories.edit', [
             'objProductCategory' => $objProductCategory,
-            'categories' => $categories,
+            'category'=> $objProductCategory->parentCategory,
             'category_tree' => $category_tree,
         ]);
     }

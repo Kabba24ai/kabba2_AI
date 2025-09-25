@@ -40,7 +40,7 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'equipment_name' => 'required|string|max:255|unique:equipment,equipment_name',
+            'equipment_name' => 'required|string|max:255',
             'product_category_id' => 'required|exists:product_categories,id',
 
             'equipment_id' => 'required|string|max:255|unique:equipment,equipment_id',

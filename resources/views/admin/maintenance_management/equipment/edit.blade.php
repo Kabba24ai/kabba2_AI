@@ -26,7 +26,7 @@
 
         {{-- Main Content --}}
         <div class="p-6">
-            <!-- Form -->            
+            <!-- Form -->
             {{ html()->modelForm($equipment, 'PUT')->attributes([
                     'action' => route('admin.maintenance-management.equipment.edit', $equipment->unique_id),
                     'id' => 'productForm',
@@ -36,6 +36,15 @@
                 ])->acceptsFiles()->open() }}
                 @csrf
                 @method('PUT')
+                <div class="mb-6 flex justify-end">
+                    <button type="submit" class="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+
                 @include('admin.maintenance_management.equipment.partials._form')
 
                 <div class="mt-6 flex justify-end">

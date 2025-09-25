@@ -43,7 +43,6 @@ class UpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('equipment', 'equipment_name')->ignore($uniqueId, 'unique_id'),
             ],
 
             'product_category_id' => 'required|exists:product_categories,id',

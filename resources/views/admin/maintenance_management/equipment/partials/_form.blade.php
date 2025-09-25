@@ -371,12 +371,12 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex items-center space-x-3 mb-4">
                 <x-heroicon-o-bolt class="h-5 w-5 text-green-600" />
-                <h3 class="text-lg font-bold text-gray-900 required">Power Source</h3>
+                <h3 class="text-lg font-bold text-gray-900">Power Source</h3>
             </div>
 
             <div class="grid grid-cols-1  gap-3">
                 <div>
-                    <label for="power-type-select" class="block text-sm font-medium text-gray-700 mb-1 required">
+                    <label for="power-type-select" class="block text-sm font-medium text-gray-700 mb-1">
                         Power Type
                     </label>
                     {!! html()->select('power_source_type', [
@@ -387,7 +387,7 @@
                         ])->class([
                             'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                             'border-red-500' => $errors->has('power_source_type'),
-                        ])->required() !!}
+                        ]) !!}
                     @error('power_source_type')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror

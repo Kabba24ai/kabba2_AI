@@ -37,6 +37,7 @@ class UpdateController extends Controller
                 'status' => $validated['status'] ?? 'Pending',
                 'is_general_term_type' => $validated['is_general_term_type'] ?? false,
                 'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
+                'is_default_funnel' => $validated['is_default_funnel'] ?? false,
             ];
 
             // Include only relevant fields and clear opposite-type fields

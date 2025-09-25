@@ -67,6 +67,8 @@ class Product extends Model
         'hour_tracking', // Boolean: is hourly usage tracking enabled
         'hour_rate', // Rate per hour if hour tracking is enabled
 
+        'is_default_funnel', // Boolean: is this the default sales funnel
+
         'status', // Product status (e.g., Published, Draft)
         'created_by', // ID of the user who created the record
         'updated_by', // ID of the user who last updated the record

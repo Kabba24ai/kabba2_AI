@@ -73,6 +73,9 @@ class StoreController extends Controller
                     'sale_price_weekend' => null,
                     'sale_price_weekly' => null,
                     'sale_price_monthly' => null,
+
+                    // is_default_funnel field
+                    'is_default_funnel' => false, // Rentals cannot be default funnel
                 ]);
             } elseif ($validated['product_type'] === 'Rental') {
                 $productData = array_merge($productData, [
@@ -111,6 +114,9 @@ class StoreController extends Controller
                     'retail_price' => null,
                     'retail_sale_price' => null,
                     'retail_product_cost' => null,
+
+                    // is_default_funnel field
+                    'is_default_funnel' => $validated['is_default_funnel'] ?? false,
                 ]);
             }
 

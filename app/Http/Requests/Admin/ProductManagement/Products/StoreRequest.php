@@ -116,6 +116,8 @@ class StoreRequest extends ApiBaseFormRequest
             'related_products.*' => ['exists:products,id'],
 
             'size' => ['nullable', 'string', 'max:255'],
+
+            'is_default_funnel' => ['nullable', 'boolean'],
         ];
     }
 

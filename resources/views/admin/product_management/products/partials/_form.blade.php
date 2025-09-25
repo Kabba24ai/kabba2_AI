@@ -425,8 +425,14 @@
     <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
         <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Add 1 or More Sales Funnels</h4>
 
-        @if ($funnels->isNotEmpty())
-            <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
+        <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
+            <div class="flex items-center space-x-2 text-sm" x-data x-show="$store.productForm.selectedType === 'Rental'" x-cloak>
+                {!! html()->checkbox('is_default_funnel') !!}
+                <label for="is_default_funnel" class="text-gray-700 dark:text-gray-300">
+                    Default Sales Funnel
+                </label>
+            </div>
+            @if ($funnels->isNotEmpty())
                 @foreach ($funnels as $funnel)
                     <div class="flex items-center space-x-2 text-sm">
                         {!! html()->checkbox('funnels[]', in_array($funnel->id, old('funnels', [])))->value($funnel->id)->id("funnel_{$funnel->id}") !!}
@@ -435,10 +441,10 @@
                         </label>
                     </div>
                 @endforeach
-            </div>
-        @else
-            <p class="text-sm text-gray-500 dark:text-gray-400">No sales funnels available.</p>
-        @endif
+            @else
+                {{-- <p class="text-sm text-gray-500 dark:text-gray-400">No  custom sales funnels available.</p> --}}
+            @endif
+        </div>
     </div>
 </div>
 
@@ -523,6 +529,7 @@
                 const rentalWeekend = document.getElementById('rental_weekend');
                 const rentalWeekly = document.getElementById('rental_weekly');
                 const rentalMonthly = document.getElementById('rental_monthly');
+                const isDefaultFunnel = document.getElementById('is_default_funnel');
                 // Delivery fee inputs
                 // const standardDelivery = document.querySelector('input[name="standard_delivery_fee"]');
                 // const extendedDelivery = document.querySelector('input[name="extended_delivery_fee"]');
@@ -539,6 +546,7 @@
                     rentalWeekly.setAttribute('required', 'required');
                     rentalMonthly.setAttribute('required', 'required');
                     retailPrice.removeAttribute('required');
+                    isDefaultFunnel.checked = false;
                 }
             });
 

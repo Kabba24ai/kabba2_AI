@@ -40,7 +40,12 @@ class SendSameDayRentalReminderJob implements ShouldQueue
 
         $twilio = new TwilioService();
 
-        $records = OrderProduct::with('order.shippingAddress')->whereDate('pickup_date', $today)->where('pickup_status', 'Pending')->get();
+        $records = OrderProduct::with([
+            'order.shippingAddress',
+            'product' => function ($query) {
+                $query->where('is_default_funnel', true);
+            }
+        ])->where('product_data->product_type', 'Rental')->whereDate('pickup_date', $today)->where('pickup_status', 'Pending')->get();
 
         $count = $records->count();
         $sentCount = 0;

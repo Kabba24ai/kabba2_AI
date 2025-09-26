@@ -530,6 +530,7 @@
                 const rentalWeekly = document.getElementById('rental_weekly');
                 const rentalMonthly = document.getElementById('rental_monthly');
                 const isDefaultFunnel = document.getElementById('is_default_funnel');
+                const hasHighDemandAlert = document.getElementById('has_high_demand_alert');
                 // Delivery fee inputs
                 // const standardDelivery = document.querySelector('input[name="standard_delivery_fee"]');
                 // const extendedDelivery = document.querySelector('input[name="extended_delivery_fee"]');
@@ -541,6 +542,7 @@
                     rentalWeekly.removeAttribute('required');
                     rentalMonthly.removeAttribute('required');
                     isDefaultFunnel.checked = false;
+                    hasHighDemandAlert.checked = false;
                 } else {
                     rentalDaily.setAttribute('required', 'required');
                     rentalWeekend.setAttribute('required', 'required');

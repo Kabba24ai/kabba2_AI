@@ -118,6 +118,7 @@ class StoreRequest extends ApiBaseFormRequest
             'size' => ['nullable', 'string', 'max:255'],
 
             'is_default_funnel' => ['nullable', 'boolean'],
+            'has_high_demand_alert' => ['nullable', 'boolean'],
         ];
     }
 

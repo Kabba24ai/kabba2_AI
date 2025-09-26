@@ -76,6 +76,7 @@ class StoreController extends Controller
 
                     // is_default_funnel field
                     'is_default_funnel' => false, // Rentals cannot be default funnel
+                    'has_high_demand_alert' => false,
                 ]);
             } elseif ($validated['product_type'] === 'Rental') {
                 $productData = array_merge($productData, [
@@ -117,6 +118,7 @@ class StoreController extends Controller
 
                     // is_default_funnel field
                     'is_default_funnel' => $validated['is_default_funnel'] ?? false,
+                    'has_high_demand_alert' => $validated['has_high_demand_alert'] ?? false,
                 ]);
             }
 

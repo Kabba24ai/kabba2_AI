@@ -64,9 +64,11 @@
                             {{ $productDetail->product_name ?? 'Product' }}
                         </div> --}}
                         <!-- Main image (with lightbox, initially first image) -->
-                        <a href="{{ $galleryImages[0] ?? $productDetail->hover_image_url }}" id="main-image-link" class="relative block w-full h-full">
+                        <a href="{{ $galleryImages[0] ?? $productDetail->hover_image_url }}" id="main-image-link"
+                            class="relative block w-full h-full">
                             <!-- Default image -->
-                            <img src="{{ $galleryImages[0] ?? $productDetail->hover_image_url }}" alt="Product" id="main-image"
+                            <img src="{{ $galleryImages[0] ?? $productDetail->hover_image_url }}" alt="Product"
+                                id="main-image"
                                 class="w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-0" />
 
                             <!-- Hover image -->
@@ -95,7 +97,8 @@
                 </div>
 
                 <div>
-                    <div class="bg-gray-100 mb-4 h-[auto] md:h[auto] lg:h-[70px] flex flex-col lg:flex-row justify-between items-center pl-2 header-price">
+                    <div
+                        class="bg-gray-100 mb-4 h-[auto] md:h[auto] lg:h-[70px] flex flex-col lg:flex-row justify-between items-center pl-2 header-price">
                         <div>
                             <h3 class="font-bold text-xl lg:text-xl">{{ $productDetail->product_name }}</h3>
                             {{-- <p class="before:content-['('] before:text-gray-500 after:content-[')'] after:text-gray-500 text-green-600 "> In Stock</p> --}}
@@ -115,8 +118,8 @@
                                         @endif --}}
                                         <span class="text-xl">/</span>
                                         <span class="font-normal text-sm">
-                                             {{ ucfirst(($productVariant === 'weekend') ? 'Weekend Spcl.' : $productVariant) }}</span>
-                                        </span>
+                                            {{ ucfirst($productVariant === 'weekend' ? 'Weekend Spcl.' : $productVariant) }}</span>
+                                    </span>
                                 @else
                                     <span>
                                         <span class="font-bold text-xl">
@@ -144,14 +147,16 @@
                                 <!-- Calendar icon button -->
                                 <div class="flex items-center space-x-2">
                                     <a href="javascript:void(0);" id="openDatePicker" class="flex items-center ">
-                                        <img src="{{ asset('storage/front/images/calendar_icon.png') }}" alt="Calendar Icon" class="w-6 h-6 md:w-[52px] h-[52px]" />
-                                        <span id="selectedDateText" class="text-sm md:text-base text-gray-700">Start Date</span>
+                                        <img src="{{ asset('storage/front/images/calendar_icon.png') }}"
+                                            alt="Calendar Icon" class="w-6 h-6 md:w-[52px] h-[52px]" />
+                                        <span id="selectedDateText" class="text-sm md:text-base text-gray-700">Start
+                                            Date</span>
                                     </a>
                                     <!-- Hidden input stays outside for accessibility/JS -->
                                     <input type="text" name="delivery_date" id="scheduleStartDateInput"
                                         data-format="{{ config('app.date.js_date_format') }}"
-                                        data-min-date="{{ now()->format(config('app.date.db_date_format')) }}" class="sr-only" readonly
-                                        placeholder="Select Start Date" />
+                                        data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                        class="sr-only" readonly placeholder="Select Start Date" />
                                 </div>
                                 <!-- Qty controls -->
                                 <div class="flex items-center space-x-2 pr-5">
@@ -161,8 +166,7 @@
                                     <input type="text" id="qty" name="qty" value="1"
                                         class="w-16 text-center border border-gray-300 rounded"
                                         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);"
-                                        min="1"
-                                    />
+                                        min="1" />
                                     <button type="button"
                                         class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
                                         onclick="changeQty(1)">+</button>
@@ -190,15 +194,20 @@
                                 $hasExtended = $productDetail->extended_delivery_fee !== null;
 
                                 // Determine default checked value
-                                $checkedDistanceType = $hasStandard ? 'Standard' : ($hasExtended ? 'Extended' : 'Custom');
+                                $checkedDistanceType = $hasStandard
+                                    ? 'Standard'
+                                    : ($hasExtended
+                                        ? 'Extended'
+                                        : 'Custom');
                             @endphp
                             @if ($showInStore || $showDelivery)
-                            <label for="rentalDeliveryMethod" class="font-medium">Rental Delivery Method</label>
+                                <label for="rentalDeliveryMethod" class="font-medium">Rental Delivery Method</label>
                             @endif
                             @if ($showInStore)
                                 <div class="space-y-2">
                                     <label class="inline-flex items-center space-x-2">
-                                        <input type="radio" name="service_method" value="In Store Pickup" class="form-radio"
+                                        <input type="radio" name="service_method" value="In Store Pickup"
+                                            class="form-radio"
                                             {{ $checkedOption === 'In Store Pickup' ? 'checked' : '' }} />
                                         <span>In Store Pickup / Return</span>
                                     </label>
@@ -212,7 +221,8 @@
                                         <span>Delivery - Full Turnkey Service</span>
                                     </label>
                                 </div>
-                                <div id="deliveryDiv" class="mt-4 mb-5 {{ $checkedOption === 'Delivery' ? '' : 'hidden' }}">
+                                <div id="deliveryDiv"
+                                    class="mt-4 mb-5 {{ $checkedOption === 'Delivery' ? '' : 'hidden' }}">
                                     <div>
                                         <span>Up To: </span>
                                         @if ($hasStandard)
@@ -243,7 +253,8 @@
                                             </label>
                                         @endif
                                         <label class="inline-flex items-center space-x-2">
-                                            <input type="radio" name="distance_type" value="Custom" class="sr-only peer"
+                                            <input type="radio" name="distance_type" value="Custom"
+                                                class="sr-only peer"
                                                 {{ $checkedDistanceType === 'Custom' ? 'checked' : '' }} />
                                             <div
                                                 class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
@@ -306,7 +317,7 @@
                     @if ($productDetail->hasOptions())
                         <div id="optionDiv" class="inline-grid mt-5">
                             <h4 class="font-semibold text-xl lg:text-2xl mb-1">Options</h4>
-                            @if ($productDetail->rental_prepaid_fuel !== null &&  $productDetail->rental_prepaid_fuel !== "0.00")
+                            @if ($productDetail->rental_prepaid_fuel !== null && $productDetail->rental_prepaid_fuel !== '0.00')
                                 <!-- Prepaid Fuel -->
                                 <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                     <input type="checkbox" class="form-checkbox h-4 w-4" checked id="fuelCheckbox"
@@ -323,7 +334,7 @@
                                 </label>
                             @endif
 
-                            @if ($productDetail->rental_prepaid_cleaning !== null && $productDetail->rental_prepaid_cleaning !== "0.00")
+                            @if ($productDetail->rental_prepaid_cleaning !== null && $productDetail->rental_prepaid_cleaning !== '0.00')
                                 <!-- Prepaid Cleaning -->
                                 <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                     <input type="checkbox" class="form-checkbox h-4 w-4" checked id="cleanCheckbox"
@@ -424,10 +435,11 @@
                                     };
                                 @endphp
                                 @if ($damageWaiverPrice !== '0.00' && $damageWaiverPrice !== null)
-                                     <!-- Damage Waiver -->
+                                    <!-- Damage Waiver -->
                                     <label class="inline-flex items-center space-x-2 mt-1 w-fit">
                                         <input type="checkbox" class="form-checkbox h-4 w-4" checked id="damageCheckbox"
-                                            data-charged="1 Time Max" data-name="{{ \App\Enums\Products\ProductCustomStaticLabel::rental_damage_waiver->name }}"
+                                            data-charged="1 Time Max"
+                                            data-name="{{ \App\Enums\Products\ProductCustomStaticLabel::rental_damage_waiver->name }}"
                                             data-keep="{{ $productSettings['damage_waiver_approve_label'] }}"
                                             data-discard="{{ $productSettings['damage_waiver_decline_label'] }}"
                                             data-message="{{ $productSettings['damage_waiver_info'] }}" />
@@ -494,7 +506,7 @@
                                                         </span>
                                                     @endif --}}
                                                     <span class="z-30">
-                                                        {{ ucfirst(($type === 'weekend') ? 'Weekend Spcl.' : $type) }}
+                                                        {{ ucfirst($type === 'weekend' ? 'Weekend Spcl.' : $type) }}
                                                         @if ($relatedProduct->isRentalOnSale($type))
                                                             - <span
                                                                 class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
@@ -587,6 +599,45 @@
             </div>
         </div>
     </div>
+
+    <!-- High Demand Alert Modal -->
+    <div id="modalHighDemandAlert" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] hidden">
+        <div
+            class="bg-white rounded-lg shadow-lg w-full md:max-w-3xl p-6 relative max-w-[95%] flex flex-col md:flex-row items-center gap-6">
+            <div class="w-full md:w-1/3 flex justify-center">
+                <img src="{{ asset("storage/front/images/lady-image.webp") }}" alt="Customer Service Representative" class="max-h-64 object-contain">
+            </div>
+
+            <div class="flex-1 text-center md:text-left">
+                <!-- Header -->
+                <h2 class="text-red-600 font-bold text-2xl mb-4">High Demand Alert!</h2>
+
+                <!-- Message -->
+                <p class="text-gray-700 mb-4">
+                    This item is currently experiencing a spike in demand, please complete the reservation and then
+                    <span class="font-semibold italic">call Customer Service</span> to confirm the schedule details:
+                </p>
+
+                <!-- Phone Number -->
+                <p class="text-black text-lg mb-6">
+                    <a href="tel:+16158156734" class="font-bold hover:underline focus:underline">
+                        (615) 815-6734
+                    </a>
+                </p>
+
+                <!-- Buttons -->
+                <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-3">
+                    <button id="continueReservationBtn" class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        Continue Reservation
+                    </button>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+
 @endsection
 
 @push('js')
@@ -604,6 +655,7 @@
             productVariant: "{{ $productVariant }}",
             cartSaveUrl: "{{ route('front.cart.save') }}",
             csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            hasHighDemandAlert: "{{ $productDetail->has_high_demand_alert ?? false }}",
         };
     </script>
     @vite('resources/front/assets/js/products/product-details-page.js')

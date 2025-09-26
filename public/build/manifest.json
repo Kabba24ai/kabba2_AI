@@ -48,7 +48,7 @@
     "isEntry": true
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-5AqAqyAp.css",
+    "file": "assets/app-DllmfKZE.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
@@ -71,12 +71,12 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-C4KURElq.css",
+    "file": "assets/app-BGa3HPYr.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-D7yXDlUj.css",
+    "file": "assets/app-DEE9heXk.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
@@ -93,7 +93,7 @@
     ]
   },
   "resources/front/assets/js/products/product-details-page.js": {
-    "file": "assets/product-details-page-C7jKzCE4.js",
+    "file": "assets/product-details-page-BXEvVFM4.js",
     "name": "product-details-page",
     "src": "resources/front/assets/js/products/product-details-page.js",
     "isEntry": true

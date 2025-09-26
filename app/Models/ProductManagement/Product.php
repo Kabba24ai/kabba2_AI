@@ -68,6 +68,7 @@ class Product extends Model
         'hour_rate', // Rate per hour if hour tracking is enabled
 
         'is_default_funnel', // Boolean: is this the default sales funnel
+        'has_high_demand_alert', // Boolean: does this product have a high demand alert
 
         'status', // Product status (e.g., Published, Draft)
         'created_by', // ID of the user who created the record

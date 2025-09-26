@@ -631,8 +631,20 @@
             <div id="sizes-errors"></div>
         </div>
 
+
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
+
+
+        <!-- High Demand Alert -->
+        <div class="grid grid-cols-1  gap-4">
+            <div class="flex items-center gap-2 mt-1">
+                {!! html()->checkbox('has_high_demand_alert') !!}
+                <label for="has_high_demand_alert" class="text-gray-700 dark:text-gray-300">
+                    High Demand Alert
+                </label>
+            </div>
+        </div>
 
         <div class="mt-auto flex justify-end pt-25">
             <a href="{{ route('admin.configurations.index') }}" target="_blank"

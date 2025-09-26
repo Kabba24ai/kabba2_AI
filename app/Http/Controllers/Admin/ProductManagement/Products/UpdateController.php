@@ -37,7 +37,6 @@ class UpdateController extends Controller
                 'status' => $validated['status'] ?? 'Pending',
                 'is_general_term_type' => $validated['is_general_term_type'] ?? false,
                 'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
-                'is_default_funnel' => $validated['is_default_funnel'] ?? false,
             ];
 
             // Include only relevant fields and clear opposite-type fields
@@ -72,6 +71,8 @@ class UpdateController extends Controller
                     'sale_price_weekend' => null,
                     'sale_price_weekly' => null,
                     'sale_price_monthly' => null,
+                    'is_default_funnel' => false,
+                    'has_high_demand_alert' => false,
                 ];
             } elseif ($validated['product_type'] === 'Rental') {
                 $productData += [
@@ -109,6 +110,9 @@ class UpdateController extends Controller
                     'retail_price' => null,
                     'retail_sale_price' => null,
                     'retail_product_cost' => null,
+
+                    'is_default_funnel' => $validated['is_default_funnel'] ?? false,
+                    'has_high_demand_alert' => $validated['has_high_demand_alert'] ?? false,
                 ];
             }
 

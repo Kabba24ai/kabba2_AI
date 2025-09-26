@@ -4,8 +4,27 @@ export function initAddToCart(context) {
     if (!addToCartBtn) return;
 
     addToCartBtn.addEventListener('click', function() {
+        // 🛑 If high demand → show modal and stop here
+        if (context.hasHighDemandAlert) {
+            const modal = document.getElementById('modalHighDemandAlert');
+            const continueReservationBtn = document.getElementById('continueReservationBtn');
+
+            modal.classList.remove('hidden');
+
+            // Continue → hide modal and trigger add-to-cart again (without showing modal)
+            continueReservationBtn.onclick = () => {
+                modal.classList.add('hidden');
+                context.hasHighDemandAlert = false; // converting to false to move further
+                addToCartBtn.click(); // re-trigger same handler
+                context.hasHighDemandAlert = true; // reset to true for future adds
+            };
+
+            return; // stop here until user decides
+        }
+
         const loader = addToCartBtn.querySelector('.loader-gif');
         if (loader) loader.classList.remove('hidden');
+
         addToCartBtn.disabled = true;
         addToCartBtn.classList.add('opacity-60', 'cursor-not-allowed');
 

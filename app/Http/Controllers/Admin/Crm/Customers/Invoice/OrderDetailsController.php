@@ -41,11 +41,12 @@ class OrderDetailsController extends Controller
                     return [
                         'id' => $p->id,
                         'name' => $p->product_name,
+                        'order_products_unique_id' => $p->unique_id,
                         'sku' => $p->product->sku ?? null ,
                         'qty' => $p->quantity,
                         'unit_price' => $p->sub_total,
                         'tax' => $p->tax,
-                        'total' => $p->total,   
+                        'total' => $p->total,
                         'extras' => [
                             $p->service_method,
                             $p->service_option,

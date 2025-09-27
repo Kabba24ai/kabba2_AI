@@ -9,18 +9,29 @@
 
 @include('flash::message')
 @include('admin.partials.formErrors')
+
+@php
+$isEdit = isset($invoice) && $invoice->id;
+$invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper::generateInvoiceNumber();
+
+@endphp
+
 {{ html()->form()->id('invoiceForm')->attributes([
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'space-y-8',
-                ])->open() }}
+                ]) ->action($isEdit 
+        ? route('admin.crm.customers.invoice.update', $invoice->unique_id) 
+        : route('admin.crm.customers.invoice.store',$customer->unique_id)
+    )
+    ->method('POST')->open() }}
 
-
-<input type="hidden" name="invoice_data" id="invoiceDataInput">
-<input type="hidden" name="subtotal" id="invoiceSubtotalInput">
-<input type="hidden" name="tax" id="invoiceTaxInput">
-<input type="hidden" name="total" id="invoiceTotalInput">
+<input type="hidden" name="invoice_data" id="invoiceDataInput" value="{{ old('invoice_data', $invoiceItems ?? '') }}">
+<input type="hidden" name="subtotal" id="invoiceSubtotalInput" value="{{ old('subtotal', $invoice->subtotal ?? 0) }}">
+<input type="hidden" name="tax" id="invoiceTaxInput" value="{{ old('tax', $invoice->sales_tax ?? 0) }}">
+<input type="hidden" name="total" id="invoiceTotalInput" value="{{ old('total', $invoice->total ?? 0) }}">
 <input type="hidden" name="customer_id" id="customer_id" value="{{ $customer->id }}">
+
 
 <div class="bg-gray-50 px-4 py-4 border-b border-gray-200">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -33,13 +44,13 @@
             </a>
             <div class="hidden sm:block h-6 border-l border-gray-300"></div>
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Create Invoice</h1>
-                <p class="text-sm text-gray-500">Invoice <span id="invoiceNumberDisplay">#{{ \App\Helpers\CustomHelper::generateInvoiceNumber() }} </span> for {{ $customer->company_name ?? ' ' }}</p>
+                <h1 class="text-2xl font-bold text-gray-900"> {{ $isEdit ? 'Edit Invoice' : 'Create Invoice' }}</h1>
+                <p class="text-sm text-gray-500">Invoice <span id="invoiceNumberDisplay">#{{ $invoiceNumber }}</span> for {{ $customer->company_name ?? '' }}</p>
             </div>
         </div>
 
         <div class="flex flex-wrap gap-3">
-            <button type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
+            <button onclick="closeWindow()" type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
             </button>
 
             <button type="submit" name="action" value="save_new" disabled="" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium shadow transition">
@@ -48,7 +59,7 @@
                     <polyline points="17 21 17 13 7 13 7 21"></polyline>
                     <polyline points="7 3 7 8 15 8"></polyline>
                 </svg>
-                Create Invoice
+                {{ $isEdit ? 'Update' : 'Create' }} Invoice
             </button>
         </div>
     </div>
@@ -81,7 +92,7 @@
                         'readonly' => true,
                         ])
                         ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                        ->value(\App\Helpers\CustomHelper::generateInvoiceNumber())
+                        ->value($invoiceNumber )
                         ->required() !!}
 
                     </div>
@@ -89,7 +100,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
                         <!-- <input name="invoice_date" class="w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300" type="text" name="invoice_date" id="invoice_date" placeholder="MM-DD-YYYY" autocomplete="off"> -->
 
-                        {!! html()->text('invoice_date')->class([
+                        {!! html()->text('invoice_date',old('invoice_date', \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) ?? null))->class([
                         'w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300',
                         'border-red-500' => $errors->has('account_application_completed'),
                         'border-gray-300' => !$errors->has('account_application_completed'),
@@ -97,7 +108,6 @@
                         'id' => 'invoice_date',
                         'placeholder' => 'MM-DD-YYYY',
                         'autocomplete' => 'off',
-
                         ])->required() !!}
 
                     </div>
@@ -105,16 +115,16 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
                         <!-- <input name="due_date" class="w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300" type="text" name="due_date" id="due_date" placeholder="MM-DD-YYYY" autocomplete="off"> -->
 
-                        {!! html()->text('due_date')->class([
+                        {!! html()->text('due_date',old('due_date', \App\Helpers\CustomHelper::formatDate($invoice->due_date ?? null) ?? null))->class([
                         'w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300',
                         'border-red-500' => $errors->has('account_application_completed'),
                         'border-gray-300' => !$errors->has('account_application_completed'),
                         ])->attributes([
-                        'id' => 'invoice_date',
+                        'id' => 'due_date',
                         'placeholder' => 'MM-DD-YYYY',
                         'autocomplete' => 'off',
-
-                        ]) !!}
+                        ])
+                        !!}
 
                     </div>
                 </div>
@@ -180,6 +190,84 @@
                         </thead>
                         <tbody id="invoiceItems" class="divide-y divide-gray-200">
                             <!-- rows will be added dynamically -->
+
+                            @php
+                            // Make sure $invoiceItems is always an array
+                            if (is_string($invoiceItems)) {
+                            $invoiceItemsArray = json_decode($invoiceItems, true) ?? [];
+                            } elseif ($invoiceItems instanceof \Illuminate\Support\Collection) {
+                            $invoiceItemsArray = $invoiceItems->toArray();
+                            } else {
+                            $invoiceItemsArray = $invoiceItems ?? [];
+                            }
+
+                            // Filter out 'order' types
+                            $invoiceItems_encoded = array_filter($invoiceItemsArray, fn($item) => $item['type'] !== 'order');
+                            @endphp
+
+
+                            @if(!empty($invoiceItems_encoded))
+                            @foreach($invoiceItems_encoded as $item)
+
+                            @php
+                            // Determine badge color based on type
+                            $badgeColor=match($item['type']) { 'charge'=> 'red',
+                            'order' => 'green',
+                            'discount' => 'purple',
+                            'refund' => 'blue',
+                            default => 'red',
+                            };
+
+
+                            // Set custom SVG for each type
+                            $badgeSvg = match($item['type']) {
+                            'charge' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3">
+                                <path d="M5 12h14"></path>
+                                <path d="M12 5v14"></path>
+                            </svg>',
+                            'discount' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award w-3 h-3">
+                                <circle cx="12" cy="8" r="6"></circle>
+                                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                            </svg>',
+                            'refund' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-3 h-3">
+                                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                                <polyline points="16 7 22 7 22 13"></polyline>
+                            </svg>',
+                            default => '<svg class="lucide lucide-plus w-3 h-3"></svg>',
+                            };
+                            @endphp
+
+
+                            @if ($item['type'] !== 'order')
+                            <tr data-type="{{ $item['type'] }}" data-id="{{ $item['id'] }}">
+
+
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="font-medium text-gray-900"> {{ $item['name'] }} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-{{ $badgeColor }}-600 text-white">
+                                            {!! $badgeSvg !!}
+                                            <span class="ml-1 capitalize text-xs"> {{ $item['type'] }}</span>
+                                        </span>
+                                    </div>
+                                    @if(!empty($item['notes']))
+                                    <div class="text-gray-500 text-sm">{{ $item['notes'] }}</div>
+                                    @endif
+                                </td>
+
+                                <td class="px-4 py-3 text-center text-sm whitespace-nowrap">{{ $item['qty'] }}</td>
+                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap">{{ \App\Helpers\CustomHelper::formatCurrency($item['unit']) }}</td>
+                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($item['tax']) }} </td>
+                                <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($item['total']) }}</td>
+                                <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
+                                    <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                                    <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
+                                </td>
+
+
+                            </tr>
+                            @endif
+                            @endforeach
+                            @endif
+
                         </tbody>
                     </table>
                 </div>
@@ -470,7 +558,8 @@
     window.SALES_TAX_RATE = parseFloat(salesTaxInput.value) || 0;
 
     // Global array to store all product data
-    const invoice_data = [];
+    // --- PRELOAD from PHP ---
+    const invoice_data = []; // pre-filled if edit page
 
     // Global function to add products to the invoice_data array
     function addInvoiceProduct(products, type) {
@@ -481,9 +570,6 @@
             };
             invoice_data.push(product); // Add the new product object to the array
         });
-
-
-        console.log('Current Invoice Data:'); // Log the array to check
         console.table(invoice_data);
     }
 
@@ -492,6 +578,13 @@
     function generateUniqueId(prefix = "item") {
         return prefix + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
     }
+
+
+    function parseCurrency(value) {
+        // Remove everything except digits, minus sign, and dot
+        return Number(value.replace(/[^0-9.-]+/g, "")) || 0;
+    }
+
 
     const invoiceItemsTBody = document.getElementById("invoiceItems"); // Make sure to get this element
 
@@ -520,8 +613,13 @@
                 const priceCell = row.querySelector("td:nth-child(3)"); // This should be the price per item
                 const taxCell = row.querySelector("td:nth-child(4)"); // This should be the tax amount
 
-                let price = parseFloat(priceCell?.textContent.replace('$', '')) || 0;
-                let tax = parseFloat(taxCell?.textContent.replace('$', '')) || 0;
+                // let price = parseFloat(priceCell?.textContent.replace('$', '')) || 0;
+                // let tax = parseFloat(taxCell?.textContent.replace('$', '')) || 0;
+
+                let price = parseCurrency(priceCell?.textContent || '0');
+                let tax = parseCurrency(taxCell?.textContent || '0');
+
+                // Log row info
 
                 if (type === "charge" || type === "order") {
                     subtotal += price;
@@ -530,6 +628,8 @@
                     subtotal -= price;
                     totalTax -= tax;
                 }
+
+
             });
 
             //  Check for negative values and set to 0 if found
@@ -552,7 +652,6 @@
                 createBtn.disabled = rows.length === 0;
             }
 
-
             //  Update hidden inputs for form submission
             if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
             if (taxInput) taxInput.value = totalTax.toFixed(2);
@@ -562,11 +661,27 @@
         }
 
 
-
         // Attach the function to the window object to make it global
         window.updateInvoiceSummary = updateInvoiceSummary;
     })();
 </script>
+<script>
+    // Pass directly from Blade
+    const existingOrderItems = @json($orderItems ?? []);
+    const existingOtherItems = @json($otherItems ?? []);
+
+    console.table(existingOtherItems);
+
+    // Add existingOtherItems into the global invoice_data array
+    if (Array.isArray(existingOtherItems) && existingOtherItems.length > 0) {
+        existingOtherItems.forEach(item => {
+            invoice_data.push(item); // Just add to the array, no table rendering
+        });
+        console.log("Added existingOtherItems to invoice_data:");
+        console.table(invoice_data);
+    }
+</script>
+
 
 
 <!-- orderModalWrapper -->
@@ -584,6 +699,13 @@
         const itemsTableWrap = document.getElementById("itemsTable");
         const invoiceItemsTBody = document.getElementById("invoiceItems");
         const emptyState = document.getElementById("emptyState");
+
+
+
+        // Render existing order items if in edit mode
+        if (existingOrderItems.length > 0) {
+            addProductsToTable(existingOrderItems);
+        }
 
         // --- Order Modal ---
         if (openOrderBtn) openOrderBtn.addEventListener('click', () => orderModal.style.display = 'flex');
@@ -626,9 +748,10 @@
                     <div class="text-gray-400 text-xs mt-1">From Order ${p.orderId}</div>
                 </td>
                 <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${p.qty}</td>
-                <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${p.unit.toFixed(2)}</td>
-                       <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${p.tax.toFixed(2)}</td>
-                <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${p.total.toFixed(2)}</td>
+                <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${Number(p.unit).toFixed(2)}</td>
+                <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${Number(p.tax).toFixed(2)}</td>
+                <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${Number(p.total).toFixed(2)}</td>
+
                 <td class="px-4 py-3 whitespace-nowrap">
                     <div class="flex items-center justify-center gap-3">
 
@@ -684,7 +807,7 @@
                 }
 
                 const products = (data.products || []).map(p => ({
-                    id: data.unique_id,
+                    id: p.order_products_unique_id,
                     name: p.name,
                     sku: p.sku ?? "-",
                     qty: p.qty,
@@ -741,7 +864,6 @@
             }
 
             window.updateInvoiceSummary();
-            console.log("After delete:", invoice_data);
         });
     });
 </script>
@@ -782,5 +904,18 @@
     }
 </script>
 
+<script>
+    function closeWindow() {
+        // Attempt to close the current window
+        window.close();
+
+        // Fallback: if window.close() is blocked, redirect to about:blank
+        setTimeout(() => {
+            if (!window.closed) {
+                window.location.href = 'about:blank';
+            }
+        }, 100);
+    }
+</script>
 
 @endpush

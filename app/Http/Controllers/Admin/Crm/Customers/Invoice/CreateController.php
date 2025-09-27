@@ -29,6 +29,11 @@ class CreateController extends Controller
         $sales_tax = ConfigurationHelper::getSettings(null , 'sales_tax');
 
 
-        return view('admin.crm.customers.create_invoice', ['customer' => $customer , 'orders'=> $order, 'users' => $users,'sales_tax' => $sales_tax,]);
+        $invoiceItems = []; // your array
+        $jsonInvoiceItems = json_encode($invoiceItems); // now it's a JSON string
+
+
+        return view('admin.crm.customers.create_invoice', ['customer' => $customer , 'invoiceItems' => $jsonInvoiceItems , 'orders'=> $order, 'users' => $users,'sales_tax' => $sales_tax,]);
+        
     }
 }

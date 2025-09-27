@@ -7,7 +7,7 @@
          </div>
 
          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md font-medium">
+             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md font-medium">
                  + Create Invoice
              </a>
              <div class="text-left sm:text-right">
@@ -113,8 +113,14 @@
                              <div class="text-gray-500">{{ $customer->full_name }}</div>
                          </div>
                      </td>
-                     <td class="px-4 py-3">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('m/d/Y') }}</td>
-                     <td class="px-4 py-3">{{ \Carbon\Carbon::parse($invoice->due_date)->format('m/d/Y') }}</td>
+                     <td class="px-4 py-3">
+
+                         {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}
+
+                     </td>
+                     <td class="px-4 py-3">
+                         {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
+                     </td>
                      <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
                      <td class="px-4 py-3 text-right">
@@ -151,9 +157,9 @@
                              <button class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                              </button>
-                             <button class="text-green-600 inline-flex items-center">
+                             <a href="{{ route('admin.crm.customers.invoice.edit', $invoice->unique_id) }}" target="_blank" class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
-                             </button>
+                             </a>
                              <button class="text-purple-600 inline-flex items-center">
                                  <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
                              </button>

@@ -4,6 +4,28 @@
 
 @section('content')
 
+<div class="bg-gray-50 px-4 mb-4 py-4 border-b border-gray-200">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+            <a href="{{ route('admin.crm.customers.invoice.index',$customer->unique_id ) }}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
+                <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
+                </svg>
+                <span class="text-sm font-medium">Back to Invoice</span>
+            </a>
+            <div class="hidden sm:block h-6 border-l border-gray-300"></div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Customer Invoice</h1>
+                <p class="text-sm text-gray-500">{{ $invoice->customer->full_name }}</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+            <button onclick="closeWindow()" type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
+            </button>
+        </div>
+    </div>
+</div>
 <div class="min-h-screen  flex flex-col items-center">
     <!-- Header -->
     <div class="text-center mb-6">
@@ -88,7 +110,7 @@
             <p class="font-medium text-lg text-gray-900">{{ $invoice->customer->full_name }}</p>
             <p class="text-gray-700 font-medium">{{ $invoice->customer->company_name }}</p>
 
-            <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+            <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-700">
                 <!-- Phone -->
                 <div class="flex text-md items-center space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-4 h-4">
@@ -97,23 +119,55 @@
                     <span>{{ \App\Helpers\CustomHelper::formatPhone($invoice->customer->phone ?? '') ?: 'N/A' }} </span>
                 </div>
 
-                <!-- Address -->
-                <div class="flex text-md items-start space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin w-4 h-4 mt-1">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <span>456 Oak Street<br>Los Angeles, CA 90210</span>
-                </div>
+                @php
+                $billingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Billing' );
+                $shippingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Shipping');
+
+                $defaultAddresses = [
+                ['label' => 'Billing', 'data' => $billingAddress],
+                ['label' => 'Shipping', 'data' => $shippingAddress],
+                ];
+                @endphp
 
                 <!-- Email -->
-                <div class="flex text-md items-center space-x-2 sm:col-span-2">
+                <div class="flex items-start space-x-2 ">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail w-4 h-4">
                         <rect width="20" height="16" x="2" y="4" rx="2"></rect>
                         <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
                     </svg>
                     <span>{{ $invoice->customer->email ?? 'N/A' }}</span>
                 </div>
+
+                <!-- Address -->
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:col-span-2 gap-6">
+                    @foreach ($defaultAddresses as $index => $addressItem)
+                    @php $addresse = $addressItem['data']; @endphp
+                    <div class="flex items-start space-x-2 flex-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin w-4 h-4 mt-1">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span>
+                            <p class="font-medium">{{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address</p>
+                            @if($addresse?->full_name)
+                            {{ $addresse->full_name }}
+                            @endif
+
+                            @if($addresse?->address || $addresse?->city)
+                            {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', ' . $addresse->city : '' }}
+                            @endif
+
+                            @if($addresse?->state?->name || $addresse?->zip_code)
+                            {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
+                            @endif
+                        </span>
+
+                    </div>
+
+                    @endforeach
+                </div>
+
+
             </div>
         </div>
 
@@ -178,25 +232,107 @@
                     </tr> -->
 
                     @foreach($invoice->items as $item)
+                    {{-- Main Item Row --}}
                     <tr>
                         <td class="pt-2 pb-2 align-top whitespace-nowrap">
                             <div class="font-medium text-gray-900">{{ $item->item_name }}</div>
                         </td>
-                        <td class="pt-2 text-center align-top whitespace-nowrap">{{ $item->qty }}</td>
-                        <td class="pt-2 text-right align-top whitespace-nowrap">${{ number_format($item->unit, 2) }}</td>
-                        <td class="pt-2 text-right align-top font-semibold whitespace-nowrap">${{ number_format($item->total, 2) }}</td>
+                        <td class="pt-2 text-center align-top whitespace-nowrap">
+                            @if ($item->type === 'order')
+                            {{ $item->orderProduct->quantity ?? 1 }}
+                            @else
+                            {{ $item->qty }}
+                            @endif
+                        </td>
+                        <td class="pt-2 text-right align-top whitespace-nowrap">
+
+                            @if ($item->type === 'order')
+                            {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->price) }}
+                            @else
+                            {{ \App\Helpers\CustomHelper::formatCurrency($item->unit) }}
+                            @endif
+
+                        </td>
+                        <td class="pt-2 text-right align-top font-semibold whitespace-nowrap">
+
+
+                            @if ($item->type === 'order')
+                            @php
+
+                            $rowprice = $item->orderProduct->price ;
+
+                            $qty = $item->orderProduct->quantity ?? 1 ;
+
+                            $total = $rowprice * $qty ;
+
+                            @endphp
+
+                            @else
+
+                            @php
+
+                            $rowprice = $item->unit ;
+
+                            $qty = $item->qty ?? 1 ;
+
+                            $total = $rowprice * $qty ;
+
+                            @endphp
+
+
+                            @endif
+
+                            {{ \App\Helpers\CustomHelper::formatCurrency($total) }}
+
+                        </td>
                     </tr>
 
-                    @if(!empty($item->extras) && is_array($item->extras))
-                    @foreach($item->extras as $extra)
+                    {{-- If item is ORDER TYPE → show product_data rows --}}
+                    @if($item->type === 'order' && $item->orderProduct && $item->orderProduct->product_data)
+                    {{-- Rental Items --}}
+                    @foreach ($item->orderProduct->product_data['product_rental_items_prices'] ?? [] as $rentalKey => $rentalPrice)
                     <tr>
-                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">+ {{ $extra['name'] ?? 'Extra' }}</td>
+                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">
+                            +
+                            @php
+                            $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())
+                            ->firstWhere('name', $rentalKey)?->value;
+                            $quantity = $case ? $item->orderProduct->quantity : 1;
+                            @endphp
+                            {{ $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
+                            <span class="text-xs text-gray-400">(x{{ $quantity }})</span>
+                        </td>
                         <td></td>
-                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">${{ number_format($extra['price'] ?? 0, 2) }}</td>
-                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">${{ number_format($extra['total'] ?? 0, 2) }}</td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
+                            {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice) }}
+                        </td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
+                            {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice * $quantity) }}
+                        </td>
                     </tr>
                     @endforeach
+
+                    {{-- Option Items --}}
+                    @foreach ($item->orderProduct->product_data['product_option_items'] ?? [] as $option)
+                    <tr>
+                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">
+                            + {{ $option['name'] }}
+                            <span class="text-xs text-gray-400">(x{{ $item->orderProduct->quantity ?? 1 }})</span>
+                        </td>
+                        <td></td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
+                            {{ \App\Helpers\CustomHelper::formatCurrency($option['price'] ?? 0) }}
+                        </td>
+                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
+                            {{ \App\Helpers\CustomHelper::formatCurrency(($option['price'] ?? 0) * ($item->orderProduct->quantity ?? 1)) }}
+                        </td>
+                    </tr>
+                    @endforeach
+
                     @endif
+
+                    <tr class="border-b"></tr>
+
                     @endforeach
 
                 </tbody>
@@ -207,15 +343,15 @@
         <div class="mt-6 text-sm">
             <div class="flex justify-between py-1">
                 <span class="text-gray-700 text-md">Subtotal:</span>
-                <span>${{ number_format($invoice->subtotal, 2) }}</span>
+                <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}</span>
             </div>
             <div class="flex justify-between py-1">
-                <span class="text-gray-700">Tax (8.8%):</span>
-                <span>${{ number_format($invoice->sales_tax, 2) }}</span>
+                <span class="text-gray-700">Tax ( {{ $sales_tax }} %):</span>
+                <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}</span>
             </div>
             <div class="flex justify-between border-t mt-2 pt-2 font-bold text-lg">
                 <span>Total:</span>
-                <span>${{ number_format($invoice->total, 2) }}</span>
+                <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}</span>
             </div>
         </div>
 
@@ -250,6 +386,18 @@
 @endsection
 
 @push('js')
+<script>
+    function closeWindow() {
+        // Attempt to close the current window
+        window.close();
 
+        // Fallback: if window.close() is blocked, redirect to about:blank
+        setTimeout(() => {
+            if (!window.closed) {
+                window.location.href = 'about:blank';
+            }
+        }, 100);
+    }
+</script>
 
 @endpush

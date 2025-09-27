@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use App\Models\Iam\Personnel\User;
+use App\Models\Orders\OrderProduct;
+
 
 class InvoiceItem extends Model
 {
@@ -39,5 +41,13 @@ class InvoiceItem extends Model
     public function responsiblePerson()
     {
         return $this->belongsTo(User::class, 'responsible_person_id');
+    }
+
+    /**
+     * Relationship to Order Products when type = 'order'
+     */
+    public function orderProduct()
+    {
+        return $this->belongsTo(OrderProduct::class, 'item_id', 'unique_id');
     }
 }

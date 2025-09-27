@@ -234,9 +234,6 @@
             // store editing ID in the form itself
             form.dataset.editingId = itemId;
 
-            // prefill form
-            // form.elements["amount"].value = item.unit;
-
             const value = item.unit || 0; // keep it as number
             const valueStr = value.toString(); // convert number to string
 
@@ -258,9 +255,9 @@
             form.elements["notes"].value = item.notes || "";
 
             // update preview box
-            amountPreview.textContent = `$${item.unit.toFixed(2)}`;
-            taxPreview.textContent = `$${item.tax.toFixed(2)}`;
-            totalPreview.textContent = `$${item.total.toFixed(2)}`;
+            amountPreview.textContent = `$${item.unit}`;
+            taxPreview.textContent = `$${item.tax}`;
+            totalPreview.textContent = `$${item.total}`;
             clueBox.classList.remove("hidden");
 
             document.querySelector("#chargeModalWrapper h2").textContent = "Edit Charge";
@@ -269,7 +266,6 @@
             // show modal
             modalWrapper.style.display = "flex";
         });
-
 
         // handle submit
         form.addEventListener("submit", e => {

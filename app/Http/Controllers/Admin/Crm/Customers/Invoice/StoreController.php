@@ -10,34 +10,33 @@ use App\Models\Customers\Customer;
 use App\Models\Customers\InvoiceItem;
 use Illuminate\Support\Carbon;
 use App\Helpers\CustomHelper;
+use App\Http\Requests\Admin\Crm\Customers\Invoice\StoreRequest;
 
 class StoreController extends Controller
 {
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request)
+    public function __invoke(StoreRequest $request)
     {
-
-        // dd($request->all());
-        // die();
+        $validated = $request->validated();
 
         DB::beginTransaction();
 
         try {
-          
-            $invoiceItems = json_decode($request->input('invoice_data'), true) ?? [];
+
+            $invoiceItems = json_decode($validated['invoice_data'], true) ?? [];
 
             $invoice = Invoice::create([
-                'invoice_number'    => $request->input('invoice_number') ?? 0,
-                'invoice_date'      => CustomHelper::parseDateFromInput($request->input('invoice_date')),
-                'due_date'          => CustomHelper::parseDateFromInput($request->input('due_date')),
-                'customer_id'       => $request->input('customer_id'),
+                'invoice_number'    =>  $validated['invoice_number'] ?? 0,
+                'invoice_date'      => CustomHelper::parseDateFromInput($validated['invoice_date']),
+                'due_date'          => CustomHelper::parseDateFromInput($validated['due_date']),
+                'customer_id'       => $validated['customer_id'] ,
                 'invoice_created_by' => auth()->id(),
-                'subtotal'          => $request->input('subtotal') ?? 0,
-                'sales_tax'         => $request->input('tax') ?? 0,
-                'total'             => $request->input('total') ?? 0,
-                'invoice_notes'     => $request->input('invoice_notes') ?? null,
+                'subtotal'          => $validated['subtotal'] ?? 0,
+                'sales_tax'         => $validated['tax'] ?? 0,
+                'total'             => $validated['total'] ?? 0,
+                'invoice_notes'     => $validated['invoice_notes'] ?? null,
             ]);
 
             // Save invoice items
@@ -59,7 +58,7 @@ class StoreController extends Controller
                 ]);
             }
 
-            $customer = Customer::find($request->input('customer_id'));
+            $customer = Customer::find($validated['customer_id']);
 
             DB::commit();
 

@@ -31,10 +31,12 @@ export function initAddToCart(context) {
         const qty = parseInt(document.getElementById('qty').value);
         const storeId = document.getElementById('storeSelect')?.value || '';
         const scheduleDate = document.getElementById('scheduleStartDateInput').value;
-        const deliveryOption = document.getElementById('deliveryOptionSelect')?.value || '';
+        const serviceOption = document.getElementById('deliveryOptionSelect')?.value || '';
+        const serviceMethod = document.querySelector('input[name="service_method"]:checked')?.value || '';
         const dateError = document.getElementById('dateError');
         const qtyError = document.getElementById('qtyError');
         const storeError = document.getElementById('storeError');
+        const deliveryOptionSelectError = document.getElementById('deliveryOptionSelectError');
 
         // Clear previous errors
         if (storeError) storeError.classList.add('hidden');
@@ -42,7 +44,18 @@ export function initAddToCart(context) {
         if (qtyError) qtyError.classList.add('hidden');
 
         let errorMsg = '';
-        if (context.productType === 'Rental' && !storeId && deliveryOption !== 'Delivery + Pickup') {
+        if(serviceMethod === 'Delivery'){
+
+            if (deliveryOptionSelectError) deliveryOptionSelectError.classList.add('hidden');
+            if(!serviceOption){
+                errorMsg = 'Please select a delivery option before adding to cart.';
+                if (deliveryOptionSelectError) {
+                    deliveryOptionSelectError.textContent = errorMsg;
+                    deliveryOptionSelectError.classList.remove('hidden');
+                }
+            }
+        }
+        if (context.productType === 'Rental' && !storeId && serviceOption !== 'Delivery + Pickup') {
             errorMsg = 'Please select a store before adding to cart.';
             if (storeError) {
                 storeError.textContent = errorMsg;
@@ -64,19 +77,18 @@ export function initAddToCart(context) {
             }
         }
 
-        if ((context.productType === 'Rental' && !storeId && deliveryOption !== 'Delivery + Pickup') || !scheduleDate || !qty) {
+        if ((context.productType === 'Rental' && !storeId && serviceOption !== 'Delivery + Pickup') || !scheduleDate || !qty) {
             if (loader) loader.classList.add('hidden');
             addToCartBtn.disabled = false;
             addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');
             return;
         }
 
-        const serviceMethod = document.querySelector('input[name="service_method"]:checked')?.value || '';
+
         let distanceType = '';
         if (serviceMethod === 'Delivery') {
             distanceType = document.querySelector('input[name="distance_type"]:checked')?.value || '';
         }
-        const serviceOption = document.getElementById('deliveryOptionSelect')?.value || '';
 
         let distanceRange = '';
         let unit = context.distanceUnit || '';

@@ -421,9 +421,15 @@
                                 <div class="text-xs underline">
                                     Distance Range:
                                 </div>
-                                <ul class="flex flex-col">
-                                    <li class="text-xs before:content-['-'] before:pr-1">
-                                        {{ ucfirst($orderProduct->distance_range) }}</li>
+                                <ul class="pl-5 list-disc text-gray-600 text-sm">
+                                    <li class="flex justify-between">
+                                        <span>
+                                            {{ ucfirst($orderProduct->distance_type) }} ({{ ucfirst($orderProduct->distance_range) }})
+                                        </span>
+                                        <span>
+                                            {{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->product_data['service_option_price'] ?? 0) }}
+                                        </span>
+                                    </li>
                                 </ul>
                             </div>
                         @endif

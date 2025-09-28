@@ -19,7 +19,9 @@ class ProductSearchController extends Controller
     {
         $search = trim($search);
         $products = Product::with('options')
-            ->where('unique_id', '!=', $currentProductUniqueId)
+            ->when($currentProductUniqueId, fn($qb) => $qb
+                ->where('unique_id', '!=', $currentProductUniqueId)
+            )
             ->when($search, fn($qb) => $qb->where('product_name', 'like', "%{$search}%"))
             ->limit(5)
             ->get();

@@ -196,9 +196,7 @@
                                 // Determine default checked value
                                 $checkedDistanceType = $hasStandard
                                     ? 'Standard'
-                                    : ($hasExtended
-                                        ? 'Extended'
-                                        : 'Custom');
+                                    : ($hasExtended ? 'Extended' : 'Custom');
                             @endphp
                             @if ($showInStore || $showDelivery)
                                 <label for="rentalDeliveryMethod" class="font-medium">Rental Delivery Method</label>
@@ -251,17 +249,17 @@
                                                 </div>
                                                 <span>{{ $productSettings['extended_delivery_range'] . ' ' . $productSettings['distance_unit'] }}</span>
                                             </label>
+                                            <label class="inline-flex items-center space-x-2">
+                                                <input type="radio" name="distance_type" value="Custom"
+                                                    class="sr-only peer"
+                                                    {{ $checkedDistanceType === 'Custom' ? 'checked' : '' }} />
+                                                <div
+                                                    class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
+                                                    <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
+                                                </div>
+                                                <span>Custom</span>
+                                            </label>
                                         @endif
-                                        <label class="inline-flex items-center space-x-2">
-                                            <input type="radio" name="distance_type" value="Custom"
-                                                class="sr-only peer"
-                                                {{ $checkedDistanceType === 'Custom' ? 'checked' : '' }} />
-                                            <div
-                                                class="w-[16px] h-[16px] rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
-                                                <div class="w-2 h-2 rounded-full border-white bg-white z-1"></div>
-                                            </div>
-                                            <span>Custom</span>
-                                        </label>
                                     </div>
 
                                     <div id="deliveryOptionsDropdown" class="hidden w-full mt-5 mb-5">
@@ -285,16 +283,7 @@
                                                 [<span id="PickupReturnPrice"></span>]
                                             </option>
                                         </select>
-                                    </div>
-
-                                    <!-- Custom Option Text -->
-                                    <div id="customServiceOption"
-                                        class="hidden w-[100%] md:w-[100%] lg:w-[80%] border-[5px] border-sky-400 p-2 mt-2">
-                                        <h4 class="text-center font-bold">Please Call / Text for Custom Solutions</h4>
-                                        <h5 class="text-center text-red font-bold py-2">(615) 815-6734</h5>
-                                        <p class="italic">Please reserve the item now, using the closest delivery range,
-                                            then
-                                            call / text afterwards for a custom delivery solution. </p>
+                                        <div id="deliveryOptionSelectError" class="hidden text-red-500 text-sm mt-1"></div>
                                     </div>
                                 </div>
                             @endif
@@ -605,7 +594,8 @@
         <div
             class="bg-white rounded-lg shadow-lg w-full md:max-w-3xl p-6 relative max-w-[95%] flex flex-col md:flex-row items-center gap-6">
             <div class="w-full md:w-1/3 flex justify-center">
-                <img src="{{ asset("storage/front/images/lady-image.webp") }}" alt="Customer Service Representative" class="max-h-64 object-contain">
+                <img src="{{ asset('storage/front/images/lady-image.webp') }}" alt="Customer Service Representative"
+                    class="max-h-64 object-contain">
             </div>
 
             <div class="flex-1 text-center md:text-left">
@@ -627,7 +617,45 @@
 
                 <!-- Buttons -->
                 <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-3">
-                    <button id="continueReservationBtn" class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    <button id="continueReservationBtn"
+                        class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        Continue Reservation
+                    </button>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <div id="customServiceOption" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] hidden">
+        <div
+            class="bg-white rounded-lg shadow-lg w-full md:max-w-3xl p-6 relative max-w-[95%] flex flex-col md:flex-row items-center gap-6">
+            <div class="w-full md:w-1/3 flex justify-center">
+                <img src="{{ asset('storage/front/images/lady-image.webp') }}" alt="Customer Service Representative"
+                    class="max-h-64 object-contain">
+            </div>
+
+            <div class="flex-1 text-center md:text-left">
+                <!-- Header -->
+                <h2 class="text-red-600 font-bold text-2xl mb-4">Custom Range</h2>
+
+                <!-- Message -->
+                <p class="text-gray-700 mb-4">
+                    Your reservation will be completed using the Extended Range Delivery and we will call you to make the final arrangements based upon your delivery requirements.
+                </p>
+
+                <!-- Phone Number -->
+                <p class="text-black text-lg mb-6">
+                    <a href="tel:+16158156734" class="font-bold hover:underline focus:underline">
+                        (615) 815-6734
+                    </a>
+                </p>
+
+                <!-- Buttons -->
+                <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-3">
+                    <button id="continueReservationBtnCustom"
+                        class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                         Continue Reservation
                     </button>
                 </div>

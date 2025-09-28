@@ -77,7 +77,12 @@ class Product extends Model
 
     protected $appends = [
         'image_url',
-        'hover_image_url'
+        'hover_image_url',
+    ];
+
+    protected $casts = [
+        'is_default_funnel' => 'boolean',
+        'has_high_demand_alert' => 'boolean',
     ];
 
     public function sluggable(): array

@@ -107,6 +107,8 @@ class CartHelper
             $settingKey = strtolower($distanceType) . '_delivery_range';
             if (isset($productSettings[$settingKey])) {
                 $distanceRange = $productSettings[$settingKey] . ' ' . $productSettings['distance_unit'];
+            }else{
+                $distanceRange = $productSettings['extended_delivery_range'] . ' ' . $productSettings['distance_unit'];
             }
         }
         // --- Sale logic based on product type/variant ---
@@ -262,6 +264,8 @@ class CartHelper
             if ($distanceType === 'Standard') {
                 $deliveryFee = floatval($product->standard_delivery_fee ?? 0);
             } elseif ($distanceType === 'Extended') {
+                $deliveryFee = floatval($product->extended_delivery_fee ?? 0);
+            } elseif ($distanceType === 'Custom') {
                 $deliveryFee = floatval($product->extended_delivery_fee ?? 0);
             } else {
                 $deliveryFee = 0;

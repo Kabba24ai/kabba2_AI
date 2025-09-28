@@ -159,7 +159,7 @@
     <!-- Categories Listing details -->
     <section class="py-[20px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <div class="flex flex-col gap-y-4 rich-content">
+            <div class="flex flex-col rich-content">
                 {!! $category->content !!}
             </div>
         </div>

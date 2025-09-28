@@ -51,7 +51,7 @@ tinymce.init({
       ],
  block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6',
   content_style: `
-    ul, ol { margin:.5rem 0 .75rem; padding-left:1.25rem; }
+    ul, ol { margin:.5rem 0 .75rem; padding-left:2.25rem; }
     ul { list-style: disc; } ol { list-style: decimal; } li { margin:.25rem 0; }
 
     h1{font-size:1.875rem; line-height:2.25rem; font-weight:700; margin:1rem 0 .75rem;}

@@ -65,7 +65,7 @@
     ]
   },
   "resources/admin/js/tinymce.js": {
-    "file": "assets/tinymce-jSe4kNXi.js",
+    "file": "assets/tinymce-hnP15TDi.js",
     "name": "tinymce",
     "src": "resources/admin/js/tinymce.js",
     "isEntry": true
@@ -76,7 +76,7 @@
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-C5X5XxxV.css",
+    "file": "assets/app-C3PZNlva.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },

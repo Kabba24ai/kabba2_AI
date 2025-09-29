@@ -32,21 +32,21 @@
             <a href="#" class="1/6">
                 <img src="{{ asset('storage/front/images/logo.png') }}" alt="" class="h-full md:w-23 w-40">
             </a>
-            <div class="flex space-x-4 5/6 w-full items-center justify-right text-white">
-                <ul class="lg:flex hidden flex items-center">
-                    <li class="px-5 {{ Route::is('front.home.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.home.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Home</a></li>
+            <div class="flex space-x-4 5/6 w-full items-center justify-right text-white ml-5"">
+                <ul class="lg:flex hidden flex items-center gap-6">
+                    <li class="{{ Route::is('front.home.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.home.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Home</a></li>
 
                     <!-- Equipment Rentals (mega menu trigger) -->
-                    <li class="relative menu-wrap px-5">
+                    <li class="relative menu-wrap ">
                         <a href="#" class="flex items-center hover:text-yellow-400 text-sm transition-all duration-300 equipment-ren ease-in-out group-[.active]:font-bold   ">
                             Equipment Rentals
                         </a>
 
                         <!-- MEGA PANEL (5 equal columns) -->
                         <div class="mega hidden w-[100%] absolute left-0 right-0 submenu-top shadow-xl">
-                            <div class="max-w-4xl w-screen px-6 py-6 grid grid-cols-5 gap-4 bg-white">
+                            <div class="max-w-4xl w-screen px-6 py-6 grid grid-cols-4 gap-4 bg-white">
 
-                                @foreach ($frontCategoryTree->chunk(ceil($frontCategoryTree->count() / 5)) as $categoryColumn)
+                                @foreach ($frontCategoryTree->chunk(ceil($frontCategoryTree->count() / 4)) as $categoryColumn)
 
 
                                 <!-- Column 1 -->
@@ -98,14 +98,14 @@
                         </div>
                     </li>
 
-                    <li class="px-5"><a href="#" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">How It Works</a></li>
+                    <li class=""><a href="#" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">How It Works</a></li>
 
-                    <li class="px-5 {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.faqs.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Faq</a></li>
+                    <li class=" {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.faqs.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Faq</a></li>
 
-                    <li class="px-5 {{ Route::is('front.contact-us.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.contact-us.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Contact Us</a></li>
+                    <li class=" {{ Route::is('front.contact-us.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.contact-us.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Contact Us</a></li>
 
 
-                    <li class="px-5 relative">
+                    <li class="relative">
 
                         @if (auth('customer')->check())
                         @php

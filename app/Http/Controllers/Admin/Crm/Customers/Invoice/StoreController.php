@@ -66,7 +66,10 @@ class StoreController extends Controller
 
             session()->flash('active_tab', 'invoices');
 
-            return redirect()->route('admin.crm.customers.invoice.index', $customer->unique_id) ;
+            // return redirect()->route('admin.crm.customers.invoice.index', $customer->unique_id) ;
+
+            return redirect()->route('admin.crm.customers.view', $customer->unique_id);
+
 
         } catch (\Throwable $e) {
             DB::rollBack();

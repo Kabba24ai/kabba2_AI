@@ -1,10 +1,65 @@
 @extends('admin.layouts.app', ['contentClass' => 'max-w-(--breakpoint-2xl)'])
 
-@section('title', 'System Configuration')
+@section('title', 'View Invoice')
 
 @section('content')
 
-<div class="bg-gray-50 px-4 mb-4 py-4 border-b border-gray-200">
+@push('css')
+<style>
+@media print {
+  /* allow normal scrolling and page breaking */
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* IMPORTANT: allow the main container to break */
+  .min-h-screen.flex {
+    display: block !important;
+  }
+
+  #printable-area {
+    max-width: none !important;   /* remove 3xl constraint */
+    width: 100% !important;
+    overflow: visible !important;
+  }
+    #printable-area .grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        /* 50% / 50% */
+        gap: 1.5rem !important;
+    }
+  table, thead, tbody, tr, td, th {
+    page-break-inside: auto !important;
+  }
+
+  thead {
+    display: table-header-group !important; /* repeat headers */
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  /* remove any overflow:hidden globally */
+  * {
+    overflow: visible !important;
+  }
+
+  /* hide stuff not for print */
+  .no-print {display: none !important;}
+}
+
+
+</style>
+@endpush
+
+<div class="bg-gray-50 px-4 mb-4 py-4 border-b border-gray-200 no-print">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
             <a href="{{ route('admin.crm.customers.invoice.index',$customer->unique_id ) }}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
@@ -26,9 +81,12 @@
         </div>
     </div>
 </div>
+
+@include('flash::message')
+
 <div class="min-h-screen  flex flex-col items-center">
     <!-- Header -->
-    <div class="text-center mb-6">
+    <div class="text-center mb-6 no-print">
         <h2 class="text-xl font-semibold">Receipt Preview</h2>
         <p class="text-gray-500 text-sm">
             This is how your receipt will look when printed on 8.5" × 11" paper
@@ -36,41 +94,37 @@
     </div>
 
     <!-- Receipt Card -->
-    <div class="bg-white w-full max-w-3xl shadow-md rounded-md p-6 rounded-md shadow-sm ">
+    <div class="bg-white w-full max-w-3xl shadow-md rounded-md p-6" id="printable-area">
         <!-- Top Section -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-blue-600 flex items-center justify-center rounded-lg text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2 w-8 h-8 text-white">
-                        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
-                        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
-                        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
-                        <path d="M10 6h4"></path>
-                        <path d="M10 10h4"></path>
-                        <path d="M10 14h4"></path>
-                        <path d="M10 18h4"></path>
-                    </svg>
+                <div class="w-15 h-15  flex items-center justify-center rounded-lg text-white">
+
+                    <img class="dark:hidden w-20" src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}"
+                        alt="Logo" />
+
                 </div>
                 <div>
-                    <h3 class="font-semibold text-2xl">RentalPro</h3>
+                    <h3 class="font-semibold text-2xl">Rent 'n King</h3>
                     <p class="text-sm text-gray-500">Professional Rentals & Sales</p>
                 </div>
             </div>
             <div class="text-right mt-4 sm:mt-0">
                 <h3 class="text-2xl font-bold">RECEIPT</h3>
-                <p class="text-sm text-gray-500">#REC-2025-001234</p>
+                <p class="text-sm text-gray-500">#{{ $invoice->invoice_number }}</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm border-b-2 border-gray-800 pb-4 mb-6">
+
             <!-- Left Column -->
             <div class="text-gray-600 space-y-1">
                 <p class="font-medium text-gray-700 text-lg">From:</p>
-                <p>RentalPro Solutions Inc.</p>
-                <p>123 Business Avenue</p>
-                <p>New York, NY 10001</p>
-                <p>(555) 123-4567</p>
-                <p>contact@rentalpro.com</p>
+                <p>Rent 'n King .</p>
+                <p> 10296 Highway 46</p>
+                <p>Bon Aqua, TN 37025</p>
+                <p> {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'mobile') }} </p>
+                <p>{{ \App\Helpers\ConfigurationHelper::getSettings(null , 'email') }} </p>
             </div>
 
             <!-- Right Column -->
@@ -85,12 +139,12 @@
                         </svg>
                         Transaction Date:
                     </p>
-                    <p class="text-lg font-medium text-gray-900">January 15, 2025</p>
+                    <p class="text-lg font-medium text-gray-900"> {{ \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) }} </p>
                 </div>
 
                 <div>
                     <p class="font-semibold text-gray-900">Customer PO:</p>
-                    <p class="text-lg font-medium text-gray-900">PO-2025-5678</p>
+                    <p class="text-lg font-medium text-gray-900">{{ $invoice->customer->unique_id }}</p>
                 </div>
             </div>
         </div>
@@ -185,51 +239,6 @@
 
                 <!-- Table Body -->
                 <tbody>
-                    <!-- Row 1 -->
-                    <!-- <tr>
-                        <td class="pt-2 pb-2 align-top whitespace-nowrap">
-                            <div class="font-medium text-gray-900">Heavy Duty Excavator Rental</div>
-                        </td>
-                        <td class="pt-2 text-center align-top whitespace-nowrap">2</td>
-                        <td class="pt-2 text-right align-top whitespace-nowrap">$450.00</td>
-                        <td class="pt-2 text-right align-top font-semibold whitespace-nowrap">$900.00</td>
-                    </tr>
-                    <tr>
-                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">+ Insurance Coverage</td>
-                        <td></td>
-                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$85.00</td>
-                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$85.00</td>
-                    </tr>
-                    <tr class="border-b ">
-                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">+ Delivery & Pickup</td>
-                        <td></td>
-                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$125.00</td>
-                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$125.00</td>
-                    </tr> -->
-
-                    <!-- Row 2 -->
-                    <!-- <tr>
-                        <td class="pt-2 pb-2 align-top">
-                            <div class="font-medium text-gray-900 whitespace-nowrap">Safety Equipment Package</div>
-                        </td>
-                        <td class="pt-2 text-center align-top">1</td>
-                        <td class="pt-2 text-right align-top whitespace-nowrap">$75.00</td>
-                        <td class="pt-2 text-right align-top font-semibold whitespace-nowrap">$75.00</td>
-                    </tr>
-                    <tr class="border-b pb-2">
-                        <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">+ Extended Coverage Plan</td>
-                        <td></td>
-                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$25.00</td>
-                        <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">$25.00</td>
-                    </tr> -->
-
-                    <!-- Row 3 -->
-                    <!-- <tr class="border-b">
-                        <td class="py-3 font-medium text-gray-900 whitespace-nowrap">Portable Generator</td>
-                        <td class="text-center">1</td>
-                        <td class="text-right whitespace-nowrap">$120.00</td>
-                        <td class="text-right font-semibold whitespace-nowrap">$120.00</td>
-                    </tr> -->
 
                     @foreach($invoice->items as $item)
                     {{-- Main Item Row --}}
@@ -358,32 +367,40 @@
         <!-- Footer -->
         <div class="mt-6 text-center text-sm text-gray-500 border-t border-gray-800">
             <p class="mt-6">Thank you for your business!</p>
-            <p>For questions about this receipt, contact us at (555) 123-4567</p>
+            <p>For questions about this receipt, contact us at {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'mobile') }}</p>
         </div>
         <!-- Buttons -->
-        <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3">
-            <button class="bg-blue-600 hover:bg-blue-700 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+        <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 no-print">
+            {{-- Print Receipt --}}
+            <a href="javascript:void(0);" onclick="window.print();"
+                class="bg-blue-600 hover:bg-blue-700 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
                 Print Receipt
-            </button>
-            <button class="bg-green-600 hover:bg-green-700 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+            </a>
+            <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="bg-green-600 hover:bg-green-700 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
                 Email Receipt
-            </button>
-            <button class="bg-purple-600 hover:bg-purple-700 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+            </a>
+            {{-- Download PDF --}}
+            <a href="{{ route('admin.crm.customers.invoice.download',$invoice->unique_id ) }}"
+                class="bg-purple-600 hover:bg-purple-700 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
                 Download PDF
-            </button>
+            </a>
         </div>
     </div>
 </div>
+
 @endsection
+
 
 @push('js')
 <script>

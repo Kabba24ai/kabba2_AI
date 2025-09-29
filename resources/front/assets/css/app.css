@@ -745,6 +745,23 @@ input:-webkit-autofill ~ label{
     color: #fb2c36;
     margin-left: .25rem;
 }
+.equipment-ren::before{
+  content: "";
+  height: 100px;
+  position: absolute;
+  top: -30px;
+  width: 100%;
+}
+.equipment-ren{
+    position: relative;
+}
+.menu-wrap:hover .mega { display: block; }
+.mega-col li:hover > .flyout { display: block; }
+
+header, nav { overflow: visible; }
+.submenu-top{
+    top: 50px;
+}
 .width-60{width: 60%;}
 /* ============== */
 @media screen and (min-width:2500px) and (max-width:2599px){

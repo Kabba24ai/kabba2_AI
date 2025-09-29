@@ -11,23 +11,25 @@ use App\Models\Customers\Customer;
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Facades\Log;
 
-use App\Http\Requests\Admin\Crm\Customers\Invoice\StoreRequest;
+use App\Http\Requests\Admin\Crm\Customers\Invoice\UpdateRequest;
 
 class UpdateController extends Controller
 {
     /**
      * Handle updating an existing invoice.
      */
-    public function __invoke(StoreRequest $request, string $unique_id)
+    public function __invoke(UpdateRequest $request, string $unique_id)
     {
         $validated = $request->validated();
 
+        // dd($validated['invoice_status']);
+        // die();
 
-        Log::info('Invoice update request received', [
-            'unique_id' => $unique_id,
-            'validated_data' => $validated,
-            'user_id' => auth()->id(),
-        ]);
+        // Log::info('Invoice update request received', [
+        //     'unique_id' => $unique_id,
+        //     'validated_data' => $validated,
+        //     'user_id' => auth()->id(),
+        // ]);
 
         DB::beginTransaction();
 
@@ -45,15 +47,16 @@ class UpdateController extends Controller
                 'sales_tax'         => $validated['tax'] ?? 0,
                 'total'             => $validated['total'] ?? 0,
                 'invoice_notes'     => $validated['invoice_notes'] ?? null,
+                'invoice_status'     => $validated['invoice_status'],
             ]);
 
-            Log::info('Invoice main data updated', [
-                'invoice_id' => $invoice->id,
-                'invoice_number' => $invoice->invoice_number
-            ]);
+            // Log::info('Invoice main data updated', [
+            //     'invoice_id' => $invoice->id,
+            //     'invoice_number' => $invoice->invoice_number
+            // ]);
 
             $invoiceItems = json_decode($validated['invoice_data'], true) ?? [];
-            Log::info('Decoded invoice items', ['invoice_items' => $invoiceItems]);
+            // Log::info('Decoded invoice items', ['invoice_items' => $invoiceItems]);
 
             // Collect all current DB item IDs for this invoice
             $existingItemIds = InvoiceItem::where('invoice_id', $invoice->id)->pluck('item_id')->toArray();
@@ -81,13 +84,13 @@ class UpdateController extends Controller
                         ]
                     );
 
-                    Log::info('Invoice item updated', [
-                        'db_id' => $updatedItem->id,
-                        'item_id' => $item['id'],
-                        'invoice_id' => $invoice->id
-                    ]);
+                    // Log::info('Invoice item updated', [
+                    //     'db_id' => $updatedItem->id,
+                    //     'item_id' => $item['id'],
+                    //     'invoice_id' => $invoice->id
+                    // ]);
 
-                    $keepItemIds[] = $item['id']; 
+                    $keepItemIds[] = $item['id'];
 
                 } else {
                     // Create new item
@@ -106,11 +109,11 @@ class UpdateController extends Controller
                         'reference'             => $item['reference'] ?? null,
                         'responsible_person_id' => $item['responsible_id'] ?? null,
                     ]);
-                    Log::info('Invoice item created', [
-                        'db_id' => $newItem->id,
-                        'item_id' => $item['id'] ?? null,
-                        'invoice_id' => $invoice->id
-                    ]);
+                    // Log::info('Invoice item created', [
+                    //     'db_id' => $newItem->id,
+                    //     'item_id' => $item['id'] ?? null,
+                    //     'invoice_id' => $invoice->id
+                    // ]);
 
                     $keepItemIds[] = $newItem->item_id; // mark as kept
 
@@ -123,27 +126,29 @@ class UpdateController extends Controller
                 ->whereNotIn('item_id', $keepItemIds)
                 ->delete();
 
-            Log::info('Deleted removed invoice items', [
-                'deleted_count' => $deletedCount,
-                'keep_item_ids' => $keepItemIds,
-                'invoice_id' => $invoice->id
-            ]);
+            // Log::info('Deleted removed invoice items', [
+            //     'deleted_count' => $deletedCount,
+            //     'keep_item_ids' => $keepItemIds,
+            //     'invoice_id' => $invoice->id
+            // ]);
+
+            $customer = Customer::find($validated['customer_id']);
 
             DB::commit();
 
             flash('Invoice updated successfully.')->success();
 
-            return redirect()->route('admin.crm.customers.invoice.index', $invoice->customer->unique_id);
+            session()->flash('active_tab', 'invoices');
+
+            return redirect()->route('admin.crm.customers.view', $customer->unique_id);
+
+            // return redirect()->route('admin.crm.customers.invoice.index', $invoice->customer->unique_id);
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            \Log::error('Invoice update failed', [
+            Log::error('Invoice update failed', [
                 'message'   => $e->getMessage(),
-                'file'      => $e->getFile(),
-                'line'      => $e->getLine(),
-                'trace'     => $e->getTraceAsString(),
                 'request'   => $request->all(),
-                'user_id'   => auth()->id(),
             ]);
 
             flash('Something went wrong while updating the invoice.')->error();

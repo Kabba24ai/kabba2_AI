@@ -60,9 +60,6 @@ class EditController extends Controller
 
         $invoiceItems->values()->toJson();
 
-
-        // dd($invoiceItems);
-
         return view('admin.crm.customers.create_invoice', ['invoice'=> $invoice , 'customer' => $customer, 'orders' => $order, 'users' => $users, 'sales_tax' => $sales_tax, 'invoiceItems'=> $invoiceItems ,'orderItems'=> $orderItems, 'otherItems' => $otherItems ]);
     }
 }

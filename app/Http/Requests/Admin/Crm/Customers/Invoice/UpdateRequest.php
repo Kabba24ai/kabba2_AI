@@ -5,7 +5,7 @@ namespace App\Http\Requests\Admin\Crm\Customers\Invoice;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Helpers\PurifyHelper;
 
-class StoreRequest extends FormRequest
+class UpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -34,6 +34,7 @@ class StoreRequest extends FormRequest
     {
         return [
             'invoice_number'    => ['nullable', 'string', 'max:50'],
+            'invoice_status'    => ['required'],
             'invoice_date'      => ['required', 'date'],
             'due_date'          => ['nullable', 'date'],
             'customer_id'       => ['required', 'exists:customers,id'],
@@ -41,7 +42,7 @@ class StoreRequest extends FormRequest
             'tax'               => ['nullable', 'numeric', 'min:0'],
             'total'             => ['required', 'numeric', 'min:0'],
             'invoice_notes'     => ['nullable', 'string'],
-            'invoice_data'      => ['required', 'json'], 
+            'invoice_data'      => ['required', 'json'],
         ];
     }
 

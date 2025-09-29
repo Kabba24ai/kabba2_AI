@@ -13,6 +13,13 @@ use App\Http\Controllers\Admin\Crm\Customers\Invoice\ViewController;
 use App\Http\Controllers\Admin\Crm\Customers\Invoice\EditController;
 use App\Http\Controllers\Admin\Crm\Customers\Invoice\UpdateController;
 
+use App\Http\Controllers\Admin\Crm\Customers\Invoice\SendEmailController;
+
+
+
+use App\Http\Controllers\Admin\Crm\Customers\Invoice\DownloadController;
+
+
 
 Route::prefix('invoice')
 ->name('invoice.')
@@ -28,6 +35,11 @@ Route::prefix('invoice')
 
     Route::get('{unique_id}/edit', EditController::class)->name('edit');
     Route::post('{unique_id}/update', UpdateController::class)->name('update');
+
+    Route::get('{unique_id}/download', DownloadController::class)->name('download');
+
+    Route::get('{unique_id}/sendemail', SendEmailController::class)->name('sendemail');
+
 
 
     Route::get('/get/orders/details/{unique_id}',  OrderDetailsController::class)->name('orders.details');

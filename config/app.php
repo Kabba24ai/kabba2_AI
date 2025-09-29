@@ -196,8 +196,8 @@ return [
     |
     */
     'currency' => [
-        'code' => env('CURRENCY_CODE', '₹'),
-        'name' => env('CURRENCY_NAME', 'INR'),
+        'code' => env('CURRENCY_CODE', '$'),
+        'name' => env('CURRENCY_NAME', 'USD'),
     ],
 
 

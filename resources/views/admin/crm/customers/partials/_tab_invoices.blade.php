@@ -154,15 +154,15 @@
                              <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}" target="_blank" class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
                              </a>
-                             <button class="text-green-600 inline-flex items-center">
+                             <a href="{{ route('admin.crm.customers.invoice.download',$invoice->unique_id ) }}" class=" text-green-600 inline-flex items-center">
                                  <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                             </button>
+                             </a>
                              <a href="{{ route('admin.crm.customers.invoice.edit', $invoice->unique_id) }}" target="_blank" class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
                              </a>
-                             <button class="text-purple-600 inline-flex items-center">
+                             <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="text-purple-600 inline-flex items-center">
                                  <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                             </button>
+                            </a>
                          </div>
                      </td>
                  </tr>

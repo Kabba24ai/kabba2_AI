@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'invoice create')
+@section('title', 'Customer Invoice')
 
 @push('css')
 @endpush
@@ -20,8 +20,8 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'space-y-8',
-                ]) ->action($isEdit 
-        ? route('admin.crm.customers.invoice.update', $invoice->unique_id) 
+                ]) ->action($isEdit
+        ? route('admin.crm.customers.invoice.update', $invoice->unique_id)
         : route('admin.crm.customers.invoice.store',$customer->unique_id)
     )
     ->method('POST')->open() }}
@@ -358,9 +358,34 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
                 </div>
 
+                @if ($isEdit)
+                <div class="flex items-center mt-3 mb-2">
+                    <label for="invoice_status" class="text-sm font-medium mr-2">Invoice Status:</label>
+
+                    {{-- Invoice Status --}}
+                    {!! html()->select('invoice_status', [
+                    'pending' => 'Pending',
+                    'paid' => 'Paid',
+                    'overdue' => 'Overdue',
+                    ], old('invoice_status', $invoice->invoice_status ?? 'pending'))
+                    ->class([
+                    ' w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                    'border-red-500' => $errors->has('invoice_status'),
+                    'border-gray-300' => !$errors->has('invoice_status'),
+                    ])
+                    ->id('invoice_status') !!}
+
+
+
+                </div>
+                @endif
+
+
             </div>
 
             <div class="bg-white rounded-lg shadow p-6">
+
+
                 <h3 class="text-lg font-semibold mb-4">Invoice Summary</h3>
                 <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Subtotal:</span>
@@ -382,7 +407,13 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     <span>Total:</span>
                     <span class="text-gray-900" id="invoice-total">$0.00</span>
                 </div>
+
+
+
+
             </div>
+
+
 
         </div>
     </div>

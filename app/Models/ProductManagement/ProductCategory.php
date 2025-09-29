@@ -154,7 +154,10 @@ class ProductCategory extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, ProductCategoryChild::class)->withTimestamps();
+        return $this->belongsToMany(Product::class, ProductCategoryChild::class)
+                    ->withPivot('sort_order')
+                    ->withTimestamps()
+                    ->orderBy('pivot_sort_order', 'asc');
     }
 
     // tree only

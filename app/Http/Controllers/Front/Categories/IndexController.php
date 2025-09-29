@@ -15,11 +15,9 @@ class IndexController extends Controller
      */
     public function __invoke($slug)
     {
-        $category = ProductCategory::published()->with('media')->whereNull('parent_id')->where('slug',$slug)->firstOrFail();
+        $category = ProductCategory::published()->with(['media', 'products.media', 'products.mediaChildren.media'])->whereNull('parent_id')->where('slug',$slug)->firstOrFail();
 
-        $products = Product::published()->with('categories','media', 'mediaChildren.media')->whereHas('categories', function ($q) use ($category) {
-            $q->where('product_categories.id', $category->id);
-        })->get();
+        $products = $category->products;
 
         return view('front.categories.index', [
             'title' => $category->title,

@@ -4,7 +4,7 @@
         'products',
         isset($objProductCategory)
             // edit-mode: pull from the relationship
-            ? $objProductCategory->products->map(fn($p) => [
+            ?  $objProductCategory->products->map(fn($p) => [
                   'id'           => $p->id,
                   'product_name' => $p->product_name,
                   'image_url'    => $p->image_url,

@@ -208,7 +208,10 @@ class Product extends Model
 
     public function relatedProducts()
     {
-        return $this->belongsToMany(Product::class, 'product_related_product_children', 'product_id', 'related_product_id')->withTimestamps();
+        return  $this->belongsToMany(Product::class, ProductRelatedProductChild::class, 'product_id', 'related_product_id')
+                    ->withPivot('sort_order')
+                    ->withTimestamps()
+                    ->orderBy('pivot_sort_order', 'asc');
     }
 
     public function getRetailPrice($salePriceFlag = true)

@@ -99,10 +99,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
             <div class="flex items-center space-x-3">
                 <div class="w-15 h-15  flex items-center justify-center rounded-lg text-white">
-
-                    <img class="dark:hidden w-20" src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}"
-                        alt="Logo" />
-
+                    <img class="dark:hidden w-20" src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
                 </div>
                 <div>
                     <h3 class="font-semibold text-2xl">Rent 'n King</h3>
@@ -116,7 +113,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm border-b-2 border-gray-800 pb-4 mb-6">
-
             <!-- Left Column -->
             <div class="text-gray-600 space-y-1">
                 <p class="font-medium text-gray-700 text-lg">From:</p>
@@ -126,7 +122,6 @@
                 <p> {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'mobile') }} </p>
                 <p>{{ \App\Helpers\ConfigurationHelper::getSettings(null , 'email') }} </p>
             </div>
-
             <!-- Right Column -->
             <div class="space-y-3">
                 <div>
@@ -141,7 +136,6 @@
                     </p>
                     <p class="text-lg font-medium text-gray-900"> {{ \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) }} </p>
                 </div>
-
                 <div>
                     <p class="font-semibold text-gray-900">Customer PO:</p>
                     <p class="text-lg font-medium text-gray-900">{{ $invoice->customer->unique_id }}</p>
@@ -163,7 +157,6 @@
         <div class=" p-4">
             <p class="font-medium text-lg text-gray-900">{{ $invoice->customer->full_name }}</p>
             <p class="text-gray-700 font-medium">{{ $invoice->customer->company_name }}</p>
-
             <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-700">
                 <!-- Phone -->
                 <div class="flex text-md items-center space-x-2">
@@ -215,13 +208,9 @@
                             {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
                             @endif
                         </span>
-
                     </div>
-
                     @endforeach
                 </div>
-
-
             </div>
         </div>
 

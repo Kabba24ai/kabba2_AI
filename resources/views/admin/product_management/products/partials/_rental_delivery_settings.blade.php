@@ -468,8 +468,8 @@
                     <select id="prepaid_cleaning_rates" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
                         <option value="" disabled selected>Select Rate</option>
                         @foreach($productSettings['prepaid_cleaning_rates'] ?? [] as $prepaidCleaningRate)
-                            <option value="{{ $prepaidCleaningRate['amount'] }}" >
-                                {{ $prepaidCleaningRate['description'] }}
+                            <option value="{{ $prepaidCleaningRate['rate'] }}" >
+                                {{ $prepaidCleaningRate['description'] }} -  {{ $prepaidCleaningRate['rate'] }}
                             </option>
                         @endforeach
                     </select>
@@ -481,8 +481,8 @@
                     <select id="prepaid_fuel_rates" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
                         <option value="" disabled selected>Select Rate</option>
                         @foreach($productSettings['prepaid_fuel_rates'] ?? [] as $prepaidFuelRate)
-                            <option value="{{ $prepaidFuelRate['amount'] }}" >
-                                {{ $prepaidFuelRate['description'] }} {{ $prepaidFuelRate['amount'] }}
+                            <option value="{{ $prepaidFuelRate['rate'] }}" >
+                                {{ $prepaidFuelRate['description'] }} - {{ $prepaidFuelRate['rate'] }}
                             </option>
                         @endforeach
                     </select>

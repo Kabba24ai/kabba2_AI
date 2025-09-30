@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Controllers\Admin\Configurations\New;
+
+use App\Http\Controllers\Controller;
+
+// Models
+use App\Models\Configurations\Setting;
+use Illuminate\Http\Request;
+
+class UpdateController extends Controller
+{
+    public function __invoke(Request $request)
+    {
+        $validated = $request->validate([
+            'fuel' => 'nullable|array',
+            'fuel.*.description' => 'string|max:255',
+            'fuel.*.rate' => 'numeric|min:0',
+            'clean' => 'nullable|array',
+            'clean.*.description' => 'string|max:255',
+            'clean.*.rate' => 'numeric|min:0',
+        ]);
+
+        // Remove empty values from fuel array
+
+        $fuelData = array_filter($validated['fuel'] ?? [], function($item) {
+            return !empty($item['description']) && isset($item['rate']) && $item['rate'] !== '';
+        });
+
+        $cleanData = array_filter($validated['clean'] ?? [], function($item) {
+            return !empty($item['description']) && isset($item['rate']) && $item['rate'] !== '';
+        });
+
+        // Convert to JSON
+        $fuelJson = json_encode(array_values($fuelData));
+        $cleanJson = json_encode(array_values($cleanData));
+
+        // Update settings in the database
+        Setting::where('setting_name', 'prepaid_fuel_rates')->update(['setting_value' => $fuelJson]);
+        Setting::where('setting_name', 'prepaid_cleaning_rates')->update(['setting_value' => $cleanJson]);
+
+        flash()->success(__('Settings updated successfully.'));
+        return redirect()->back();
+    }
+}

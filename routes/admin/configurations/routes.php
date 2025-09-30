@@ -7,8 +7,8 @@ use App\Http\Controllers\Admin\Configurations\IndexController;
 use App\Http\Controllers\Admin\Configurations\UpdateController;
 use App\Http\Controllers\Admin\Configurations\VerifyMasterController;
 use App\Http\Controllers\Admin\Configurations\SettingsResetController;
-
-
+use App\Http\Controllers\Admin\Configurations\New\IndexController as NewIndexController;
+use App\Http\Controllers\Admin\Configurations\New\UpdateController as NewUpdateController;
 
 
 Route::prefix('configurations')
@@ -21,4 +21,9 @@ Route::prefix('configurations')
     Route::post('/verify-master', VerifyMasterController::class)->name('verifyMaster');
 
     Route::post('/settings/reset', SettingsResetController::class)->name('settings.reset');
+
+    Route::prefix('new')->name('new.')->group(function ($router) {
+        Route::get('/', NewIndexController::class)->name('index');
+        Route::post('/', NewUpdateController::class);
+    });
 });

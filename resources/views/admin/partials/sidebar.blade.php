@@ -498,6 +498,14 @@
                                         <x-heroicon-o-cog-8-tooth class="h-5 w-5" /> Settings
                                     </a>
                                 </li>
+
+                                <li>
+                                    <a href="{{ route('admin.configurations.new.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.configurations.new.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-cog-8-tooth class="h-5 w-5" /> Price Rate Settings
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

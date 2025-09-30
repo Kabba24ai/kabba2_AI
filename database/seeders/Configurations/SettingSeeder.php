@@ -185,11 +185,11 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
                     [
                         [
                             'description' => 'Standard Cleaning',
-                            'amount' => 25.0,
+                            'rate' => 25.0,
                         ],
                         [
                             'description' => 'Heavy Cleaning',
-                            'amount' => 50.0,
+                            'rate' => 50.0,
                         ],
                     ],
                     JSON_UNESCAPED_UNICODE,
@@ -205,11 +205,11 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
                     [
                         [
                             'description' => 'Full Tank Prepaid',
-                            'amount' => 59.99,
+                            'rate' => 59.99,
                         ],
                         [
                             'description' => 'Half Tank Prepaid',
-                            'amount' => 34.5,
+                            'rate' => 34.5,
                         ],
                     ],
                     JSON_UNESCAPED_UNICODE,

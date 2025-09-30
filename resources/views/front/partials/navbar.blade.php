@@ -28,7 +28,7 @@
 
 <nav class="text-dark border-b border-b-neutral-800 fixed w-full mt-0 z-[9999] bg-neutral-800 bg-opacity-100 ">
     <div class="container !px-0">
-        <div class="max-w-7xl mx-auto py-1 flex items-center px-4">
+        <div class="max-w-7xl mx-auto py-1.5 flex items-center px-4">
             <a href="#" class="1/6">
                 <img src="{{ asset('storage/front/images/logo.png') }}" alt="" class="h-full md:w-23 w-40">
             </a>
@@ -44,7 +44,7 @@
 
                         <!-- MEGA PANEL (5 equal columns) -->
                         <div class="mega hidden w-[100%] absolute left-0 right-0 submenu-top shadow-xl">
-                            <div class="max-w-4xl w-screen px-6 py-6 grid grid-cols-4 gap-4 bg-white">
+                            <div class="max-w-5xl w-screen px-6 py-6 grid grid-cols-4 gap-4 bg-white">
 
                                 @foreach ($frontCategoryTree->chunk(ceil($frontCategoryTree->count() / 4)) as $categoryColumn)
 
@@ -52,7 +52,7 @@
                                 <!-- Column 1 -->
                                 <ul class="mega-col space-y-2 text-gray-700">
                                     @foreach ($categoryColumn as $category)
-                                    <li class="{{ $category->childCategories->isNotEmpty() ? 'relative mb-0 group/item' : 'mb-0' }}">
+                                    <li class="{{ $category->childCategories->isNotEmpty() ? 'relative mb-0 group/item' : 'mb-0' }} py-1">
                                         <a href="{{ route('front.categories.index', $category->slug) }}"
                                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out text-gray-700 leading-7">
                                             {{ $category->title }}
@@ -98,7 +98,7 @@
                         </div>
                     </li>
 
-                    <li class=""><a href="#" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">How It Works</a></li>
+                    <!-- <li class=""><a href="#" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">How It Works</a></li> -->
 
                     <li class=" {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.faqs.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Faq</a></li>
 

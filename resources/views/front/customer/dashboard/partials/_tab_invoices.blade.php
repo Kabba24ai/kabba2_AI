@@ -174,7 +174,7 @@
             <!-- Body -->
             <div class="px-6 space-y-5">
                 <!-- Invoice Info -->
-                <div class="bg-gray-50 rounded-md space-y-2">
+                <div class="rounded-md space-y-2">
                     <div class="flex justify-between text-sm">
                         <span class="text-sm font-medium text-gray-500">Invoice Number:</span>
                         <span class="text-sm font-semibold text-gray-900">INV-2025-002</span>

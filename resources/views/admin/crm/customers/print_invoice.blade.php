@@ -4,6 +4,11 @@
 <head>
     <meta charset="UTF-8" />
     <title>Receipt - {{ $invoice->invoice_number }}</title>
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+    </style>
+
 </head>
 
 <body style=" font-family: Arial, sans-serif; color:#111;">
@@ -142,7 +147,7 @@
                                                     <table role="presentation" style="border-collapse:collapse;">
                                                         <tr>
                                                             <td style="padding-right:5px;">
-                                                                <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17" >
+                                                                <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
                                                             </td>
                                                             <td>
                                                                 <p style="margin:0; font-weight:500; color:#000;">
@@ -295,7 +300,5 @@
         </tr>
     </table>
 </body>
-
-</html>
 
 </html>

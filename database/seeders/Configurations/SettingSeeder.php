@@ -27,6 +27,7 @@ class SettingSeeder extends Seeder
         $this->addPaymentSettings();
         $this->addCommunicationSettings();
         $this->addDefaultSalesFunnelSettings();
+        $this->addMailSendSettings();
     }
 
     private function addDefaultSalesFunnelSettings()
@@ -1051,6 +1052,80 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
             ],
         ];
     }
+
+
+    private function addMailSendSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Mail Send Settings'] = [
+            [
+                'value_type'   => 'text',
+                'setting_name' => ' ',
+                'setting_title' => 'Mail Mailer',
+                'default_value' => 'smtp',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_host',
+                'setting_title' => 'Mail Host',
+                'default_value' => 'smtp.gmail.com',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'number',
+                'setting_name' => 'mail_port',
+                'setting_title' => 'Mail Port',
+                'default_value' => 587,
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_username',
+                'setting_title' => 'Mail Username',
+                'is_secure_field' => 1,
+                'is_encrypted'    => 1,
+                'is_required'     => 1,
+                'is_eye_toggle'   => 1,
+                'default_value' => 'arya.developers.2017@gmail.com',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'password',
+                'setting_name' => 'mail_password',
+                'setting_title' => 'Mail Password',
+                'default_value' => 'csggrqirpysxqatm',
+                'is_secure_field' => 1,
+                'is_encrypted'    => 1,
+                'is_required'     => 1,
+                'is_eye_toggle'   => 1,
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_encryption',
+                'setting_title' => 'Mail Encryption',
+                'default_value' => 'tls',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_from_address',
+                'setting_title' => 'Mail From Address',
+                'default_value' => 'arya.developers.2017@gmail.com',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_from_name',
+                'setting_title' => 'Mail From Name',
+                'default_value' => config('app.name'),
+                'sort_order'   => $sortOrder++,
+            ],
+        ];
+    }
+
 
     /**
      * Run the database seeds.

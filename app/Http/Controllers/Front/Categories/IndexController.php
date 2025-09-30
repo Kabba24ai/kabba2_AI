@@ -18,31 +18,29 @@ class IndexController extends Controller
     public function __invoke($slug, Request $request)
     {
 
-        $category = ProductCategory::published()->with(['media', 'products.media', 'products.mediaChildren.media'])->whereNull('parent_id')->where('slug',$slug)->firstOrFail();
+        // $category = ProductCategory::published()->with(['media', 'products.media', 'products.mediaChildren.media'])->whereNull('parent_id')->where('slug',$slug)->firstOrFail();
 
-        $products = $category->products;
+        $category = ProductCategory::published()->with('media')
+                ->whereNull('parent_id')->where('slug', $slug)->firstOrFail();
 
 
-        return view('front.categories.index', [
+        $products = Product::published()->with('categories', 'media', 'mediaChildren.media')
+                ->whereHas('categories', function ($q) use ($category) {
+                    $q->where('product_categories.id', $category->id);
+                });
+
+        if ($request->has('search') && $request->search != '') {
+                    $keyword = $request->search;
+                    $products = $products->where('product_name', 'LIKE', "%{$keyword}%");
+                }
+
+                $products = $products->get();
+
+
+            return view('front.categories.index', [
             'title' => $category->title,
             'category' => $category,
             'products' => $products
         ]);
     }
-
-
-    // public function __invoke($slug)
-    // {
-    //     $category = ProductCategory::published()->with('media')->whereNull('parent_id')->where('slug',$slug)->firstOrFail();
-
-    //     $products = Product::published()->with('categories','media', 'mediaChildren.media')->whereHas('categories', function ($q) use ($category) {
-    //         $q->where('product_categories.id', $category->id);
-    //     })->get();
-
-    //     return view('front.categories.index', [
-    //         'title' => $category->title,
-    //         'category'=> $category ,
-    //         'products' => $products
-    //     ]);
-    // }
 }

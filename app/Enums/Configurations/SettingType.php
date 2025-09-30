@@ -15,6 +15,10 @@ enum SettingType: string
 
     case COMMUNICATION  = 'Communication Settings';
 
+    case DEFAULT_SALES_FUNNEL_SETTINGS = 'Default Sales Funnel Settings';
+
+    case MAIL_SEND_SETTINGS = 'Mail Send Settings';
+
     case OTHER = 'Other Settings';
 
     public function label(): string
@@ -29,6 +33,8 @@ enum SettingType: string
             self::ALLOCATED_HOURS => 'Allocated Hours Settings',
             self::COMMUNICATION => 'Communication Settings',
             self::OTHER => 'Other Settings',
+            self::DEFAULT_SALES_FUNNEL_SETTINGS => 'Default Sales Funnel Settings',
+            self::MAIL_SEND_SETTINGS => 'Mail Send Settings',
         };
     }
 }

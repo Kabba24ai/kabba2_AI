@@ -30,6 +30,8 @@ class SendEmailController extends Controller
 
 
             flash('Invoice email sent successfully.')->success();
+
+
         } catch (\Throwable $e) {
             Log::error('SendEmailController: Failed to send invoice email.', [
                 'message' => $e->getMessage(),
@@ -39,6 +41,9 @@ class SendEmailController extends Controller
 
             flash('Something went wrong while sending the invoice email.')->error();
         }
+
+        session()->flash('active_tab', 'invoices');
+
 
         // Redirect back to customer view (adjust route name if needed)
         return redirect()->back();

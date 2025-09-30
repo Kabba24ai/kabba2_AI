@@ -41,6 +41,10 @@ class SendInvoiceEmailListener
                     ]);
             });
 
+            //  Mark invoice as email sent
+            $invoice->is_email_send = 'send';
+            $invoice->save();
+
             Log::info("Invoice email sent successfully.", ['invoice_id' => $invoice->id]);
         } catch (\Throwable $e) {
             Log::error('SendInvoiceEmailListener: Failed to generate PDF or send email.', [

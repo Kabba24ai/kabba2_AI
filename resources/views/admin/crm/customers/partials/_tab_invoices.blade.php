@@ -12,7 +12,7 @@
              </a>
              <div class="text-left sm:text-right">
                  <p class="text-sm text-gray-600">Current Balance</p>
-                 <p class="text-lg font-bold text-gray-900">$0.00</p>
+                 <p class="text-lg font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}</p>
              </div>
          </div>
      </div>
@@ -25,7 +25,7 @@
      <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm">
          <div>
              <p class="text-sm text-gray-500">Paid Invoices</p>
-             <p class="text-xl font-bold text-gray-900">$0.00</p>
+             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_paid_invoices) }} </p>
          </div>
          <div class="bg-green-100 p-2 rounded-md">
              <svg xmlns="http://www.w3.org/2000/svg"
@@ -43,7 +43,7 @@
      <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm">
          <div>
              <p class="text-sm text-gray-500">Pending Invoices</p>
-             <p class="text-xl font-bold text-gray-900">$0.00</p>
+             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_pending_invoices) }} </p>
          </div>
          <div class="bg-yellow-100 p-2 rounded-md">
              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,7 +56,7 @@
      <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm ">
          <div>
              <p class="text-sm text-gray-500">Overdue Invoices</p>
-             <p class="text-xl font-bold text-gray-900">$0.00</p>
+             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_overdue_invoices) }}</p>
          </div>
          <div class="bg-red-100 p-2 rounded-md  text-red-500">
              <svg xmlns="http://www.w3.org/2000/svg"
@@ -162,7 +162,7 @@
                              </a>
                              <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="text-purple-600 inline-flex items-center">
                                  <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                            </a>
+                             </a>
                          </div>
                      </td>
                  </tr>

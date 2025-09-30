@@ -217,9 +217,41 @@ class Customer extends Authenticatable
         }
     }
 
-
+ /**
+     * Get all  invoices for the customer.
+     */
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Get total paid invoice amount for the customer.
+     */
+    public function getTotalPaidInvoicesAttribute()
+    {
+        return $this->invoices()
+            ->where('invoice_status', 'paid')
+            ->sum('total');
+    }
+
+    /**
+     * Get total pending invoice amount for the customer.
+     */
+    public function getTotalPendingInvoicesAttribute()
+    {
+        return $this->invoices()
+            ->where('invoice_status', 'pending')
+            ->sum('total');
+    }
+
+    /**
+     * Get total overdue invoice amount for the customer.
+     */
+    public function getTotalOverdueInvoicesAttribute()
+    {
+        return $this->invoices()
+            ->where('invoice_status', 'overdue')
+            ->sum('total');
     }
 }

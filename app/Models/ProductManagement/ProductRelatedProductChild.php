@@ -9,7 +9,10 @@ class ProductRelatedProductChild extends Model
     protected $fillable = [
         'product_id',
         'related_product_id',
+        'sort_order',
     ];
+
+    protected $table = 'product_related_product_children';
 
     public function product()
     {

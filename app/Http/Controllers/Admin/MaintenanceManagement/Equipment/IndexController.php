@@ -14,43 +14,43 @@ class IndexController extends Controller
         $query = Equipment::with('productCategory');
 
         // Search filter
-        if ($request->filled('search')) {
-            $query->where('equipment_name', 'like', '%' . $request->search . '%');
-        }
+        $query->when($request->search, function ($q, $search) {
+            $q->where('equipment_name', 'like', '%' . $search . '%');
+        });
 
         // Category filter
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
+        $query->when($request->category, function ($q, $category) {
+            $q->where('product_category_id', $category);
+        });
 
         // Service due filter
-        if ($request->filled('serviceDue')) {
-            if ($request->serviceDue === 'due-soon') {
-                $query->whereRaw('(current_hours % service_interval) / service_interval >= 0.8 AND (current_hours % service_interval) / service_interval < 1');
-            } elseif ($request->serviceDue === 'overdue') {
-                $query->whereRaw('(current_hours % service_interval) / service_interval >= 1');
-            }
-        }
+        // $query->when($request->serviceDue, function ($q, $serviceDue) {
+        //     if ($serviceDue === 'due-soon') {
+        //         $q->whereRaw('(current_hours % service_interval) / service_interval >= 0.8 AND (current_hours % service_interval) / service_interval < 1');
+        //     } elseif ($serviceDue === 'overdue') {
+        //         $q->whereRaw('(current_hours % service_interval) / service_interval >= 1');
+        //     }
+        // });
 
-        // Rental Ready filter
-        if ($request->filled('rentalReady')) {
-            if ($request->rentalReady === 'assigned') {
-                $query->whereNotNull('rental_ready_checklist');
-            } elseif ($request->rentalReady === 'not-assigned') {
-                $query->whereNull('rental_ready_checklist');
-            }
-        }
+        // // Rental Ready filter
+        // $query->when($request->rentalReady, function ($q, $rentalReady) {
+        //     if ($rentalReady === 'assigned') {
+        //         $q->whereNotNull('rental_ready_checklist');
+        //     } elseif ($rentalReady === 'not-assigned') {
+        //         $q->whereNull('rental_ready_checklist');
+        //     }
+        // });
 
-        // Equipment Service filter
-        if ($request->filled('equipService')) {
-            if ($request->equipService === 'assigned') {
-                $query->whereNotNull('equipment_service_list');
-            } elseif ($request->equipService === 'not-assigned') {
-                $query->whereNull('equipment_service_list');
-            }
-        }
+        // // Equipment Service filter
+        // $query->when($request->equipService, function ($q, $equipService) {
+        //     if ($equipService === 'assigned') {
+        //         $q->whereNotNull('equipment_service_list');
+        //     } elseif ($equipService === 'not-assigned') {
+        //         $q->whereNull('equipment_service_list');
+        //     }
+        // });
 
-        $equipment = $query->latest('id')->paginate(10);
+        $equipment = $query->latest('id')->paginate(10)->withQueryString();
 
         // Calculate stats
         $stats = [

@@ -165,7 +165,16 @@ class StoreController extends Controller
             $product->options()->sync($validated['options'] ?? []);
 
             // Sync related products
-            $product->relatedProducts()->sync($validated['related_products'] ?? []);
+            if (isset($validated['related_products']) && is_array($validated['related_products'])) {
+                // Prepare sync data with sort order
+                $syncData = [];
+                foreach ($validated['related_products'] as $index => $productId) {
+                    $syncData[$productId] = ['sort_order' => $index + 1];
+                }
+                $product->relatedProducts()->sync($syncData);
+            } else {
+                $product->relatedProducts()->sync([]);
+            }
 
             DB::commit();
 

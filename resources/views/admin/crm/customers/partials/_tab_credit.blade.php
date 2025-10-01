@@ -34,7 +34,7 @@
                         <p class="text-xl font-semibold text-gray-900">
                         {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
                         <!-- {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0) ) }} -->
-                  
+
                     </p>
                     </div>
                 </div>
@@ -42,10 +42,10 @@
                 <!-- Credit Limit -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
-                       <svg xmlns="http://www.w3.org/2000/svg" 
-                            width="20" height="20" viewBox="0 0 24 24" 
-                            fill="none" stroke="currentColor" 
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                       <svg xmlns="http://www.w3.org/2000/svg"
+                            width="20" height="20" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="lucide lucide-alert-circle w-6 h-6">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="8" x2="12" y2="12" />
@@ -54,11 +54,11 @@
                     </div>
                     <div>
                     <p class="text-sm text-gray-500">Credit Limit</p>
-                    <p class="text-xl font-semibold text-gray-900"> 
-                
+                    <p class="text-xl font-semibold text-gray-900">
+
                                                 {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
 
-                
+
                 </p>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
 
                     <div class="flex justify-between items-center">
                         <div class="text-sm text-gray-600 mb-2">
-                            Available: 
+                            Available:
                             <span id="availableAmount">
                                 {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
                             </span>
@@ -101,12 +101,12 @@
                         Credit Limit: <span id="limitAmount">$0.00</span>
                     </p>
                 </div>
-                
+
             <div class=" mx-auto bg-white shadow rounded-md mt-6 mb-6">
                 <!-- Header and Filter -->
                 <div class="border-b border-gray-200 p-4 ">
                     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        
+
                         <!-- Title -->
                         <h2 class="text-base font-semibold text-gray-800">Account Transactions</h2>
 
@@ -173,9 +173,9 @@
 
                                 <option value="payment">Payment</option>
                                  <option value="refund">Refund</option>
-                                
+
                                 <option value="discount">Discount</option>
-                              
+
                                  <option value="charge">Charge</option>
                                 </select>
                             </div>
@@ -260,11 +260,11 @@
                                 @php
                                     $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
                                 @endphp
-                                                    
+
                             <tr data-status="{{ $transaction->type }}"  class="border-b status-row">
                                 <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
                                 <td class="px-4 py-3 text-red-600 ">
-                                    
+
 
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $style['bg'] }} {{ $style['text'] }}">
                                                 @if ($style['icon'] === 'plus')
@@ -290,13 +290,13 @@
                                                     class="lucide lucide-award w-4 h-4">
                                                     <circle cx="12" cy="8" r="6" />
                                                     <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-                                                    </svg>      
+                                                    </svg>
                                                 @elseif ($style['icon'] === 'arrow-down-left')
                                                     <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7L7 17"/><path d="M17 17H7V7"/></svg>
                                                 @elseif ($style['icon'] === 'arrow-up-right')
                                                             <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
                                                 @elseif ($style['icon'] === 'cart')
-                                                            <x-heroicon-o-shopping-cart class="h-4 w-4" /> 
+                                                            <x-heroicon-o-shopping-cart class="h-4 w-4" />
                                                 @elseif ($style['icon'] === 'trending-up')
 
                                                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -307,27 +307,27 @@
                                                                                     <polyline points="16 7 22 7 22 13" />
                                                                                 </svg>
 
-                                                                                
+
 
                                                 @endif
                                               <span class="ml-1 capitalize">{{ $transaction->type }}</span>
                                       </span>
 
                                                                                                                 <div class="text-xs text-gray-500 mt-1">{{   $transaction->responsible_person_name ?? ''  }}
-                                                                                                                    
+
                                                                         </div>
                                                                     </td>
                                                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                                                        <div class="max-w-xs truncate text-gray-700">  
-                                                                    
+                                                                        <div class="max-w-xs truncate text-gray-700">
+
                                                                        @if ($transaction->type === 'payment')
                                                                             {{ $transaction->payment_type ?? 'N/A' }}
                                                                         @else
                                                                             {{ $transaction->reason ?? 'N/A' }}
                                                                         @endif
-                                                                        
+
                                                                         <!-- {{ $transaction->notes ?? 'N/A' }} -->
-                                                                    
+
                                                                     </div>
                                                                         <div class="text-xs text-gray-500">Ref: {{ $transaction->unique_id }}</div>
                                                                     </td>
@@ -336,7 +336,7 @@
                                                                      <td class="px-4 py-3 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}">  {{ $transaction->notes ?? 'N/A' }} </td>
 
 
-                                                                        <td class="px-4 py-3 text-right"> 
+                                                                        <td class="px-4 py-3 text-right">
 
                                                                              @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
                                                                                     {{-- Tax is included in the amount (payment or reverse charge) --}}
@@ -381,14 +381,14 @@
                                                                     <td class="px-4 py-3 text-right whitespace-nowrap">  {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance ?? 0) }} </td>
                                                                     <td class="px-4 py-3 text-blue-600">
                                                                         <div class="flex gap-2 items-center justify-end">
-                                                                        
+
 
                                                                         <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)'    data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}" >
                                                                             <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                                                                         </button>
 
                                                                         @if ($transaction->type !== 'order')
-                                                                            
+
                                                                             <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
                                                                                     data-id="{{ $transaction->id }}"
                                                                                     data-type="{{ $transaction->type }}"
@@ -405,11 +405,11 @@
                                                                                         data-card_id="{{ $transaction->card->unique_id }}"
                                                                                         data-card_masked="{{ $transaction->card->card_number }}"
                                                                                     @endif
-                                                                                    
+
                                                                                     title="Edit">
                                                                                 <x-heroicon-o-pencil class="w-4 h-4" />
                                                                             </button>
-                                                                    
+
                                                                         @endif
 
                                                                             <!-- Download -->
@@ -440,14 +440,14 @@
                                                         <x-heroicon-o-trash class="w-4 h-4" />
                                                     </button>
                                                 </form>
-                                                                            
+
                                     @endif
 
                                     </div>
                                 </td>
                             </tr>
                             @endforeach
-                           
+
                         </tbody>
                     </table>
                 </div>
@@ -489,15 +489,15 @@
             <div class=" px-6 overflow-y-auto">
                 <!-- <form> -->
 
-                
+
                          {{ html()->form('POST', route('admin.crm.customers.customer-account.paymentstore'))->id('recordpayment')->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
                         ])->open() }}
 
-                        
-                        
+
+
             {!! html()->text('customer_id', $customer->id ?? '')->class('hidden')->attributes([
                     'id' => 'customer_id',
                     'autocomplete' => 'off'
@@ -517,17 +517,17 @@
                                   {!! html()->text('amount', old('amount'))->attributes([
                                         'placeholder' => '0',
                                         'autocomplete' => 'off',
-                                    
+
                                         'data-digit-input' => 'true',
                                         'data-parsley-maxlength' => 8,
                                         'maxlength' => 8,
-                                    
+
                                         ])->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
-                                    ->placeholder('0.00')->required() 
+                                    ->placeholder('0.00')->required()
                                   !!}
 
 
-    
+
                         </div>
                     </div>
                     <!-- Payment Method -->
@@ -607,7 +607,7 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
 
-                       
+
 
                         {!! html()
                         ->select('responsible_person',
@@ -656,9 +656,9 @@
                     </div>
 
         {{ html()->form()->close() }}
-            
+
             </div>
-           
+
         </div>
     </div>
 </div>
@@ -710,7 +710,7 @@
                     <!-- Payment Method -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1 required">Refund Reason </label>
-                        
+
 
                         {!! html()->select('reason', [
                         '' => 'Select refund reason',
@@ -727,7 +727,7 @@
                     <!-- Person Responsible -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
-                      
+
 
                         {!! html()
                         ->select('responsible_person',
@@ -769,9 +769,9 @@
 
                     </div>
              {{ html()->form()->close() }}
-            
+
             </div>
-            
+
         </div>
     </div>
 </div>
@@ -804,7 +804,7 @@
                     'class' => 'space-y-8',
                 ])->open() }}
 
-                
+
             {!! html()->text('customer_id', $customer->id ?? '')->class('hidden')->attributes([
                     'id' => 'customer_id',
                     'autocomplete' => 'off'
@@ -824,11 +824,11 @@
                                 {!! html()->text('amount' , old('amount') )->attributes([
                                 'placeholder' => '0',
                                 'autocomplete' => 'off',
-                              
+
                                 'data-digit-input' => 'true',
                                 'data-parsley-maxlength' => 8,
                                 'maxlength' => 8,
-                               
+
                                 ])->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
                                     ->placeholder('0.00')->required()
                             !!}
@@ -839,7 +839,7 @@
                     <!-- Discount Reason -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1 required">Discount Reason </label>
-                     
+
 
 
                         {!! html()->select('reason', [
@@ -857,7 +857,7 @@
                     <!-- Person Responsible -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
-                        
+
                          {!! html()
                             ->select('responsible_person',
                                 $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
@@ -905,8 +905,8 @@
 
             {{ html()->form()->close() }}
 
-                    
-            
+
+
             </div>
         </div>
     </div>
@@ -940,7 +940,7 @@
                     'class' => 'space-y-8',
                 ])->open() }}
 
-                
+
                 {!! html()->text('customer_id', $customer->id ?? '')->class('hidden')->attributes([
                     'id' => 'customer_id',
                     'autocomplete' => 'off'
@@ -957,11 +957,11 @@
                               {!! html()->text('amount', old('amount'))->attributes([
                                 'placeholder' => '0',
                                 'autocomplete' => 'off',
-                              
+
                                 'data-digit-input' => 'true',
                                 'data-parsley-maxlength' => 8,
                                 'maxlength' => 8,
-                               
+
                                 ])
                             ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
                             ->placeholder('0.00')->required() !!}
@@ -973,7 +973,7 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
                         <div class="space-y-2 text-sm text-gray-700">
-                            
+
 
                             @foreach([
                             'add' => ['label' => 'Add Sales Tax', 'desc' => 'Add 9.75% sales tax to the entered amount'],
@@ -995,7 +995,7 @@
                     <!-- Charge Reason -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1 required">Charge Reason </label>
-                        
+
                          {!! html()->select('reason', [
                         '' => 'Select charge reason',
                         'New Rental' => 'New Rental',
@@ -1014,7 +1014,7 @@
                     <!-- Person Responsible -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
-                        
+
                          {!! html()
                         ->select('responsible_person',
                             $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select person responsible', '')->toArray(),
@@ -1033,7 +1033,7 @@
                     <!-- Notes -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                       
+
                              {!! html()->textarea('notes', old('notes'))
                         ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
                         ->rows(3)
@@ -1055,11 +1055,11 @@
                         </button>
 
                     </div>
-               
-                    
+
+
             {{ html()->form()->close() }}
 
-            
+
             </div>
         </div>
     </div>
@@ -1211,7 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                
+
             `;
 
             modalBody.innerHTML = html;
@@ -1219,12 +1219,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-   
+
     closeBtn.addEventListener('click', () => {
         modalWrapper.style.display = 'none';
     });
 
-  
+
     // modalWrapper.addEventListener('click', e => {
     //     if (e.target === modalWrapper) {
     //         modalWrapper.style.display = 'none';
@@ -1272,8 +1272,8 @@ attachValidatedSubmit('applyCharge', 'submitChargeBtn', 'chargeBtnText', 'charge
 @endif
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    console.log(" DOM fully loaded");
+document.addEventListener('DOMContentLoaded', function(){
+    // console.log(" DOM fully loaded");
 
     const form = document.getElementById('recordpayment');
     const paymentType = document.getElementById('payment_type');
@@ -1413,7 +1413,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     btnText.textContent = 'Record Payment';
                     btnSpinner.classList.add('hidden');
                 }
-                
+
         });
 
     } catch (error) {
@@ -1427,7 +1427,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return; // Stop submit
     }
-    
+
 });
 
 });

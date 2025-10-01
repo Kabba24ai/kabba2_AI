@@ -551,17 +551,8 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const availableCredit = {
-            {
-                \
-                App\ Helpers\ CustomHelper::getAvailableCredit($customer)
-            }
-        };
-        const creditLimit = {
-            {
-                $customer - > credit_limit ?? 0
-            }
-        };
+        const availableCredit = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer) }};
+        const creditLimit = {{ $customer->credit_limit ?? 0 }};
         const usedCredit = creditLimit - availableCredit;
 
         const percentUsed = creditLimit > 0 ? Math.min((usedCredit / creditLimit) * 100, 100) : 0;

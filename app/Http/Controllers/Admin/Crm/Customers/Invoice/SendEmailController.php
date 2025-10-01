@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use App\Models\Customers\Invoice;
 use App\Events\Admin\Invoices\InvoiceEmailEvent;
+use App\Listeners\Activities\Admin\Invoices\SendInvoiceEmailListener ;
 
 class SendEmailController extends Controller
 {
@@ -15,24 +16,17 @@ class SendEmailController extends Controller
     public function __invoke(string $unique_id)
     {
         try {
-            Log::info("SendEmailController: Start sending email for invoice.", ['invoice_unique_id' => $unique_id]);
-
             // Find the invoice
             $invoice = Invoice::where('unique_id', $unique_id)->firstOrFail();
 
-            Log::info("Invoice found.", ['invoice_id' => $invoice->id, 'customer_id' => $invoice->customer_id]);
+            // Call listener directly
+            $listener = new SendInvoiceEmailListener();
+            $listener->handle(new InvoiceEmailEvent($invoice));
 
-
-            // Fire event (listener will handle PDF + email)
-            event(new InvoiceEmailEvent($invoice));
-
-            Log::info("InvoiceEmailEvent dispatched.", ['invoice_id' => $invoice->id]);
-
-
+            // If no exception -> success
             flash('Invoice email sent successfully.')->success();
-
-
         } catch (\Throwable $e) {
+            // If listener threw exception -> failure
             Log::error('SendEmailController: Failed to send invoice email.', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -41,6 +35,7 @@ class SendEmailController extends Controller
 
             flash('Something went wrong while sending the invoice email.')->error();
         }
+
 
         session()->flash('active_tab', 'invoices');
 

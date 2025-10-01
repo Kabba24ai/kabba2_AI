@@ -21,4 +21,5 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     Route::post('/taxdoc-upload', TaxDocumentUploadController::class)->name('taxdoc.upload');
 
+    require base_path('routes/front/customer/dashboard/invoice/routes.php');
 });

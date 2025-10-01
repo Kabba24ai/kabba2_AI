@@ -472,7 +472,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                                     {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
                                 </td>
                                 <td class="px-4 py-3 space-x-2 whitespace-nowrap">
-                                    <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" id="openviewdetailsModal" target="_blank"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
+                                    <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"  target="_blank"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
                                     <button type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn" data-order-id="{{ $order->unique_id }}">
                                         + Add to Invoice
                                     </button>

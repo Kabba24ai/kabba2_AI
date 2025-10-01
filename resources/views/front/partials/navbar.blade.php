@@ -26,7 +26,7 @@
 <div class="h-10"></div>
 @endif
 
-<nav class="text-dark border-b border-b-neutral-800 fixed w-full mt-0 z-[9999] bg-neutral-800 bg-opacity-100 ">
+<nav class="text-dark border-b border-b-neutral-800 fixed w-full mt-0 z-[9999] bg-neutral-800 bg-opacity-100 no-print">
     <div class="container !px-0">
         <div class="max-w-7xl mx-auto py-1.5 flex items-center px-4">
             <a href="#" class="1/6">
@@ -60,7 +60,7 @@
 
                                         {{-- Flyout for child categories --}}
                                         @if ($category->childCategories->isNotEmpty())
-                                        <div class="flyout hidden absolute left-0 top-6 w-72 shadow-lg border border-gray-300 bg-white rounded-md z-20">
+                                        <div class="flyout hidden absolute left-0 px-4 py-4 top-6 w-72 shadow-lg border border-gray-300 bg-white rounded-md z-20">
                                             @foreach ($category->childCategories as $child)
                                             <a href="{{ route('front.categories.sub-category', ['slug' => $category->slug, 'childCategorySlug' => $child->slug]) }}"
                                                 class="block px-2 py-1 hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out text-gray-700">

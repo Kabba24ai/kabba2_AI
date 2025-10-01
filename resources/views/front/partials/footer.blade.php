@@ -1,6 +1,5 @@
-
-<footer class=" bg-neutral-800 text-white py-8 border-t">
-    <div class="container md:px-0">
+<footer class=" bg-neutral-800 text-white py-8 border-t no-print">
+    <div class="container md:px-0"></div>
         <div class="mx-auto px-0 lg:px-4 lg:flex lg:items-center flex flex-wrap gap-8 justify-between">
             <div class="lg:flex gap-4 w-5/5 md:w-2/5 lg:w-2/5 items-center">
                 <div class=" mt-4 lg:mt-0 leading-[1.6]">
@@ -31,5 +30,3 @@
         <h2 class="text-sm text-center mt-4 text-neutral-200/60">© 2025 Rent 'n King. All rights reserved.</h2>
     </div>
 </footer>
-
-

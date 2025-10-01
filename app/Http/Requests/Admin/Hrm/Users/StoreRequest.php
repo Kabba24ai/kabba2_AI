@@ -27,6 +27,7 @@ class StoreRequest extends FormRequest
             'email' => ['required', 'email'],
             'mobile_phone' => ['nullable'],
             'phone_number' => ['nullable'],
+            'password' => 'nullable|confirmed',
             'street' => ['nullable'],
             'city' =>   ['nullable'],
             'state' =>  ['nullable'],

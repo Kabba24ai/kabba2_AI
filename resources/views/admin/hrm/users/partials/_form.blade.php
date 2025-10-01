@@ -114,6 +114,64 @@
 
                 </div>
             </div>
+            <!-- Row 3 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div>
+                    <label for="password" class="text-xs text-gray-500 font-medium">Password</label>
+                    <div class="relative">
+                        {!! html()->password('password')
+                        ->id('password')
+                        ->class('pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
+                        ->attributes([
+                        'placeholder' => 'Leave blank to keep default password',
+                        'data-parsley-minlength' => 6,
+                        'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
+                        'data-parsley-optional' => 'true', // Make validation optional
+                        ]) !!}
+
+                        <button type="button" onclick="toggleVisibility('password', this)" class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                    @error('password')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="password_confirmation" class="text-xs text-gray-500 font-medium">Confirm Password</label>
+                    <div class="relative">
+                        {!! html()->password('password_confirmation')
+                        ->id('password_confirmation')
+                        ->class('pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
+                        ->attributes([
+                        'placeholder' => 'Leave blank to keep default password',
+                        'data-parsley-equalto' => '#password',
+                        'data-parsley-equalto-message' => 'Passwords do not match.',
+                        'data-parsley-optional' => 'true', // Optional confirmation
+                        ]) !!}
+
+                        <button type="button" onclick="toggleVisibility('password_confirmation', this)" class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                    @error('password_confirmation')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
         </div>
     </div>
 
@@ -726,6 +784,25 @@
 
 
     });
+</script>
+
+<script>
+    function toggleVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        const svg = btn.querySelector('svg');
+        svg.innerHTML = isPassword ?
+            `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.042 10.042 0 013.03-4.362M6.873 6.876A9.953 9.953 0 0112 5c4.477 0 8.267 2.943 9.541 7a9.966 9.966 0 01-1.249 2.527M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M3 3l18 18" />` :
+            `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+    }
 </script>
 
 @endpush

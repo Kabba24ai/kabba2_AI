@@ -19,6 +19,16 @@ class SendInvoiceEmailListener
         try {
             $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
+            // Log current mail settings
+            Log::info('Current Mail Configuration', [
+                'mailer'     => config('mail.default'),
+                'host'       => config('mail.mailers.smtp.host'),
+                'port'       => config('mail.mailers.smtp.port'),
+                'username'   => config('mail.mailers.smtp.username') ? '***hidden***' : null,
+                'encryption' => config('mail.mailers.smtp.encryption'),
+                'from'       => config('mail.from.address'),
+            ]);
+
             // Generate PDF
             $pdf = Pdf::loadView('admin.crm.customers.print_invoice', [
                 'invoice'   => $invoice,

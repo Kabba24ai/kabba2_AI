@@ -11,6 +11,7 @@ use App\Helpers\ModelHelper;
 use App\Helpers\CustomHelper;
 use App\Http\Requests\Admin\Hrm\Users\StoreRequest;
 use App\Models\Iam\AccessControl\Role;
+use Hash;
 
 class StoreController extends Controller
 {
@@ -20,6 +21,10 @@ class StoreController extends Controller
     public function __invoke(StoreRequest $request)
     {
         $validated = $request->validated();
+
+        $password = $validated['password'] ?? '12345678' ;
+
+        // dd($password);
 
         DB::beginTransaction();
 
@@ -39,14 +44,10 @@ class StoreController extends Controller
                 'start_date' => CustomHelper::parseDateFromInput($validated['startDate'] ?? null),
                 'end_date' => CustomHelper::parseDateFromInput($validated['endDate'] ?? null),
                 'pay_type'       => $validated['payType'] ?? null,
-                
                 'status'         => $validated['status'] ?? 'Active',
-            
                 'limit_start_time' => $validated['limit_start'] ?? false,
-
                 'limit_end_time' => $validated['limit_end'] ?? false,
-
-
+                'password' => Hash::make($password),
             ];
 
             // Create User

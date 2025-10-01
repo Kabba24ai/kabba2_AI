@@ -9,6 +9,7 @@ use App\Models\Iam\Personnel\EmergencyContact;
 use App\Helpers\CustomHelper;
 use App\Http\Requests\Admin\Hrm\Users\UpdateRequest;
 use App\Models\Iam\AccessControl\Role;
+use Hash;
 
 class UpdateController extends Controller
 {
@@ -17,7 +18,7 @@ class UpdateController extends Controller
      */
     public function __invoke(UpdateRequest $request, $unique_id)
     {
-        
+
         // Find the user by unique_id
         $user = User::where('unique_id', $unique_id)->firstOrFail();
 
@@ -43,13 +44,18 @@ class UpdateController extends Controller
                 'start_date'     => CustomHelper::parseDateFromInput($validated['startDate'] ?? null),
                 'end_date'       => CustomHelper::parseDateFromInput($validated['endDate'] ?? null),
                 'pay_type'       => $validated['payType'],
-               
+
                 'status'         => $validated['status'],
-                
+
                 'limit_start_time' => $validated['limit_start'] ?? false,
 
                 'limit_end_time' => $validated['limit_end'] ?? false,
             ];
+
+            // Only update password if provided
+            if (!empty($validated['password'])) {
+                $userData['password'] = Hash::make($validated['password']);
+            }
 
             // Update User
             $user->update($userData);

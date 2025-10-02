@@ -698,18 +698,18 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
                 'placeholder' => 'general@company.com',
                 'sort_order' => $sortOrder++,
             ],
-            // [
-            //     'value_type' => 'text',
-            //     'setting_name' => 'address1',
-            //     'setting_title' => 'Address 1',
-            //     'sort_order' => $sortOrder++,
-            // ],
-            // [
-            //     'value_type' => 'text',
-            //     'setting_name' => 'address2',
-            //     'setting_title' => 'Address 2',
-            //     'sort_order' => $sortOrder++,
-            // ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'address1',
+                'setting_title' => 'Address 1',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'address2',
+                'setting_title' => 'Address 2',
+                'sort_order' => $sortOrder++,
+            ],
             // Enquiry
             [
                 'value_type' => 'text',
@@ -732,19 +732,6 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
                 'setting_name' => 'feedback-email',
                 'setting_title' => 'Email - Feedback',
                 'placeholder' => 'feedback@company.com',
-                'sort_order' => $sortOrder++,
-            ],
-            [
-                'value_type' => 'setting_note',
-                'setting_name' => 'contact_us_notice',
-                'setting_title' => '',
-                'setting_options' => json_encode([
-                    'icon' => '',
-                    'color' => 'bg-blue-50 border border-blue-200 text-blue-800',
-                    'title_color' => 'text-blue-900',
-                    'desc_color' => 'text-blue-800',
-                    'description' => '<strong>Note:</strong>  Store locations/addresses that appear on the Contact Us page are managed in Store Settings. <a href="' . route('admin.stores.index') . '" class="text-blue-600 hover:text-blue-800 underline ml-1">Go to Store Settings page</a>',
-                ]),
                 'sort_order' => $sortOrder++,
             ],
         ];

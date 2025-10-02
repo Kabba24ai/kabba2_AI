@@ -13,13 +13,12 @@
 
             <div class="relative">
                 {!! html()->input('text', 'mobile', $settings['Contact Us Settings']['mobile']['setting_value'])->class([
-                        'w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'masked-phone w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('mobile'),
                         'border-red-500' => $errors->has('mobile'),
                     ])->attributes([
                         'autocomplete' => 'off',
                         'placeholder' => $settings['Contact Us Settings']['mobile']['placeholder'],
-                        'required' => false,
                         'id' => 'mobile',
                     ]) !!}
             </div>
@@ -42,7 +41,6 @@
                     ])->attributes([
                         'autocomplete' => 'off',
                         'placeholder' => $settings['Contact Us Settings']['email']['placeholder'],
-                        'required' => false,
                         'id' => 'email',
                     ]) !!}
             </div>
@@ -65,7 +63,6 @@
                     ])->attributes([
                         'autocomplete' => 'off',
                         'placeholder' => $settings['Contact Us Settings']['enquiry-email']['placeholder'],
-                        'required' => false,
                         'id' => 'enquiry-email',
                     ]) !!}
             </div>
@@ -88,7 +85,6 @@
                     ])->attributes([
                         'autocomplete' => 'off',
                         'placeholder' => $settings['Contact Us Settings']['complaint-email']['placeholder'],
-                        'required' => false,
                         'id' => 'complaint-email',
                     ]) !!}
             </div>
@@ -111,7 +107,6 @@
                     ])->attributes([
                         'autocomplete' => 'off',
                         'placeholder' => $settings['Contact Us Settings']['feedback-email']['placeholder'],
-                        'required' => false,
                         'id' => 'feedback-email',
                     ]) !!}
             </div>

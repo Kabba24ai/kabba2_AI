@@ -19,7 +19,6 @@ class IndexController extends Controller
             return $group->keyBy('setting_name');
         });
 
-
         return view('admin.configurations.index_new', compact('settings'));
     }
 }

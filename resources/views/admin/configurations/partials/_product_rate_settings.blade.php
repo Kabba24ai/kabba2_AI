@@ -5,20 +5,15 @@
     </div>
 
     <div class="grid grid-cols-1 gap-3">
-        <div class="space-y-6 bg-blue-50 p-4 rounded-xl border border-blue-200">
+        <div class="space-y-3 bg-blue-50 p-4 rounded-xl border border-blue-200">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                            d="M3 6h10M3 10h10M3 14h7M17 8l4 4-4 4" />
-                    </svg>
+                    <x-heroicon-o-currency-dollar class="w-5 h-5 text-blue-600" aria-hidden="true" />
                     <h2 class="text-lg font-semibold text-slate-800">Prepaid Fuel Rates</h2>
                 </div>
                 <button type="button" data-add="fuel"
                     class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
+                    <x-heroicon-o-plus class="w-4 h-4" aria-hidden="true" />
                     Add Fuel Rate
                 </button>
             </div>
@@ -28,7 +23,6 @@
     </div>
 </div>
 
-
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-cube class="h-5 w-5 text-blue-600" aria-hidden="true" />
@@ -36,20 +30,15 @@
     </div>
 
     <div class="grid grid-cols-1 gap-3">
-        <div class="space-y-6 bg-green-50 p-4 rounded-xl border border-green-200">
+        <div class="space-y-3 bg-green-50 p-4 rounded-xl border border-green-200">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                            d="M3 12l3 3 5-6m5 1l2 2 4-5" />
-                    </svg>
+                    <x-heroicon-o-currency-dollar class="w-5 h-5 text-green-600" aria-hidden="true" />
                     <h2 class="text-lg font-semibold text-slate-800">Prepaid Cleaning Rates</h2>
                 </div>
                 <button type="button" data-add="clean"
                     class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
+                    <x-heroicon-o-plus class="w-4 h-4" aria-hidden="true" />
                     Add Cleaning Rate
                 </button>
             </div>
@@ -58,7 +47,6 @@
         </div>
     </div>
 </div>
-
 <!-- Row Template -->
 <template id="rate-row">
     <div class="flex items-center gap-4 p-4 bg-white rounded-xl border transition-all duration-200 hover:shadow-md">
@@ -80,9 +68,7 @@
         <button type="button" data-remove
             class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200"
             title="Remove">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <x-heroicon-o-x-mark class="w-4 h-4" aria-hidden="true" />
         </button>
     </div>
 </template>
@@ -95,14 +81,17 @@
             const rowTemplate = document.getElementById('rate-row').content;
 
             // ---- 1) Bring Laravel settings into JS (safe even if missing) ----
-            const storedFuelRaw  = @json($settings['Product Settings']['prepaid_fuel_rates']['setting_value'] ?? []);
+            const storedFuelRaw = @json($settings['Product Settings']['prepaid_fuel_rates']['setting_value'] ?? []);
             const storedCleanRaw = @json($settings['Product Settings']['prepaid_cleaning_rates']['setting_value'] ?? []);
 
             storedCleanRaw.forEach(item => addRateRow(cleanList, item));
             storedFuelRaw.forEach(item => addRateRow(fuelList, item));
 
             // Function to add a new rate row
-            function addRateRow(list, item = {description: '', rate: ''}) {
+            function addRateRow(list, item = {
+                description: '',
+                rate: ''
+            }) {
                 const newRow = rowTemplate.cloneNode(true);
                 // Determine current index based on existing rows
                 const index = list.children.length;

@@ -17,30 +17,25 @@ class IndexController extends Controller
 
     public function __invoke($slug, Request $request)
     {
+        $category = ProductCategory::published()
+            ->with(['media', 'publishedProducts.media', 'publishedProducts.mediaChildren.media'])
+            ->whereNull('parent_id')
+            ->where('slug', $slug)
+            ->firstOrFail();
 
-        // $category = ProductCategory::published()->with(['media', 'products.media', 'products.mediaChildren.media'])->whereNull('parent_id')->where('slug',$slug)->firstOrFail();
+        $products = $category->publishedProducts;
 
-        $category = ProductCategory::published()->with('media')
-                ->whereNull('parent_id')->where('slug', $slug)->firstOrFail();
+        if ($request->has('search') && $request->search != '' && count($products) > 0) {
+            $keyword = $request->search;
+            $products = $products->filter(function ($product) use ($keyword) {
+                return stripos($product->product_name, $keyword) !== false;
+            });
+        }
 
-
-        $products = Product::published()->with('categories', 'media', 'mediaChildren.media')
-                ->whereHas('categories', function ($q) use ($category) {
-                    $q->where('product_categories.id', $category->id);
-                });
-
-        if ($request->has('search') && $request->search != '') {
-                    $keyword = $request->search;
-                    $products = $products->where('product_name', 'LIKE', "%{$keyword}%");
-                }
-
-                $products = $products->get();
-
-
-            return view('front.categories.index', [
+        return view('front.categories.index', [
             'title' => $category->title,
             'category' => $category,
-            'products' => $products
+            'products' => $products,
         ]);
     }
 }

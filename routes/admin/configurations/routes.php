@@ -8,7 +8,8 @@ use App\Http\Controllers\Admin\Configurations\UpdateController;
 use App\Http\Controllers\Admin\Configurations\VerifyMasterController;
 use App\Http\Controllers\Admin\Configurations\SettingsResetController;
 use App\Http\Controllers\Admin\Configurations\New\IndexController as NewIndexController;
-use App\Http\Controllers\Admin\Configurations\New\UpdateController as NewUpdateController;
+use App\Http\Controllers\Admin\Configurations\New\ContactUsSettings\SaveController;
+use App\Http\Controllers\Admin\Configurations\New\ProductSettings\SaveRateController;
 
 
 Route::prefix('configurations')
@@ -24,6 +25,7 @@ Route::prefix('configurations')
 
     Route::prefix('new')->name('new.')->group(function ($router) {
         Route::get('/', NewIndexController::class)->name('index');
-        Route::post('/', NewUpdateController::class);
+        Route::post('/contact-us-settings', SaveController::class)->name('save-contact-us-settings');
+        Route::post('/product-rate-settings', SaveRateController::class)->name('save-product-rate');
     });
 });

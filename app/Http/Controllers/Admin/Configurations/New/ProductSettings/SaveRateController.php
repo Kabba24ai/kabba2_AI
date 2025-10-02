@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Configurations\New;
+namespace App\Http\Controllers\Admin\Configurations\New\ProductSettings;
 
 use App\Http\Controllers\Controller;
 
@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Configurations\Setting;
 use Illuminate\Http\Request;
 
-class UpdateController extends Controller
+class SaveRateController extends Controller
 {
     public function __invoke(Request $request)
     {

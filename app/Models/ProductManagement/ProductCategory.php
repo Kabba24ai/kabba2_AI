@@ -160,6 +160,11 @@ class ProductCategory extends Model
                     ->orderBy('pivot_sort_order', 'asc');
     }
 
+    public function publishedProducts()
+    {
+        return $this->products()->published();
+    }
+
     // tree only
     // public static function getHierarchy($except = []): array
     // {

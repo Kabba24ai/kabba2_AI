@@ -18,11 +18,20 @@ class SaveRateController extends Controller
             'fuel.*.rate' => 'numeric|min:0',
             'clean' => 'nullable|array',
             'clean.*.description' => 'string|max:255',
-            'clean.*.rate' => 'numeric|min:0',
+            'clean.*.rate' => 'nullable|numeric|min:0',
+            'daily_hours' => 'nullable|numeric|min:0',
+            'weekend_hours' => 'nullable|numeric|min:0',
+            'weekly_hours' => 'nullable|numeric|min:0',
+            'monthly_hours' => 'nullable|numeric|min:0',
         ]);
 
-        // Remove empty values from fuel array
 
+        Setting::where('setting_name', 'daily_hours')->update(['setting_value' => $validated['daily_hours'] ?? null]);
+        Setting::where('setting_name', 'weekend_hours')->update(['setting_value' => $validated['weekend_hours'] ?? null]);
+        Setting::where('setting_name', 'weekly_hours')->update(['setting_value' => $validated['weekly_hours'] ?? null]);
+        Setting::where('setting_name', 'monthly_hours')->update(['setting_value' => $validated['monthly_hours'] ?? null]);
+
+        // Remove empty values from fuel array
         $fuelData = array_filter($validated['fuel'] ?? [], function($item) {
             return !empty($item['description']) && isset($item['rate']) && $item['rate'] !== '';
         });

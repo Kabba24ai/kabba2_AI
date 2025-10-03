@@ -165,49 +165,6 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
-        {{-- Sizes --}}
-        <div class="mt-3">
-            <div class="flex items-center flex-wrap gap-6">
-                <label for="track_insurance_small"
-                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'Small')->id('track_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
-                    Small
-                </label>
-
-                <label for="track_insurance_medium"
-                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'Medium')->id('track_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
-                    Medium
-                </label>
-
-                <label for="track_insurance_large"
-                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'Large')->id('track_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
-                    Large
-                </label>
-
-                <label for="track_insurance_xlarge"
-                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'X-Large')->id('track_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
-                    X-Large
-                </label>
-
-                <label for="track_insurance_2xlarge"
-                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, '2X-Large')->id('track_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
-                    2X-Large
-                </label>
-
-                <label for="track_insurance_commercial"
-                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'Commercial')->id('track_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
-                    Commercial
-                </label>
-            </div>
-
-            <div id="track-insurance-sizes-errors"></div>
-        </div>
-
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
@@ -284,6 +241,49 @@
                 </div>
                 <div id="rental-truck-insurance-monthly-errors"></div>
             </div>
+        </div>
+
+           {{-- Sizes --}}
+        <div class="mt-3">
+            <div class="flex items-center flex-wrap gap-6">
+                <label for="track_insurance_small"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'Small')->id('track_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    Small
+                </label>
+
+                <label for="track_insurance_medium"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'Medium')->id('track_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    Medium
+                </label>
+
+                <label for="track_insurance_large"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'Large')->id('track_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    Large
+                </label>
+
+                <label for="track_insurance_xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'X-Large')->id('track_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    X-Large
+                </label>
+
+                <label for="track_insurance_2xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, '2X-Large')->id('track_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    2X-Large
+                </label>
+
+                <label for="track_insurance_commercial"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('track_insurance_size', null, 'Commercial')->id('track_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    Commercial
+                </label>
+            </div>
+
+            <div id="track-insurance-sizes-errors"></div>
         </div>
 
         <!-- Spacer -->

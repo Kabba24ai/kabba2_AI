@@ -165,7 +165,7 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
                 'value_type' => 'checkbox',
                 'setting_name' => 'include_extended_range',
                 'setting_title' => 'Include Extended Range Option',
-                // 'default_value' => true,
+                'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [

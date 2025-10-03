@@ -5,7 +5,7 @@
         <h3 class="text-lg font-bold text-gray-900">Allocated Hours Settings</h3>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+    <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0">
         <div>
             <label for="daily_hours" class="block text-sm font-medium text-gray-700 mb-1">
                 Daily Hours
@@ -13,7 +13,7 @@
 
             <div class="relative">
                 {!! html()->input('number', 'daily_hours', $settings['Allocated Hours Settings']['daily_hours']['setting_value'])->class([
-                        'w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('daily_hours'),
                         'border-red-500' => $errors->has('daily_hours'),
                     ])->attributes([
@@ -37,7 +37,7 @@
 
             <div class="relative">
                 {!! html()->input('number', 'weekend_hours', $settings['Allocated Hours Settings']['weekend_hours']['setting_value'])->class([
-                        'w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('weekend_hours'),
                         'border-red-500' => $errors->has('weekend_hours'),
                     ])->attributes([
@@ -62,7 +62,7 @@
 
             <div class="relative">
                 {!! html()->input('number', 'weekly_hours', $settings['Allocated Hours Settings']['weekly_hours']['setting_value'])->class([
-                        'w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('weekly_hours'),
                         'border-red-500' => $errors->has('weekly_hours'),
                     ])->attributes([
@@ -87,7 +87,7 @@
 
             <div class="relative">
                 {!! html()->input('number', 'monthly_hours', $settings['Allocated Hours Settings']['monthly_hours']['setting_value'])->class([
-                        'w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('monthly_hours'),
                         'border-red-500' => $errors->has('monthly_hours'),
                     ])->attributes([

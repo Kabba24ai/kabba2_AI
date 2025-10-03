@@ -10,7 +10,7 @@
         @csrf
 
         {{-- Top Save Button --}}
-        <div class="mb-6 flex justify-end">
+        <div class="my-3 flex justify-end">
             <button type="submit"
                 class="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -30,7 +30,7 @@
         </div>
 
         {{-- Bottom Save Button --}}
-        <div class="mt-6 flex justify-end">
+        <div class="my-3 flex justify-end">
             <button type="submit"
                 class="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"

@@ -1,64 +1,79 @@
-{{-- Configuration Tabs --}}
-<div class="space-y-6">
-    <!-- Tabs header -->
-    <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div class="flex flex-wrap sm:flex-nowrap p-4 gap-2" data-tab-group="config">
-            <button type="button" onclick="showConfigTab('config-admin', this)" id="tab-config-admin"
-                class="tab-button bg-green-100 text-green-800 px-4 py-2 text-sm font-medium rounded-md transition">
-                Admin Settings
+<div class="rounded-xl dark:border-gray-800" x-data="{ activeTab: '{{ session('active_tab', 'product-settings') }}' }">
+    <div class="border-b border-gray-200 dark:border-gray-800">
+        <nav
+            class="-mb-px flex space-x-2 overflow-x-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 dark:[&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:h-1.5">
+            <button
+                class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'product-settings' ?
+                    ' text-brand-500 border-brand-500  dark:text-brand-400 dark:border-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'product-settings'" id="tab-product-settings">
+                Product Settings
             </button>
-            <button type="button" onclick="showConfigTab('config-allocated', this)" id="tab-config-allocated"
-                class="tab-button text-gray-700 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">
-                Allocated Settings
-            </button>
-            <button type="button" onclick="showConfigTab('config-communication', this)" id="tab-config-communication"
-                class="tab-button text-gray-700 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">
-                Communication Settings
-            </button>
-            <button type="button" onclick="showConfigTab('config-contact', this)" id="tab-config-contact"
-                class="tab-button text-gray-700 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">
+
+            <button
+                class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'contact-us-settings' ?
+                    ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'contact-us-settings'" id="tab-contact-us-settings">
                 Contact Us Settings
             </button>
-            <button type="button" onclick="showConfigTab('config-product-rate', this)" id="tab-config-product-rate"
-                class="tab-button text-gray-700 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">
-                Product Rate Settings
+
+            <button
+                class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'communication-settings' ?
+                    ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'communication-settings'" id="tab-communication-settings">
+                Communication Settings
             </button>
+
+            <button
+                class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'admin-settings' ?
+                    ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'admin-settings'" id="tab-admin-settings">
+                Admin Settings
+            </button>
+
+        </nav>
+    </div>
+
+    <div class="dark:border-gray-800 my-2">
+        <div x-show="activeTab === 'product-settings'">
+            <x-admin.configurations.config-form id="config-product-rate-form" :action="route('admin.configurations.new.save-product-rate')" saveLabel="Save">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @include('admin.configurations.partials._product_settings')
+                </div>
+            </x-admin.configurations.config-form>
         </div>
-    </div>
 
-    <!-- Tabs content -->
-    <div id="config-admin" class="tab-content" data-tab-group="config">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            @include('admin.configurations.partials._admin_settings')
+        <div x-show="activeTab === 'contact-us-settings'">
+            <x-admin.configurations.config-form id="config-contact-form" :action="route('admin.configurations.new.save-contact-us-settings')" saveLabel="Save">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @include('admin.configurations.partials._contact_us_settings')
+                </div>
+            </x-admin.configurations.config-form>
         </div>
-    </div>
 
-    <div id="config-allocated" class="tab-content hidden" data-tab-group="config">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            @include('admin.configurations.partials._allocated_settings')
+        <div x-show="activeTab === 'communication-settings'">
+            <x-admin.configurations.config-form id="config-communication-form" :action="'#'" saveLabel="Save">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @include('admin.configurations.partials._communication_settings')
+                </div>
+            </x-admin.configurations.config-form>
         </div>
-    </div>
 
-    <div id="config-communication" class="tab-content hidden" data-tab-group="config">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            @include('admin.configurations.partials._communication_settings')
+        <div x-show="activeTab === 'admin-settings'">
+            <x-admin.configurations.config-form id="config-admin-form" :action="'#'" saveLabel="Save">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @include('admin.configurations.partials._admin_settings')
+                </div>
+            </x-admin.configurations.config-form>
         </div>
-    </div>
 
-    <div id="config-contact" class="tab-content hidden" data-tab-group="config">
-        <x-admin.configurations.config-form id="config-contact-form" :action="route('admin.configurations.new.save-contact-us-settings')" saveLabel="Save">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                @include('admin.configurations.partials._contact_us_settings')
-            </div>
-        </x-admin.configurations.config-form>
-    </div>
-
-    <div id="config-product-rate" class="tab-content hidden" data-tab-group="config">
-        <x-admin.configurations.config-form id="config-product-rate-form" :action="route('admin.configurations.new.save-product-rate')" saveLabel="Save">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                @include('admin.configurations.partials._product_rate_settings')
-            </div>
-        </x-admin.configurations.config-form>
     </div>
 </div>
 
@@ -239,53 +254,5 @@
                 }
             }
         })();
-
-        // Minimal tabs controller scoped for Config page
-        function showConfigTab(tabId, clickedBtn) {
-            const group = 'config';
-            // hide all contents in this group
-            document.querySelectorAll(`.tab-content[data-tab-group="${group}"]`).forEach(content => {
-                content.classList.add('hidden');
-            });
-            // show selected content
-            const active = document.getElementById(tabId);
-            if (active) active.classList.remove('hidden');
-
-            // reset all buttons in this group header
-            const header = document.querySelector(`[data-tab-group="${group}"]`);
-            if (header) {
-                header.querySelectorAll('button').forEach(btn => {
-                    btn.classList.remove('bg-green-100', 'text-green-800');
-                    btn.classList.add('text-gray-700');
-                });
-            }
-            // set active styles for clicked button
-            if (clickedBtn) {
-                clickedBtn.classList.add('bg-green-100', 'text-green-800');
-                clickedBtn.classList.remove('text-gray-700');
-                // persist selection
-                try {
-                    localStorage.setItem('config_active_tab', tabId);
-                } catch (e) {}
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Restore last active tab if available
-            let initial = 'config-admin';
-            try {
-                const saved = localStorage.getItem('config_active_tab');
-                if (saved && document.getElementById(saved)) initial = saved;
-            } catch (e) {}
-
-            const btn = document.getElementById('tab-' + initial);
-            if (btn) {
-                showConfigTab(initial, btn);
-            } else {
-                // fallback to first button
-                const first = document.querySelector('[data-tab-group="config"] button');
-                if (first) showConfigTab('config-admin', first);
-            }
-        });
     </script>
 @endpush

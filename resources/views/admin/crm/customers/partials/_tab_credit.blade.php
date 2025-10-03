@@ -651,8 +651,6 @@
                             </svg>
                         </button>
 
-
-
                     </div>
 
         {{ html()->form()->close() }}

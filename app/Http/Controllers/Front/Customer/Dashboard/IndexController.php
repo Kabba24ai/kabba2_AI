@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Customers\Customer;
 use App\Models\Locations\State;
+use App\Helpers\ConfigurationHelper;
 
 
 class IndexController extends Controller
@@ -48,7 +49,8 @@ class IndexController extends Controller
                 }
             }
         }
-
+        // biling sumary
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
         return view('front.customer.dashboard.index', [
             'title' => 'Home - Customer Dashboard',
@@ -58,7 +60,7 @@ class IndexController extends Controller
             'website_protocol'=> $protocol,
             'company_website'=> $domain,
             'website_extension'=> $extension,
-
+            'paymentSetting' => $paymentSetting ,
         ]);
     }
 }

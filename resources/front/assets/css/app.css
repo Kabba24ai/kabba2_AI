@@ -877,3 +877,12 @@ header, nav { overflow: visible; }
 }
 
 @media screen and (min-width:280px) and (max-width:350px) {}
+
+
+.modal-scrollable {
+    height: calc(100% - 3rem);
+}
+
+.overflow-y-auto {
+    overflow-y: auto;
+}

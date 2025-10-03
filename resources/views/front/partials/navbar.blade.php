@@ -33,76 +33,76 @@
                 <img src="{{ asset('storage/front/images/logo.png') }}" alt="" class="h-full md:w-23 w-40">
             </a>
             <div class="flex space-x-4 5/6 w-full items-center justify-right text-white ml-5"">
-                <ul class="lg:flex hidden flex items-center gap-6">
-                    <li class="{{ Route::is('front.home.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.home.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Home</a></li>
+                <ul class=" lg:flex hidden flex items-center gap-6">
+                <li class="{{ Route::is('front.home.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.home.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Home</a></li>
 
-                    <!-- Equipment Rentals (mega menu trigger) -->
-                    <li class="relative menu-wrap ">
-                        <a href="#" class="flex items-center hover:text-yellow-400 text-sm transition-all duration-300 equipment-ren ease-in-out group-[.active]:font-bold   ">
-                            Equipment Rentals
-                        </a>
+                <!-- Equipment Rentals (mega menu trigger) -->
+                <li class="relative menu-wrap ">
+                    <a href="#" class="flex items-center hover:text-yellow-400 text-sm transition-all duration-300 equipment-ren ease-in-out group-[.active]:font-bold   ">
+                        Equipment Rentals
+                    </a>
 
-                        <!-- MEGA PANEL (5 equal columns) -->
-                        <div class="mega hidden w-[100%] absolute left-0 right-0 submenu-top shadow-xl">
-                            <div class="max-w-5xl w-screen px-6 py-6 grid grid-cols-4 gap-4 bg-white">
+                    <!-- MEGA PANEL (5 equal columns) -->
+                    <div class="mega hidden w-[100%] absolute left-0 right-0 submenu-top shadow-xl">
+                        <div class="max-w-5xl w-screen px-6 py-6 grid grid-cols-4 gap-4 bg-white">
 
-                                @foreach ($frontCategoryTree->chunk(ceil($frontCategoryTree->count() / 4)) as $categoryColumn)
+                            @foreach ($frontCategoryTree->chunk(ceil($frontCategoryTree->count() / 4)) as $categoryColumn)
 
 
-                                <!-- Column 1 -->
-                                <ul class="mega-col space-y-2 text-gray-700">
-                                    @foreach ($categoryColumn as $category)
-                                    <li class="{{ $category->childCategories->isNotEmpty() ? 'relative mb-0 group/item' : 'mb-0' }} py-1">
-                                        <a href="{{ route('front.categories.index', $category->slug) }}"
-                                            class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out text-gray-700 leading-7">
-                                            {{ $category->title }}
+                            <!-- Column 1 -->
+                            <ul class="mega-col space-y-2 text-gray-700">
+                                @foreach ($categoryColumn as $category)
+                                <li class="{{ $category->childCategories->isNotEmpty() ? 'relative mb-0 group/item' : 'mb-0' }} py-1">
+                                    <a href="{{ route('front.categories.index', $category->slug) }}"
+                                        class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out text-gray-700 leading-7">
+                                        {{ $category->title }}
+                                    </a>
+
+                                    {{-- Flyout for child categories --}}
+                                    @if ($category->childCategories->isNotEmpty())
+                                    <div class="flyout hidden absolute left-0 px-4 py-4 top-6 w-72 shadow-lg border border-gray-300 bg-white rounded-md z-20">
+                                        @foreach ($category->childCategories as $child)
+                                        <a href="{{ route('front.categories.sub-category', ['slug' => $category->slug, 'childCategorySlug' => $child->slug]) }}"
+                                            class="block px-2 py-1 hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out text-gray-700">
+                                            {{ $child->title }}
                                         </a>
 
-                                        {{-- Flyout for child categories --}}
-                                        @if ($category->childCategories->isNotEmpty())
-                                        <div class="flyout hidden absolute left-0 px-4 py-4 top-6 w-72 shadow-lg border border-gray-300 bg-white rounded-md z-20">
-                                            @foreach ($category->childCategories as $child)
-                                            <a href="{{ route('front.categories.sub-category', ['slug' => $category->slug, 'childCategorySlug' => $child->slug]) }}"
-                                                class="block px-2 py-1 hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out text-gray-700">
-                                                {{ $child->title }}
-                                            </a>
-
-                                            {{-- If child has grandchildren --}}
-                                            @if ($child->childCategories->isNotEmpty())
-                                            <div class="absolute top-0 left-full ml-2 w-max min-w-56 pt-3 pb-3
+                                        {{-- If child has grandchildren --}}
+                                        @if ($child->childCategories->isNotEmpty())
+                                        <div class="absolute top-0 left-full ml-2 w-max min-w-56 pt-3 pb-3
                                                         border border-gray-300 bg-white shadow-lg rounded-md
                                                         opacity-0 invisible transition-all duration-200 ease-in-out
                                                         group-hover/item:opacity-100 group-hover/item:visible
                                                         z-[9999] flex flex-col gap-y-1">
-                                                @foreach ($child->childCategories as $grandChild)
-                                                <a href="{{ route('front.categories.sub-sub-category', [
+                                            @foreach ($child->childCategories as $grandChild)
+                                            <a href="{{ route('front.categories.sub-sub-category', [
                                                         'slug' => $category->slug,
                                                         'childCategorySlug' => $child->slug,
                                                         'grandChildSlug' => $grandChild->slug
                                                     ]) }}"
-                                                    class="block px-4 py-1 text-sm text-gray-700 hover:text-yellow-400 whitespace-nowrap">
-                                                    {{ $grandChild->title }}
-                                                </a>
-                                                @endforeach
-                                            </div>
-                                            @endif
+                                                class="block px-4 py-1 text-sm text-gray-700 hover:text-yellow-400 whitespace-nowrap">
+                                                {{ $grandChild->title }}
+                                            </a>
                                             @endforeach
                                         </div>
                                         @endif
-                                    </li>
-                                    @endforeach
-                                </ul>
-
+                                        @endforeach
+                                    </div>
+                                    @endif
+                                </li>
                                 @endforeach
-                            </div>
+                            </ul>
+
+                            @endforeach
                         </div>
-                    </li>
+                    </div>
+                </li>
 
-                    <!-- <li class=""><a href="#" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">How It Works</a></li> -->
+                <!-- <li class=""><a href="#" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">How It Works</a></li> -->
 
-                    <li class=" {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.faqs.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Faq</a></li>
+                <li class=" {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.faqs.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Faq</a></li>
 
-                    <li class=" {{ Route::is('front.contact-us.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.contact-us.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Contact Us</a></li>
+                <li class=" {{ Route::is('front.contact-us.index') ? 'active' : '' }} group-[.active]:font-bold group"><a href="{{ route('front.contact-us.index') }}" class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Contact Us</a></li>
 
 
                 </ul>
@@ -157,7 +157,7 @@
                         </a>
                         @endif
                     </div>
-                    
+
                     <a href="javascript:void(0)" class="toggleCart px-3 py-2 rounded-full relative text-center me-5">
                         <i class="fa-solid fa-bag-shopping text-2xl text-white"></i>
                         <span id="cart-count"

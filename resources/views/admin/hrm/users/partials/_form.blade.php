@@ -107,7 +107,7 @@
                     'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
                     'placeholder' => '(xxx) xxx-xxxx',
                     'id' => 'company_phone',
-                    'autocomplete' => 'tel',
+                    'autocomplete' => 'off',
                     ])
                     ->required()
                     !!}
@@ -120,13 +120,16 @@
                     <label for="password" class="text-xs text-gray-500 font-medium">Password</label>
                     <div class="relative">
                         {!! html()->password('password')
-                        ->id('password')
+                        ->id('password')->value(isset($user) ? '' : '12345678')
                         ->class('pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                         ->attributes([
-                        'placeholder' => 'Leave blank to keep default password',
+                        'placeholder' => isset($user)
+                        ? 'Leave blank to keep current password'
+                        : 'Default password is 12345678',
                         'data-parsley-minlength' => 6,
                         'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
                         'data-parsley-optional' => 'true', // Make validation optional
+                        'autocomplete' => 'off',
                         ]) !!}
 
                         <button type="button" onclick="toggleVisibility('password', this)" class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
@@ -148,10 +151,12 @@
                     <label for="password_confirmation" class="text-xs text-gray-500 font-medium">Confirm Password</label>
                     <div class="relative">
                         {!! html()->password('password_confirmation')
-                        ->id('password_confirmation')
+                        ->id('password_confirmation')->value(isset($user) ? '' : '12345678')
                         ->class('pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                         ->attributes([
-                        'placeholder' => 'Leave blank to keep default password',
+                        'placeholder' => isset($user)
+                        ? 'Leave blank to keep current password'
+                        : 'Default password is 12345678',
                         'data-parsley-equalto' => '#password',
                         'data-parsley-equalto-message' => 'Passwords do not match.',
                         'data-parsley-optional' => 'true', // Optional confirmation

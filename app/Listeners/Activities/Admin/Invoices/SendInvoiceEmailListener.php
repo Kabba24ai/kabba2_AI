@@ -20,14 +20,14 @@ class SendInvoiceEmailListener
             $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
             // Log current mail settings
-            Log::info('Current Mail Configuration', [
-                'mailer'     => config('mail.default'),
-                'host'       => config('mail.mailers.smtp.host'),
-                'port'       => config('mail.mailers.smtp.port'),
-                'username'   => config('mail.mailers.smtp.username') ? '***hidden***' : null,
-                'encryption' => config('mail.mailers.smtp.encryption'),
-                'from'       => config('mail.from.address'),
-            ]);
+            // Log::info('Current Mail Configuration', [
+            //     'mailer'     => config('mail.default'),
+            //     'host'       => config('mail.mailers.smtp.host'),
+            //     'port'       => config('mail.mailers.smtp.port'),
+            //     'username'   => config('mail.mailers.smtp.username') ? '***hidden***' : null,
+            //     'encryption' => config('mail.mailers.smtp.encryption'),
+            //     'from'       => config('mail.from.address'),
+            // ]);
 
             // Generate PDF
             $pdf = Pdf::loadView('admin.crm.customers.print_invoice', [
@@ -52,11 +52,11 @@ class SendInvoiceEmailListener
             $invoice->is_email_send = 'send';
             $invoice->save();
 
-            Log::info("Invoice email sent successfully.", [
-                'invoice_id' => $invoice->id,
-                'to'         => $invoice->customer->email,
-                'subject'    => $email->getSubject(),
-            ]);
+            // Log::info("Invoice email sent successfully.", [
+            //     'invoice_id' => $invoice->id,
+            //     'to'         => $invoice->customer->email,
+            //     'subject'    => $email->getSubject(),
+            // ]);
         } catch (\Throwable $e) {
 
             Log::error("SendInvoiceEmailListener: Failed to generate PDF or send email.", [

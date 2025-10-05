@@ -1,10 +1,10 @@
  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
      <thead class="bg-gray-100 text-gray-600 ">
          <tr>
+             <th class="px-4 py-3 cus-width-10 text-left font-semibold">Status</th>
              <th class="px-4 py-3 cus-width-15 text-left font-semibold whitespace-nowrap">Category</th>
              <th class="px-4 py-3 cus-width-20 text-left font-semibold whitespace-nowrap">Equipment Name</th>
              <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Equip. ID</th>
-             <th class="px-4 py-3 cus-width-10 text-left font-semibold">Status</th>
              <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Tech / Mgt.</th>
              <th class="px-4 py-3 cus-width-10 text-left font-semibold">Location</th>
              <th class="px-4 py-3 cus-width-10 text-right font-semibold whitespace-nowrap">Delivery Date</th>
@@ -67,7 +67,7 @@
              <td class="px-4 py-4">
                  <div class="font-medium">{{ $eq->activeEquipmentRentalReadyTemplate?->employee_name ?? '-' }}</div>
                  <div class="text-xs text-gray-500">
-                 
+
                  </div>
              </td>
              <td class="px-4 py-4">

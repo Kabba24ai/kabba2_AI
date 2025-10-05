@@ -53,7 +53,8 @@ class IndexController extends Controller
             $query->whereIn('current_status', EquipmentCurrentStatus::getValues());
         }
 
-        $equipment = $query->latest('id')->get();
+        $order = ['damaged', 'maintenance', 'rented', 'available'];
+        $equipment = $query->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")->get();
 
         $categories = ProductCategory::getHierarchy();
 

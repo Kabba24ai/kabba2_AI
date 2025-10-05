@@ -129,6 +129,7 @@
             let options = JSON.parse(wrapper.dataset.options || '[]');
             options = options.map(opt => ({
                 ...opt,
+                label: (opt.label === null || opt.label === 'null') ? '' : opt.label,
                 comment: (opt.comment === null || opt.comment === 'null') ? '' : opt.comment,
                 accept_label: (opt.accept_label === null || opt.accept_label === 'null') ? '' : opt
                     .accept_label,

@@ -85,7 +85,6 @@ class UpdateController extends Controller
 
         return match ($action) {
             'save' => redirect()->route('admin.product-management.options.edit', ['unique_id' => $productOption->unique_id]),
-            'save_new' => redirect()->route('admin.product-management.options.create'),
             default => redirect()->route('admin.product-management.options.index'),
         };
     }

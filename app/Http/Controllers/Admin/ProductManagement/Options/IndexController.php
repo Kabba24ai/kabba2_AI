@@ -18,7 +18,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $options = ProductOption::withCount('items')->orderBy('created_at', 'desc')->get();
+        $options = ProductOption::withCount('items')->oldest('name')->get();
         $totalOptions = ProductOption::count();
         $activeOptions = ProductOption::active()->count();
         $inactiveOptions = ProductOption::inActive()->count();

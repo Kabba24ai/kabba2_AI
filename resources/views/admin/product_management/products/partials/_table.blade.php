@@ -8,6 +8,13 @@
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-950">
             @forelse($products as $product)
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+                        @if ($product->categories && $product->categories->count())
+                            {{ $product->categories->pluck('title')->join(', ') }}
+                        @else
+                            <span class="text-gray-400 italic">None</span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4">
                         <div class="font-medium text-gray-800 dark:text-gray-100">{{ $product->product_name }}</div>
                         @if ($product->is_on_sale)
@@ -40,13 +47,7 @@
                     <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
                         {{ \App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice('monthly')) }}
                     </td>
-                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        @if ($product->categories && $product->categories->count())
-                            {{ $product->categories->pluck('title')->join(', ') }}
-                        @else
-                            <span class="text-gray-400 italic">None</span>
-                        @endif
-                    </td>
+
                     <td class="px-6 py-4">
                         <span
                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium

@@ -137,8 +137,10 @@
                     </div>
 
                     <div class="rich-content">
-                        <strong>Short Description</strong>
-                        <p> {!! $productDetail->short_description !!} </p>
+                        @if ($productDetail->short_description)
+                            <strong>Short Description</strong>
+                            <p> {!! $productDetail->short_description !!} </p>
+                        @endif
                     </div>
 
                     <div class="bg-gray-100 p-4 rounded-lg max-w-max space-y-3">
@@ -196,7 +198,9 @@
                                 // Determine default checked value
                                 $checkedDistanceType = $hasStandard
                                     ? 'Standard'
-                                    : ($hasExtended ? 'Extended' : 'Custom');
+                                    : ($hasExtended
+                                        ? 'Extended'
+                                        : 'Custom');
                             @endphp
                             @if ($showInStore || $showDelivery)
                                 <label for="rentalDeliveryMethod" class="font-medium">Rental Delivery Method</label>
@@ -283,7 +287,8 @@
                                                 [<span id="PickupReturnPrice"></span>]
                                             </option>
                                         </select>
-                                        <div id="deliveryOptionSelectError" class="hidden text-red-500 text-sm mt-1"></div>
+                                        <div id="deliveryOptionSelectError" class="hidden text-red-500 text-sm mt-1">
+                                        </div>
                                     </div>
                                 </div>
                             @endif
@@ -563,12 +568,14 @@
 
     <section class="pb-16">
         <div class="container mx-auto max-w-screen-2xl px-4 md:px-6">
-            <div class="pb-5">
-                <h2 class="md:text-xl font-bold text-left">Product Details</h2>
-            </div>
-            <div class="flex flex-col gap-4 text-gray-700 leading-relaxed  rich-content">
-                {!! $productDetail->description !!}
-            </div>
+            @if ($productDetail->description)
+                <div class="pb-5">
+                    <h2 class="md:text-xl font-bold text-left">Product Details</h2>
+                </div>
+                <div class="flex flex-col gap-4 text-gray-700 leading-relaxed  rich-content">
+                    {!! $productDetail->description !!}
+                </div>
+            @endif
         </div>
     </section>
 
@@ -642,7 +649,8 @@
 
                 <!-- Message -->
                 <p class="text-gray-700 mb-4">
-                    Your reservation will be completed using the Extended Range Delivery and we will call you to make the final arrangements based upon your delivery requirements.
+                    Your reservation will be completed using the Extended Range Delivery and we will call you to make the
+                    final arrangements based upon your delivery requirements.
                 </p>
 
                 <!-- Phone Number -->

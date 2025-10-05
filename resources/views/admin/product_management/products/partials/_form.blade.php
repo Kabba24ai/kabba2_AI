@@ -137,7 +137,7 @@
 {{-- Short Description --}}
 <div class="mb-8">
     <label for="short_description"
-        class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Short
+        class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Short
         Description
     </label>
     {{ html()->textarea('short_description')->class([
@@ -149,7 +149,7 @@
             'placeholder' => 'Enter Short Description Of The Product',
             'autocomplete' => 'off',
             'data-parsley-errors-container' => '#short-description-error',
-        ])->required() }}
+        ]) }}
     <p id="short-description-error" class="mt-1 text-sm text-red-600 dark:text-red-400"></p>
     @error('short_description')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -159,7 +159,7 @@
 {{-- Description --}}
 <div class="mb-8">
     <label for="description"
-        class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Description</label>
+        class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Description</label>
     {{ html()->textarea('description')->class([
             'tinymce w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
             'border-red-500' => $errors->has('description'),
@@ -168,7 +168,7 @@
             'placeholder' => 'Enter Description Of The Product',
             'autocomplete' => 'off',
             'data-parsley-errors-container' => '#description-error',
-        ])->required() }}
+        ]) }}
     <p id="description-error" class="mt-1 text-sm text-red-600 dark:text-red-400"></p>
     @error('description')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>

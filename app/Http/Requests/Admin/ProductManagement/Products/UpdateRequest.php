@@ -38,8 +38,8 @@ class UpdateRequest extends ApiBaseFormRequest
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:2000'],
 
-            'short_description' => ['required', 'string', 'max:2000'],
-            'description' => ['required', 'string'],
+            'short_description' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string'],
 
             'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'hover_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],

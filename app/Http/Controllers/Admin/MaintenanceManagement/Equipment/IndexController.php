@@ -11,18 +11,6 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $query = Equipment::with('productCategory');
-
-        // Search filter
-        $query->when($request->search, function ($q, $search) {
-            $q->where('equipment_name', 'like', '%' . $search . '%');
-        });
-
-        // Category filter
-        $query->when($request->category, function ($q, $category) {
-            $q->where('product_category_id', $category);
-        });
-
         // Service due filter
         // $query->when($request->serviceDue, function ($q, $serviceDue) {
         //     if ($serviceDue === 'due-soon') {
@@ -50,7 +38,23 @@ class IndexController extends Controller
         //     }
         // });
 
-        $equipment = $query->latest('id')->paginate(10)->withQueryString();
+        $query = Equipment::with('productCategory');
+
+        // Search filter
+        $query->when($request->search, function ($q, $search) {
+            $q->where('equipment_name', 'like', '%' . $search . '%');
+        });
+
+        // Category filter
+        $query->when($request->category, function ($q, $category) {
+            $q->where('product_category_id', $category);
+        });
+
+        $equipment = $query
+            ->orderBy('equipment_name', 'asc')
+            ->orderBy(ProductCategory::select('title')->whereColumn('product_categories.id', 'equipment.product_category_id'), 'asc')
+            ->paginate(10)
+            ->withQueryString();
 
         // Calculate stats
         $stats = [

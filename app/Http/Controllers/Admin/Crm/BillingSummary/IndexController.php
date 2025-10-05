@@ -76,7 +76,8 @@ class IndexController extends Controller
         if ($request->filled('sort')) {
             switch ($request->sort) {
                 case 'balance':
-                    $query->orderBy('available_credit_balance', 'desc');
+                    $query->orderBy('available_credit_balance', 'desc')
+                          ->orderByRaw("CONCAT_WS(' ', first_name, last_name) asc");
                     break;
                 case 'days':
                     $query->joinSub(

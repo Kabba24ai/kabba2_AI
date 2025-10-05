@@ -37,8 +37,8 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label for="rental_day_before_truck_message" class="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
-                                        <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
-                                        Truck Pickup Message
+                                        <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
+                                        Truck Pickup / Return Message
                                     </label>
                                     {!! html()->textarea(
                                             'rental_day_before_truck_message',
@@ -63,7 +63,7 @@
                                 <div>
                                     <label for="rental_day_before_store_message" class="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                         <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
-                                        Store Pickup Message
+                                        Store Return Message
                                     </label>
                                     {!! html()->textarea(
                                             'rental_day_before_store_message',
@@ -90,14 +90,14 @@
 
                         <div>
                             <div class="flex items-center justify-between mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
-                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Rental Message - Morning Due Date</span>
-                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Text Message sent at 3:00 PM</span>
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Rental Message - Morning of Due Date</span>
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Text Message sent at 7:00 AM</span>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label for="rental_same_day_truck_message" class="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                         <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
-                                        Truck Pickup Message
+                                        Truck Pickup / Return Message
                                     </label>
                                     {!! html()->textarea(
                                             'rental_same_day_truck_message',
@@ -122,7 +122,7 @@
                                 <div>
                                     <label for="rental_same_day_store_message" class="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                         <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
-                                        Store Pickup Message
+                                        Store Return Message
                                     </label>
                                     {!! html()->textarea(
                                             'rental_same_day_store_message',

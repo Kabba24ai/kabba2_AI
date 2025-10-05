@@ -54,7 +54,7 @@
             @endif
             <form id="customer-order-sign-form" method="post"
                 action="{{ route('front.terms-and-conditions.sign', ['orderUniqueId' => $order->unique_id]) }}">
-                <div id="terms-dynamic-content" class="flex flex-col gap-y-3 container">
+                <div id="terms-dynamic-content" class="flex flex-col gap-y-3 container rich-content">
                     @if ($order->terms_status->isPending())
                         {{-- {!!  \App\Helpers\TermsContentHelper::generateTermsContent($order)['terms_content'] !!} --}}
                         {!! $order->pending_terms_content !!}

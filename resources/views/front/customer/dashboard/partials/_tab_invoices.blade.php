@@ -316,9 +316,8 @@
                  document.querySelector('#discountModalWrapper [data-field="Payamount"]').textContent = btn.dataset.amount;
 
 
-document.querySelector('#amount').value = btn.dataset.amount; 
-document.querySelector('#invoice_id').value = btn.dataset.invoice;
-
+                 document.querySelector('#amount').value = btn.dataset.amount;
+                 document.querySelector('#invoice_id').value = btn.dataset.invoice;
 
                  modalWrapper.style.display = 'flex';
              });
@@ -389,6 +388,24 @@ document.querySelector('#invoice_id').value = btn.dataset.invoice;
              e.preventDefault();
              console.log(" Form submit triggered");
 
+
+             // If using existing card, skip tokenization
+
+             if (cardOption.value === 'CardOnFile') {
+                 console.log(" Using existing card, skipping tokenization");
+
+                 //  Now check Parsley validation before final submit
+                 if ($(form).parsley().isValid()) {
+                     console.log(" Form validation passed — submitting now");
+                     form.submit();
+                 } else {
+                     console.warn(" Form validation failed for existing card");
+                     notyf.error("Please fix the form errors before submitting.");
+                 }
+                 return; // Stop further processing
+             }
+
+
              const cardOpt = cardOption.value;
 
              // Show loader immediately
@@ -440,8 +457,6 @@ document.querySelector('#invoice_id').value = btn.dataset.invoice;
                      console.log(" Tokenization success — Opaque Data:", response.opaqueData);
 
                      notyf.success("Payment details validated successfully!");
-
-
 
                      //  Now check Parsley validation before final submit
                      if ($(form).parsley().isValid()) {

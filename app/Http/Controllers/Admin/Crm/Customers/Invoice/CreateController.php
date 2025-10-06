@@ -22,7 +22,7 @@ class CreateController extends Controller
             ->where('unique_id', $unique_id)
             ->firstOrFail();
 
-        $order = Order::with('shippingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia')->where('customer_id', $customer->id)->get();
+        $order = Order::with('shippingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia')->where('customer_id', $customer->id)->whereNull('invoice_id')->get();
 
         $users = User::where('status', 'Active')->get();
 

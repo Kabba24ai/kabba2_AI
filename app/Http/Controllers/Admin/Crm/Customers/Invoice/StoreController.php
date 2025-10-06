@@ -60,16 +60,26 @@ class StoreController extends Controller
 
             $customer = Customer::find($validated['customer_id']);
 
+            // Loop through all invoice items of type 'order'
+            $invoice->items()->where('type', 'order')->get()->each(function ($invoiceItem) {
+                $orderProduct = $invoiceItem->orderProduct;
+
+                if ($orderProduct && $orderProduct->order) {
+                    $order = $orderProduct->order;
+
+                    // Update the invoice_id on the order
+                    $order->invoice_id = $invoiceItem->invoice_id;
+                    $order->save();
+                }
+            });
+
             DB::commit();
 
             flash('Invoice created successfully.')->success();
 
             session()->flash('active_tab', 'invoices');
 
-            // return redirect()->route('admin.crm.customers.invoice.index', $customer->unique_id) ;
-
             return redirect()->route('admin.crm.customers.view', $customer->unique_id);
-
 
         } catch (\Throwable $e) {
             DB::rollBack();

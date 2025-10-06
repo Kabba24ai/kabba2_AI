@@ -7,6 +7,8 @@ use App\Events\Front\Checkout\OrderPlacedEvent;
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentMethod;
+use App\Enums\Orders\OrderPaymentStatus;
+
 
 class CreateOrderListener
 {
@@ -41,13 +43,33 @@ class CreateOrderListener
         ]);
 
         // Determine payment action and description
-        if ($payment->payment_method === OrderPaymentMethod::Card && $payment->status->isPaid()) {
+        // if ($payment->payment_method === OrderPaymentMethod::Card && $payment->status->isPaid()) {
+        //     $action = OrderHistoryAction::OrderPaid;
+        //     $description = "Paid In Full Via - Credit/Debit Card";
+        // } else {
+        //     $action = OrderHistoryAction::PaymentInitiated;
+        //     $description = "Payment initiated via {$payment->payment_method->label()}";
+        // }
+
+        // Determine payment action and description
+        if ($payment->status->isPaid() || $payment->status->isInvoice()) {
             $action = OrderHistoryAction::OrderPaid;
-            $description = "Paid In Full Via - Credit/Debit Card";
+            $description = match ($payment->status) {
+                OrderPaymentStatus::Paid => "Paid In Full Via - Credit/Debit Card",
+                OrderPaymentStatus::InvoiceCard => "Paid Invoice Via CC on File From Customer Dashboard",
+                OrderPaymentStatus::InvoiceCash => "Paid Invoice Via Front Desk From Admin Panel",
+                OrderPaymentStatus::InvoiceOnline => "Paid Invoice Via Direct Bank From Admin Panel",
+                default => "Paid In Full",
+            };
         } else {
             $action = OrderHistoryAction::PaymentInitiated;
-            $description = "Payment initiated via {$payment->payment_method->label()}";
+            $methodLabel = is_object($payment->payment_method) && method_exists($payment->payment_method, 'label')
+                ? $payment->payment_method->label()
+                : ucfirst($payment->payment_method);
+            $description = "Payment initiated via {$methodLabel}";
         }
+
+
 
         $order->history()->create([
             'customer_id' => $customer->id,

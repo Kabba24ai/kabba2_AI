@@ -10,6 +10,7 @@ use App\Models\Customers\InvoiceItem;
 use App\Models\Customers\Customer;
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Facades\Log;
+use App\Events\Front\Checkout\OrderPlacedEvent;
 
 use App\Http\Requests\Admin\Crm\Customers\Invoice\UpdateRequest;
 
@@ -22,14 +23,8 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
-        // dd($validated['invoice_status']);
+        // dd($validated['payment_method']);
         // die();
-
-        // Log::info('Invoice update request received', [
-        //     'unique_id' => $unique_id,
-        //     'validated_data' => $validated,
-        //     'user_id' => auth()->id(),
-        // ]);
 
         DB::beginTransaction();
 
@@ -48,12 +43,8 @@ class UpdateController extends Controller
                 'total'             => $validated['total'] ?? 0,
                 'invoice_notes'     => $validated['invoice_notes'] ?? null,
                 'invoice_status'     => $validated['invoice_status'],
+                'payment_method'    => $validated['payment_method'] ?? $invoice->payment_method,
             ]);
-
-            // Log::info('Invoice main data updated', [
-            //     'invoice_id' => $invoice->id,
-            //     'invoice_number' => $invoice->invoice_number
-            // ]);
 
             $invoiceItems = json_decode($validated['invoice_data'], true) ?? [];
             // Log::info('Decoded invoice items', ['invoice_items' => $invoiceItems]);
@@ -84,11 +75,6 @@ class UpdateController extends Controller
                         ]
                     );
 
-                    // Log::info('Invoice item updated', [
-                    //     'db_id' => $updatedItem->id,
-                    //     'item_id' => $item['id'],
-                    //     'invoice_id' => $invoice->id
-                    // ]);
 
                     $keepItemIds[] = $item['id'];
 
@@ -109,30 +95,114 @@ class UpdateController extends Controller
                         'reference'             => $item['reference'] ?? null,
                         'responsible_person_id' => $item['responsible_id'] ?? null,
                     ]);
-                    // Log::info('Invoice item created', [
-                    //     'db_id' => $newItem->id,
-                    //     'item_id' => $item['id'] ?? null,
-                    //     'invoice_id' => $invoice->id
-                    // ]);
+
 
                     $keepItemIds[] = $newItem->item_id; // mark as kept
 
                 }
             }
 
-            // Delete DB items that were removed in the front-end
-            // Delete DB items that were removed in the front-end
-            $deletedCount = InvoiceItem::where('invoice_id', $invoice->id)
-                ->whereNotIn('item_id', $keepItemIds)
-                ->delete();
+            // Loop through all invoice items of type 'order'
+            $invoice->items()->where('type', 'order')->get()->each(function ($invoiceItem) {
+                $orderProduct = $invoiceItem->orderProduct;
 
-            // Log::info('Deleted removed invoice items', [
-            //     'deleted_count' => $deletedCount,
-            //     'keep_item_ids' => $keepItemIds,
-            //     'invoice_id' => $invoice->id
-            // ]);
+                if ($orderProduct && $orderProduct->order) {
+                    $order = $orderProduct->order;
+
+                    // Update the invoice_id on the order
+                    $order->invoice_id = $invoiceItem->invoice_id;
+                    $order->save();
+                }
+            });
+
+
+            // Get the items that are being deleted
+            $deletedItems = InvoiceItem::where('invoice_id', $invoice->id)
+                ->whereNotIn('item_id', $keepItemIds)
+                ->get();
+
+            // Unlink orders for deleted invoice items of type 'order'
+            foreach ($deletedItems as $deletedItem) {
+                if ($deletedItem->type === 'order' && $deletedItem->orderProduct && $deletedItem->orderProduct->order) {
+                    $order = $deletedItem->orderProduct->order;
+                    $order->invoice_id = null;
+                    $order->save();
+                }
+            }
+
+            // Actually delete the invoice items
+            $deletedCount = $deletedItems->each->delete();
 
             $customer = Customer::find($validated['customer_id']);
+
+
+
+
+            // Loop through all invoice items of type 'order'
+            $invoice->items()->where('type', 'order')->get()->each(function ($invoiceItem) use ($invoice, $validated, $customer) {
+                $orderProduct = $invoiceItem->orderProduct;
+
+                if ($orderProduct && $orderProduct->order) {
+                    $order = $orderProduct->order;
+
+                    // Update the invoice_id on the order
+                    $order->invoice_id = $invoiceItem->invoice_id;
+                    $order->save();
+
+                    // Record payment against the order
+
+                    // Determine payment method and status dynamically
+                    $paymentMethod = $validated['payment_method'] ?? 'Card'; // default to Card
+                    $paymentStatus = match ($paymentMethod) {
+                        'card'   => 'Invoice Card',
+                        'online' => 'Invoice Online',
+                        'cash'   => 'Invoice Cash',
+                        default  => 'Invoice Card',
+                    };
+
+
+                    $payment = $order->payments()->create([
+                        'payment_datetime'     => now(),
+                        'payment_method'       => ucfirst($paymentMethod),
+                        'status'               =>  $paymentStatus,
+                        'amount'               => $invoice->total,
+                        'transaction_id'       => null,
+                        'auth_code'            =>  null,
+                        'customer_profile_id'  =>  null,
+                        'payment_profile_id'   =>  null,
+                        'card_number'          =>  null,
+                        'card_first_name'      => $validated['firstName'] ?? null, // <-- fixed
+                        'card_last_name'       => $validated['lastName'] ?? null,   // <-- fixed
+                        'created_by_id'        => $customer->id,
+                        'created_by_type'      => Customer::class,
+                    ]);
+
+                    Log::info('Recorded Payment for Order', [
+                        'order_id' => $order->id,
+                        'order_number' => $order->order_number,
+                        'payment_id' => $payment->id,
+                        'amount' => $payment->amount,
+                        'status' => $payment->status,
+                    ]);
+
+
+                    $orderActionType = 'invoice_payment_from_admin';
+                    $employee = auth()->user();
+
+
+                    // Fire OrderPlaced event
+                    event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+                }
+            });
+
+            Log::info('Linked Orders to Invoice', [
+                'invoice_id' => $invoice->id,
+                'orders' => $invoice->items()->where('type', 'order')->get()->map(function ($item) {
+                    return $item->orderProduct?->order?->order_number;
+                })
+            ]);
+
+
 
             DB::commit();
 

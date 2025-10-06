@@ -11,6 +11,9 @@ enum OrderPaymentStatus : string
     case Refund = 'Refunded';
     case Failed = 'Failed';
 
+    case InvoiceCard = 'Invoice Card';
+    case InvoiceCash = 'Invoice Cash';
+    case InvoiceOnline = 'Invoice Online';
 
     public function label(): string
     {
@@ -21,6 +24,9 @@ enum OrderPaymentStatus : string
            self::PartialRefund => 'Partial Refund',
            self::Refund => 'Refunded',
            self::Failed => 'Failed',
+           self::InvoiceCard => 'Paid by CC on File',
+           self::InvoiceCash => 'Paid at Front Desk',
+           self::InvoiceOnline => 'Paid by Direct Bank',
        };
     }
 
@@ -38,6 +44,16 @@ enum OrderPaymentStatus : string
     {
         return $this === self::Refund;
     }
+
+    public function isInvoice(): bool
+    {
+        return in_array($this, [
+            self::InvoiceCard,
+            self::InvoiceCash,
+            self::InvoiceOnline
+        ]);
+    }
+
 
     public static function getValues(): array
     {

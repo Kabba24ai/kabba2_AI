@@ -14,6 +14,7 @@ use App\Helpers\ModelHelper;
 
 // Models
 use App\Models\Customers\Customer;
+use App\Models\Customers\Invoice;
 
 class Order extends Model
 {
@@ -21,6 +22,7 @@ class Order extends Model
         'unique_id',
         'reference_order_number',
         'order_number',
+        'invoice_id',
         'order_date',
         'order_time', // New column for order time
         'customer_id',
@@ -211,5 +213,10 @@ class Order extends Model
     public function getRemainingAmountAttribute()
     {
         return max(0, (float) $this->grand_total - (float) $this->total_refunded);
+    }
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 }

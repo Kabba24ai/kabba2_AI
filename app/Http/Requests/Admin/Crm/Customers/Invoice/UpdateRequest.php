@@ -43,6 +43,7 @@ class UpdateRequest extends FormRequest
             'total'             => ['required', 'numeric', 'min:0'],
             'invoice_notes'     => ['nullable', 'string'],
             'invoice_data'      => ['required', 'json'],
+            'payment_method'    => ['nullable'],
         ];
     }
 

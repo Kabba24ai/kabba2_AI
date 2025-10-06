@@ -258,8 +258,11 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                                 <td class="px-4 py-3 text-right text-sm whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($item['tax']) }} </td>
                                 <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($item['total']) }}</td>
                                 <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
+
+                                    @if($invoice->invoice_status !== 'paid')
                                     <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
                                     <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
+                                    @endif
                                 </td>
 
 
@@ -373,11 +376,38 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     'border-red-500' => $errors->has('invoice_status'),
                     'border-gray-300' => !$errors->has('invoice_status'),
                     ])
-                    ->id('invoice_status') !!}
-
+                    ->id('invoice_status')
+                    ->disabled( $invoice->invoice_status === 'paid' ) !!}
 
 
                 </div>
+                {{-- Payment Method (only visible if status = Paid) --}}
+                <div id="payment-method-wrapper" class="hidden mt-3 p-3 border rounded-lg bg-gray-50">
+                    <label class="block text-sm font-medium mb-2">Select Payment Method:</label>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        @foreach(\App\Enums\Customers\Invoice::cases() as $case)
+                        @php
+                        // Only show 'Card' option if current payment method is 'card'
+                        $showOption = $case !== \App\Enums\Customers\Invoice::Card || $invoice->payment_method === 'card';
+                        @endphp
+
+                        @if($showOption)
+                        <label class="inline-flex items-center gap-2 cursor-pointer w-100">
+                            <input type="radio"
+                                name="payment_method"
+                                value="{{ $case->value }}"
+                                class="text-blue-600 focus:ring-blue-500"
+                                {{ old('payment_method', $invoice->payment_method ?? '') === $case->value ? 'checked' : '' }}
+                                @if($invoice->invoice_status === 'paid') disabled @endif >
+                            {{ $case->label() }}
+                        </label>
+                        @endif
+                        @endforeach
+                    </div>
+                </div>
+
+
                 @endif
 
 
@@ -393,7 +423,6 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 </div>
 
                 <!-- Sales Tax -->
-                <!-- Sales Tax -->
                 <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Sales Tax:</span>
                     <span class="text-green-600 font-medium" id="invoice-tax">$0.00</span>
@@ -407,9 +436,6 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     <span>Total:</span>
                     <span class="text-gray-900" id="invoice-total">$0.00</span>
                 </div>
-
-
-
 
             </div>
 
@@ -472,7 +498,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                                     {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
                                 </td>
                                 <td class="px-4 py-3 space-x-2 whitespace-nowrap">
-                                    <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"  target="_blank"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
+                                    <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
                                     <button type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn" data-order-id="{{ $order->unique_id }}">
                                         + Add to Invoice
                                     </button>
@@ -590,7 +616,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
     // Global array to store all product data
     // --- PRELOAD from PHP ---
-    const invoice_data = []; // pre-filled if edit page
+    let invoice_data = []; // pre-filled if edit page
 
     // Global function to add products to the invoice_data array
     function addInvoiceProduct(products, type) {
@@ -763,6 +789,8 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
                 tr.dataset.type = "order";
                 tr.dataset.id = p.id;
+                tr.dataset.orderId = p.orderId;
+
                 tr.innerHTML = `
                 <td class="px-4 py-3 whitespace-nowrap">
                     <div class="font-medium text-gray-900">${p.name} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-600 text-white">
@@ -785,8 +813,11 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
                 <td class="px-4 py-3 whitespace-nowrap">
                     <div class="flex items-center justify-center gap-3">
-
-                        <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
+                     @if(!isset($invoice) || $invoice->invoice_status !== 'paid')
+            <button type="button" class="text-red-600 delete-btn">
+                <x-heroicon-o-trash class="w-4 h-4" />
+            </button>
+        @endif
                     </div>
                 </td>
             `;
@@ -879,15 +910,48 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
             const row = btn.closest("tr");
             const itemId = row.dataset.id;
+            const itemType = row.dataset.type;
+            const orderId = row.dataset.orderId || null;
 
-            // Remove row
-            row.remove();
+            console.log("Delete clicked:", {
+                itemId,
+                itemType,
+                orderId
+            });
 
-            // Remove from global array
-            const index = invoice_data.findIndex(p => p.id === itemId);
-            if (index !== -1) {
-                invoice_data.splice(index, 1);
+            if (itemType === "order" && orderId) {
+                // Remove all rows with same order id
+                const rowsToDelete = invoiceItemsTBody.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+                console.log(`Deleting ${rowsToDelete.length} rows for orderId:`, orderId);
+
+                rowsToDelete.forEach(r => {
+                    console.log("Removing row:", r.dataset.id);
+                    r.remove();
+                });
+
+                // Remove from global array
+                const beforeLength = invoice_data.length;
+                invoice_data = invoice_data.filter(p => p.orderId !== orderId);
+                console.log("invoice_data reduced:", beforeLength, "→", invoice_data.length);
+
+                // Notify
+                notyf.success("All items from the order have been deleted.");
+            } else {
+                // Remove only this row
+                console.log("Removing single row:", itemId);
+                row.remove();
+
+                // Remove from global array
+                const index = invoice_data.findIndex(p => p.id === itemId);
+                if (index !== -1) {
+                    invoice_data.splice(index, 1);
+                    console.log("Removed from invoice_data:", itemId);
+                }
+
+                // Notify
+                notyf.success("Invoice item deleted successfully.");
             }
+
 
             if (!invoiceItemsTBody.querySelector("tr")) {
                 itemsTableWrap.classList.add("hidden");
@@ -948,5 +1012,94 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         }, 100);
     }
 </script>
+
+@if ($isEdit)
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const statusSelect = document.getElementById("invoice_status");
+        const paymentWrapper = document.getElementById("payment-method-wrapper");
+
+        function togglePaymentMethods() {
+            if (statusSelect.value === "paid") {
+                paymentWrapper.classList.remove("hidden");
+            } else {
+                paymentWrapper.classList.add("hidden");
+            }
+        }
+
+        // Initial check on page load
+        togglePaymentMethods();
+
+        // Listen for changes
+        statusSelect.addEventListener("change", togglePaymentMethods);
+    });
+</script>
+
+@endif
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const invoiceStatus = document.getElementById('invoice_status');
+        const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+
+        // Show confirmation popup
+        function showChangeConfirm(newValue, callback) {
+            window.showConfirm(
+                `You are about to change the value to "${newValue}". Do you want to continue?`,
+                'Confirm Change'
+            ).then((result) => {
+                callback(result.isConfirmed);
+            });
+        }
+
+        // Handle invoice status change
+        invoiceStatus.addEventListener('mousedown', function(e) {
+            // Store initial value
+            invoiceStatus.dataset.initial = invoiceStatus.value;
+        });
+
+        invoiceStatus.addEventListener('change', function(e) {
+            const newValue = e.target.value;
+            e.preventDefault(); // prevent default change
+            invoiceStatus.value = invoiceStatus.dataset.initial; // revert temporarily
+
+            showChangeConfirm(newValue, function(confirmed) {
+                if (confirmed) {
+                    invoiceStatus.value = newValue; // apply change only if confirmed
+                    invoiceStatus.dataset.initial = newValue; // update initial
+                }
+            });
+        });
+
+        // Handle payment method change
+        paymentRadios.forEach(radio => {
+            // store initial checked state
+            if (radio.checked) {
+                radio.dataset.initial = "checked";
+            }
+
+            radio.addEventListener('click', function(e) {
+                const clickedValue = radio.value;
+                const prevChecked = document.querySelector('input[name="payment_method"][data-initial="checked"]');
+
+                showChangeConfirm(clickedValue, function(confirmed) {
+                    if (confirmed) {
+                        // update checked states
+                        paymentRadios.forEach(r => r.dataset.initial = "");
+                        radio.dataset.initial = "checked";
+                        radio.checked = true;
+                    } else {
+                        // revert to previous checked
+                        if (prevChecked) prevChecked.checked = true;
+                    }
+                });
+
+                e.preventDefault(); // prevent immediate change
+            });
+        });
+    });
+</script>
+
 
 @endpush

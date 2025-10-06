@@ -8,7 +8,7 @@ use App\Models\MaintenanceManagement\Equipment;
 
 // Models
 use App\Models\Orders\Order;
-use App\Models\Stores\Store ;
+use App\Models\Stores\Store;
 use App\Models\ProductManagement\ProductCategory;
 use App\Enums\Equipments\EquipmentCurrentStatus;
 
@@ -16,12 +16,12 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-
         $query = Equipment::with('productCategory', 'order', 'orderProduct.deliveryStore', 'activeEquipmentRentalReadyTemplate');
 
         // Search filter
         if ($request->filled('search')) {
-            $query->where('equipment_name', 'like', '%' . $request->search . '%')
+            $query
+                ->where('equipment_name', 'like', '%' . $request->search . '%')
                 ->orWhere('equipment_id', 'like', '%' . $request->search . '%')
                 ->orWhereHas('order', function ($q) use ($request) {
                     $q->where('customer_name', 'like', '%' . $request->search . '%');
@@ -54,7 +54,14 @@ class IndexController extends Controller
         }
 
         $order = ['damaged', 'maintenance', 'rented', 'available'];
-        $equipment = $query->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")->get();
+        $equipment = $query
+            ->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id')
+            ->select('equipment.*') // keep equipment columns
+            ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")
+            ->orderBy('product_categories.title', 'asc')
+            ->orderBy('equipment_name', 'asc')
+            ->orderBy('equipment_id', 'asc')
+            ->get();
 
         $categories = ProductCategory::getHierarchy();
 
@@ -62,7 +69,6 @@ class IndexController extends Controller
 
         // Pass enum values to the view
         $statuses = EquipmentCurrentStatus::cases(); // returns all enum cases
-
 
         if ($request->ajax()) {
             return response()->json([

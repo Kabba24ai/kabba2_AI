@@ -19,7 +19,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $query = Product::query()->with('categories');
+        $query = Product::query()->select('products.*')->leftJoin('product_category_children', 'products.id', '=', 'product_category_children.product_id')->leftJoin('product_categories', 'product_category_children.product_category_id', '=', 'product_categories.id')->with('categories'); // eager load if needed for display
 
         if ($request->filled('search')) {
             $query->where('product_name', 'like', '%' . $request->search . '%');
@@ -27,7 +27,7 @@ class IndexController extends Controller
 
         if ($request->filled('category')) {
             $query->whereHas('categories', function ($q) use ($request) {
-                $q->where('product_categories.id', $request->category); // Fully qualified!
+                $q->where('product_categories.id', $request->category);
             });
         }
 
@@ -39,7 +39,8 @@ class IndexController extends Controller
             $query->filterByPriceType($request->price);
         }
 
-        $products = $query->oldest('product_name')->paginate(10)->withQueryString(); // keeps filters in pagination links
+        // Order by category title and product_name
+        $products = $query->orderBy('product_categories.title', 'asc')->orderBy('products.product_name', 'asc')->paginate(10)->withQueryString();
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {

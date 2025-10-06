@@ -1,14 +1,14 @@
  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
      <thead class="bg-gray-100 text-gray-600 ">
          <tr>
-             <th class="px-4 py-3 cus-width-10 text-left font-semibold">Status</th>
              <th class="px-4 py-3 cus-width-15 text-left font-semibold whitespace-nowrap">Category</th>
-             <th class="px-4 py-3 cus-width-20 text-left font-semibold whitespace-nowrap">Equipment Name</th>
+             <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Equipment Name</th>
              <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Equip. ID</th>
+             <th class="px-4 py-3 cus-width-10 text-left font-semibold">Status</th>
              <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Tech / Mgt.</th>
              <th class="px-4 py-3 cus-width-10 text-left font-semibold">Location</th>
-             <th class="px-4 py-3 cus-width-10 text-right font-semibold whitespace-nowrap">Delivery Date</th>
-             <th class="px-4 py-3 cus-width-10 text-right font-semibold whitespace-nowrap">Return Date</th>
+             <th class="px-4 py-3 cus-width-15 text-center font-semibold whitespace-nowrap">Delivery Date</th>
+             <th class="px-4 py-3 cus-width-15 text-center font-semibold whitespace-nowrap">Return Date</th>
              <th class="px-4 py-3 cus-width-5 text-right font-semibold">Actions</th>
          </tr>
      </thead>
@@ -16,6 +16,19 @@
          @forelse($equipment as $eq)
              <!-- ROW 1 -->
              <tr class="hover:bg-gray-50">
+
+                 <td class="px-4 py-4 font-semibold  text-gray-700">
+                     @if ($eq->category_name)
+                         {{ $eq->category_name }}
+                     @else
+                         <span class="text-gray-400 italic">None</span>
+                     @endif
+                 </td>
+                 <td class="px-4 py-4 break-words">{{ $eq->equipment_name }}</td>
+                 <td class="px-4 py-4">
+                     <a href="{{ route('admin.maintenance-management.equipment.edit', $eq->unique_id) }}"
+                         class="text-blue-600 uppercase">{{ $eq->equipment_id }}</a>
+                 </td>
                  <td class="px-4 py-4">
                      <div class="inline-flex items-center gap-1.5 whitespace-nowrap">
                          @switch($eq->status_label)
@@ -68,12 +81,6 @@
                          @endswitch
                      </div>
                  </td>
-                 <td class="px-4 py-4 font-semibold  text-gray-700">{{ $eq->category_name }}</td>
-                 <td class="px-4 py-4 break-words">{{ $eq->equipment_name }}</td>
-                 <td class="px-4 py-4">
-                     <a href="{{ route('admin.maintenance-management.equipment.edit', $eq->unique_id) }}"
-                         class="text-blue-600 uppercase">{{ $eq->equipment_id }}</a>
-                 </td>
 
                  <td class="px-4 py-4">
                      <div class="font-medium">{{ $eq->activeEquipmentRentalReadyTemplate?->employee_name ?? '-' }}</div>
@@ -110,7 +117,7 @@
 
                      </div>
                  </td>
-                 <td class="px-4 py-4 text-right">
+                 <td class="px-4 py-4 text-center">
                      <div class="inline-flex items-center gap-1">
                          @if ($eq->orderproduct?->delivery_date)
                              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-700" fill="none"
@@ -127,7 +134,7 @@
 
                      </div>
                  </td>
-                 <td class="px-4 py-4 text-right">
+                 <td class="px-4 py-4 text-center">
                      <div class="inline-flex items-center gap-1">
 
 

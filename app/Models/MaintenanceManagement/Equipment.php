@@ -104,7 +104,7 @@ class Equipment extends Model
 
     public function getCategoryNameAttribute()
     {
-        return $this->productCategory?->title ?? 'N/A';
+        return $this->productCategory?->title ?? '';
     }
 
     public function getStatusLabelAttribute(): string

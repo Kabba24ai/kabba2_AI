@@ -6,56 +6,67 @@
 
 @push('css')
 <style>
-@media print {
-  /* allow normal scrolling and page breaking */
-  html, body {
-    overflow: visible !important;
-    height: auto !important;
-  }
+    @media print {
 
-  /* IMPORTANT: allow the main container to break */
-  .min-h-screen.flex {
-    display: block !important;
-  }
+        /* allow normal scrolling and page breaking */
+        html,
+        body {
+            overflow: visible !important;
+            height: auto !important;
+        }
 
-  #printable-area {
-    max-width: none !important;   /* remove 3xl constraint */
-    width: 100% !important;
-    overflow: visible !important;
-  }
-    #printable-area .grid {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        /* 50% / 50% */
-        gap: 1.5rem !important;
+        /* IMPORTANT: allow the main container to break */
+        .min-h-screen.flex {
+            display: block !important;
+        }
+
+        #printable-area {
+            max-width: none !important;
+            /* remove 3xl constraint */
+            width: 100% !important;
+            overflow: visible !important;
+        }
+
+        #printable-area .grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            /* 50% / 50% */
+            gap: 1.5rem !important;
+        }
+
+        table,
+        thead,
+        tbody,
+        tr,
+        td,
+        th {
+            page-break-inside: auto !important;
+        }
+
+        thead {
+            display: table-header-group !important;
+            /* repeat headers */
+        }
+
+        tfoot {
+            display: table-footer-group !important;
+        }
+
+        tr {
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
+        }
+
+        /* remove any overflow:hidden globally */
+        * {
+            overflow: visible !important;
+        }
+
+        /* hide stuff not for print */
+        .no-print {
+            display: none !important;
+        }
     }
-  table, thead, tbody, tr, td, th {
-    page-break-inside: auto !important;
-  }
-
-  thead {
-    display: table-header-group !important; /* repeat headers */
-  }
-
-  tfoot {
-    display: table-footer-group !important;
-  }
-
-  tr {
-    page-break-inside: avoid !important;
-    page-break-after: auto !important;
-  }
-
-  /* remove any overflow:hidden globally */
-  * {
-    overflow: visible !important;
-  }
-
-  /* hide stuff not for print */
-  .no-print {display: none !important;}
-}
-
-
 </style>
 @endpush
 
@@ -132,10 +143,24 @@
                             <rect width="18" height="18" x="3" y="4" rx="2"></rect>
                             <path d="M3 10h18"></path>
                         </svg>
-                        Transaction Date:
+                        Invoice Date :- {{ \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) }}
                     </p>
-                    <p class="text-lg font-medium text-gray-900"> {{ \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) }} </p>
+
                 </div>
+
+                <div>
+                    <p class="flex items-center gap-2 font-semibold text-gray-900 ">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar w-5 h-5 text-gray-600">
+                            <path d="M8 2v4"></path>
+                            <path d="M16 2v4"></path>
+                            <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                            <path d="M3 10h18"></path>
+                        </svg>
+                        Due Date :- {{ $invoice->due_date ? \App\Helpers\CustomHelper::formatDate($invoice->due_date) : 'Pay Upon Receipt' }}
+                    </p>
+
+                </div>
+
                 <div>
                     <p class="font-semibold text-gray-900">Customer PO:</p>
                     <p class="text-lg font-medium text-gray-900">{{ $invoice->customer->unique_id }}</p>

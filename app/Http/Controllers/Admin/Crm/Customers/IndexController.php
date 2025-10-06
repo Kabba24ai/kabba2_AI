@@ -20,7 +20,9 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $query = Customer::with('orders','addresses')->whereIn('status', ['Active', 'Archived']);
+        $query = Customer::with('orders','addresses')->whereIn('status', ['Active', 'Archived'])->orderByRaw("
+    CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+");
 
         if ($request->filled('search_name')) {
             $query->where(function ($q) use ($request) {
@@ -43,8 +45,6 @@ class IndexController extends Controller
         if ($request->filled('tax_status') && $request->tax_status !== 'All') {
             $query->where('tax_status', $request->tax_status);
         }
-
-
 
         $customers = $query->latest('id')->paginate(10)->withQueryString();
 

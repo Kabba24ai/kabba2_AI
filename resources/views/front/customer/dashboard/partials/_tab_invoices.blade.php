@@ -252,6 +252,37 @@
                  </div>
                  @endif
 
+                 <!-- Addresh Info -->
+                 <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                     <div class="flex items-center">
+
+                         <div>
+                             <p class="text-sm font-medium text-gray-900">Billing Address</p>
+                             <p class="text-xs text-gray-700 mt-1">
+                                 @if($customer->billingAddress->full_name)
+                                 {{ $customer->billingAddress->full_name }} <br>
+                                 @endif
+
+                                 @if($customer->billingAddress?->address || $customer->billingAddress?->city)
+                                 {{ $customer->billingAddress->address ?? '' }}{{ $customer->billingAddress?->city ? ', ' . $customer->billingAddress->city : '' }}<br>
+                                 @endif
+
+                                 @if($customer->billingAddress?->state?->name || $customer->billingAddress?->zip_code)
+                                 {{ $customer->billingAddress?->state?->name ?? '' }}{{ $customer->billingAddress?->zip_code ? ' ' . $customer->billingAddress->zip_code : '' }}<br>
+                                 @endif
+
+                                 @if($customer->billingAddress?->phone)
+                                 {{ App\Helpers\CustomHelper::formatPhone($customer->billingAddress->phone) }}
+                                 @endif
+                             </p>
+                             <a id="updateAddressLink" x-on:click="activeTab = 'account'"
+                                 href="javascript:void(0)" class="text-blue-600 text-xs hover:text-blue-800 flex items-center gap-1">
+                                 Update / New Address
+                             </a>
+                         </div>
+                     </div>
+                 </div>
+
                  <!-- Secure Payment Info -->
                  <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
                      <div class="flex items-center">
@@ -496,5 +527,20 @@
  </script>
 
  <!-- payment getway seeting  -->
+
+ @endpush
+
+ @push('js')
+ <script>
+     document.addEventListener('DOMContentLoaded', () => {
+         const updateLink = document.getElementById('updateAddressLink');
+         updateLink?.addEventListener('click', () => {
+
+             setTimeout(() => document.getElementById('editBtn')?.click(), 300);
+
+         });
+     });
+ </script>
+
 
  @endpush

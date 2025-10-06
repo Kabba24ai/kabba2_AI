@@ -10,6 +10,9 @@ use App\Models\Locations\State;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User ;
 use App\Helpers\ConfigurationHelper;
+use App\Helpers\CustomHelper;
+
+
 class ViewController extends Controller
 {
 
@@ -26,6 +29,8 @@ class ViewController extends Controller
             'invoices.items', 'accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();
+
+        CustomHelper::markOverdueInvoices($customer->id);
 
         $lastpaymentdate = $customer->accounts()
             ->where('type', 'payment')

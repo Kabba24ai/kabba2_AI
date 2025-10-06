@@ -56,9 +56,10 @@
                     <label class="text-sm font-medium text-gray-700 mb-1 block">Status</label>
                     <select class="w-full border px-3 py-2 rounded-md text-sm" id="statusFilter" onclick="applyFilters()">
                         <option>All Statuses</option>
-                        <option>Active</option>
                         <option>Damaged</option>
-                        <option>Maintenance</option>
+                        <option>Maint. Hold</option>
+                        <option>Rented</option>
+                        <option>Available</option>
                     </select>
                 </div>
                 <div id="equipmentList" class="space-y-3 max-h-[1000px] overflow-y-auto"></div>
@@ -307,21 +308,24 @@
             equipmentList.innerHTML = "";
 
             const filtered = equipment.filter(eq => {
+                const name = (eq.name || "").toLowerCase();
+                const model = (eq.model || "").toLowerCase();
+                const serial = (eq.serial || "").toLowerCase();
+
                 const matchesSearch =
-                    eq.name.toLowerCase().includes(searchValue) ||
-                    eq.model.toLowerCase().includes(searchValue) ||
-                    eq.serial.toLowerCase().includes(searchValue);
+                    name.includes(searchValue) ||
+                    model.includes(searchValue) ||
+                    serial.includes(searchValue);
 
                 const matchesCategory =
                     selectedCategory === "All Categories" || eq.category === selectedCategory;
 
                 const matchesStatus =
-                    selectedStatus === "All Statuses" ||
-                    (selectedStatus === "Maintenance" && eq.badge === "Maint. Hold") ||
-                    eq.badge === selectedStatus;
+                    selectedStatus === "All Statuses" || eq.badge === selectedStatus;
 
                 return matchesSearch && matchesCategory && matchesStatus;
             });
+
 
             //  Add sorting by badge priority
             const badgeOrder = {
@@ -332,9 +336,12 @@
             };
 
             filtered.sort((a, b) => {
-                return (badgeOrder[a.badge] || 99) - (badgeOrder[b.badge] || 99);
+                const badgeDiff = (badgeOrder[a.badge] || 99) - (badgeOrder[b.badge] || 99);
+                if (badgeDiff !== 0) return badgeDiff; // status sort first
+                return a.name.localeCompare(b.name, undefined, {
+                    sensitivity: 'base'
+                }); // then alphabetical
             });
-
             filtered.forEach(eq => {
                 const card = document.createElement("div");
                 card.className = "equipment-card p-4 rounded-md border-1 transition-all cursor-pointer hover:shadow-md border-gray-200 hover:border-gray-300";

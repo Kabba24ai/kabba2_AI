@@ -91,36 +91,7 @@
                             <!-- <span class="bg-orange-100 text-orange-800 text-xs px-3 py-1 rounded-full">Manager</span> -->
                         </div>
 
-                        <!-- Emergency Contact 1 -->
-                        @if($user->emergencyContactOne)
-                        <div class="mt-4 pt-2 border-t text-sm text-gray-700">
-                            <p class="font-semibold mb-1">Emergency Contact 1</p>
-                            <p>{{ $user->emergencyContactOne->first_name }} {{ $user->emergencyContactOne->last_name }}</p>
-
-                            @if($user->emergencyContactOne->phone_number)
-                            <div class="flex items-center gap-2">
-                                <x-heroicon-o-phone class="w-4 h-4 text-gray-900" />
-                                {{ $user->emergencyContactOne->phone_number }}
-                            </div>
-                            @endif
-                        </div>
-                        @endif
-
-                        <!-- Emergency Contact 2 -->
-                        @if($user->emergencyContactTwo)
-                        <div class="mt-4 pt-2 border-t text-sm text-gray-700">
-                            <p class="font-semibold mb-1">Emergency Contact 2</p>
-                            <p>{{ $user->emergencyContactTwo->first_name }} {{ $user->emergencyContactTwo->last_name }}</p>
-
-                            @if($user->emergencyContactTwo->phone_number)
-                            <div class="flex items-center gap-2">
-                                <x-heroicon-o-phone class="w-4 h-4 text-gray-900" />
-                                {{ $user->emergencyContactTwo->phone_number }}
-                            </div>
-                            @endif
-                        </div>
-                        @endif
-
+                    
                     </div>
                 </div>
             </div>

@@ -358,7 +358,7 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                             <input type="number" placeholder="{{ $setting->placeholder ?? '' }}"
                                 class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                 step="any" min="0" max="100"
-                                value="{{ $setting->setting_value }}"
+                                value="{{ \App\Helpers\CustomHelper::displayPercentage($setting->setting_value) }}"
                                 name="settings[{{ $setting->id }}]"
                                 id="setting_{{ $setting->id }}">
                             <span class="text-sm text-gray-500">%</span>

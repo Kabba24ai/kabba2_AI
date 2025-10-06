@@ -19,6 +19,13 @@ class UpdateController extends Controller
         foreach ($settings as $id => $value) {
             $setting = Setting::find($id);
             if ($setting) {
+
+                // Special case for sales tax
+                if ($setting->setting_name === 'sales_tax') {
+                    // Convert percentage input to decimal
+                    $value = floatval($value) / 100;
+                }
+
                 $setting->setting_value = $value;
                 $setting->save();
             }

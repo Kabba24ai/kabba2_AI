@@ -71,10 +71,14 @@
                                     <td style="width:40%; text-align:left; vertical-align:top; ">
                                         <p style="margin:8px 0 4px; font-weight:600; font-size:16px;">
                                             <img src="{{ public_path('storage/admin/images/icons/img-2.jpg') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
-
-                                            Transaction Date:
+                                            Invoice Date: <span style="margin:0; font-size:15px; font-weight:500;"> {{ \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) }} </span>
                                         </p>
-                                        <p style="margin:0; font-size:15px; font-weight:500;">{{ \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) }}</p>
+
+                                        <p style="margin:8px 0 4px; font-weight:600; font-size:16px;">
+                                            <img src="{{ public_path('storage/admin/images/icons/img-2.jpg') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
+                                            Due Date: <span style="margin:0; font-size:15px; font-weight:500;"> {{ $invoice->due_date ? \App\Helpers\CustomHelper::formatDate($invoice->due_date) : 'Pay Upon Receipt' }} </span>
+                                        </p>
+
                                         <p style="margin:12px 0 4px; font-weight:600; font-size:16px;">Customer PO:</p>
                                         <p style="margin:0; font-size:15px; font-weight:500;">{{ $invoice->customer->unique_id }}</p>
                                     </td>

@@ -34,7 +34,7 @@ class UpdateRequest extends FormRequest
     {
         return [
             'invoice_number'    => ['nullable', 'string', 'max:50'],
-            'invoice_status'    => ['required'],
+            'invoice_status'    => ['nullable'],
             'invoice_date'      => ['required', 'date'],
             'due_date'          => ['nullable', 'date'],
             'customer_id'       => ['required', 'exists:customers,id'],

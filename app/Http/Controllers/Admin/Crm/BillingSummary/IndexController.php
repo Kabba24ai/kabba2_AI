@@ -13,12 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class IndexController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
     public function __invoke(Request $request)
     {
         $query = Customer::with('orders.payments', 'addresses', 'accounts')
@@ -76,8 +71,10 @@ class IndexController extends Controller
         if ($request->filled('sort')) {
             switch ($request->sort) {
                 case 'balance':
-                    $query->orderBy('available_credit_balance', 'desc')
-                          ->orderByRaw("CONCAT_WS(' ', first_name, last_name) asc");
+                    $query->orderByRaw("ROUND(available_credit_balance, 2) DESC")
+                        ->orderByRaw("
+    CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+");
                     break;
                 case 'days':
                     $query->joinSub(
@@ -92,7 +89,10 @@ class IndexController extends Controller
                     )
                     ->select('customers.*')
                     ->selectRaw('DATEDIFF(NOW(), last_payment.last_payment_date) as days_since_last_payment_sql')
-                    ->orderBy('days_since_last_payment_sql', 'desc');
+                    ->orderBy('days_since_last_payment_sql', 'desc')
+                        ->orderByRaw("
+    CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+");
                     break;
                 case 'bad_debt':
                     $query->leftJoinSub(
@@ -118,17 +118,22 @@ class IndexController extends Controller
                             ->where('available_credit_balance', '>', 0);
                         });
                     })
-                    ->orderBy('available_credit_balance', 'desc');
+                    ->orderByRaw("ROUND(available_credit_balance, 2) DESC")
+                        ->orderByRaw("
+    CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+");
+
                     break;
             }
         } else{
 
             // Default sorting by available_credit_balance
-            $query->orderBy('available_credit_balance', 'desc');
-
+            $query->orderByRaw("ROUND(available_credit_balance, 2) DESC")
+                ->orderByRaw("
+    CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+");
         }
-
-
+        // Handle AJAX request for filtering and sorting
 
         if ($request->ajax()) {
 
@@ -163,10 +168,7 @@ class IndexController extends Controller
             ]);
         }
 
-
-
         // If not AJAX, return full view
-
 
         // Clone AFTER filters are applied
             $baseQuery = clone $query;
@@ -192,32 +194,21 @@ class IndexController extends Controller
             $overdueCustomerCount = $overdueCustomers->count();
 
             $totalOverdueAmount = $overdueCustomers->sum(function ($customer) {
-                // Log::info('Customers full data: ', $customer->toArray());
                 return abs($customer->credit_limit - $customer->available_credit_balance);
             });
 
             // Remove bad-debt IDs from table query as well
             $query->whereNotIn('customers.id', $badDebtIds);
 
-
-
             $customers = $query->paginate(10)->withQueryString();
 
-
-
-
-
-
-            return view('admin.crm.billing_summary.index', [
+        return view('admin.crm.billing_summary.index', [
                 'customers' => $customers,
                 'totalOutstanding' => $totalOutstanding,
                 'overdueCustomerCount' => $overdueCustomerCount,
                 'totalOverdueAmount' => $totalOverdueAmount
             ]);
 
-
     }
-
-
 
 }

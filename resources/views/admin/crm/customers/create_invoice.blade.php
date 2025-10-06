@@ -73,7 +73,10 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             <!-- Invoice Details -->
             <div class="bg-white rounded-lg shadow p-5">
                 <h3 class="flex items-center gap-2 text-lg font-semibold mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-file-text w-5 h-5">
                         <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
                         <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
                         <path d="M10 9H8"></path>
@@ -82,50 +85,46 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     </svg>
                     Invoice Details
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Invoice Number -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
-                        <!-- <input id="invoiceNumberInput" name="invoicenumber" type="text" class=" w-full border border-gray-300 rounded-md px-3 py-2 text-sm" readonly value="{{ \App\Helpers\CustomHelper::generateInvoiceNumber() }}"> -->
-
-                        {!! html()->text('invoice_number')->attributes([
-                        'id' => 'invoiceNumberInput',
-                        'readonly' => true,
-                        ])
+                        {!! html()->text('invoice_number')
+                        ->attributes(['id' => 'invoiceNumberInput','readonly' => true])
                         ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                        ->value($invoiceNumber )
+                        ->value($invoiceNumber)
                         ->required() !!}
-
                     </div>
+
+                    <!-- Invoice Date -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
-                        <!-- <input name="invoice_date" class="w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300" type="text" name="invoice_date" id="invoice_date" placeholder="MM-DD-YYYY" autocomplete="off"> -->
-
-                        {!! html()->text('invoice_date',old('invoice_date', \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) ?? null))->class([
-                        'w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300',
-                        'border-red-500' => $errors->has('account_application_completed'),
-                        'border-gray-300' => !$errors->has('account_application_completed'),
-                        ])->attributes([
-                        'id' => 'invoice_date',
-                        'placeholder' => 'MM-DD-YYYY',
-                        'autocomplete' => 'off',
-                        ])->required() !!}
-
+                        {!! html()->text('invoice_date', old('invoice_date', \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null)))
+                        ->class('w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300')
+                        ->attributes(['id' => 'invoice_date','placeholder' => 'MM-DD-YYYY','autocomplete' => 'off'])
+                        ->required() !!}
                     </div>
+
+                    <!-- Due Date -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                        <!-- <input name="due_date" class="w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300" type="text" name="due_date" id="due_date" placeholder="MM-DD-YYYY" autocomplete="off"> -->
+                        {!! html()->text('due_date', old('due_date', \App\Helpers\CustomHelper::formatDate($invoice->due_date ?? null)))
+                        ->class('w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300')
+                        ->attributes(['id' => 'due_date','placeholder' => 'MM-DD-YYYY','autocomplete' => 'off'])
+                        ->required() !!}
+                    </div>
 
-                        {!! html()->text('due_date',old('due_date', \App\Helpers\CustomHelper::formatDate($invoice->due_date ?? null) ?? null))->class([
-                        'w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300',
-                        'border-red-500' => $errors->has('account_application_completed'),
-                        'border-gray-300' => !$errors->has('account_application_completed'),
-                        ])->attributes([
-                        'id' => 'due_date',
-                        'placeholder' => 'MM-DD-YYYY',
-                        'autocomplete' => 'off',
-                        ])
-                        !!}
-
+                    <!-- Payment Terms Dropdown -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pay Upon Receipt</label>
+                        <select id="paymentTerms"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                            <option value="0">-- Select --</option>
+                            <option value="10">10 Days</option>
+                            <option value="15">15 Days</option>
+                            <option value="30">30 Days</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -279,7 +278,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             <!-- Invoice Notes -->
             <div class="bg-white rounded-lg shadow p-5">
                 <h3 class="text-lg font-semibold mb-4">Invoice Notes</h3>
-                <textarea rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" name="invoice_notes" placeholder="Enter any additional notes for this invoice..."></textarea>
+                <textarea rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" name="invoice_notes" placeholder="Enter any additional notes for this invoice...">{{ old('invoice_notes', isset($invoice) ? $invoice->invoice_notes : '') }}</textarea>
             </div>
         </div>
 
@@ -499,7 +498,11 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                                 </td>
                                 <td class="px-4 py-3 space-x-2 whitespace-nowrap">
                                     <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
-                                    <button type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn" data-order-id="{{ $order->unique_id }}">
+                                    <button
+                                        @if ($order->last_payment_status == 'Paid at Front Desk' || $order->last_payment_status == 'Paid by CC on File' || $order->last_payment_status == 'Paid by Direct Bank' || $order->last_payment_status == 'Account')
+                                        disabled
+                                        @endif
+                                        type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn" data-order-id="{{ $order->unique_id }}" >
                                         + Add to Invoice
                                     </button>
                                 </td>
@@ -545,9 +548,9 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                         <p class="text-sm font-medium text-blue-900">Add All Products from Order</p>
                         <p class="text-xs text-blue-700 mt-1 mb-2">This will add each product as individual line items. Total: $1,249.95</p>
                     </div>
-                    <button type="button" class="bg-green-600 text-white px-6 py-2 rounded-md add-to-invoice-btn text-sm">
+                    <!-- <button type="button" class="bg-green-600 text-white px-6 py-2 rounded-md add-to-invoice-btn text-sm">
                         + Add to Invoice
-                    </button>
+                    </button> -->
                 </div>
 
                 <!-- Product Items -->
@@ -721,6 +724,25 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         // Attach the function to the window object to make it global
         window.updateInvoiceSummary = updateInvoiceSummary;
     })();
+
+
+    /**
+     * Disable or enable the "+ Add to Invoice" button for a specific orderId
+     * @param {string|number} orderId - The order unique ID
+     * @param {boolean} disable - true to disable, false to enable
+     */
+    function toggleAddToInvoiceButton(orderId, disable = true) {
+        const btn = document.querySelector(`.add-to-invoice-btn[data-order-id="${orderId}"]`);
+        if (!btn) return;
+
+        if (disable) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
 </script>
 <script>
     // Pass directly from Blade
@@ -736,6 +758,11 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         });
         console.log("Added existingOtherItems to invoice_data:");
         console.table(invoice_data);
+
+        document.getElementById("emptyState").classList.add("hidden");
+        document.getElementById("itemsTable").classList.remove("hidden");
+
+        window.updateInvoiceSummary();
     }
 </script>
 
@@ -756,7 +783,6 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         const itemsTableWrap = document.getElementById("itemsTable");
         const invoiceItemsTBody = document.getElementById("invoiceItems");
         const emptyState = document.getElementById("emptyState");
-
 
 
         // Render existing order items if in edit mode
@@ -790,6 +816,8 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 tr.dataset.type = "order";
                 tr.dataset.id = p.id;
                 tr.dataset.orderId = p.orderId;
+
+                toggleAddToInvoiceButton(p.orderId, true); // disable
 
                 tr.innerHTML = `
                 <td class="px-4 py-3 whitespace-nowrap">
@@ -828,6 +856,8 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             itemsTableWrap.classList.remove("hidden");
 
             window.updateInvoiceSummary();
+
+
         }
 
         // Handle Add to Invoice buttons
@@ -959,6 +989,9 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             }
 
             window.updateInvoiceSummary();
+
+            toggleAddToInvoiceButton(orderId, false); // enable
+
         });
     });
 </script>
@@ -1097,6 +1130,48 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
                 e.preventDefault(); // prevent immediate change
             });
+        });
+    });
+</script>
+
+<!-- JS Section -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const invoiceDateInput = document.getElementById('invoice_date');
+        const dueDateInput = document.getElementById('due_date');
+        const paymentTermsSelect = document.getElementById('paymentTerms');
+
+        paymentTermsSelect.addEventListener('change', () => {
+            const termDays = parseInt(paymentTermsSelect.value);
+            const invoiceDateValue = invoiceDateInput.value;
+
+            if (!invoiceDateValue) {
+
+                notyf.error("Please select an Invoice Date first!");
+
+                paymentTermsSelect.value = "0";
+                return;
+            }
+
+            const invoiceDate = new Date(invoiceDateValue);
+            if (isNaN(invoiceDate)) {
+                notyf.error("Invalid Invoice Date format. Please use MM-DD-YYYY.");
+
+                return;
+            }
+
+            // Calculate due date
+            if (termDays === 0) {
+                dueDateInput.value = '';
+            } else {
+                invoiceDate.setDate(invoiceDate.getDate() + termDays);
+                const formatted = invoiceDate.toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                });
+                dueDateInput.value = formatted;
+            }
         });
     });
 </script>

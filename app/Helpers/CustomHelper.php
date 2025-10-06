@@ -11,11 +11,62 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Symfony\Component\Mime\DraftEmail;
 use App\Models\Customers\Invoice;
-
+use Illuminate\Support\Facades\Log;
 
 
 class CustomHelper
 {
+
+    /**
+     * Convert decimal to percentage for display.
+     *
+     * @param float|null $value
+     * @param int $decimals
+     * @return float|string
+     */
+    public static function displayPercentage(?float $value, int $decimals = 2)
+    {
+        if (is_null($value)) return '';
+        return number_format($value * 100, $decimals);
+    }
+
+
+    /**
+     * Mark customer's pending invoices as overdue if due date has passed.
+     *
+     * @param  int|string  $customerId
+     * @return int  Number of invoices updated
+     */
+    public static function markOverdueInvoices($customerId): int
+    {
+        try {
+            $now = Carbon::now();
+
+            // Find invoices that are pending and past due
+            $invoices = Invoice::where('customer_id', $customerId)
+                ->where('invoice_status', 'pending')
+                ->whereDate('due_date', '<', $now)
+                ->get();
+
+            // Update each to overdue
+            $count = 0;
+            foreach ($invoices as $invoice) {
+                $invoice->invoice_status = 'overdue';
+                $invoice->save();
+                $count++;
+            }
+
+            if ($count > 0) {
+                Log::info("Updated {$count} overdue invoices for customer ID {$customerId}.");
+            }
+
+            return $count;
+        } catch (\Throwable $e) {
+            Log::error('Error marking overdue invoices: ' . $e->getMessage());
+            return 0;
+        }
+    }
+
     public static function generateInvoiceNumber(): string
     {
         $year = Carbon::now()->format('Y');

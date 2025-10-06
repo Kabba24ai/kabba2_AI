@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Customers\Customer;
 use App\Models\Locations\State;
 use App\Helpers\ConfigurationHelper;
-
+use App\Helpers\CustomHelper;
 
 class IndexController extends Controller
 {
@@ -17,8 +17,14 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
+
+
         $customer = Auth::guard('customer')->user() ;
-     
+
+
+        CustomHelper::markOverdueInvoices($customer->id);
+
+
         $customer->load('addresses.state');
 
         $lastpaymentdate = $customer->accounts()
@@ -28,7 +34,7 @@ class IndexController extends Controller
 
          $states = State::get();
 
-         
+
         $protocol = '';
         $domain = '';
         $extension = '';

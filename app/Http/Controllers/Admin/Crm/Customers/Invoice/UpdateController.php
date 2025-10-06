@@ -32,19 +32,25 @@ class UpdateController extends Controller
             // Find the invoice by unique_id
             $invoice = Invoice::where('unique_id', $unique_id)->firstOrFail();
 
-            // Update main invoice fields
-            $invoice->update([
-                'invoice_number'    => $validated['invoice_number'] ?? $invoice->invoice_number,
-                'invoice_date'      => CustomHelper::parseDateFromInput($validated['invoice_date']),
-                'due_date'          => CustomHelper::parseDateFromInput($validated['due_date']),
-                'customer_id'       => $validated['customer_id'],
-                'subtotal'          => $validated['subtotal'] ?? 0,
-                'sales_tax'         => $validated['tax'] ?? 0,
-                'total'             => $validated['total'] ?? 0,
-                'invoice_notes'     => $validated['invoice_notes'] ?? null,
-                'invoice_status'     => $validated['invoice_status'],
-                'payment_method'    => $validated['payment_method'] ?? $invoice->payment_method,
-            ]);
+            $updateData = [
+                'invoice_number' => $validated['invoice_number'] ?? $invoice->invoice_number,
+                'invoice_date'   => CustomHelper::parseDateFromInput($validated['invoice_date']),
+                'due_date'       => CustomHelper::parseDateFromInput($validated['due_date']),
+                'customer_id'    => $validated['customer_id'],
+                'subtotal'       => $validated['subtotal'] ?? 0,
+                'sales_tax'      => $validated['tax'] ?? 0,
+                'total'          => $validated['total'] ?? 0,
+                'invoice_notes'  => $validated['invoice_notes'] ?? null,
+                'payment_method' => $validated['payment_method'] ?? $invoice->payment_method,
+            ];
+
+            // Only update invoice_status if provided
+            if (isset($validated['invoice_status'])) {
+                $updateData['invoice_status'] = $validated['invoice_status'];
+            }
+
+            // Perform the update
+            $invoice->update($updateData);
 
             $invoiceItems = json_decode($validated['invoice_data'], true) ?? [];
             // Log::info('Decoded invoice items', ['invoice_items' => $invoiceItems]);

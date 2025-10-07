@@ -50,7 +50,7 @@
                         <div class="min-w-0">
                             <label class="text-xs text-gray-500 font-medium required">First Name </label>
                             <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
-                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
+                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full bor der border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
 
                              {!! html()->text('first_name', old('first_name', $customer->first_name ?? ''))
                                 ->class([

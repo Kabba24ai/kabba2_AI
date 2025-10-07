@@ -428,34 +428,6 @@
     });
 </script>
 
-<!-- JavaScript -->
-<!-- <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modalWrapper = document.getElementById('taxdocModalWrapper');
-        const openBtn = document.getElementById('opentaxdocModal');
-        const closeBtn = document.getElementById('closetaxdocBtn');
-        const cancelBtn = document.getElementById('cancelBtntaxdoc');
-
-        openBtn.addEventListener('click', () => {
-            modalWrapper.style.display = 'flex';
-        });
-
-        const closeModal = () => {
-            modalWrapper.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Optional: Close when clicking outside the modal
-        modalWrapper.addEventListener('click', (e) => {
-            if (e.target === modalWrapper) {
-                closeModal();
-            }
-        });
-    });
-</script> -->
-
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -551,8 +523,8 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const availableCredit = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer) }};
-        const creditLimit = {{ $customer->credit_limit ?? 0 }};
+        const availableCredit = {{\App\Helpers\CustomHelper::getAvailableCredit($customer)}};
+        const creditLimit = {{$customer->credit_limit ?? 0}};
         const usedCredit = creditLimit - availableCredit;
 
         const percentUsed = creditLimit > 0 ? Math.min((usedCredit / creditLimit) * 100, 100) : 0;
@@ -699,6 +671,10 @@
                         modal.querySelector('textarea[name="notes"]').value = button.dataset.notes || '';
                     }
 
+                    if (modal.querySelector('input[name="cheque_number"]') && button.dataset.type === 'payment' && button.dataset.payment_type === 'Cheque') {
+                        modal.querySelector('input[name="cheque_number"]').value = button.dataset.cheque_number || '';
+                    }
+
                     // Set sales_tax radio
                     if (button.dataset.sales_tax_type) {
                         const salesTaxInputs = modal.querySelectorAll('input[name="sales_tax"]');
@@ -763,6 +739,28 @@
                             }
                         }
                     }
+                    // Show cheque number if payment type is Cheque
+                    if (type === "payment" && button.dataset.payment_type === "Cheque") {
+                        // console.log('Showing cheque number input');
+                        const chequeNumberInput = modal.querySelector('#chequeNumberField');
+                        if (chequeNumberInput) {
+                            chequeNumberInput.classList.remove('hidden');
+                        }
+                    } else {
+                        const chequeNumberInput = modal.querySelector('#chequeNumberField');
+                        if (chequeNumberInput) {
+                            chequeNumberInput.classList.add('hidden');
+                        }
+                    }
+
+                    // const cheque_number = modal.querySelector('input[name="cheque_number"]');
+
+
+                    // if (button.dataset.type === 'payment' && button.dataset.payment_type === 'Cheque') {
+                    //     cheque_number.classList.remove('hidden');
+                    // }
+
+
 
 
                 } else {
@@ -794,6 +792,8 @@
             const cardOnFileDropdown2 = document.querySelector('#cardOnFileDropdown');
             const existingCardSelect2 = document.querySelector('select[name="existing_card_id"]');
 
+            const chequeNumberInput = document.querySelector('#chequeNumberField');
+
             // Re-enable CreditCard option if it exists
             const paymentType2 = modalWrapper.querySelector('select[name="payment_type"]');
             if (paymentType2) {
@@ -815,6 +815,7 @@
             }
 
             if (cardOnFileDropdown2) cardOnFileDropdown2.classList.add('hidden');
+            chequeNumberInput.classList.add('hidden');
 
             if (existingCardSelect2) {
                 existingCardSelect2.disabled = false;

@@ -46,7 +46,7 @@ class PaymentStoreController extends Controller
 
             $record->notes = $validated['notes'] ?? null;
             $record->date = now();
-            $record->payment_number_id = $validated['payment_number_id'] ?? null;
+            $record->payment_number_id = $validated['cheque_number'] ?? null;
             $record->reason = $validated['reason'] ?? null;
             $record->sales_tax = $validated['sales_tax'] ?? 0;
             $record->type = 'payment';
@@ -116,7 +116,7 @@ class PaymentStoreController extends Controller
                     $record->save();
 
                     Log::debug('CustomerAccount updated (card on file):', $record->toArray());
-                } 
+                }
                 // NEW CARD BRANCH
                 else {
                     $opaqueDataValue      = $validated['opaqueDataValue'] ?? null;
@@ -190,7 +190,7 @@ class PaymentStoreController extends Controller
             DB::commit();
             flash('Payment recorded successfully.')->success();
             session()->flash('active_tab', 'credit');
-            
+
             return redirect()->back();
         } catch (\Throwable $e) {
             DB::rollBack();

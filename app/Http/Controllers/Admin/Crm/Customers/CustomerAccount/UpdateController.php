@@ -26,7 +26,7 @@ class UpdateController extends Controller
               $transaction = CustomerAccount::findOrFail($id);
 
             // Undo effect
-                
+
             //  Step 1: Reverse the original effect
             CustomHelper::reverseTransactionEffect($transaction);
 
@@ -37,6 +37,11 @@ class UpdateController extends Controller
 
             if (isset($validated['payment_type'])) {
                 $transaction->payment_type = $validated['payment_type'];
+            }
+
+
+            if (isset($validated['cheque_number'])) {
+                $transaction->payment_number_id = $validated['cheque_number'];
             }
 
             if (isset($validated['responsible_person'])) {

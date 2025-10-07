@@ -27,7 +27,7 @@ class CustomerAccount extends Model
         'payment_number_id',
         'auth_code',
         'customer_profile_id',
-        'payment_profile_id',       
+        'payment_profile_id',
         'reason',
         'sales_tax',
         'sales_tax_type',
@@ -36,6 +36,8 @@ class CustomerAccount extends Model
 
     protected $casts = [
         'date' => 'datetime',
+        'payment_type' => \App\Enums\Customers\PaymentMethod::class, 
+
     ];
 
      /**

@@ -16,42 +16,29 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $query = Equipment::with('productCategory', 'order', 'orderProduct.deliveryStore', 'activeEquipmentRentalReadyTemplate');
+        $query = Equipment::with('productCategory', 'order', 'orderProduct','lastOrderProduct', 'activeEquipmentRentalReadyTemplate');
 
-        // Search filter
-        if ($request->filled('search')) {
-            $query
-                ->where('equipment_name', 'like', '%' . $request->search . '%')
+        // filter
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $q->where('equipment_name', 'like', '%' . $request->search . '%')
                 ->orWhere('equipment_id', 'like', '%' . $request->search . '%')
                 ->orWhereHas('order', function ($q) use ($request) {
                     $q->where('customer_name', 'like', '%' . $request->search . '%');
-                });
-        }
-
-        // Category filter
-        if ($request->filled('category')) {
-            $query->where('product_category_id', $request->category);
-        }
-
-        // Status filter
-        // if ($request->filled('status')) {
-        //     $query->where('current_status', $request->status);
-        // }
-
-        // Store filter
-        if ($request->filled('store')) {
-            // $query->whereHas('orderProduct.deliveryStore', function ($q) use ($request) {
-            //     $q->where('id', $request->store);
-            // });
-        }
-
-        // Equipment Status checkboxes
-        if ($request->filled('equipment_status')) {
-            $query->whereIn('current_status', $request->equipment_status);
-        } else {
-            // default: show all statuses
-            $query->whereIn('current_status', EquipmentCurrentStatus::getValues());
-        }
+            });
+        })
+        ->when($request->filled('category'), function ($q) use ($request) {
+            $q->where('product_category_id', $request->category);
+        })
+        ->when($request->filled('store'), function ($q) use ($request) {
+            $q->whereHas('lastOrderProduct', function ($q) use ($request) {
+                $q->where('pickup_store_id', $request->store);
+            });
+        })
+        ->when($request->filled('equipment_status'), function ($q) use ($request) {
+            $q->whereIn('current_status', $request->equipment_status);
+        }, function ($q) {
+            $q->whereIn('current_status', EquipmentCurrentStatus::getValues());
+        });
 
         $order = ['damaged', 'maintenance', 'rented', 'available'];
         $equipment = $query
@@ -61,7 +48,8 @@ class IndexController extends Controller
             ->orderBy('product_categories.title', 'asc')
             ->orderBy('equipment_name', 'asc')
             ->orderBy('equipment_id', 'asc')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         $categories = ProductCategory::getHierarchy();
 
@@ -72,7 +60,7 @@ class IndexController extends Controller
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('admin.order_management.equipment_inventory.partials._table', compact('equipment', 'stores'))->render(),
+                'html' => view('admin.order_management.equipment_inventory.partials._table', compact('equipment'))->render(),
                 'total' => $equipment->count(),
             ]);
         }

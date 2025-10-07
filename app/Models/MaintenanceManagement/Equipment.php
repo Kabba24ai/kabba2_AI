@@ -97,6 +97,12 @@ class Equipment extends Model
         return $this->belongsTo(OrderProduct::class, 'current_order_product_id', 'id');
     }
 
+
+    public function lastOrderProduct()
+    {
+        return $this->hasOne(OrderProduct::class, 'equipment_id')->latestOfMany('id');
+    }
+
     public function productCategory()
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id', 'id');

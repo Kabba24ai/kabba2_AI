@@ -40,9 +40,9 @@
         @endphp
 
         <div
-            x-data="{ show: true, seconds: 5 }"
+            x-data="{ show: true, seconds: 3 }"
             x-init="
-              const total = 5, interval = setInterval(() => {
+              const total = 3, interval = setInterval(() => {
                 if (seconds > 0) seconds--;
                 if (seconds === 0) clearInterval(interval);
               }, 1000);

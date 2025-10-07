@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Transaction PDF</title>
@@ -52,7 +53,8 @@
             margin-top: 15px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px;
             border: 1px solid #ddd;
             text-align: left;
@@ -68,11 +70,12 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="header">
         {{-- Optional Logo --}}
-        <img src="{{ public_path('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" class="logo" alt="Logo"> 
+        <img src="{{ public_path('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" class="logo" alt="Logo">
         <div class="company-name">Rent 'n King</div>
         <div class="contact-info">
             Phone: (615) 815-6734 &nbsp; | &nbsp;
@@ -85,31 +88,31 @@
         <div class="title">Customer Transaction</div>
 
 
-  @php
-    // Amount without tax
-    if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+        @php
+        // Amount without tax
+        if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
         // Tax is already included in the amount
         $amountWithoutTax = ($transaction->amount ?? 0) / (1 + $transaction->sales_tax);
-    } else {
+        } else {
         // No tax included, or tax added on top
         $amountWithoutTax = $transaction->amount ?? 0;
-    }
+        }
 
-    // Tax amount
-    if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+        // Tax amount
+        if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
         $taxAmount = ($transaction->amount ?? 0) - $amountWithoutTax;
-    } elseif($transaction->sales_tax > 0) {
+        } elseif($transaction->sales_tax > 0) {
         $taxAmount = ($transaction->amount ?? 0) * $transaction->sales_tax;
-    } else {
+        } else {
         $taxAmount = 0;
-    }
+        }
 
-    // Total with tax
-    $totalWithTax = $transaction->amount;
-    if ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+        // Total with tax
+        $totalWithTax = $transaction->amount;
+        if ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
         $totalWithTax += ($transaction->amount * $transaction->sales_tax);
-    }
-@endphp
+        }
+        @endphp
 
 
         <table>
@@ -129,8 +132,8 @@
                 <th>Amount (without Tax)</th>
                 <td>{{ \App\Helpers\CustomHelper::formatCurrency($amountWithoutTax) }}</td>
             </tr>
-           <tr>
-                <th>Sales Tax</th>
+            <tr>
+                <th>Sales Tax ({{ number_format($transaction->sales_tax * 100, 2) }}%)</th>
                 <td>{{ \App\Helpers\CustomHelper::formatCurrency($taxAmount) }}</td>
             </tr>
             <tr>
@@ -142,13 +145,13 @@
                 <td>{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}</td>
             </tr>
 
-             <tr>
+            <tr>
                 <th>Running Balance</th>
                 <td>
-            
-                     {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance) }} 
-            
-                 </td>
+
+                    {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance) }}
+
+                </td>
             </tr>
 
             <tr>
@@ -163,4 +166,5 @@
     </div>
 
 </body>
+
 </html>

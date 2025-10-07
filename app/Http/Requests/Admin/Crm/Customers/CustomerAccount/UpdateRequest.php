@@ -21,9 +21,10 @@ class UpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required'], 
+            'type' => ['required'],
             'amount' => ['required', 'numeric'],
             'payment_type' => ['nullable', 'string'],
+            'cheque_number' => ['nullable'],
             'responsible_person' => ['required'],
             'sales_tax' => ['nullable', Rule::in(['add', 'free', 'reverse'])],
             'notes' => ['nullable', 'string'],

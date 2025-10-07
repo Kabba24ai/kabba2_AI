@@ -20,9 +20,22 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $query = Customer::with('orders','addresses')->whereIn('status', ['Active', 'Archived'])->orderByRaw("
-    CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
-");
+        //     $query = Customer::with('orders','addresses')->whereIn('status', ['Active', 'Archived'])->orderByRaw("
+        // CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+        // ");
+
+        $query = Customer::with('orders', 'addresses')
+            ->whereIn('status', ['Active', 'Archived'])
+            ->select('customers.*')
+            ->orderByRaw("
+                CASE
+                    WHEN (is_credit_account = 1 AND credit_limit IS NOT NULL AND credit_limit != '') THEN 1  -- Good Standing
+                    ELSE 0  -- Bad Debt
+                END ASC,  -- Bad Debt first
+                CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+            ");
+
+        
 
         if ($request->filled('search_name')) {
             $query->where(function ($q) use ($request) {

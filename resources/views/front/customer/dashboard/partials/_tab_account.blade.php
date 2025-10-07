@@ -2,7 +2,7 @@
 
          {{ html()->form()->id('customerForm')->attributes([
             'autocomplete' => 'off',
-                            
+
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
                         ])->acceptsFiles()->open() }}
@@ -16,7 +16,7 @@
                             'id' => 'unique_id',
                             'autocomplete' => 'off'
                         ]) !!}
-                   
+
                    <div class="bg-white p-6 rounded shadow mb-4 border border-gray-200 mt-6">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <!-- Title and Description -->
@@ -56,7 +56,7 @@
                                             'border-red-500' => $errors->has('first_name'),
                                         ])
                                         ->attributes([
-                                           
+
                                             'placeholder' => 'Enter First Name',
                                             'id' => 'first_name',
                                             'autocomplete' => 'off',
@@ -101,7 +101,7 @@
                                         'border-red-500' => $errors->has('email'),
                                     ])
                                     ->attributes([
-                                       
+
                                         'placeholder' => 'Enter Email',
                                         'id' => 'email',
                                         'autocomplete' => 'off',
@@ -163,7 +163,7 @@
                                         'border-red-500' => $errors->has('company_name'),
                                     ])
                                     ->attributes([
-                                       
+
                                         'placeholder' => 'Enter Company Name',
                                         'id' => 'company_name',
                                     ])
@@ -171,7 +171,7 @@
 
 
                                 </div>
-                                
+
                                 <div class="col-span-2">
                                     <label class="text-xs text-gray-500 font-medium">Company Phone</label>
                                     <div class=" static-view">
@@ -223,7 +223,7 @@
                                                 'border-gray-300' => !$errors->has('website_protocol'),
                                             ])
                                             ->id('website_protocol') !!}
-                                            
+
 
                                         {{-- Website Name --}}
                                         {!! html()->text('company_website', old('company_website',$company_website ?? null))
@@ -252,7 +252,7 @@
                                             ->id('website_extension') !!}
 
                                     </div>
-                                
+
 
                                 </div>
                             </div>
@@ -275,8 +275,8 @@
                                 <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
                                     <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id ?? '' }}" class="address_id">
                                     <input type="hidden" name="addresses[{{ $index }}][type]" value="{{ $addressItem['label'] }}" class="type">
-                                    
-                                    
+
+
                                     <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
 
 
@@ -284,7 +284,7 @@
                                         <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
                                         {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
                                         @if ($addresse && $addresse->is_primary)
-                                            - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>  
+                                            - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>
                                         @endif
                                     </h3>
 
@@ -311,7 +311,7 @@
                                                         'border-red-500' => $errors->has("addresses.$index.last_name"),
                                                     ])
                                                     ->attributes([
-                                                      
+
                                                         'placeholder' => 'Last Name',
                                                         'class' => 'last_name'
                                                     ])->required() !!}
@@ -380,7 +380,7 @@
                                                             ->class([
                                                                 'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
                                                                 'border-red-500' => $errors->has("addresses.$index.state_id"),
-                                                            ]) ->attribute('required', true) 
+                                                            ]) ->attribute('required', true)
                                                              !!}
                                                     </div>
 
@@ -404,7 +404,7 @@
 
                                                     </div>
 
-                                        </div>                       
+                                        </div>
                                     </div>
                                 </div>
                         @endforeach
@@ -455,7 +455,7 @@
                                 </span>
                             @endif
 
-                                   
+
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-xs text-gray-500 font-medium">Customer Since:</span>
@@ -471,11 +471,11 @@
                         <!-- Credit Information -->
                         <div class="bg-white p-5 rounded-md shadow-sm border border-gray-200">
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                                <h3 class="text-base font-semibold flex items-center gap-1"> 
+                                <h3 class="text-base font-semibold flex items-center gap-1">
                                     <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
                                     Credit Information
                                 </h3>
-                                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span>
+
                             </div>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
@@ -519,7 +519,7 @@
                             <div class="flex gap-1 flex-wrap items-start ">
                                 <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
                                 <h2 class="text-base font-semibold flex items-center gap-1">Tax Exempt Status</h2>
-                                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
+                              
                             </div>
                         </div>
 
@@ -541,7 +541,7 @@
                                     <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-xs text-gray-500 font-medium">Uploaded:</span> 
+                                    <span class="text-xs text-gray-500 font-medium">Uploaded:</span>
                                     <span class="text-sm" id="tax_document_upload_date">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
                                 </div>
                             </div>
@@ -550,7 +550,7 @@
                             <div class="border border-gray-200 rounded-lg p-4 text-sm bg-white w-full">
                                  <div id="taxDocPreviewWrapper" class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
 
-                              
+
                                   @include('front.customer.dashboard.partials.tax_doc_preview', ['customer' => $customer])
 
 
@@ -578,13 +578,13 @@
                 <div class="max-w-md mx-auto">
 
                 {{-- Open Form --}}
-                {!! html()->form() 
+                {!! html()->form()
                     ->id('taxDocForm')
                     ->attribute('enctype', 'multipart/form-data')
                     ->attribute('autocomplete', 'off')
                     ->attribute('data-parsley-validate', true)
                     ->class('space-y-8')
-                    ->open() 
+                    ->open()
                 !!}
 
                   <input type="hidden" name="customer_id" value="{{ $customer->id }}">
@@ -643,7 +643,7 @@
                         <button type="submit" class="saveBtntax px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
                     </div>
 
-                {!! html()->form()->close() !!}    
+                {!! html()->form()->close() !!}
                 </div>
             </div>
         </div>
@@ -667,7 +667,7 @@
 </script>
 
 <script>
-    
+
         document.addEventListener('DOMContentLoaded', () => {
 
             window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
@@ -691,7 +691,7 @@
             const addressBlocks = document.querySelectorAll('.address-block');
             const data = [];
 
-            
+
 
             addressBlocks.forEach((block, index) => {
                 data.push({
@@ -834,8 +834,8 @@
             uploadBtn.textContent = "Upload Document";
         });
 
-    }); 
+    });
 </script>
 
-      
+
   @endpush

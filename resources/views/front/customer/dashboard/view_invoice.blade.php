@@ -347,7 +347,7 @@
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}</span>
                 </div>
                 <div class="flex justify-between py-1">
-                    <span class="text-gray-700">Tax ( {{ $sales_tax }} %):</span>
+                    <span class="text-gray-700">Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %):</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}</span>
                 </div>
                 <div class="flex justify-between border-t border-gray-300 mt-2 pt-2 font-bold text-lg">

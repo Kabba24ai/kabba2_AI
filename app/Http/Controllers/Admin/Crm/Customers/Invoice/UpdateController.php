@@ -142,8 +142,6 @@ class UpdateController extends Controller
             $customer = Customer::find($validated['customer_id']);
 
 
-
-
             // Loop through all invoice items of type 'order'
             $invoice->items()->where('type', 'order')->get()->each(function ($invoiceItem) use ($invoice, $validated, $customer) {
                 $orderProduct = $invoiceItem->orderProduct;

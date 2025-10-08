@@ -120,7 +120,7 @@
                              <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                          </a>
 
-                         <a href="javascript:void(0)" class="text-purple-600 inline-flex items-center cursor-pointer openDiscountModal"
+                         <a href="javascript:void(0)" class="{{ ($invoice->invoice_status !== 'paid') ? 'text-purple-600' : 'text-gray-600' }} inline-flex items-center cursor-pointer @if($invoice->invoice_status !== 'paid') openDiscountModal @endif "
                              data-invoice="{{ $invoice->invoice_number }}"
                              data-due="{{ App\Helpers\CustomHelper::formatDate($invoice->due_date) }}"
                              data-amount="{{ App\Helpers\CustomHelper::formatCurrency($invoice->total) }}">

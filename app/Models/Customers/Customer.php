@@ -254,4 +254,14 @@ class Customer extends Authenticatable
             ->where('invoice_status', 'overdue')
             ->sum('total');
     }
+
+    /**
+     * Get total number of unpaid invoices for the customer.
+     */
+    public function getUnpaidInvoicesCountAttribute()
+    {
+        return $this->invoices()
+            ->where('invoice_status', '!=', 'paid')
+            ->count();
+    }
 }

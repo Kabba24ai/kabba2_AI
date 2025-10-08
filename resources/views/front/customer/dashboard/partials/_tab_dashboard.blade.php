@@ -1,5 +1,5 @@
                     <div class="bg-white mt-6 rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
-                         <!-- Left: Name and Account -->
+                        <!-- Left: Name and Account -->
                         <div class="text-left">
                             <h2 class="text-2xl font-bold text-gray-900">{{ $customer->full_name }}</h2>
                             <p class="text-sm text-gray-600">Account: {{ $customer->unique_id }}</p>
@@ -10,49 +10,49 @@
                             <p class="text-xs tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
                             <div class="inline-flex items-center gap-2">
                                 <span class="inline-flex items-center px-2 gap-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                   
-                                @if ($customer->tax_status === 'Exempt')
+
+                                    @if ($customer->tax_status === 'Exempt')
                                     <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
-                                @else
+                                    @else
                                     <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
-                                @endif
-                                {{ $customer->tax_status }} 
-                                
+                                    @endif
+                                    {{ $customer->tax_status }}
+
                                 </span>
                                 </span>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Valid until {{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</p>
                         </div>
 
-                             @php
-                                $approved = $customer->is_credit_account == 1;
-                                $hasCreditLimit = !empty($customer->credit_limit);
-                            @endphp
+                        @php
+                        $approved = $customer->is_credit_account == 1;
+                        $hasCreditLimit = !empty($customer->credit_limit);
+                        @endphp
 
                         <!-- Right: Status + Button -->
-                    
+
                         <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
 
-                        @if ($approved && $hasCreditLimit)  
-                                      <!-- Status Badge -->
+                            @if ($approved && $hasCreditLimit)
+                            <!-- Status Badge -->
                             <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 w-auto">
                                 Good Standing
                             </span>
 
-                        
-                        @elseif ($approved && !$hasCreditLimit)
 
-                              <!-- Status Badge -->
+                            @elseif ($approved && !$hasCreditLimit)
+
+                            <!-- Status Badge -->
                             <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-green-800 w-auto">
-                               Pending
+                                Pending
                             </span>
 
 
-                        @else
+                            @else
 
-                        @endif                 
+                            @endif
 
-                        
+
                         </div>
                     </div>
 
@@ -61,12 +61,15 @@
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                                 <!-- Dollar Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6">
+                                    <line x1="12" x2="12" y1="2" y2="22"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Current Balance</p>
-                                <p class="text-xl font-semibold text-gray-900">    {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance ) }}
-</p>
+                                <p class="text-xl font-semibold text-gray-900"> {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance ) }}
+                                </p>
                             </div>
                         </div>
 
@@ -74,11 +77,14 @@
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-green-100 text-green-600 rounded-md p-2">
                                 <!-- Trending Up Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6">
+                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                                    <polyline points="16 7 22 7 22 13"></polyline>
+                                </svg>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Available Credit</p>
-                                <p class="text-xl font-semibold text-gray-900">                         {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}</p>
+                                <p class="text-xl font-semibold text-gray-900"> {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}</p>
                             </div>
                         </div>
 
@@ -86,11 +92,17 @@
                         <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4 border border-gray-200">
                             <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
                                 <!-- Document Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-6 h-6"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-6 h-6">
+                                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+                                    <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+                                    <path d="M10 9H8"></path>
+                                    <path d="M16 13H8"></path>
+                                    <path d="M16 17H8"></path>
+                                </svg>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Open Invoices</p>
-                                <p class="text-xl font-semibold text-gray-900">2</p>
+                                <p class="text-xl font-semibold text-gray-900">{{ $customer->unpaid_invoices_count  }}</p>
                             </div>
                         </div>
 
@@ -128,50 +140,55 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
 
-                                        @php $rowCount = 0; @endphp
+                                    @php $rowCount = 0; @endphp
 
-                            @forelse ($customer->orders->sortByDesc('order_date') as $order)
+                                    @forelse ($customer->orders->sortByDesc('order_date') as $order)
                                     @foreach ($order->products as $product)
 
                                     @if ($rowCount >= 5)
-                                        @break(2) 
+                                    @break(2)
                                     @endif
 
-                                        @php $rowCount++; @endphp
+                                    @php $rowCount++; @endphp
 
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-4 py-3 font-medium text-gray-900">  {{ $order->order_number }}</td>
-                                            <td class="px-4 py-3">{{ $product->product_name ?? 'N/A' }}</td>
-                                            <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}</td>
-                                            <td class="px-4 py-3"> {!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}</td>
-                                            <td class="px-4 py-3">
-                                                <!-- <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span> -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3 font-medium text-gray-900"> {{ $order->order_number }}</td>
+                                        <td class="px-4 py-3">{{ $product->product_name ?? 'N/A' }}</td>
+                                        <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}</td>
+                                        <td class="px-4 py-3"> {{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}</td>
+                                        <td class="px-4 py-3">
+                                            <!-- <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span> -->
 
-                                            {!! \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') !!}
+                                            {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
 
 
-                                            </td>
-                                            <td class="px-4 py-3">   {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }} </td>
-                                            <td class="px-4 py-3 whitespace-nowrap items-center text-blue-600">
-                                                <!-- View -->
-                                                    <button title="View" class="openOrderModalBtn" data-order="{{ $order->order_number }}" data-date="{{ App\Helpers\CustomHelper::formatDate($order->order_date) }}" data-status="{{ \App\Helpers\CustomHelper::statusBadge($order->payments->first()->status ?? 'N/A') }}" data-method="{!! \App\Helpers\CustomHelper::paymentMethodLabel($order->payments->first()?->payment_method) !!}" data-total="{{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}" data-product="{{ $product->product_name ?? 'N/A' }}">
-                                                                                <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
-                                                                            </button>
-                                                <!-- Download -->
-                                                <button title="Download">
-                                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 cursor-pointer" />
-                                                </button>
-                                            </td>
-                                        </tr>
+                                        </td>
+                                        <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }} </td>
+                                        <td class="px-4 py-3 whitespace-nowrap items-center text-blue-600">
+                                            <!-- View -->
+                                            <button title="View" class="openOrderModalBtn" data-order="{{ $order->order_number }}"
+                                                data-date="{{ App\Helpers\CustomHelper::formatDate($order->order_date) }}"
+                                                data-status='{!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}'
+                                                data-method="{{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}"
+                                                data-total="{{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}"
+                                                data-product="{{ $product->product_name ?? 'N/A' }}">
+                                                <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
+                                            </button>
+                                            <!-- Download -->
+                                            <button title="Download">
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 cursor-pointer" />
+                                            </button>
+                                        </td>
+                                    </tr>
 
                                     @endforeach
-                                        @empty
-                                            <tr>
-                                                <td colspan="7" class="px-4 py-4 text-center text-gray-500">
-                                                    No orders found.
-                                                </td>
-                                            </tr>
-                            @endforelse
+                                    @empty
+                                    <tr>
+                                        <td colspan="7" class="px-4 py-4 text-center text-gray-500">
+                                            No orders found.
+                                        </td>
+                                    </tr>
+                                    @endforelse
 
                                 </tbody>
                             </table>

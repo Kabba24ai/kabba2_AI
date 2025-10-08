@@ -1,6 +1,6 @@
 <thead class="bg-gray-50 dark:bg-gray-900">
     <tr>
-        <th class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase w-64">
+        <th class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase w-42">
             Categories
         </th>
         <th class="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase w-72">

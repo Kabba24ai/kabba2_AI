@@ -17,6 +17,17 @@ class StoreController extends Controller
     {
         $validated = $request->validated();
 
+        $baseName = $validated['name'];
+        $counter = 1;
+        $uniqueName = $baseName;
+
+        while (ProductOption::where('name', $uniqueName)->exists()) {
+            $uniqueName = "{$baseName} ({$counter})";
+            $counter++;
+        }
+
+        $validated['name'] = $uniqueName;
+
         DB::beginTransaction();
         $action = $request->input('action');
         try {

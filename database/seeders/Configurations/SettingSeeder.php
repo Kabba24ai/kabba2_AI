@@ -28,6 +28,7 @@ class SettingSeeder extends Seeder
         $this->addCommunicationSettings();
         $this->addDefaultSalesFunnelSettings();
         $this->addMailSendSettings();
+        $this->addInvoiceSettings();
     }
 
     private function addDefaultSalesFunnelSettings()
@@ -129,12 +130,13 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
                 'default_value' => 160,
                 'sort_order' => $sortOrder++,
             ],
+
         ];
     }
 
     private function addProductSettings()
     {
-        $sortOrder = 1;
+        $sortOrder = 0;
 
         $this->settings['Product Settings'] = [
             [
@@ -486,6 +488,8 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
                 'default_value' => 240,
                 'sort_order' => $sortOrder++,
             ],
+
+
 
             // --- Prepaid Fuel ---
 
@@ -854,6 +858,21 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
         ];
     }
 
+    private function addInvoiceSettings()
+    {
+        $sortOrder = 1;
+        $this->settings['Invoice Settings'] = [
+            [
+                'value_type' => 'number',
+                'setting_name' => 'due_date_pay_upon_receipt',
+                'setting_title' => 'Due Date Pay Upon Receipt',
+                'placeholder' => '5',
+                'default_value' => 5,
+                'sort_order' => $sortOrder++,
+            ],
+        ];
+    }
+
     private function addAdminSettings()
     {
         $sortOrder = 1;
@@ -901,6 +920,7 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
             ],
         ];
     }
+
 
     private function addPaymentSettings()
     {

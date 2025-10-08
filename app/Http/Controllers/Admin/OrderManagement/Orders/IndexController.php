@@ -78,6 +78,9 @@ class IndexController extends Controller
 
         $products = Product::order()->pluck('product_name', 'id');
 
+
+        // dd($orders->first()->toArray());
+
         return view('admin.order_management.orders.index', [
             'orders' => $orders,
             'categories' => $categories,

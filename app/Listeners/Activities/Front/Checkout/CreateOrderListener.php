@@ -59,6 +59,8 @@ class CreateOrderListener
                 OrderPaymentStatus::InvoiceCard => "Paid Invoice Via CC on File From Customer Dashboard",
                 OrderPaymentStatus::InvoiceCash => "Paid Invoice Via Front Desk From Admin Panel",
                 OrderPaymentStatus::InvoiceOnline => "Paid Invoice Via Direct Bank From Admin Panel",
+                OrderPaymentStatus::InvoiceCheque => "Paid Invoice Via Check From Admin Panel",
+                OrderPaymentStatus::InvoiceOther => "Paid Invoice Via Other Method From Admin Panel",
                 default => "Paid In Full",
             };
         } else {

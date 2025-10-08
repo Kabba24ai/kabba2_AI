@@ -9,6 +9,8 @@ enum OrderPaymentMethod : string
     case Card = 'Card';
     case Cash = 'Cash';      // Pay at Front Desk
     case Online = 'Online';  // Direct Bank Transfer
+    case Cheque = 'Cheque';  // Paid by Cheque
+    case Other = 'Other';    // Other Method
 
     public function label(): string
     {
@@ -18,6 +20,8 @@ enum OrderPaymentMethod : string
             self::Card => 'Credit/Debit Card',
             self::Cash => 'Pay at Front Desk',
             self::Online => 'Direct Bank Transfer',
+            self::Cheque => 'Pay by Check',
+            self::Other => 'Other Payment Method',
         };
     }
 

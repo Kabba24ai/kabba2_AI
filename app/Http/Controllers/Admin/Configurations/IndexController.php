@@ -19,7 +19,7 @@ class IndexController extends Controller
 
         $settings = $settings->sortKeys();
 
-        // dd($settings);
+        // dd($settings['Admin Settings']);
 
         return view('admin.configurations.index', compact('settings'));
     }

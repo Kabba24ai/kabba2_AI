@@ -14,6 +14,8 @@ enum OrderPaymentStatus : string
     case InvoiceCard = 'Invoice Card';
     case InvoiceCash = 'Invoice Cash';
     case InvoiceOnline = 'Invoice Online';
+    case InvoiceCheque = 'Invoice Cheque';
+    case InvoiceOther = 'Invoice Other';
 
     public function label(): string
     {
@@ -27,6 +29,8 @@ enum OrderPaymentStatus : string
            self::InvoiceCard => 'Paid by CC on File',
            self::InvoiceCash => 'Paid at Front Desk',
            self::InvoiceOnline => 'Paid by Direct Bank',
+           self::InvoiceCheque => 'Paid by Check',
+           self::InvoiceOther => 'Other Invoice Payment',
        };
     }
 
@@ -50,7 +54,9 @@ enum OrderPaymentStatus : string
         return in_array($this, [
             self::InvoiceCard,
             self::InvoiceCash,
-            self::InvoiceOnline
+            self::InvoiceOnline,
+            self::InvoiceCheque,
+            self::InvoiceOther,
         ]);
     }
 

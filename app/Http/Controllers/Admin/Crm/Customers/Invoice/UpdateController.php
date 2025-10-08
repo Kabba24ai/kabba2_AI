@@ -163,6 +163,8 @@ class UpdateController extends Controller
                         'card'   => 'Invoice Card',
                         'online' => 'Invoice Online',
                         'cash'   => 'Invoice Cash',
+                        'cheque'   => 'Invoice Cheque',
+                        'other'   => 'Invoice Other',
                         default  => 'Invoice Card',
                     };
 

@@ -19,6 +19,9 @@ enum SettingType: string
 
     case MAIL_SEND_SETTINGS = 'Mail Send Settings';
 
+    case INVOICE_SETTINGS = 'Invoice Settings';
+
+
     case OTHER = 'Other Settings';
 
     public function label(): string
@@ -35,6 +38,7 @@ enum SettingType: string
             self::OTHER => 'Other Settings',
             self::DEFAULT_SALES_FUNNEL_SETTINGS => 'Default Sales Funnel Settings',
             self::MAIL_SEND_SETTINGS => 'Mail Send Settings',
+            self::INVOICE_SETTINGS => 'Invoice Settings',
         };
     }
 }

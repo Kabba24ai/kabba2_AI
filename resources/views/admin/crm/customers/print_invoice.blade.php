@@ -280,7 +280,7 @@
                                     <td align="right">{{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}</td>
                                 </tr>
                                 <tr>
-                                    <td align="left">Tax ( {{ $sales_tax }} %):</td>
+                                    <td align="left">Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %):</td>
                                     <td align="right">{{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}</td>
                                 </tr>
                                 <tr style="border-top:2px solid #111827;">

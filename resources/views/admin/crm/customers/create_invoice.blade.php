@@ -59,7 +59,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     <polyline points="17 21 17 13 7 13 7 21"></polyline>
                     <polyline points="7 3 7 8 15 8"></polyline>
                 </svg>
-                {{ $isEdit ? 'Update' : 'Create' }} Invoice
+                <span id="invoiceActionText">{{ $isEdit ? 'Update' : 'Create' }} Invoice</span>
             </button>
         </div>
     </div>
@@ -100,32 +100,39 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     <!-- Invoice Date -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
-                        {!! html()->text('invoice_date', old('invoice_date', \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null)))
+                        {!! html()->text('invoice_date', old('invoice_date', \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? now())))
                         ->class('w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300')
                         ->attributes(['id' => 'invoice_date','placeholder' => 'MM-DD-YYYY','autocomplete' => 'off'])
                         ->required() !!}
+                    </div>
+                    <!-- Payment Terms Dropdown -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Due Date Period</label>
+                        @php
+                        $defaultTerm = \App\Helpers\ConfigurationHelper::getSettings(null, 'due_date_pay_upon_receipt') ?? 0;
+                        @endphp
+                        <select id="paymentTerms"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                            <option value="{{ $defaultTerm }}" selected>Pay Upon Receipt</option>
+                            <option value="10">10 Days</option>
+                            <option value="20">20 Days</option>
+                            <option value="30">30 Days</option>
+                        </select>
                     </div>
 
                     <!-- Due Date -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                        {!! html()->text('due_date', old('due_date', \App\Helpers\CustomHelper::formatDate($invoice->due_date ?? null)))
+                        {!! html()->text(
+                        'due_date',
+                        old('due_date', isset($invoice->due_date) ? \App\Helpers\CustomHelper::formatDate($invoice->due_date) : '')
+                        )
                         ->class('w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300')
                         ->attributes(['id' => 'due_date','placeholder' => 'MM-DD-YYYY','autocomplete' => 'off'])
                         ->required() !!}
                     </div>
 
-                    <!-- Payment Terms Dropdown -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Pay Upon Receipt</label>
-                        <select id="paymentTerms"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
-                            <option value="0">-- Select --</option>
-                            <option value="10">10 Days</option>
-                            <option value="15">15 Days</option>
-                            <option value="30">30 Days</option>
-                        </select>
-                    </div>
+
                 </div>
             </div>
 
@@ -444,6 +451,30 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
     </div>
 </div>
 
+
+<div class="bg-gray-50 px-4 py-4  border-gray-200">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+            <button onclick="closeWindow()" type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
+            </button>
+
+            <button type="submit" name="action" value="save_new" disabled="" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium shadow transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4 mr-2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span id="invoiceActionText2">{{ $isEdit ? 'Update' : 'Create' }} Invoice</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
 {{ html()->form()->close() }}
 <!-- New Charge Wrapper -->
 @include('admin.crm.customers.partials._invoice_charge')
@@ -609,6 +640,28 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 </script>
 
 <script>
+    function updateInvoiceButton() {
+        const invoiceItems = document.querySelector('#invoiceItems');
+        const btn1 = document.querySelector('#invoiceActionText');
+        const btn2 = document.querySelector('#invoiceActionText2');
+        const saveButtons = document.querySelectorAll('button[name="action"][value="save_new"]');
+
+        const hasRows = invoiceItems && invoiceItems.querySelectorAll('tr').length > 0;
+
+        // Update both spans
+        if (btn1) btn1.textContent = hasRows ? 'Save Invoice' : 'Create Invoice';
+        if (btn2) btn2.textContent = hasRows ? 'Save Invoice' : 'Create Invoice';
+
+        // Enable/disable both buttons
+        saveButtons.forEach(btn => btn.disabled = !hasRows);
+    }
+
+    // Run on page load
+    updateInvoiceButton();
+</script>
+
+
+<script>
     window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
 
     // Select the hidden input by its data attribute
@@ -717,12 +770,14 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             if (taxInput) taxInput.value = totalTax.toFixed(2);
             if (totalInput) totalInput.value = finalTotal.toFixed(2);
             if (invoiceDataInput) invoiceDataInput.value = JSON.stringify(invoice_data);
-
+            updateInvoiceButton(); // Initial call to set button state
         }
 
 
         // Attach the function to the window object to make it global
         window.updateInvoiceSummary = updateInvoiceSummary;
+
+
     })();
 
 
@@ -1141,28 +1196,18 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         const dueDateInput = document.getElementById('due_date');
         const paymentTermsSelect = document.getElementById('paymentTerms');
 
-        paymentTermsSelect.addEventListener('change', () => {
-            const termDays = parseInt(paymentTermsSelect.value);
+        function calculateDueDate() {
             const invoiceDateValue = invoiceDateInput.value;
-
-            if (!invoiceDateValue) {
-
-                notyf.error("Please select an Invoice Date first!");
-
-                paymentTermsSelect.value = "0";
-                return;
-            }
+            if (!invoiceDateValue) return; // cannot calculate without invoice date
 
             const invoiceDate = new Date(invoiceDateValue);
-            if (isNaN(invoiceDate)) {
-                notyf.error("Invalid Invoice Date format. Please use MM-DD-YYYY.");
+            if (isNaN(invoiceDate)) return;
 
-                return;
-            }
+            const termDays = parseInt(paymentTermsSelect.value);
 
-            // Calculate due date
-            if (termDays === 0) {
-                dueDateInput.value = '';
+            if (!termDays || termDays === 0) {
+                // Pay Upon Receipt → clear due date only if new invoice
+                if (!dueDateInput.dataset.existing) dueDateInput.value = '';
             } else {
                 invoiceDate.setDate(invoiceDate.getDate() + termDays);
                 const formatted = invoiceDate.toLocaleDateString('en-US', {
@@ -1172,7 +1217,20 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 });
                 dueDateInput.value = formatted;
             }
-        });
+        }
+
+        // Mark if due date already exists
+        if (dueDateInput.value) {
+            dueDateInput.dataset.existing = true;
+        }
+
+        // Initial calculation only if due date is empty
+        if (!dueDateInput.value) {
+            calculateDueDate();
+        }
+
+        // Recalculate when payment term changes
+        paymentTermsSelect.addEventListener('change', calculateDueDate);
     });
 </script>
 

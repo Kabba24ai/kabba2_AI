@@ -94,7 +94,7 @@
                  <tr>
                      <th class="px-4 py-3">Invoice</th>
                      <th class="px-4 py-3">Customer</th>
-                     <th class="px-4 w-32 py-3">Date</th>
+                     <th class="px-4 w-32 py-3">Created</th>
                      <th class="px-4 w-32 py-3">Due Date</th>
                      <th class="px-4 w-32 py-3 text-right">Amount</th>
                      <th class="px-4 w-32 py-3 text-right">Mail Status</th>
@@ -126,15 +126,19 @@
                      <td class="px-4 py-3 text-right">
                          @php
                          $mailstatusColors = [
-                         'send' => 'green',
-                         'unsend' => 'red',
+                         'send' => ['color' => 'green', 'label' => 'Sent'],
+                         'unsend' => ['color' => 'yellow', 'label' => 'Pending'],
                          ];
-                         $color = $mailstatusColors[$invoice->is_email_send] ?? 'gray';
+
+                         $statusKey = strtolower($invoice->is_email_send ?? '');
+                         $statusData = $mailstatusColors[$statusKey] ?? ['color' => 'gray', 'label' => ucfirst($statusKey) ?: 'N/A'];
                          @endphp
-                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
-                             {{ $invoice->is_email_send }}
+
+                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $statusData['color'] }}-100 text-{{ $statusData['color'] }}-800">
+                             {{ $statusData['label'] }}
                          </span>
                      </td>
+
 
                      <td class="px-4 py-3 text-right">
                          @php

@@ -70,6 +70,11 @@ class Product extends Model
         'is_default_funnel', // Boolean: is this the default sales funnel
         'has_high_demand_alert', // Boolean: does this product have a high demand alert
 
+        'truck_fee_size_setting', // Size setting for truck fee
+        'track_insurance_size_setting', // Size setting for track insurance
+        'prepaid_cleaning_rate_setting', // Rate setting for prepaid cleaning
+        'prepaid_fuel_rate_setting', // Rate setting for prepaid fuel
+
         'status', // Product status (e.g., Published, Draft)
         'created_by', // ID of the user who created the record
         'updated_by', // ID of the user who last updated the record

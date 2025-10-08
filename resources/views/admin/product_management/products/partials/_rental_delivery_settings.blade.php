@@ -248,37 +248,37 @@
             <div class="flex items-center flex-wrap gap-6">
                 <label for="track_insurance_small"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'Small')->id('track_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "Small", 'Small')->id('track_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     Small
                 </label>
 
                 <label for="track_insurance_medium"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'Medium')->id('track_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "Medium", 'Medium')->id('track_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     Medium
                 </label>
 
                 <label for="track_insurance_large"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'Large')->id('track_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "Large", 'Large')->id('track_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     Large
                 </label>
 
                 <label for="track_insurance_xlarge"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'X-Large')->id('track_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "X-Large", 'X-Large')->id('track_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     X-Large
                 </label>
 
                 <label for="track_insurance_2xlarge"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, '2X-Large')->id('track_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "2X-Large", '2X-Large')->id('track_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     2X-Large
                 </label>
 
                 <label for="track_insurance_commercial"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size', null, 'Commercial')->id('track_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "Commercial", 'Commercial')->id('track_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     Commercial
                 </label>
             </div>
@@ -465,10 +465,10 @@
 
             <div>
                 <div class="flex items-center gap-1">
-                    <select id="prepaid_cleaning_rates" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
+                    <select id="prepaid_cleaning_rate_setting" name="prepaid_cleaning_rate_setting" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
                         <option value="" disabled selected>Select Rate</option>
                         @foreach($productSettings['prepaid_cleaning_rates'] ?? [] as $prepaidCleaningRate)
-                            <option value="{{ $prepaidCleaningRate['rate'] }}" >
+                            <option value="{{ $prepaidCleaningRate['description'] }}" data-rate="{{ $prepaidCleaningRate['rate'] }}" @selected(old('prepaid_cleaning_rate_setting', $objProduct->prepaid_cleaning_rate_setting ?? '') === $prepaidCleaningRate['description'])>
                                 {{ $prepaidCleaningRate['description'] }} -  {{ $prepaidCleaningRate['rate'] }}
                             </option>
                         @endforeach
@@ -478,10 +478,10 @@
 
             <div>
                 <div class="flex items-center gap-1">
-                    <select id="prepaid_fuel_rates" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
+                    <select id="prepaid_fuel_rate_setting" name="prepaid_fuel_rate_setting" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
                         <option value="" disabled selected>Select Rate</option>
                         @foreach($productSettings['prepaid_fuel_rates'] ?? [] as $prepaidFuelRate)
-                            <option value="{{ $prepaidFuelRate['rate'] }}" >
+                            <option value="{{ $prepaidFuelRate['description'] }}" data-rate="{{ $prepaidFuelRate['rate'] }}" @selected(old('prepaid_fuel_rate_setting', $objProduct->prepaid_fuel_rate_setting ?? '') === $prepaidFuelRate['description'])>
                                 {{ $prepaidFuelRate['description'] }} - {{ $prepaidFuelRate['rate'] }}
                             </option>
                         @endforeach
@@ -593,37 +593,37 @@
             <div class="flex items-center flex-wrap gap-6">
                 <label for="size_small"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', null, 'Small')->id('size_small')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "Small", 'Small')->id('size_small')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Small
                 </label>
 
                 <label for="size_medium"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', null, 'Medium')->id('size_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "Medium", 'Medium')->id('size_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Medium
                 </label>
 
                 <label for="size_large"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', null, 'Large')->id('size_large')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "Large", 'Large')->id('size_large')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Large
                 </label>
 
                 <label for="size_xlarge"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', null, 'X-Large')->id('size_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "X-Large", 'X-Large')->id('size_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     X-Large
                 </label>
 
                 <label for="size_2xlarge"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', null, '2X-Large')->id('size_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "2X-Large", '2X-Large')->id('size_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     2X-Large
                 </label>
 
                 <label for="size_commercial"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('size', null, 'Commercial')->id('size_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "Commercial", 'Commercial')->id('size_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Commercial
                 </label>
             </div>
@@ -729,7 +729,7 @@
             }
         };
 
-        console.log(sizeFeeMap,sizeTrackInsuranceFeeMap);
+        // console.log(sizeFeeMap,sizeTrackInsuranceFeeMap);
         document.addEventListener("DOMContentLoaded", function() {
             const hourTracking = document.querySelector('input[name="hour_tracking"]');
             const hourRateInput = document.querySelector('input[name="hour_rate"]');
@@ -815,14 +815,14 @@
             standardDeliveryFeeInput?.addEventListener('input', function() {
                 if (this.value && deliveryAndPickupInput.checked) {
                     // If user manually changes, uncheck sizes
-                    sizeCheckboxes.forEach(cb => cb.checked = false);
+                    //sizeCheckboxes.forEach(cb => cb.checked = false);
                 }
             });
 
             extendedDeliveryFeeInput?.addEventListener('input', function() {
                 if (this.value && deliveryAndPickupInput.checked) {
                     // If user manually changes, uncheck sizes
-                    sizeCheckboxes.forEach(cb => cb.checked = false);
+                    //sizeCheckboxes.forEach(cb => cb.checked = false);
                 }
             });
 
@@ -846,7 +846,7 @@
             });
 
             // Make size checkboxes behave like single-select (no radios)
-            const sizeCheckboxes = Array.from(document.querySelectorAll('input[name="size"]'));
+            const sizeCheckboxes = Array.from(document.querySelectorAll('input[name="truck_fee_size_setting"]'));
 
             sizeCheckboxes.forEach(cb => {
                 cb.addEventListener('change', function(e) {
@@ -899,14 +899,14 @@
                 document.querySelector('input[name="rental_track_insurance_monthly"]')
             ];
             // Make size checkboxes behave like single-select (no radios)
-            const sizeTrackInsuranceCheckboxes = Array.from(document.querySelectorAll('input[name="track_insurance_size"]'));
+            const sizeTrackInsuranceCheckboxes = Array.from(document.querySelectorAll('input[name="track_insurance_size_setting"]'));
 
             rentalTrackInsuranceInputs.forEach(input => {
                 input.addEventListener('input', function() {
-                    if (this.value) {
-                        // If user manually changes, uncheck sizes
-                        sizeTrackInsuranceCheckboxes.forEach(cb => cb.checked = false);
-                    }
+                    // if (this.value) {
+                    //     // If user manually changes, uncheck sizes
+                    //     sizeTrackInsuranceCheckboxes.forEach(cb => cb.checked = false);
+                    // }
                 });
             });
 
@@ -949,23 +949,25 @@
 
             enforceTrackInsuranceSingleSizeSelection();
 
-            const prepaidCleaningRates = document.getElementById('prepaid_cleaning_rates');
-            const prepaidFuelRates = document.getElementById('prepaid_fuel_rates');
+            const prepaidCleaningRates = document.getElementById('prepaid_cleaning_rate_setting');
+            const prepaidFuelRates = document.getElementById('prepaid_fuel_rate_setting');
 
             const prepaidCleaningInput = document.querySelector('input[name="rental_prepaid_cleaning"]');
             const prepaidFuelInput = document.querySelector('input[name="rental_prepaid_fuel"]');
 
             prepaidCleaningRates?.addEventListener('change', function() {
-                if (this.value) {
-                    prepaidCleaningInput.value = this.value;
+                const dataRate = this.options[this.selectedIndex].getAttribute('data-rate');
+                if (dataRate) {
+                    prepaidCleaningInput.value = dataRate;
                 } else {
                     prepaidCleaningInput.value = '';
                 }
             });
 
             prepaidFuelRates?.addEventListener('change', function() {
-                if (this.value) {
-                    prepaidFuelInput.value = this.value;
+                const dataRate = this.options[this.selectedIndex].getAttribute('data-rate');
+                if (dataRate) {
+                    prepaidFuelInput.value = dataRate;
                 } else {
                     prepaidFuelInput.value = '';
                 }

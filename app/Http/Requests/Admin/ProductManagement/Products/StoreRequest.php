@@ -115,7 +115,10 @@ class StoreRequest extends ApiBaseFormRequest
             'related_products' => ['nullable', 'array'],
             'related_products.*' => ['exists:products,id'],
 
-            'size' => ['nullable', 'string', 'max:255'],
+            'truck_fee_size_setting' => ['nullable', 'string', 'max:255'],
+            'track_insurance_size_setting' => ['nullable', 'string', 'max:255'],
+            'prepaid_cleaning_rate_setting' => ['nullable', 'string', 'max:255'],
+            'prepaid_fuel_rate_setting' => ['nullable', 'string', 'max:255'],
 
             'is_default_funnel' => ['nullable', 'boolean'],
             'has_high_demand_alert' => ['nullable', 'boolean'],

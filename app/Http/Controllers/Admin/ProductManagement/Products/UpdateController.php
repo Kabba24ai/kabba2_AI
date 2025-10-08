@@ -18,7 +18,6 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
-
         $product = Product::where('unique_id', $unique_id)->firstOrFail();
         DB::beginTransaction();
 
@@ -37,6 +36,10 @@ class UpdateController extends Controller
                 'status' => $validated['status'] ?? 'Pending',
                 'is_general_term_type' => $validated['is_general_term_type'] ?? false,
                 'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
+                'truck_fee_size_setting' => $validated['truck_fee_size_setting'] ?? null,
+                'track_insurance_size_setting' => $validated['track_insurance_size_setting'] ?? null,
+                'prepaid_cleaning_rate_setting' => $validated['prepaid_cleaning_rate_setting'] ?? null,
+                'prepaid_fuel_rate_setting' => $validated['prepaid_fuel_rate_setting'] ?? null,
             ];
 
             // Include only relevant fields and clear opposite-type fields

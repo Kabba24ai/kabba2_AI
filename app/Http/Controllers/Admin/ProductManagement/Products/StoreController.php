@@ -39,6 +39,10 @@ class StoreController extends Controller
                 'status' => $validated['status'] ?? 'Pending',
                 'is_general_term_type' => $validated['is_general_term_type'] ?? false,
                 'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
+                'truck_fee_size_setting' => $validated['truck_fee_size_setting'] ?? null,
+                'track_insurance_size_setting' => $validated['track_insurance_size_setting'] ?? null,
+                'prepaid_cleaning_rate_setting' => $validated['prepaid_cleaning_rate_setting'] ?? null,
+                'prepaid_fuel_rate_setting' => $validated['prepaid_fuel_rate_setting'] ?? null,
             ];
 
             // Add fields based on product_type

@@ -10,7 +10,6 @@ class UpdateRequest extends ApiBaseFormRequest
 {
     protected function prepareForValidation()
     {
-
         $input = PurifyHelper::purify($this->all(), ['description', 'short_description']);
 
         $this->merge($input);
@@ -54,10 +53,10 @@ class UpdateRequest extends ApiBaseFormRequest
             'retail_product_cost' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Rental pricing
-            'rental_daily' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_weekend' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_weekly' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
-            'rental_monthly' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_daily' => ['required_if:product_type,Rental', 'nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_weekend' => ['required_if:product_type,Rental', 'nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_weekly' => ['required_if:product_type,Rental', 'nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_monthly' => ['required_if:product_type,Rental', 'nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Damage waivers
             'rental_damage_waiver_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
@@ -93,18 +92,10 @@ class UpdateRequest extends ApiBaseFormRequest
             'hour_rate' => [
                 'nullable',
                 function ($attribute, $value, $fail) {
-                    if (
-                        ($this->input('product_type') === 'Rental') &&
-                        ($this->input('hour_tracking') === 'Yes') &&
-                        (is_null($value) || $value === '')
-                    ) {
+                    if ($this->input('product_type') === 'Rental' && $this->input('hour_tracking') === 'Yes' && (is_null($value) || $value === '')) {
                         $fail('The hour rate field is required when hour tracking is "Yes" and product type is "Rental".');
                     }
-                    if (
-                        ($this->input('product_type') === 'Rental') &&
-                        ($this->input('hour_tracking') === 'Yes') &&
-                        (!is_null($value) && (!is_numeric($value) || $value < 0))
-                    ) {
+                    if ($this->input('product_type') === 'Rental' && $this->input('hour_tracking') === 'Yes' && (!is_null($value) && (!is_numeric($value) || $value < 0))) {
                         $fail('The hour rate must be a non-negative number.');
                     }
                 },
@@ -122,7 +113,10 @@ class UpdateRequest extends ApiBaseFormRequest
             'related_products' => ['nullable', 'array'],
             'related_products.*' => ['exists:products,id'],
 
-            'size' => ['nullable', 'string', 'max:255'],
+            'truck_fee_size_setting' => ['nullable', 'string', 'max:255'],
+            'track_insurance_size_setting' => ['nullable', 'string', 'max:255'],
+            'prepaid_cleaning_rate_setting' => ['nullable', 'string', 'max:255'],
+            'prepaid_fuel_rate_setting' => ['nullable', 'string', 'max:255'],
 
             'is_default_funnel' => ['nullable', 'boolean'],
             'has_high_demand_alert' => ['nullable', 'boolean'],
@@ -144,11 +138,10 @@ class UpdateRequest extends ApiBaseFormRequest
                 $pickup = $data['in_store_pickup'] ?? null;
                 $deliveryPickup = $data['delivery_and_pickup'] ?? null;
 
-                if ($stdFee <= 0 && $extFee <= 0 &&  $deliveryPickup == 'Yes') {
+                if ($stdFee <= 0 && $extFee <= 0 && $deliveryPickup == 'Yes') {
                     $validator->errors()->add('standard_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
                     //$validator->errors()->add('extended_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
                 }
-
 
                 if ($pickup !== 'Yes' && $deliveryPickup !== 'Yes') {
                     $validator->errors()->add('in_store_pickup', 'At least one pickup option (In Store or Delivery and Pickup) must be "Yes" for rental products.');

@@ -3,7 +3,7 @@
 @section('title', 'System Configuration')
 
 @section('content')
-    <div class="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div class="bg-gray-50 flex flex-col">
         <div class="flex-1 overflow-auto">
             {{-- Header --}}
             <div class=" border-b border-gray-200 px-6 py-4">

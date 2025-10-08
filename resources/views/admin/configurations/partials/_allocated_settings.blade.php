@@ -5,7 +5,7 @@
         <h3 class="text-lg font-bold text-gray-900">Allocated Hours Settings</h3>
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0">
+    <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0 mb-6">
         <div>
             <label for="daily_hours" class="block text-sm font-medium text-gray-700 mb-1">
                 Daily Hours
@@ -54,7 +54,6 @@
             @enderror
         </div>
 
-
         <div>
             <label for="weekly_hours" class="block text-sm font-medium text-gray-700 mb-1">
                 Weekly Hours
@@ -79,7 +78,6 @@
             @enderror
         </div>
 
-
         <div>
             <label for="monthly_hours" class="block text-sm font-medium text-gray-700 mb-1">
                 Monthly Hours
@@ -103,5 +101,33 @@
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
+
+    </div>
+    <div>
+        <label for="overage_rate_percentage" class="block text-sm font-medium text-gray-700 mb-1">
+            Overage Rate (%)
+        </label>
+
+        <div class="relative">
+            {!! html()->input(
+                    'number',
+                    'overage_rate_percentage',
+                    $settings['Product Settings']['overage_rate_percentage']['setting_value'],
+                )->class([
+                    'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                    'border-gray-300' => !$errors->has('overage_rate_percentage'),
+                    'border-red-500' => $errors->has('overage_rate_percentage'),
+                ])->attributes([
+                    'data-parsley-type' => 'number',
+                    'autocomplete' => 'off',
+                    'placeholder' => $settings['Product Settings']['overage_rate_percentage']['placeholder'],
+                    'required' => true,
+                    'id' => 'overage_rate_percentage',
+                ]) !!}
+        </div>
+
+        @error('overage_rate_percentage')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
     </div>
 </div>

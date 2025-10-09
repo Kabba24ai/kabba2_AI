@@ -67,6 +67,49 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox=
 </svg>';
 break;
 
+case 'Allocated Hours Settings':
+// Clock + calendar icon = time allocation
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alarm-clock w-6 h-6 text-blue-600">
+    <circle cx="12" cy="13" r="8"></circle>
+    <path d="M12 9v4l2 2"></path>
+    <path d="M5 3 2 6"></path>
+    <path d="m22 6-3-3"></path>
+    <path d="M6.38 18.7 4 21"></path>
+    <path d="M17.64 18.67 20 21"></path>
+</svg>';
+break;
+
+case 'Communication Settings':
+// Chat bubble icon = messaging, communication
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle w-6 h-6 text-blue-600">
+    <path d="M21 11.5a8.38 8.38 0 0 1-9 8.5 8.38 8.38 0 0 1-4-.9L3 21l1.4-4.3A8.38 8.38 0 0 1 3 11.5 8.5 8.5 0 1 1 21 11.5z"></path>
+</svg>';
+break;
+
+case 'Invoice Settings':
+// Receipt / document with dollar sign = invoice
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-receipt w-6 h-6 text-blue-600">
+    <path d="M20 21V3H4v18l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1Z"></path>
+    <path d="M8 11h8"></path>
+    <path d="M8 7h8"></path>
+</svg>';
+break;
+
+case 'Default Sales Funnel Settings':
+// Funnel icon = sales funnel, lead filtering
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel w-6 h-6 text-blue-600">
+    <path d="M3 4h18l-7 8v6l-4 2v-8z"></path>
+</svg>';
+break;
+
+case 'Mail Send Settings':
+// Envelope icon = email
+$icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail w-6 h-6 text-blue-600">
+    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+</svg>';
+break;
+
 default:
 // Default icog icon
 $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"

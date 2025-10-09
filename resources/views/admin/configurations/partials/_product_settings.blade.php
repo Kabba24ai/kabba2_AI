@@ -7,7 +7,7 @@
 @endpush
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
-        <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
+        <x-heroicon-o-currency-dollar class="w-5 h-5 text-blue-600" aria-hidden="true" />
         <h3 class="text-lg font-bold text-gray-900">Range & Sales Tax Rate</h3>
     </div>
 
@@ -620,7 +620,7 @@
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
-        <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
+        <x-heroicon-o-currency-dollar class="w-5 h-5 text-blue-600" aria-hidden="true" />
         <h3 class="text-lg font-bold text-gray-900">Track Insurance Fees</h3>
     </div>
 

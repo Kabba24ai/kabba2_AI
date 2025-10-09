@@ -914,8 +914,8 @@
 
                         // Fill in your actual config values here (best: pass from Blade using Laravel config)
                         const authData = {
-                            clientKey: '{{ $paymentSetting['payment_api_public_key'] ?? '' }}',
-                            apiLoginID: '{{ $paymentSetting['payment_api_key'] ?? '' }}'
+                            clientKey: '{{ Crypt::decryptString($paymentSetting['payment_api_public_key']) ?? '' }}',
+                            apiLoginID: '{{ Crypt::decryptString($paymentSetting['payment_api_key']) ?? '' }}'
                         };
                         const cardData = {
                             cardNumber: cardNumber,

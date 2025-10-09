@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Requests\Admin\Configurations\New\PaymentIntegration;
+namespace App\Http\Requests\Admin\Configurations\PaymentIntegration;
 
+use App\Helpers\PurifyHelper;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PaymentIntegrationRequest extends FormRequest
@@ -9,6 +10,12 @@ class PaymentIntegrationRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        // Clean potential HTML/script input
+        $this->merge(PurifyHelper::purify($this->all()));
     }
 
     public function rules(): array

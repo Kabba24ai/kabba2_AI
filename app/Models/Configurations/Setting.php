@@ -43,6 +43,26 @@ class Setting extends Model
 
     public function getSettingValueAttribute($value)
     {
+        // if ($this->is_encrypted && !is_null($value)) {
+        //     try {
+        //         // Try to decrypt
+        //         return Crypt::decryptString($value);
+        //     } catch (\Exception $e) {
+        //         // Value wasn't encrypted yet, just return as-is
+        //         return $value;
+        //     }
+        // }
+
+        if($this->value_type == 'json' && !is_null($value)){
+            return json_decode($value, true);
+        }
+
+        return $value;
+    }
+
+    public function getDecryptedSettingValue(): ?string
+    {
+        $value = $this->getRawOriginal('setting_value');
         if ($this->is_encrypted && !is_null($value)) {
             try {
                 // Try to decrypt
@@ -52,11 +72,6 @@ class Setting extends Model
                 return $value;
             }
         }
-
-        if($this->value_type == 'json' && !is_null($value)){
-            return json_decode($value, true);
-        }
-
         return $value;
     }
 

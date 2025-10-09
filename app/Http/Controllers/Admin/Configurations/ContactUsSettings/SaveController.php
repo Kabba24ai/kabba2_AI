@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Configurations\New\ContactUsSettings;
+namespace App\Http\Controllers\Admin\Configurations\ContactUsSettings;
 
 use App\Http\Controllers\Controller;
 
@@ -22,7 +22,7 @@ class SaveController extends Controller
                 ->update(['setting_value' => $value]);
         }
 
-        flash()->success(__('Settings updated successfully.'));
+        flash()->success(__('Contact Us Settings updated successfully.'));
         return redirect()->back();
     }
 }

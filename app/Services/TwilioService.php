@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Helpers\ConfigurationHelper;
 use Illuminate\Support\Facades\Log;
 use Twilio\Rest\Client;
-
+use Illuminate\Support\Facades\Crypt;
 class TwilioService
 {
     protected ?Client $client = null;
@@ -19,10 +19,10 @@ class TwilioService
     {
         $settings = ConfigurationHelper::getSettings('Communication Settings');
 
-        $this->sid = (string) ($settings['twilio_sid'] ?? '');
-        $this->authToken = (string) ($settings['twilio_auth_token'] ?? '');
-        $this->fromNumber = (string) ($settings['twilio_from_number'] ?? '');
-        $this->messagingServiceSid = (string) ($settings['twilio_messaging_service_sid'] ?? '');
+        $this->sid = (string) (Crypt::decryptString($settings['twilio_sid']) ?? '');
+        $this->authToken = (string) (Crypt::decryptString($settings['twilio_auth_token']) ?? '');
+        $this->fromNumber = (string) (Crypt::decryptString($settings['twilio_from_number']) ?? '');
+        $this->messagingServiceSid = (string) (Crypt::decryptString($settings['twilio_messaging_service_sid']) ?? '');
         // If test mode is enabled, use Twilio's Magic Number for testing WhatsApp
         // https://www.twilio.com/docs/whatsapp/sandbox
         $this->isTestMode = (bool) ($settings['sms_test_mode'] ?? false);

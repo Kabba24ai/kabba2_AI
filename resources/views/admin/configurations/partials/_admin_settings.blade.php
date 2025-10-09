@@ -14,7 +14,7 @@
             </label>
 
             <div class="relative">
-                {!! html()->input('password', 'master_passcode', $settings['Admin Settings']['master_passcode']['setting_value'])->class([
+                {!! html()->input('password', 'master_passcode', $settings['Admin Settings']['master_passcode']['setting_value'] ? '********' : null)->class([
                         'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('master_passcode'),
                         'border-red-500' => $errors->has('master_passcode'),
@@ -32,8 +32,8 @@
                 <button type="button"
                     class="absolute inset-y-0 right-9 px-2 grid place-items-center text-gray-400 hover:text-gray-600"
                     data-toggle="visibility" data-target="master_passcode" aria-label="Show passcode" aria-controls="master_passcode">
-                    <x-heroicon-o-eye data-eye class="w-5 h-5" />
-                    <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+                    <x-heroicon-o-eye data-eye-off class="w-5 h-5" />
+                    <x-heroicon-o-eye-slash data-eye class="w-5 h-5 hidden" />
                 </button>
 
                 <!-- lock button triggers modal -->
@@ -41,7 +41,6 @@
                     class="absolute inset-y-0 right-0 w-9 grid place-items-center text-blue-600/80 hover:text-blue-700"
                     data-open-verify
                     data-field-id="master_passcode"
-                    data-verify-url=""
                     aria-haspopup="dialog"
                     aria-controls="verify-modal"
                     aria-label="Verify to edit">
@@ -62,7 +61,7 @@
             </label>
 
             <div class="relative">
-                {!! html()->input('password', 'master_password_entry', $settings['Admin Settings']['master_password_entry']['setting_value'])->class([
+                {!! html()->input('password', 'master_password_entry', $settings['Admin Settings']['master_password_entry']['setting_value'] ? '********' : null)->class([
                         'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('master_password_entry'),
                         'border-red-500' => $errors->has('master_password_entry'),
@@ -80,8 +79,8 @@
                 <button type="button"
                     class="absolute inset-y-0 right-9 px-2 grid place-items-center text-gray-400 hover:text-gray-600"
                     data-toggle="visibility" data-target="master_password_entry" aria-label="Show password" aria-controls="master_password_entry">
-                    <x-heroicon-o-eye data-eye class="w-5 h-5" />
-                    <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+                    <x-heroicon-o-eye data-eye-off class="w-5 h-5" />
+                    <x-heroicon-o-eye-slash data-eye class="w-5 h-5 hidden" />
                 </button>
 
                 <!-- lock button triggers modal -->
@@ -89,7 +88,6 @@
                     class="absolute inset-y-0 right-0 w-9 grid place-items-center text-blue-600/80 hover:text-blue-700"
                     data-open-verify
                     data-field-id="master_password_entry"
-                    data-verify-url=""
                     aria-haspopup="dialog"
                     aria-controls="verify-modal"
                     aria-label="Verify to edit">
@@ -116,5 +114,3 @@
         </div>
     </div>
 </div>
-
-

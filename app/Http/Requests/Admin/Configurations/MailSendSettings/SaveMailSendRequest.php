@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Configurations\New\MailSendSettings;
+namespace App\Http\Requests\Admin\Configurations\MailSendSettings;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,31 +16,20 @@ class SaveMailSendRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Clean potential HTML/script input
-        $input = PurifyHelper::purify($this->all(), [
-            'mail_mailer',
-            'mail_host',
-            'mail_port',
-            'mail_username',
-            'mail_password',
-            'mail_encryption',
-            'mail_from_address',
-            'mail_from_name',
-        ]);
-
-        $this->merge($input);
+        $this->merge(PurifyHelper::purify($this->all()));
     }
 
     public function rules(): array
     {
         return [
-            'mail_mailer' => ['required', 'string', 'max:255'],
-            'mail_host' => ['required', 'string', 'max:255'],
-            'mail_port' => ['required', 'numeric', 'min:1'],
+            'mail_mailer' => ['nullable', 'string', 'max:255'],
+            'mail_host' => ['nullable', 'string', 'max:255'],
+            'mail_port' => ['nullable', 'numeric', 'min:1'],
             'mail_username' => ['nullable', 'string', 'max:255'],
             'mail_password' => ['nullable', 'string', 'max:255'],
-            'mail_encryption' => ['required', Rule::in(['tls', 'ssl', 'none'])],
-            'mail_from_address' => ['required', 'email', 'max:255'],
-            'mail_from_name' => ['required', 'string', 'max:255'],
+            'mail_encryption' => ['nullable', Rule::in(['tls', 'ssl', 'none'])],
+            'mail_from_address' => ['nullable', 'email', 'max:255'],
+            'mail_from_name' => ['nullable', 'string', 'max:255'],
         ];
     }
 

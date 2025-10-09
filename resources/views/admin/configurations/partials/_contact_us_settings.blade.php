@@ -7,7 +7,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-            <label for="sales_phone" class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="sales_phone" class="block text-sm font-medium text-gray-700 mb-1 required">
                 Phone - Sales
             </label>
 
@@ -119,7 +119,7 @@
         </div>
 
         <div>
-            <label for="address2" class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="address2" class="block text-sm font-medium text-gray-700 mb-1 required">
                 Address 2
             </label>
 

@@ -1,15 +1,26 @@
 <?php
 
-namespace App\Http\Requests\Admin\Configurations\New\SocialMediaIntegration;
+namespace App\Http\Requests\Admin\Configurations\SocialMediaIntegration;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\PurifyHelper;
 
-class SaveSocialMediaRequest extends FormRequest
+class SaveRequest extends FormRequest
 {
     public function authorize()
     {
         // Only allow if user is authorized
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        // Clean potential HTML/script input
+        $input = PurifyHelper::purify($this->all(), );
+        $input['show_social_media_icons'] = $this->has('show_social_media_icons') ? true : false;
+        $input['enable_social_sharing'] = $this->has('enable_social_sharing') ? true : false;
+
+        $this->merge($input);
     }
 
     public function rules()
@@ -23,8 +34,8 @@ class SaveSocialMediaRequest extends FormRequest
             'social.tiktok_page_link' => 'nullable|url',
             'social.pinterest_page_link' => 'nullable|url',
             'social.snapchat_page_link' => 'nullable|url',
-            'social.show_social_media_icons' => 'nullable|boolean',
-            'social.enable_social_sharing' => 'nullable|boolean',
+            'social.show_social_media_icons' => 'nullable',
+            'social.enable_social_sharing' => 'nullable',
         ];
     }
 

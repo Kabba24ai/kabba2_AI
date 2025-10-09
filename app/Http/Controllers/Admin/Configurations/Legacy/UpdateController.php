@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Configurations;
+namespace App\Http\Controllers\Admin\Configurations\Legacy;
 
 use App\Http\Controllers\Controller;
 

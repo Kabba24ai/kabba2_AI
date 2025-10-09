@@ -3,42 +3,40 @@
 use Illuminate\Support\Facades\Route;
 
 // Controllers
+use App\Http\Controllers\Admin\Configurations\Legacy\IndexController as LegacyIndexController;
+use App\Http\Controllers\Admin\Configurations\Legacy\UpdateController;
+
 use App\Http\Controllers\Admin\Configurations\IndexController;
-use App\Http\Controllers\Admin\Configurations\UpdateController;
 use App\Http\Controllers\Admin\Configurations\VerifyMasterController;
 use App\Http\Controllers\Admin\Configurations\SettingsResetController;
-use App\Http\Controllers\Admin\Configurations\New\IndexController as NewIndexController;
-
-use App\Http\Controllers\Admin\Configurations\New\MailSendSettings\SaveMailSendController;
-use App\Http\Controllers\Admin\Configurations\New\PaymentIntegration\SavePaymentIntegrationController;
-use App\Http\Controllers\Admin\Configurations\New\SocialMediaIntegration\SaveSocialMediaController;
-use App\Http\Controllers\Admin\Configurations\New\ContactUsSettings\SaveController as SaveContactUsSettingsController;
-use App\Http\Controllers\Admin\Configurations\New\ProductSettings\SaveController as ProductSettingsSaveController;
-
+use App\Http\Controllers\Admin\Configurations\ProductSettings\SaveController as SaveProductSettingsController;
+use App\Http\Controllers\Admin\Configurations\ContactUsSettings\SaveController as SaveContactUsSettingsController;
+use App\Http\Controllers\Admin\Configurations\CommunicationSettings\SaveController as SaveCommunicationSettingsController;
+use App\Http\Controllers\Admin\Configurations\AdminSettings\SaveController as SaveAdminSettingsController;
+use App\Http\Controllers\Admin\Configurations\MailSendSettings\SaveController as SaveMailSendController;
+use App\Http\Controllers\Admin\Configurations\PaymentIntegration\SaveController as SavePaymentIntegrationController;
+use App\Http\Controllers\Admin\Configurations\SocialMediaIntegration\SaveController as SaveSocialMediaController;
+use App\Http\Controllers\Admin\Configurations\InvoiceSettings\SaveController as SaveInvoiceSettingsController;
 
 Route::prefix('configurations')
 ->name('configurations.')
 ->group(function ($router) {
 
     Route::get('/', IndexController::class)->name('index');
-    Route::post('/', UpdateController::class);
+    Route::post('/product-settings', SaveProductSettingsController::class)->name('save-product-settings');
+    Route::post('/contact-us-settings', SaveContactUsSettingsController::class)->name('save-contact-us-settings');
+    Route::post('/communication-settings', SaveCommunicationSettingsController::class)->name('save-communication-settings');
+    Route::post('/admin-settings', SaveAdminSettingsController::class)->name('save-admin-settings');
+    Route::post('/mail-send-settings', SaveMailSendController::class)->name('save-mail-send-settings');
+    Route::post('/payment-integration-settings', SavePaymentIntegrationController::class)->name('save-payment-integration-settings');
+    Route::post('/social-media-settings', SaveSocialMediaController::class)->name('save-social-media-settings');
+    Route::post('/invoice-settings', SaveInvoiceSettingsController::class)->name('save-invoice-settings');
 
-    Route::post('/verify-master', VerifyMasterController::class)->name('verifyMaster');
+    Route::post('/verify-master', VerifyMasterController::class)->name('verify-master');
+    Route::post('/settings/reset', SettingsResetController::class)->name('reset-settings');
 
-    Route::post('/settings/reset', SettingsResetController::class)->name('settings.reset');
-
-    Route::prefix('new')->name('new.')->group(function ($router) {
-        Route::get('/', NewIndexController::class)->name('index');
-
-        Route::post('/mail-send-settings', SaveMailSendController::class)->name('save-mail-send-form');
-        
-        Route::post('/payment-integration-settings', SavePaymentIntegrationController::class)->name('save-payment-integration-form');
-
-        Route::post('/social-media-settings', SaveSocialMediaController::class)->name('save-social-media-form');
-
-
-        Route::post('/contact-us-settings', SaveContactUsSettingsController::class)->name('save-contact-us-settings');
-        Route::post('/product-settings', ProductSettingsSaveController::class)->name('save-product-settings');
-
-    });
+    // Route::prefix('legacy')->name('legacy.')->group(function ($router) {
+    //     Route::get('/', LegacyIndexController::class)->name('index');
+    //     Route::post('/', UpdateController::class);
+    // });
 });

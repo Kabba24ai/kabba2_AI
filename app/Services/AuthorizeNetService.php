@@ -4,6 +4,7 @@ namespace App\Services;
 
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
+use Illuminate\Support\Facades\Crypt;
 
 class AuthorizeNetService
 {
@@ -15,8 +16,8 @@ class AuthorizeNetService
     public function __construct()
     {
         $paymentSettings = \App\Helpers\ConfigurationHelper::getSettings('Payment Settings');
-        $loginId = $paymentSettings['payment_api_key'] ?? '';
-        $transactionKey = $paymentSettings['payment_api_secret'] ?? '';
+        $loginId = Crypt::decryptString($paymentSettings['payment_api_key']) ?? '';
+        $transactionKey = Crypt::decryptString($paymentSettings['payment_api_secret']) ?? '';
         $isTestMode = $paymentSettings['payment_test_mode'] ?? false;
         if (empty($loginId) || empty($transactionKey)) {
             throw new \Exception('Payment API credentials are not set.');

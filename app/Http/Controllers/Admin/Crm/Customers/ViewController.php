@@ -70,7 +70,7 @@ class ViewController extends Controller
         $customers = $query->latest('id')->paginate(10)->withQueryString();
 
         // biling sumary
-                $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
 
 

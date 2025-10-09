@@ -554,7 +554,7 @@
                        {!! html()->select(
                        'payment_type',
                        \App\Enums\Customers\PaymentMethod::options(),
-                     
+
                        )
                        ->id('payment_type')
                        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
@@ -1424,8 +1424,8 @@
                    // Tokenize
                    Accept.dispatchData({
                        authData: {
-                           clientKey: "{{ $paymentSetting['payment_api_public_key'] ?? '' }}",
-                           apiLoginID: "{{ $paymentSetting['payment_api_key'] ?? '' }}"
+                           clientKey: "{{ Crypt::decryptString($paymentSetting['payment_api_public_key']) ?? '' }}",
+                           apiLoginID: "{{ Crypt::decryptString($paymentSetting['payment_api_key']) ?? '' }}"
                        },
                        cardData: {
                            cardNumber: cardNumberInput.value.replace(/\s/g, ''),

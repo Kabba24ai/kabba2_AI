@@ -3,38 +3,47 @@
 namespace App\Http\Controllers\Admin\Configurations;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log; // <-- import logger
+
+// Requests
+use App\Http\Requests\Admin\Configurations\VerifyMasterRequest;
+
+// Models
 use App\Models\Configurations\Setting;
 
 class VerifyMasterController extends Controller
 {
-    public function __invoke(Request $request)
+    public function __invoke(VerifyMasterRequest $request)
     {
-        $request->validate([
-            'password' => 'required|string',
-            
-        ]);
+        $validated = $request->validated();
+        session()->forget('master_verified');
+        try {
+            $master = Setting::where('setting_name', 'master_password_entry')->first();
+            $decryptedMaster = $master ? $master->getDecryptedSettingValue() : null;
 
-        $master = Setting::where('setting_name', 'master_passcode')->first()?->setting_value;
-
-        if ($request->password === $master) {
-           
-
-            return response()->json([
-                'ok' => true,
-                'status' => 'success',
-                
-                'message' => 'Master password verified. Field unlocked.',
-            ]);
+            if ($decryptedMaster === $validated['password']) {
+                // Fetch the actual value of the targeted field to return it
+                $fieldSetting = Setting::where('setting_name', $validated['field_name'])->first();
+                if ($fieldSetting->is_encrypted === 0) {
+                    $fieldValue = $fieldSetting ? $fieldSetting->setting_value : null;
+                }else {
+                    $fieldValue = $fieldSetting ? $fieldSetting->getDecryptedSettingValue() : null;
+                }
+                session(['master_verified' => true]);
+                return response()->json([
+                    'success' => true,
+                    'field_value' => $fieldValue,
+                    'message' => 'Master password verified. Field unlocked.',
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Wrong master password.',
+                    'error' => $e->getMessage(),
+                ],
+                403,
+            );
         }
-
-     
-
-        return response()->json([
-            'ok' => false,
-            'status' => 'error',
-            'message' => 'Wrong master password.',
-        ], 403);
     }
 }

@@ -37,30 +37,28 @@
                 </h3>
 
                 @php
-                $ecommerceActive = Route::is([
-                'admin.product-management.products.*',
-                'admin.product-management.categories.*',
-                'admin.product-management.options.*',
+                    $ecommerceActive = Route::is([
+                        'admin.product-management.products.*',
+                        'admin.product-management.categories.*',
+                        'admin.product-management.options.*',
+                    ]);
 
-                ]);
+                    $ordersActive = Route::is([
+                        'admin.order-management.orders.*',
+                        'admin.order-management.schedules.*',
+                        'admin.order-management.equipment-inventory.*',
+                    ]);
 
-                $ordersActive = Route::is([
-                'admin.order-management.orders.*',
-                'admin.order-management.schedules.*',
-                'admin.order-management.equipment-inventory.*',
+                    $customerChecklistActive = Route::is([
+                        // Add the correct route for customer checklist when ready
+                        'admin.checklist-management.customer_checklist.*',
+                    ]);
 
-                ]);
-
-                $customerChecklistActive = Route::is([
-                // Add the correct route for customer checklist when ready
-                'admin.checklist-management.customer_checklist.*',
-                ]);
-
-                $crmActive = Route::is([
-                'admin.crm.customers.*',
-                'admin.crm.billing-summary.*',
-                'admin.crm.funnels.*',
-                ]);
+                    $crmActive = Route::is([
+                        'admin.crm.customers.*',
+                        'admin.crm.billing-summary.*',
+                        'admin.crm.funnels.*',
+                    ]);
 
                 @endphp
 
@@ -122,7 +120,10 @@
                                     <a href="{{ route('admin.order-management.equipment-inventory.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.order-management.equipment-inventory.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-inventory w-5 h-5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-inventory w-5 h-5">
                                             <rect x="3" y="3" width="7" height="7" rx="1" />
                                             <path d="M3 7h7" />
                                             <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -247,29 +248,25 @@
 
                     @php
 
-                    $maintenanceActive = Route::is([
-                    'admin.maintenance-management.equipment.*',
-                    'admin.maintenance-management.parts.*',
-                    'admin.maintenance-management.suppliers.*',
-                    ]);
+                        $maintenanceActive = Route::is([
+                            'admin.maintenance-management.equipment.*',
+                            'admin.maintenance-management.parts.*',
+                            'admin.maintenance-management.suppliers.*',
+                        ]);
 
-                    // Checklist Management
-                    $checklistManagementActive = Route::is([
-                    'admin.checklist-management.*',
-                    ]);
+                        // Checklist Management
+                        $checklistManagementActive = Route::is(['admin.checklist-management.*']);
 
-                    $rentalReadyActive = Route::is([
-                    'admin.checklist-management.rental-ready.question_and_categories.*',
-                    'admin.checklist-management.rental-ready.templates.*',
-                    ]);
+                        $rentalReadyActive = Route::is([
+                            'admin.checklist-management.rental-ready.question_and_categories.*',
+                            'admin.checklist-management.rental-ready.templates.*',
+                        ]);
 
-                    $rentalReadyquestion = Route::is([
-                    'admin.checklist-management.rental-ready.question_and_categories.*',
-                    ]);
+                        $rentalReadyquestion = Route::is([
+                            'admin.checklist-management.rental-ready.question_and_categories.*',
+                        ]);
 
-                    $rentalReadytemplates = Route::is([
-                    'admin.checklist-management.rental-ready.templates.*',
-                    ]);
+                        $rentalReadytemplates = Route::is(['admin.checklist-management.rental-ready.templates.*']);
 
                     @endphp
 
@@ -323,205 +320,196 @@
                             <x-heroicon-o-circle-stack class="h-5 w-5" /> Suppliers
                         </a>
                     </li> --}}
-                </ul>
-            </div>
-            </li>
+                            </ul>
+                        </div>
+                    </li>
 
-            <!-- Checklist Mangement -->
-            <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open"
-                    class="menu-item group flex items-center gap-3 {{ $checklistManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                    <x-heroicon-o-clipboard-document-check class="w-6 h-6" />
-                    <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Checklist Mangement</span>
-                    <span class="menu-item-arrow"
-                        :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                    <!-- Checklist Mangement -->
+                    <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $checklistManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-clipboard-document-check class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Checklist
+                                Mangement</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
                                     'lg:hidden' : ''
                                 ]">
 
-                        <!-- Chevron Left (when open) -->
-                        <template x-if="!open">
-                            <x-heroicon-o-chevron-left class="w-5 h-5" />
-                        </template>
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
 
-                        <!-- Chevron Down (when closed) -->
-                        <template x-if="open">
-                            <x-heroicon-o-chevron-down class="w-5 h-5" />
-                        </template>
-                    </span>
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
 
-                </a>
+                        </a>
 
-                <div x-show="open" x-transition>
-                    <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
-                        :class="sidebarToggle ? 'lg:hidden' : ''">
-                        <li>
-                            <a href="{{ route('admin.checklist-management.equipment-management.index') }}"
-                                class="menu-dropdown-item group {{ Route::is('admin.checklist-management.equipment-management.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                <x-heroicon-o-wrench-screwdriver class="w-5 h-5" /> Equipment Mgt.
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('admin.checklist-management.checklist-master.index') }}"
-                                class="menu-dropdown-item group {{ Route::is('admin.checklist-management.checklist-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                <x-heroicon-o-check-circle class="w-5 h-5" /> Checklist Master
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}"
-                                class="menu-dropdown-item group {{ Route::is('admin.checklist-management.rental-ready.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                <x-heroicon-o-truck class="h-5 w-5" /> Rental Ready Admin
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('admin.checklist-management.customer-admin.index') }}"
-                                class="menu-dropdown-item group {{ Route::is('admin.checklist-management.customer-admin.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                <x-heroicon-s-user-group class="w-5 h-5" /> Customer Admin
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            <li x-data="{ open: 'false' }">
-                <a href="https://projectmanager.kabba.ai/" target="_blank"
-                    class="menu-item group flex items-center gap-3 menu-item-inactive }}">
-                    <x-heroicon-o-squares-plus class="w-6 h-6" />
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.checklist-management.equipment-management.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist-management.equipment-management.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-wrench-screwdriver class="w-5 h-5" /> Equipment Mgt.
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.checklist-management.checklist-master.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist-management.checklist-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-check-circle class="w-5 h-5" /> Checklist Master
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.checklist-management.rental-ready.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist-management.rental-ready.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-truck class="h-5 w-5" /> Rental Ready Admin
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.checklist-management.customer-admin.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.checklist-management.customer-admin.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-s-user-group class="w-5 h-5" /> Customer Admin
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li x-data="{ open: 'false' }">
+                        <a href="https://projectmanager.kabba.ai/" target="_blank"
+                            class="menu-item group flex items-center gap-3 menu-item-inactive }}">
+                            <x-heroicon-o-squares-plus class="w-6 h-6" />
 
-                    <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Project Manager</span>
-                </a>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Project
+                                Manager</span>
+                        </a>
 
-            </li>
-
-
-
-
-            @php
-            $settingsActive = Route::is([
-            'admin.terms-and-conditions.*',
-            'admin.stores.*',
-            'admin.configurations.*',
-            ]);
+                    </li>
 
 
 
-            @endphp
 
-            @php
-            $platformAdministration = Route::is('admin.hrm.*');
+                    @php
+                        $settingsActive = Route::is([
+                            'admin.terms-and-conditions.*',
+                            'admin.stores.*',
+                            'admin.configurations.*',
+                        ]);
 
-            $isUsers = Route::is('admin.hrm.users.*') || Route::is('admin.hrm.*') ;
-            $isRoles = Route::is('admin.roles.manage.role') || Route::is('admin.roles.create.role') ;
+                    @endphp
 
-            @endphp
+                    @php
+                        $platformAdministration = Route::is('admin.hrm.*');
+
+                        $isUsers = Route::is('admin.hrm.users.*') || Route::is('admin.hrm.*');
+                        $isRoles = Route::is('admin.roles.manage.role') || Route::is('admin.roles.create.role');
+
+                    @endphp
 
 
 
-            <!-- Platform Administration -->
-            <li x-data="{ open: {{ $platformAdministration ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open"
-                    class="menu-item group flex items-center gap-3 {{ $platformAdministration ? 'menu-item-active' : 'menu-item-inactive' }}">
-                    <x-heroicon-o-briefcase class="w-6 h-6" />
-                    <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">HRM</span>
-                    <span class="menu-item-arrow"
-                        :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                    <!-- Platform Administration -->
+                    <li x-data="{ open: {{ $platformAdministration ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $platformAdministration ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-briefcase class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">HRM</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
                                     'lg:hidden' : ''
                                 ]">
 
-                        <!-- Chevron Left (when open) -->
-                        <template x-if="!open">
-                            <x-heroicon-o-chevron-left class="w-5 h-5" />
-                        </template>
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
 
-                        <!-- Chevron Down (when closed) -->
-                        <template x-if="open">
-                            <x-heroicon-o-chevron-down class="w-5 h-5" />
-                        </template>
-                    </span>
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
 
-                </a>
+                        </a>
 
-                <div x-show="open" x-transition>
-                    <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
-                        :class="sidebarToggle ? 'lg:hidden' : ''">
-                        <li>
-                            <a href="{{ route('admin.hrm.users.index') }}"
-                                class="menu-dropdown-item group {{ $isUsers ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                <x-heroicon-o-users class="w-5 h-5" /> Users Account Settings
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.hrm.users.index') }}"
+                                        class="menu-dropdown-item group {{ $isUsers ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-users class="w-5 h-5" /> Users Account Settings
 
-                            </a>
-                        </li>
+                                    </a>
+                                </li>
 
 
-                    </ul>
-                </div>
-            </li>
-            <!-- Settings -->
-            <li x-data="{ open: {{ $settingsActive ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open"
-                    class="menu-item group flex items-center gap-3 {{ $settingsActive ? 'menu-item-active' : 'menu-item-inactive' }}">
-                    <x-heroicon-o-cog-6-tooth class="w-6 h-6" />
-                    <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Settings</span>
-                    <span class="menu-item-arrow"
-                        :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                            </ul>
+                        </div>
+                    </li>
+                    <!-- Settings -->
+                    <li x-data="{ open: {{ $settingsActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $settingsActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-cog-6-tooth class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Settings</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
                                     'lg:hidden' : ''
                                 ]">
 
-                        <!-- Chevron Left (when open) -->
-                        <template x-if="!open">
-                            <x-heroicon-o-chevron-left class="w-5 h-5" />
-                        </template>
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
 
-                        <!-- Chevron Down (when closed) -->
-                        <template x-if="open">
-                            <x-heroicon-o-chevron-down class="w-5 h-5" />
-                        </template>
-                    </span>
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
 
-                </a>
+                        </a>
 
-                <div x-show="open" x-transition>
-                    <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
-                        :class="sidebarToggle ? 'lg:hidden' : ''">
-                        <li>
-                            <a href="{{ route('admin.terms-and-conditions.index') }}"
-                                class="menu-dropdown-item group
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.terms-and-conditions.index') }}"
+                                        class="menu-dropdown-item group
                                         {{ Route::is('admin.terms-and-conditions.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                <x-heroicon-o-information-circle class="h-5 w-5" /> Terms & Conditions
-                            </a>
-                        </li>
+                                        <x-heroicon-o-information-circle class="h-5 w-5" /> Terms & Conditions
+                                    </a>
+                                </li>
 
-                        <li>
-                            <a href="{{ route('admin.stores.index') }}"
-                                class="menu-dropdown-item group
+                                <li>
+                                    <a href="{{ route('admin.stores.index') }}"
+                                        class="menu-dropdown-item group
                                         {{ Route::is('admin.stores.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                <x-heroicon-o-home class="h-5 w-5" /> Stores
-                            </a>
-                        </li>
+                                        <x-heroicon-o-home class="h-5 w-5" /> Stores
+                                    </a>
+                                </li>
 
-                        <li>
-                            <a href="{{ route('admin.configurations.index') }}"
-                                class="menu-dropdown-item group
-                                        {{ Route::is('admin.configurations.*') && !Route::is('admin.configurations.new.*')
-    ? 'menu-dropdown-item-active'
-    : 'menu-dropdown-item-inactive' }}
-">
-                                <x-heroicon-o-cog-8-tooth class="h-5 w-5" /> Settings
-                            </a>
-                        </li>
+                                <li>
+                                    <a href="{{ route('admin.configurations.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.configurations.*')
+                                            ? 'menu-dropdown-item-active'
+                                            : 'menu-dropdown-item-inactive' }} ">
+                                        <x-heroicon-o-cog-8-tooth class="h-5 w-5" /> Settings
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
 
-                        <li>
-                            <a href="{{ route('admin.configurations.new.index') }}"
-                                class="menu-dropdown-item group
-                                        {{ Route::is('admin.configurations.new.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                <x-heroicon-o-cog-8-tooth class="h-5 w-5" /> Price Rate Settings
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            </ul>
-
-    </div>
-    </nav>
-    <!-- Sidebar Menu -->
+            </div>
+        </nav>
+        <!-- Sidebar Menu -->
     </div>
 </aside>

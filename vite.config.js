@@ -81,7 +81,7 @@ export default defineConfig(() => {
 
 
                 ],
-                refresh: true,
+                refresh: ['resources/views/**/*.php',  'routes/**/*.php'],
             }),
         ],
     };

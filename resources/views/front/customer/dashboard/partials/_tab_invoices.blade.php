@@ -459,8 +459,8 @@
                  // Tokenize
                  Accept.dispatchData({
                      authData: {
-                         clientKey: "{{ $paymentSetting['payment_api_public_key'] ?? '' }}",
-                         apiLoginID: "{{ $paymentSetting['payment_api_key'] ?? '' }}"
+                         clientKey: "{{ Crypt::decryptString($paymentSetting['payment_api_public_key']) ?? '' }}",
+                         apiLoginID: "{{ Crypt::decryptString($paymentSetting['payment_api_key']) ?? '' }}"
                      },
                      cardData: {
                          cardNumber: cardNumberInput.value.replace(/\s/g, ''),

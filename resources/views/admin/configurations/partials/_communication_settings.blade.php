@@ -10,18 +10,29 @@
             <label for="sms_gateway" class="block text-sm font-medium text-gray-700 mb-1">
                 SMS Gateway
             </label>
-
             <div class="relative">
-                {!! html()->input('text', 'sms_gateway', $settings['Communication Settings']['sms_gateway']['setting_value'])->class([
-                        'w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                {!! html()->input(
+                        'text',
+                        'sms_gateway',
+                        old('sms_gateway', $settings['Communication Settings']['sms_gateway']['setting_value'] ?? ''),
+                    )->class([
+                        'w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('sms_gateway'),
                         'border-red-500' => $errors->has('sms_gateway'),
                     ])->attributes([
                         'autocomplete' => 'off',
-                        'placeholder' => $settings['Communication Settings']['sms_gateway']['placeholder'],
-                        'required' => true,
+                        'placeholder' => 'Stripe / PayPal / Razorpay',
                         'id' => 'sms_gateway',
+                        'disabled' => true,
                     ]) !!}
+
+                {{-- Lock --}}
+                <button type="button"
+                    class="absolute inset-y-0 right-0 w-9 grid place-items-center text-blue-600/80 hover:text-blue-700"
+                    data-open-verify data-field-id="sms_gateway" aria-haspopup="dialog" aria-controls="verify-modal"
+                    aria-label="Verify to edit">
+                    <x-heroicon-o-lock-closed class="w-4 h-4" />
+                </button>
             </div>
 
             @error('sms_gateway')
@@ -36,7 +47,7 @@
             </label>
 
             <div class="relative">
-                {!! html()->input('password', 'twilio_sid', $settings['Communication Settings']['twilio_sid']['setting_value'])->class([
+                {!! html()->input('password', 'twilio_sid', $settings['Communication Settings']['twilio_sid']['setting_value'] ? '************' : '')->class([
                         'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('twilio_sid'),
                         'border-red-500' => $errors->has('twilio_sid'),
@@ -54,8 +65,8 @@
                 <button type="button"
                     class="absolute inset-y-0 right-9 px-2 grid place-items-center text-gray-400 hover:text-gray-600"
                     data-toggle="visibility" data-target="twilio_sid" aria-label="Show passcode" aria-controls="twilio_sid">
-                    <x-heroicon-o-eye data-eye class="w-5 h-5" />
-                    <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+                    <x-heroicon-o-eye data-eye-off class="w-5 h-5" />
+                    <x-heroicon-o-eye-slash data-eye class="w-5 h-5 hidden" />
                 </button>
 
                 <!-- lock button triggers modal -->
@@ -63,7 +74,6 @@
                     class="absolute inset-y-0 right-0 w-9 grid place-items-center text-blue-600/80 hover:text-blue-700"
                     data-open-verify
                     data-field-id="twilio_sid"
-                    data-verify-url=""
                     aria-haspopup="dialog"
                     aria-controls="verify-modal"
                     aria-label="Verify to edit">
@@ -83,7 +93,7 @@
             </label>
 
             <div class="relative">
-                {!! html()->input('password', 'twilio_auth_token', $settings['Communication Settings']['twilio_auth_token']['setting_value'])->class([
+                {!! html()->input('password', 'twilio_auth_token', $settings['Communication Settings']['twilio_auth_token']['setting_value'] ? '************' : '')->class([
                         'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('twilio_auth_token'),
                         'border-red-500' => $errors->has('twilio_auth_token'),
@@ -101,8 +111,8 @@
                 <button type="button"
                     class="absolute inset-y-0 right-9 px-2 grid place-items-center text-gray-400 hover:text-gray-600"
                     data-toggle="visibility" data-target="twilio_auth_token" aria-label="Show passcode" aria-controls="twilio_auth_token">
-                    <x-heroicon-o-eye data-eye class="w-5 h-5" />
-                    <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+                    <x-heroicon-o-eye data-eye-off class="w-5 h-5" />
+                    <x-heroicon-o-eye-slash data-eye class="w-5 h-5 hidden" />
                 </button>
 
                 <!-- lock button triggers modal -->
@@ -110,7 +120,6 @@
                     class="absolute inset-y-0 right-0 w-9 grid place-items-center text-blue-600/80 hover:text-blue-700"
                     data-open-verify
                     data-field-id="twilio_auth_token"
-                    data-verify-url=""
                     aria-haspopup="dialog"
                     aria-controls="verify-modal"
                     aria-label="Verify to edit">
@@ -130,7 +139,7 @@
             </label>
 
             <div class="relative">
-                {!! html()->input('password', 'twilio_from_number', $settings['Communication Settings']['twilio_from_number']['setting_value'])->class([
+                {!! html()->input('password', 'twilio_from_number', $settings['Communication Settings']['twilio_from_number']['setting_value'] ? '************' : '')->class([
                         'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('twilio_from_number'),
                         'border-red-500' => $errors->has('twilio_from_number'),
@@ -148,8 +157,8 @@
                 <button type="button"
                     class="absolute inset-y-0 right-9 px-2 grid place-items-center text-gray-400 hover:text-gray-600"
                     data-toggle="visibility" data-target="twilio_from_number" aria-label="Show passcode" aria-controls="twilio_from_number">
-                    <x-heroicon-o-eye data-eye class="w-5 h-5" />
-                    <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+                    <x-heroicon-o-eye data-eye-off class="w-5 h-5" />
+                    <x-heroicon-o-eye-slash data-eye class="w-5 h-5 hidden" />
                 </button>
 
                 <!-- lock button triggers modal -->
@@ -157,7 +166,6 @@
                     class="absolute inset-y-0 right-0 w-9 grid place-items-center text-blue-600/80 hover:text-blue-700"
                     data-open-verify
                     data-field-id="twilio_from_number"
-                    data-verify-url=""
                     aria-haspopup="dialog"
                     aria-controls="verify-modal"
                     aria-label="Verify to edit">
@@ -177,7 +185,7 @@
             </label>
 
             <div class="relative">
-                {!! html()->input('password', 'twilio_messaging_service_sid', $settings['Communication Settings']['twilio_messaging_service_sid']['setting_value'])->class([
+                {!! html()->input('password', 'twilio_messaging_service_sid', $settings['Communication Settings']['twilio_messaging_service_sid']['setting_value'] ? '************' : '')->class([
                         'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('twilio_messaging_service_sid'),
                         'border-red-500' => $errors->has('twilio_messaging_service_sid'),
@@ -195,8 +203,8 @@
                 <button type="button"
                     class="absolute inset-y-0 right-9 px-2 grid place-items-center text-gray-400 hover:text-gray-600"
                     data-toggle="visibility" data-target="twilio_messaging_service_sid" aria-label="Show passcode" aria-controls="twilio_messaging_service_sid">
-                    <x-heroicon-o-eye data-eye class="w-5 h-5" />
-                    <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+                    <x-heroicon-o-eye data-eye-off class="w-5 h-5" />
+                    <x-heroicon-o-eye-slash data-eye class="w-5 h-5 hidden" />
                 </button>
 
                 <!-- lock button triggers modal -->
@@ -204,7 +212,6 @@
                     class="absolute inset-y-0 right-0 w-9 grid place-items-center text-blue-600/80 hover:text-blue-700"
                     data-open-verify
                     data-field-id="twilio_messaging_service_sid"
-                    data-verify-url=""
                     aria-haspopup="dialog"
                     aria-controls="verify-modal"
                     aria-label="Verify to edit">
@@ -224,11 +231,23 @@
 
             <div class="relative">
                 <select name="sms_test_mode" id="sms_test_mode"
-                    class="w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 {{ $errors->has('sms_test_mode') ? 'border-red-500' : 'border-gray-300' }}"
-                    required>
-                    <option value="Yes" {{ old('sms_test_mode', $settings['Communication Settings']['sms_test_mode']['setting_value']) == 'Yes' ? 'selected' : '' }}>Yes</option>
-                    <option value="No" {{ old('sms_test_mode', $settings['Communication Settings']['sms_test_mode']['setting_value']) == 'No' ? 'selected' : '' }}>No</option>
+                    class="w-full pl-3 pr-10 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500"
+                    disabled>
+                    <option value="1"
+                        {{ old('sms_test_mode', $settings['Communication Settings']['sms_test_mode']['setting_value'] ?? '') == 1 ? 'selected' : '' }}>
+                        Yes</option>
+                    <option value="0"
+                        {{ old('sms_test_mode', $settings['Communication Settings']['sms_test_mode']['setting_value'] ?? '') == 0 ? 'selected' : '' }}>
+                        No</option>
                 </select>
+
+                {{-- Lock --}}
+                <button type="button"
+                    class="absolute inset-y-0 right-0 w-9 grid place-items-center text-blue-600/80 hover:text-blue-700"
+                    data-open-verify data-field-id="sms_test_mode" aria-haspopup="dialog"
+                    aria-controls="verify-modal" aria-label="Verify to edit">
+                    <x-heroicon-o-lock-closed class="w-4 h-4" />
+                </button>
             </div>
 
             @error('sms_test_mode')

@@ -13,38 +13,26 @@ class VerifyMasterController extends Controller
     {
         $request->validate([
             'password' => 'required|string',
-            'field_id' => 'required|integer',
+            
         ]);
 
         $master = Setting::where('setting_name', 'master_passcode')->first()?->setting_value;
 
         if ($request->password === $master) {
-            //  Log success
-            // Log::info('Master password verified', [
-            //     'user_id' => auth()->id(),
-            //     'field_id' => $request->field_id,
-            //     'ip'       => $request->ip(),
-            //     'master' => $master,
-            // ]);
+           
 
             return response()->json([
+                'ok' => true,
                 'status' => 'success',
-                'field_id' => $request->field_id,
+                
                 'message' => 'Master password verified. Field unlocked.',
             ]);
         }
 
-        // ❌ Log failure
-        // Log::warning('Failed master password attempt', [
-        //     'user_id' => auth()->id(),
-        //     'field_id' => $request->field_id,
-        //     'ip'       => $request->ip(),
-        //     'attempted_password' => $request->password, // remove if too sensitive
-        //     'master' => $master,
-
-        // ]);
+     
 
         return response()->json([
+            'ok' => false,
             'status' => 'error',
             'message' => 'Wrong master password.',
         ], 403);

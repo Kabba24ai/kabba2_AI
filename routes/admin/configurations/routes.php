@@ -10,6 +10,10 @@ use App\Http\Controllers\Admin\Configurations\SettingsResetController;
 use App\Http\Controllers\Admin\Configurations\New\IndexController as NewIndexController;
 use App\Http\Controllers\Admin\Configurations\New\ContactUsSettings\SaveController;
 use App\Http\Controllers\Admin\Configurations\New\ProductSettings\SaveRateController;
+use App\Http\Controllers\Admin\Configurations\New\MailSendSettings\SaveMailSendController;
+use App\Http\Controllers\Admin\Configurations\New\PaymentIntegration\SavePaymentIntegrationController;
+use App\Http\Controllers\Admin\Configurations\New\SocialMediaIntegration\SaveSocialMediaController;
+
 
 
 Route::prefix('configurations')
@@ -27,5 +31,12 @@ Route::prefix('configurations')
         Route::get('/', NewIndexController::class)->name('index');
         Route::post('/contact-us-settings', SaveController::class)->name('save-contact-us-settings');
         Route::post('/product-rate-settings', SaveRateController::class)->name('save-product-rate');
+
+        Route::post('/mail-send-settings', SaveMailSendController::class)->name('save-mail-send-form');
+        
+        Route::post('/payment-integration-settings', SavePaymentIntegrationController::class)->name('save-payment-integration-form');
+
+        Route::post('/social-media-settings', SaveSocialMediaController::class)->name('save-social-media-form');
+
     });
 });

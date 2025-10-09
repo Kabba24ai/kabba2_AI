@@ -38,6 +38,34 @@
                 Admin Settings
             </button>
 
+            <button
+                class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'mail-send-settings' ?
+                    ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'mail-send-settings'" id="tab-mail-send-settings">
+                Mail Send Settings
+            </button>
+
+            <button
+                class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'payment-integration' ?
+                    ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'payment-integration'" id="tab-payment-integration">
+                Payment Integration
+            </button>
+
+            <button
+                class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'social-media-settings' ?
+                    ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent  hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'social-media-settings'" id="tab-social-media-settings">
+                Social Media Settings
+            </button>
+
+
         </nav>
     </div>
 
@@ -70,6 +98,30 @@
             <x-admin.configurations.config-form id="config-admin-form" :action="'#'" saveLabel="Save">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     @include('admin.configurations.partials._admin_settings')
+                </div>
+            </x-admin.configurations.config-form>
+        </div>
+
+        <div x-show="activeTab === 'mail-send-settings'">
+            <x-admin.configurations.config-form id="config-mail-send-form" :action="route('admin.configurations.new.save-mail-send-form')" saveLabel="Save">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @include('admin.configurations.partials._mail_send_settings')
+                </div>
+            </x-admin.configurations.config-form>
+        </div>
+
+        <div x-show="activeTab === 'payment-integration'">
+            <x-admin.configurations.config-form id="config-payment-integration-form" :action="route('admin.configurations.new.save-payment-integration-form')" saveLabel="Save">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @include('admin.configurations.partials._payment_integration_settings')
+                </div>
+            </x-admin.configurations.config-form>
+        </div>
+
+        <div x-show="activeTab === 'social-media-settings'">
+            <x-admin.configurations.config-form id="config-social-media-form" :action="route('admin.configurations.new.save-social-media-form')" saveLabel="Save">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @include('admin.configurations.partials._social_media_settings')
                 </div>
             </x-admin.configurations.config-form>
         </div>
@@ -136,123 +188,128 @@
 </div>
 
 @push('js')
-    <script>
-        (function() {
-            // password visibility (delegated)
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('[data-toggle="visibility"]');
-                if (!btn) return;
-                const targetId = btn.getAttribute('data-target');
-                const input = document.getElementById(targetId);
-                if (!input) return;
-                const eye = btn.querySelector('[data-eye]');
-                const eyeOff = btn.querySelector('[data-eye-off]');
-                const isPassword = input.type === 'password';
-                input.type = isPassword ? 'text' : 'password';
-                if (eye) eye.classList.toggle('hidden', !isPassword);
-                if (eyeOff) eyeOff.classList.toggle('hidden', isPassword);
-                btn.setAttribute('aria-label', isPassword ? 'Hide value' : 'Show value');
-                btn.setAttribute('aria-pressed', String(isPassword));
-            });
+<script>
+    (function() {
+        // password visibility (delegated)
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-toggle="visibility"]');
+            if (!btn) return;
+            const targetId = btn.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const eye = btn.querySelector('[data-eye]');
+            const eyeOff = btn.querySelector('[data-eye-off]');
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            if (eye) eye.classList.toggle('hidden', !isPassword);
+            if (eyeOff) eyeOff.classList.toggle('hidden', isPassword);
+            btn.setAttribute('aria-label', isPassword ? 'Hide value' : 'Show value');
+            btn.setAttribute('aria-pressed', String(isPassword));
+        });
 
-            const modal = document.getElementById('verify-modal');
-            const verifyInput = document.getElementById('verify-password');
-            const verifyError = document.getElementById('verify-error');
-            const verifyBtn = document.getElementById('verify-submit');
+        const modal = document.getElementById('verify-modal');
+        const verifyInput = document.getElementById('verify-password');
+        const verifyError = document.getElementById('verify-error');
+        const verifyBtn = document.getElementById('verify-submit');
 
-            let targetFieldId = null;
-            let verifyUrl = null;
+        let targetFieldId = null;
+        let verifyUrl = "{{ route('admin.configurations.verifyMaster') }}"; // default URL
 
-            // open modal from lock buttons
-            document.addEventListener('click', function(e) {
-                const opener = e.target.closest('[data-open-verify]');
-                if (!opener) return;
+        // open modal from lock buttons
+        document.addEventListener('click', function(e) {
+            const opener = e.target.closest('[data-open-verify]');
+            if (!opener) return;
 
-                targetFieldId = opener.getAttribute('data-field-id');
-                verifyUrl = opener.getAttribute('data-verify-url');
+            targetFieldId = opener.getAttribute('data-field-id');
+            verifyUrl = opener.getAttribute('data-verify-url');
 
-                openModal();
-            });
+            openModal();
+        });
 
-            // close modal (X or Cancel or backdrop)
-            document.addEventListener('click', function(e) {
-                if (e.target.matches('[data-modal-close]') || e.target.closest('[data-modal-close]')) {
-                    closeModal();
-                }
-                if (e.target === modal) { // click backdrop
-                    closeModal();
-                }
-            });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
-            });
-
-            function openModal() {
-                verifyInput.value = '';
-                verifyError.textContent = '';
-                verifyError.classList.add('hidden');
-                modal.classList.remove('hidden');
-                setTimeout(() => verifyInput.focus(), 0);
+        // close modal (X or Cancel or backdrop)
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('[data-modal-close]') || e.target.closest('[data-modal-close]')) {
+                closeModal();
             }
-
-            function closeModal() {
-                modal.classList.add('hidden');
+            if (e.target === modal) { // click backdrop
+                closeModal();
             }
+        });
 
-            // submit verification
-            verifyBtn.addEventListener('click', submitVerify);
-            verifyInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') submitVerify();
-            });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+        });
 
-            async function submitVerify() {
-                if (!verifyUrl || !targetFieldId) return;
+        function openModal() {
+            verifyInput.value = '';
+            verifyError.textContent = '';
+            verifyError.classList.add('hidden');
+            modal.classList.remove('hidden');
+            setTimeout(() => verifyInput.focus(), 0);
+        }
 
-                verifyBtn.disabled = true;
-                verifyError.classList.add('hidden');
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
 
-                try {
-                    const tokenTag = document.querySelector('meta[name="csrf-token"]');
-                    const csrf = tokenTag ? tokenTag.getAttribute('content') : '';
+        // submit verification
+        verifyBtn.addEventListener('click', submitVerify);
+        verifyInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') submitVerify();
+        });
 
-                    const res = await fetch(verifyUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrf,
-                        },
-                        body: JSON.stringify({
-                            password: verifyInput.value
-                        }),
-                    });
+        async function submitVerify() {
+            if (!verifyUrl || !targetFieldId) return;
 
-                    const data = await res.json();
+            verifyBtn.disabled = true;
+            verifyError.classList.add('hidden');
 
-                    if (data && data.ok) {
-                        // enable the targeted input and focus it
-                        const field = document.getElementById(targetFieldId);
-                        if (field) {
-                            field.removeAttribute('disabled');
-                            field.focus();
-                            // optional little highlight
-                            field.classList.add('ring-2', 'ring-green-400');
-                            setTimeout(() => field.classList.remove('ring-2', 'ring-green-400'), 800);
-                        }
-                        closeModal();
-                    } else {
-                        verifyError.textContent = (data && data.message) ? data.message : 'Verification failed.';
-                        verifyError.classList.remove('hidden');
+            try {
+                const tokenTag = document.querySelector('meta[name="csrf-token"]');
+                const csrf = tokenTag ? tokenTag.getAttribute('content') : '';
+
+                const res = await fetch(verifyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify({
+                        password: verifyInput.value
+                    }),
+                });
+
+                const data = await res.json();
+
+                if (data && data.ok) {
+                    // enable the targeted input and focus it
+                    const field = document.getElementById(targetFieldId);
+                    if (field) {
+                        field.removeAttribute('disabled');
+                        field.focus();
+                        // optional little highlight
+                        field.classList.add('ring-2', 'ring-green-400');
+                        setTimeout(() => field.classList.remove('ring-2', 'ring-green-400'), 800);
                     }
-                } catch (err) {
-                    verifyError.textContent = 'Something went wrong. Please try again.';
+                    closeModal();
+
+                    notyf.success(data.message);
+
+                } else {
+                    verifyError.textContent = (data && data.message) ? data.message : 'Verification failed.';
                     verifyError.classList.remove('hidden');
-                    console.error(err);
-                } finally {
-                    verifyBtn.disabled = false;
+                    notyf.error(data.message);
+
                 }
+            } catch (err) {
+                verifyError.textContent = 'Something went wrong. Please try again.';
+                verifyError.classList.remove('hidden');
+                console.error(err);
+            } finally {
+                verifyBtn.disabled = false;
             }
-        })();
-    </script>
+        }
+    })();
+</script>
 @endpush

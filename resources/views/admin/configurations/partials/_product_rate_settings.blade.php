@@ -1,8 +1,8 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-2 mb-4">
+    {{-- <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-cube class="h-5 w-5 text-blue-600" aria-hidden="true" />
         <h3 class="text-lg font-bold text-gray-900">Rate Settings</h3>
-    </div>
+    </div> --}}
 
     <div class="grid grid-cols-1 gap-3">
         <div class="space-y-3 bg-blue-50 p-4 rounded-xl border border-blue-200">
@@ -24,10 +24,10 @@
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-2 mb-4">
+    {{-- <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-cube class="h-5 w-5 text-blue-600" aria-hidden="true" />
         <h3 class="text-lg font-bold text-gray-900">Rate Settings</h3>
-    </div>
+    </div> --}}
 
     <div class="grid grid-cols-1 gap-3">
         <div class="space-y-3 bg-green-50 p-4 rounded-xl border border-green-200">

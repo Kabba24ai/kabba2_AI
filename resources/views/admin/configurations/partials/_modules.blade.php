@@ -71,7 +71,7 @@
 
     <div class="dark:border-gray-800 my-2">
         <div x-show="activeTab === 'product-settings'">
-            <x-admin.configurations.config-form id="config-product-rate-form" :action="route('admin.configurations.new.save-product-rate')" saveLabel="Save">
+            <x-admin.configurations.config-form id="config-product-rate-form" :action="route('admin.configurations.new.save-product-settings')" saveLabel="Save">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     @include('admin.configurations.partials._product_settings')
                 </div>

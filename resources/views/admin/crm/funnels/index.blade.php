@@ -44,7 +44,7 @@
                                         <label for="cod_order_message"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                             <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
-                                            Truck Pickup Message
+                                            COD Order Message
                                         </label>
                                         <label for="cod_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">

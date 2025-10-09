@@ -7,111 +7,135 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-            <label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">
-                Mobile
+            <label for="sales_phone" class="block text-sm font-medium text-gray-700 mb-1">
+                Phone - Sales
             </label>
 
             <div class="relative">
-                {!! html()->input('text', 'mobile', $settings['Contact Us Settings']['mobile']['setting_value'])->class([
+                {!! html()->input('text', 'sales_phone', $settings['Contact Us Settings']['sales_phone']['setting_value'])->class([
                         'masked-phone w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('mobile'),
-                        'border-red-500' => $errors->has('mobile'),
+                        'border-gray-300' => !$errors->has('sales_phone'),
+                        'border-red-500' => $errors->has('sales_phone'),
                     ])->attributes([
                         'autocomplete' => 'off',
-                        'placeholder' => $settings['Contact Us Settings']['mobile']['placeholder'],
-                        'id' => 'mobile',
+                        'placeholder' => $settings['Contact Us Settings']['sales_phone']['placeholder'],
+                        'required' => true,
+                        'id' => 'sales_phone',
                     ]) !!}
             </div>
 
-            @error('mobile')
+            @error('sales_phone')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
         <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-                Email
+            <label for="support_phone" class="block text-sm font-medium text-gray-700 mb-1">
+                Phone - Support
             </label>
 
             <div class="relative">
-                {!! html()->input('email', 'email', $settings['Contact Us Settings']['email']['setting_value'])->class([
-                        'w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('email'),
-                        'border-red-500' => $errors->has('email'),
+                {!! html()->input('text', 'support_phone', $settings['Contact Us Settings']['support_phone']['setting_value'])->class([
+                        'masked-phone w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'border-gray-300' => !$errors->has('support_phone'),
+                        'border-red-500' => $errors->has('support_phone'),
                     ])->attributes([
                         'autocomplete' => 'off',
-                        'placeholder' => $settings['Contact Us Settings']['email']['placeholder'],
-                        'id' => 'email',
+                        'placeholder' => $settings['Contact Us Settings']['support_phone']['placeholder'],
+                        'id' => 'support_phone',
                     ]) !!}
             </div>
 
-            @error('email')
+            @error('support_phone')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
         <div>
-            <label for="enquiry-email" class="block text-sm font-medium text-gray-700 mb-1">
-                Enquiry Email
+            <label for="sales_email" class="block text-sm font-medium text-gray-700 mb-1">
+                Email - Sales
             </label>
 
             <div class="relative">
-                {!! html()->input('email', 'enquiry-email', $settings['Contact Us Settings']['enquiry-email']['setting_value'])->class([
+                {!! html()->input('email', 'sales_email', $settings['Contact Us Settings']['sales_email']['setting_value'])->class([
                         'w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('enquiry-email'),
-                        'border-red-500' => $errors->has('enquiry-email'),
+                        'border-gray-300' => !$errors->has('sales_email'),
+                        'border-red-500' => $errors->has('sales_email'),
                     ])->attributes([
                         'autocomplete' => 'off',
-                        'placeholder' => $settings['Contact Us Settings']['enquiry-email']['placeholder'],
-                        'id' => 'enquiry-email',
+                        'placeholder' => $settings['Contact Us Settings']['sales_email']['placeholder'],
+                        'id' => 'sales_email',
                     ]) !!}
             </div>
 
-            @error('enquiry-email')
+            @error('sales_email')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
         <div>
-            <label for="complaint-email" class="block text-sm font-medium text-gray-700 mb-1">
-                Complaint Email
+            <label for="support_email" class="block text-sm font-medium text-gray-700 mb-1">
+                Email - Support
             </label>
 
             <div class="relative">
-                {!! html()->input('email', 'complaint-email', $settings['Contact Us Settings']['complaint-email']['setting_value'])->class([
+                {!! html()->input('email', 'support_email', $settings['Contact Us Settings']['support_email']['setting_value'])->class([
                         'w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('complaint-email'),
-                        'border-red-500' => $errors->has('complaint-email'),
+                        'border-gray-300' => !$errors->has('support_email'),
+                        'border-red-500' => $errors->has('support_email'),
                     ])->attributes([
                         'autocomplete' => 'off',
-                        'placeholder' => $settings['Contact Us Settings']['complaint-email']['placeholder'],
-                        'id' => 'complaint-email',
+                        'placeholder' => $settings['Contact Us Settings']['support_email']['placeholder'],
+                        'id' => 'support_email',
                     ]) !!}
             </div>
 
-            @error('complaint-email')
+            @error('support_email')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
         <div>
-            <label for="feedback-email" class="block text-sm font-medium text-gray-700 mb-1">
-                Feedback Email
+            <label for="address1" class="block text-sm font-medium text-gray-700 mb-1">
+                Address 1
             </label>
 
             <div class="relative">
-                {!! html()->input('email', 'feedback-email', $settings['Contact Us Settings']['feedback-email']['setting_value'])->class([
+                {!! html()->input('text', 'address1', $settings['Contact Us Settings']['address1']['setting_value'])->class([
                         'w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('feedback-email'),
-                        'border-red-500' => $errors->has('feedback-email'),
+                        'border-gray-300' => !$errors->has('address1'),
+                        'border-red-500' => $errors->has('address1'),
                     ])->attributes([
                         'autocomplete' => 'off',
-                        'placeholder' => $settings['Contact Us Settings']['feedback-email']['placeholder'],
-                        'id' => 'feedback-email',
+                        'placeholder' => $settings['Contact Us Settings']['address1']['placeholder'],
+                        'id' => 'address1',
+                        'required' => true,
                     ]) !!}
             </div>
 
-            @error('feedback-email')
+            @error('address1')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="address2" class="block text-sm font-medium text-gray-700 mb-1">
+                Address 2
+            </label>
+
+            <div class="relative">
+                {!! html()->input('text', 'address2', $settings['Contact Us Settings']['address2']['setting_value'])->class([
+                        'w-full  pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'border-gray-300' => !$errors->has('address2'),
+                        'border-red-500' => $errors->has('address2'),
+                    ])->attributes([
+                        'autocomplete' => 'off',
+                        'placeholder' => $settings['Contact Us Settings']['address2']['placeholder'],
+                        'id' => 'address2',
+                    ]) !!}
+            </div>
+
+            @error('address2')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>

@@ -1,62 +1,17 @@
+@push('css')
+    <style>
+        .tox-tinymce {
+            max-height: 15rem;
+        }
+    </style>
+@endpush
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
-        <h3 class="text-lg font-bold text-gray-900">Sales Tax & Overage Rate & Range Settings</h3>
+        <h3 class="text-lg font-bold text-gray-900">Range & Sales Tax Rate</h3>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div>
-            <label for="sales_tax" class="block text-sm font-medium text-gray-700 mb-1">
-                Sales Tax Rate (%)
-            </label>
-
-            <div class="relative">
-                {!! html()->input('number', 'sales_tax', $settings['Product Settings']['sales_tax']['setting_value'])->class([
-                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('sales_tax'),
-                        'border-red-500' => $errors->has('sales_tax'),
-                    ])->attributes([
-                        'data-parsley-type' => 'number',
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['sales_tax']['placeholder'],
-                        'required' => true,
-                        'id' => 'sales_tax',
-                    ]) !!}
-            </div>
-
-            @error('sales_tax')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="overage_rate_percentage" class="block text-sm font-medium text-gray-700 mb-1">
-                Overage Rate (%)
-            </label>
-
-            <div class="relative">
-                {!! html()->input(
-                        'number',
-                        'overage_rate_percentage',
-                        $settings['Product Settings']['overage_rate_percentage']['setting_value'],
-                    )->class([
-                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('overage_rate_percentage'),
-                        'border-red-500' => $errors->has('overage_rate_percentage'),
-                    ])->attributes([
-                        'data-parsley-type' => 'number',
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['overage_rate_percentage']['placeholder'],
-                        'required' => true,
-                        'id' => 'overage_rate_percentage',
-                    ]) !!}
-            </div>
-
-            @error('overage_rate_percentage')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
         <div>
             <label for="standard_delivery_range" class="block text-sm font-medium text-gray-700 mb-1">
                 Standard Delivery Range
@@ -81,58 +36,6 @@
             </div>
 
             @error('standard_delivery_range')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="include_extended_range" class="block text-sm font-medium text-gray-700 mb-1">
-                Include Extended Range Option
-            </label>
-
-            <div class="relative">
-                {!! html()->checkbox(
-                        'include_extended_range',
-                        $settings['Product Settings']['include_extended_range']['setting_value'] == '1',
-                        1,
-                    )->class([
-                        'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500',
-                        'border-red-500' => $errors->has('include_extended_range'),
-                    ])->attributes([
-                        'id' => 'include_extended_range',
-                    ]) !!}
-                <span class="ml-2 text-sm text-gray-700">Enable</span>
-            </div>
-
-            @error('include_extended_range')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="extended_delivery_range" class="block text-sm font-medium text-gray-700 mb-1">
-                Extended Delivery Range
-            </label>
-
-            <div class="relative">
-                {!! html()->input(
-                        'number',
-                        'extended_delivery_range',
-                        $settings['Product Settings']['extended_delivery_range']['setting_value'],
-                    )->class([
-                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('extended_delivery_range'),
-                        'border-red-500' => $errors->has('extended_delivery_range'),
-                    ])->attributes([
-                        'data-parsley-type' => 'number',
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['extended_delivery_range']['placeholder'],
-                        'required' => true,
-                        'id' => 'extended_delivery_range',
-                    ]) !!}
-            </div>
-
-            @error('extended_delivery_range')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
@@ -166,12 +69,270 @@
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
+
+        <div>
+            <label for="sales_tax" class="block text-sm font-medium text-gray-700 mb-1">
+                Sales Tax Rate (%)
+            </label>
+
+            <div class="relative">
+                {!! html()->input('number', 'sales_tax', \App\Helpers\CustomHelper::displayPercentage($settings['Product Settings']['sales_tax']['setting_value']))->class([
+                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'border-gray-300' => !$errors->has('sales_tax'),
+                        'border-red-500' => $errors->has('sales_tax'),
+                    ])->attributes([
+                        'autocomplete' => 'off',
+                        'placeholder' => $settings['Product Settings']['sales_tax']['placeholder'],
+                        'required' => true,
+                        'id' => 'sales_tax',
+                    ]) !!}
+            </div>
+
+            @error('sales_tax')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="extended_delivery_range" class="block text-sm font-medium text-gray-700 mb-1">
+                Extended Delivery Range
+            </label>
+
+            <div class="relative">
+                {!! html()->input(
+                        'number',
+                        'extended_delivery_range',
+                        $settings['Product Settings']['extended_delivery_range']['setting_value'],
+                    )->class([
+                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'border-gray-300' => !$errors->has('extended_delivery_range'),
+                        'border-red-500' => $errors->has('extended_delivery_range'),
+                    ])->attributes([
+                        'data-parsley-type' => 'number',
+                        'autocomplete' => 'off',
+                        'placeholder' => $settings['Product Settings']['extended_delivery_range']['placeholder'],
+                        'required' => true,
+                        'id' => 'extended_delivery_range',
+                    ]) !!}
+            </div>
+
+            @error('extended_delivery_range')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="include_extended_range" class="block text-sm font-medium text-gray-700 mb-1">
+                Extended Range Option
+            </label>
+
+            <div class="relative">
+                {!! html()->checkbox(
+                        'include_extended_range',
+                        $settings['Product Settings']['include_extended_range']['setting_value'] == '1',
+                        1,
+                    )->class([
+                        'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500',
+                        'border-red-500' => $errors->has('include_extended_range'),
+                    ])->attributes([
+                        'id' => 'include_extended_range',
+                    ]) !!}
+                <span class="ml-2 text-sm text-gray-700">Include</span>
+            </div>
+
+            @error('include_extended_range')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
     </div>
 </div>
 
 @include('admin.configurations.partials._allocated_settings')
 
 @include('admin.configurations.partials._product_rate_settings')
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="flex items-center space-x-2 mb-4">
+        <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
+        <h3 class="text-lg font-bold text-gray-900">Prepaid Fuel</h3>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+            <label for="prepaid_fuel_decline_label" class="block text-sm font-medium text-gray-700 mb-1">
+                Decline Button Label
+            </label>
+
+            <div class="relative">
+                {!! html()->text(
+                        'prepaid_fuel_decline_label',
+                        old(
+                            'prepaid_fuel_decline_label',
+                            $settings['Product Settings']['prepaid_fuel_decline_label']['setting_value'] ?? null,
+                        ),
+                    )->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('prepaid_fuel_decline_label'),
+                        'border-red-500' => $errors->has('prepaid_fuel_decline_label'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter damage waiver decline label',
+                        'autocomplete' => 'off',
+                        'id' => 'prepaid_fuel_decline_label',
+                    ])->required() !!}
+            </div>
+
+            @error('prepaid_fuel_decline_label')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="prepaid_fuel_approve_label" class="block text-sm font-medium text-gray-700 mb-1">
+                Accept Button Label
+            </label>
+
+            <div class="relative">
+                {!! html()->text(
+                        'prepaid_fuel_approve_label',
+                        old(
+                            'prepaid_fuel_approve_label',
+                            $settings['Product Settings']['prepaid_fuel_approve_label']['setting_value'] ?? null,
+                        ),
+                    )->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('prepaid_fuel_approve_label'),
+                        'border-red-500' => $errors->has('prepaid_fuel_approve_label'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter damage waiver decline label',
+                        'autocomplete' => 'off',
+                        'id' => 'prepaid_fuel_approve_label',
+                    ])->required() !!}
+            </div>
+
+            @error('prepaid_fuel_approve_label')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="sm:col-span-2">
+            <label for="prepaid_fuel_info" class="block text-sm font-medium text-gray-700 mb-1">
+                Prepaid Fuel Message
+            </label>
+
+            <div class="relative">
+                {!! html()->textarea('prepaid_fuel_info', $settings['Product Settings']['prepaid_fuel_info']['setting_value'])->class([
+                        'tinymce w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'border-gray-300' => !$errors->has('prepaid_fuel_info'),
+                        'border-red-500' => $errors->has('prepaid_fuel_info'),
+                    ])->attributes([
+                        'autocomplete' => 'off',
+                        'placeholder' => $settings['Product Settings']['prepaid_fuel_info']['placeholder'],
+                        'required' => true,
+                        'id' => 'prepaid_fuel_info',
+                    ]) !!}
+            </div>
+
+            @error('prepaid_fuel_info')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
+</div>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="flex items-center space-x-2 mb-4">
+        <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
+        <h3 class="text-lg font-bold text-gray-900">Prepaid Cleaning</h3>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+            <label for="prepaid_cleaning_decline_label" class="block text-sm font-medium text-gray-700 mb-1">
+                Decline Button Label
+            </label>
+
+            <div class="relative">
+                {!! html()->text(
+                        'prepaid_cleaning_decline_label',
+                        old(
+                            'prepaid_cleaning_decline_label',
+                            $settings['Product Settings']['prepaid_cleaning_decline_label']['setting_value'] ?? null,
+                        ),
+                    )->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('prepaid_cleaning_decline_label'),
+                        'border-red-500' => $errors->has('prepaid_cleaning_decline_label'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter damage waiver decline label',
+                        'autocomplete' => 'off',
+                        'id' => 'prepaid_cleaning_decline_label',
+                    ])->required() !!}
+            </div>
+
+            @error('prepaid_cleaning_decline_label')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="prepaid_cleaning_approve_label" class="block text-sm font-medium text-gray-700 mb-1">
+                Accept Button Label
+            </label>
+
+            <div class="relative">
+                {!! html()->text(
+                        'prepaid_cleaning_approve_label',
+                        old(
+                            'prepaid_cleaning_approve_label',
+                            $settings['Product Settings']['prepaid_cleaning_approve_label']['setting_value'] ?? null,
+                        ),
+                    )->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('prepaid_cleaning_approve_label'),
+                        'border-red-500' => $errors->has('prepaid_cleaning_approve_label'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter damage waiver decline label',
+                        'autocomplete' => 'off',
+                        'id' => 'prepaid_cleaning_approve_label',
+                    ])->required() !!}
+            </div>
+
+            @error('prepaid_cleaning_approve_label')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="sm:col-span-2">
+            <label for="prepaid_cleaning_info" class="block text-sm font-medium text-gray-700 mb-1">
+                Prepaid Cleaning Message
+            </label>
+
+            <div class="relative max-h-52">
+                {!! html()->textarea('prepaid_cleaning_info', $settings['Product Settings']['prepaid_cleaning_info']['setting_value'])->class([
+                        'tinymce w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'border-gray-300' => !$errors->has('prepaid_cleaning_info'),
+                        'border-red-500' => $errors->has('prepaid_cleaning_info'),
+                    ])->attributes([
+                        'autocomplete' => 'off',
+                        'placeholder' => $settings['Product Settings']['prepaid_cleaning_info']['placeholder'],
+                        'required' => true,
+                        'id' => 'prepaid_cleaning_info',
+                    ]) !!}
+            </div>
+
+            @error('prepaid_cleaning_info')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
+</div>
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
@@ -389,194 +550,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
-        <h3 class="text-lg font-bold text-gray-900">Prepaid Cleaning</h3>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-            <label for="prepaid_cleaning_decline_label" class="block text-sm font-medium text-gray-700 mb-1">
-                Decline Button Label
-            </label>
-
-            <div class="relative">
-                {!! html()->text(
-                        'prepaid_cleaning_decline_label',
-                        old(
-                            'prepaid_cleaning_decline_label',
-                            $settings['Product Settings']['prepaid_cleaning_decline_label']['setting_value'] ?? null,
-                        ),
-                    )->class([
-                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                        'border-gray-300' => !$errors->has('prepaid_cleaning_decline_label'),
-                        'border-red-500' => $errors->has('prepaid_cleaning_decline_label'),
-                    ])->attributes([
-                        'maxlength' => 240,
-                        'data-parsley-maxlength' => 240,
-                        'placeholder' => 'Enter damage waiver decline label',
-                        'autocomplete' => 'off',
-                        'id' => 'prepaid_cleaning_decline_label',
-                    ])->required() !!}
-            </div>
-
-            @error('prepaid_cleaning_decline_label')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="prepaid_cleaning_approve_label" class="block text-sm font-medium text-gray-700 mb-1">
-                Accept Button Label
-            </label>
-
-            <div class="relative">
-                {!! html()->text(
-                        'prepaid_cleaning_approve_label',
-                        old(
-                            'prepaid_cleaning_approve_label',
-                            $settings['Product Settings']['prepaid_cleaning_approve_label']['setting_value'] ?? null,
-                        ),
-                    )->class([
-                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                        'border-gray-300' => !$errors->has('prepaid_cleaning_approve_label'),
-                        'border-red-500' => $errors->has('prepaid_cleaning_approve_label'),
-                    ])->attributes([
-                        'maxlength' => 240,
-                        'data-parsley-maxlength' => 240,
-                        'placeholder' => 'Enter damage waiver decline label',
-                        'autocomplete' => 'off',
-                        'id' => 'prepaid_cleaning_approve_label',
-                    ])->required() !!}
-            </div>
-
-            @error('prepaid_cleaning_approve_label')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div class="sm:col-span-2">
-            <label for="prepaid_cleaning_info" class="block text-sm font-medium text-gray-700 mb-1">
-                Prepaid Cleaning Message
-            </label>
-
-            <div class="relative">
-                {!! html()->textarea('prepaid_cleaning_info', $settings['Product Settings']['prepaid_cleaning_info']['setting_value'])->class([
-                        'tinymce w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('prepaid_cleaning_info'),
-                        'border-red-500' => $errors->has('prepaid_cleaning_info'),
-                    ])->attributes([
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['prepaid_cleaning_info']['placeholder'],
-                        'required' => true,
-                        'id' => 'prepaid_cleaning_info',
-                        'rows' => 3,
-                    ]) !!}
-            </div>
-
-            @error('prepaid_cleaning_info')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-    </div>
-</div>
-
-
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-2 mb-4">
-        <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
-        <h3 class="text-lg font-bold text-gray-900">Prepaid Fuel</h3>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-            <label for="prepaid_fuel_decline_label" class="block text-sm font-medium text-gray-700 mb-1">
-                Decline Button Label
-            </label>
-
-            <div class="relative">
-                {!! html()->text(
-                        'prepaid_fuel_decline_label',
-                        old(
-                            'prepaid_fuel_decline_label',
-                            $settings['Product Settings']['prepaid_fuel_decline_label']['setting_value'] ?? null,
-                        ),
-                    )->class([
-                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                        'border-gray-300' => !$errors->has('prepaid_fuel_decline_label'),
-                        'border-red-500' => $errors->has('prepaid_fuel_decline_label'),
-                    ])->attributes([
-                        'maxlength' => 240,
-                        'data-parsley-maxlength' => 240,
-                        'placeholder' => 'Enter damage waiver decline label',
-                        'autocomplete' => 'off',
-                        'id' => 'prepaid_fuel_decline_label',
-                    ])->required() !!}
-            </div>
-
-            @error('prepaid_fuel_decline_label')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="prepaid_fuel_approve_label" class="block text-sm font-medium text-gray-700 mb-1">
-                Accept Button Label
-            </label>
-
-            <div class="relative">
-                {!! html()->text(
-                        'prepaid_fuel_approve_label',
-                        old(
-                            'prepaid_fuel_approve_label',
-                            $settings['Product Settings']['prepaid_fuel_approve_label']['setting_value'] ?? null,
-                        ),
-                    )->class([
-                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                        'border-gray-300' => !$errors->has('prepaid_fuel_approve_label'),
-                        'border-red-500' => $errors->has('prepaid_fuel_approve_label'),
-                    ])->attributes([
-                        'maxlength' => 240,
-                        'data-parsley-maxlength' => 240,
-                        'placeholder' => 'Enter damage waiver decline label',
-                        'autocomplete' => 'off',
-                        'id' => 'prepaid_fuel_approve_label',
-                    ])->required() !!}
-            </div>
-
-            @error('prepaid_fuel_approve_label')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div class="sm:col-span-2">
-            <label for="prepaid_fuel_info" class="block text-sm font-medium text-gray-700 mb-1">
-                Prepaid Fuel Message
-            </label>
-
-            <div class="relative">
-                {!! html()->textarea('prepaid_fuel_info', $settings['Product Settings']['prepaid_fuel_info']['setting_value'])->class([
-                        'tinymce w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('prepaid_fuel_info'),
-                        'border-red-500' => $errors->has('prepaid_fuel_info'),
-                    ])->attributes([
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['prepaid_fuel_info']['placeholder'],
-                        'required' => true,
-                        'id' => 'prepaid_fuel_info',
-                        'rows' => 3,
-                    ]) !!}
-            </div>
-
-            @error('prepaid_fuel_info')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-    </div>
-</div>
-
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-2 mb-4">
-        <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
-        <h3 class="text-lg font-bold text-gray-900">Standard & Extended fee</h3>
+        <h3 class="text-lg font-bold text-gray-900">Delivery Fees</h3>
     </div>
 
     @php
@@ -647,7 +621,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
-        <h3 class="text-lg font-bold text-gray-900">Track Insurance</h3>
+        <h3 class="text-lg font-bold text-gray-900">Track Insurance Fees</h3>
     </div>
 
     @php

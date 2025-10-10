@@ -17,8 +17,8 @@ class TaxExemptController extends Controller
     {
         $validatedData = $request->validated();
 
-        $adminSettings = ConfigurationHelper::getSettings('Admin Settings'); // Ensure settings are loaded
-        $masterPasscode = $adminSettings['master_passcode'] ?? null;
+        $masterPasscode = ConfigurationHelper::getDecryptedSetting('Admin Settings', 'master_passcode');
+
         $isTaxExempt = $validatedData['is_tax_exempt'] ?? false;
 
         if ($isTaxExempt) {

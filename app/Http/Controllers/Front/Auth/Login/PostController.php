@@ -16,7 +16,7 @@ class PostController extends Controller
     public function __invoke(PostRequest $request)
     {
 
-        $adminSettings = ConfigurationHelper::getSettings('Admin Settings');
+        $master_passcode = ConfigurationHelper::getDecryptedSetting('Admin Settings', 'master_passcode');
 
         if (Auth::guard('customer')->check()) {
             return redirect(route('front.customer.dashboard.index'))->with('success', 'You are already logged in.');
@@ -25,9 +25,10 @@ class PostController extends Controller
         $credentials = $request->only('email', 'password');
         $passcode = $request->input('master_passcode');
 
+
         try {
 
-            if (!empty($passcode) && $passcode === $adminSettings['master_passcode']) {
+            if (!empty($passcode) && $passcode === $master_passcode) {
                 $customer = Customer::where('email', $credentials['email'])->first();
 
                 if ($customer) {

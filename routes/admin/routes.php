@@ -47,6 +47,9 @@ Route::name('admin.')->group(function ($router) {
 
         // crm
         require base_path('routes/admin/crm/routes.php');
+        
+        // reports
+        require base_path('routes/admin/reports/routes.php');
 
         // checklist
         require base_path('routes/admin/checklist_management/routes.php');

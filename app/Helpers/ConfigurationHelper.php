@@ -3,6 +3,8 @@
 namespace App\Helpers;
 
 use App\Models\Configurations\Setting;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class ConfigurationHelper
 {
@@ -34,5 +36,39 @@ class ConfigurationHelper
         }
 
         return $result;
+    }
+
+
+    /**
+     *  Safely decrypt any given value.
+     * If it's not actually encrypted or invalid, it returns the value as-is.
+     */
+    public static function safeDecrypt(?string $value): ?string
+    {
+        if (empty($value)) {
+            return $value;
+        }
+
+        try {
+            return Crypt::decryptString($value);
+        } catch (DecryptException $e) {
+            // Not encrypted or invalid payload
+            return $value;
+        } catch (\Exception $e) {
+            // Any other errors (like wrong key, null)
+            return $value;
+        }
+    }
+
+    /**
+     *  Get and automatically decrypt a setting from DB.
+     *
+     * Example:
+     *   ConfigurationHelper::getDecryptedSetting('Mail Send Settings', 'mail_password');
+     */
+    public static function getDecryptedSetting(string $setting_type, string $key): ?string
+    {
+        $value = self::getSettings($setting_type, $key);
+        return self::safeDecrypt($value);
     }
 }

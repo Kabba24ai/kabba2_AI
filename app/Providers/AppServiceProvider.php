@@ -7,6 +7,7 @@ use App\Helpers\ConfigurationHelper;
 use Illuminate\Support\Facades\Config;
 
 
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -63,17 +64,27 @@ class AppServiceProvider extends ServiceProvider
     private function configureMailFromDatabase(): void
     {
         try {
-            Config::set('mail.default', ConfigurationHelper::getSettings('Mail Send Settings', 'mail_mailer') ?? config('mail.default'));
-            Config::set('mail.mailers.smtp.host', ConfigurationHelper::getSettings('Mail Send Settings', 'mail_host') ?? config('mail.mailers.smtp.host'));
-            Config::set('mail.mailers.smtp.port', ConfigurationHelper::getSettings('Mail Send Settings', 'mail_port') ?? config('mail.mailers.smtp.port'));
-            Config::set('mail.mailers.smtp.username', ConfigurationHelper::getSettings('Mail Send Settings', 'mail_username') ?? config('mail.mailers.smtp.username'));
-            Config::set('mail.mailers.smtp.password', ConfigurationHelper::getSettings('Mail Send Settings', 'mail_password') ?? config('mail.mailers.smtp.password'));
-            Config::set('mail.mailers.smtp.encryption', ConfigurationHelper::getSettings('Mail Send Settings', 'mail_encryption') ?? config('mail.mailers.smtp.encryption'));
-            Config::set('mail.from.address', ConfigurationHelper::getSettings('Mail Send Settings', 'mail_from_address') ?? config('mail.from.address'));
-            Config::set('mail.from.name', ConfigurationHelper::getSettings('Mail Send Settings', 'mail_from_name') ?? config('mail.from.name'));
+
+            $get = fn($key) => ConfigurationHelper::getSettings('Mail Send Settings', $key);
+
+            //  Safely decrypt username & password if they’re encrypted
+            $username = ConfigurationHelper::safeDecrypt($get('mail_username'));
+            $password = ConfigurationHelper::safeDecrypt($get('mail_password'));
+
+            Config::set('mail.default',      $get('mail_mailer')     ?? config('mail.default'));
+            Config::set('mail.mailers.smtp.host', $get('mail_host')  ?? config('mail.mailers.smtp.host'));
+            Config::set('mail.mailers.smtp.port', $get('mail_port')  ?? config('mail.mailers.smtp.port'));
+            Config::set('mail.mailers.smtp.username', $username       ?? config('mail.mailers.smtp.username'));
+            Config::set('mail.mailers.smtp.password', $password       ?? config('mail.mailers.smtp.password'));
+            Config::set('mail.mailers.smtp.encryption', $get('mail_encryption') ?? config('mail.mailers.smtp.encryption'));
+            Config::set('mail.from.address', $get('mail_from_address') ?? config('mail.from.address'));
+            Config::set('mail.from.name',    $get('mail_from_name')    ?? config('mail.from.name'));
+
+
         } catch (\Exception $e) {
             // Database might not be ready yet (migrations/seeding), so fallback to .env
         }
     }
+
 
 }

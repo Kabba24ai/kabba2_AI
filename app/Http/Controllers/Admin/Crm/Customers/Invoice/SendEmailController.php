@@ -19,9 +19,9 @@ class SendEmailController extends Controller
             // Find the invoice
             $invoice = Invoice::where('unique_id', $unique_id)->firstOrFail();
 
-            // Call listener directly
-            $listener = new SendInvoiceEmailListener();
-            $listener->handle(new InvoiceEmailEvent($invoice));
+            // Dispatch event — Laravel will automatically resolve the listener and inject MailService
+            event(new InvoiceEmailEvent($invoice));
+
 
             // If no exception -> success
             flash('Invoice email sent successfully.')->success();

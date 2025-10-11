@@ -19,50 +19,67 @@
         <div id="order-loading" class="hidden"></div>
         <tbody class="divide-y">
             @forelse ($orders as $order)
+
+            @if ($order->tax_amount > 0)
+
+
+
             <tr id="order-row-{{ $order->unique_id }}" class="hover:bg-gray-50">
 
                 <td class="px-4 py-3 text-left">
-                    {!! $order->view_link !!}
+                    {!! $order->link !!}
                 </td>
-                <td class="px-4 py-3 text-center"> {{ \App\Helpers\CustomHelper::formatDate($order->order_date) }}
+                <td class="px-4 py-3 text-center">
+                    {{ \App\Helpers\CustomHelper::formatDate($order->date) }}
+
                 </td>
                 <td class="px-4 py-3">
-                    <div class="font-medium">{{ $order->shippingAddress->full_name }}</div>
-                    {{-- <div class="text-gray-500 text-xs">{{ $order->customer?->unique_id }}
-</div> --}}
-</td>
+                    <div class="font-medium">
 
-<td class="px-4 py-3 truncate  text-left">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
-<td class="px-4 py-3 text-center">
-    {{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}
-</td>
+                        {{ $order->customer_name }}
+                    </div>
 
-<td class="px-4 py-3 font-semibold text-right">
-    {{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}
-</td>
+                </td>
 
-<td class="px-4 py-3 font-semibold text-right">
-    {{ \App\Helpers\CustomHelper::formatCurrency($order->tax_amount) }}
-</td>
+                <td class="px-4 py-3 truncate  text-left">
 
-<td class="px-4 py-3 font-semibold text-right">
-    {{ \App\Helpers\CustomHelper::formatCurrency($order->discount_amount) }}
-</td>
+                    {{ $order->products }}
 
-<td class="px-4 py-3 font-semibold text-right">
-    {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
-</td>
+                </td>
+                <td class="px-4 py-3 text-center">
 
-</tr>
-@empty
-<tr>
-    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
-        No orders found.
-    </td>
-</tr>
-@endforelse
-</tbody>
-</table>
+                    {{ $order->payment_type }}
+
+                </td>
+
+                <td class="px-4 py-3 font-semibold text-right">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}
+                </td>
+
+                <td class="px-4 py-3 font-semibold text-right">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($order->tax_amount) }}
+                </td>
+
+                <td class="px-4 py-3 font-semibold text-right">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($order->discount_amount) }}
+                </td>
+
+                <td class="px-4 py-3 font-semibold text-right">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
+                </td>
+
+            </tr>
+            @endif
+
+            @empty
+            <tr>
+                <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
+                    No orders found.
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
 {{-- Pagination --}}
 <div class="mt-6">

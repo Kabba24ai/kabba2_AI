@@ -36,7 +36,7 @@ class CustomerAccount extends Model
 
     protected $casts = [
         'date' => 'datetime',
-        'payment_type' => \App\Enums\Customers\PaymentMethod::class, 
+        'payment_type' => \App\Enums\Customers\PaymentMethod::class,
 
     ];
 

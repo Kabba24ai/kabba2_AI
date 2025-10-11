@@ -88,8 +88,19 @@
      </div>
 
      <!-- Table -->
-     <div class="overflow-x-auto">
-         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
+     <div class="overflow-x-auto relative" id="invoiceTableWrapper">
+
+
+         <!-- Loader (only covers table area) -->
+         <div id="tableLoader"
+             class="hidden absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-black/60 z-50">
+             <div
+                 class="h-16 w-16 animate-spin rounded-full border-4 border-solid border-brand-500 border-t-transparent">
+             </div>
+         </div>
+
+         <!-- Table -->
+         <table id="invoiceMainTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
              <thead class="border-b bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                  <tr>
                      <th class="px-4 py-3">Invoice</th>
@@ -102,7 +113,7 @@
                      <th class="px-4 py-3 w-24 text-right">Action</th>
                  </tr>
              </thead>
-             <tbody id="invoiceTable" class="divide-y divide-gray-200">
+
              <tbody id="invoiceTable" class="divide-y divide-gray-200">
                  @forelse($customer->invoices as $invoice)
                  <tr class="invoice-row" data-status="{{ $invoice->invoice_status }}">
@@ -164,7 +175,7 @@
                              <a href="{{ route('admin.crm.customers.invoice.edit', $invoice->unique_id) }}" target="_blank" class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
                              </a>
-                             <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="text-purple-600 inline-flex items-center">
+                             <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="text-purple-600 inline-flex items-center send-invoice-email">
                                  <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
                              </a>
                          </div>
@@ -177,7 +188,32 @@
                  @endforelse
              </tbody>
 
-             </tbody>
+
          </table>
      </div>
  </div>
+
+ @push('js')
+ <script>
+     document.addEventListener('DOMContentLoaded', function() {
+         const table = document.getElementById('invoiceMainTable');
+         const loader = document.getElementById('tableLoader');
+         const wrapper = document.getElementById('invoiceTableWrapper');
+
+         if (!table || !loader) {
+           
+             return;
+         }
+
+         document.querySelectorAll('a.send-invoice-email').forEach(link => {
+             link.addEventListener('click', function() {
+                 // Dim and disable the table area
+                 wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+                 // Show loader over table
+                 loader.classList.remove('hidden');
+             });
+         });
+     });
+ </script>
+ @endpush

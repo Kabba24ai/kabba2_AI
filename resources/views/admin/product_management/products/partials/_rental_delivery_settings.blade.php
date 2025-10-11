@@ -100,6 +100,34 @@
                             'class' =>
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
+                    <div class="relative overflow-visible"> <!-- important: prevent clipping -->
+                        <div class="flex items-center gap-1">
+                            <label
+                                class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <span class="relative group">
+                                    <span
+                                        class="text-blue-400 hover:text-blue-500 text-sm flex items-center gap-1 cursor-pointer">
+                                        <x-heroicon-o-information-circle class="w-5 h-5" />
+                                    </span>
+
+                                    <!-- Tooltip -->
+                                    <div class="tooltip-panel">
+                                        <p>Set the <strong>Damage Waiver (%)</strong> to auto-calculate the waiver
+                                            charge.</p>
+                                        <br>
+                                        <strong>Formula:</strong> Charge = <strong>Rental Rate × Damage Waiver
+                                            %.</strong>
+                                        <br><br>
+                                        <strong>Example:</strong> Rental Rate <strong>$400</strong> × Waiver
+                                        <strong>15% = $60</strong> damage waiver.
+                                        <br><br>
+                                        <strong>Note:</strong> Update the <strong>Damage Waiver (%)</strong> in Settings
+
+                                    </div>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div id="rental-damage-waiver-daily-errors"></div>
             </div>
@@ -243,42 +271,66 @@
             </div>
         </div>
 
-           {{-- Sizes --}}
+        {{-- Sizes --}}
         <div class="mt-3">
             <div class="flex items-center flex-wrap gap-6">
                 <label for="track_insurance_small"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "Small", 'Small')->id('track_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'track_insurance_size_setting',
+                            old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == 'Small',
+                            'Small',
+                        )->id('track_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     Small
                 </label>
 
                 <label for="track_insurance_medium"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "Medium", 'Medium')->id('track_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'track_insurance_size_setting',
+                            old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == 'Medium',
+                            'Medium',
+                        )->id('track_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     Medium
                 </label>
 
                 <label for="track_insurance_large"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "Large", 'Large')->id('track_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'track_insurance_size_setting',
+                            old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == 'Large',
+                            'Large',
+                        )->id('track_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     Large
                 </label>
 
                 <label for="track_insurance_xlarge"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "X-Large", 'X-Large')->id('track_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'track_insurance_size_setting',
+                            old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == 'X-Large',
+                            'X-Large',
+                        )->id('track_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     X-Large
                 </label>
 
                 <label for="track_insurance_2xlarge"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "2X-Large", '2X-Large')->id('track_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'track_insurance_size_setting',
+                            old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == '2X-Large',
+                            '2X-Large',
+                        )->id('track_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     2X-Large
                 </label>
 
                 <label for="track_insurance_commercial"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('track_insurance_size_setting', old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == "Commercial", 'Commercial')->id('track_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'track_insurance_size_setting',
+                            old('track_insurance_size_setting', $objProduct->track_insurance_size_setting ?? null) == 'Commercial',
+                            'Commercial',
+                        )->id('track_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#track-insurance-sizes-errors') !!}
                     Commercial
                 </label>
             </div>
@@ -465,11 +517,13 @@
 
             <div>
                 <div class="flex items-center gap-1">
-                    <select id="prepaid_cleaning_rate_setting" name="prepaid_cleaning_rate_setting" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
+                    <select id="prepaid_cleaning_rate_setting" name="prepaid_cleaning_rate_setting"
+                        class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
                         <option value="" disabled selected>Select Rate</option>
-                        @foreach($productSettings['prepaid_cleaning_rates'] ?? [] as $prepaidCleaningRate)
-                            <option value="{{ $prepaidCleaningRate['description'] }}" data-rate="{{ $prepaidCleaningRate['rate'] }}" @selected(old('prepaid_cleaning_rate_setting', $objProduct->prepaid_cleaning_rate_setting ?? '') === $prepaidCleaningRate['description'])>
-                                {{ $prepaidCleaningRate['description'] }} -  {{ $prepaidCleaningRate['rate'] }}
+                        @foreach ($productSettings['prepaid_cleaning_rates'] ?? [] as $prepaidCleaningRate)
+                            <option value="{{ $prepaidCleaningRate['description'] }}"
+                                data-rate="{{ $prepaidCleaningRate['rate'] }}" @selected(old('prepaid_cleaning_rate_setting', $objProduct->prepaid_cleaning_rate_setting ?? '') === $prepaidCleaningRate['description'])>
+                                {{ $prepaidCleaningRate['description'] }} - {{ $prepaidCleaningRate['rate'] }}
                             </option>
                         @endforeach
                     </select>
@@ -478,16 +532,56 @@
 
             <div>
                 <div class="flex items-center gap-1">
-                    <select id="prepaid_fuel_rate_setting" name="prepaid_fuel_rate_setting" class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
+                    <select id="prepaid_fuel_rate_setting" name="prepaid_fuel_rate_setting"
+                        class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
                         <option value="" disabled selected>Select Rate</option>
-                        @foreach($productSettings['prepaid_fuel_rates'] ?? [] as $prepaidFuelRate)
-                            <option value="{{ $prepaidFuelRate['description'] }}" data-rate="{{ $prepaidFuelRate['rate'] }}" @selected(old('prepaid_fuel_rate_setting', $objProduct->prepaid_fuel_rate_setting ?? '') === $prepaidFuelRate['description'])>
+                        @foreach ($productSettings['prepaid_fuel_rates'] ?? [] as $prepaidFuelRate)
+                            <option value="{{ $prepaidFuelRate['description'] }}"
+                                data-rate="{{ $prepaidFuelRate['rate'] }}" @selected(old('prepaid_fuel_rate_setting', $objProduct->prepaid_fuel_rate_setting ?? '') === $prepaidFuelRate['description'])>
                                 {{ $prepaidFuelRate['description'] }} - {{ $prepaidFuelRate['rate'] }}
                             </option>
                         @endforeach
                     </select>
                 </div>
             </div>
+
+            <div class="relative overflow-visible"> <!-- important: prevent clipping -->
+                <div class="flex items-center gap-1">
+                    <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <span class="relative group">
+                            <span
+                                class="text-blue-400 hover:text-blue-500 text-sm flex items-center gap-1 cursor-pointer">
+                                <x-heroicon-o-information-circle class="w-5 h-5" />
+                                Overage Calculation
+                            </span>
+
+                            <!-- Tooltip -->
+                            <div class="tooltip-panel tooltip-panel--center">
+                                *Overage Rate / Hr. is automatically calculated based upon your Overage
+                                Percentage setting in Settings.
+                                <br><br>
+                                <strong>Overage Rate</strong> Rate is a percentage used to compute the <strong>hourly
+                                    overage
+                                    fee</strong> for this product.
+                                <br><br>
+                                <strong>
+                                    Formula:</strong> Hourly Overage = <strong>Daily Rental Rate × Overage Rate (%).
+                                </strong>
+                                <br>
+                                If a renter exceeds their allocated hours (e.g., 8/day, 14/weekend, 40/week, 160/month),
+                                this
+                                fee applies <strong>for each hour over.</strong>
+                                <br><br>
+                                <strong>Example:</strong> Daily Rate <strong>$300</strong> × Overage Rate <strong>10% =
+                                    $30/hour</strong> over the limit.
+                                <br><br>
+                                <strong>Note:</strong> Partial hours are billed as a full hour.
+                            </div>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
         </div>
 
         <!-- Spacer -->
@@ -593,37 +687,61 @@
             <div class="flex items-center flex-wrap gap-6">
                 <label for="size_small"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "Small", 'Small')->id('size_small')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'truck_fee_size_setting',
+                            old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == 'Small',
+                            'Small',
+                        )->id('size_small')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Small
                 </label>
 
                 <label for="size_medium"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "Medium", 'Medium')->id('size_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'truck_fee_size_setting',
+                            old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == 'Medium',
+                            'Medium',
+                        )->id('size_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Medium
                 </label>
 
                 <label for="size_large"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "Large", 'Large')->id('size_large')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'truck_fee_size_setting',
+                            old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == 'Large',
+                            'Large',
+                        )->id('size_large')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Large
                 </label>
 
                 <label for="size_xlarge"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "X-Large", 'X-Large')->id('size_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'truck_fee_size_setting',
+                            old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == 'X-Large',
+                            'X-Large',
+                        )->id('size_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     X-Large
                 </label>
 
                 <label for="size_2xlarge"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "2X-Large", '2X-Large')->id('size_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'truck_fee_size_setting',
+                            old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == '2X-Large',
+                            '2X-Large',
+                        )->id('size_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     2X-Large
                 </label>
 
                 <label for="size_commercial"
                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('truck_fee_size_setting', old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == "Commercial", 'Commercial')->id('size_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
+                    {!! html()->checkbox(
+                            'truck_fee_size_setting',
+                            old('truck_fee_size_setting', $objProduct->truck_fee_size_setting ?? null) == 'Commercial',
+                            'Commercial',
+                        )->id('size_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#sizes-errors') !!}
                     Commercial
                 </label>
             </div>
@@ -638,11 +756,24 @@
 
         <!-- High Demand Alert -->
         <div class="grid grid-cols-1  gap-4">
-            <div class="flex items-center gap-2 mt-1">
+            <div class="flex items-center gap-2 mt-1 relative">
                 {!! html()->checkbox('has_high_demand_alert') !!}
                 <label for="has_high_demand_alert" class="text-gray-700 dark:text-gray-300">
                     High Demand Alert
                 </label>
+                <!-- Tooltip trigger -->
+                <div class="relative group">
+                    <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                        <x-heroicon-o-information-circle class="w-5 h-5" />
+                    </span>
+
+                    <!-- Tooltip -->
+                    <div class="tooltip-panel max-w-sm">
+                        <a href="http://youtube.com" target="_blank" rel="noopener noreferrer">
+                            Link will be provided soon.
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -711,7 +842,7 @@
             },
             "X-Large": {
                 daily: "{{ $productSettings['x_large_daily_track_insurance_fee'] ?? '' }}",
-                weekend: "{{ $productSettings['x_large_weekend_track_insurance_fee']  ?? '' }}",
+                weekend: "{{ $productSettings['x_large_weekend_track_insurance_fee'] ?? '' }}",
                 weekly: "{{ $productSettings['x_large_weekly_track_insurance_fee'] ?? '' }}",
                 monthly: "{{ $productSettings['x_large_monthly_track_insurance_fee'] ?? '' }}"
             },
@@ -899,7 +1030,8 @@
                 document.querySelector('input[name="rental_track_insurance_monthly"]')
             ];
             // Make size checkboxes behave like single-select (no radios)
-            const sizeTrackInsuranceCheckboxes = Array.from(document.querySelectorAll('input[name="track_insurance_size_setting"]'));
+            const sizeTrackInsuranceCheckboxes = Array.from(document.querySelectorAll(
+                'input[name="track_insurance_size_setting"]'));
 
             rentalTrackInsuranceInputs.forEach(input => {
                 input.addEventListener('input', function() {
@@ -916,13 +1048,17 @@
                     if (cb.checked) {
                         const fees = sizeTrackInsuranceFeeMap[cb.value];
                         if (fees) {
-                            if (rentalTrackInsuranceInputs[0]) rentalTrackInsuranceInputs[0].value = fees
+                            if (rentalTrackInsuranceInputs[0]) rentalTrackInsuranceInputs[0].value =
+                                fees
                                 .daily;
-                            if (rentalTrackInsuranceInputs[1]) rentalTrackInsuranceInputs[1].value = fees
+                            if (rentalTrackInsuranceInputs[1]) rentalTrackInsuranceInputs[1].value =
+                                fees
                                 .weekend;
-                            if (rentalTrackInsuranceInputs[2]) rentalTrackInsuranceInputs[2].value = fees
+                            if (rentalTrackInsuranceInputs[2]) rentalTrackInsuranceInputs[2].value =
+                                fees
                                 .weekly;
-                            if (rentalTrackInsuranceInputs[3]) rentalTrackInsuranceInputs[3].value = fees
+                            if (rentalTrackInsuranceInputs[3]) rentalTrackInsuranceInputs[3].value =
+                                fees
                                 .monthly;
                         }
                     } else {

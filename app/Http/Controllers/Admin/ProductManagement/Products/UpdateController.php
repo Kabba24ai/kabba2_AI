@@ -22,11 +22,19 @@ class UpdateController extends Controller
         DB::beginTransaction();
 
         try {
+            $slug = $validated['slug'] ?? null;
+            if ($validated['product_type'] === 'Retail' && $slug !== null) {
+                // Ensure slug does not end with '-rental'
+                if (str_ends_with($slug, '-rental')) {
+                    $slug = str_replace('-rental', '', $slug);
+                }
+            }
+
             // Base fields
             $productData = [
                 'product_name' => $validated['product_name'],
                 'product_type' => $validated['product_type'],
-                'slug' => $validated['slug'] ?? null,
+                'slug' => $slug,
                 'short_description' => $validated['short_description'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'seo_title' => $validated['seo_title'] ?? null,

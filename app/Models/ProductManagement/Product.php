@@ -80,10 +80,7 @@ class Product extends Model
         'updated_by', // ID of the user who last updated the record
     ];
 
-    protected $appends = [
-        'image_url',
-        'hover_image_url',
-    ];
+    protected $appends = ['image_url', 'hover_image_url'];
 
     protected $casts = [
         'is_default_funnel' => 'boolean',
@@ -96,6 +93,15 @@ class Product extends Model
             'slug' => [
                 'source' => 'product_name',
                 'onUpdate' => false,
+                'method' => function ($string, $separator) {
+                    $slug = \Str::slug($string, $separator);
+
+                    if ($this->product_type === 'Rental' && !str_ends_with($slug, '-rental')) {
+                        $slug .= '-rental';
+                    }
+
+                    return $slug;
+                },
             ],
         ];
     }
@@ -134,7 +140,6 @@ class Product extends Model
 
         // Automatically update updated_by on update
         static::updating(function ($model) {
-
             if (!empty($model->slug)) {
                 // Prevent auto-slugging if slug already exists
                 $model->slug = Str::slug($model->slug);
@@ -213,10 +218,7 @@ class Product extends Model
 
     public function relatedProducts()
     {
-        return  $this->belongsToMany(Product::class, ProductRelatedProductChild::class, 'product_id', 'related_product_id')
-                    ->withPivot('sort_order')
-                    ->withTimestamps()
-                    ->orderBy('pivot_sort_order', 'asc');
+        return $this->belongsToMany(Product::class, ProductRelatedProductChild::class, 'product_id', 'related_product_id')->withPivot('sort_order')->withTimestamps()->orderBy('pivot_sort_order', 'asc');
     }
 
     public function getRetailPrice($salePriceFlag = true)
@@ -258,10 +260,7 @@ class Product extends Model
         }
 
         if ($this->product_type === 'Rental') {
-            return $this->isRentalOnSale('daily') ||
-                   $this->isRentalOnSale('weekend') ||
-                   $this->isRentalOnSale('weekly') ||
-                   $this->isRentalOnSale('monthly');
+            return $this->isRentalOnSale('daily') || $this->isRentalOnSale('weekend') || $this->isRentalOnSale('weekly') || $this->isRentalOnSale('monthly');
         }
 
         return false;

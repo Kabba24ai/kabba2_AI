@@ -176,6 +176,7 @@
 @import '../../shared/css/notyf.css';
 @import '../../shared/css/flatpickr.css';
 
+
 .tox-promotion, .tox-statusbar__branding {
     display: none !important;
 }
@@ -223,6 +224,27 @@ button:disabled,
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+@layer components {
+  .tooltip-panel {
+    @apply absolute z-[9999] hidden group-hover:block
+           bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700
+           rounded shadow-xl p-3
+           text-xs text-gray-700 dark:text-gray-200
+           whitespace-normal break-words
+           w-[24rem] sm:w-[30rem] max-w-[90vw]
+           left-0
+           bottom-full mb-2
+           sm:bottom-auto sm:top-full sm:mt-2;
+  }
+
+  .tooltip-panel--left {
+    @apply w-[24rem] sm:w-[30rem] left-0 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2;
+  }
+
+  .tooltip-panel--center {
+    @apply left-1/2 -translate-x-1/2 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2;
+  }
+}
 
 @utility menu-item {
   @apply text-theme-sm relative flex items-center gap-3 rounded-lg px-3 py-2 font-medium;

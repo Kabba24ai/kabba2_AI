@@ -76,7 +76,11 @@
             </label>
 
             <div class="relative">
-                {!! html()->input('number', 'sales_tax', \App\Helpers\CustomHelper::displayPercentage($settings['Product Settings']['sales_tax']['setting_value']))->class([
+                {!! html()->input(
+                        'number',
+                        'sales_tax',
+                        \App\Helpers\CustomHelper::displayPercentage($settings['Product Settings']['sales_tax']['setting_value']),
+                    )->class([
                         'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('sales_tax'),
                         'border-red-500' => $errors->has('sales_tax'),
@@ -346,7 +350,7 @@
                 Damage Waiver (%)
             </label>
 
-            <div class="relative">
+            <div class="flex items-center flex-wrap gap-2 relative">
                 {!! html()->input(
                         'number',
                         'damage_waiver_percentage',
@@ -361,6 +365,24 @@
                         'required' => true,
                         'id' => 'damage_waiver_percentage',
                     ]) !!}
+
+                <!-- Tooltip trigger -->
+                <div class="relative group">
+                    <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                        <x-heroicon-o-information-circle class="w-5 h-5" />
+                    </span>
+
+                    <!-- Tooltip -->
+                    <div
+                        class="tooltip-panel">
+                        <p>Set the <strong>Damage Waiver (%)</strong> to auto-calculate the waiver charge.</p>
+                        <br>
+                        <strong>Formula:</strong> Charge = <strong>Rental Rate × Damage Waiver %.</strong>
+                        <br><br>
+                        <strong>Example:</strong> Rental Rate <strong>$400</strong> × Waiver
+                        <strong>15% = $60</strong> damage waiver.
+                    </div>
+                </div>
             </div>
 
             @error('damage_waiver_percentage')

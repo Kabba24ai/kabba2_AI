@@ -182,4 +182,119 @@
     window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const clearFiltersBtn = document.querySelector('#clearFiltersBtn');
+        let wrapper = document.querySelector('#order-table-wrapper');
+        let paymentMethodInput = document.querySelector('select[name="payment_method"]');
+
+        const monthRangeInput = document.querySelector('select[name="month_range"]');
+        const startDateInput = document.querySelector('input[name="start_date"]');
+        const endDateInput = document.querySelector('input[name="end_date"]');
+        const storeInput = document.querySelector('select[name="store"]');
+
+
+        const reloadIcon = document.getElementById('reloadIcon');
+
+        function fetchOrders() {
+            const params = new URLSearchParams();
+            params.set('page', 1);
+
+            const paymentMethod = paymentMethodInput?.value || '';
+            const monthRange = monthRangeInput?.value || '';
+            const startDate = startDateInput?.value || '';
+            const endDate = endDateInput?.value || '';
+            const store = storeInput?.value || '';
+
+            if (paymentMethod) params.append('payment_method', paymentMethod);
+            if (monthRange) params.append('month_range', monthRange);
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (store) params.append('store', store);
+
+            wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+            //  Debug log outgoing request
+            console.log('[SalesTax AJAX] Fetching with params:', params.toString());
+
+            fetch("{{ route('admin.reports.sales-tax.index') }}?" + params.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(async response => {
+                    wrapper.classList.remove('opacity-50', 'pointer-events-none');
+
+                    if (!response.ok) {
+                        console.error('[SalesTax AJAX] HTTP error:', response.status, response.statusText);
+                        let text = await response.text();
+                        console.error('[SalesTax AJAX] Response text:', text);
+                        alert('An error occurred while loading orders. Check console for details.');
+                        return;
+                    }
+
+                    // Try parsing JSON
+                    try {
+                        const data = await response.json();
+                        if (data?.success) {
+                            wrapper.innerHTML = data.html;
+
+
+                            // Update stats dynamically
+                            if (data.stats) {
+                                document.querySelector('#totalRevenue').textContent = data.stats.totalRevenue;
+                                document.querySelector('#taxFreeRevenue').textContent = data.stats.taxFreeRevenue;
+                                document.querySelector('#taxableRevenue').textContent = data.stats.taxableRevenue;
+                                document.querySelector('#salesTaxCollected').textContent = data.stats.salesTaxCollected;
+                            }
+
+                        } else {
+                            console.warn('[SalesTax AJAX] Unexpected JSON format:', data);
+                            // wrapper.innerHTML = '<div class="p-4 text-red-500"> Unexpected response format</div>';
+                        }
+                    } catch (err) {
+                        console.error('[SalesTax AJAX] JSON parse error:', err);
+                        let text = await response.text();
+                        console.error('[SalesTax AJAX] Raw response:', text);
+                        // wrapper.innerHTML = '<div class="p-4 text-red-500">⚠️ Failed to load orders (invalid JSON)</div>';
+                    }
+                })
+                .catch(error => {
+                    wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                    console.error('[SalesTax AJAX] Network or JS error:', error);
+                    // wrapper.innerHTML = '<div class="p-4 text-red-500"> Network error — check console</div>';
+                }).finally(() => {
+                    // Stop spinning
+                    reloadIcon.classList.remove('animate-spin');
+                });
+        }
+
+        // Event bindings
+        monthRangeInput?.addEventListener('change', fetchOrders);
+        storeInput?.addEventListener('change', fetchOrders);
+        startDateInput?.addEventListener('change', fetchOrders);
+        endDateInput?.addEventListener('change', fetchOrders);
+        paymentMethodInput?.addEventListener('change', fetchOrders);
+
+
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', function() {
+
+                // Start spinning
+                reloadIcon.classList.add('animate-spin');
+
+                // Reset filters
+                paymentMethodInput.value = '';
+                monthRangeInput.value = '';
+                startDateInput.value = '';
+                endDateInput.value = '';
+                storeInput.value = '';
+
+                // Fetch orders and stop spin when done
+                fetchOrders();
+            });
+        }
+
+    });
+</script>
 @endpush

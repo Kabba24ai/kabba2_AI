@@ -26,10 +26,7 @@ class IndexController extends Controller
         $indiaTimezone = 'Asia/Kolkata';
         $indiaTime = (new \DateTime('now', new \DateTimeZone($indiaTimezone)))->format('Y-m-d h:i:s A');
 
-        $systemTime = shell_exec('date');
-
         return response()->json([
-            'system_time' => trim($systemTime),
             'server_timezone' => $serverTimezone,
             'server_time' => $serverTime,
             'app_timezone' => $appTimezone,

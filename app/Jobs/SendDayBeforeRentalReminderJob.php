@@ -36,7 +36,12 @@ class SendDayBeforeRentalReminderJob implements ShouldQueue
             return;
         }
 
+
         $today = Carbon::now('America/Chicago')->addDay()->toDateString(); // Tomorrow's date in America/Chicago timezone
+
+        // $now = now()->format('Y-m-d H:i:s');
+        // $carbonDate= Carbon::now('America/Chicago')->format('Y-m-d H:i:s');
+        // \Log::channel('jobs')->info("Day-before rental reminders for date: {$carbonDate}, now: {$now}");
 
         $twilio = new TwilioService();
 
@@ -54,8 +59,14 @@ class SendDayBeforeRentalReminderJob implements ShouldQueue
         foreach ($records as $record) {
             $phoneNumber = $record->order->shippingAddress->phone ?? null;
             if ($record->pickup_transport_mode === 'Store') {
+                if ($messages['rental_day_before_store_message_enabled'] == false) {
+                    continue; // Skip if store message is not enabled
+                }
                 $message = $messages['rental_day_before_store_message'];
             } else {
+                if ($messages['rental_day_before_truck_message_enabled'] == false) {
+                    continue; // Skip if truck message is not enabled
+                }
                 $message = $messages['rental_day_before_truck_message'];
             }
             if ($phoneNumber) {

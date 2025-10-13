@@ -54,8 +54,14 @@ class SendSameDayRentalReminderJob implements ShouldQueue
         foreach ($records as $record) {
             $phoneNumber = $record->order->shippingAddress->phone ?? null;
             if ($record->pickup_transport_mode === 'Store') {
+                if ($messages['rental_same_day_store_message_enabled'] == false) {
+                    continue; // Skip if store message is not enabled
+                }
                 $message = $messages['rental_same_day_store_message'];
             } else {
+                if ($messages['rental_same_day_truck_message_enabled'] == false) {
+                    continue; // Skip if truck message is not enabled
+                }
                 $message = $messages['rental_same_day_truck_message'];
             }
             if ($phoneNumber) {

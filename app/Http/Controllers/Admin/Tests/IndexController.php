@@ -12,14 +12,42 @@ use App\Services\TwilioService;
 class IndexController extends Controller
 {
     // new method here
+    public function listTimezonesAndCurrentTimes()
+    {
+        $serverTimezone = date_default_timezone_get();
+        $serverTime = date('Y-m-d h:i:s A');
+
+        $appTimezone = config('app.timezone') ?: 'UTC';
+        $appTime = (new \DateTime('now', new \DateTimeZone($appTimezone)))->format('Y-m-d h:i:s A');
+
+        $tennesseeTimezone = 'America/Chicago';
+        $tennesseeTime = (new \DateTime('now', new \DateTimeZone($tennesseeTimezone)))->format('Y-m-d h:i:s A');
+
+        $indiaTimezone = 'Asia/Kolkata';
+        $indiaTime = (new \DateTime('now', new \DateTimeZone($indiaTimezone)))->format('Y-m-d h:i:s A');
+
+        $systemTime = shell_exec('date');
+
+        return response()->json([
+            'system_time' => trim($systemTime),
+            'server_timezone' => $serverTimezone,
+            'server_time' => $serverTime,
+            'app_timezone' => $appTimezone,
+            'app_time' => $appTime,
+            'tennessee_timezone' => $tennesseeTimezone,
+            'tennessee_time' => $tennesseeTime,
+            'india_timezone' => $indiaTimezone,
+            'india_time' => $indiaTime,
+        ]);
+    }
+
     public function testSendCodSms(){
         $order = \App\Models\Orders\Order::query()->with('lastPayment')->first();
 
         $smsSetting = ConfigurationHelper::getSettings('Default Sales Funnel Settings');
 
-
         if (!$smsSetting || !$smsSetting['cod_message_enabled'] || empty($order->billingAddress->phone)) {
-            return;
+            return response()->json(['status' => 'SMS settings not enabled or phone number missing.']);
         }
 
         if ($order->lastPayment->payment_method == OrderPaymentMethod::COD) {

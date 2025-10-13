@@ -1,4 +1,4 @@
-<div class="shadow rounded-lg overflow-x-auto border-gray-200 bg-white dark:bg-gray-900">
+<div class="shadow rounded-lg overflow-x-auto border-gray-200 bg-white dark:bg-gray-900 mt-6">
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
         <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
             <tr>
@@ -19,10 +19,6 @@
         <div id="order-loading" class="hidden"></div>
         <tbody class="divide-y">
             @forelse ($orders as $order)
-
-            @if ($order->tax_amount > 0)
-
-
 
             <tr id="order-row-{{ $order->unique_id }}" class="hover:bg-gray-50">
 
@@ -69,7 +65,6 @@
                 </td>
 
             </tr>
-            @endif
 
             @empty
             <tr>

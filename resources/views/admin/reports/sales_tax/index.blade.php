@@ -23,7 +23,7 @@
         {{-- Month Range --}}
         <div class="w-full sm:w-48">
             <select name="month_range"
-                class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 ">
                 <option value="">Choose Month Range</option>
                 @foreach ($availableMonths as $month)
                 <option value="{{ $month['value'] }}" @selected(request('month_range')==$month['value'])>
@@ -38,7 +38,7 @@
         <div class="w-full sm:w-40">
             {!! html()->text('start_date', old('start_date', request('start_date')))
             ->class([
-            'w-full border rounded-md datepicker px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 bg-white text-gray-700',
+            'w-full border rounded-md datepicker px-3 py-2 text-sm focus:outline-none focus:ring-2 bg-white text-gray-700',
             'border-gray-300' => true,
             ])
             ->attributes([
@@ -52,7 +52,7 @@
         <div class="w-full sm:w-40">
             {!! html()->text('end_date', old('end_date', request('end_date')))
             ->class([
-            'w-full border rounded-md datepicker px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 bg-white text-gray-700',
+            'w-full border rounded-md datepicker px-3 py-2 text-sm focus:outline-none focus:ring-2 bg-white text-gray-700',
             'border-gray-300' => true,
             ])
             ->attributes([
@@ -65,7 +65,7 @@
         {{-- Type Dropdown --}}
         <div class="w-full sm:w-48">
             <select name="store"
-                class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900">
                 <option value="">All Stores</option>
                 @foreach ($stores as $store)
                 <option value="{{ $store->id }}" @selected(request('store')==$store->id)>{{ $store->store_name }}</option>
@@ -75,7 +75,7 @@
 
         <div class="w-full sm:w-38">
             <select id="payment_method" name="payment_method"
-                class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
+                class=" border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
                 <option value="">All Payment Types</option>
                 @foreach(\App\Enums\Orders\OrderPaymentMethod::cases() as $method)
                 <option value="{{ $method->value }}" @selected(request('payment_method')===$method->value)>

@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\Tests\IndexController;
 
 Route::prefix('test')->name('test.')
 ->group(function(){
+
+    Route::get('/send-cod-sms', [IndexController::class, 'testSendCodSms'])->name('send_cod_sms');
     Route::get('/update-users-email', [IndexController::class, 'updateUsersEmail'])->name('update_users_email');
     Route::get('/send-sms', [IndexController::class, 'sendSms'])->name('send_sms');
     Route::get('/send-whatsapp', [IndexController::class, 'sendWhatsApp'])->name('send_whatsapp');

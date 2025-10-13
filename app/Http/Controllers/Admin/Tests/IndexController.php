@@ -2,13 +2,39 @@
 
 namespace App\Http\Controllers\Admin\Tests;
 
+use App\Enums\Orders\OrderPaymentMethod;
+use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
+use App\Models\Orders\Order;
 use App\Services\TwilioService;
 
 class IndexController extends Controller
 {
     // new method here
+    public function testSendCodSms(){
+        $order = \App\Models\Orders\Order::query()->with('lastPayment')->first();
+
+        $smsSetting = ConfigurationHelper::getSettings('Default Sales Funnel Settings');
+
+
+        if (!$smsSetting || !$smsSetting['cod_message_enabled'] || empty($order->billingAddress->phone)) {
+            return;
+        }
+
+        if ($order->lastPayment->payment_method == OrderPaymentMethod::COD) {
+            event(new \App\Events\Front\Checkout\OrderPlacedEvent(
+                order: $order,
+                customer: $order->customer,
+                payment: $order->lastPayment,
+                orderActionType: null,
+                employee: null
+            ));
+        }
+        return response()->json(['status' => 'COD SMS event triggered.']);
+    }
+
+
     public function updateUsersEmail()
     {
         $users = User::all();

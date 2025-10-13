@@ -15,6 +15,7 @@ enum OrderHistoryAction : string
     case LicenseUploaded = 'license_uploaded';
     case DeliveryMediaUploaded = 'delivery_media_uploaded';
     case ReturnMediaUploaded = 'return_media_uploaded';
+    case CodSmsNotification = 'cod_sms_notification';
 
     public function label(): string
     {
@@ -30,6 +31,7 @@ enum OrderHistoryAction : string
             self::LicenseUploaded => 'License Uploaded',
             self::DeliveryMediaUploaded => 'Delivery Video Uploaded',
             self::ReturnMediaUploaded => 'Return Video Uploaded',
+            self::CodSmsNotification => 'COD SMS Notification Sent',
         };
     }
 

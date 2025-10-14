@@ -1,6 +1,5 @@
 <?php
 
-use App\Jobs\SendSameDayRentalReminderJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -16,7 +15,7 @@ Schedule::job(new \App\Jobs\SendDayBeforeRentalReminderJob())
     ->onOneServer()
     ->name('send-day-before-rental-reminder-job');
 
-Schedule::job(new SendSameDayRentalReminderJob)
+Schedule::job(new \App\Jobs\SendSameDayRentalReminderJob())
     ->dailyAt('07:00')
     ->timezone('America/Chicago')
     ->withoutOverlapping()

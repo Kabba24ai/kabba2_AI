@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Models\Customers\Customer;
 use App\Helpers\CustomHelper ;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Helpers\ConfigurationHelper;
 
 
 
@@ -17,6 +18,8 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
+
+        $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
         //  Orders Query
         $ordersQuery = Order::with('shippingAddress', 'products.product.categories', 'lastPayment')
@@ -144,9 +147,13 @@ $reportRows = $orders->map(function($order) {
             $reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal)
         );
 
-        $taxableRevenue = CustomHelper::formatCurrency(
-            $reportRows->filter(fn($row) => $row->tax_amount > 0)->sum(fn($row) => $row->grand_total)
-        );
+        $reversetaxableRevenue =
+            $reportRows->filter(fn($row) => $row->tax_amount > 0)->sum(fn($row) => $row->grand_total);
+
+        $taxableRevenue = $reversetaxableRevenue / ( 1 + $sales_tax);
+
+        $taxableRevenue = CustomHelper::formatCurrency($taxableRevenue);
+
 
         $salesTaxCollected = CustomHelper::formatCurrency(
             $reportRows->sum(fn($row) => $row->tax_amount)

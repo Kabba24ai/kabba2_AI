@@ -356,7 +356,7 @@
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment
                                     </a>
                                 </li>
-                                {{-- <li>
+                                 <li>
                                     <a href="{{ route('admin.maintenance-management.parts.index') }}"
                                 class="menu-dropdown-item group
                                 {{ Route::is('admin.maintenance-management.parts.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
@@ -369,7 +369,7 @@
                                         {{ Route::is('admin.maintenance-management.suppliers.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                             <x-heroicon-o-circle-stack class="h-5 w-5" /> Suppliers
                         </a>
-                    </li> --}}
+                    </li> 
                 </ul>
             </div>
             </li>

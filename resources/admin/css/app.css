@@ -887,6 +887,8 @@ span.flatpickr-weekday,
 svg.checkmark {
   display: none;
 }
+
+
 @media screen and (min-width: 1920px) and (max-width: 2500px) {
   .cus-width-10 { width: 5%;}
   .cus-width-15 { width: 10%;}

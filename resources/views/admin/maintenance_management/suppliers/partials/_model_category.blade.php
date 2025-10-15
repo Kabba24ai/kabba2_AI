@@ -4,14 +4,16 @@
         <div
             class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-4xl space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full"
             onclick="event.stopPropagation()">
-            <!--  
+            <!--
             Proper Header Section -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50 mb-0">
                 <!-- Left side (icon + text) -->
                 <div class="flex items-start gap-3">
                     <!-- Icon -->
                     <div class="bg-gradient-to-r from-green-600 to-teal-600 p-2 rounded-lg mr-3 mt-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white">
+                            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+                        </svg>
                     </div>
 
                     <!-- Title + Subtitle stacked -->
@@ -86,37 +88,59 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        //  Define empty array first so renderCategories() doesn’t fail
+        window.categories = [];
 
         const categoryList = document.getElementById('categoryList');
         const newCategoryInput = document.getElementById('newCategoryInput');
         const addCategoryBtn = document.getElementById('addCategoryBtn');
         const searchCategoryInput = document.getElementById('searchCategoryInput');
 
-        window.categories = [{
-                name: "Equipment Dealer",
-                usedBy: 0
-            },
-            {
-                name: "Equipment Mfg.",
-                usedBy: 3
-            },
-            {
-                name: "Supplies - General",
-                usedBy: 9
-            },
-            {
-                name: "Software / IT",
-                usedBy: 7
-            },
-            {
-                name: "Parts",
-                usedBy: 5
-            },
-            {
-                name: "Financing",
-                usedBy: 2
-            },
-        ];
+        const supplierSelect = document.getElementById('supplierCategory');
+
+        function fetchCategories() {
+            fetch(`{{ route('admin.maintenance-management.suppliers.category.fetch') }}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.categories = data.categories.map(cat => ({
+                            name: cat.name,
+                            usedBy: 0,
+                            id: cat.id
+                        }));
+                        renderCategories();
+                        renderSelect();
+                    }
+                })
+                .catch(() => notyf.error("Failed to load categories"));
+        }
+
+
+        function renderSelect() {
+            if (!supplierSelect) return;
+
+            supplierSelect.innerHTML = '<option value="">All Categories</option>';
+            window.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                supplierSelect.appendChild(opt);
+            });
+
+
+            // this is rerender the suppier form
+            const select = document.getElementById('supplierCategorysform');
+            if (!select) return;
+
+            select.innerHTML = '<option value="">Select Category</option>';
+            window.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                select.appendChild(opt);
+            });
+            // this is rerender the suppier form
+        }
 
 
         function renderCategories(filter = '') {
@@ -136,7 +160,7 @@
 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium mr-3 bg-blue-100 text-blue-800 border border-blue-200';
-                nameSpan.textContent = `${cat.name} (Default)` ;
+                nameSpan.textContent = `${cat.name} (Default)`;
 
                 const infoSpan = document.createElement('span');
                 infoSpan.className = 'text-xs text-blue-600';
@@ -177,8 +201,9 @@
                     inputName.type = 'text';
                     inputName.value = cat.name;
                     inputName.className = 'border px-2 py-1 rounded w-full text-sm';
-                    leftDiv.replaceChild(inputName, nameSpan);
-                    leftDiv.removeChild(infoSpan);
+                    leftDiv.innerHTML = '';
+                    leftDiv.appendChild(inputName);
+
 
                     // Change icon to Save
                     editBtn.innerHTML = `
@@ -196,14 +221,30 @@
                             return;
                         }
 
-                        //  Find the actual index in the original array
-                        const realIndex = categories.findIndex(c => c.name === cat.name);
-                        if (realIndex !== -1) {
-                            categories[realIndex].name = newName;
-                        }
+                        let updateUrl = `{{ route('admin.maintenance-management.suppliers.category.update', ['category' => ':id']) }}`;
+                        updateUrl = updateUrl.replace(':id', cat.id);
 
-                        renderCategories(searchCategoryInput.value);
-                        notyf.success("Category updated successfully!");
+                        fetch(updateUrl, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                                body: JSON.stringify({
+                                    name: newName
+                                })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    notyf.success(data.message);
+                                    fetchCategories();
+                                } else {
+                                    notyf.error("Update failed!");
+                                }
+                            })
+                            .catch(() => notyf.error("Error updating category!"));
+
                     }, {
                         once: true
                     });
@@ -216,36 +257,38 @@
                         'Delete Category'
                     ).then((result) => {
                         if (result.isConfirmed) {
-                            //  Find the actual index in the original array
-                            const realIndex = categories.findIndex(c => c.name === cat.name);
-                            if (realIndex !== -1) {
-                                categories.splice(realIndex, 1);
-                            }
+                            //  Construct delete URL dynamically
+                            let deleteUrl = `{{ route('admin.maintenance-management.suppliers.category.delete', ['category' => ':id']) }}`;
+                            deleteUrl = deleteUrl.replace(':id', cat.id);
 
-                            renderCategories(searchCategoryInput.value);
-                            notyf.success("Category deleted successfully!");
+                            fetch(deleteUrl, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                    }
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        notyf.success(data.message);
+                                        fetchCategories(); // Refresh list
+                                    } else {
+                                        notyf.error("Failed to delete category!");
+                                    }
+                                })
+                                .catch(() => notyf.error("Error deleting category!"));
                         }
                     });
                 });
 
-                // this is rerender the suppier form 
-                const select = document.getElementById('supplierCategory');
-                if (!select) return;
-
-                select.innerHTML = '<option value="">Select Category</option>';
-                window.categories.forEach(cat => {
-                    const opt = document.createElement('option');
-                    opt.value = cat.name;
-                    opt.textContent = cat.name;
-                    select.appendChild(opt);
-                });
-                // this is rerender the suppier form 
 
 
             });
 
             // Update total count
             document.getElementById('totalcatagarys').textContent = categories.length;
+
         }
 
         // --- Add new category ---
@@ -255,13 +298,25 @@
                 notyf.error("Category name cannot be empty!");
                 return;
             }
-            categories.push({
-                name,
-                usedBy: 0
-            });
-            newCategoryInput.value = '';
-            renderCategories(searchCategoryInput.value);
-            notyf.success("Category added successfully!");
+
+            fetch(`{{ route('admin.maintenance-management.suppliers.category.store') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        name
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    notyf.success(data.message);
+                    newCategoryInput.value = '';
+                    fetchCategories();
+                })
+                .catch(() => notyf.error("Failed to add category"));
+
         });
 
         // --- Search functionality ---
@@ -269,8 +324,8 @@
             renderCategories(e.target.value);
         });
 
-        // Initial render
-        renderCategories();
+        fetchCategories();
+
     });
 </script>
 

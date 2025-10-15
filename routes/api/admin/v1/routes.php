@@ -34,5 +34,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         require base_path('routes/api/admin/v1/rental_ready_checklists/routes.php');
 
         require base_path('routes/api/admin/v1/stores/routes.php');
+
+        require base_path('routes/api/admin/v1/customers/routes.php');
     });
 });

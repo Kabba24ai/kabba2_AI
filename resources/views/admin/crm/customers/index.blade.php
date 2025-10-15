@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     company_name.addEventListener('input', function () {
+        
         clearTimeout(timeout);
         timeout = setTimeout(fetchCustomers, 400);
     });

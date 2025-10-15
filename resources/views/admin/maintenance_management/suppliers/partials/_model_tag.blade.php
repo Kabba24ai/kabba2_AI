@@ -5,26 +5,29 @@
             class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-4xl space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full"
             onclick="event.stopPropagation()">
             <!--  Proper Header Section -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50 mb-0">
                 <!-- Left side (icon + text) -->
                 <div class="flex items-start gap-3">
                     <!-- Icon -->
-                    <div class="p-2 border rounded-md bg-purple-600" style=" color: wheat;">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M3 3h6l11 11a2 2 0 01-2.83 2.83L6 5V3z"></path>
+                    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-2 rounded-lg mr-3 mt-1">
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                            <path d="M7 7h.01"></path>
                         </svg>
                     </div>
 
                     <!-- Title + Subtitle stacked -->
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800">Tags Management</h3>
-                        <p class="text-sm text-gray-600">Manage your supplier Tags and categories </p>
+                        <p class="text-sm text-gray-600">Manage your supplier Tags and categories</p>
                     </div>
                 </div>
 
                 <!-- Close button -->
-                <button onclick="closeModal('TagModalWrapper')"
-                    class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+                <button onclick="closeModal('TagModalWrapper')" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
             </div>
 
             <!--  End Header -->
@@ -36,30 +39,27 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Add New Tag</label>
                     <div class="flex gap-3">
                         <input type="text" id="newTagInput"
-                            class="w-full px-4 py-2 text-sm border rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                            class="flex-1 px-3 py-2 text-sm border rounded-md focus:ring-green-500 focus:border-green-500"
                             placeholder="Enter Tag name">
                         <button id="addTagBtn"
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                            class="px-3 py-2 bg-green-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center text-sm">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            Add
+                            Add Tag
                         </button>
                     </div>
                 </div>
+
 
                 <!-- Search Tag -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Search Tags</label>
                     <div class="relative">
-                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
+
                         <input type="text" id="searchTagInput"
-                            class="w-full pl-9 pr-4 py-2 border rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm"
+                            class="w-full px-3 py-2 border rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
                             placeholder="Search existing tags...">
 
                     </div>
@@ -94,58 +94,58 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        //  Global tags
-        window.tags = [{
-                name: "24-7 Service"
-            },
-            {
-                name: "APi-integration"
-            },
-            {
-                name: "automotive"
-            },
-            {
-                name: "Bulk-orders"
-            },
-            {
-                name: "Carban-neutral"
-            },
-            {
-                name: "Cloude-service"
-            },
-        ];
-
+        window.tags = [];
         const tagSelect = document.getElementById('supplierTags');
-        let tagChoices = null; // hold Choices.js instance
+        let tagChoices = null;
 
-        //  Reusable function to rebuild dropdown
+        if (!tagSelect) return;
+
+        // Initialize Choices once
+        tagChoices = new Choices(tagSelect, {
+            removeItemButton: true,
+            duplicateItemsAllowed: false,
+            shouldSort: false,
+            placeholderValue: 'Select or type tags',
+            addItems: true,
+            addItemText: value => `Press Enter to add #${value}`,
+            itemSelectText: '',
+        });
+
         function updateTagSelect() {
-            if (!tagSelect) return;
+            if (!tagChoices) return;
 
-            // Destroy old Choices instance (if any)
-            if (tagChoices && tagChoices.destroy) tagChoices.destroy();
+            // Clear existing choices
+            tagChoices.clearStore();
 
-            // Clear existing options
-            tagSelect.innerHTML = '';
+            // Add updated tags dynamically
+            const choicesArray = window.tags.map(tag => ({
+                value: tag.id, // always use unique ID
+                label: `#${tag.name}`,
+                selected: false
+            }));
 
-            // Add new ones
-            window.tags.forEach(tag => {
-                const opt = document.createElement('option');
-                opt.value = tag.name;
-                opt.textContent = '#' + tag.name;
-                tagSelect.appendChild(opt);
-            });
+            tagChoices.setChoices(choicesArray, 'value', 'label', false);
+        }
 
-            // Reinitialize Choices.js
-            tagChoices = new Choices(tagSelect, {
-                removeItemButton: true,
-                duplicateItemsAllowed: false,
-                shouldSort: false,
-                placeholderValue: 'Select or type tags',
-                addItems: true,
-                addItemText: (value) => `Press Enter to add #${value}`,
-                itemSelectText: '',
-            });
+
+        function fetchTags() {
+            fetch(`{{ route('admin.maintenance-management.suppliers.tag.fetch') }}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.tags = data.tags.map(tag => ({
+                            name: tag.name,
+                            usedBy: 0,
+                            id: tag.id
+                        }));
+                        renderTags();
+                        updateTagSelect();
+                    }
+                })
+                .catch((e) => {
+                    console.error("❌ Error in fetchTags:", e);
+                    notyf.error("Error in fetchTags!");
+                });
         }
 
 
@@ -158,59 +158,49 @@
 
             filteredTags.forEach((tag) => {
                 const li = document.createElement('li');
-                li.className = 'flex justify-between items-center px-4 py-2 border rounded bg-purple-100 text-purple-700';
+                li.className = 'flex items-center justify-between px-4 py-2 rounded-md border border-gray-200 bg-white text-blue-700';
+
+                const leftDiv = document.createElement('div');
+                leftDiv.className = 'flex gap-2 items-center w-full';
 
                 const nameSpan = document.createElement('span');
-                nameSpan.className = 'font-medium';
+                nameSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium mr-3 bg-blue-100 text-blue-800 border border-blue-200';
                 nameSpan.innerHTML = `#${tag.name}`;
-                li.appendChild(nameSpan);
+
+
+                const infoSpan = document.createElement('span');
+                infoSpan.className = 'text-xs text-blue-600';
+                infoSpan.innerHTML = `<span class="text-sm text-gray-500">Used by ${tag.usedBy} Suppliers</span>`;
+
+
+                leftDiv.appendChild(nameSpan);
+                leftDiv.appendChild(infoSpan);
+                li.appendChild(leftDiv);
+                // li.appendChild(nameSpan);
 
                 const btnDiv = document.createElement('div');
-                btnDiv.className = 'flex gap-2';
+                btnDiv.className = 'flex items-center gap-3';
 
                 //  Edit button
                 const editBtn = document.createElement('button');
-                editBtn.className = 'hover:text-purple-800';
+                editBtn.className = 'hover:text-blue-800';
                 editBtn.title = 'Edit';
                 editBtn.innerHTML = `
-                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 
-                        2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 
-                        1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 
-                        1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>
-                </svg>
-            `;
+                    <x-heroicon-o-pencil class="w-5 h-5" />`;
+
+                btnDiv.appendChild(editBtn);
+
 
                 //  Delete button
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'hover:text-red-800';
+                deleteBtn.className = 'text-red-800';
                 deleteBtn.title = 'Delete';
                 deleteBtn.innerHTML = `
-                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="m14.74 9-.346 9m-4.788 0L9.26 
-                        9m9.968-3.21c.342.052.682.107 
-                        1.022.166m-1.022-.165L18.16 
-                        19.673a2.25 2.25 0 0 1-2.244 
-                        2.077H8.084a2.25 2.25 0 0 
-                        1-2.244-2.077L4.772 
-                        5.79m14.456 0a48.108 48.108 
-                        0 0 0-3.478-.397m-12 
-                        .562c.34-.059.68-.114 
-                        1.022-.165m0 0a48.11 48.11 
-                        0 0 1 3.478-.397m7.5 
-                        0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 
-                        51.964 0 0 0-3.32 0c-1.18.037-2.09 
-                        1.022-2.09 2.201v.916m7.5 
-                        0a48.667 48.667 0 0 0-7.5 0" />
-                </svg>
-            `;
+                    <x-heroicon-o-trash class="w-5 h-5" />`;
 
-                btnDiv.appendChild(editBtn);
+
                 btnDiv.appendChild(deleteBtn);
+
                 li.appendChild(btnDiv);
                 tagList.appendChild(li);
 
@@ -223,17 +213,19 @@
                     inputName.type = 'text';
                     inputName.value = tag.name;
                     inputName.className = 'border px-2 py-1 rounded w-full text-sm';
-                    li.replaceChild(inputName, nameSpan);
+                    leftDiv.innerHTML = '';
+                    leftDiv.appendChild(inputName);
 
-                    // Change icon to Save (✔)
+
+                    // Change icon to Save
                     editBtn.innerHTML = `
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                `;
+                            d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>`;
                     editBtn.title = 'Save';
+
 
                     // Save handler
                     editBtn.addEventListener('click', () => {
@@ -243,14 +235,29 @@
                             return;
                         }
 
-                        //  Find the actual index in the original array
-                        const realIndex = tags.findIndex(t => t.name === tag.name);
-                        if (realIndex !== -1) {
-                            tags[realIndex].name = newName;
-                        }
+                        let updateUrl = `{{ route('admin.maintenance-management.suppliers.tag.update', ['tag' => ':id']) }}`;
+                        updateUrl = updateUrl.replace(':id', tag.id);
 
-                        renderTags(document.getElementById('searchTagInput').value);
-                        notyf.success("Tag updated successfully!");
+                        fetch(updateUrl, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                                body: JSON.stringify({
+                                    name: newName
+                                })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    notyf.success(data.message);
+                                    fetchTags();
+                                } else {
+                                    notyf.error("Update failed!");
+                                }
+                            })
+                            .catch(() => notyf.error("Error updating Tag!"));
                     }, {
                         once: true
                     });
@@ -258,15 +265,36 @@
 
                 // --- Delete functionality ---
                 deleteBtn.addEventListener('click', () => {
-                    if (confirm(`Delete "${tag.name}"?`)) {
-                        const realIndex = tags.findIndex(t => t.name === tag.name);
-                        if (realIndex !== -1) {
-                            tags.splice(realIndex, 1);
+                    window.showConfirm(
+                        `Are you sure you want to delete "${tag.name}"?`,
+                        'Delete tag'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            //  Construct delete URL dynamically
+                            let deleteUrl = `{{ route('admin.maintenance-management.suppliers.tag.delete', ['tag' => ':id']) }}`;
+                            deleteUrl = deleteUrl.replace(':id', tag.id);
+
+                            fetch(deleteUrl, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                    }
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        notyf.success(data.message);
+                                        fetchTags(); // Refresh list
+                                    } else {
+                                        notyf.error("Failed to delete Tags!");
+                                    }
+                                })
+                                .catch(() => notyf.error("Error deleting Tags!"));
                         }
-                        renderTags(document.getElementById('searchTagInput').value);
-                        notyf.success("Tag deleted successfully!");
-                    }
+                    });
                 });
+
             });
 
             // Update total tags count
@@ -282,12 +310,25 @@
                 notyf.error("Tag cannot be empty!");
                 return;
             }
-            tags.push({
-                name
-            });
-            document.getElementById('newTagInput').value = '';
-            renderTags(document.getElementById('searchTagInput').value);
-            notyf.success("Tag added successfully!");
+            fetch(`{{ route('admin.maintenance-management.suppliers.tag.store') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        name
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    notyf.success(data.message);
+                    document.getElementById('newTagInput').value = '';
+                    fetchTags();
+                })
+                .catch(() => notyf.error("Failed to add Tag"));
+
+
         });
 
         // Search tags
@@ -296,12 +337,8 @@
         });
 
         // Initial render
-        renderTags();
+        fetchTags();
     });
 </script>
-
-
-
-
 
 @endpush

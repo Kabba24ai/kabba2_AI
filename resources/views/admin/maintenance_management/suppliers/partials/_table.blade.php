@@ -70,7 +70,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center space-x-2">
-                            <button class="text-blue-600  rounded transition-colors" title="View Details">
+                            <button class="text-blue-600  rounded transition-colors" title="View Details"    onclick="openModal('ViewSupplier')">
                                 <x-heroicon-o-eye class="w-5 h-5" />
                             </button>
                             <button class="text-green-600 rounded transition-colors" title="Edit">
@@ -139,7 +139,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center space-x-2">
-                            <button class="text-blue-600  rounded transition-colors" title="View Details">
+                            <button class="text-blue-600  rounded transition-colors" title="View Details"    onclick="openModal('ViewSupplier')">
                                 <x-heroicon-o-eye class="w-5 h-5" />
                             </button>
                             <button class="text-green-600 rounded transition-colors" title="Edit">
@@ -188,7 +188,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Supplies - General</span>
-                    
+
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-yellow-100 text-yellow-800 border-yellow-200">
@@ -209,7 +209,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center space-x-2">
-                            <button class="text-blue-600  rounded transition-colors" title="View Details">
+                            <button class="text-blue-600  rounded transition-colors" title="View Details"    onclick="openModal('ViewSupplier')">
                                 <x-heroicon-o-eye class="w-5 h-5" />
                             </button>
                             <button class="text-green-600 rounded transition-colors" title="Edit">
@@ -275,7 +275,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center space-x-2">
-                            <button class="text-blue-600  rounded transition-colors" title="View Details">
+                            <button class="text-blue-600  rounded transition-colors" title="View Details"    onclick="openModal('ViewSupplier')">
                                 <x-heroicon-o-eye class="w-5 h-5" />
                             </button>
                             <button class="text-green-600 rounded transition-colors" title="Edit">
@@ -343,7 +343,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center space-x-2">
-                            <button class="text-blue-600  rounded transition-colors" title="View Details">
+                            <button class="text-blue-600  rounded transition-colors" title="View Details"    onclick="openModal('ViewSupplier')">
                                 <x-heroicon-o-eye class="w-5 h-5" />
                             </button>
                             <button class="text-green-600 rounded transition-colors" title="Edit">
@@ -409,7 +409,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center space-x-2">
-                            <button class="text-blue-600  rounded transition-colors" title="View Details">
+                            <button class="text-blue-600  rounded transition-colors" title="View Details"    onclick="openModal('ViewSupplier')">
                                 <x-heroicon-o-eye class="w-5 h-5" />
                             </button>
                             <button class="text-green-600 rounded transition-colors" title="Edit">
@@ -421,108 +421,9 @@
                         </div>
                     </td>
                 </tr>
-            
+
             </tbody>
-            <!-- <tbody class="bg-white divide-y divide-gray-200">
-                @foreach ($suppliers as $supplier)
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 whitespace-nowrap">
-
-                        <div class="flex items-center"><div class="flex-shrink-0 h-10 w-10">
-                            <div class="h-10 w-10 rounded-full bg-gradient-to-r {{ $supplier['class'] }} flex items-center justify-center">
-                                {!! $supplier['icon'] !!}
-                            </div>
-                        </div>
-                        <div class="ml-4"><div class="text-sm font-medium text-gray-900">{{ $supplier['name'] }}</div>
-                    </td>
-
-                    <td class="px-6 py-4">
-                        <div>
-                            <div class="text-sm text-gray-900 flex items-center gap-1">
-                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                {{ $supplier['main_phone'] }}
-                            </div>
-
-                            <div class="text-sm text-gray-500 flex items-center gap-1">
-                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                                {{ $supplier['main_email'] }}
-                            </div>
-                        </div>
-                    </td>
-
-                    <td class="px-6 py-4">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-50 text-purple-600">
-                            {{ $supplier['category'] }}
-                        </span>
-                    </td>
-
-                    <td class="px-6 py-4">
-                        @php
-                        $color = match($supplier['status']) {
-                        'Active' => 'bg-green-100 text-green-700',
-                        'Inactive' => 'bg-red-100 text-red-700',
-                        'Pending' => 'bg-yellow-100 text-yellow-700',
-                        default => 'bg-gray-100 text-gray-700',
-                        };
-                        @endphp
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $color }}">
-                            {{ $supplier['status'] }}
-                        </span>
-                    </td>
-
-                    <td class="px-6 py-4 text-sm text-gray-900">
-                        <div class="flex flex-wrap gap-1">
-                            @foreach ($supplier['parts'] as $part)
-                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">
-                                {{ $part }}
-                            </span>
-                            @endforeach
-                        </div>
-                    </td>
-
-                    <td class="px-6 py-4 text-sm text-gray-900">
-                        <div class="flex flex-wrap gap-1">
-                            @foreach ($supplier['tags'] as $tags)
-                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
-                                {{ $tags }}
-                            </span>
-                            @endforeach
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-2">
-                            <a href="#" onclick="openModal('ViewSupplier')" class="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Supplier">
-
-                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-                                </svg>
-                            </a>
-
-                            <a href="#" class="p-1 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 rounded-lg transition-colors" title="Edit Supplier">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </a>
-
-                            <button type="button" class="text-red-600 hover:text-red-900 p-1" title="Delete Supplier">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody> -->
+           
         </table>
 
     </div>

@@ -81,24 +81,6 @@
             }
         });
     });
-
-    //  document.addEventListener('DOMContentLoaded', function () {
-    //     const form = document.querySelector('form');
-    //     form.addEventListener('submit', function(e) {
-    //         const actionBtn = document.activeElement;
-    //         if (actionBtn && actionBtn.name === 'action' && actionBtn.value === 'save_as_new') {
-    //             e.preventDefault();
-    //             form.action = "{{ route('admin.product-management.options.create') }}";
-    //             // Remove _method input if exists (for PUT)
-    //             const methodInput = form.querySelector('input[name="_method"]');
-    //             if (methodInput) {
-    //                 methodInput.parentNode.removeChild(methodInput);
-    //             }
-    //             form.method = 'POST';
-    //             form.submit();
-    //         }
-    //     });
-    // });
 </script>
 
 @endpush

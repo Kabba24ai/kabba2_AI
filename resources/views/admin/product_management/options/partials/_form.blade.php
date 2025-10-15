@@ -195,7 +195,10 @@
             }
 
             function syncInputsToOptions() {
+                // console.log(options);
                 tbody.querySelectorAll('tr').forEach((row, i) => {
+                    // console.log(i, row);
+
                     if (!options[i]) return;
                     options[i].label = row.querySelector(`input[name="options[${i}][label]"]`)?.value || '';
                     if (selectedType === 'Rental') {
@@ -224,6 +227,11 @@
                 renderHead();
                 tbody.innerHTML = '';
                 options.forEach((opt, index) => {
+                    for (const key in opt) {
+                        if (opt[key] === null) {
+                            opt[key] = '';
+                        }
+                    }
                     const commentBtnColor = opt.value !== 'Checked' ?
                         'text-gray-300 cursor-not-allowed' :
                         (opt.comment ? 'text-blue-600' : 'text-gray-400');
@@ -433,8 +441,10 @@
             new Sortable(tbody, {
                 handle: '.cursor-move',
                 animation: 150,
-                onEnd: evt => {
+                onStart: evt => {
                     syncInputsToOptions();
+                },
+                onEnd: evt => {
                     const moved = options.splice(evt.oldIndex, 1)[0];
                     options.splice(evt.newIndex, 0, moved);
                     options.forEach((opt, index) => {

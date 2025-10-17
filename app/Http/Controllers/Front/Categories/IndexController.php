@@ -27,10 +27,13 @@ class IndexController extends Controller
 
         if ($request->has('search') && $request->search != '' && count($products) > 0) {
             $keyword = $request->search;
+
+            // Only exact match
             $products = $products->filter(function ($product) use ($keyword) {
-                return stripos($product->product_name, $keyword) !== false;
+                return trim(strtolower($product->product_name)) === trim(strtolower($keyword));
             });
         }
+
 
         return view('front.categories.index', [
             'title' => $category->title,

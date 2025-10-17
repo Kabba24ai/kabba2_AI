@@ -131,7 +131,7 @@
                         // Use first category link with keyword
                         const link = product.category_links.length ?
                             product.category_links[0] :
-                            `/products/${product.id}?search=${encodeURIComponent(query)}`;
+                            `/products/${product.id}?search=${encodeURIComponent(product.product_name)}`;
 
                         html += `
                         <a href="${link}" 
@@ -143,19 +143,6 @@
                     });
                 }
 
-                // CATEGORIES
-                // if (data.categories.length > 0) {
-                //     html += `<div class='px-3 py-2 font-semibold text-gray-600 border-b bg-gray-50 mt-2'>Categories</div>`;
-                //     data.categories.forEach(cat => {
-                //         html += `
-                //         <a href="/categories/${cat.slug}?search=${encodeURIComponent(query)}" 
-                //            class="block px-4 py-3 hover:bg-yellow-100 transition rounded-md">
-                //             <div class="font-medium text-gray-800">${cat.title}</div>
-                //             <div class="text-xs text-gray-500 mt-1">Category</div>
-                //         </a>
-                //     `;
-                //     });
-                // }
 
                 if (html === "") {
                     html = "<div class='px-4 py-2 text-gray-500'>No results found</div>";
@@ -163,6 +150,16 @@
 
                 results.innerHTML = html;
                 results.classList.remove("hidden");
+
+                // Add click listener to autocomplete items
+                results.querySelectorAll(".autocomplete-item").forEach(item => {
+                    item.addEventListener("click", () => {
+                        // Clear search input
+                        input.value = "";
+                        // Hide dropdown
+                        results.classList.add("hidden");
+                    });
+                });
 
             } catch (err) {
                 console.error("Autocomplete error:", err);
@@ -175,6 +172,10 @@
                 results.classList.add("hidden");
             }
         });
+
+        // Optional: Clear input & dropdown on page load (prevents stale results after back button)
+        input.value = "";
+        results.classList.add("hidden");
     });
 </script>
 

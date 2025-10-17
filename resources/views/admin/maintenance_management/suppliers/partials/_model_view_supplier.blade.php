@@ -16,9 +16,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800">TechFlow Solutions</h3>
+                        <h3 class="text-lg font-semibold text-gray-800" id="viewSupplierName">-</h3>
                         <div class="mt-3 flex flex-wrap gap-2">
-                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
+                            <span id="viewSupplierStatus" class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
                                 <svg class="w-4 h-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -26,7 +26,7 @@
                                 </svg>
                                 Active
                             </span>
-                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span id="viewSupplierCategory" class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 Software / IT
                             </span>
                         </div>
@@ -56,12 +56,12 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1 required">Company Name</label>
-                                <div class="text-sm text-gray-900" style="display: block;">john Week</div>
+                                <div class="text-sm text-gray-900" id="viewSupplierCompanyName">john Week</div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                 <div>
-                                    <p class="text-gray-900 flex items-center gap-1 text-sm">
+                                    <p class="text-gray-900 flex items-center gap-1 text-sm" id="viewSupplierEmail">
                                         <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
                                         </svg>johneweek@test.com
@@ -71,7 +71,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                                 <div>
-                                    <p class="text-gray-900 flex items-center gap-1 text-gray-900">
+                                    <p class="text-gray-900 flex items-center gap-1 text-gray-900" id="viewSupplierPhone">
                                         <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
                                         </svg> (256) 544-5654
@@ -81,7 +81,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
                                 <div>
-                                    <a href="http://asdasdasd.net" class="text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                                    <a id="viewSupplierWebsite" href="http://asdasdasd.net" class="text-blue-600 hover:text-blue-800 flex items-center gap-1">
                                         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"></path>
                                         </svg> http://asdasdasd.net
@@ -90,7 +90,7 @@
                             </div>
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                                <div class="static-view text-gray-900 text-sm" style="display: block;">
+                                <div id="viewSupplierAddress" class="static-view text-gray-900 text-sm" style="display: block;">
                                     john week<br>
 
                                     aaaaaaa, los angale<br>
@@ -104,7 +104,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tax ID</label>
                                 <div>
-                                    <p class="text-gray-900 flex items-center gap-1 text-sm">
+                                    <p class="text-gray-900 flex items-center gap-1 text-sm" id="viewSupplierTaxId">
                                         ADT2541#@
                                     </p>
                                 </div>
@@ -114,14 +114,14 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
                                 <div>
-                                    <p class="text-gray-900 flex items-center gap-1 text-sm">
+                                    <p id="viewSupplierPaymentTerms" class="text-gray-900 flex items-center gap-1 text-sm">
                                         Net 30
                                     </p>
                                 </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
-                                <div class="flex flex-wrap gap-1">
+                                <div class="flex flex-wrap gap-1" id="viewSupplierTags">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
                                         #Design
                                     </span>
@@ -156,15 +156,15 @@
                             </h1>
 
                             <div>
-                                <div>
+                                <div class="mb-5">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                                    <div class="text-sm text-gray-900">john Week</div>
+                                    <div class="text-sm text-gray-900" id="PrimaryContactName">john Week</div>
 
                                 </div>
-                                <div>
+                                <div class="mb-5">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                     <div>
-                                        <p class="text-gray-900 flex items-center gap-1 text-sm">
+                                        <p class="text-gray-900 flex items-center gap-1 text-sm" id="PrimaryContactEmail">
                                             <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
                                             </svg>johneweek@test.com
@@ -174,7 +174,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                                     <div>
-                                        <p class="text-gray-900 flex items-center gap-1 text-gray-900">
+                                        <p class="text-gray-900 flex items-center gap-1 text-gray-900" id="PrimaryContactPhone">
                                             <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
                                             </svg> (256) 544-5654
@@ -198,24 +198,24 @@
                             </h1>
 
                             <div>
-                                <div>
+                                <div class="mb-5">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                                    <div class="text-sm text-gray-900">john Week</div>
+                                    <div class="text-sm text-gray-900" id="SecondaryContactName">john Week</div>
                                 </div>
-                                <div>
+                                <div class="mb-5">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                     <div>
-                                        <p class="text-gray-900 flex items-center gap-1 text-sm">
+                                        <p class="text-gray-900 flex items-center gap-1 text-sm" id="SecondaryContactEmail">
                                             <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
                                             </svg>johneweek@test.com
                                         </p>
                                     </div>
                                 </div>
-                                <div>
+                                <div class="mb-5">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                                     <div>
-                                        <p class="text-gray-900 flex items-center gap-1 text-gray-900">
+                                        <p class="text-gray-900 flex items-center gap-1 text-gray-900" id="SecondaryContactPhone">
                                             <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
                                             </svg> (256) 544-5654
@@ -320,3 +320,145 @@
         </div>
     </div>
 </div>
+
+@push('js')
+
+<script>
+    // === New Function: Fetch and View Supplier ===
+    window.viewSupplier = async function(id) {
+        try {
+            let viewUrl = `{{ route('admin.maintenance-management.suppliers.view', ['id' => ':id']) }}`;
+            viewUrl = viewUrl.replace(':id', id);
+
+            const response = await fetch(viewUrl);
+            const result = await response.json();
+
+            console.log('result');
+            console.log(result);
+            console.log('result');
+
+
+            if (result.status) {
+                const s = result.data;
+
+
+                // Fill header info
+                document.getElementById('viewSupplierName').textContent = s.name || 'N/A';
+
+                document.getElementById('viewSupplierCompanyName').textContent = s.name || 'N/A';
+
+                document.getElementById('viewSupplierCategory').textContent = s.category?.name || 'N/A';
+
+
+                // Status badge color
+                const statusEl = document.getElementById('viewSupplierStatus');
+
+                if (s.status === 'Active') {
+                    statusEl.innerHTML = `
+        <svg class="w-4 h-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg> Active`;
+                    statusEl.className = 'px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1';
+                } else if (s.status === 'Pending') {
+                    statusEl.textContent = s.status || 'Pending';
+                    statusEl.className = 'px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 flex items-center gap-1';
+                } else {
+                    statusEl.textContent = s.status || 'Inactive';
+                    statusEl.className = 'px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 flex items-center gap-1';
+                }
+
+
+                // Contact info
+                document.getElementById('viewSupplierEmail').innerHTML = `
+                <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
+                                        </svg> ${s.email || 'N/A'}
+            `;
+
+                document.getElementById('viewSupplierPhone').innerHTML = `
+                <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
+                                        </svg> ${s.phone || 'N/A'}
+            `;
+
+                const websiteEl = document.getElementById('viewSupplierWebsite');
+                websiteEl.href = s.website || '#';
+                websiteEl.innerHTML = `
+                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"></path>
+                                        </svg> ${s.website || 'N/A'}
+            `;
+
+                // Address
+                const addr = `${s.address_line_1 || ''}<br>${s.city || ''}, ${s.state?.name || ''}<br>${s.country || ''} ${s.zip || ''}`;
+                document.getElementById('viewSupplierAddress').innerHTML = addr.trim() || 'N/A';
+
+                // Tax ID + Payment Terms
+                document.getElementById('viewSupplierTaxId').textContent = s.tax_id || '—';
+                document.getElementById('viewSupplierPaymentTerms').textContent = s.payment_terms || '—';
+
+                // Tags
+
+                const tagsContainer = document.getElementById('viewSupplierTags');
+                tagsContainer.innerHTML = '';
+
+                // Ensure tags is always an array
+                let tags = s.tag_objects;
+
+
+                if (tags.length > 0) {
+                    tags.forEach(tag => {
+                        const span = document.createElement('span');
+                        span.className = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700';
+                        span.textContent = `#${tag.name}`;
+                        tagsContainer.appendChild(span);
+                    });
+                } else {
+                    tagsContainer.innerHTML = '<span class="text-gray-400 text-xs italic">No tags</span>';
+                }
+
+                document.getElementById('PrimaryContactName').textContent = s.primary_contact_name || 'N/A';
+                document.getElementById('SecondaryContactName').textContent = s.secondary_contact_name || 'N/A';
+
+
+                document.getElementById('PrimaryContactEmail').innerHTML = `
+               <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
+                                            </svg> ${s.primary_contact_email || 'N/A'}
+            `;
+
+                document.getElementById('SecondaryContactEmail').innerHTML = `
+                <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
+                                            </svg> ${s.secondary_contact_email || 'N/A'}
+            `;
+
+                document.getElementById('PrimaryContactPhone').innerHTML = `
+                <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
+                                            </svg> ${s.primary_contact_phone || 'N/A'}
+            `;
+
+                document.getElementById('SecondaryContactPhone').innerHTML = `
+                <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
+                                            </svg> ${s.secondary_contact_phone || 'N/A'}
+            `;
+
+                openModal('ViewSupplier');
+            } else {
+
+                notyf.error("Supplier not found.");
+            }
+
+        } catch (error) {
+            console.error('Fetch error:', error);
+            notyf.error("Failed to fetch supplier details.");
+
+        }
+    };
+</script>
+
+@endpush

@@ -27,9 +27,10 @@ class SearchController extends Controller
             ->get(['id', 'product_name']);
 
         // Map each product with its category link(s)
-        $products->transform(function ($product) use ($query) {
-            $product->category_links = $product->categories->map(function ($cat) use ($query) {
-                return route('front.categories.index', ['slug' => $cat->slug]) . '?search=' . urlencode($query);
+        $products->transform(function ($product) {
+            $product->category_links = $product->categories->map(function ($cat) use ($product) {
+                return route('front.categories.index', ['slug' => $cat->slug])
+                    . '?search=' . urlencode($product->product_name);
             });
             return $product;
         });

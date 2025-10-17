@@ -96,7 +96,7 @@
 
                 </div>
                 <div>
-                    <label for="phone" class="text-xs text-gray-500 font-medium required">Phone Number </label>
+                    <label for="phone" class="text-xs text-gray-500 font-medium">Phone Number </label>
 
                     {!! html()->text('phone_number', old('phone_number', $user->phone_number ?? ''))
                     ->id('phone')
@@ -109,7 +109,7 @@
                     'id' => 'company_phone',
                     'autocomplete' => 'off',
                     ])
-                    ->required()
+
                     !!}
 
                 </div>
@@ -263,15 +263,20 @@
                 <div>
                     <label for="country" class="text-xs text-gray-500 font-medium required">Country </label>
 
-                    {!! html()->text('country', old('country', $user->country ?? ''))
+                    {!! html()->select('country', [
+                    'USA' => 'USA',
+                    'Canada' => 'Canada',
+                    'UK' => 'UK',
+                    'India' => 'India',
+                    ], old('country', $user->country ?? 'USA')) // default to USA if old or user value is not set
                     ->id('country')
-                    ->class('w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
+                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                     ->attributes([
-                    'placeholder' => 'USA',
                     'autocomplete' => 'off',
                     ])
                     ->required()
                     !!}
+
 
                 </div>
             </div>
@@ -570,14 +575,29 @@
 
                 <div>
                     <label for="emergency_country" class="text-xs text-gray-500 font-medium">Country</label>
-                    {!! html()->text('emergency_country', old('emergency_country', $user->emergencyContactOne->country ?? ''))
+                    <!-- {!! html()->text('emergency_country', old('emergency_country', $user->emergencyContactOne->country ?? ''))
                     ->id('emergency_country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                     ->attributes([
                     'placeholder' => 'USA',
                     'autocomplete' => 'off',
                     ])
+                    !!} -->
+
+                    {!! html()->select('emergency_country', [
+                    'USA' => 'USA',
+                    'Canada' => 'Canada',
+                    'UK' => 'UK',
+                    'India' => 'India',
+                    ], old('emergency_country', $user->emergencyContactOne->country ?? 'USA')) // default to USA if old or user value is not set
+                    ->id('emergency_country')
+                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                    ->attributes([
+                    'autocomplete' => 'off',
+                    ])
+                    ->required()
                     !!}
+
                 </div>
             </div>
         </div>
@@ -706,10 +726,25 @@
                 </div>
                 <div>
                     <label for="emergency2_country" class="text-xs text-gray-500 font-medium">Country</label>
-                    {!! html()->text('emergency2_country', old('emergency2_country', $user->emergencyContactTwo->country ?? ''))
+                    
+                    <!-- {!! html()->text('emergency2_country', old('emergency2_country', $user->emergencyContactTwo->country ?? ''))
                     ->id('emergency2_country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes(['placeholder' => 'USA', 'autocomplete' => 'off']) !!}
+                    ->attributes(['placeholder' => 'USA', 'autocomplete' => 'off']) !!} -->
+
+                    {!! html()->select('emergency2_country', [
+                    'USA' => 'USA',
+                    'Canada' => 'Canada',
+                    'UK' => 'UK',
+                    'India' => 'India',
+                    ], old('emergency2_country', $user->emergencyContactTwo->country ?? 'USA')) // default to USA if old or user value is not set
+                    ->id('emergency2_country')
+                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                    ->attributes([
+                    'autocomplete' => 'off',
+                    ])
+                    ->required()
+                    !!}
                 </div>
             </div>
         </div>

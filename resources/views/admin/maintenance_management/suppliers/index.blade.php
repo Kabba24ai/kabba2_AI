@@ -5,7 +5,7 @@
 @section('content')
 
 {{-- Header --}}
-<div class="bg-white border-b border-gray-200">
+<div class=" border-b border-gray-200">
     <div class="py-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
@@ -20,6 +20,7 @@
                 </h1>
                 <p class="text-gray-600 mt-1 text-sm sm:text-base">Manage your supplier database</p>
             </div>
+
 
             <!-- Right Buttons -->
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -62,7 +63,7 @@
 </div>
 
 {{-- Search --}}
-<div class=" py-4 bg-white border-b border-gray-200 mb-6">
+<div class=" py-4 border-b border-gray-200 mb-6">
     <form method="GET" action="{{ route('admin.maintenance-management.suppliers.index') }}" class="flex flex-wrap gap-4 items-end">
 
         {{-- Name / Email --}}
@@ -120,6 +121,8 @@
                 <option value="">All</option>
                 <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+
             </select>
         </div>
 
@@ -134,9 +137,12 @@
     </form>
 </div>
 
+@include('flash::message')
+@include('admin.partials.formErrors')
+
+
+
 @include('admin.maintenance_management.suppliers.partials._table')
-
-
 
 
 @include('admin.maintenance_management.suppliers.partials._model_category')
@@ -163,6 +169,7 @@
             if (modal) modal.classList.add('hidden');
         }
 
+
         // === Optional: Close when clicking outside modal content ===
         window.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal-wrapper')) {
@@ -173,6 +180,104 @@
         // === Make globally accessible ===
         window.openModal = openModal;
         window.closeModal = closeModal;
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll(
+            'input[name="search_name_email"], input[name="company_search"], input[name="tags_search"], input[name="part_search"]'
+        );
+        const selects = document.querySelectorAll(
+            'select[name="category"], select[name="status"]'
+        );
+        const wrapper = document.querySelector('#supplier-table-wrapper');
+
+        let timeout = null;
+
+        // --- Global function to fetch suppliers ---
+        window.fetchSuppliers = function() {
+            const params = new URLSearchParams();
+
+            // Append input values
+            inputs.forEach(input => {
+                if (input.value.length >= 1 || input.value.length === 0) {
+                    params.append(input.name, input.value);
+                }
+            });
+
+            // Append select values
+            selects.forEach(select => {
+                if (select.value) {
+                    params.append(select.name, select.value);
+                }
+            });
+
+            // Add loader effect
+            wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+            fetch(`{{ route('admin.maintenance-management.suppliers.index') }}?${params.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    wrapper.innerHTML = data.html;
+                })
+                .catch(err => {
+                    wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading suppliers.</div>';
+                    console.error(err);
+                })
+                .finally(() => {
+                    wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                });
+        };
+
+        // --- Input listeners with debounce ---
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    window.fetchSuppliers();
+                }, 400);
+            });
+        });
+
+        // --- Select listeners (instant filter) ---
+        selects.forEach(select => {
+            select.addEventListener('change', window.fetchSuppliers);
+        });
+
+        // --- Global delete supplier function ---
+        window.deleteSupplier = function(id, name) {
+            window.showConfirm(
+                `Are you sure you want to delete "${name}"?`,
+                'Delete Supplier'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    let deleteUrl = `{{ route('admin.maintenance-management.suppliers.delete', ['supplier' => ':id']) }}`;
+                    deleteUrl = deleteUrl.replace(':id', id);
+
+                    fetch(deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                notyf.success(data.message);
+                                window.fetchSuppliers(); // Refresh table after deletion
+                            } else {
+                                notyf.error(data.message || "Failed to delete supplier!");
+                            }
+                        })
+                        .catch(() => notyf.error("Error deleting supplier!"));
+                }
+            });
+        };
     });
 </script>
 

@@ -26,7 +26,8 @@
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'max-w-5xl',
-                    'id'=>'supplierForm'
+                    'id'=>'supplierForm',
+                     'enctype' => 'multipart/form-data'
                 ])->open() }}
 
                 <div class="bg-blue-50 p-4">
@@ -50,79 +51,164 @@
                         <!-- Company Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1 required">Company Name</label>
-                            <input type="text" id="supplierCompany" class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="Enter company name">
+
+                            {!! html()->text('supplierCompany', old('supplierCompany'))
+                            ->class([
+                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('supplierCompany'),
+                            'border-gray-300' => !$errors->has('supplierCompany'),
+                            ])
+                            ->attributes([
+                            'placeholder' => 'Enter company name',
+                            'id' => 'supplierCompany',
+                            'autocomplete' => 'off',
+                            ])
+                            ->required() !!}
+
                         </div>
 
                         <!-- Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" id="supplierEmail" class="w-full px-3 py-2  bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="Enter email address">
+
+                            {!! html()->email('supplierEmail', old('supplierEmail'))->class([
+                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('email'),
+                            'border-gray-300' => !$errors->has('email'),
+                            ])->attributes([
+                            'placeholder' => 'Enter Email',
+                            'id' => 'email',
+                            'autocomplete' => 'off',
+                            'name' => 'supplierEmail',
+                            'data-parsley-type' => 'email',
+                            'data-parsley-trigger' => 'change',
+                            ]) !!}
+
+
                         </div>
 
                         <!-- Phone -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                            <input type="text" id="supplierPhone" class=" masked-phone w-full px-3 py-2 bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="(xxx) xxx-xxxx">
+
+                            {!! html()->text('supplierPhone', old('supplierPhone'))->class([
+                            'masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('supplierPhone'),
+                            'border-gray-300' => !$errors->has('supplierPhone'),
+                            ])->attributes([
+                            'maxlength' => 14,
+                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                            'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                            'placeholder' => '(xxx) xxx-xxxx',
+                            'id' => 'supplierPhone',
+                            'autocomplete' => 'tel',
+                            ]) !!}
                         </div>
 
                         <!-- Website -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                            <input type="url" id="supplierWebsite" class="w-full px-3 py-2  bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="https://example.com">
+
+                            {!! html()->text('supplierWebsite', old('supplierWebsite'))
+                            ->type('url')
+                            ->class([
+                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('supplierWebsite'),
+                            'border-gray-300' => !$errors->has('supplierWebsite'),
+                            ])
+                            ->attributes([
+                            'placeholder' => 'https://www.example.com',
+                            'id' => 'supplierWebsite',
+                            'autocomplete' => 'off',
+                            ]) !!}
+
                         </div>
 
                         <!-- Address -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                            <input type="text" id="supplierAddress" class="w-full px-3 py-2  bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="Enter address">
+
+                            {!! html()->text('supplierAddress', old('supplierAddress'))
+                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->attributes(['placeholder' => 'Enter address', 'id' => 'supplierAddress']) !!}
                         </div>
 
                         <!-- City -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
-                            <input type="text" id="supplierCity" class="w-full px-3 py-2  bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="Enter city">
+
+                            {!! html()->text('supplierCity', old('supplierCity'))
+                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->attributes(['placeholder' => 'Enter city', 'id' => 'supplierCity']) !!}
                         </div>
 
                         <!-- State -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
-                            <select id="supplierState" class="w-full px-3 py-2  bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500">
-                                <option value="">Select state</option>
-                                <option>California</option>
-                                <option>New York</option>
-                                <option>Texas</option>
-                                <option>Florida</option>
-                            </select>
+
+                            {!! html()
+                            ->select('supplierState',
+                            $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
+                            old('supplierState')
+                            )
+                            ->id('supplierState')
+                            ->class([
+                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('supplierState'),
+                            ])->required()
+                            !!}
+
                         </div>
 
                         <!-- Zip -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                            <input type="text" id="supplierZip" class="w-full px-3 py-2  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="Enter ZIP code">
+
+                            {!! html()->text('supplierZip', old('supplierZip'))
+                            ->class([
+                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('supplierZip'),
+                            'border-gray-300' => !$errors->has('supplierZip'),
+                            ])
+                            ->attributes([
+                            'placeholder' => 'Enter ZIP code',
+                            'id' => 'supplierZip',
+                            'autocomplete' => 'off',
+                            ]) !!}
+
                         </div>
 
                         <!-- Country -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                            <select id="supplierCountry" class="w-full px-3 py-2 border  bg-white  rounded-md text-sm focus:ring-green-500 focus:border-green-500">
-                                <option value="">Select country</option>
-                                <option>United States</option>
-                                <option>Canada</option>
-                                <option>United Kingdom</option>
-                                <option>India</option>
-                            </select>
+
+                            {!! html()->select('supplierCountry', [
+                            '' => 'Select country',
+                            'USA' => 'USA',
+                            'Canada' => 'Canada',
+                            'UK' => 'UK',
+                            'India' => 'India',
+                            ], old('supplierCountry'))
+                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->id('supplierCountry') !!}
+
                         </div>
 
                         <!-- Tax ID -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tax ID</label>
-                            <input type="text" id="supplierTax" class="w-full px-3 py-2  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="Enter tax ID">
+
+                            {!! html()->text('supplierTax', old('supplierTax'))
+                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->attributes(['placeholder' => 'Enter tax ID', 'id' => 'supplierTax']) !!}
+
+
                         </div>
 
                         <!-- Supplier Category -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Category</label>
-                            <select id="supplierCategorysform" class="w-full px-3 py-2  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500">
+                            <select id="supplierCategorysform" name="supplierCategory" class="w-full px-3 py-2  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" required>
                                 <option value="">Select category</option>
                                 <!-- dynamically insert from categories list -->
                             </select>
@@ -131,26 +217,34 @@
                         <!-- Status -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select id="supplierStatus" class="w-full px-3 py-2 border  bg-white  rounded-md text-sm focus:ring-green-500 focus:border-green-500">
-                                <option value="">Select Status</option>
-                                <option>Active</option>
-                                <option>Inactive</option>
-                                <option>Pending</option>
-                            </select>
+
+
+                            {!! html()->select('supplierStatus', [
+                            '' => 'Select Status',
+                            'Active' => 'Active',
+                            'Inactive' => 'Inactive',
+                            'Pending' => 'Pending',
+                            ], old('supplierStatus'))
+                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->id('supplierStatus')->required() !!}
+
                         </div>
 
                         <!-- Payment Terms -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
-                            <select id="supplierPaymentTerms" class="w-full px-3 py-2 border  bg-white  rounded-md text-sm focus:ring-green-500 focus:border-green-500">
-                                <option value="">Select Payment Terms</option>
-                                <option>Net 15</option>
-                                <option>Net 30</option>
-                                <option>Net 45</option>
-                                <option>Net 60</option>
-                                <option>Net 75</option>
 
-                            </select>
+                            {!! html()->select('supplierPaymentTerms', [
+                            '' => 'Select Payment Terms',
+                            'Net 15' => 'Net 15',
+                            'Net 30' => 'Net 30',
+                            'Net 45' => 'Net 45',
+                            'Net 60' => 'Net 60',
+                            'Net 75' => 'Net 75',
+                            ], old('supplierPaymentTerms'))
+                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->id('supplierPaymentTerms')->required() !!}
+
                         </div>
 
                         <!-- Tags -->
@@ -162,6 +256,54 @@
                             </select>
                         </div>
 
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Upload Company Logo</label>
+
+                            <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5     border border-gray-200 overflow-hidden flex flex-col max-h-full">
+
+                                <div class=" p-6 overflow-y-auto">
+                                    <div class="max-w-md mx-auto">
+
+                                        <!-- Upload Box -->
+                                        <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
+                                            <div id="uploadUI" class="flex flex-col items-center justify-center">
+                                                <!-- Icon -->
+                                                <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
+                                                </svg>
+                                                <!-- Text -->
+                                                <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
+                                                <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
+
+                                                <!-- File input -->
+                                                <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
+                                                    <input type="file" id="fileInput" name="upload_company_logo" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
+                                                    <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
+                                                </label>
+                                            </div>
+
+                                            <!-- File Display After Selection -->
+                                            <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                                                <!-- File Name -->
+                                                <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
+
+                                                <!-- Buttons: View & Close -->
+                                                <div class="flex justify-center sm:justify-start gap-2">
+                                                    <a id="viewFileLink" href="#" target="_blank"
+                                                        class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
+                                                    <button type="button" onclick="clearFile()" class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
 
                 </div>
@@ -182,19 +324,51 @@
                         <!-- Contact Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                            <input type="text" id="primaryContactName" class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="Full name">
+
+                            {!! html()->text('primaryContactName', old('primaryContactName'))
+                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->attributes(['placeholder' => 'Full name', 'id' => 'primaryContactName']) !!}
+
                         </div>
 
                         <!-- Contact Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
-                            <input type="email" id="primaryContactEmail" class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="Email address">
+
+                            {!! html()->email('primaryContactEmail', old('primaryContactEmail'))->class([
+                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('email'),
+                            'border-gray-300' => !$errors->has('email'),
+                            ])->attributes([
+                            'placeholder' => 'Enter Email',
+                            'id' => 'email',
+                            'autocomplete' => 'off',
+                            'name' => 'primaryContactEmail',
+                            'data-parsley-type' => 'email',
+                            'data-parsley-trigger' => 'change',
+                            ]) !!}
+
+
                         </div>
 
                         <!-- Contact Phone -->
                         <div>
                             <label class=" block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
-                            <input type="text" id="primaryContactPhone" class="masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500" placeholder="(xxx) xxx-xxxx">
+
+                            {!! html()->text('primaryContactPhone', old('primaryContactPhone'))->class([
+                            'masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('primaryContactPhone'),
+                            'border-gray-300' => !$errors->has('primaryContactPhone'),
+                            ])->attributes([
+                            'maxlength' => 14,
+                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                            'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                            'placeholder' => '(xxx) xxx-xxxx',
+                            'id' => 'primaryContactPhone',
+                            'autocomplete' => 'tel',
+                            ]) !!}
+
+
                         </div>
                     </div>
                 </div>
@@ -218,19 +392,47 @@
                         <!-- Contact Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                            <input type="text" id="secondaryContactName" class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" placeholder="Full name">
+                            <!-- <input type="text" id="secondaryContactName" name="secondaryContactName" class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" placeholder="Full name"> -->
+                            {!! html()->text('secondaryContactName', old('secondaryContactName'))
+                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500')
+                            ->attributes(['placeholder' => 'Full name', 'id' => 'secondaryContactName']) !!}
                         </div>
 
                         <!-- Contact Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
-                            <input type="email" id="secondaryContactEmail" class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" placeholder="Email address">
+
+                            {!! html()->email('secondaryContactEmail', old('secondaryContactEmail'))->class([
+                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('email'),
+                            'border-gray-300' => !$errors->has('email'),
+                            ])->attributes([
+                            'placeholder' => 'Enter Email',
+                            'id' => 'email',
+                            'autocomplete' => 'off',
+                            'name' => 'secondaryContactEmail',
+                            'data-parsley-type' => 'email',
+                            'data-parsley-trigger' => 'change',
+                            ]) !!}
                         </div>
 
                         <!-- Contact Phone -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
-                            <input type="text" id="secondaryContactPhone" class="masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" placeholder="(xxx) xxx-xxxx">
+
+                            {!! html()->text('secondaryContactPhone', old('secondaryContactPhone'))->class([
+                            'masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'border-red-500' => $errors->has('secondaryContactPhone'),
+                            'border-gray-300' => !$errors->has('secondaryContactPhone'),
+                            ])->attributes([
+                            'maxlength' => 14,
+                            'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                            'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                            'placeholder' => '(xxx) xxx-xxxx',
+                            'id' => 'secondaryContactPhone',
+                            'autocomplete' => 'tel',
+                            ]) !!}
+
                         </div>
                     </div>
                 </div>
@@ -255,5 +457,83 @@
 
 
 @push('js')
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById('supplierForm');
+        const saveBtn = document.getElementById('saveSupplierBtn');
+
+        saveBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // prevent default submit
+
+            // Use Parsley to validate the form
+            if ($(form).parsley().validate()) {
+                // Form is valid, submit it
+                form.submit();
+            } else {
+                // Form is invalid, Parsley will show errors automatically
+                console.log("Form validation failed");
+            }
+        });
+    });
+</script>
+
+
+<script>
+    function handleFileChange(event) {
+        const file = event.target.files[0];
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const fileActions = document.getElementById("fileActions");
+        const viewLink = document.getElementById("viewFileLink");
+        const uploadUI = document.getElementById("uploadUI");
+
+        if (file) {
+            // Allowed file extensions
+            const allowedExtensions = ["jpg", "jpeg", "png"];
+            const fileExtension = file.name.split(".").pop().toLowerCase();
+
+            // Max file size (10 MB)
+            const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
+
+            // Validation: format
+            if (!allowedExtensions.includes(fileExtension)) {
+
+                notyf.error("Invalid file format. Allowed: JPG, JPEG, PNG.");
+
+                event.target.value = ""; // Reset file input
+                return;
+            }
+
+            // Validation: size
+            if (file.size > maxSize) {
+                notyf.error("File is too large. Maximum size allowed is 10 MB.");
+
+                event.target.value = ""; // Reset file input
+                return;
+            }
+
+            //  Passed validation → show UI
+            fileNameDisplay.textContent = file.name;
+            fileActions.style.display = "flex";
+            uploadUI.style.display = "none";
+
+            // Temporary blob link for preview
+            const objectUrl = URL.createObjectURL(file);
+            viewLink.href = objectUrl;
+        }
+    }
+
+    function clearFile() {
+        const fileInput = document.getElementById("fileInput");
+        const fileActions = document.getElementById("fileActions");
+        const uploadUI = document.getElementById("uploadUI");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+
+        fileInput.value = "";
+        fileActions.style.display = "none";
+        uploadUI.style.display = "flex";
+        fileNameDisplay.textContent = "";
+    }
+</script>
+
 
 @endpush

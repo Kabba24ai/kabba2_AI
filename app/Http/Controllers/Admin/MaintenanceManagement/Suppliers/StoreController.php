@@ -1,23 +1,15 @@
 <?php
+
 namespace App\Http\Controllers\Admin\MaintenanceManagement\Suppliers;
 
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-
-// Request
 use App\Http\Requests\Admin\MaintenanceManagement\Suppliers\StoreRequest;
-
-// Models
-use App\Models\ProductManagement\Product;
-use App\Models\ProductManagement\ProductMediaChild;
+use App\Models\MaintenanceManagement\Supplier;
 
 class StoreController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
     public function __invoke(StoreRequest $request)
     {
         $validated = $request->validated();
@@ -27,21 +19,60 @@ class StoreController extends Controller
         DB::beginTransaction();
 
         try {
-           
+            // Create Supplier
+            $supplier = Supplier::create([
+                'name'                   => $validated['supplierCompany'],
+                'email'                  => $validated['supplierEmail'] ?? null,
+                'phone'                  => $validated['supplierPhone'] ?? null,
+                'website'                => $validated['supplierWebsite'] ?? null,
+                'address'                => $validated['supplierAddress'] ?? null,
+                'city'                   => $validated['supplierCity'] ?? null,
+                'state_id'               => $validated['supplierState'] ?? null,
+                'zip_code'               => $validated['supplierZip'] ?? null,
+                'country'                => $validated['supplierCountry'] ?? null,
+                'tax_id'                 => $validated['supplierTax'] ?? null,
+                'supplier_category_id'   => $validated['supplierCategory'] ?? null,
+                'status'                 => $validated['supplierStatus'],
+                'payment_terms'          => $validated['supplierPaymentTerms'] ?? null,
+                'tags'                   => isset($validated['tags']) ? implode(',', $validated['tags']) : null,
+                'primary_contact_name'   => $validated['primaryContactName'] ?? null,
+                'primary_contact_email'  => $validated['primaryContactEmail'] ?? null,
+                'primary_contact_phone'  => $validated['primaryContactPhone'] ?? null,
+                'secondary_contact_name' => $validated['secondaryContactName'] ?? null,
+                'secondary_contact_email' => $validated['secondaryContactEmail'] ?? null,
+                'secondary_contact_phone' => $validated['secondaryContactPhone'] ?? null,
+            ]);
+
+            // Handle company logo upload
+            if ($request->hasFile('upload_company_logo')) {
+                $mediaData = MediaHelper::uploadStorageFile(
+                    'Public Asset',
+                    $request->file('upload_company_logo'),
+                    'suppliers',
+                    $supplier
+                );
+
+                if (!empty($mediaData['mediaObj'])) {
+                    $supplier->update([
+                        'company_logo_media_id' => $mediaData['mediaObj']->id
+                    ]);
+                }
+            }
+
+            flash('Supplier created successfully.')->success();
 
             DB::commit();
+
+            return redirect()->route('admin.maintenance-management.suppliers.index') ;
 
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
-            // Handle error for AJAX
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while updating the product.'
+                'message' => 'An error occurred while creating the supplier.'
             ], 500);
-
-
         }
     }
 }

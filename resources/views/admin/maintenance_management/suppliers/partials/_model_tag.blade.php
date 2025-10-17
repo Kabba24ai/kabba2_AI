@@ -253,6 +253,7 @@
                                 if (data.success) {
                                     notyf.success(data.message);
                                     fetchTags();
+                                    fetchSuppliers();
                                 } else {
                                     notyf.error("Update failed!");
                                 }

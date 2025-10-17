@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use App\Models\Locations\State;
 use App\Helpers\ModelHelper;
+use App\Models\Global\Media;
 
 
 class Supplier extends Model
@@ -35,6 +36,7 @@ class Supplier extends Model
         'secondary_contact_name',
         'secondary_contact_email',
         'secondary_contact_phone',
+        'company_logo_media_id',
     ];
 
     public static function boot()
@@ -58,6 +60,30 @@ class Supplier extends Model
     {
         return $this->belongsTo(SupplierCategory::class, 'supplier_category_id');
     }
+
+    public function media()
+    {
+        return $this->belongsTo(Media::class, 'company_logo_media_id', 'id');
+    }
+
+    public function getTagObjectsAttribute()
+    {
+        // If there are no tags, return an empty collection
+        if (empty($this->tags)) {
+            return collect();
+        }
+
+        // Convert the string to an array of IDs
+        $tagIds = array_filter(explode(',', $this->tags));
+
+        // Fetch tag models
+        return SupplierTag::whereIn('id', $tagIds)->get();
+    }
+    public function getLogoUrlAttribute()
+    {
+        return $this->media ? $this->media->file_url : null;
+    }
+
 
     /** ---------------------
      *  ACCESSORS

@@ -110,6 +110,7 @@
                         }));
                         renderCategories();
                         renderSelect();
+
                     }
                 })
                 .catch(() => notyf.error("Failed to load categories"));
@@ -239,6 +240,7 @@
                                 if (data.success) {
                                     notyf.success(data.message);
                                     fetchCategories();
+                                    fetchSuppliers();
                                 } else {
                                     notyf.error("Update failed!");
                                 }

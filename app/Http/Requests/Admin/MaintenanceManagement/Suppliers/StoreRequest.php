@@ -8,44 +8,63 @@ class StoreRequest extends FormRequest
 {
     public function authorize()
     {
-        return true; // Change to proper authorization if needed
+        return true; // Adjust authorization logic as needed
     }
 
     public function rules()
     {
         return [
             // Company Information
-            'company_name' => 'required',
-            'email'        => 'nullable|email',
-            'phone'        => 'nullable',
-            'website'      => 'nullable|url',
-            'address'      => 'nullable',
-            'city'         => 'nullable',
-            'state'        => 'nullable',
-            'zip'          => 'nullable',
-            'country'      => 'nullable',
-            'tax_id'       => 'nullable',
+            'supplierCompany' => 'required',
+            'supplierEmail'   => 'nullable|email',
+            'supplierPhone'   => [
+                'nullable'
+            ],
+            'supplierWebsite' => 'nullable|url',
+            'supplierAddress' => 'nullable|string',
+            'supplierCity'    => 'nullable|string',
+            'supplierState'   => 'nullable|string',
+            'supplierZip'     => 'nullable|string',
+            'supplierCountry' => 'nullable|string',
+            'supplierTax'     => 'nullable|string',
 
             // Supplier category & status
-            'category_id'  => 'nullable',
-            'status'       => 'required',
-            'payment_terms' => 'nullable',
+            'supplierCategory'      => 'nullable',
+            'supplierStatus'        => 'required|string|in:Active,Inactive,Pending',
+            'supplierPaymentTerms'  => 'nullable',
 
-            // Tags (array of tag IDs)
-            'tags'         => 'nullable',
+            // Tags (array)
+            'tags' => 'nullable|array',
+            'tags.*' => 'integer',
 
             // Primary Contact
-            'primary_contact_name'  => 'nullable',
-            'primary_contact_email' => 'nullable|email',
-            'primary_contact_phone' => 'nullable',
+            'primaryContactName'  => 'nullable',
+            'primaryContactEmail' => 'nullable|email',
+            'primaryContactPhone' => [
+                'nullable'
+            ],
+
+            'upload_company_logo' => 'nullable|file|mimes:jpg,jpeg,png|max:10240',
 
             // Secondary Contact
-            'secondary_contact_name'  => 'nullable',
-            'secondary_contact_email' => 'nullable|email',
-            'secondary_contact_phone' => 'nullable',
+            'secondaryContactName'  => 'nullable',
+            'secondaryContactEmail' => 'nullable|email',
+            'secondaryContactPhone' => [
+                'nullable'
+            ],
+        ];
+    }
 
-            // Additional notes
-            'notes' => 'nullable',
+    public function messages()
+    {
+        return [
+            'supplierCompany.required' => 'Company Name is required.',
+            'supplierEmail.email' => 'Please enter a valid email address.',
+            'supplierWebsite.url' => 'Please enter a valid website URL.',
+            'supplierPhone.regex' => 'Phone number must be in format (xxx) xxx-xxxx.',
+            'primaryContactPhone.regex' => 'Primary contact phone must be in format (xxx) xxx-xxxx.',
+            'secondaryContactPhone.regex' => 'Secondary contact phone must be in format (xxx) xxx-xxxx.',
+            'supplierStatus.required' => 'Status is required.',
         ];
     }
 }

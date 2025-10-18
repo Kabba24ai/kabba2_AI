@@ -105,7 +105,7 @@
                     if (data.success) {
                         window.categories = data.categories.map(cat => ({
                             name: cat.name,
-                            usedBy: 0,
+                            usedBy: cat.usedBy,
                             id: cat.id
                         }));
                         renderCategories();

@@ -96,35 +96,34 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.tags = [];
         const tagSelect = document.getElementById('supplierTags');
-        let tagChoices = null;
 
         if (!tagSelect) return;
 
         // Initialize Choices once
-        tagChoices = new Choices(tagSelect, {
-            removeItemButton: true,
-            duplicateItemsAllowed: false,
-            shouldSort: false,
-            placeholderValue: 'Select or type tags',
-            addItems: true,
-            addItemText: value => `Press Enter to add #${value}`,
-            itemSelectText: '',
-        });
-
+        if (tagSelect && !window.tagChoices) {
+            window.tagChoices = new Choices(tagSelect, {
+                removeItemButton: true,
+                duplicateItemsAllowed: false,
+                shouldSort: false,
+                placeholderValue: 'Select or type tags',
+                addItems: true,
+                addItemText: value => `Press Enter to add #${value}`,
+                itemSelectText: '',
+            });
+        }
+        // Update the full list of tags (Add form)
         function updateTagSelect() {
-            if (!tagChoices) return;
+            if (!window.tagChoices) return;
 
-            // Clear existing choices
-            tagChoices.clearStore();
-
-            // Add updated tags dynamically
+            // Build choices array
             const choicesArray = window.tags.map(tag => ({
-                value: tag.id, // always use unique ID
+                value: String(tag.id),
                 label: `#${tag.name}`,
                 selected: false
             }));
 
-            tagChoices.setChoices(choicesArray, 'value', 'label', false);
+            // Update choices without clearing the instance
+            window.tagChoices.setChoices(choicesArray, 'value', 'label', true);
         }
 
 
@@ -135,7 +134,7 @@
                     if (data.success) {
                         window.tags = data.tags.map(tag => ({
                             name: tag.name,
-                            usedBy: 0,
+                            usedBy: tag.usedBy,
                             id: tag.id
                         }));
                         renderTags();

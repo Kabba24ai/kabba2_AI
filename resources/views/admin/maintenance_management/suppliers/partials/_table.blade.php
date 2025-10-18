@@ -98,7 +98,7 @@
                           <button class="text-blue-600 rounded transition-colors" title="View Details" onclick="viewSupplier({{ $supplier->id }})">
                               <x-heroicon-o-eye class="w-5 h-5" />
                           </button>
-                          <button class="text-green-600 rounded transition-colors" title="Edit">
+                          <button class="text-green-600 rounded transition-colors" title="Edit" onclick="editSupplier({{ $supplier->id }})">
                               <x-heroicon-o-pencil class="w-5 h-5" />
                           </button>
                           <button class="text-red-600 rounded transition-colors" title="Delete" onclick="deleteSupplier({{ $supplier->id }}, '{{ $supplier->name }}')">

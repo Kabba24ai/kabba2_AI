@@ -13,6 +13,9 @@ class SupplierTag extends Model
 
     protected $fillable = ['unique_id', 'name'];
 
+    protected $appends = ['usedBy']; 
+
+
     public static function boot()
     {
         parent::boot();
@@ -21,6 +24,13 @@ class SupplierTag extends Model
         });
     }
 
-
+    // Computed attribute for how many suppliers use this tag
+    public function getUsedByAttribute()
+    {
+        return Supplier::whereRaw(
+            "FIND_IN_SET(?, tags)",
+            [$this->id]
+        )->count();
+    }
 
 }

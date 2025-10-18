@@ -48,7 +48,7 @@
                 </a>
 
                 <!-- Add Supplier -->
-                <a href="javascript:void(0)" onclick="openModal('AddSupplier')"
+                <a href="javascript:void(0)" onclick="openAddSupplierModal()"
                     class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

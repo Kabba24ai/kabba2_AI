@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 // Models
+use Illuminate\Support\Facades\DB;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
-
 class IndexController extends Controller
 {
     /**
@@ -19,8 +19,17 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $query = Product::query()->select('products.*')->leftJoin('product_category_children', 'products.id', '=', 'product_category_children.product_id')->leftJoin('product_categories', 'product_category_children.product_category_id', '=', 'product_categories.id')->with('categories'); // eager load if needed for display
+        $query = Product::query()->select('products.*')->with('categories'); // keep eager loading for display
 
+        // ---- subquery: one category title per product (for ordering only) ----
+        $categoryTitleSub = DB::table('product_category_children as pcc')->join('product_categories as pc', 'pc.id', '=', 'pcc.product_category_id')->select('pcc.product_id', DB::raw('MIN(pc.title) as first_category_title'))->groupBy('pcc.product_id');
+
+        // join the subquery (does NOT multiply rows)
+        $query->leftJoinSub($categoryTitleSub, 'ct', function ($join) {
+            $join->on('ct.product_id', '=', 'products.id');
+        });
+
+        // ---- filters (these do not cause duplication) ----
         if ($request->filled('search')) {
             $query->where('product_name', 'like', '%' . $request->search . '%');
         }
@@ -39,14 +48,19 @@ class IndexController extends Controller
             $query->filterByPriceType($request->price);
         }
 
-        // Order by category title and product_name
-        $products = $query->orderBy('product_categories.title', 'asc')->orderBy('products.product_name', 'asc')->paginate(10)->withQueryString();
+        // ---- ordering: by derived category title then product name ----
+        // If you want products without categories LAST, use the commented line.
+        $products = $query
+            ->orderBy('ct.first_category_title', 'asc') // or:
+            // ->orderByRaw('ct.first_category_title IS NULL, ct.first_category_title ASC')
+            ->orderBy('products.product_name', 'asc')
+            ->paginate(10)
+            ->withQueryString();
 
-        // Return only the table partial if it's an AJAX request
+        // AJAX partial
         if ($request->ajax()) {
             return view('admin.product_management.products.partials._table', compact('products'))->render();
         }
-
         $categories = ProductCategory::getHierarchy();
 
         return view('admin.product_management.products.index', [

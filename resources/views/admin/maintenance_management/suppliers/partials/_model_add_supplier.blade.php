@@ -10,7 +10,7 @@
                 <div class="flex items-start gap-3">
 
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800">Add New Supplier</h3>
+                        <h3 class="text-lg font-semibold text-gray-800" id="form-model-tital">Add New Supplier</h3>
                     </div>
                 </div>
                 <button onclick="closeModal('AddSupplier')"
@@ -341,7 +341,7 @@
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
                             'placeholder' => 'Enter Email',
-                            'id' => 'email',
+                            'id' => 'primaryContactEmail',
                             'autocomplete' => 'off',
                             'name' => 'primaryContactEmail',
                             'data-parsley-type' => 'email',
@@ -408,7 +408,7 @@
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
                             'placeholder' => 'Enter Email',
-                            'id' => 'email',
+                            'id' => 'secondaryContactEmail',
                             'autocomplete' => 'off',
                             'name' => 'secondaryContactEmail',
                             'data-parsley-type' => 'email',
@@ -457,6 +457,7 @@
 
 
 @push('js')
+<!-- Parsley to validate -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const form = document.getElementById('supplierForm');
@@ -476,8 +477,9 @@
         });
     });
 </script>
+<!-- Parsley to validate -->
 
-
+<!-- handleFileChange -->
 <script>
     function handleFileChange(event) {
         const file = event.target.files[0];
@@ -529,11 +531,216 @@
         const fileNameDisplay = document.getElementById("fileNameDisplay");
 
         fileInput.value = "";
+        delete fileInput.dataset.existingMediaId; // remove reference to existing file
         fileActions.style.display = "none";
         uploadUI.style.display = "flex";
         fileNameDisplay.textContent = "";
     }
 </script>
+<!-- handleFileChange -->
+
+<script>
+    // === Open Add Modal (Default State) ===
+    window.openAddSupplierModal = function() {
+        resetSupplierForm(); // Always reset before showing
+        setSupplierFormAction('add');
+
+        document.getElementById('form-model-tital').textContent = 'Add New Supplier';
+        document.getElementById('saveSupplierBtn').textContent = 'Add Supplier';
+        clearFile();
+        openModal('AddSupplier');
+    };
+
+    // === Edit Supplier ===
+    window.editSupplier = async function(id) {
+        try {
+            let viewUrl = `{{ route('admin.maintenance-management.suppliers.edit', ['id' => ':id']) }}`;
+            viewUrl = viewUrl.replace(':id', id);
+
+            const response = await fetch(viewUrl);
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const result = await response.json();
+            console.log('Supplier fetched:', result);
+
+            const s = result.data;
+
+            setSupplierFormAction('edit', s.id);
+            // Set modal to EDIT mode
+            document.getElementById('form-model-tital').textContent = 'Edit Supplier';
+            document.getElementById('saveSupplierBtn').textContent = 'Update Supplier';
+
+            // === Fill form fields ===
+            setFieldValue('supplierCompany', s.name);
+            setFieldValue('email', s.email);
+            setFieldValue('supplierPhone', s.phone);
+            setFieldValue('supplierWebsite', s.website);
+            setFieldValue('supplierAddress', s.address);
+            setFieldValue('supplierCity', s.city);
+            setFieldValue('supplierZip', s.zip_code);
+            setFieldValue('supplierTax', s.tax_id);
+            setFieldValue('primaryContactName', s.primary_contact_name);
+            setFieldValue('primaryContactEmail', s.primary_contact_email);
+            setFieldValue('primaryContactPhone', s.primary_contact_phone);
+            setFieldValue('secondaryContactName', s.secondary_contact_name);
+            setFieldValue('secondaryContactEmail', s.secondary_contact_email);
+            setFieldValue('secondaryContactPhone', s.secondary_contact_phone);
+
+
+            // === Set SELECT dropdown values ===
+            setSelectValue('supplierStatus', s.status);
+            setSelectValue('supplierCountry', s.country);
+
+            setSelectValue('supplierCategorysform', s.supplier_category_id);
+            setSelectValue('supplierState', s.state_id);
+            setSelectValue('supplierPaymentTerms', s.payment_terms);
+
+
+            // Inside your editSupplier function
+            setSupplierTags(s.tag_objects);
+
+            // Set existing media (company logo)
+            setExistingCompanyLogo(s.media);
+
+
+            openModal('AddSupplier');
+
+        } catch (error) {
+            console.error('Fetch error:', error);
+            notyf.error("Failed to fetch supplier details.");
+        } finally {
+            // === Reset form when modal closes ===
+            const modal = document.getElementById('AddSupplier');
+            const observer = new MutationObserver(() => {
+                if (modal.classList.contains('hidden')) {
+                    resetSupplierForm();
+                    document.getElementById('form-model-tital').textContent = 'Add New Supplier';
+                    document.getElementById('saveSupplierBtn').textContent = 'Add Supplier';
+                    observer.disconnect();
+                }
+            });
+            observer.observe(modal, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+    };
+
+    // set Existing Company Logo 
+
+    function setExistingCompanyLogo(media) {
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const fileActions = document.getElementById("fileActions");
+        const viewLink = document.getElementById("viewFileLink");
+        const uploadUI = document.getElementById("uploadUI");
+        const fileInput = document.getElementById("fileInput");
+
+        if (!media || !media.url) {
+            // No existing file
+            clearFile();
+            return;
+        }
+
+        // Display the existing file
+        fileNameDisplay.textContent = media.original_file_name || "Company Logo";
+        viewLink.href = media.url;
+        fileActions.style.display = "flex";
+        uploadUI.style.display = "none";
+
+        // Optional: if you want to track the existing media id for backend
+        fileInput.dataset.existingMediaId = media.id;
+    }
+
+    function setSupplierFormAction(mode, supplierId = null) {
+        const form = document.getElementById('supplierForm');
+        if (!form) return;
+
+        if (mode === 'add') {
+            form.action = "{{ route('admin.maintenance-management.suppliers.store') }}";
+            form.method = "POST";
+        } else if (mode === 'edit' && supplierId) {
+            let editUrl = `{{ route('admin.maintenance-management.suppliers.update', ['supplier' => ':id']) }}`;
+            editUrl = editUrl.replace(':id', supplierId);
+            form.action = editUrl;
+            form.method = "POST"; // You may need to add a hidden `_method` field for PATCH
+            // Ensure PATCH method for Laravel
+            let methodInput = form.querySelector('input[name="_method"]');
+            if (!methodInput) {
+                methodInput = document.createElement('input');
+                methodInput.type = "hidden";
+                methodInput.name = "_method";
+                form.appendChild(methodInput);
+            }
+            methodInput.value = "PATCH";
+        }
+    }
+
+
+    // === Helper: Reset Supplier Form ===
+    function resetSupplierForm() {
+        const form = document.getElementById('supplierForm');
+        if (form) form.reset();
+
+        // Manually clear text inputs if necessary
+        const fields = [
+            'supplierCompany', 'email', 'supplierPhone', 'supplierWebsite',
+            'supplierAddress', 'supplierCity', 'supplierZip', 'supplierTax',
+            'primaryContactName', 'primaryContactEmail', 'primaryContactPhone',
+            'secondaryContactName', 'secondaryContactEmail', 'secondaryContactPhone'
+        ];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+
+        // Reset selects
+        ['supplierStatus', 'supplierPaymentTerms', 'supplierCategorysform'].forEach(id => {
+            const select = document.getElementById(id);
+            if (select) select.value = '';
+        });
+
+    }
+
+    // === Helper: Set Select Value (for single or multiple selects) ===
+    function setSelectValue(selectId, value) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        if (Array.isArray(value)) {
+            // Handle multi-selects (e.g., tags)
+            for (let option of select.options) {
+                option.selected = value.includes(option.value) || value.includes(Number(option.value));
+            }
+        } else {
+            // Handle single selects
+            select.value = value ?? '';
+        }
+
+    }
+
+    function setFieldValue(id, value) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = value ?? '';
+        } else {
+            console.warn(`⚠️ Field not found: ${id}`);
+        }
+    }
+
+    // Select tags in edit mode
+    function setSupplierTags(tagObjects) {
+        if (!window.tagChoices || !Array.isArray(tagObjects)) return;
+
+        // Convert IDs to string
+        const idsToSelect = tagObjects.map(t => String(t.id));
+
+        // Select items safely
+        idsToSelect.forEach(id => {
+            window.tagChoices.setChoiceByValue(id);
+        });
+    }
+</script>
+
 
 
 @endpush

@@ -7,10 +7,8 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\IndexController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\StoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\ViewController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\DeleteController;
-
-
-
-
+use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\EditController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\UpdateController;
 
 
 
@@ -22,6 +20,10 @@ Route::prefix('suppliers')
     Route::post('/store', StoreController::class)->name('store');
 
     Route::get('/{id}', ViewController::class)->name('view');
+
+    Route::get('/edit/{id}', EditController::class)->name('edit');
+
+    Route::patch('/update/{supplier}', UpdateController::class)->name('update');
 
     Route::delete('/delete/{supplier}', DeleteController::class)->name('delete');
 

@@ -13,6 +13,7 @@ class SupplierCategory extends Model
 
     protected $fillable = ['unique_id', 'name'];
 
+    protected $appends = ['usedBy'];
 
     public static function boot()
     {
@@ -26,5 +27,11 @@ class SupplierCategory extends Model
     public function suppliers()
     {
         return $this->hasMany(Supplier::class, 'supplier_category_id', 'id');
+    }
+
+    // Computed attribute for used count
+    public function getUsedByAttribute()
+    {
+        return $this->suppliers()->count();
     }
 }

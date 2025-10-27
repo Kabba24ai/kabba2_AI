@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api\Admin\V1\Orders\Notes;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
+// Events
+use App\Events\Admin\Orders\OrderNoteEvent;
+
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\Notes\StoreRequest;
 use App\Http\Resources\Api\Admin\V1\OrderNotes\ListResource;
@@ -34,6 +37,12 @@ class StoreController extends BaseController
                 'created_by_type' => User::class,
                 'created_by_id' => $validatedData['user_id'],
             ]);
+
+            $user = auth('api_user')->user();
+            $typeOfAction = 'created';
+
+            // Fire event for the new note
+            event(new OrderNoteEvent($order, $user, $typeOfAction, $order->notes()->latest()->first()));
 
             return response()->json([
                 'success' => true,

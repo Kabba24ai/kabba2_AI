@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 
 // Enums
 use App\Enums\Equipments\EquipmentCurrentStatus;
-
+use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\RemoveRequest;
 
@@ -77,6 +77,10 @@ class RemoveController extends BaseController
             $orderProduct->update($orderProductData);
         }
 
+        // fire event
+        $user = auth('api_user')->user();
+        $type = 'checklist_removed';
+        event(new OrderCustomerChecklistEvent($order, $user, $type));
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.orders.checklist_removed_successfully'),

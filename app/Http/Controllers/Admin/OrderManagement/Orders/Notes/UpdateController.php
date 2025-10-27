@@ -3,7 +3,14 @@
 namespace App\Http\Controllers\Admin\OrderManagement\Orders\Notes;
 
 use App\Http\Controllers\Controller;
+
+// Events
+use App\Events\Admin\Orders\OrderNoteEvent;
+
+// Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\Notes\PostRequest;
+
+// Models
 use App\Models\Orders\Order;
 
 class UpdateController extends Controller
@@ -25,6 +32,11 @@ class UpdateController extends Controller
                 'updated_by_type' => auth()->user() ? get_class(auth()->user()) : null,
                 'updated_by_id' => $validated['user_id'],
             ]);
+
+            $user = auth()->user();
+            $typeOfAction = 'updated';
+            // Fire event for the updated note
+            event(new OrderNoteEvent($order, $user, $typeOfAction, $note->refresh()));
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Order or note not found.'], 404);
         }

@@ -162,7 +162,7 @@
                                 <span id="iconEyeOff" class="hidden"><x-heroicon-s-eye-slash class="w-5 h-5" /></span>
                             </button>
                         </div>
-                        
+
                         <div class="flex justify-end gap-2">
                             <button type="button" @click="showAddressModal = false"
                                 class="border-0 bg-gray-300 font-medium flex px-6 py-3 mt-4 items-center leading-4 rounded-lg hover:bg-gray-400  transition-all duration-500 ease-in-out text-sm ">Cancel</button>

@@ -8,10 +8,10 @@ use Illuminate\Http\JsonResponse;
 
 // Enums
 use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\SaveDeliveryRequest;
-
 
 // Model
 use App\Models\MaintenanceManagement\Equipment;
@@ -185,6 +185,11 @@ class SaveDeliveryController extends BaseController
         }
 
         $orderProduct->update($orderProductData);
+
+        // fire event
+        $user = auth('api_user')->user();
+        $type = 'checklist_delivery';
+        event(new OrderCustomerChecklistEvent($orderProduct->order, $user, $type));
 
         return response()->json([
             'success' => true,

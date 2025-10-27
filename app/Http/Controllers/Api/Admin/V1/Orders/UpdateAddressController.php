@@ -5,15 +5,15 @@ namespace App\Http\Controllers\Api\Admin\V1\Orders;
 use App\Http\Controllers\Controller;
 
 // Helpers
-use App\Helpers\MediaHelper;
 use Illuminate\Http\JsonResponse;
 
 // Enums
-use App\Enums\Orders\OrderMediaType;
+use App\Events\Admin\Orders\OrderAddressUpdatedEvent;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\UpdateAddressRequest;
 use App\Http\Resources\Api\Admin\V1\OrderAddresses\ListResource;
+
 // Models
 use App\Models\Orders\Order;
 use Illuminate\Support\Facades\DB;
@@ -47,13 +47,18 @@ class UpdateAddressController extends Controller
                 });
                 $extra['same_as_billing'] = $order->shippingAddress->isSameAs($order->billingAddress);
                 if ($type === 'Billing') {
+                    $typeOfAction = 'Billing';
                     $address = $order->billingAddress;
 
                 } else {
+                    $typeOfAction = 'Delivery';
                     $address = $order->shippingAddress;
                 }
             }
 
+            $user = auth('api_user')->user();
+
+            event(new OrderAddressUpdatedEvent($order, $user, $typeOfAction));
         } catch (\Exception $e) {
             return response()->json(['error' => trans('messages.api.admin.v1.orders.address_update_failed') . ': ' . $e->getMessage()], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }

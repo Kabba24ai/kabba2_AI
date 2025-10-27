@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api\Admin\V1\Orders\Notes;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
+// Events
+use App\Events\Admin\Orders\OrderNoteEvent;
+
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\Notes\RemoveRequest;
 
@@ -24,8 +27,14 @@ class RemoveController extends BaseController
         $validatedData = $request->validated();
 
         try {
-            $order = OrderNote::where('unique_id', $validatedData['order_note_unique_id'])->firstOrFail();
-            $order->delete();
+            $orderNote = OrderNote::with('order')->where('unique_id', $validatedData['order_note_unique_id'])->firstOrFail();
+            $orderNote->delete();
+
+            $user = auth('api_user')->user();
+            $typeOfAction = 'deleted';
+
+            // Fire event for the deleted note
+            event(new OrderNoteEvent($orderNote->order, $user, $typeOfAction, $orderNote));
 
             return response()->json([
                 'success' => true,

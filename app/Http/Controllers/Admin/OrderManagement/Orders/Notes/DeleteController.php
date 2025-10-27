@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Orders\Notes;
 
+use App\Events\Admin\Orders\OrderNoteEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Orders\Order;
 
@@ -17,6 +18,11 @@ class DeleteController extends Controller
             $note = $order->notes()->where('id', $noteUniqueId)->firstOrFail();
 
             $note->delete();
+
+            $user = auth()->user();
+            $typeOfAction = 'deleted';
+            // Fire event for the deleted note
+            event(new OrderNoteEvent($order, $user, $typeOfAction, $note));
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Order or note not found.'], 404);
         }

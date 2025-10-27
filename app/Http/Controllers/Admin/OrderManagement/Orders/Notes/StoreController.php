@@ -4,8 +4,13 @@ namespace App\Http\Controllers\Admin\OrderManagement\Orders\Notes;
 
 use App\Http\Controllers\Controller;
 
+// Events
+use App\Events\Admin\Orders\OrderNoteEvent;
+
 // Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\Notes\PostRequest;
+
+// Models
 use App\Models\Orders\Order;
 
 class StoreController extends Controller
@@ -29,7 +34,10 @@ class StoreController extends Controller
                 'created_by_type' => auth()->user() ? get_class(auth()->user()) : null,
                 'created_by_id' => $validated['user_id'],
             ]);
-
+            $user = auth()->user();
+            $typeOfAction = 'created';
+            // Fire event for the new note
+            event(new OrderNoteEvent($order, $user, $typeOfAction, $order->notes()->latest()->first()));
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
         }

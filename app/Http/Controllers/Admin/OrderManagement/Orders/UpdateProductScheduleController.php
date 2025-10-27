@@ -2,9 +2,17 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
+// Base Controller
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\OrderManagement\Orders\UpdateProductScheduleRequest;
+
+// Events
+use App\Events\Admin\Orders\OrderProductScheduleUpdated;
+
+// Models
 use App\Models\Orders\OrderProduct;
+
+// Request
+use App\Http\Requests\Admin\OrderManagement\Orders\UpdateProductScheduleRequest;
 
 class UpdateProductScheduleController extends Controller
 {
@@ -66,6 +74,16 @@ class UpdateProductScheduleController extends Controller
         }
 
         $orderProduct->save();
+
+        $user = auth()->user();
+
+        // Fire an event for the updated schedule
+        $data = [
+            'requested_data' => $validatedData,
+            'order_product' => $orderProduct->toArray(),
+        ];
+
+        event(new OrderProductScheduleUpdated($orderProduct->order, $user, $data));
 
         return response()->json([
             'success' => true,

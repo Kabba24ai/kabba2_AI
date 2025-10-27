@@ -2611,6 +2611,10 @@
                                 document.getElementById('shipping_zip_code_input').dataset.zipCode =
                                     addressData.zip_code || '';
                             }
+
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
                         } else {
                             notyf.error(res && res.message);
                         }

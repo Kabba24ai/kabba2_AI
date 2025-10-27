@@ -1,11 +1,12 @@
 <?php
 namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
+use App\Events\Admin\Orders\OrderAddressUpdatedEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 
-use App\Http\Requests\Admin\OrderManagement\Orders\UpdateOrderAddressRequest;
 use App\Models\Orders\Order;
+use App\Http\Requests\Admin\OrderManagement\Orders\UpdateOrderAddressRequest;
 
 class UpdateOrderAddressController extends Controller
 {
@@ -36,12 +37,18 @@ class UpdateOrderAddressController extends Controller
             });
             $extra['same_as_billing'] = $order->shippingAddress->isSameAs($order->billingAddress);
             if ($type === 'Billing') {
+                $typeOfAction = 'Billing';
                 $address = $order->billingAddress;
                 $message = 'Billing address updated.';
             } else {
+                $typeOfAction = 'Delivery';
                 $address = $order->shippingAddress;
                 $message = 'Delivery address updated.';
             }
+            $user = auth()->user();
+
+            event(new OrderAddressUpdatedEvent($order, $user, $typeOfAction));
+
             return response()->json([
                 'success' => true,
                 'message' => $message,

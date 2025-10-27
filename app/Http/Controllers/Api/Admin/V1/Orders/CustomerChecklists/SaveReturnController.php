@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists;
 
 use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
@@ -124,6 +125,11 @@ class SaveReturnController extends BaseController
             $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
             $equipment->saveQuietly();
         }
+
+        // fire event
+        $user = auth('api_user')->user();
+        $type = 'checklist_return';
+        event(new OrderCustomerChecklistEvent($orderProduct->order, $user, $type));
 
         return response()->json([
             'success' => true,

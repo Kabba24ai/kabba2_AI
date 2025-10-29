@@ -39,6 +39,7 @@ class UpdateRequest extends FormRequest
             'city' => ['required', 'string', 'max:100'],
             'address' => ['required', 'string', 'max:500'],
             'zip_code' => ['required', 'string', 'max:20'],
+            'country' => ['required', 'string', 'max:100'],
         ];
     }
 

@@ -11,9 +11,9 @@
 {{-- Flash  --}}
 @include('flash::message')
 
-<div class="grid grid-cols-1 lg:grid-cols-1 gap-4">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     {{-- Right: Form --}}
-    <div class="lg:col-span-2">
+    <div class="col-span-1">
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
             <div class="px-6 py-6">
 

@@ -15,7 +15,7 @@
         @foreach ($cart['cart_items'] as $item)
             <div class="flex items-start gap-4 mb-4">
 
-                <img src="{{ $item['product_image_url'] }}" alt="Product" class="w-14 h-14 object-cover rounded border border-yellow-400">
+                <img src="{{ $item['product_image_url'] }}" alt="Product" class="w-14 h-14 object-cover rounded">
                 <div class="flex-1 flex flex-col gap-y-1">
                     <div class="font-semibold text-sm flex items-center gap-x-2 capitalize">
                         {{ $item['product_name'] }}

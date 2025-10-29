@@ -16,6 +16,7 @@ class Store extends Model
         'phone',
         'email',
         'address',
+        'country', // USA
         'state_id',
         'city',
         'zip_code',

@@ -119,7 +119,7 @@
         </div>
 
         <div>
-            <label for="address2" class="block text-sm font-medium text-gray-700 mb-1 required">
+            <label for="address2" class="block text-sm font-medium text-gray-700 mb-1">
                 Address 2
             </label>
 

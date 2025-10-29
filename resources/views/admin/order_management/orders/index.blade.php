@@ -11,15 +11,19 @@
 
 {{-- Header --}}
 <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-    <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Orders Management</h3>
-    {{-- <a href="#"
-            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-            + New Order
-        </a> --}}
+    <h1 class="text-2xl font-semibold flex items-center gap-2">
+        <x-heroicon-o-shopping-cart class="w-6 h-6 text-blue-600" />
+        Order Management
+    </h1>
+    <a href="{{ route('admin.order-management.orders.index') }}"
+        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
+        <x-heroicon-o-arrow-path class="w-5 h-5" />
+        Reload
+    </a>
 </div>
 
 {{-- Filters Row --}}
-<div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-3 sm:space-y-0 mb-6">
+<div class="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0 mb-6">
     <div class="flex flex-wrap items-end gap-4 w-full">
         <div class="w-full sm:w-48">
             <div class="relative bg-white">

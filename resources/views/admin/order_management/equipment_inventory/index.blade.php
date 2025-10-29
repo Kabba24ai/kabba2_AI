@@ -29,7 +29,7 @@
         </a>
     </div>
 
-    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm mb-6">
+    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mb-6">
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center mb-6">
 
@@ -71,46 +71,48 @@
             </div>
 
         </div>
-        <div class="flex flex-wrap items-center gap-6">
-            <!-- Equipment Status -->
-            <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
-                <svg class=" w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                </svg>
-                <span class="font-medium">Equipment Status</span>
-                <label class="flex items-center gap-1 ml-2">
-                    <input type="checkbox" value="Available" name="equipment_status[]"
-                        class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Available', (array)request('equipment_status')) ? 'checked' : '' }}>
-                    Available
-                </label>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" value="Rented" name="equipment_status[]"
-                        class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Rented', (array)request('equipment_status')) ? 'checked' : '' }}>
-                    Rented
-                </label>
-            </div>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div class="flex flex-wrap items-center gap-6">
+                <!-- Equipment Status -->
+                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
+                    <svg class=" w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    <span class="font-medium">Equipment Status</span>
+                    <label class="flex items-center gap-1 ml-2">
+                        <input type="checkbox" value="Available" name="equipment_status[]"
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Available', (array)request('equipment_status')) ? 'checked' : '' }}>
+                        Available
+                    </label>
+                    <label class="flex items-center gap-1">
+                        <input type="checkbox" value="Rented" name="equipment_status[]"
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Rented', (array)request('equipment_status')) ? 'checked' : '' }}>
+                        Rented
+                    </label>
+                </div>
 
-            <!-- Issues & Maintenance -->
-            <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="lucide lucide-wrench w-5 h-5 text-orange-500">
-                    <path
-                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
-                    </path>
-                </svg>
-                <span class="font-medium">Issues & Maintenance </span>
-                <label class="flex items-center gap-1 ml-2">
-                    <input type="checkbox" name="equipment_status[]" value="Maintenance"
-                        class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Maintenance', (array)request('equipment_status')) ? 'checked' : '' }}>
-                    Maint. Hold
-                </label>
-                <label class="flex items-center gap-1">
-                    <input type="checkbox" name="equipment_status[]" value="Damaged"
-                        class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Damaged', (array)request('equipment_status')) ? 'checked' : '' }}>
-                    Damaged
-                </label>
+                <!-- Issues & Maintenance -->
+                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-wrench w-5 h-5 text-orange-500">
+                        <path
+                            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                        </path>
+                    </svg>
+                    <span class="font-medium">Issues & Maintenance </span>
+                    <label class="flex items-center gap-1 ml-2">
+                        <input type="checkbox" name="equipment_status[]" value="Maintenance"
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Maintenance', (array)request('equipment_status')) ? 'checked' : '' }}>
+                        Maint. Hold
+                    </label>
+                    <label class="flex items-center gap-1">
+                        <input type="checkbox" name="equipment_status[]" value="Damaged"
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Damaged', (array)request('equipment_status')) ? 'checked' : '' }}>
+                        Damaged
+                    </label>
+                </div>
             </div>
         </div>
     </div>

@@ -73,7 +73,7 @@
                                     @error('cod_order_message')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
-                                    <span id="rental_day_before_truck_message_count"
+                                    <span id="cod_order_message_count"
                                         class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
 

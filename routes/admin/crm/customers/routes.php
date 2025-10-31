@@ -71,6 +71,7 @@ Route::prefix('customers')
     // invoice
     require base_path('routes/admin/crm/customers/invoice/routes.php');
 
-
+    // notes
+    require base_path('routes/admin/crm/customers/notes/routes.php');
 
 });

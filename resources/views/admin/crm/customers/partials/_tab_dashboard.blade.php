@@ -112,13 +112,7 @@
                         $deliveryAddress = $customer->addresses->firstWhere('type', 'delivery');
                         @endphp
 
-                        <!-- @foreach ($customer->addresses->where('is_primary', 1) as $addresse)
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">{{ ucfirst($addresse->type) }} Address</p>
-                            <p>{{ $addresse->address }} , {{ $addresse->city }} , {{ $addresse->state->name }} , {{ $addresse->zip_code }}.</p>
-                    </div>
-                    <hr class="border-gray-200">
-                    @endforeach -->
+
 
                         @foreach ($customer->addresses->where('is_primary', 1) as $addresse)
                         <div>
@@ -128,7 +122,17 @@
                                     Default Address
                                 </span>
                             </p>
-                            <p>{{ $addresse->address }} , {{ $addresse->city }} , {{ $addresse->state->name }} , {{ $addresse->zip_code }}.</p>
+                            @php
+                            // Collect only non-empty fields
+                            $parts = array_filter([
+                            $addresse->address,
+                            $addresse->city,
+                            $addresse->state?->name,
+                            $addresse->zip_code,
+                            ]);
+                            @endphp
+
+                            <p>{{ implode(', ', $parts) ?: 'No address provided.' }}</p>
                         </div>
                         <hr class="border-gray-200">
                         @endforeach

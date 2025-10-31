@@ -1,386 +1,417 @@
-
-                         {{ html()->form()->id('customerForm')->attributes([
+{{ html()->form()->id('customerForm')->attributes([
                             'autocomplete' => 'off',
 
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
                         ])->acceptsFiles()->open() }}
 
-                         {!! html()->text('alladdresslist')->class('hidden')->attributes([
-                            'id' => 'alladdresslist',
-                            'autocomplete' => 'off'
-                        ]) !!}
+{!! html()->text('alladdresslist')->class('hidden')->attributes([
+'id' => 'alladdresslist',
+'autocomplete' => 'off'
+]) !!}
+
+<input type="hidden" id="existing_tags_json"
+    value='{{ $customer->tag_objects }}'>
 
 
+<div class="bg-white p-6 rounded shadow mt-6 mb-0">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- Title and Description -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">Customer Account Management</h2>
+            <p class="text-sm text-gray-500">Manage customer account information and administrative settings</p>
+        </div>
 
-            <div class="bg-white p-6 rounded shadow mt-6 mb-0">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <!-- Title and Description -->
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-900">Customer Account Management</h2>
-                        <p class="text-sm text-gray-500">Manage customer account information and administrative settings</p>
-                    </div>
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+            <span class="text-sm text-gray-700 mr-2 sm:mr-0 sm:mb-1 mb-1">Admin Actions:</span>
+            <div class="flex flex-wrap items-center gap-2">
+                @if($customer->status!='Archived')
+                <button onclick="confirmAndSuspend({{ $customer->id }})" type="button" class="bg-red-600 text-white px-4 py-2 rounded text-sm static-view">Suspend Account</button>
+                @elseif($customer->status!='Active')
+                <button onclick="confirmAndActive({{ $customer->id }})" type="button" class="bg-green-600 text-white px-4 py-2 rounded text-sm static-view">Activate Account</button>
+                @endif
+                <button type="button" id="openResetPasswordModal" class="bg-yellow-500 text-white px-4 py-2 rounded text-sm static-view">Reset Password</button>
+                <button id="editBtn" type="button" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"> Edit Information</button>
+                <button type="submit" id="saveBtn" style="display:none;" class="saveBtn bg-green-600 text-white px-4 py-2 rounded text-sm">Save Changes</button>
+                <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                        <span class="text-sm text-gray-700 mr-2 sm:mr-0 sm:mb-1 mb-1">Admin Actions:</span>
-                        <div class="flex flex-wrap items-center gap-2">
-                            @if($customer->status!='Archived')
-                                <button onclick="confirmAndSuspend({{ $customer->id }})"  type="button" class="bg-red-600 text-white px-4 py-2 rounded text-sm static-view">Suspend Account</button>
-                            @elseif($customer->status!='Active')
-                                <button onclick="confirmAndActive({{ $customer->id }})"  type="button" class="bg-green-600 text-white px-4 py-2 rounded text-sm static-view">Activate Account</button>
-                            @endif
-                            <button type="button" id="openResetPasswordModal" class="bg-yellow-500 text-white px-4 py-2 rounded text-sm static-view">Reset Password</button>
-                            <button id="editBtn" type="button" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"> Edit Information</button>
-                            <button  type="submit" id="saveBtn" style="display:none;" class="saveBtn bg-green-600 text-white px-4 py-2 rounded text-sm">Save Changes</button>
-                            <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Cancel</button>
-                        </div>
-                    </div>
-                </div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
+    <!-- Personal Information -->
+    <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
+            <x-heroicon-o-user class="w-5 h-5 text-gray-900" /> Personal Information
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+
+            <div class="min-w-0">
+                <label class="text-xs text-gray-500 font-medium required">First Name </label>
+                <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
+                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full bor der border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
+
+                {!! html()->text('first_name', old('first_name', $customer->first_name ?? ''))
+                ->class([
+                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'border-red-500' => $errors->has('first_name'),
+                ])
+                ->attributes([
+
+                'placeholder' => 'Enter First Name',
+                'id' => 'first_name',
+                'autocomplete' => 'off',
+                ])
+                ->required() !!}
+
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
-                <!-- Personal Information -->
-                <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
-                    <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
-                        <x-heroicon-o-user class="w-5 h-5 text-gray-900" /> Personal Information
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+            <div class="min-w-0">
+                <label class="text-xs text-gray-500 font-medium required">Last Name </label>
+                <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
+                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
 
-                        <div class="min-w-0">
-                            <label class="text-xs text-gray-500 font-medium required">First Name </label>
-                            <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
-                             <!-- <input class="edit-view pl-2 pr-2 py-2 w-full bor der border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
+                {!! html()->text('last_name', old('last_name', $customer->last_name ?? ''))
+                ->class([
+                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'border-red-500' => $errors->has('last_name'),
+                ])
+                ->attributes([
 
-                             {!! html()->text('first_name', old('first_name', $customer->first_name ?? ''))
-                                ->class([
-                                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                    'border-red-500' => $errors->has('first_name'),
-                                ])
-                                ->attributes([
+                'placeholder' => 'Enter Last Name',
+                'id' => 'last_name',
+                'autocomplete' => 'off',
+                ])
+                ->required() !!}
 
-                                    'placeholder' => 'Enter First Name',
-                                    'id' => 'first_name',
-                                    'autocomplete' => 'off',
-                                ])
-                            ->required() !!}
-
-
-                        </div>
-
-                        <div  class="min-w-0">
-                            <label class="text-xs text-gray-500 font-medium required">Last Name </label>
-                            <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
-                            <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
-
-                            {!! html()->text('last_name', old('last_name', $customer->last_name ?? ''))
-                            ->class([
-                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has('last_name'),
-                            ])
-                            ->attributes([
-
-                                'placeholder' => 'Enter Last Name',
-                                'id' => 'last_name',
-                                'autocomplete' => 'off',
-                            ])
-                            ->required() !!}
-
-                        </div>
-
-                        <div class="sm:col-span-2 min-w-0">
-                            <label class="text-xs text-gray-500 font-medium required">Email Address </label>
-                            <div class=" static-view">
-                                <p class="text-gray-900 flex items-center gap-1 text-sm">
-                                    <x-heroicon-o-envelope class="w-4 h-4 text-gray-900" />{{ $customer->email ?? '' }}
-                                </p>
-                            </div>
-                            <!-- Edit View -->
-                            <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" type="email" value="{{ $customer->email ?? '' }}" /> -->
-
-                            {!! html()->email('email', old('email', $customer->email ?? ''))
-                            ->class([
-                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has('email'),
-                            ])
-                            ->attributes([
-
-                                'placeholder' => 'Enter Email',
-                                'id' => 'email',
-                                'autocomplete' => 'off',
-                                'data-parsley-type' => 'email',
-                                'data-parsley-trigger' => 'change',
-                                'data-parsley-remote' => route('admin.crm.customers.check.email.unique', [
-                                    'except' => $customer->id ?? null,
-                                ]),
-                                'data-parsley-remote-validator' => 'customemailcheck',
-                                'data-parsley-remote-message' => 'This email is already taken by another user.',
-                            ])
-                            ->required() !!}
-
-                        </div>
-
-                        <div class="sm:col-span-2 min-w-0">
-                            <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
-                            <div class=" static-view">
-                                <p class="text-gray-900 flex items-center gap-1 text-gray-900">
-                                    <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
-                                </p>
-                            </div>
-                            <!-- Edit View -->
-                            <!-- <input class="masked-phone edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->phone ?? '' }}" /> -->
-
-                            {!! html()->text('phone', old('phone', $customer->phone ?? ''))
-                            ->class([
-                                'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has('phone'),
-                            ])
-                            ->attributes([
-                                'maxlength' => 14,
-                                'placeholder' => '(xxx) xxx-xxxx',
-                                'id' => 'phone',
-                                'autocomplete' => 'tel',
-                                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
-                            ])
-                            ->required() !!}
-
-
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Company Information -->
-                <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
-                    <h3 class="text-md font-semibold mb-4 flex items-center gap-1">
-                        <x-heroicon-o-building-office class="w-5 h-5 text-gray-900" /> Company Information
-                    </h3>
-                    <div class="grid grid-cols-1 gap-4 text-sm text-gray-700">
-                        <div class="col-span-2">
-                            <label class="text-xs text-gray-500 font-medium required">Company Name </label>
-                            <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
-                            <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
-
-                            {!! html()->text('company_name', old('company_name', $customer->company_name ?? ''))
-                            ->class([
-                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has('company_name'),
-                            ])
-                            ->attributes([
-
-                                'placeholder' => 'Enter Company Name',
-                                'id' => 'company_name',
-                            ])
-                            ->required() !!}
-
-
-                        </div>
-
-                        <div class="col-span-2">
-                            <label class="text-xs text-gray-500 font-medium">Company Phone</label>
-                            <div class=" static-view">
-                                <p class=" text-gray-900 text-sm flex items-center gap-1">
-                                    <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}
-                                </p>
-                            </div>
-                            <!-- Edit View -->
-                            <!-- <input class="masked-phone edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_phone ?? '' }}" /> -->
-
-
-                            {!! html()->text('company_phone', old('company_phone', $customer->company_phone ?? ''))
-                            ->class([
-                                'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has('company_phone'),
-                            ])
-                            ->attributes([
-                                'maxlength' => 14,
-                                'placeholder' => '(xxx) xxx-xxxx',
-                                'id' => 'company_phone',
-                                'autocomplete' => 'tel',
-                                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
-                            ]) !!}
-
-
-
-                        </div>
-
-                        <div class="col-span-2">
-                            <label class="text-xs text-gray-500 font-medium">Website</label>
-                            <div class=" static-view">
-                                <a href="{{ $customer->company_website ?? 'javascript:void(0)' }}"
-                                    class="text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                                    <x-heroicon-o-globe-alt class="w-4 h-4" />
-                                    {{ !empty($customer->company_website) ? $customer->company_website : 'N/A' }}
-                                </a>
-                            </div>
-                            <div class="flex gap-2 mb-4">
-
-                                {{-- Protocol --}}
-                                {!! html()->select('website_protocol', [
-                                        'https://' => 'https://',
-                                        'http://' => 'http://',
-                                    ], old('website_protocol', $website_protocol ?? null))
-                                    ->class([
-                                        'edit-view w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
-                                        'border-red-500' => $errors->has('website_protocol'),
-                                        'border-gray-300' => !$errors->has('website_protocol'),
-                                    ])
-                                    ->id('website_protocol') !!}
-
-
-                                {{-- Website Name --}}
-                                {!! html()->text('company_website', old('company_website',$company_website ?? null))
-                                    ->class([
-                                        'edit-view w-4/6 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
-                                        'border-red-500' => $errors->has('company_website'),
-                                        'border-gray-300' => !$errors->has('company_website'),
-                                    ])
-                                    ->placeholder('example')
-                                    ->id('company_website') !!}
-
-                                {{-- Extension --}}
-                                {!! html()->select('website_extension', [
-                                        '.com' => '.com',
-                                        '.org' => '.org',
-                                        '.net' => '.net',
-                                        '.in' => '.in',
-                                        '.edu' => '.edu',
-                                        '.gov' => '.gov',
-                                    ], old('website_extension', $website_extension ?? null))
-                                    ->class([
-                                        'edit-view w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
-                                        'border-red-500' => $errors->has('website_extension'),
-                                        'border-gray-300' => !$errors->has('website_extension'),
-                                    ])
-                                    ->id('website_extension') !!}
-
-                            </div>
-
-
-                        </div>
-                    </div>
-                </div>
             </div>
+
+            <div class="min-w-0">
+                <label class="text-xs text-gray-500 font-medium required">Email Address </label>
+                <div class=" static-view">
+                    <p class="text-gray-900 flex items-center gap-1 text-sm">
+                        <x-heroicon-o-envelope class="w-4 h-4 text-gray-900" />{{ $customer->email ?? '' }}
+                    </p>
+                </div>
+                <!-- Edit View -->
+                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" type="email" value="{{ $customer->email ?? '' }}" /> -->
+
+                {!! html()->email('email', old('email', $customer->email ?? ''))
+                ->class([
+                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'border-red-500' => $errors->has('email'),
+                ])
+                ->attributes([
+
+                'placeholder' => 'Enter Email',
+                'id' => 'email',
+                'autocomplete' => 'off',
+                'data-parsley-type' => 'email',
+                'data-parsley-trigger' => 'change',
+                'data-parsley-remote' => route('admin.crm.customers.check.email.unique', [
+                'except' => $customer->id ?? null,
+                ]),
+                'data-parsley-remote-validator' => 'customemailcheck',
+                'data-parsley-remote-message' => 'This email is already taken by another user.',
+                ])
+                ->required() !!}
+
+            </div>
+
+            <div class="min-w-0">
+                <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
+                <div class=" static-view">
+                    <p class="text-gray-900 flex items-center gap-1 text-gray-900">
+                        <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
+                    </p>
+                </div>
+                <!-- Edit View -->
+                <!-- <input class="masked-phone edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->phone ?? '' }}" /> -->
+
+                {!! html()->text('phone', old('phone', $customer->phone ?? ''))
+                ->class([
+                'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'border-red-500' => $errors->has('phone'),
+                ])
+                ->attributes([
+                'maxlength' => 14,
+                'placeholder' => '(xxx) xxx-xxxx',
+                'id' => 'phone',
+                'autocomplete' => 'tel',
+                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                ])
+                ->required() !!}
+
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Company Information -->
+    <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <h3 class="text-md font-semibold mb-4 flex items-center gap-1">
+            <x-heroicon-o-building-office class="w-5 h-5 text-gray-900" /> Company Information
+        </h3>
+        <div class="grid grid-cols-1 gap-4 text-sm text-gray-700">
+            <div>
+                <label class="text-xs text-gray-500 font-medium required">Company Name </label>
+                <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
+                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
+
+                {!! html()->text('company_name', old('company_name', $customer->company_name ?? ''))
+                ->class([
+                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'border-red-500' => $errors->has('company_name'),
+                ])
+                ->attributes([
+
+                'placeholder' => 'Enter Company Name',
+                'id' => 'company_name',
+                ])
+                ->required() !!}
+
+
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-500 font-medium">Company Phone</label>
+                <div class=" static-view">
+                    <p class=" text-gray-900 text-sm flex items-center gap-1">
+                        <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}
+                    </p>
+                </div>
+                <!-- Edit View -->
+                <!-- <input class="masked-phone edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_phone ?? '' }}" /> -->
+
+
+                {!! html()->text('company_phone', old('company_phone', $customer->company_phone ?? ''))
+                ->class([
+                'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'border-red-500' => $errors->has('company_phone'),
+                ])
+                ->attributes([
+                'maxlength' => 14,
+                'placeholder' => '(xxx) xxx-xxxx',
+                'id' => 'company_phone',
+                'autocomplete' => 'tel',
+                'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
+                ]) !!}
+
+
+
+            </div>
+
+            <div class="col-span-2">
+                <label class="text-xs text-gray-500 font-medium">Website</label>
+                <div class=" static-view">
+                    <a href="{{ $customer->company_website ?? 'javascript:void(0)' }}"
+                        class="text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                        <x-heroicon-o-globe-alt class="w-4 h-4" />
+                        {{ !empty($customer->company_website) ? $customer->company_website : 'N/A' }}
+                    </a>
+                </div>
+                <div class="flex gap-2 mb-4">
+
+                    {{-- Protocol --}}
+                    {!! html()->select('website_protocol', [
+                    'https://' => 'https://',
+                    'http://' => 'http://',
+                    ], old('website_protocol', $website_protocol ?? null))
+                    ->class([
+                    'edit-view w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                    'border-red-500' => $errors->has('website_protocol'),
+                    'border-gray-300' => !$errors->has('website_protocol'),
+                    ])
+                    ->id('website_protocol') !!}
+
+
+                    {{-- Website Name --}}
+                    {!! html()->text('company_website', old('company_website',$company_website ?? null))
+                    ->class([
+                    'edit-view w-4/6 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                    'border-red-500' => $errors->has('company_website'),
+                    'border-gray-300' => !$errors->has('company_website'),
+                    ])
+                    ->placeholder('example')
+                    ->id('company_website') !!}
+
+                    {{-- Extension --}}
+                    {!! html()->select('website_extension', [
+                    '.com' => '.com',
+                    '.org' => '.org',
+                    '.net' => '.net',
+                    '.in' => '.in',
+                    '.edu' => '.edu',
+                    '.gov' => '.gov',
+                    ], old('website_extension', $website_extension ?? null))
+                    ->class([
+                    'edit-view w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                    'border-red-500' => $errors->has('website_extension'),
+                    'border-gray-300' => !$errors->has('website_extension'),
+                    ])
+                    ->id('website_extension') !!}
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
 @php
-    $billingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Billing' );
-    $shippingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Shipping');
+$billingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Billing' );
+$shippingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Shipping');
 
-    $defaultAddresses = [
-        ['label' => 'Billing', 'data' => $billingAddress],
-        ['label' => 'Shipping', 'data' => $shippingAddress],
-    ];
+$defaultAddresses = [
+['label' => 'Billing', 'data' => $billingAddress],
+['label' => 'Shipping', 'data' => $shippingAddress],
+];
 @endphp
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
     @foreach ($defaultAddresses as $index => $addressItem)
-        @php $addresse = $addressItem['data']; @endphp
-        <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
-            <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id ?? '' }}" class="address_id">
-            <input type="hidden" name="addresses[{{ $index }}][type]" value="{{ $addressItem['label'] }}" class="type">
-            <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
+    @php $addresse = $addressItem['data']; @endphp
+    <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
+        <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id ?? '' }}" class="address_id">
+        <input type="hidden" name="addresses[{{ $index }}][type]" value="{{ $addressItem['label'] }}" class="type">
+        <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
+        <div class="flex items-center justify-between mb-4">
 
             <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
                 <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
                 {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
                 @if ($addresse && $addresse->is_primary)
-                    - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>
+                - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>
                 @endif
-            </h3>
 
-            <div class="space-y-4">
+
+
+
+            </h3>
+            @if ($addressItem['label']=='Shipping')
+            <!-- Checkbox -->
+            <label class="edit-view flex items-center space-x-2 text-sm text-gray-700 cursor-pointer  font-semibold mb-4 gap-1">
+                <input type="checkbox" id="sameAsBilling" name="sameAsBilling"
+                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" {{ old('sameAsBilling', $customer->same_as_billing ?? 0) ? 'checked' : '' }}>
+                <span>Same as billing address</span>
+            </label>
+            @endif
+        </div>
+
+        <div class="space-y-4">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="edit-view">
-                        <label class="text-xs text-gray-500 font-medium required">First Name </label>
-                        {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
-                            ->class([
-                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has("addresses.$index.first_name"),
-                            ])
-                            ->attributes([
-                                'placeholder' => 'Enter First Name',
-                                'class' => 'first_name'
-                            ])->required() !!}
-                    </div>
-                    <div class="edit-view">
-                        <label class="text-xs text-gray-500 font-medium required">Last Name </label>
-                        {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
-                            ->class([
-                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has("addresses.$index.last_name"),
-                            ])
-                            ->attributes([
+                <div class="edit-view">
+                    <label class="text-xs text-gray-500 font-medium required">First Name </label>
+                    {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
+                    ->class([
+                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'border-red-500' => $errors->has("addresses.$index.first_name"),
+                    ])
+                    ->attributes([
+                    'placeholder' => 'Enter First Name',
+                    'class' => 'first_name'
+                    ])->required() !!}
+                </div>
+                <div class="edit-view">
+                    <label class="text-xs text-gray-500 font-medium required">Last Name </label>
+                    {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
+                    ->class([
+                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'border-red-500' => $errors->has("addresses.$index.last_name"),
+                    ])
+                    ->attributes([
 
-                                'placeholder' => 'Last Name',
-                                'class' => 'last_name'
-                            ])->required() !!}
-                    </div>
+                    'placeholder' => 'Last Name',
+                    'class' => 'last_name'
+                    ])->required() !!}
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-500 font-medium edit-view required">Address </label>
+                <div class="static-view text-gray-900 text-sm">
+                    @if($addresse?->full_name)
+                    {{ $addresse->full_name }}<br>
+                    @endif
+
+                    @if($addresse?->address || $addresse?->city)
+                    {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
+                    @endif
+
+                    @if($addresse?->state?->name || $addresse?->zip_code)
+                    {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
+                    @endif
+                    @if($addresse?->country)
+                    {{ $addresse?->country ? ', ' . $addresse->country : '' }} <br>
+                    @endif
+
+                    @if($addresse?->phone)
+                    {{ App\Helpers\CustomHelper::formatPhone($addresse->phone) }}
+                    @endif
+                </div>
+                {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
+                ->class([
+                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'border-red-500' => $errors->has("addresses.$index.address"),
+                ])
+                ->attributes([
+                'placeholder' => 'Enter Address',
+                'class' => 'address'
+                ])->required() !!}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="edit-view">
+                    <label class="text-xs text-gray-500 font-medium required">City </label>
+                    {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
+                    ->class([
+                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'border-red-500' => $errors->has("addresses.$index.city"),
+                    ])
+                    ->attributes([
+                    'placeholder' => 'Enter City',
+                    'class' => 'city'
+                    ])->required() !!}
+                </div>
+                <div class="edit-view">
+                    <label class="text-xs text-gray-500 font-medium required">Zip Code </label>
+                    {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
+                    ->class([
+                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'border-red-500' => $errors->has("addresses.$index.zip_code"),
+                    ])
+                    ->attributes([
+                    'maxlength' => 8,
+                    'placeholder' => 'ZIP Code',
+                    'class' => 'zip_code'
+                    ])->required() !!}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                <div class="edit-view">
+                    <label class="text-xs text-gray-500 font-medium required">State </label>
+                    {!! html()
+                    ->select("addresses[$index][state_id]",
+                    ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
+                    old("addresses.$index.state_id", $addresse->state_id ?? '')
+                    )
+                    ->class([
+                    'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
+                    'border-red-500' => $errors->has("addresses.$index.state_id"),
+                    ]) ->attribute('required', true) !!}
                 </div>
 
-                <div>
-                    <label class="text-xs text-gray-500 font-medium edit-view required">Address </label>
-                    <div class="static-view text-gray-900 text-sm">
-                                            @if($addresse?->full_name)
-                                                {{ $addresse->full_name }}<br>
-                                            @endif
-
-                                            @if($addresse?->address || $addresse?->city)
-                                                {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
-                                            @endif
-
-                                            @if($addresse?->state?->name || $addresse?->zip_code)
-                                                {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}<br>
-                                            @endif
-
-                                            @if($addresse?->phone)
-                                                    {{ App\Helpers\CustomHelper::formatPhone($addresse->phone) }}
-                                            @endif
-                       </div>
-                       {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
-                        ->class([
-                            'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                            'border-red-500' => $errors->has("addresses.$index.address"),
-                        ])
-                        ->attributes([
-                            'placeholder' => 'Enter Address',
-                            'class' => 'address'
-                        ])->required() !!}
-                      </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="edit-view">
-                        <label class="text-xs text-gray-500 font-medium required">City </label>
-                        {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
-                            ->class([
-                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has("addresses.$index.city"),
-                            ])
-                            ->attributes([
-                                'placeholder' => 'Enter City',
-                                'class' => 'city'
-                            ])->required() !!}
-                    </div>
-                    <div class="edit-view">
-                        <label class="text-xs text-gray-500 font-medium required">Zip Code </label>
-                        {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
-                            ->class([
-                                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                'border-red-500' => $errors->has("addresses.$index.zip_code"),
-                            ])
-                            ->attributes([
-                                'maxlength' => 8,
-                                'placeholder' => 'ZIP Code',
-                                'class' => 'zip_code'
-                            ])->required() !!}
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="edit-view">
-                                <label class="text-xs text-gray-500 font-medium required">State </label>
-                                {!! html()
+                <div class="edit-view">
+                    <label class="text-xs text-gray-500 font-medium required">State </label>
+                    <!-- {!! html()
                                     ->select("addresses[$index][state_id]",
                                           ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
                                         old("addresses.$index.state_id", $addresse->state_id ?? '')
@@ -388,307 +419,391 @@
                                     ->class([
                                         'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
                                         'border-red-500' => $errors->has("addresses.$index.state_id"),
-                                    ]) ->attribute('required', true)  !!}
-                            </div>
+                                    ]) ->attribute('required', true)  !!} -->
 
-                            <div class="edit-view">
-                                <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
+                    {!! html()->select("addresses[$index][Country]", [
+                    'USA' => 'USA',
+                    'Canada' => 'Canada',
+                    'UK' => 'UK',
+                    'India' => 'India',
+                    ], old("addresses.$index.Country", $addresse->country ?? 'USA')
+                    ) // default to USA if old or user value is not set
+                    ->id('country')
+                    ->class('pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm')
+                    ->attributes([
+                    'autocomplete' => 'off',
+                    ])
 
-
-                                 {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
-                                    ->class([
-                                        'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
-                                        'border-red-500' => $errors->has('phone'),
-                                    ])
-                                    ->attributes([
-                                        'maxlength' => 14,
-                                        'placeholder' => '(xxx) xxx-xxxx',
-                                        'class' => 'phone',
-                                        'autocomplete' => 'tel',
-                                        'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                        'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
-                                    ])->required() !!}
-
-                            </div>
+                    !!}
 
                 </div>
+
+                <div class="edit-view">
+                    <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
+
+
+                    {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
+                    ->class([
+                    'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'border-red-500' => $errors->has('phone'),
+                    ])
+                    ->attributes([
+                    'maxlength' => 14,
+                    'placeholder' => '(xxx) xxx-xxxx',
+                    'class' => 'phone',
+                    'autocomplete' => 'tel',
+                    'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
+                    'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
+                    ])->required() !!}
+
+                </div>
+
+
+
             </div>
         </div>
+    </div>
     @endforeach
 </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
-                <!-- Account Status -->
-                <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-                    <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
-                    <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                     Account Status
-                    </h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-500 font-medium">Account Status:</span>
 
-                             @php
-                                $approved = $customer->is_credit_account == 1;
-                                $hasCreditLimit = !empty($customer->credit_limit);
-                            @endphp
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 items-stretch">
 
-                             @if ($approved && $hasCreditLimit)
-                                        <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good Standing</span>
+    <div class=" flex flex-col h-full">
+        <!-- Tags and Notes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+            <!-- Tags -->
+            <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
+                <div class="flex items-center justify-between mb-2">
+                    <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
+                    <button type="button" onclick="openTagModal()"
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add
+                    </button>
+                </div>
+                <select id="ContactTags" name="tags[]" multiple
+                    class="choices-select w-full rounded-md border border-gray-300 text-sm flex-grow"></select>
+            </div>
 
-                            @elseif ($approved && !$hasCreditLimit)
-                                                    <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
-                            @else
-                                        N/A
-                            @endif
-
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-500 font-medium">Account Approved:</span>
-                            <div class="static-view">
-                            @if($customer->is_credit_account == 1)
-
-                                <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
-                                    <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
-                                    Approved
-                                </span>
-                            @else
-                                <span class="text-red-600 font-medium flex items-center gap-1 text-xs">
-                                    <x-heroicon-o-x-circle class="w-4 h-4 text-red-600" />
-                                    Not Approved
-                                </span>
-                            @endif
- </div>
-
-                        {!! html()
-                            ->select('is_credit_account', [
-                                '0' => 'Not Approved',
-                                '1' => 'Approved',
-                            ], old('is_credit_account', $customer->is_credit_account ?? ''))
-                            ->id('is_credit_account')
-                            ->class([
-                                'edit-view border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 ',
-                            ])
-                        !!}
-
-
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-xs text-gray-500 font-medium">Customer Since:</span>
-                            <span class="text-xs">{{ App\Helpers\CustomHelper::formatDate($customer->created_at) ?? 'N/A' }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-xs text-gray-500 font-medium">Customer ID:</span>
-                            <span class="text-xs">{{ $customer->unique_id }}</span>
-                        </div>
-                    </div>
+            <!-- Notes Section -->
+            <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium text-gray-700">Notes</label>
+                    <button type="button" id="addNoteBtn"
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add
+                    </button>
                 </div>
 
-                <!-- Credit Information -->
-                <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-                    <div class="flex gap-2 items-start mb-4">
-                        <h3 class="text-base font-semibold flex items-center gap-1">
-                            <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
-                            Credit Information
-                        </h3>
-                        <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span>
-                    </div>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between items-center">
-
-
-                                <span class="text-xs text-gray-500 font-medium">Credit Limit:</span>
-                                <span class="text-right static-view">
-                                    <span class="text-gray-900 font-semibold">
-
-            {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
-
-                                    </span>
-                                    <a href="#" class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /></a>
-                                </span>
-
-
-
-
-                        @php
-                            $creditOptions = collect(range(1000, 20000, 1000))->mapWithKeys(function ($value) {
-                                return [$value => number_format($value)];
-                            });
-                        @endphp
-
-                        {!! html()
-                            ->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
-                            ->id('credit_limit')
-                            ->class([
-                                'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300  edit-view',
-                            ])->placeholder('Select Credit Limit')
-                        !!}
-
-                        </div>
-
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-500 font-medium">Current Balance:</span>
-
-                            <span class="font-medium ">
-
-
-            {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}
-
-
-                            <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
-
-
-
-
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
-                            <span class="text-green-600 font-medium ">
-
-                        {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
-
-                        </div>
-                        <div class="static-view">
-
-
-                            @php
-                                $climit = $customer->credit_limit ?? 0;
-                            $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
-
-
-                                $per = $climit > 0 ? ((($climit - $available) / $climit) * 100) : 0;
-                            @endphp
-                            <div class="flex justify-between text-xs text-gray-500 mb-1">
-                                <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
-                                <div class="text-right text-xs text-gray-500 mt-0.5">{{round($per)}}%</div>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%; max-width: 100%;"></div>
-                            </div>
-
-
-
-                        </div>
-                    </div>
+                <!-- Notes List -->
+                <div id="noteListContainer" class="p-2 max-h-60 overflow-y-auto">
+                    <ul id="noteList" class="list-disc text-sm text-gray-700 space-y-1 pl-3 ">
+                        <li class="text-gray-400 text-sm">No notes available.</li>
+                    </ul>
                 </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow border border-gray-200 p-4 flex flex-col h-full">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+            <!-- Assign to Funnels -->
+            <div class="md:col-span-2 mt-2 flex flex-col flex-grow">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Funnels</label>
+                <div
+                    class="border border-gray-300 rounded-md flex-grow flex items-center justify-center text-gray-400 text-sm bg-gray-50 hover:border-blue-400 hover:text-gray-700 transition-all">
+                    Add or assign funnels here
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
+    <!-- Account Status -->
+    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
+            <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Account Status
+        </h3>
+        <div class="space-y-2 text-sm">
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500 font-medium">Account Status:</span>
+
+                @php
+                $approved = $customer->is_credit_account == 1;
+                $hasCreditLimit = !empty($customer->credit_limit);
+                @endphp
+
+                @if ($approved && $hasCreditLimit)
+                <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good Standing</span>
+
+                @elseif ($approved && !$hasCreditLimit)
+                <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+                @else
+                N/A
+                @endif
+
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500 font-medium">Account Approved:</span>
+                <div class="static-view">
+                    @if($customer->is_credit_account == 1)
+
+                    <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
+                        <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
+                        Approved
+                    </span>
+                    @else
+                    <span class="text-red-600 font-medium flex items-center gap-1 text-xs">
+                        <x-heroicon-o-x-circle class="w-4 h-4 text-red-600" />
+                        Not Approved
+                    </span>
+                    @endif
+                </div>
+
+                {!! html()
+                ->select('is_credit_account', [
+                '0' => 'Not Approved',
+                '1' => 'Approved',
+                ], old('is_credit_account', $customer->is_credit_account ?? ''))
+                ->id('is_credit_account')
+                ->class([
+                'edit-view border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 ',
+                ])
+                !!}
+
+
+            </div>
+            <div class="flex justify-between">
+                <span class="text-xs text-gray-500 font-medium">Customer Since:</span>
+                <span class="text-xs">{{ App\Helpers\CustomHelper::formatDate($customer->created_at) ?? 'N/A' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-xs text-gray-500 font-medium">Customer ID:</span>
+                <span class="text-xs">{{ $customer->unique_id }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Information -->
+    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex gap-2 items-start mb-4">
+            <h3 class="text-base font-semibold flex items-center gap-1">
+                <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
+                Credit Information
+            </h3>
+            <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span>
+        </div>
+        <div class="space-y-2 text-sm">
+            <div class="flex justify-between items-center">
+
+
+                <span class="text-xs text-gray-500 font-medium">Credit Limit:</span>
+                <span class="text-right static-view">
+                    <span class="text-gray-900 font-semibold">
+
+                        {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
+
+                    </span>
+                    <a href="#" class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /></a>
+                </span>
+
+
+
+
+                @php
+                $creditOptions = collect(range(1000, 20000, 1000))->mapWithKeys(function ($value) {
+                return [$value => number_format($value)];
+                });
+                @endphp
+
+                {!! html()
+                ->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
+                ->id('credit_limit')
+                ->class([
+                'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 edit-view',
+                ])->placeholder('Select Credit Limit')
+                !!}
 
             </div>
 
-            <div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-0">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500 font-medium">Current Balance:</span>
 
+                <span class="font-medium ">
+
+
+                    {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}
+
+
+                    <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
+
+
+
+
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
+                <span class="text-green-600 font-medium ">
+
+                    {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
+
+            </div>
+            <div class="static-view">
+
+
+                @php
+                $climit = $customer->credit_limit ?? 0;
+                $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
+
+
+                $per = $climit > 0 ? ((($climit - $available) / $climit) * 100) : 0;
+                @endphp
+                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                    <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
+                    <div class="text-right text-xs text-gray-500 mt-0.5">{{round($per)}}%</div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%; max-width: 100%;"></div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Left: Tax Info -->
-                        <div class="space-y-2 text-sm text-gray-700">
-                            <div class="flex items-center gap-1">
-                            <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
-                            <h2 class="text-base font-semibold text-gray-800">Tax Exempt Status</h2>
-                            <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-500 font-medium">Tax Status:</span>
-                            <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $customer->tax_status ?? 'N/A' }}</span> -->
-
-                             <div class="static-view">
-                                <div class="inline-flex items-center gap-2">
-                                    <span class="text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                        <span class="leading-[1.2] inline-flex items-center gap-2 px-2 py-1">
-                                            @if ($customer->tax_status === 'Exempt')
-                                                <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
-                                            @else
-                                                <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
-                                            @endif
-                                            {{ $customer->tax_status ?? 'N/A' }}
-                                        </span>
-                                    </span>
-                                </div>
-                            </div>
-
-                             {!! html()
-                                ->select('tax_status', [
-                                    'Taxable' => 'Taxable',
-                                    'Exempt' => 'Exempt',
-                                ], old('tax_status', $customer->tax_status ?? ''))
-                                ->id('tax_status')
-                                ->class([
-                                    'edit-view border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300',
-                                ])
-                            !!}
-
-                        </div>
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <span class="text-xs text-gray-500 font-medium">Valid Until:</span>
 
 
-                              <div class="static-view">
-                              <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</span>
-                            </div>
+            </div>
+        </div>
+    </div>
 
-                            <div class="edit-view">
-                            <input
-                                class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
-                                value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) }}"
-                                type="text"
-                                name="tax_document_valid_until"
-                                id="tax_document_valid_until"
-                                placeholder="MM-DD-YYYY"
-                                autocomplete="off"
-                            />
-                        </div>
+</div>
 
+<div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-0">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
 
+    </div>
 
-                        </div>
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <span class="text-xs text-gray-500 font-medium">Uploaded:</span>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Left: Tax Info -->
+        <div class="space-y-2 text-sm text-gray-700">
+            <div class="flex items-center gap-1">
+                <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
+                <h2 class="text-base font-semibold text-gray-800">Tax Exempt Status</h2>
+                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500 font-medium">Tax Status:</span>
+                <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $customer->tax_status ?? 'N/A' }}</span> -->
 
-                            <div class="static-view">
-                              <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
-                            </div>
-                            <div class="edit-view">
-                                <input
-                                    class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
-                                    type="text"
-                                    value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) }}"
-                                    name="tax_document_upload_date"
-                                    id="tax_document_upload_date"
-                                    placeholder="MM-DD-YYYY"
-                                    autocomplete="off"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-
-                                <div class="flex flex-col items-start md:items-end gap-2 text-left w-auto">
-                            <div class="md:text-right mb-4">
-                                <a href="javascript:void(0)" id="opentaxdocModal"
-                                    class="edit-view px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-                                    Manage Tax Documents
-                                </a>
-                            </div>
-
-                            <div id="taxDocPreviewWrapper">
-                                @if ($customer->media)
-                                    @include('admin.crm.customers.partials.tax_doc_preview', ['customer' => $customer])
+                <div class="static-view">
+                    <div class="inline-flex items-center gap-2">
+                        <span class="text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            <span class="leading-[1.2] inline-flex items-center gap-2 px-2 py-1">
+                                @if ($customer->tax_status === 'Exempt')
+                                <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
                                 @else
-                                    <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
-                                        No tax document has been uploaded yet.
-                                    </div>
+                                <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
                                 @endif
-                            </div>
-                        </div>
+                                {{ $customer->tax_status ?? 'N/A' }}
+                            </span>
+                        </span>
+                    </div>
+                </div>
+
+                {!! html()
+                ->select('tax_status', [
+                'Taxable' => 'Taxable',
+                'Exempt' => 'Exempt',
+                ], old('tax_status', $customer->tax_status ?? ''))
+                ->id('tax_status')
+                ->class([
+                'edit-view border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300',
+                ])
+                !!}
+
+            </div>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <span class="text-xs text-gray-500 font-medium">Valid Until:</span>
+
+
+                <div class="static-view">
+                    <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</span>
+                </div>
+
+                <div class="edit-view">
+                    <input
+                        class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                        value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) }}"
+                        type="text"
+                        name="tax_document_valid_until"
+                        id="tax_document_valid_until"
+                        placeholder="MM-DD-YYYY"
+                        autocomplete="off" />
+                </div>
 
 
 
+            </div>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <span class="text-xs text-gray-500 font-medium">Uploaded:</span>
+
+                <div class="static-view">
+                    <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
+                </div>
+                <div class="edit-view">
+                    <input
+                        class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                        type="text"
+                        value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) }}"
+                        name="tax_document_upload_date"
+                        id="tax_document_upload_date"
+                        placeholder="MM-DD-YYYY"
+                        autocomplete="off" />
                 </div>
             </div>
+        </div>
 
-              {{ html()->form()->close() }}
+
+        <div class="flex flex-col items-start md:items-end gap-2 text-left w-auto">
+            <div class="md:text-right mb-4">
+                <a href="javascript:void(0)" id="opentaxdocModal"
+                    class="edit-view px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                    Manage Tax Documents
+                </a>
+            </div>
+
+            <div id="taxDocPreviewWrapper">
+                @if ($customer->media)
+                @include('admin.crm.customers.partials.tax_doc_preview', ['customer' => $customer])
+                @else
+                <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
+                    No tax document has been uploaded yet.
+                </div>
+                @endif
+            </div>
+        </div>
+
+
+
+    </div>
+</div>
+
+{{ html()->form()->close() }}
 
 <!--taxdocModalWrapper Wrapper -->
 <div id="taxdocModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
@@ -704,71 +819,71 @@
                 <div class="max-w-md mx-auto">
                     <!-- <form id="taxDocForm" enctype="multipart/form-data"> -->
 
-            {{-- Open Form --}}
-                {!! html()->form()
+                    {{-- Open Form --}}
+                    {!! html()->form()
                     ->id('taxDocForm')
                     ->attribute('enctype', 'multipart/form-data')
                     ->attribute('autocomplete', 'off')
                     ->attribute('data-parsley-validate', true)
                     ->class('space-y-8')
                     ->open()
-                !!}
+                    !!}
 
-                        <input type="hidden" name="customer_id" value="{{ $customer->id }}">
+                    <input type="hidden" name="customer_id" value="{{ $customer->id }}">
 
-                        <!-- Upload Box -->
-                        <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
-                            <div id="uploadUI" class="flex flex-col items-center justify-center">
-                                <!-- Icon -->
-                                <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
+                    <!-- Upload Box -->
+                    <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
+                        <div id="uploadUI" class="flex flex-col items-center justify-center">
+                            <!-- Icon -->
+                            <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
-                                </svg>
-                                <!-- Text -->
-                                <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
-                                <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
+                            </svg>
+                            <!-- Text -->
+                            <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
+                            <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
 
-                                <!-- File input -->
-                                <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
-                                    <input type="file" id="tax_document" name="tax_document" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" required>
-                                    <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
-                                </label>
-                            </div>
+                            <!-- File input -->
+                            <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
+                                <input type="file" id="tax_document" name="tax_document" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" required>
+                                <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
+                            </label>
+                        </div>
 
-                            <!-- File Display After Selection -->
-                            <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-                                <!-- File Name -->
-                                <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
+                        <!-- File Display After Selection -->
+                        <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                            <!-- File Name -->
+                            <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
 
-                                <!-- Buttons: View & Close -->
-                                <div class="flex justify-center sm:justify-start gap-2">
-                                    <a id="viewFileLink" href="#" target="_blank"
+                            <!-- Buttons: View & Close -->
+                            <div class="flex justify-center sm:justify-start gap-2">
+                                <a id="viewFileLink" href="#" target="_blank"
                                     class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
-                                    <button type="button" onclick="clearFile()" class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
-                                </div>
+                                <button type="button" onclick="clearFile()" class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
                             </div>
                         </div>
-                       {{-- Document Type Dropdown --}}
-                            <div class="mt-5">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
-                                {!! html()->select('tax_document_type', [
-                                        '' => '-- Select Document Type --',
-                                        'Tax Exempt Certificate' => 'Tax Exempt Certificate',
-                                        'Resale Certificate' => 'Resale Certificate',
-                                        'Non-Profit Exemption' => 'Non-Profit Exemption'
-                                    ])
-                                    ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')->required()
-                                !!}
-                            </div>
+                    </div>
+                    {{-- Document Type Dropdown --}}
+                    <div class="mt-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                        {!! html()->select('tax_document_type', [
+                        '' => '-- Select Document Type --',
+                        'Tax Exempt Certificate' => 'Tax Exempt Certificate',
+                        'Resale Certificate' => 'Resale Certificate',
+                        'Non-Profit Exemption' => 'Non-Profit Exemption'
+                        ])
+                        ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')->required()
+                        !!}
+                    </div>
 
-                        <!-- Buttons -->
-                        <div class="mt-5 flex justify-end gap-2">
-                            <button type="button" id="cancelBtntaxdoc" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
-                            <button type="submit"  class="saveBtntax px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
-                        </div>
+                    <!-- Buttons -->
+                    <div class="mt-5 flex justify-end gap-2">
+                        <button type="button" id="cancelBtntaxdoc" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
+                        <button type="submit" class="saveBtntax px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
+                    </div>
 
-               {!! html()->form()->close() !!}
+                    {!! html()->form()->close() !!}
 
 
                 </div>
@@ -786,11 +901,11 @@
                 <div class="flex items-center">
                     <div class="text-yellow-500 rounded-md">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                             class="lucide lucide-lock w-4 h-4 mr-2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-lock w-4 h-4 mr-2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
                     </div>
                     <h2 class="text-lg font-medium text-gray-900">Reset Password</h2>
@@ -801,7 +916,7 @@
             <div class="px-6 overflow-y-auto">
 
 
-                   {{ html()->form()->attributes([
+                {{ html()->form()->attributes([
     'class' => 'space-y-5',
     'method' => 'POST',
     'id' => 'resetPasswordForm',
@@ -809,15 +924,15 @@
     'data-parsley-validate' => true,
     ])->open() }}
 
-        @csrf
-        @method('POST')
+                @csrf
+                @method('POST')
 
-        {{ html()->hidden('customer_id', $customer->id) }}
+                {{ html()->hidden('customer_id', $customer->id) }}
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-            <div class="relative">
-                {{ html()->password('password')->attributes([
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <div class="relative">
+                        {{ html()->password('password')->attributes([
                     'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                     'required' => true,
                     'id' => 'password',
@@ -825,53 +940,53 @@
                     'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
 
                 ])->placeholder('') }}
-                <button type="button" onclick="toggleVisibility('password', this)" class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                    </svg>
-                </button>
-                <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
-                @error('password')
-                    <p class="text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-        </div>
+                        <button type="button" onclick="toggleVisibility('password', this)" class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                        <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
+                        @error('password')
+                        <p class="text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
 
-        <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Password Confirmation</label>
-        <div class="relative">
-            {{ html()->password('password_confirmation')->attributes([
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password Confirmation</label>
+                    <div class="relative">
+                        {{ html()->password('password_confirmation')->attributes([
                 'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                 'required' => true,
                 'id' => 'password_confirmation',
                 'data-parsley-equalto' => '#password',
             ])->placeholder('') }}
-            <button type="button" onclick="toggleVisibility('password_confirmation', this)" class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-            </button>
-        </div>
-    </div>
+                        <button type="button" onclick="toggleVisibility('password_confirmation', this)" class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-    <div class="flex justify-end gap-2 pb-4">
-        <button type="button" id="cancelResetPasswordBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
-            Cancel
-        </button>
-        <button type="submit" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-            Update Password
-        </button>
-    </div>
+                <div class="flex justify-end gap-2 pb-4">
+                    <button type="button" id="cancelResetPasswordBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                        Update Password
+                    </button>
+                </div>
 
-{{ html()->form()->close() }}
+                {{ html()->form()->close() }}
 
             </div>
         </div>
@@ -898,61 +1013,137 @@
     @method('POST')
 </form>
 
+<!-- tag module   -->
+<div id="TagModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-sm flex flex-col max-h-full overflow-hidden border border-gray-200">
+
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-lg font-semibold text-gray-900">Add Tag</h2>
+                </div>
+                <button type="button" onclick="closeTagModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+            <!-- Scrollable Content -->
+            <div class="px-6 overflow-y-auto max-h-[70vh] mt-5 mb-5">
+                <div class="mb-4">
+                    <label for="newTagInput" class="block text-sm font-medium text-gray-700 mb-1 required"> New Tag</label>
+
+                    <input class="w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm border-gray-300 " type="text" name="newTagInput" id="newTagInput">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
+                <button type="button" onclick="closeTagModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+                <button type="button" id="addTagBtn" class="flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-all"> <svg id="addTagSpinner" xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 hidden animate-spin"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                            stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span id="addTagText">Add</span> </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- Notes Modal -->
+<div id="notesModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-sm flex flex-col max-h-full overflow-hidden border border-gray-200">
+
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900" id="noteModalTitle">Add Note</h2>
+                <button type="button" onclick="closeNotesModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+
+            <div class="px-6 overflow-y-auto max-h-[70vh] mt-5 mb-5">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">User</label>
+
+                    {!! html()->select(
+                    'user_id',
+                    $employees->pluck('full_name', 'id')->toArray()
+                    )->id('user_id')->class([
+                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                    ]) !!}
+
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Note</label>
+                    <textarea id="note_text" rows="5"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500"
+                        placeholder="Enter note..." ></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
+                <button type="button" onclick="closeNotesModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+                <button type="button" id="saveNoteBtn" class="px-4 py-2 text-sm rounded border border-grey-300 bg-blue-600 text-white">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
 @push('js')
 
 <script>
-function toggleVisibility(inputId, btn) {
-  const input = document.getElementById(inputId);
-  const isPassword = input.type === 'password';
-  input.type = isPassword ? 'text' : 'password';
+    function toggleVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
 
-  const svg = btn.querySelector('svg');
-  svg.innerHTML = isPassword
-    ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        const svg = btn.querySelector('svg');
+        svg.innerHTML = isPassword ?
+            `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.042 10.042 0 013.03-4.362M6.873 6.876A9.953 9.953 0 0112 5c4.477 0 8.267 2.943 9.541 7a9.966 9.966 0 01-1.249 2.527M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M3 3l18 18" />`
-    : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M3 3l18 18" />` :
+            `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
-}
+    }
 </script>
-
 
 <script>
     window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
 </script>
 
-
 <script>
-function confirmAndDelete(id) {
-           window.showConfirm(
-                `Are you sure you want to delete this document ? This action cannot be undone!`,
-                'Delete Document'
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById(`delete-media-form-${id}`).submit();
-                }
-            });
+    function confirmAndDelete(id) {
+        window.showConfirm(
+            `Are you sure you want to delete this document ? This action cannot be undone!`,
+            'Delete Document'
+        ).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-media-form-${id}`).submit();
+            }
+        });
     }
+
     function confirmAndSuspend(id) {
         if (confirm("Are you sure you want to suspend this customer?")) {
-            document.getElementById(`cstatus`).value="Archived";
-            document.getElementById(`suspend-customer-form-${id}`).submit();
-        }
-    }
-    function confirmAndActive(id) {
-        if (confirm("Are you sure you want to activate this customer?")) {
-            document.getElementById(`cstatus`).value="Active";
+            document.getElementById(`cstatus`).value = "Archived";
             document.getElementById(`suspend-customer-form-${id}`).submit();
         }
     }
 
+    function confirmAndActive(id) {
+        if (confirm("Are you sure you want to activate this customer?")) {
+            document.getElementById(`cstatus`).value = "Active";
+            document.getElementById(`suspend-customer-form-${id}`).submit();
+        }
+    }
 </script>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const resetModal = document.getElementById('resetPasswordModalWrapper');
@@ -973,265 +1164,600 @@ function confirmAndDelete(id) {
     });
 </script>
 
-
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
 
+        window.Parsley.addAsyncValidator('customemailcheck', function(xhr) {
+            // Expecting { valid: true/false }
+            const response = xhr.responseJSON || {};
+            return response.valid === true;
+        });
 
-document.addEventListener('DOMContentLoaded', () => {
-
-        window.Parsley.addAsyncValidator('customemailcheck', function (xhr) {
-        // Expecting { valid: true/false }
-        const response = xhr.responseJSON || {};
-        return response.valid === true;
     });
-
-});
-
 </script>
 
-
-
 <script>
-document.getElementById('resetPasswordForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+    document.getElementById('resetPasswordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
 
-    const form = e.target;
-
-
-    if (!$(form).parsley().isValid()) {
-        return; // stop if validation fails
-    }
+        const form = e.target;
 
 
-    const formData = new FormData(form);
-
-
-   fetch("{{ route('admin.crm.customers.password.update') }}", {
-        method: "POST",
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            notyf.success(data.message || "Password updated.");
-            document.getElementById('resetPasswordModalWrapper').style.display = 'none';
-        } else {
-            notyf.error(data.message || "Password reset failed.");
+        if (!$(form).parsley().isValid()) {
+            return; // stop if validation fails
         }
-    })
-    .catch(error => {
-        console.error("AJAX error:", error);
-        notyf.error("Something went wrong.");
-    });
-});
-</script>
 
-<script>
-function bindTaxStatusButtons() {
-    document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            const customerId = this.getAttribute('data-customer-id');
-            const status = this.classList.contains('approve-btn') ? 'Approved' : 'Rejected';
 
-            fetch("{{ route('admin.crm.customers.tax_status.update') }}", {
+        const formData = new FormData(form);
+
+
+        fetch("{{ route('admin.crm.customers.password.update') }}", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify({
-                    customer_id: customerId,
-                    status: status,
-                }),
+                body: formData
             })
-            .then(res => res.json())
+            .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const statusSpan = document.getElementById(`tax-status-${customerId}`);
-                    statusSpan.textContent = status;
-                    statusSpan.className = `font-medium ${
+                    notyf.success(data.message || "Password updated.");
+                    document.getElementById('resetPasswordModalWrapper').style.display = 'none';
+                } else {
+                    notyf.error(data.message || "Password reset failed.");
+                }
+            })
+            .catch(error => {
+                console.error("AJAX error:", error);
+                notyf.error("Something went wrong.");
+            });
+    });
+</script>
+
+<script>
+    function bindTaxStatusButtons() {
+        document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const customerId = this.getAttribute('data-customer-id');
+                const status = this.classList.contains('approve-btn') ? 'Approved' : 'Rejected';
+
+                fetch("{{ route('admin.crm.customers.tax_status.update') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        },
+                        body: JSON.stringify({
+                            customer_id: customerId,
+                            status: status,
+                        }),
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            const statusSpan = document.getElementById(`tax-status-${customerId}`);
+                            statusSpan.textContent = status;
+                            statusSpan.className = `font-medium ${
                         status === 'Approved' ? 'text-green-600' :
                         status === 'Rejected' ? 'text-red-600' :
                         'text-yellow-600'
                     }`;
 
-                    if (status === 'Approved') {
-                        document.querySelectorAll(`[data-customer-id="${customerId}"].approve-btn`).forEach(btn => btn.style.display = 'none');
-                        document.querySelectorAll(`[data-customer-id="${customerId}"].reject-btn`).forEach(btn => btn.style.display = 'none');
-                    }
+                            if (status === 'Approved') {
+                                document.querySelectorAll(`[data-customer-id="${customerId}"].approve-btn`).forEach(btn => btn.style.display = 'none');
+                                document.querySelectorAll(`[data-customer-id="${customerId}"].reject-btn`).forEach(btn => btn.style.display = 'none');
+                            }
 
-                    notyf.success(data.message || "Status updated successfully.");
-                } else {
-                    notyf.error(data.message || "Failed to update status.");
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                notyf.error("Something went wrong while updating status.");
+                            notyf.success(data.message || "Status updated successfully.");
+                        } else {
+                            notyf.error(data.message || "Failed to update status.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        notyf.error("Something went wrong while updating status.");
+                    });
             });
         });
-    });
-}
+    }
 
-document.addEventListener('DOMContentLoaded', bindTaxStatusButtons);
-
+    document.addEventListener('DOMContentLoaded', bindTaxStatusButtons);
 </script>
-
 
 <script>
     document.querySelectorAll('.tax-status-btn').forEach(button => {
-        button.addEventListener('click', function () {
+        button.addEventListener('click', function() {
             const customerId = this.dataset.id;
             const status = this.dataset.status;
 
             fetch("{{ route('admin.crm.customers.tax_status.update') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({
-                    customer_id: customerId,
-                    status: status,
-                }),
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    // Update the status text and color
-                    const span = document.getElementById(`tax-status-${customerId}`);
-                    span.textContent = status;
-                    span.className = `font-medium ${
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({
+                        customer_id: customerId,
+                        status: status,
+                    }),
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the status text and color
+                        const span = document.getElementById(`tax-status-${customerId}`);
+                        span.textContent = status;
+                        span.className = `font-medium ${
                         status === 'Approved' ? 'text-green-600' : 'text-red-600'
                     }`;
 
-                    notyf.success(data.message || "Status updated.");
-                } else {
-                    notyf.error(data.message || "Update failed.");
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                notyf.error("Something went wrong.");
-            });
+                        notyf.success(data.message || "Status updated.");
+                    } else {
+                        notyf.error(data.message || "Update failed.");
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    notyf.error("Something went wrong.");
+                });
         });
     });
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalWrapper = document.getElementById('taxdocModalWrapper');
+        const openBtn = document.getElementById('opentaxdocModal');
+        const closeBtn = document.getElementById('closetaxdocBtn');
+        const cancelBtn = document.getElementById('cancelBtntaxdoc');
+        const form = document.getElementById('taxDocForm');
+        const fileInput = document.getElementById('tax_document');
 
 
+        function resetTaxDocModalForm() {
+            form.reset();
+
+            document.getElementById('fileActions').style.display = 'none';
+            document.getElementById('fileNameDisplay').textContent = '';
+            document.getElementById('viewFileLink').href = '#';
+            document.getElementById('uploadUI').style.display = 'flex';
+
+            const docTypeSelect = form.querySelector('[name="tax_document_type"]');
+            if (docTypeSelect) docTypeSelect.value = '';
+        }
 
 
+        // Modal open/close
+        const openModal = () => modalWrapper.style.display = 'flex';
+        const closeModal = () => modalWrapper.style.display = 'none';
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        // modalWrapper.addEventListener('click', (e) => {
+        //     if (e.target === modalWrapper) closeModal();
+        // });
+
+
+        // Handle AJAX form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Check if form is valid using Parsley
+            if (!$(form).parsley().validate()) {
+                return; // Stop submission if validation fails
+            }
+
+            const formData = new FormData(form);
+            const uploadBtn = form.querySelector('.saveBtntax');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = "Uploading...";
+
+            try {
+                const response = await fetch("{{ route('admin.crm.customers.taxdoc.upload') }}", {
+                    method: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    modalWrapper.style.display = 'none';
+
+                    resetTaxDocModalForm();
+
+
+                    const wrapper = document.getElementById('taxDocPreviewWrapper');
+                    wrapper.innerHTML = result.html;
+
+                    // Update upload date field
+                    const uploadDateInput = document.getElementById('tax_document_upload_date');
+                    if (uploadDateInput && result.upload_date) {
+                        uploadDateInput.value = result.upload_date;
+                    }
+
+                    bindTaxStatusButtons();
+
+
+                    notyf.success(result.message || 'Uploaded successfully');
+                } else {
+                    // Handle validation errors
+                    if (result.errors) {
+                        Object.values(result.errors).forEach(messages => {
+                            messages.forEach(message => notyf.error(message));
+                        });
+                    } else {
+                        notyf.error(result.message || "Upload failed.");
+                    }
+                }
+            } catch (error) {
+                console.error("Upload error:", error);
+                notyf.error("Something went wrong.");
+            }
+
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = "Upload Document";
+        });
+
+    });
+</script>
+
+<!-- Tags Notes Assign to Funnels -->
+
+
+<!-- this is for appear tags her form choice js  -->
+
+<script>
+    function openNotesModal() {
+        document.getElementById('notesModal').classList.remove('hidden');
+        renderOptions();
+    }
+
+    function closeNotesModal() {
+        document.getElementById('notesModal').classList.add('hidden');
+    }
+</script>
+
+<script>
+    function openTagModal() {
+        document.getElementById('TagModal').classList.remove('hidden');
+        renderOptions();
+    }
+
+    function closeTagModal() {
+        document.getElementById('TagModal').classList.add('hidden');
+    }
+</script>
 
 
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const addTagBtn = document.getElementById('addTagBtn');
+        const addTagText = document.getElementById('addTagText');
+        const addTagSpinner = document.getElementById('addTagSpinner');
+        const newTagInput = document.getElementById('newTagInput');
+
+        // This hidden input (optional) can contain preselected tags for edit mode
+        const existingTagsInput = document.getElementById('existing_tags_json');
+
+        window.tags = [];
+        const tagSelect = document.getElementById('ContactTags');
 
 
+        if (!tagSelect) return;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const modalWrapper = document.getElementById('taxdocModalWrapper');
-    const openBtn = document.getElementById('opentaxdocModal');
-    const closeBtn = document.getElementById('closetaxdocBtn');
-    const cancelBtn = document.getElementById('cancelBtntaxdoc');
-    const form = document.getElementById('taxDocForm');
-    const fileInput = document.getElementById('tax_document');
-
-
-function resetTaxDocModalForm() {
-    form.reset();
-
-    document.getElementById('fileActions').style.display = 'none';
-    document.getElementById('fileNameDisplay').textContent = '';
-    document.getElementById('viewFileLink').href = '#';
-    document.getElementById('uploadUI').style.display = 'flex';
-
-    const docTypeSelect = form.querySelector('[name="tax_document_type"]');
-    if (docTypeSelect) docTypeSelect.value = '';
-}
-
-
-    // Modal open/close
-    const openModal = () => modalWrapper.style.display = 'flex';
-    const closeModal = () => modalWrapper.style.display = 'none';
-
-    openBtn.addEventListener('click', openModal);
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    // modalWrapper.addEventListener('click', (e) => {
-    //     if (e.target === modalWrapper) closeModal();
-    // });
-
-
-    // Handle AJAX form submission
-    form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    // Check if form is valid using Parsley
-    if (!$(form).parsley().validate()) {
-        return; // Stop submission if validation fails
-    }
-
-    const formData = new FormData(form);
-    const uploadBtn = form.querySelector('.saveBtntax');
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = "Uploading...";
-
-    try {
-        const response = await fetch("{{ route('admin.crm.customers.taxdoc.upload') }}", {
-            method: "POST",
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-    modalWrapper.style.display = 'none';
-
-   resetTaxDocModalForm();
-
-
-    const wrapper = document.getElementById('taxDocPreviewWrapper');
-      wrapper.innerHTML = result.html;
-
-    // Update upload date field
-    const uploadDateInput = document.getElementById('tax_document_upload_date');
-    if (uploadDateInput && result.upload_date) {
-        uploadDateInput.value = result.upload_date;
-    }
-
-bindTaxStatusButtons();
-
-
-    notyf.success(result.message || 'Uploaded successfully');
-}
- else {
-           // Handle validation errors
-        if (result.errors) {
-            Object.values(result.errors).forEach(messages => {
-                messages.forEach(message => notyf.error(message));
+        // Initialize Choices once
+        if (tagSelect && !window.tagChoices) {
+            window.tagChoices = new Choices(tagSelect, {
+                removeItemButton: true,
+                duplicateItemsAllowed: false,
+                shouldSort: false,
+                placeholderValue: 'Select or type tags',
+                addItems: true,
+                addItemText: value => `Press Enter to add #${value}`,
+                itemSelectText: '',
             });
-        } else {
-            notyf.error(result.message || "Upload failed.");
         }
+
+        // Update the full list of tags (Add form)
+        function updateTagSelect() {
+            if (!window.tagChoices) return;
+
+            // Build choices array
+            const choicesArray = window.tags.map(tag => ({
+                value: String(tag.id),
+                label: `#${tag.name}`,
+                selected: false
+            }));
+
+            // Update choices without clearing the instance
+            window.tagChoices.setChoices(choicesArray, 'value', 'label', true);
         }
-    } catch (error) {
-        console.error("Upload error:", error);
-    notyf.error("Something went wrong.");
-    }
 
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = "Upload Document";
-});
+        // --- Select tags for edit mode ---
+        function setCustomerTags(tagObjects) {
+            if (!window.tagChoices || !Array.isArray(tagObjects)) return;
 
-});
+            const idsToSelect = tagObjects.map(t => String(t.id));
+
+            idsToSelect.forEach(id => {
+                window.tagChoices.setChoiceByValue(id);
+            });
+        }
+
+        function fetchTags() {
+            fetch(`{{ route('admin.crm.tags.fetch') }}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        tags = data.tags.map(tag => ({
+                            name: tag.name,
+                            id: tag.id
+                        }));
+
+                        updateTagSelect();
+
+                        // If in edit mode existing tags
+                        if ( existingTagsInput?.value) {
+                            try {
+                                const existing = JSON.parse(existingTagsInput.value);
+                                setCustomerTags(existing);
+                            } catch (e) {
+                                console.warn("Invalid existing_tags_json format", e);
+                            }
+                        }
+
+                    }
+                })
+                .catch((e) => {
+                    console.error("❌ Error in fetchTags:", e);
+                    notyf.error("Error in fetchTags!");
+                });
+        }
+
+
+        // Add new tag
+        addTagBtn.addEventListener('click', () => {
+            const name = newTagInput.value.trim();
+            if (!name) {
+                notyf.error("Tag cannot be empty!");
+                return;
+            }
+
+            //  Start loading animation
+            addTagBtn.disabled = true;
+            addTagSpinner.classList.remove('hidden');
+            addTagText.textContent = 'Saving...';
+
+            fetch(`{{ route('admin.crm.tags.store') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        name
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        notyf.success(data.message || 'Tag added!');
+                        newTagInput.value = '';
+                        fetchTags(); // refresh tag list
+                    } else {
+                        notyf.error(data.message || 'Failed to add tag');
+                    }
+                })
+                .catch(() => notyf.error("Failed to add tag"))
+                .finally(() => {
+                    //  Stop loading animation
+                    addTagBtn.disabled = false;
+                    addTagSpinner.classList.add('hidden');
+                    addTagText.textContent = 'Add';
+                });
+        });
+        // Initial render
+        fetchTags();
+
+
+    });
 </script>
 
+
+<!-- notes  -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const notesModal = document.getElementById('notesModal');
+    const noteText = document.getElementById('note_text');
+    const userSelect = document.getElementById('user_id');
+    const noteList = document.getElementById('noteList');
+    const addNoteBtn = document.getElementById('addNoteBtn');
+    const saveNoteBtn = document.getElementById('saveNoteBtn');
+    const modalTitle = document.getElementById('noteModalTitle');
+    
+
+    let notes = [];
+    let editNoteId = null;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    const updateUrlTemplate = `{{ route('admin.crm.customers.notes.update', ['note' => 'NOTE_ID_PLACEHOLDER']) }}`;
+const deleteUrlTemplate = `{{ route('admin.crm.customers.notes.delete', ['note' => 'NOTE_ID_PLACEHOLDER']) }}`;
+
+    // Fetch all notes (from backend API)
+    function fetchNotes() {
+        fetch(`{{ route('admin.crm.customers.notes.fetch', $customer->id ?? 0) }}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    notes = data.notes || [];
+                    renderNotes();
+                } else {
+                    notyf.error("Failed to fetch notes");
+                }
+            })
+            .catch(() => notyf.error("Error fetching notes"));
+    }
+
+    //  Open Add Note modal
+    addNoteBtn.addEventListener('click', () => {
+        modalTitle.textContent = "Add Note";
+        noteText.value = "";
+        userSelect.selectedIndex = 0;
+        editNoteId = null;
+        notesModal.classList.remove('hidden');
+    });
+
+    //  Close modal
+    window.closeNotesModal = function () {
+        notesModal.classList.add('hidden');
+    };
+
+    //  Save note (create or update)
+   saveNoteBtn.addEventListener('click', () => {
+    const text = noteText.value.trim();
+    const userId = userSelect.value;
+
+    if (!text || !userId) {
+        notyf.error('Please fill all fields.');
+        return;
+    }
+
+    const payload = { text, user_id: userId };
+
+    if (editNoteId) {
+        const url = updateUrlTemplate.replace('NOTE_ID_PLACEHOLDER', editNoteId);
+        fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify(payload),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success('Note updated successfully');
+                    fetchNotes();
+                    closeNotesModal();
+                } else {
+                    notyf.error(data.message || 'Failed to update note');
+                }
+            })
+            .catch(() => notyf.error('Error updating note'));
+    } else {
+        fetch(`{{ route('admin.crm.customers.notes.store', $customer->id ?? 0) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify(payload),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success('Note added successfully');
+                    fetchNotes();
+                    closeNotesModal();
+                } else {
+                    notyf.error(data.message || 'Failed to add note');
+                }
+            })
+            .catch(() => notyf.error('Error adding note'));
+    }
+});
+
+    //  Render Notes List
+    function renderNotes() {
+        if (notes.length === 0) {
+            noteList.innerHTML = `<li class="text-gray-400 text-sm">No notes available.</li>`;
+          
+            return;
+        }
+
+        noteList.innerHTML = notes
+            .map(note => `
+                <li class="list-disc border-b border-gray-200 pb-3" data-id="${note.id}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-3">
+                            <p class="text-sm text-gray-800 leading-relaxed font-semibold">${note.text}</p>
+                            <div class="mt-1 text-xs text-gray-500 space-y-1">
+                                <div>Created ${note.created_at} by <span class="font-semibold">${note.user_name}</span></div>
+                                ${note.updated_at ? `<div>Updated ${note.updated_at}</div>` : ""}
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-1">
+                            <button type="button" class="text-blue-500 hover:text-blue-700 editNoteBtn" data-id="${note.id}" title="Edit">
+                                <x-heroicon-o-pencil-square class="w-4 h-4" />
+                            </button>
+                            <button type="button" class="text-red-500 hover:text-red-700 deleteNoteBtn" data-id="${note.id}" title="Delete">
+                                <x-heroicon-o-trash class="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            `)
+            .join('');
+
+      
+    }
+
+    //  Handle Edit / Delete
+    noteList.addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.editNoteBtn');
+        const delBtn = e.target.closest('.deleteNoteBtn');
+
+        // Edit
+        if (editBtn) {
+            const id = parseInt(editBtn.dataset.id);
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+
+            modalTitle.textContent = "Edit Note";
+            noteText.value = note.text;
+            userSelect.value = note.user_id;
+            editNoteId = id;
+            notesModal.classList.remove('hidden');
+        }
+
+        // Delete
+      
+if (delBtn) {
+    const id = parseInt(delBtn.dataset.id);
+    window.showConfirm('Delete this note?', 'Delete note').then(result => {
+        if (result.isConfirmed) {
+            const url = deleteUrlTemplate.replace('NOTE_ID_PLACEHOLDER', id);
+            fetch(url, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrfToken },
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        notyf.success('Note deleted successfully');
+                        fetchNotes();
+                    } else {
+                        notyf.error(data.message || 'Failed to delete note');
+                    }
+                })
+                .catch(() => notyf.error('Error deleting note'));
+        }
+    });
+}
+    });
+
+    //  Initial load
+    fetchNotes();
+});
+</script>
 
 
 

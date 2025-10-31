@@ -17,7 +17,6 @@ use App\Models\Iam\Personnel\User;
 class Customer extends Authenticatable
 {
     use Notifiable;
-
     protected $fillable = [
         'unique_id',
         'first_name',
@@ -46,6 +45,10 @@ class Customer extends Authenticatable
         'tax_status_approved_by',
         'is_reset',
         'tax_document_type',
+
+        'same_as_billing',
+        'tags',
+
     ];
 
     protected $appends = [
@@ -270,5 +273,35 @@ class Customer extends Authenticatable
         return $this->invoices()
             ->where('invoice_status', '!=', 'paid')
             ->count();
+    }
+
+    /**
+     * Get Notes for the customer.
+     */
+    public function notes()
+    {
+        return $this->hasMany(\App\Models\Customers\CustomerNote::class);
+    }
+
+    public function getTagObjectsAttribute()
+    {
+        if (empty($this->tags)) {
+            return collect();
+        }
+
+        // Decode JSON if it's JSON; fallback to comma-separated format
+        $tagIds = is_array($this->tags)
+            ? $this->tags
+            : (json_decode($this->tags, true) ?: explode(',', $this->tags));
+
+        $tagIds = array_filter($tagIds);
+
+        return Tag::whereIn('id', $tagIds)->get();
+    }
+
+
+    public function getTagsArrayAttribute()
+    {
+        return $this->tags ? array_map('trim', explode(',', $this->tags)) : [];
     }
 }

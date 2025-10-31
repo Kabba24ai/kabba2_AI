@@ -51,7 +51,6 @@ class StoreRequest extends FormRequest
 
             'tax_document_review_status' => ['nullable'],
 
-
             'account_approved_by' => ['nullable', 'sometimes', 'integer', 'min:0'],
             'tax_status_approved_by' => ['nullable', 'sometimes', 'integer', 'min:0'],
 
@@ -64,6 +63,13 @@ class StoreRequest extends FormRequest
             'account_application_completed' => ['nullable', 'date'],
 
             'alladdresslist'=>['nullable'],
+
+            'addresses' => ['nullable'],
+
+            'tags' => ['nullable'] ,
+            'sameAsBilling' => ['nullable'],
+            'notes_json' => ['nullable'],
+            
             'website_protocol' => ['nullable', 'string'],
             'website_extension' => ['nullable', 'string'],
         ];

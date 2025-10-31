@@ -3,6 +3,11 @@
 @section('title', 'Edit Part')
 
 @section('content')
+
+@include('flash::message')
+@include('admin.partials.formErrors')
+
+
 <div class="min-h-screen bg-gray-50">
     <div class="p-6">
         {{-- Header --}}
@@ -23,30 +28,45 @@
 
         {{-- Form --}}
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <form action="{{ route('admin.maintenance-management.parts.edit', $part->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-                
-                @include('admin.maintenance_management.parts.partials._form')
+            <!-- <form action="{{ route('admin.maintenance-management.parts.edit', $part->id) }}" method="POST"> -->
 
-                {{-- Form Actions --}}
-                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
-                    <a href="{{ route('admin.maintenance-management.parts.index') }}" 
-                       class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        Cancel
-                    </a>
-                    <button type="submit" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Update Part
-                    </button>
-                </div>
-            </form>
+            {{-- Form Start --}}
+
+            {!! html()->form('POST', route('admin.maintenance-management.parts.edit', $part->unique_id))
+            ->attributes([
+            'autocomplete' => 'off',
+            'data-parsley-validate' => true,
+            'class' => 'space-y-8',
+            ])
+            ->acceptsFiles()
+            ->open() !!}
+
+            @csrf
+            @method('PUT')
+
+            @include('admin.maintenance_management.parts.partials._form')
+
+            {{-- Form Actions --}}
+            <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+                <a href="{{ route('admin.maintenance-management.parts.index') }}"
+                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Update Part
+                </button>
+            </div>
+
+            {!! html()->form()->close() !!}
+
+
         </div>
     </div>
 </div>

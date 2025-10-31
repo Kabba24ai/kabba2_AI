@@ -24,6 +24,7 @@ class ViewController extends Controller
      */
     public function __invoke(string $unique_id): View
     {
+        $employees = User::orderBy('first_name')->get();
 
         $customer = Customer::with('orders.products','orders.payments',
             'invoices.items', 'accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
@@ -72,7 +73,10 @@ class ViewController extends Controller
         // biling sumary
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
+        // Load tag objects 
+        $customer->tag_objects = $customer->tag_objects ?? [];
 
+        // dd($customer);
 
         return view('admin.crm.customers.view', [
             'customer' => $customer,
@@ -83,7 +87,8 @@ class ViewController extends Controller
             'users'=>$users,
             'lastpaymentdate'=> $lastpaymentdate,
             'customers'=>$customers,
-            'paymentSetting' => $paymentSetting
+            'paymentSetting' => $paymentSetting ,
+            'employees' => $employees ,
         ]);
     }
 }

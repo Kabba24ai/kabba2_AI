@@ -17,7 +17,7 @@ class CustomerAddress extends Model
         'is_primary',
         'first_name',
         'last_name',
-
+        'country',
         'phone',
         'address',
 

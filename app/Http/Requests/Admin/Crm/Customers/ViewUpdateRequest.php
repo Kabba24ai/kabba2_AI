@@ -23,14 +23,14 @@ class ViewUpdateRequest extends FormRequest
     {
 
         return [
-            'first_name' => ['required'],
-            'last_name' => ['required'],
+            'first_name' => ['nullable'],
+            'last_name' => ['nullable'],
             'company_name' => ['nullable'],
             'email' => [
                 'required',
                 'email'
             ],
-            
+
             'phone' => ['required', 'string', 'max:30'],
 
             'company_website' => ['nullable'],
@@ -41,8 +41,11 @@ class ViewUpdateRequest extends FormRequest
             'tax_document_valid_until' => ['nullable'],
             'alladdresslist'=>['nullable'],
             'tax_document_media_id' => ['nullable'],
-            'tax_status' => ['nullable'] , 
+            'tax_status' => ['nullable'] ,
             'credit_limit' =>['nullable'],
+
+            'tags' => ['nullable'],
+            'sameAsBilling' => ['nullable'],
 
             'website_protocol' => ['nullable'],
             'website_extension' => ['nullable'],

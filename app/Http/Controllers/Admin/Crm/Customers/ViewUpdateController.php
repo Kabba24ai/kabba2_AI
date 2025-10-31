@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin\Crm\Customers;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Crm\Customers\ViewUpdateRequest;
+
+
+
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Carbon;
+use Illuminate\Http\Request;
 
 class ViewUpdateController extends Controller
 {
@@ -18,25 +22,21 @@ class ViewUpdateController extends Controller
      */
     public function __invoke(ViewUpdateRequest $request, string $unique_id)
     {
-        
-        // dd($request->all());
-        // die();
 
         $validated = $request->validated();
 
         $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
 
         DB::beginTransaction();
-      
-        try {
 
+        try {
 
             $customerData = [
                 'first_name' => $validated['first_name'] ?? null,
                 'last_name' => $validated['last_name'] ?? null,
                 'company_name' => $validated['company_name'] ?? null,
                 'email' => $validated['email'] ?? null,
-    
+
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
                 'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
@@ -45,11 +45,15 @@ class ViewUpdateController extends Controller
                  'tax_status' => $validated['tax_status'] ?? 'Taxable',
 
                     'credit_limit' => $validated['credit_limit'] ?? null,
+
+                'same_as_billing' => !empty($validated['sameAsBilling']) ? 1 : 0,
+
+                'tags' => isset($validated['tags']) ? json_encode($validated['tags']) : null,
+
+
             ];
 
-            //    $customerData['company_website'] = $fullWebsite;
 
-            
             // Only set company_website if it has a value
             if (!empty($validated['company_website'])) {
                 $fullWebsite = trim(
@@ -58,7 +62,6 @@ class ViewUpdateController extends Controller
                     ($validated['website_extension'] ?? '')
                 );
 
-               
             }
                 $customerData['company_website'] = $fullWebsite ?? '';
             $customer->update($customerData);
@@ -72,7 +75,7 @@ class ViewUpdateController extends Controller
                      // Set is_primary = 0 for all existing addresses of the submitted types
                         CustomerAddress::where('customer_id', $customer->id)
                             ->update(['is_primary' => 0]);
-                   
+
 
                     //  Loop through submitted and update/create
                     foreach ($submittedAddresses as $address) {
@@ -83,9 +86,10 @@ class ViewUpdateController extends Controller
                             'phone'         => $address['phone'] ?? null,
                             'address'       => $address['address'] ?? null,
                             'city'          => $address['city'] ?? null,
-                            'state_id'      => $address['state_id'] ?? null,
+                            'state_id' => !empty($address['state_id']) ? (int)$address['state_id'] : null,
                             'zip_code'      => $address['zip_code'] ?? null,
-                            'customer_id'   => $customer->id,
+                        'country'     => $address['Country'] ?? null,
+                        'customer_id'   => $customer->id,
                             'is_primary'  => 1 ,
                         ];
 
@@ -100,30 +104,7 @@ class ViewUpdateController extends Controller
                         }
                     }
                 }
-           
-            // if ($request->hasFile('tax_document')) {
-            //     if ($request->has('tax_document') && !is_null($request->file('tax_document'))) {
-            //         if (!is_null($customer->media)) {
-            //             MediaHelper::removeFile($customer->media);
-            //         }
-            //     }
 
-            //     $mediaData = MediaHelper::uploadStorageFile(
-            //         'Public Asset',
-            //         $request->file('tax_document'),
-            //         'customers',
-            //         $customer
-            //     );
-
-            //     if (!empty($mediaData['mediaObj'])) {
-            //         $customerData['tax_document_media_id'] = $mediaData['mediaObj']->id;
-                    
-            //         $customerData['tax_document_type'] = $validated['tax_document_type'] ?? null;
-
-            //         $customerData['tax_document_upload_date'] = now(); // or keep original if needed
-            //     }
-            //     $customer->update($customerData);
-            // }
 
             DB::commit();
 

@@ -29,6 +29,10 @@ class IndexController extends BaseController
         $perPage = $validatedData['per_page'] ?? 10;
 
         $customers = Customer::query()
+            ->with(['notes' => fn($q) => $q
+                ->with('user')
+            ])
+            ->where('id', '119')
             ->orderByRaw("CONCAT(first_name, ' ', last_name)")
             ->paginate($perPage);
 

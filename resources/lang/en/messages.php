@@ -28,6 +28,7 @@ return [
                 'rental_ready_checklists' => require base_path('resources/lang/en/api/admin/v1/rental_ready_checklists/messages.php'),
                 'stores' => require base_path('resources/lang/en/api/admin/v1/stores/messages.php'),
                 'customers' => require base_path('resources/lang/en/api/admin/v1/customers/messages.php'),
+
             ],
         ],
     ],

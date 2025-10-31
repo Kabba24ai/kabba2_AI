@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 // Controllers
 use App\Http\Controllers\Api\Admin\V1\Customers\IndexController;
+use App\Http\Controllers\Api\Admin\V1\Customers\StoreController;
+use App\Http\Controllers\Api\Admin\V1\Customers\Tags\IndexController as TagsIndexController;
+use App\Http\Controllers\Api\Admin\V1\Customers\Tags\StoreController as TagsStoreController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,4 +21,10 @@ use App\Http\Controllers\Api\Admin\V1\Customers\IndexController;
 
 Route::group(['prefix' => 'customers'], function () {
     Route::post('/', IndexController::class);
+    Route::post('/store', StoreController::class);
+
+    Route::group(['prefix' => 'tags'], function () {
+        Route::post('/', TagsIndexController::class);
+        Route::post('/store', TagsStoreController::class);
+    });
 });

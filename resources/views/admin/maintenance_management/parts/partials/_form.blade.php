@@ -262,7 +262,7 @@
             </div>
 
             {{-- Supplier Details --}}
-            <div id="primary-supplier-details" class="mt-4 border border-dashed border-gray-300 rounded-md h-20 flex items-center justify-center text-gray-400 text-sm bg-white">
+            <div id="primary-supplier-details" class="mt-4 p-4 border border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-400 text-sm bg-white">
                 Select supplier to view details
             </div>
 
@@ -333,7 +333,7 @@
             </div>
 
             {{-- Supplier Details --}}
-            <div id="supplier_alt_1_details" class="mt-4 border border-dashed border-gray-300 rounded-md h-20 flex items-center justify-center text-gray-400 text-sm bg-white">
+            <div id="supplier_alt_1_details" class="mt-4 p-4 border border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-400 text-sm bg-white">
                 Select supplier to view details
             </div>
         </div>
@@ -408,7 +408,7 @@
             </div>
 
             {{-- Supplier Details --}}
-            <div id="supplier_alt_2_details" class="mt-4 border border-dashed border-gray-300 rounded-md h-20 flex items-center justify-center text-gray-400 text-sm bg-white">
+            <div id="supplier_alt_2_details" class="mt-4 p-4 border border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-400 text-sm bg-white">
                 Select supplier to view details
             </div>
         </div>
@@ -515,7 +515,7 @@
                         }
 
                         display.innerHTML = `
-                     <div class="w-full mt-4  px-2 py-2 bg-blue-50 border border-blue-200 rounded text-x">
+                     <div class="w-full px-2 py-2 bg-blue-50 border border-blue-200 rounded text-x">
                         <div class="font-medium text-blue-900 mb-1">${data.name ?? 'N/A'}</div>
                         <div class="space-y-0.5 text-blue-800">
                             <div class="truncate">${data.address ?? data.full_address ?? '—'}</div>

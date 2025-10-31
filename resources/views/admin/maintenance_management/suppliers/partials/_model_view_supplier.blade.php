@@ -10,12 +10,29 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <div class="flex items-center gap-3">
                     <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-lg mr-4">
-                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white">
+                            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+                            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+                            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                            <path d="M10 6h4"></path>
+                            <path d="M10 10h4"></path>
+                            <path d="M10 14h4"></path>
+                            <path d="M10 18h4"></path>
+                        </svg>
                     </div>
                     <div>
                         <h3 class="text-3xl font-bold text-gray-900" id="viewSupplierName">-</h3>
                         <div class="gap-2 flex items-center mt-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-green-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            <svg id="viewSuppliersvgicon"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="w-5 h-5 text-green-600">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+
                             <span id="viewSupplierStatus" class="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 flex items-center gap-1">
                                 Active
                             </span>
@@ -38,7 +55,15 @@
                     <div class="bg-blue-50 p-4 rounded-md border border-blue-100">
                         <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-5">
                             <div class="bg-blue-600 p-2 rounded-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
+                                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+                                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+                                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                                    <path d="M10 6h4"></path>
+                                    <path d="M10 10h4"></path>
+                                    <path d="M10 14h4"></path>
+                                    <path d="M10 18h4"></path>
+                                </svg>
                             </div>
                             Company Information
                         </h1>
@@ -104,7 +129,10 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
                                 <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-400 mr-2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-400 mr-2">
+                                        <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                                        <line x1="2" x2="22" y1="10" y2="10"></line>
+                                    </svg>
                                     <span id="viewSupplierPaymentTerms" class="text-gray-900 text-sm ">Net 30</span>
                                 </div>
                                 <!-- <div>
@@ -117,15 +145,24 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
                                 <div class="flex flex-wrap gap-1" id="viewSupplierTags">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><path d="M7 7h.01"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
+                                            <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                                            <path d="M7 7h.01"></path>
+                                        </svg>
                                         #Design
                                     </span>
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><path d="M7 7h.01"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
+                                            <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                                            <path d="M7 7h.01"></path>
+                                        </svg>
                                         #Client
                                     </span>
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><path d="M7 7h.01"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
+                                            <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                                            <path d="M7 7h.01"></path>
+                                        </svg>
                                         #Maintenance
                                     </span>
                                 </div>
@@ -140,7 +177,10 @@
                         <div class="bg-green-50 p-4 rounded-md border border-green-100 ">
                             <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
                                 <div class="p-2 border rounded-md bg-green-600 text-white">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
+                                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
                                 </div>
 
                                 Primary Contact
@@ -179,7 +219,12 @@
                         <div class="bg-orange-50 p-4 rounded-md border border-orange-100 ">
                             <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
                                 <div class="bg-orange-600 p-2 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg>
                                 </div>
                                 Secondary Contact (Optional)
                             </h1>
@@ -221,7 +266,11 @@
                     <div class="bg-purple-50 p-4 rounded-md">
                         <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-5">
                             <div class="bg-purple-600 p-2 rounded-lg mr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                                    <line x1="3" x2="21" y1="10" y2="10"></line>
                                 </svg>
                             </div>
                             Business Details
@@ -247,7 +296,15 @@
                         <div class="bg-gray-50 p-4 rounded-md border border-gray-100 ">
                             <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
                                 <div class="bg-gray-600 p-2 rounded-lg mr-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
+                                        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+                                        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+                                        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                                        <path d="M10 6h4"></path>
+                                        <path d="M10 10h4"></path>
+                                        <path d="M10 14h4"></path>
+                                        <path d="M10 18h4"></path>
+                                    </svg>
                                 </div>
                                 Parts Supplied (4)
                             </h1>
@@ -306,9 +363,9 @@
             const response = await fetch(viewUrl);
             const result = await response.json();
 
-            console.log('result');
-            console.log(result);
-            console.log('result');
+            // console.log('result');
+            // console.log(result);
+            // console.log('result');
 
 
             if (result.status) {
@@ -323,19 +380,54 @@
                 document.getElementById('viewSupplierCategory').textContent = s.category?.name || 'N/A';
 
 
-                // Status badge color
+                // Status badge + icon update
                 const statusEl = document.getElementById('viewSupplierStatus');
+                const iconEl = document.getElementById('viewSuppliersvgicon');
+
+                if (!statusEl || !iconEl) return; // safety
 
                 if (s.status === 'Active') {
-                    statusEl.innerHTML = `Active`;
+                    //  Active
+                    statusEl.textContent = 'Active';
                     statusEl.className = 'px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 flex items-center gap-1';
+                    iconEl.outerHTML = `
+        <svg id="viewSuppliersvgicon" xmlns="http://www.w3.org/2000/svg"
+             width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round"
+             class="w-5 h-5 text-green-600">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>`;
                 } else if (s.status === 'Pending') {
-                    statusEl.textContent = s.status || 'Pending';
+                    //  Pending
+                    statusEl.textContent = 'Pending';
                     statusEl.className = 'px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 flex items-center gap-1';
+                    iconEl.outerHTML = `
+        <svg id="viewSuppliersvgicon" xmlns="http://www.w3.org/2000/svg"
+             width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round"
+             class="w-5 h-5 text-yellow-600">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>`;
                 } else {
+                    //  Inactive or any other
                     statusEl.textContent = s.status || 'Inactive';
                     statusEl.className = 'px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 flex items-center gap-1';
+                    iconEl.outerHTML = `
+        <svg id="viewSuppliersvgicon" xmlns="http://www.w3.org/2000/svg"
+             width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round"
+             class="w-5 h-5 text-red-600">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="m15 9-6 6"></path>
+            <path d="m9 9 6 6"></path>
+        </svg>`;
                 }
+
 
 
                 // Contact info
@@ -380,7 +472,21 @@
                     tags.forEach(tag => {
                         const span = document.createElement('span');
                         span.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700';
-                        span.textContent = `# ${tag.name}`;
+
+                        // Create the SVG icon
+                        const icon = `
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="14" height="14" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 class="w-3 h-3 mr-1 text-gray-500">
+                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                <path d="M7 7h.01"></path>
+            </svg>
+        `;
+
+                        // Add icon + text
+                        span.innerHTML = `${icon} #${tag.name}`;
                         tagsContainer.appendChild(span);
                     });
                 } else {

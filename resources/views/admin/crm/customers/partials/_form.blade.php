@@ -440,7 +440,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
             <!-- Assign to Funnels -->
-            <div class="md:col-span-2 mt-2 flex flex-col flex-grow">
+            <div class="md:col-span-2 flex flex-col flex-grow">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Funnels</label>
                 <div
                     class="border border-gray-300 rounded-md flex-grow flex items-center justify-center text-gray-400 text-sm bg-gray-50 hover:border-blue-400 hover:text-gray-700 transition-all">
@@ -818,7 +818,7 @@
 <script>
     function openNotesModal() {
         document.getElementById('notesModal').classList.remove('hidden');
-        renderOptions();
+       
     }
 
     function closeNotesModal() {
@@ -829,8 +829,8 @@
 <script>
     function openTagModal() {
         document.getElementById('TagModal').classList.remove('hidden');
-        renderOptions();
-    }
+     
+    }   
 
     function closeTagModal() {
         document.getElementById('TagModal').classList.add('hidden');

@@ -10,3 +10,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* this is for set height in .choices__inner  Start*/
+
+.choices__inner{
+    height:100% ;
+}
+.choices__input{
+    margin-bottom: 0;
+    padding: 0;
+}
+/* this is for set height in .choices__inner  end*/

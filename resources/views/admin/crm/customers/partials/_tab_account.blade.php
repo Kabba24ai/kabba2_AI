@@ -49,7 +49,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
 
             <div class="min-w-0">
-                <label class="text-xs text-gray-500 font-medium required">First Name </label>
+                <label class="text-xs text-gray-500 font-medium ">First Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
                 <!-- <input class="edit-view pl-2 pr-2 py-2 w-full bor der border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
 
@@ -63,13 +63,12 @@
                 'placeholder' => 'Enter First Name',
                 'id' => 'first_name',
                 'autocomplete' => 'off',
-                ])
-                ->required() !!}
+                ]) !!}
 
             </div>
 
             <div class="min-w-0">
-                <label class="text-xs text-gray-500 font-medium required">Last Name </label>
+                <label class="text-xs text-gray-500 font-medium ">Last Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
                 <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
 
@@ -84,7 +83,7 @@
                 'id' => 'last_name',
                 'autocomplete' => 'off',
                 ])
-                ->required() !!}
+                !!}
 
             </div>
 
@@ -158,7 +157,7 @@
         </h3>
         <div class="grid grid-cols-1 gap-4 text-sm text-gray-700">
             <div>
-                <label class="text-xs text-gray-500 font-medium required">Company Name </label>
+                <label class="text-xs text-gray-500 font-medium ">Company Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
                 <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
 
@@ -172,7 +171,7 @@
                 'placeholder' => 'Enter Company Name',
                 'id' => 'company_name',
                 ])
-                ->required() !!}
+                !!}
 
 
             </div>
@@ -307,7 +306,7 @@ $defaultAddresses = [
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium required">First Name </label>
+                    <label class="text-xs text-gray-500 font-medium ">First Name </label>
                     {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -316,10 +315,10 @@ $defaultAddresses = [
                     ->attributes([
                     'placeholder' => 'Enter First Name',
                     'class' => 'first_name'
-                    ])->required() !!}
+                    ]) !!}
                 </div>
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium required">Last Name </label>
+                    <label class="text-xs text-gray-500 font-medium ">Last Name </label>
                     {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -329,31 +328,33 @@ $defaultAddresses = [
 
                     'placeholder' => 'Last Name',
                     'class' => 'last_name'
-                    ])->required() !!}
+                    ]) !!}
                 </div>
             </div>
 
             <div>
-                <label class="text-xs text-gray-500 font-medium edit-view required">Address </label>
+                <label class="text-xs text-gray-500 font-medium edit-view ">Address </label>
                 <div class="static-view text-gray-900 text-sm">
-                    @if($addresse?->full_name)
-                    {{ $addresse->full_name }}<br>
-                    @endif
 
-                    @if($addresse?->address || $addresse?->city)
-                    {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
-                    @endif
+                    @php
+                    // Collect all non-empty fields except country
+                    $mainParts = array_filter([
+                    $addresse->address,
+                    $addresse->city,
+                    $addresse->state?->name,
+                    $addresse->zip_code,
+                    ]);
 
-                    @if($addresse?->state?->name || $addresse?->zip_code)
-                    {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
-                    @endif
-                    @if($addresse?->country)
-                    {{ $addresse?->country ? ', ' . $addresse->country : '' }} <br>
-                    @endif
+                    // Add country only if there is at least one other part
+                    $parts = $mainParts;
+                    if (!empty($mainParts) && !empty($addresse->country)) {
+                    $parts[] = $addresse->country;
+                    }
+                    @endphp
 
-                    @if($addresse?->phone)
-                    {{ App\Helpers\CustomHelper::formatPhone($addresse->phone) }}
-                    @endif
+                    <p>{{ implode(', ', $parts) ?: 'No address provided.' }}</p>
+
+
                 </div>
                 {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
                 ->class([
@@ -363,12 +364,12 @@ $defaultAddresses = [
                 ->attributes([
                 'placeholder' => 'Enter Address',
                 'class' => 'address'
-                ])->required() !!}
+                ]) !!}
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium required">City </label>
+                    <label class="text-xs text-gray-500 font-medium ">City </label>
                     {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -377,10 +378,10 @@ $defaultAddresses = [
                     ->attributes([
                     'placeholder' => 'Enter City',
                     'class' => 'city'
-                    ])->required() !!}
+                    ]) !!}
                 </div>
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium required">Zip Code </label>
+                    <label class="text-xs text-gray-500 font-medium ">Zip Code </label>
                     {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -390,14 +391,14 @@ $defaultAddresses = [
                     'maxlength' => 8,
                     'placeholder' => 'ZIP Code',
                     'class' => 'zip_code'
-                    ])->required() !!}
+                    ]) !!}
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium required">State </label>
+                    <label class="text-xs text-gray-500 font-medium ">State </label>
                     {!! html()
                     ->select("addresses[$index][state_id]",
                     ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
@@ -406,20 +407,11 @@ $defaultAddresses = [
                     ->class([
                     'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
                     'border-red-500' => $errors->has("addresses.$index.state_id"),
-                    ]) ->attribute('required', true) !!}
+                    ]) !!}
                 </div>
 
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium required">State </label>
-                    <!-- {!! html()
-                                    ->select("addresses[$index][state_id]",
-                                          ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
-                                        old("addresses.$index.state_id", $addresse->state_id ?? '')
-                                    )
-                                    ->class([
-                                        'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
-                                        'border-red-500' => $errors->has("addresses.$index.state_id"),
-                                    ]) ->attribute('required', true)  !!} -->
+                    <label class="text-xs text-gray-500 font-medium ">State </label>
 
                     {!! html()->select("addresses[$index][Country]", [
                     'USA' => 'USA',
@@ -428,8 +420,7 @@ $defaultAddresses = [
                     'India' => 'India',
                     ], old("addresses.$index.Country", $addresse->country ?? 'USA')
                     ) // default to USA if old or user value is not set
-                    ->id('country')
-                    ->class('pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm')
+                    ->class('pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm Country')
                     ->attributes([
                     'autocomplete' => 'off',
                     ])
@@ -439,7 +430,7 @@ $defaultAddresses = [
                 </div>
 
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
+                    <label class="text-xs text-gray-500 font-medium ">Phone Number </label>
 
 
                     {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
@@ -454,7 +445,7 @@ $defaultAddresses = [
                     'autocomplete' => 'tel',
                     'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
                     'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
-                    ])->required() !!}
+                    ]) !!}
 
                 </div>
 
@@ -873,7 +864,7 @@ $defaultAddresses = [
                         'Resale Certificate' => 'Resale Certificate',
                         'Non-Profit Exemption' => 'Non-Profit Exemption'
                         ])
-                        ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')->required()
+                        ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')
                         !!}
                     </div>
 
@@ -1078,7 +1069,7 @@ $defaultAddresses = [
                     <label class="block text-sm font-medium text-gray-700 mb-1 required">Note</label>
                     <textarea id="note_text" rows="5"
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500"
-                        placeholder="Enter note..." ></textarea>
+                        placeholder="Enter note..."></textarea>
                 </div>
             </div>
 
@@ -1413,7 +1404,7 @@ $defaultAddresses = [
 <script>
     function openNotesModal() {
         document.getElementById('notesModal').classList.remove('hidden');
-        renderOptions();
+
     }
 
     function closeNotesModal() {
@@ -1424,7 +1415,7 @@ $defaultAddresses = [
 <script>
     function openTagModal() {
         document.getElementById('TagModal').classList.remove('hidden');
-        renderOptions();
+
     }
 
     function closeTagModal() {
@@ -1502,7 +1493,7 @@ $defaultAddresses = [
                         updateTagSelect();
 
                         // If in edit mode existing tags
-                        if ( existingTagsInput?.value) {
+                        if (existingTagsInput?.value) {
                             try {
                                 const existing = JSON.parse(existingTagsInput.value);
                                 setCustomerTags(existing);
@@ -1572,119 +1563,122 @@ $defaultAddresses = [
 <!-- notes  -->
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const notesModal = document.getElementById('notesModal');
-    const noteText = document.getElementById('note_text');
-    const userSelect = document.getElementById('user_id');
-    const noteList = document.getElementById('noteList');
-    const addNoteBtn = document.getElementById('addNoteBtn');
-    const saveNoteBtn = document.getElementById('saveNoteBtn');
-    const modalTitle = document.getElementById('noteModalTitle');
-    
+    document.addEventListener("DOMContentLoaded", function() {
+        const notesModal = document.getElementById('notesModal');
+        const noteText = document.getElementById('note_text');
+        const userSelect = document.getElementById('user_id');
+        const noteList = document.getElementById('noteList');
+        const addNoteBtn = document.getElementById('addNoteBtn');
+        const saveNoteBtn = document.getElementById('saveNoteBtn');
+        const modalTitle = document.getElementById('noteModalTitle');
 
-    let notes = [];
-    let editNoteId = null;
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        let notes = [];
+        let editNoteId = null;
 
-    const updateUrlTemplate = `{{ route('admin.crm.customers.notes.update', ['note' => 'NOTE_ID_PLACEHOLDER']) }}`;
-const deleteUrlTemplate = `{{ route('admin.crm.customers.notes.delete', ['note' => 'NOTE_ID_PLACEHOLDER']) }}`;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    // Fetch all notes (from backend API)
-    function fetchNotes() {
-        fetch(`{{ route('admin.crm.customers.notes.fetch', $customer->id ?? 0) }}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    notes = data.notes || [];
-                    renderNotes();
-                } else {
-                    notyf.error("Failed to fetch notes");
-                }
-            })
-            .catch(() => notyf.error("Error fetching notes"));
-    }
+        const updateUrlTemplate = `{{ route('admin.crm.customers.notes.update', ['note' => 'NOTE_ID_PLACEHOLDER']) }}`;
+        const deleteUrlTemplate = `{{ route('admin.crm.customers.notes.delete', ['note' => 'NOTE_ID_PLACEHOLDER']) }}`;
 
-    //  Open Add Note modal
-    addNoteBtn.addEventListener('click', () => {
-        modalTitle.textContent = "Add Note";
-        noteText.value = "";
-        userSelect.selectedIndex = 0;
-        editNoteId = null;
-        notesModal.classList.remove('hidden');
-    });
-
-    //  Close modal
-    window.closeNotesModal = function () {
-        notesModal.classList.add('hidden');
-    };
-
-    //  Save note (create or update)
-   saveNoteBtn.addEventListener('click', () => {
-    const text = noteText.value.trim();
-    const userId = userSelect.value;
-
-    if (!text || !userId) {
-        notyf.error('Please fill all fields.');
-        return;
-    }
-
-    const payload = { text, user_id: userId };
-
-    if (editNoteId) {
-        const url = updateUrlTemplate.replace('NOTE_ID_PLACEHOLDER', editNoteId);
-        fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-            },
-            body: JSON.stringify(payload),
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    notyf.success('Note updated successfully');
-                    fetchNotes();
-                    closeNotesModal();
-                } else {
-                    notyf.error(data.message || 'Failed to update note');
-                }
-            })
-            .catch(() => notyf.error('Error updating note'));
-    } else {
-        fetch(`{{ route('admin.crm.customers.notes.store', $customer->id ?? 0) }}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-            },
-            body: JSON.stringify(payload),
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    notyf.success('Note added successfully');
-                    fetchNotes();
-                    closeNotesModal();
-                } else {
-                    notyf.error(data.message || 'Failed to add note');
-                }
-            })
-            .catch(() => notyf.error('Error adding note'));
-    }
-});
-
-    //  Render Notes List
-    function renderNotes() {
-        if (notes.length === 0) {
-            noteList.innerHTML = `<li class="text-gray-400 text-sm">No notes available.</li>`;
-          
-            return;
+        // Fetch all notes (from backend API)
+        function fetchNotes() {
+            fetch(`{{ route('admin.crm.customers.notes.fetch', $customer->id ?? 0) }}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        notes = data.notes || [];
+                        renderNotes();
+                    } else {
+                        notyf.error("Failed to fetch notes");
+                    }
+                })
+                .catch(() => notyf.error("Error fetching notes"));
         }
 
-        noteList.innerHTML = notes
-            .map(note => `
+        //  Open Add Note modal
+        addNoteBtn.addEventListener('click', () => {
+            modalTitle.textContent = "Add Note";
+            noteText.value = "";
+            userSelect.selectedIndex = 0;
+            editNoteId = null;
+            notesModal.classList.remove('hidden');
+        });
+
+        //  Close modal
+        window.closeNotesModal = function() {
+            notesModal.classList.add('hidden');
+        };
+
+        //  Save note (create or update)
+        saveNoteBtn.addEventListener('click', () => {
+            const text = noteText.value.trim();
+            const userId = userSelect.value;
+
+            if (!text || !userId) {
+                notyf.error('Please fill all fields.');
+                return;
+            }
+
+            const payload = {
+                text,
+                user_id: userId
+            };
+
+            if (editNoteId) {
+                const url = updateUrlTemplate.replace('NOTE_ID_PLACEHOLDER', editNoteId);
+                fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            notyf.success('Note updated successfully');
+                            fetchNotes();
+                            closeNotesModal();
+                        } else {
+                            notyf.error(data.message || 'Failed to update note');
+                        }
+                    })
+                    .catch(() => notyf.error('Error updating note'));
+            } else {
+                fetch(`{{ route('admin.crm.customers.notes.store', $customer->id ?? 0) }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            notyf.success('Note added successfully');
+                            fetchNotes();
+                            closeNotesModal();
+                        } else {
+                            notyf.error(data.message || 'Failed to add note');
+                        }
+                    })
+                    .catch(() => notyf.error('Error adding note'));
+            }
+        });
+
+        //  Render Notes List
+        function renderNotes() {
+            if (notes.length === 0) {
+                noteList.innerHTML = `<li class="text-gray-400 text-sm">No notes available.</li>`;
+
+                return;
+            }
+
+            noteList.innerHTML = notes
+                .map(note => `
                 <li class="list-disc border-b border-gray-200 pb-3" data-id="${note.id}">
                     <div class="flex justify-between items-start">
                         <div class="flex-1 pr-3">
@@ -1705,58 +1699,194 @@ const deleteUrlTemplate = `{{ route('admin.crm.customers.notes.delete', ['note' 
                     </div>
                 </li>
             `)
-            .join('');
+                .join('');
 
-      
-    }
 
-    //  Handle Edit / Delete
-    noteList.addEventListener('click', (e) => {
-        const editBtn = e.target.closest('.editNoteBtn');
-        const delBtn = e.target.closest('.deleteNoteBtn');
-
-        // Edit
-        if (editBtn) {
-            const id = parseInt(editBtn.dataset.id);
-            const note = notes.find(n => n.id === id);
-            if (!note) return;
-
-            modalTitle.textContent = "Edit Note";
-            noteText.value = note.text;
-            userSelect.value = note.user_id;
-            editNoteId = id;
-            notesModal.classList.remove('hidden');
         }
 
-        // Delete
-      
-if (delBtn) {
-    const id = parseInt(delBtn.dataset.id);
-    window.showConfirm('Delete this note?', 'Delete note').then(result => {
-        if (result.isConfirmed) {
-            const url = deleteUrlTemplate.replace('NOTE_ID_PLACEHOLDER', id);
-            fetch(url, {
-                method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        notyf.success('Note deleted successfully');
-                        fetchNotes();
-                    } else {
-                        notyf.error(data.message || 'Failed to delete note');
+        //  Handle Edit / Delete
+        noteList.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.editNoteBtn');
+            const delBtn = e.target.closest('.deleteNoteBtn');
+
+            // Edit
+            if (editBtn) {
+                const id = parseInt(editBtn.dataset.id);
+                const note = notes.find(n => n.id === id);
+                if (!note) return;
+
+                modalTitle.textContent = "Edit Note";
+                noteText.value = note.text;
+                userSelect.value = note.user_id;
+                editNoteId = id;
+                notesModal.classList.remove('hidden');
+            }
+
+            // Delete
+
+            if (delBtn) {
+                const id = parseInt(delBtn.dataset.id);
+                window.showConfirm('Delete this note?', 'Delete note').then(result => {
+                    if (result.isConfirmed) {
+                        const url = deleteUrlTemplate.replace('NOTE_ID_PLACEHOLDER', id);
+                        fetch(url, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken
+                                },
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    notyf.success('Note deleted successfully');
+                                    fetchNotes();
+                                } else {
+                                    notyf.error(data.message || 'Failed to delete note');
+                                }
+                            })
+                            .catch(() => notyf.error('Error deleting note'));
                     }
-                })
-                .catch(() => notyf.error('Error deleting note'));
-        }
-    });
-}
-    });
+                });
+            }
+        });
 
-    //  Initial load
-    fetchNotes();
-});
+        //  Initial load
+        fetchNotes();
+    });
+</script>
+
+
+<!-- Sync fields ( first name , last name ) -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const firstName = document.querySelector('#first_name');
+        const lastName = document.querySelector('#last_name');
+
+        const billingFirst = document.getElementById('addresses[0][first_name]');
+        const billingLast = document.getElementById('addresses[0][last_name]');
+        const deliveryFirst = document.getElementById('addresses[1][first_name]');
+        const deliveryLast = document.getElementById('addresses[1][last_name]');
+
+        let billingLinked = true;
+        let deliveryLinked = true;
+
+        // Sync names from main fields → address fields
+        firstName.addEventListener('input', () => {
+            if (billingLinked) billingFirst.value = firstName.value;
+            if (deliveryLinked) deliveryFirst.value = firstName.value;
+        });
+
+        lastName.addEventListener('input', () => {
+            if (billingLinked) billingLast.value = lastName.value;
+            if (deliveryLinked) deliveryLast.value = lastName.value;
+        });
+
+        // Stop syncing when user manually edits address fields
+        billingFirst.addEventListener('input', () => billingLinked = false);
+        billingLast.addEventListener('input', () => billingLinked = false);
+        deliveryFirst.addEventListener('input', () => deliveryLinked = false);
+        deliveryLast.addEventListener('input', () => deliveryLinked = false);
+    });
+</script>
+
+<!-- Sync fields Same As Billing -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize IMask for both fields
+        const phoneMasks = {};
+        document.querySelectorAll('.masked-phone').forEach(input => {
+            phoneMasks[input.id] = IMask(input, {
+                mask: '(000) 000-0000'
+            });
+        });
+
+        const billingFields = {
+            first_name: document.getElementById('addresses[0][first_name]'),
+            last_name: document.getElementById('addresses[0][last_name]'),
+            address: document.getElementById('addresses[0][address]'),
+            city: document.getElementById('addresses[0][city]'),
+            state: document.getElementById('addresses[0][state_id]'),
+            zip: document.getElementById('addresses[0][zip_code]'),
+            country: document.getElementById('addresses[0][Country]'),
+            phone: document.getElementById('addresses[0][phone]'),
+        };
+
+        const deliveryFields = {
+            first_name: document.getElementById('addresses[1][first_name]'),
+            last_name: document.getElementById('addresses[1][last_name]'),
+            address: document.getElementById('addresses[1][address]'),
+            city: document.getElementById('addresses[1][city]'),
+            state: document.getElementById('addresses[1][state_id]'),
+            zip: document.getElementById('addresses[1][zip_code]'),
+            country: document.getElementById('addresses[1][Country]'),
+            phone: document.getElementById('addresses[1][phone]'),
+        };
+
+
+        const sameAsBilling = document.querySelector('#sameAsBilling');
+
+        // Copy billing → delivery safely (works even with IMask)
+        const copyBillingToDelivery = () => {
+            for (let key in billingFields) {
+                if (key === 'phone') {
+                    // Use IMask-safe API
+                    const billingMask = phoneMasks[billingFields[key].id];
+                    const deliveryMask = phoneMasks[deliveryFields[key].id];
+                    deliveryMask.unmaskedValue = billingMask.unmaskedValue;
+                } else {
+                    deliveryFields[key].value = billingFields[key].value;
+                }
+            }
+        };
+
+        const clearDelivery = () => {
+            for (let key in deliveryFields) {
+                if (key === 'country') {
+                    deliveryFields[key].value = 'USA';
+                } else {
+                    deliveryFields[key].value = '';
+                }
+            }
+            // Reset mask explicitly
+            const deliveryMask = phoneMasks['delivery_phone'];
+            if (deliveryMask) deliveryMask.unmaskedValue = '';
+        };
+
+        const toggleDeliveryFields = (disabled) => {
+            for (let key in deliveryFields) {
+                deliveryFields[key].disabled = disabled;
+                deliveryFields[key].classList.toggle('bg-gray-100', disabled);
+                deliveryFields[key].classList.toggle('cursor-not-allowed', disabled);
+            }
+        };
+
+        // Initial setup
+        if (sameAsBilling.checked) {
+            copyBillingToDelivery();
+            toggleDeliveryFields(true);
+        }
+
+        // Listen for billing changes (with slight delay)
+        for (let key in billingFields) {
+            billingFields[key].addEventListener('input', () => {
+                if (sameAsBilling.checked) {
+                    setTimeout(copyBillingToDelivery, 10); // Wait for IMask to finish formatting
+                }
+            });
+        }
+
+        // Checkbox toggle
+        sameAsBilling.addEventListener('change', () => {
+            if (sameAsBilling.checked) {
+                copyBillingToDelivery();
+                toggleDeliveryFields(true);
+            } else {
+                clearDelivery();
+                toggleDeliveryFields(false);
+            }
+        });
+    });
 </script>
 
 

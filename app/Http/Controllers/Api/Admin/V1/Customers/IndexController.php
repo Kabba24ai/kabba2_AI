@@ -32,7 +32,6 @@ class IndexController extends BaseController
             ->with(['notes' => fn($q) => $q
                 ->with('user')
             ])
-            ->where('id', '119')
             ->orderByRaw("CONCAT(first_name, ' ', last_name)")
             ->paginate($perPage);
 

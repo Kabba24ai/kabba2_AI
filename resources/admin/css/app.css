@@ -924,3 +924,13 @@ svg.checkmark {
 
 /* Jignesh End */
 
+
+/* this is for set height in .choices__inner  Start*/
+
+.choices__inner{
+    height:100% ;
+}
+
+
+
+/* this is for set height in .choices__inner  END*/ 

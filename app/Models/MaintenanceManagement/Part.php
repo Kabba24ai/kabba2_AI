@@ -5,6 +5,7 @@ namespace App\Models\MaintenanceManagement;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Helpers\ModelHelper;
 
 class Part extends Model
 {
@@ -13,40 +14,49 @@ class Part extends Model
     protected $fillable = [
         'unique_id',
         'part_name',
-        'category',
-        'equipment_name',
-        'equipment_id',
-        'part_number',
-        'supplier',
-        'unit_cost',
+        'description',
+
+        // Inventory fields
         'stock_level',
         'min_stock',
         'dni',
-        'description',
-        'part_number_alt_1',
-        'cost_alt_1',
-        'supplier_alt_1',
-        'part_number_alt_2',
-        'cost_alt_2',
-        'supplier_alt_2',
-        'is_active'
+        'general_supply_item',
+        'is_active',
+
+        // Primary part details
+        'primary_part_number',
+        'primary_part_cost',
+        'primary_part_supplier_id',
+
+        // Alternative 1
+        'alt_1_part_number',
+        'alt_1_part_cost',
+        'alt_1_part_supplier_id',
+
+        // Alternative 2
+        'alt_2_part_number',
+        'alt_2_part_cost',
+        'alt_2_part_supplier_id',
     ];
 
     protected $casts = [
-        'unit_cost' => 'decimal:2',
-        'cost_alt_1' => 'decimal:2',
-        'cost_alt_2' => 'decimal:2',
-        'dni' => 'boolean',
-        'is_active' => 'boolean'
+        'primary_part_cost'    => 'decimal:2',
+        'alt_1_part_cost'      => 'decimal:2',
+        'alt_2_part_cost'      => 'decimal:2',
+        'dni'                  => 'boolean',
+        'general_supply_item'  => 'boolean',
+        'is_active'            => 'boolean',
     ];
+
+
 
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (empty($model->unique_id)) {
-                $model->unique_id = Str::uuid();
+                $model->unique_id = ModelHelper::generateUniqueID($model, 'PRT');
             }
         });
     }

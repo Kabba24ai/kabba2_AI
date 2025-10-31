@@ -23,6 +23,8 @@
                         {{ html()->form()->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
+                                'id' => 'customerForm',
+
                             'class' => 'space-y-8',
                         ])->acceptsFiles()->open() }}
 
@@ -48,6 +50,18 @@
 
                                 <!-- Right Section: Buttons -->
                                 <div class="flex flex-wrap gap-2">
+                                    <div class="flex-1">
+                                        <label for="category" class="block text-sm font-medium text-gray-700 mt-2">Status</label>
+                                    </div>
+                                    <!-- Field 2: Status -->
+                                    <div class="w-40 min-w-[150px]">
+                                        <select id="status" name="status" required
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="Active">Active</option>
+                                            <option value="Inactive">Inactive</option>
+                                            <option value="Archived">Archived</option>
+                                        </select>
+                                    </div>
                                     <button type="submit" name="action" value="save" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-sm font-semibold shadow transition"> Save
                                         <x-heroicon-o-check class="w-4 h-4 ml-2" />
                                     </button>
@@ -72,22 +86,11 @@
                    
                     {{ html()->form()->close() }}
 
-                    
-        @include('admin.crm.customers.partials._add_address_form')
-                    
-
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('openAddressModal').addEventListener('click', () => {
-        const modalRoot = document.querySelector('[x-ref="addressRoot"]');
-        if (modalRoot?._x_dataStack?.[0]) {
-            modalRoot._x_dataStack[0].showAddressModal = true;
-        }
-    });
-
-});
-
-        </script>
+                  
 
 @endsection
+
+@push('js')
+
+@endpush
 

@@ -28,8 +28,9 @@ class CreateController extends Controller
     $website_protocol = 'https://';       // default protocol
     $website_extension = '.com';          // default extension
     $company_website = '';
+        $employees = User::orderBy('first_name')->get();
 
-    return view('admin.crm.customers.create', compact('admins','states','company_website','website_extension','website_protocol'));
+        return view('admin.crm.customers.create', compact('admins','states','company_website','website_extension','website_protocol', 'employees'));
 }
-    
+
 }

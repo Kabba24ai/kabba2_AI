@@ -37,7 +37,7 @@
                 <!-- Add New Category -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Add New Tag</label>
-                    <div class="flex gap-3">
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <input type="text" id="newTagInput"
                             class="flex-1 px-3 py-2 text-sm border rounded-md focus:ring-green-500 focus:border-green-500"
                             placeholder="Enter Tag name">
@@ -69,7 +69,7 @@
                 <div>
                     <h4 class="text-sm font-semibold text-gray-700 mb-2">All Tags (<span id="totalTags">0</span>)</h4>
 
-                    <ul id="tagList" class="space-y-2">
+                    <ul id="tagList" class="space-y-2 w-full overflow-y-auto">
 
                     </ul>
 
@@ -157,13 +157,13 @@
 
             filteredTags.forEach((tag) => {
                 const li = document.createElement('li');
-                li.className = 'flex items-center justify-between px-4 py-2 rounded-md border border-gray-200 bg-white text-blue-700';
+                li.className = 'w-full px-4 py-2 rounded-md border border-gray-200 bg-white text-blue-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3';
 
                 const leftDiv = document.createElement('div');
                 leftDiv.className = 'flex gap-2 items-center w-full';
 
                 const nameSpan = document.createElement('span');
-                nameSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium mr-3 bg-blue-100 text-blue-800 border border-blue-200';
+                nameSpan.className = 'inline-flex whitespace-nowrap items-center px-2.5 py-0.5 rounded-full text-sm font-medium mr-3 bg-blue-100 text-blue-800 border border-blue-200';
                 nameSpan.innerHTML = `#${tag.name}`;
 
 

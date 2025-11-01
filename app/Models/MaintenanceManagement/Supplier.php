@@ -33,9 +33,13 @@ class Supplier extends Model
         'primary_contact_name',
         'primary_contact_email',
         'primary_contact_phone',
-        'secondary_contact_name',
-        'secondary_contact_email',
-        'secondary_contact_phone',
+        'inside_sales_name',
+        'inside_sales_email',
+        'inside_sales_phone',
+        'technical_support_name',
+        'technical_support_email',
+        'technical_support_phone',
+
         'company_logo_media_id',
     ];
 
@@ -58,7 +62,7 @@ class Supplier extends Model
 
     public function category()
     {
-        return $this->belongsTo(SupplierCategory::class, 'supplier_category_id');
+        return $this->belongsTo(PartCategory::class, 'supplier_category_id');
     }
 
     public function media()

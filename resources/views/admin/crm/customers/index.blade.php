@@ -26,7 +26,7 @@
         </a>
 
         <a href="javascript:void(0)" onclick="openModal('TagModalWrapper')"
-            class="inline-flex items-center justify-center rounded-lg border border-brand-500 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+            class="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
             Manage Tags
         </a>
     </div>

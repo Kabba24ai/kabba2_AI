@@ -27,6 +27,7 @@ class ViewController extends Controller
         $employees = User::orderBy('first_name')->get();
 
         $customer = Customer::with('orders.products','orders.payments',
+            'notes.user',
             'invoices.items', 'accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();

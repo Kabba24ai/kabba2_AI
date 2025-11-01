@@ -183,7 +183,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
 
                             {!! html()->select('supplierCountry', [
-                            '' => 'Select country',
+
                             'USA' => 'USA',
                             'Canada' => 'Canada',
                             'UK' => 'UK',
@@ -220,7 +220,7 @@
 
 
                             {!! html()->select('supplierStatus', [
-                            '' => 'Select Status',
+
                             'Active' => 'Active',
                             'Inactive' => 'Inactive',
                             'Pending' => 'Pending',
@@ -243,13 +243,23 @@
                             'Net 75' => 'Net 75',
                             ], old('supplierPaymentTerms'))
                             ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
-                            ->id('supplierPaymentTerms')->required() !!}
+                            ->id('supplierPaymentTerms') !!}
 
                         </div>
 
                         <!-- Tags -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                                <button type="button" onclick="openTagModal()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Add
+                                </button>
+                            </div>
+
                             <select id="supplierTags" name="tags[]" multiple
 
                                 class="choices-select w-full rounded-md border border-gray-300 text-sm">
@@ -373,7 +383,7 @@
                     </div>
                 </div>
 
-                <!-- Secondary Contact (Optional) -->
+                <!-- insideSales (Optional) -->
                 <div class="bg-orange-50 p-4 rounded-md mt-5">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <div class="bg-orange-600 p-1 rounded-lg mr-2">
@@ -383,8 +393,8 @@
                                 <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                             </svg>
-                        </div>Secondary Contact
-                        <span class="text-sm font-normal text-gray-500 ml-2">(Optional)</span>
+                        </div>Inside Sales
+                        <!-- <span class="text-sm font-normal text-gray-500 ml-2">(Optional)</span> -->
                     </h3>
 
                     <!-- 3 inputs in one row -->
@@ -392,25 +402,25 @@
                         <!-- Contact Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                            <!-- <input type="text" id="secondaryContactName" name="secondaryContactName" class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" placeholder="Full name"> -->
-                            {!! html()->text('secondaryContactName', old('secondaryContactName'))
+
+                            {!! html()->text('insideSalesName', old('insideSalesName'))
                             ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500')
-                            ->attributes(['placeholder' => 'Full name', 'id' => 'secondaryContactName']) !!}
+                            ->attributes(['placeholder' => 'Full name', 'id' => 'insideSalesName']) !!}
                         </div>
 
                         <!-- Contact Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
 
-                            {!! html()->email('secondaryContactEmail', old('secondaryContactEmail'))->class([
+                            {!! html()->email('insideSalesEmail', old('insideSalesEmail'))->class([
                             'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
                             'placeholder' => 'Enter Email',
-                            'id' => 'secondaryContactEmail',
+                            'id' => 'insideSalesEmail',
                             'autocomplete' => 'off',
-                            'name' => 'secondaryContactEmail',
+                            'name' => 'insideSalesEmail',
                             'data-parsley-type' => 'email',
                             'data-parsley-trigger' => 'change',
                             ]) !!}
@@ -420,18 +430,54 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
 
-                            {!! html()->text('secondaryContactPhone', old('secondaryContactPhone'))->class([
+                            {!! html()->text('insideSalesPhone', old('insideSalesPhone'))->class([
                             'masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
-                            'border-red-500' => $errors->has('secondaryContactPhone'),
-                            'border-gray-300' => !$errors->has('secondaryContactPhone'),
+                            'border-red-500' => $errors->has('insideSalesPhone'),
+                            'border-gray-300' => !$errors->has('insideSalesPhone'),
                             ])->attributes([
                             'maxlength' => 14,
                             'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
                             'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
                             'placeholder' => '(xxx) xxx-xxxx',
-                            'id' => 'secondaryContactPhone',
+                            'id' => 'insideSalesPhone',
                             'autocomplete' => 'tel',
                             ]) !!}
+
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-md mt-5">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <div class="bg-blue-600 p-1 rounded-lg mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>Technical Support
+                        <!-- <span class="text-sm font-normal text-gray-500 ml-2">(Optional)</span> -->
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Contact Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
+                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" type="text" name="technicalSupportName" id="technicalSupportName" placeholder="Full name">
+                        </div>
+
+                        <!-- Contact Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+
+                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="email" name="technicalSupportEmail" id="technicalSupportEmail" placeholder="Enter Email" autocomplete="off" data-parsley-type="email" data-parsley-trigger="change">
+                        </div>
+
+                        <!-- Contact Phone -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
+
+                            <input class="masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="text" name="technicalSupportPhone" id="technicalSupportPhone" maxlength="14" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$" data-parsley-error-message="Please enter phone number in format (xxx) xxx-xxxx" placeholder="(xxx) xxx-xxxx" autocomplete="tel">
 
                         </div>
                     </div>
@@ -450,6 +496,43 @@
                     class="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">
                     Add Supplier
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- tag module   -->
+<div id="TagModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-sm flex flex-col max-h-full overflow-hidden border border-gray-200">
+
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-lg font-semibold text-gray-900">Add Tag</h2>
+                </div>
+                <button type="button" onclick="closeTagModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+            <!-- Scrollable Content -->
+            <div class="px-6 overflow-y-auto max-h-[70vh] mt-5 mb-5">
+                <div class="mb-4">
+                    <label for="newTagInput2" class="block text-sm font-medium text-gray-700 mb-1 required"> New Tag</label>
+
+                    <input class="w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm border-gray-300 " type="text" name="newTagInput2" id="newTagInput2">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
+                <button type="button" onclick="closeTagModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+                <button type="button" id="addTagBtn2" class="flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-all"> <svg id="addTagSpinner" xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 hidden animate-spin"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                            stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span id="addTagText">Add</span> </button>
             </div>
         </div>
     </div>
@@ -582,9 +665,12 @@
             setFieldValue('primaryContactName', s.primary_contact_name);
             setFieldValue('primaryContactEmail', s.primary_contact_email);
             setFieldValue('primaryContactPhone', s.primary_contact_phone);
-            setFieldValue('secondaryContactName', s.secondary_contact_name);
-            setFieldValue('secondaryContactEmail', s.secondary_contact_email);
-            setFieldValue('secondaryContactPhone', s.secondary_contact_phone);
+            setFieldValue('insideSalesName', s.inside_sales_name);
+            setFieldValue('insideSalesEmail', s.inside_sales_email);
+            setFieldValue('insideSalesPhone', s.inside_sales_phone);
+            setFieldValue('technicalSupportName', s.technical_support_name);
+            setFieldValue('technicalSupportEmail', s.technical_support_email);
+            setFieldValue('technicalSupportPhone', s.technical_support_phone);
 
 
             // === Set SELECT dropdown values ===
@@ -671,7 +757,7 @@
                 methodInput.name = "_method";
                 form.appendChild(methodInput);
             }
-            methodInput.value = "PATCH";
+            // methodInput.value = "PATCH";
         }
     }
 
@@ -686,7 +772,7 @@
             'supplierCompany', 'email', 'supplierPhone', 'supplierWebsite',
             'supplierAddress', 'supplierCity', 'supplierZip', 'supplierTax',
             'primaryContactName', 'primaryContactEmail', 'primaryContactPhone',
-            'secondaryContactName', 'secondaryContactEmail', 'secondaryContactPhone'
+            'insideSalesName', 'insideSalesEmail', 'insideSalesPhone', 'technicalSupportName', 'technicalSupportEmail', 'technicalSupportPhone'
         ];
         fields.forEach(id => {
             const el = document.getElementById(id);
@@ -694,7 +780,7 @@
         });
 
         // Reset selects
-        ['supplierStatus', 'supplierPaymentTerms', 'supplierCategorysform'].forEach(id => {
+        ['supplierPaymentTerms', 'supplierCategorysform'].forEach(id => {
             const select = document.getElementById(id);
             if (select) select.value = '';
         });
@@ -741,6 +827,81 @@
     }
 </script>
 
+<!-- -------- add tag --------  -->
 
+
+<script>
+    function openTagModal() {
+        document.getElementById('TagModal').classList.remove('hidden');
+
+    }
+
+    function closeTagModal() {
+        document.getElementById('TagModal').classList.add('hidden');
+    }
+</script>
+
+
+
+<!-- this is for appear tags her form choice js  -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const addTagBtn = document.getElementById('addTagBtn2');
+        const addTagText = document.getElementById('addTagText');
+        const addTagSpinner = document.getElementById('addTagSpinner');
+        const newTagInput = document.getElementById('newTagInput2');
+
+
+        // Add new tag
+        addTagBtn.addEventListener('click', () => {
+            const name = newTagInput.value.trim();
+            if (!name) {
+                notyf.error("Tag cannot be empty!");
+                return;
+            }
+
+            //  Start loading animation
+            addTagBtn.disabled = true;
+            addTagSpinner.classList.remove('hidden');
+            addTagText.textContent = 'Saving...';
+
+            fetch(`{{ route('admin.maintenance-management.suppliers.tag.store') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        name
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        notyf.success(data.message || 'Tag added!');
+                        newTagInput.value = '';
+                        fetchTags(); // refresh tag list
+                    } else {
+                        notyf.error(data.message || 'Failed to add tag');
+                    }
+                })
+                .catch(() => notyf.error("Failed to add tag"))
+                .finally(() => {
+                    //  Stop loading animation
+                    addTagBtn.disabled = false;
+                    addTagSpinner.classList.add('hidden');
+                    addTagText.textContent = 'Add';
+
+                    closeTagModal()
+                });
+        });
+
+    });
+</script>
+
+
+<!-- notes  -->
 
 @endpush

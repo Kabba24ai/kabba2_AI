@@ -1,33 +1,30 @@
-<!-- Tag Modal -->
-<div id="TagModalWrapper" class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+<!-- Category Modal -->
+<div id="CategoryModalWrapper" class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
     <div class="modal-scrollable w-full mx-auto">
         <div
             class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-4xl space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full"
             onclick="event.stopPropagation()">
-            <!--  Proper Header Section -->
-
+            <!--
+            Proper Header Section -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50 mb-0">
                 <!-- Left side (icon + text) -->
                 <div class="flex items-start gap-3">
                     <!-- Icon -->
-                    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-2 rounded-lg mr-3 mt-1">
-
-
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
-                            <path d="M7 7h.01"></path>
+                    <div class="bg-gradient-to-r from-green-600 to-teal-600 p-2 rounded-lg mr-3 mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white">
+                            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
                         </svg>
                     </div>
 
                     <!-- Title + Subtitle stacked -->
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800">Tags Management</h3>
-                        <p class="text-sm text-gray-600">Manage your supplier Tags and categories</p>
+                        <h3 class="text-lg font-semibold text-gray-800">Categories Management</h3>
+                        <p class="text-sm text-gray-600">Manage your parts categories </p>
                     </div>
                 </div>
 
                 <!-- Close button -->
-                <button onclick="closeModal('TagModalWrapper')" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+                <button onclick="closeModal('CategoryModalWrapper')" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
             </div>
 
             <!--  End Header -->
@@ -36,40 +33,37 @@
             <div class="px-6 py-5 space-y-6 overflow-y-auto">
                 <!-- Add New Category -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Add New Tag</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Add New Category</label>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="text" id="newTagInput"
+                        <input type="text" id="newCategoryInput"
                             class="flex-1 px-3 py-2 text-sm border rounded-md focus:ring-green-500 focus:border-green-500"
-                            placeholder="Enter Tag name">
-                        <button id="addTagBtn"
+                            placeholder="Enter category name">
+                        <button id="addCategoryBtn"
                             class="px-3 py-2 bg-green-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center text-sm">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            Add Tag
+                            Add Category
                         </button>
                     </div>
                 </div>
 
-
-                <!-- Search Tag -->
+                <!-- Search Category -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Tags</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Category</label>
                     <div class="relative">
-
-                        <input type="text" id="searchTagInput"
+                        <input type="text" id="searchCategoryInput"
                             class="w-full px-3 py-2 border rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
-                            placeholder="Search existing tags...">
-
+                            placeholder="Search existing categories...">
                     </div>
                 </div>
 
-                <!-- Tag List -->
+                <!-- Category List -->
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-2">All Tags (<span id="totalTags">0</span>)</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">All Category (<span id="totalcatagarys">0</span>)</h4>
 
-                    <ul id="tagList" class="space-y-2 w-full overflow-y-auto">
+                    <ul id="categoryList" class="space-y-2 w-full overflow-y-auto">
 
                     </ul>
 
@@ -78,7 +72,7 @@
 
             <!-- Footer -->
             <div class="flex justify-end gap-2 px-6 py-3 border-t bg-gray-50">
-                <button type="button" onclick="closeModal('TagModalWrapper')"
+                <button type="button" onclick="closeModal('CategoryModalWrapper')"
                     class="px-4 py-2 text-sm rounded border border-gray-300 bg-white hover:bg-gray-100">
                     Close
                 </button>
@@ -94,71 +88,84 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        window.tags = [];
-        const tagSelect = document.getElementById('supplierTags');
+        //  Define empty array first so renderCategories() doesn’t fail
+        window.categories = [];
 
-        if (!tagSelect) return;
+        const categoryList = document.getElementById('categoryList');
+        const newCategoryInput = document.getElementById('newCategoryInput');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const searchCategoryInput = document.getElementById('searchCategoryInput');
 
-        // Initialize Choices once
-        if (tagSelect && !window.tagChoices) {
-            window.tagChoices = new Choices(tagSelect, {
-                removeItemButton: true,
-                duplicateItemsAllowed: false,
-                shouldSort: false,
-                placeholderValue: 'Select or type tags',
-                addItems: true,
-                addItemText: value => `Press Enter to add #${value}`,
-                itemSelectText: '',
-            });
-        }
-        // Update the full list of tags (Add form)
-        function updateTagSelect() {
-            if (!window.tagChoices) return;
+        const partSelect = document.getElementById('partCategory');
 
-            // Build choices array
-            const choicesArray = window.tags.map(tag => ({
-                value: String(tag.id),
-                label: `#${tag.name}`,
-                selected: false
-            }));
-
-            // Update choices without clearing the instance
-            window.tagChoices.setChoices(choicesArray, 'value', 'label', true);
-        }
-
-
-        //  Define globally
-        window.fetchTags = function() {
-            fetch(`{{ route('admin.maintenance-management.suppliers.tag.fetch') }}`)
+        function fetchCategories() {
+            fetch(`{{ route('admin.maintenance-management.parts.category.fetch') }}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        window.tags = data.tags.map(tag => ({
-                            name: tag.name,
-                            usedBy: tag.usedBy,
-                            id: tag.id
+                        window.categories = data.categories.map(cat => ({
+                            name: cat.name,
+                            usedBy: cat.usedBy,
+                            id: cat.id
                         }));
+                        renderCategories();
+                        renderSelect();
 
-                        // Optional: call other global helpers if defined
-                        if (typeof renderTags === 'function') renderTags();
-                        if (typeof updateTagSelect === 'function') updateTagSelect();
                     }
                 })
-                .catch((e) => {
-                    console.error("❌ Error in fetchTags:", e);
-                    notyf.error("Error in fetchTags!");
+                .catch(() => notyf.error("Failed to load categories"));
+        }
+
+
+        function renderSelect() {
+
+            // Filter select
+            const filterSelect = document.getElementById('partCategorys');
+            if (filterSelect) {
+                filterSelect.innerHTML = '<option value="">All Categories</option>';
+                window.categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    filterSelect.appendChild(opt);
                 });
-        };
+            }
+
+            if (!partSelect) return;
+
+            partSelect.innerHTML = '<option value="">All Categories</option>';
+            window.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                partSelect.appendChild(opt);
+            });
 
 
-        function renderTags(filter = '') {
-            const tagList = document.getElementById('tagList');
-            tagList.innerHTML = '';
+            // this is rerender the suppier form
+            const select = document.getElementById('partCategorysform');
+            if (!select) return;
 
-            //  Build a filtered list
-            const filteredTags = tags.filter(tag => tag.name.toLowerCase().includes(filter.toLowerCase()));
+            select.innerHTML = '<option value="">Select Category</option>';
+            window.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                select.appendChild(opt);
+            });
+            // this is rerender the suppier form
+        }
 
-            filteredTags.forEach((tag) => {
+
+        function renderCategories(filter = '') {
+            categoryList.innerHTML = '';
+
+            //  Filter list separately
+            const filteredCategories = categories.filter(cat =>
+                cat.name.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            filteredCategories.forEach(cat => {
                 const li = document.createElement('li');
                 li.className = 'w-full px-4 py-2 rounded-md border border-gray-200 bg-white text-blue-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3';
 
@@ -167,18 +174,15 @@
 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'inline-flex whitespace-nowrap items-center px-2.5 py-0.5 rounded-full text-sm font-medium mr-3 bg-blue-100 text-blue-800 border border-blue-200';
-                nameSpan.innerHTML = `#${tag.name}`;
-
+                nameSpan.textContent = `${cat.name} (Default)`;
 
                 const infoSpan = document.createElement('span');
                 infoSpan.className = 'text-xs text-blue-600';
-                infoSpan.innerHTML = `<span class="text-sm text-gray-500">Used by ${tag.usedBy} Suppliers</span>`;
-
+                infoSpan.innerHTML = `<span class="text-sm  text-gray-500">Used by ${cat.usedBy} Suppliers</span>`;
 
                 leftDiv.appendChild(nameSpan);
                 leftDiv.appendChild(infoSpan);
                 li.appendChild(leftDiv);
-                // li.appendChild(nameSpan);
 
                 const btnDiv = document.createElement('div');
                 btnDiv.className = 'flex items-center gap-3';
@@ -189,34 +193,32 @@
                 editBtn.title = 'Edit';
                 editBtn.innerHTML = `
                     <x-heroicon-o-pencil class="w-5 h-5" />`;
-
                 btnDiv.appendChild(editBtn);
-
 
                 //  Delete button
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'text-red-800';
+                deleteBtn.className = 'text-red-600';
                 deleteBtn.title = 'Delete';
                 deleteBtn.innerHTML = `
                     <x-heroicon-o-trash class="w-5 h-5" />`;
-
-
                 btnDiv.appendChild(deleteBtn);
 
                 li.appendChild(btnDiv);
-                tagList.appendChild(li);
+                categoryList.appendChild(li);
 
                 // --- Edit functionality ---
                 editBtn.addEventListener('click', () => {
-                    li.classList.remove('bg-purple-100', 'text-purple-700', 'border-purple-200');
+                    li.classList.remove('bg-blue-100', 'text-blue-700', 'border-blue-200');
                     li.classList.add('bg-white', 'text-gray-900', 'border-gray-300');
 
                     const inputName = document.createElement('input');
                     inputName.type = 'text';
-                    inputName.value = tag.name;
+                    inputName.value = cat.name;
                     inputName.className = 'border px-2 py-1 rounded w-full text-sm';
                     leftDiv.innerHTML = '';
                     leftDiv.appendChild(inputName);
+
+                    catId = cat.id;
 
 
                     // Change icon to Save
@@ -228,17 +230,25 @@
                     </svg>`;
                     editBtn.title = 'Save';
 
-
-                    // Save handler
                     editBtn.addEventListener('click', () => {
                         const newName = inputName.value.trim();
                         if (!newName) {
-                            notyf.error("Tag cannot be empty!");
+                            notyf.error("Category name cannot be empty!");
                             return;
                         }
 
-                        let updateUrl = `{{ route('admin.maintenance-management.suppliers.tag.update', ['tag' => ':id']) }}`;
-                        updateUrl = updateUrl.replace(':id', tag.id);
+                        //  Frontend uniqueness check (ignore current category)
+                        const nameExists = window.categories.some(
+                            cat => cat.name.toLowerCase() === newName.toLowerCase() && cat.id !== catId
+                        );
+
+                        if (nameExists) {
+                            notyf.error("This category name already exists!");
+                            return;
+                        }
+
+                        let updateUrl = `{{ route('admin.maintenance-management.parts.category.update', ['category' => ':id']) }}`;
+                        updateUrl = updateUrl.replace(':id', cat.id);
 
                         fetch(updateUrl, {
                                 method: 'PUT',
@@ -254,13 +264,14 @@
                             .then(data => {
                                 if (data.success) {
                                     notyf.success(data.message);
-                                    fetchTags();
-                                    fetchSuppliers();
+                                    fetchCategories();
+
                                 } else {
                                     notyf.error("Update failed!");
                                 }
                             })
-                            .catch(() => notyf.error("Error updating Tag!"));
+                            .catch(() => notyf.error("Error updating category!"));
+
                     }, {
                         once: true
                     });
@@ -269,13 +280,13 @@
                 // --- Delete functionality ---
                 deleteBtn.addEventListener('click', () => {
                     window.showConfirm(
-                        `Are you sure you want to delete "${tag.name}"?`,
-                        'Delete tag'
+                        `Are you sure you want to delete "${cat.name}"?`,
+                        'Delete Category'
                     ).then((result) => {
                         if (result.isConfirmed) {
                             //  Construct delete URL dynamically
-                            let deleteUrl = `{{ route('admin.maintenance-management.suppliers.tag.delete', ['tag' => ':id']) }}`;
-                            deleteUrl = deleteUrl.replace(':id', tag.id);
+                            let deleteUrl = `{{ route('admin.maintenance-management.parts.category.delete', ['category' => ':id']) }}`;
+                            deleteUrl = deleteUrl.replace(':id', cat.id);
 
                             fetch(deleteUrl, {
                                     method: 'DELETE',
@@ -288,32 +299,44 @@
                                 .then(data => {
                                     if (data.success) {
                                         notyf.success(data.message);
-                                        fetchTags(); // Refresh list
+                                        fetchCategories(); // Refresh list
                                     } else {
-                                        notyf.error("Failed to delete Tags!");
+                                        notyf.error("Failed to delete category!");
                                     }
                                 })
-                                .catch(() => notyf.error("Error deleting Tags!"));
+                                .catch(() => notyf.error("Error deleting category!"));
                         }
                     });
                 });
 
+
+
             });
 
-            // Update total tags count
-            document.getElementById('totalTags').textContent = tags.length;
+            // Update total count
+            document.getElementById('totalcatagarys').textContent = categories.length;
 
-            updateTagSelect();
         }
 
-        // Add new tag
-        document.getElementById('addTagBtn').addEventListener('click', () => {
-            const name = document.getElementById('newTagInput').value.trim();
+        // --- Add new category ---
+        addCategoryBtn.addEventListener('click', () => {
+            const name = newCategoryInput.value.trim();
             if (!name) {
-                notyf.error("Tag cannot be empty!");
+                notyf.error("Category name cannot be empty!");
                 return;
             }
-            fetch(`{{ route('admin.maintenance-management.suppliers.tag.store') }}`, {
+
+            //  Frontend uniqueness check
+            const nameExists = window.categories.some(
+                cat => cat.name.toLowerCase() === name.toLowerCase()
+            );
+
+            if (nameExists) {
+                notyf.error("This category name already exists!");
+                return;
+            }
+
+            fetch(`{{ route('admin.maintenance-management.parts.category.store') }}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -326,21 +349,20 @@
                 .then(res => res.json())
                 .then(data => {
                     notyf.success(data.message);
-                    document.getElementById('newTagInput').value = '';
-                    fetchTags();
+                    newCategoryInput.value = '';
+                    fetchCategories();
                 })
-                .catch(() => notyf.error("Failed to add Tag"));
-
+                .catch(() => notyf.error("Failed to add category"));
 
         });
 
-        // Search tags
-        document.getElementById('searchTagInput').addEventListener('input', (e) => {
-            renderTags(e.target.value);
+        // --- Search functionality ---
+        searchCategoryInput.addEventListener('input', (e) => {
+            renderCategories(e.target.value);
         });
 
-        // Initial render
-        fetchTags();
+        fetchCategories();
+
     });
 </script>
 

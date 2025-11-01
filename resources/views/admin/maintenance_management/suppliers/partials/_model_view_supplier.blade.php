@@ -186,13 +186,13 @@
                                 Primary Contact
                             </h1>
 
-                            <div>
-                                <div class="mb-5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
                                     <div class="text-sm text-gray-900" id="PrimaryContactName">john Week</div>
 
                                 </div>
-                                <div class="mb-5">
+                                <div class="">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                     <div>
                                         <p class="text-blue-600 flex items-center gap-1 text-sm" id="PrimaryContactEmail">
@@ -226,15 +226,15 @@
                                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                                     </svg>
                                 </div>
-                                Secondary Contact (Optional)
+                                Inside Sales
                             </h1>
 
-                            <div>
-                                <div class="mb-5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
                                     <div class="text-sm text-gray-900" id="SecondaryContactName">john Week</div>
                                 </div>
-                                <div class="mb-5">
+                                <div class="">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                     <div>
                                         <p class="text-blue-600 flex items-center gap-1 text-sm" id="SecondaryContactEmail">
@@ -256,6 +256,49 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Secondary Contact -->
+                        <div class="bg-blue-50 p-4 rounded-md border border-orange-100 ">
+                            <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                                <div class="bg-blue-600 p-2 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg>
+                                </div>
+                                Technical Support
+                            </h1>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
+                                    <div class="text-sm text-gray-900" id="technicalSupportName"></div>
+                                </div>
+                                <div class="">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <div>
+                                        <p class="text-blue-600 flex items-center gap-1 text-sm" id="technicalSupportEmail">
+                                            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
+                                            </svg>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mb-5">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                    <div>
+                                        <p class="text-blue-600 flex items-center gap-1 text-sm" id="technicalSupportPhone">
+                                            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
+                                            </svg>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -363,10 +406,8 @@
             const response = await fetch(viewUrl);
             const result = await response.json();
 
-            // console.log('result');
-            // console.log(result);
-            // console.log('result');
 
+            console.log(result);
 
             if (result.status) {
                 const s = result.data;
@@ -494,7 +535,9 @@
                 }
 
                 document.getElementById('PrimaryContactName').textContent = s.primary_contact_name || 'N/A';
-                document.getElementById('SecondaryContactName').textContent = s.secondary_contact_name || 'N/A';
+                document.getElementById('SecondaryContactName').textContent = s.inside_sales_name || 'N/A';
+                document.getElementById('technicalSupportName').textContent = s.technical_support_name || 'N/A';
+
 
 
                 document.getElementById('PrimaryContactEmail').innerHTML = `
@@ -506,7 +549,12 @@
                 document.getElementById('SecondaryContactEmail').innerHTML = `
                 <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
-                                            </svg> ${s.secondary_contact_email || 'N/A'}
+                                            </svg> ${s.inside_sales_email || 'N/A'}
+            `;
+                document.getElementById('technicalSupportEmail').innerHTML = `
+                <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
+                                            </svg> ${s.technical_support_email || 'N/A'}
             `;
 
                 document.getElementById('PrimaryContactPhone').innerHTML = `
@@ -515,10 +563,17 @@
                                             </svg> ${s.primary_contact_phone || 'N/A'}
             `;
 
+                document.getElementById('technicalSupportPhone').innerHTML = `
+                <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
+                                            </svg> ${s.technical_support_phone || 'N/A'}
+            `;
+
+
                 document.getElementById('SecondaryContactPhone').innerHTML = `
                 <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
-                                            </svg> ${s.secondary_contact_phone || 'N/A'}
+                                            </svg> ${s.inside_sales_phone || 'N/A'}
             `;
 
                 openModal('ViewSupplier');

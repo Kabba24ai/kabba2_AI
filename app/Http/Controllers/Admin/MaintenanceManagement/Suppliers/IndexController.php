@@ -24,7 +24,7 @@ class IndexController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('primary_contact_name', 'like', "%{$request->search_name_email}%")
                     ->orWhere('email', 'like', "%{$request->search_name_email}%")
-                    ->orWhere('secondary_contact_name', 'like', "%{$request->search_name_email}%");
+                    ->orWhere('inside_sales_name', 'like', "%{$request->search_name_email}%");
             });
         }
         

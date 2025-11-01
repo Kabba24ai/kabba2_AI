@@ -38,14 +38,33 @@
 
         {{-- parts --}}
         <div x-show="selected === 'parts'">
-            <div class="bg-white rounded-md p-5 shadow-sm border border-gray-100 mb-6">
-                <div class="flex items-center space-x-3 mb-2">
-                    <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                    <h1 class="text-2xl font-semibold text-gray-900">Parts Management</h1>
+            <div class="bg-white rounded-md p-5 shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+                <!-- Left Section -->
+                <div>
+                    <div class="flex items-center space-x-3 mb-2">
+                        <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <h1 class="text-2xl font-semibold text-gray-900">Parts Management</h1>
+                    </div>
+                    <p class="text-gray-600">Manage parts inventory across all equipment</p>
                 </div>
-                <p class="text-gray-600">Manage parts inventory across all equipment</p>
+
+                <!-- Right Buttons -->
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <!-- Manage Category -->
+                    <a href="javascript:void(0)" onclick="openModal('CategoryModalWrapper')"
+                        class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                        </svg>
+                        Manage Category
+                    </a>
+                </div>
+
             </div>
 
 
@@ -128,12 +147,9 @@
                     {{-- Category Filter --}}
                     <div class="w-full sm:w-48">
 
-                        <select id="supplierCategory" name="category" class="w-full px-3 py-2  border border-gray-300 rounded-md text-sm text-gray-900">
-                            <option value="">All Category</option>
-                            <option value="2">Equipment all</option>
-                            <option value="6">Financing == Default</option>
-                            <option value="3">Supplies</option>
-                            <option value="4">tegories</option>
+                        <!-- Category Filter -->
+                        <select id="partCategorys" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900">
+                            <option value="">All Categories</option>
                         </select>
                     </div>
 
@@ -437,6 +453,9 @@
     </div>
 </div>
 
+
+@include('admin.maintenance_management.parts.partials._model_category')
+
 @endsection
 
 @push('js')
@@ -450,6 +469,35 @@
     function closeSupplierModal() {
         document.getElementById('supplierModal').classList.add('hidden');
     }
+</script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // === Common Modal Functions ===
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('hidden');
+        }
+
+
+        // === Optional: Close when clicking outside modal content ===
+        window.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-wrapper')) {
+                e.target.classList.add('hidden');
+            }
+        });
+
+        // === Make globally accessible ===
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+    });
 </script>
 
 
@@ -734,6 +782,10 @@
         equipmentSelect?.addEventListener('change', fetchParts);
     });
 </script>
+
+
+
+
 
 
 @endpush

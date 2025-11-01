@@ -37,6 +37,8 @@ class Part extends Model
         'alt_2_part_number',
         'alt_2_part_cost',
         'alt_2_part_supplier_id',
+
+        'part_category_id',
     ];
 
     protected $casts = [
@@ -75,4 +77,10 @@ class Part extends Model
         if ($this->stock_level < $this->min_stock) return 'buy-now';
         return 'in-stock';
     }
+
+    public function category()
+    {
+        return $this->belongsTo(PartCategory::class, 'part_category_id');
+    }
+
 }

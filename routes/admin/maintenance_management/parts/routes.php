@@ -34,4 +34,5 @@ Route::prefix('parts')
     // templates
     require base_path('routes/admin/maintenance_management/parts/templates/routes.php');
 
-    });
+    require base_path('routes/admin/maintenance_management/parts/category/routes.php');
+});

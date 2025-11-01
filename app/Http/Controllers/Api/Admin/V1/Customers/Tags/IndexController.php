@@ -23,13 +23,6 @@ class IndexController extends BaseController
     {
         $customerTags = Tag::query()->get();
 
-        if ($customerTags->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => trans('messages.api.admin.v1.customers.tags.no_tags_found'),
-            ], JsonResponse::HTTP_NOT_FOUND);
-        }
-
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.customers.tags.tags_found'),

@@ -35,15 +35,37 @@
             <!-- Body -->
             <div class="px-6 py-5 space-y-6 overflow-y-auto">
                 <!-- Add New Category -->
+
+                {{ html()->form()->attributes([
+    'autocomplete' => 'off',
+    'data-parsley-validate' => true,
+    'id' => 'NewTagform',
+    'class' => 'space-y-8',
+])->acceptsFiles()->open() }}
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Add New Tag</label>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="text" id="newTagInput"
-                            class="flex-1 px-3 py-2 text-sm border rounded-md focus:ring-green-500 focus:border-green-500"
-                            placeholder="Enter Tag name">
-                        <button id="addTagBtn"
-                            class="px-3 py-2 bg-green-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center text-sm">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex-1">
+                            <input
+                                type="text"
+                                id="newTagInput"
+                                name="name"
+                                required
+                                data-parsley-required="true"
+                                data-parsley-trigger="keyup"
+                                data-parsley-required-message="Please enter a tag name."
+                                data-parsley-errors-container="#tagNameError"
+                                class="w-full px-3 py-2 text-sm border rounded-md focus:ring-green-500 focus:border-green-500"
+                                placeholder="Enter Tag name">
+                            <!-- Parsley error container -->
+                            <div id="tagNameError" class="text-red-500 text-xs mt-1"></div>
+                        </div>
+                        <button
+                            id="addTagBtn"
+                            type="submit"
+                            class="h-full px-3 py-2 bg-green-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center text-sm">
+                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
@@ -51,6 +73,9 @@
                         </button>
                     </div>
                 </div>
+
+                {{ html()->form()->close() }}
+
 
 
                 <!-- Search Tag -->
@@ -96,11 +121,8 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.tags = [];
 
-      
-
-    
         function fetchTags() {
-            
+
             fetch(`{{ route('admin.crm.tags.fetch') }}`)
                 .then(res => res.json())
                 .then(data => {
@@ -111,7 +133,7 @@
                             id: tag.id
                         }));
                         renderTags();
-                       
+
                     }
                 })
                 .catch((e) => {
@@ -188,6 +210,7 @@
                     leftDiv.innerHTML = '';
                     leftDiv.appendChild(inputName);
 
+                    tagId = tag.id;
 
                     // Change icon to Save
                     editBtn.innerHTML = `
@@ -204,6 +227,16 @@
                         const newName = inputName.value.trim();
                         if (!newName) {
                             notyf.error("Tag cannot be empty!");
+                            return;
+                        }
+
+                        //  Frontend uniqueness check (ignore current category)
+                        const nameExists = window.tags.some(
+                            tag => tag.name.toLowerCase() === newName.toLowerCase() && tag.id !== tagId
+                        );
+
+                        if (nameExists) {
+                            notyf.error("This tag name already exists!");
                             return;
                         }
 
@@ -225,7 +258,7 @@
                                 if (data.success) {
                                     notyf.success(data.message);
                                     fetchTags();
-                                  
+
                                 } else {
                                     notyf.error("Update failed!");
                                 }
@@ -273,36 +306,69 @@
             // Update total tags count
             document.getElementById('totalTags').textContent = tags.length;
 
-          
+
         }
 
-        // Add new tag
-        document.getElementById('addTagBtn').addEventListener('click', () => {
+        const form = document.getElementById('NewTagform');
+        const nameInput = document.getElementById('newTagInput');
 
-            const name = document.getElementById('newTagInput').value.trim();
-            if (!name) {
-                notyf.error("Tag cannot be empty!");
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const parsleyForm = $(form).parsley();
+            const parsleyField = $(nameInput).parsley();
+
+            // Clear any old errors before checking again
+            parsleyField.removeError('server', {
+                updateClass: true
+            });
+
+            // Run client-side validation
+            if (!parsleyForm.isValid()) {
+                parsleyForm.validate();
                 return;
             }
-            fetch(`{{ route('admin.crm.tags.store') }}`, {
+
+            try {
+                const res = await fetch(`{{ route('admin.crm.tags.store') }}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify({
-                        name
+                        name: nameInput.value.trim()
                     })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    notyf.success(data.message);
-                    document.getElementById('newTagInput').value = '';
-                    fetchTags();
-                })
-                .catch(() => notyf.error("Failed to add Tag"));
+                });
 
+                if (res.status === 422) {
+                    // Laravel validation error
+                    const data = await res.json();
+                    if (data.errors && data.errors.name) {
+                        //  Show Laravel’s message under the input
+                        parsleyField.addError('server', {
+                            message: data.errors.name[0],
+                            updateClass: true
+                        });
+                    }
+                    return;
+                }
 
+                if (!res.ok) throw new Error('Network response was not ok');
+
+                const data = await res.json();
+
+                parsleyField.removeError('server', {
+                    updateClass: true
+                });
+                notyf.success(data.message);
+                nameInput.value = '';
+                fetchTags();
+            } catch (err) {
+                console.error('Error submitting form:', err);
+                notyf.error('Failed to add Tag');
+            }
         });
 
         // Search tags

@@ -7,8 +7,9 @@
               <tr>
                   <th class="px-4 py-3 text-left font-semibold">Supplier</th>
                   <th class="px-4 py-3 text-left font-semibold">Contact</th>
-                  <th class="px-4 py-3 text-left font-semibold">Category</th>
+                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Product Category</th>
                   <th class="px-4 py-3 text-left font-semibold">Status</th>
+                  <th class="px-4 py-3 text-left font-semibold">Parts Category</th>
                   <th class="px-4 py-3 text-left font-semibold">Parts</th>
                   <th class="px-4 py-3 text-left font-semibold">Tags</th>
                   <th class="px-4 py-3 text-left font-semibold">Actions</th>
@@ -57,7 +58,8 @@
 
                   <td class="px-6 py-4 whitespace-nowrap">
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {{ $supplier->category->name ?? 'N/A' }}
+                          <!-- {{ $supplier->category->name ?? 'N/A' }} -->
+                          Accessories
                       </span>
                   </td>
 
@@ -71,6 +73,12 @@
                       @endphp
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border {{ $statusColor }}">
                           <span class="capitalize">{{ $supplier->status }}</span>
+                      </span>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {{ $supplier->category->name ?? 'N/A' }}
                       </span>
                   </td>
 

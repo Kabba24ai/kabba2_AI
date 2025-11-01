@@ -25,7 +25,7 @@
             <!-- Right Buttons -->
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <!-- Manage Category -->
-                <a href="javascript:void(0)" onclick="openModal('CategoryModalWrapper')"
+                <!-- <a href="javascript:void(0)" onclick="openModal('CategoryModalWrapper')"
                     class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -33,7 +33,7 @@
                             d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
                     </svg>
                     Manage Category
-                </a>
+                </a> -->
 
                 <!-- Manage Tags -->
                 <a href="javascript:void(0)" onclick="openModal('TagModalWrapper')"
@@ -108,7 +108,7 @@
 
         {{-- Category Dropdown --}}
         <div class="w-full sm:w-48">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Parts Category</label>
             <select id="supplierCategory" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                 <option value="">All Categories</option>
             </select>

@@ -464,7 +464,7 @@ $defaultAddresses = [
         <!-- Tags and Notes -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
             <!-- Tags -->
-            <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
+            <div class="edit-view bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
                 <div class="flex items-center justify-between mb-2">
                     <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
                     <button type="button" onclick="openTagModal()"
@@ -483,6 +483,31 @@ $defaultAddresses = [
                 <select id="ContactTags" name="tags[]" multiple
                     class="choices-select w-full rounded-md border border-gray-300 text-sm flex-grow"></select>
             </div>
+
+            <!-- Tags -->
+            <div class="static-view bg-white rounded-lg shadow border border-gray-200 p-6 ">
+                <div class="">
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
+                    </div>
+
+                    <!-- <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label> -->
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($customer->tag_objects as $tag)
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
+                                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                                <path d="M7 7h.01"></path>
+                            </svg>
+                            #{{ $tag->name }}
+                        </span>
+                        @endforeach
+                    </div>
+
+                </div>
+
+            </div>
+
 
             <!-- Notes Section -->
             <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">

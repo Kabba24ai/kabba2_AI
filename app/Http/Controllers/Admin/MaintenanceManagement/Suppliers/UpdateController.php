@@ -15,6 +15,7 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
+        // dd($validated);
     
         DB::beginTransaction();
 
@@ -33,14 +34,17 @@ class UpdateController extends Controller
                 'tax_id'                 => $validated['supplierTax'] ?? null,
                 'supplier_category_id'   => $validated['supplierCategory'] ?? null,
                 'status'                 => $validated['supplierStatus'],
-                'payment_terms'          => $validated['supplierPaymentTerms'] ?? null,
+                'payment_terms'          => $validated['supplierPaymentTerms'] ,
                 'tags'                   => isset($validated['tags']) ? implode(',', $validated['tags']) : null,
                 'primary_contact_name'   => $validated['primaryContactName'] ?? null,
                 'primary_contact_email'  => $validated['primaryContactEmail'] ?? null,
                 'primary_contact_phone'  => $validated['primaryContactPhone'] ?? null,
-                'secondary_contact_name' => $validated['secondaryContactName'] ?? null,
-                'secondary_contact_email' => $validated['secondaryContactEmail'] ?? null,
-                'secondary_contact_phone' => $validated['secondaryContactPhone'] ?? null,
+                'inside_sales_name' => $validated['insideSalesName'] ?? null,
+                'inside_sales_email' => $validated['insideSalesEmail'] ?? null,
+                'inside_sales_phone' => $validated['insideSalesPhone'] ?? null,
+                'technical_support_name' => $validated['technicalSupportName'] ?? null,
+                'technical_support_email' => $validated['technicalSupportEmail'] ?? null,
+                'technical_support_phone' => $validated['technicalSupportPhone'] ?? null,
             ]);
 
 

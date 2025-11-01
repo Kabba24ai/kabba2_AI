@@ -23,7 +23,7 @@ Route::prefix('suppliers')
 
     Route::get('/edit/{id}', EditController::class)->name('edit');
 
-    Route::patch('/update/{supplier}', UpdateController::class)->name('update');
+    Route::post('/update/{supplier}', UpdateController::class)->name('update');
 
     Route::delete('/delete/{supplier}', DeleteController::class)->name('delete');
 

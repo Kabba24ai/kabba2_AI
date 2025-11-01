@@ -47,9 +47,15 @@ class UpdateRequest extends FormRequest
             'upload_company_logo' => 'nullable|file|mimes:jpg,jpeg,png|max:10240',
 
             // Secondary Contact
-            'secondaryContactName'  => 'nullable',
-            'secondaryContactEmail' => 'nullable|email',
-            'secondaryContactPhone' => [
+            'insideSalesName'  => 'nullable',
+            'insideSalesEmail' => 'nullable|email',
+            'insideSalesPhone' => [
+                'nullable'
+            ],
+
+            'technicalSupportName'  => 'nullable',
+            'technicalSupportEmail' => 'nullable|email',
+            'technicalSupportPhone' => [
                 'nullable'
             ],
         ];
@@ -63,7 +69,7 @@ class UpdateRequest extends FormRequest
             'supplierWebsite.url' => 'Please enter a valid website URL.',
             'supplierPhone.regex' => 'Phone number must be in format (xxx) xxx-xxxx.',
             'primaryContactPhone.regex' => 'Primary contact phone must be in format (xxx) xxx-xxxx.',
-            'secondaryContactPhone.regex' => 'Secondary contact phone must be in format (xxx) xxx-xxxx.',
+            'insideSalesPhone.regex' => 'inside Sales phone must be in format (xxx) xxx-xxxx.',
             'supplierStatus.required' => 'Status is required.',
         ];
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\Category;
+namespace App\Http\Controllers\Admin\MaintenanceManagement\Parts\Category;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\PartCategory;

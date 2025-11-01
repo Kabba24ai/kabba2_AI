@@ -4,12 +4,12 @@ namespace App\Http\Requests\Admin\MaintenanceManagement\Suppliers\Tag;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreRequest extends FormRequest
+class UpdateRequest extends FormRequest
 {
     public function rules()
     {
         return [
-            'name' => 'required|unique:tags,name',
+            'name' => 'required',
         ];
     }
 

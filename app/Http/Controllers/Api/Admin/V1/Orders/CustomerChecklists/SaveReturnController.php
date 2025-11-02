@@ -109,6 +109,7 @@ class SaveReturnController extends BaseController
             'pickup_status' => 'Completed',
             'is_returned' => true,
             'end_hours' => $validated['end_hours'] ?? null,
+            'fuel_final_reading' => $validated['fuel_final_reading'] ?? null,
             'total_charge' => $validated['total_charge'] ?? null,
         ];
 

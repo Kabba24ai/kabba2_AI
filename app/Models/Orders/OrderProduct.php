@@ -59,6 +59,8 @@ class OrderProduct extends Model
 
         'start_hours',
         'end_hours',
+        'fuel_initial_reading',
+        'fuel_final_reading',
         'total_charge',
 
         'equipment_id',

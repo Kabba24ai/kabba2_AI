@@ -56,6 +56,7 @@ class SaveReturnRequest extends ApiBaseFormRequest
             'store_id' => 'required|string|exists:stores,id',
             'user_id' => 'required|string|exists:users,id',
             'end_hours' => 'nullable|string',
+            'fuel_final_reading' => 'nullable|string',
             'total_charge' => 'nullable|string',
             'note' => 'nullable|string',
 

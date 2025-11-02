@@ -81,6 +81,7 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
             'store_id' => 'nullable|string|exists:stores,id',
             'user_id' => 'required|string|exists:users,id',
             'start_hours' => 'nullable|string',
+            'fuel_initial_reading' => 'nullable|string',
             'note' => 'nullable|string',
 
              // For multipart, Laravel's "max" is in KB; 2048 = 2MB

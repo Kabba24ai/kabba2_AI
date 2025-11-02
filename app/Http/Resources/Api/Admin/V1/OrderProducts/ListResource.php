@@ -76,6 +76,9 @@ class ListResource extends JsonResource
 
             'start_hours' => (float) ($this->start_hours ?? 0.0),
             'end_hours' => (float) ($this->end_hours ?? 0.0),
+            'fuel_initial_reading' => $this->fuel_initial_reading ?? '',
+            'fuel_final_reading' => $this->fuel_final_reading ?? '',
+
             'total_charge' => (float) ($this->total_charge ?? 0.0),
 
             'equipment' => new EquipmentListResource($this->whenLoaded('equipment')),

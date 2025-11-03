@@ -71,8 +71,8 @@ class StoreController extends Controller
                     'extended_delivery_fee' => null,
                     'in_store_pickup' => null,
                     'delivery_and_pickup' => null,
-                    'hour_tracking' => null,
-                    'hour_rate' => null,
+                    // 'hour_tracking' => null,
+                    // 'hour_rate' => null,
                     'sale_price_daily' => null,
                     'sale_price_weekend' => null,
                     'sale_price_weekly' => null,
@@ -107,8 +107,8 @@ class StoreController extends Controller
 
                     'in_store_pickup' => $validated['in_store_pickup'] ?? null,
                     'delivery_and_pickup' => $validated['delivery_and_pickup'] ?? 'No',
-                    'hour_tracking' => $validated['hour_tracking'] ?? 'No',
-                    'hour_rate' => $validated['hour_rate'] ?? null,
+                    // 'hour_tracking' => $validated['hour_tracking'] ?? 'No',
+                    // 'hour_rate' => $validated['hour_rate'] ?? null,
 
                     'sale_price_daily' => $validated['sale_price_daily'] ?? null,
                     'sale_price_weekend' => $validated['sale_price_weekend'] ?? null,

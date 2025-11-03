@@ -25,7 +25,7 @@ class VerifyMasterController extends Controller
                 $fieldSetting = Setting::where('setting_name', $validated['field_name'])->first();
                 if ($fieldSetting->is_encrypted === 0) {
                     $fieldValue = $fieldSetting ? $fieldSetting->setting_value : null;
-                }else {
+                } else {
                     $fieldValue = $fieldSetting ? $fieldSetting->getDecryptedSettingValue() : null;
                 }
                 session(['master_verified' => true]);
@@ -45,5 +45,13 @@ class VerifyMasterController extends Controller
                 403,
             );
         }
+
+        return response()->json(
+            [
+                'success' => false,
+                'message' => 'Wrong master password.',
+            ],
+            403,
+        );
     }
 }

@@ -29,7 +29,7 @@ class SendTermsAndConditionsController extends Controller
                 $customerName = $order->shippingAddress->full_name;
                 $orderNumber = $order->order_number;
 
-                $message = "Hello {$customerName},\n\nPlease click the link to sign the Terms & Conditions for your rental order: #{$orderNumber}: {$termsUrl}";
+                $message = "Hello {$customerName},\n\nPlease click the link to sign the Terms & Conditions for your rental order: {$orderNumber}: {$termsUrl}";
 
                 try {
                     $twilio = new TwilioService();

@@ -869,7 +869,7 @@
                                     <button id="send-terms"
                                         data-url="{{ route('admin.order-management.orders.send-terms', ['unique_id' => $order->unique_id]) }}">
                                         <span
-                                            class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                            class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-yellow-500 text-white text-base font-bold">
                                             <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
 
                                             <!-- Tooltip -->

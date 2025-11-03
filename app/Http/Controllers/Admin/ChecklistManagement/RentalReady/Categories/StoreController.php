@@ -7,6 +7,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
 
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminCategory;
+
+
 // Request
 use App\Http\Requests\Admin\ChecklistManagement\RentalReady\Categories\StoreRequest;
 
@@ -20,6 +23,7 @@ class StoreController extends Controller
     {
         $validated = $request->validated();
 
+        // dd($validated);
         DB::beginTransaction();
 
         try {
@@ -27,6 +31,14 @@ class StoreController extends Controller
                 'category_name' => $validated['category_name'],
                 'description'   => $validated['description'] ?? null,
             ]);
+
+            // If checkbox is checked, also create identical Customer Admin category
+            if (!empty($validated['create_customer_folder']) && $validated['create_customer_folder'] == 1) {
+                CustomerAdminCategory::create([
+                    'category_name' => $validated['category_name'],
+                    'description'   => $validated['description'] ?? null,
+                ]);
+            }
 
             DB::commit();
 

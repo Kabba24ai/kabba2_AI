@@ -14,7 +14,7 @@ class StoreRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        
+
     }
 
     public function rules(): array
@@ -22,6 +22,8 @@ class StoreRequest extends FormRequest
          return [
             'category_name' => ['required'],
             'description'   => ['nullable'],
+            'create_customer_folder'   => ['nullable'],
+
         ];
     }
 

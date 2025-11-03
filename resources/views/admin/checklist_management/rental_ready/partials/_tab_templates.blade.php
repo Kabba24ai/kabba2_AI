@@ -152,11 +152,11 @@
                                   </span>
 
                                   <!-- Required / General -->
-                                  @if ($templateQuestion->question?->required_question == 1)
+                                  <!-- @if ($templateQuestion->question?->required_question == 1)
                                       <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">Required</span>
                                   @else
                                       <span class="text-xs text-gray-500">General</span>
-                                  @endif
+                                  @endif -->
                               </div>
                           @endforeach
 
@@ -464,7 +464,7 @@ window.syncQuestionsInput = function () {
                                 <p class="text-sm font-medium text-gray-900">${item.text}</p>
                                 <p class="text-xs text-gray-500">${item.category}</p>
                             </div>
-                            ${item.required ? '<span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-medium">Required</span>' : ''}
+
                         </div>
                     `;
                     availableEl.appendChild(div);
@@ -497,7 +497,7 @@ window.syncQuestionsInput = function () {
                         </div>
                         <button type="button" data-remove="${index}" class="text-red-500 hover:text-red-700 font-bold">✕</button>
                     </div>
-                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-600 pl-8">
+                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-600 pl-8 hidden" >
                         <label class="inline-flex items-center">
                             <input type="checkbox" class="h-3 w-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-1"
                                    ${item.required ? 'checked' : ''} data-checkbox="${index}">

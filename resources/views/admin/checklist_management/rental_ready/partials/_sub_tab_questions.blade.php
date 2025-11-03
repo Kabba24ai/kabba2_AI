@@ -32,7 +32,6 @@
                            <option value="{{ $category->id }}"> {{ $category->category_name }} </option>
                            @endforeach
 
-                           <!-- <option>Engine</option> -->
                        </select>
                    </div>
 
@@ -385,7 +384,7 @@
        let answerOptions = [{
            id: 1,
            text: '',
-           status: 'Rental Ready'
+           status: 'Maint. Hold'
        }];
        let nextId = 2;
 
@@ -411,15 +410,29 @@
                    'bg-white border border-gray-300 rounded-md px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4';
                wrapper.setAttribute('data-id', option.id);
 
+               // disable drag handle & delete for the first option
+               const dragHandle = index === 0 ? '' : `
+                <div class="flex items-center mb-2 sm:mb-0">
+                    <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
+                        </svg>
+                    </span>
+                </div>`;
+
+               const deleteButton = index === 0 ? '' : `
+                <div>
+                    <button type="button" onclick="removeOption(${index})"
+                        class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
+                        title="Delete">
+                        <x-heroicon-o-trash class="w-4 h-4" />
+                    </button>
+                </div>`;
+
                wrapper.innerHTML = `
-    <div class="flex items-center mb-2 sm:mb-0">
-        <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
-            </svg>
-        </span>
-    </div>
+
+     ${dragHandle}
 
     <div class="flex-1">
         <input type="text" placeholder="Answer description..."
@@ -437,24 +450,19 @@
         </select>
     </div>
 
-   <div>
-                <button type="button" onclick="removeOption(${index})"
-    class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
-    title="Delete">
-    <x-heroicon-o-trash class="w-4 h-4" />
-</button>
+  ${deleteButton}
 
-            </div>
 `;
 
 
                container.appendChild(wrapper);
            });
 
-          
+
 
            // Initialize only once
            if (!sortableInstance) {
+               // Initialize Sortable
                sortableInstance = Sortable.create(container, {
                    handle: '.drag-handle',
                    animation: 150,
@@ -462,11 +470,23 @@
                    delayOnTouchOnly: true,
                    touchStartThreshold: 5,
                    fallbackOnBody: true,
-                   onStart: function(evt) {
-                   
+                   onMove: function(evt) {
+                       // Prevent dragging the first option OR placing any item before it
+                       if (evt.dragged && evt.dragged.getAttribute('data-id') == answerOptions[0].id) {
+                           return false; // Can't drag first
+                       }
+                       if (evt.related && evt.related === container.children[0]) {
+                           return false; // Can't drop anything before first
+                       }
                    },
                    onEnd: function(evt) {
-                
+                       // Prevent reordering if first is involved
+                       if (evt.oldIndex === 0 || evt.newIndex === 0) {
+                           renderOptions();
+                           return;
+                       }
+
+                       // Normal reorder among the rest
                        const movedItem = answerOptions.splice(evt.oldIndex, 1)[0];
                        answerOptions.splice(evt.newIndex, 0, movedItem);
                        renderOptions();
@@ -487,12 +507,12 @@
        }
 
        function removeOption(index) {
-           if (answerOptions.length > 2) {
-               answerOptions.splice(index, 1);
-               renderOptions();
-           } else {
-               notyf.error("You must have at least 2 options.");
-           }
+           //    if (answerOptions.length > 2) {
+           answerOptions.splice(index, 1);
+           renderOptions();
+           //    } else {
+           //        notyf.error("You must have at least 2 options.");
+           //    }
        }
 
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminCategory;
+use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
 
 // Request
 use App\Http\Requests\Admin\ChecklistManagement\CustomerAdmin\Categories\StoreRequest;
@@ -27,6 +28,17 @@ class StoreController extends Controller
                 'category_name' => $validated['category_name'],
                 'description'   => $validated['description'] ?? null,
             ]);
+
+
+
+            // If checkbox is checked, also create identical Customer Admin category
+            if (!empty($validated['create_rental_folder']) && $validated['create_rental_folder'] == 1) {
+
+                 RentalReadyChecklistCategory::create([
+                    'category_name' => $validated['category_name'],
+                    'description'   => $validated['description'] ?? null,
+                ]);
+            }
 
             DB::commit();
 

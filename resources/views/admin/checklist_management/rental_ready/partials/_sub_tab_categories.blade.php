@@ -26,7 +26,19 @@
                                 <p class="text-sm text-gray-600"> {{ $category->questions->count() }} {{ Str::plural('question', $category->questions->count()) }}</p>
                             </div>
                         </div>
-                        <div class="flex gap-3 text-gray-500">
+                        <div class="flex gap-3 text-gray-500 items-center">
+                            <!--  New View Button -->
+                            <button class="text-blue-600 hover:text-blue-800 view-category-btn"
+                                title="View Questions"
+                                data-category-id="{{ $category->id }}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                    </path>
+                                </svg>
+                            </button>
+
                             <!-- Edit -->
                             <button class="text-green-600 hover:text-green-800 edit-category-btn"
                                 title="Edit"
@@ -37,16 +49,18 @@
                                 <x-heroicon-o-pencil class="w-5 h-5" />
                             </button>
                             <!-- Delete -->
-                            <form action="{{ route('admin.checklist-management.rental-ready.categories.delete', $category->unique_id) }}"
-                                method="POST"
-                                class="inline delete-category-form"
-                                data-category-name="{{ $category->category_name }}">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </form>
+                            <div class="flexitems-center">
+                                <form action="{{ route('admin.checklist-management.rental-ready.categories.delete', $category->unique_id) }}"
+                                    method="POST"
+                                    class="inline delete-category-form"
+                                    data-category-name="{{ $category->category_name }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
+                                        <x-heroicon-o-trash class="w-5 h-5" />
+                                    </button>
+                                </form>
+                            </div>
 
                         </div>
                     </div>
@@ -83,7 +97,7 @@
 
                 <div class="px-6 grid grid-cols-1 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Category Name *</label>
+                        <label class="block text-sm font-medium text-gray-700"> Rental Ready Category Name *</label>
                         <!-- <input type="text" class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required> -->
 
                         {{ html()->text('category_name')->attributes([
@@ -106,6 +120,18 @@
                         'id' => 'description',
                     ])->placeholder('Optional description...') }}
                     </div>
+
+                    <!--  New Checkbox Field -->
+                    <div class="flex items-start space-x-2 mb-6">
+                        {{ html()->checkbox('create_customer_folder', false)->attributes([
+            'id' => 'create_customer_folder',
+            'class' => 'mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
+        ]) }}
+                        <label for="create_customer_folder" class="text-sm text-gray-700 mt-0.5">
+                            Create an Identical Category Folder in Customer Admin
+                        </label>
+                    </div>
+
                 </div>
 
                 <div class="flex justify-end gap-2 px-6 pb-4">

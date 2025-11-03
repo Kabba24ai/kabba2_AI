@@ -306,13 +306,36 @@
         <div class="flex items-center justify-between mb-5">
             <h3 class="text-md font-semibold text-gray-800">Select Customer Template</h3>
         </div>
-        <div class="relative mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.3-4.3"></path>
-            </svg>
-            <input type="text" placeholder="Search customer templates..." class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm" value="">
+        <!--  Filters (like step 2) -->
+        <div class="grid md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="text-sm font-medium text-gray-700 mb-1 block">Search Templates</label>
+                <div class="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <input id="customerTemplateSearch"
+                        type="text"
+                        placeholder="Search customer templates..."
+                        class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
+                {!! html()->select(
+                'customer_equipment_category',
+                ['' => 'All Category'] + $equipmentCategories,
+                old('customer_equipment_category')
+                )
+                ->class('w-full border px-3 py-2 rounded-md text-sm') !!}
+            </div>
         </div>
+
 
         <!-- Customer Admin Templates -->
         <form id="templateFormcustomer" class="space-y-4 grid md:grid-cols-2 gap-4">
@@ -327,14 +350,14 @@
             data-template-name="{{ $template->template_name }}" />
 
             <label for="customer_template_{{ $template->id }}"
-                class="flex justify-between gap-4 mb-0 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
+                class="customer-template-card flex justify-between gap-4 mb-0 border border-gray-200 rounded-lg p-4 cursor-pointer transition-all">
 
                 <!-- Left section -->
                 <div class="flex flex-col gap-2">
                     <div class="flex items-top gap-3">
                         <x-heroicon-o-user class="w-6 h-6 text-indigo-600" />
                         <div>
-                            <p class="font-semibold text-gray-900 leading-tight">
+                            <p class="template-name font-semibold text-gray-900 leading-tight">
                                 {{ $template->template_name }}
                             </p>
                             <p class="text-sm text-gray-600">
@@ -787,5 +810,34 @@
     searchInput.addEventListener('input', filterTemplates);
     categorySelect.addEventListener('change', filterTemplates);
 </script>
+
+
+<script>
+    // Step 3 Filter Logic
+    const customerSearchInput = document.getElementById('customerTemplateSearch');
+    const customerCategorySelect = document.querySelector('select[name="customer_equipment_category"]');
+    const customerCards = document.querySelectorAll('#templateFormcustomer .customer-template-card');
+
+    function filterCustomerTemplates() {
+        let search = customerSearchInput.value.toLowerCase();
+        let selectedCategory = customerCategorySelect.value;
+        let selectedCategoryText = customerCategorySelect.options[customerCategorySelect.selectedIndex]?.text?.trim() || "";
+
+        customerCards.forEach(function(card) {
+            let name = card.querySelector('.template-name').innerText.toLowerCase();
+            let description = card.querySelector('p.text-sm').innerText.toLowerCase();
+            let category = card.querySelector('.text-sm.text-gray-600').innerText.trim();
+
+            let matchesSearch = name.includes(search) || description.includes(search);
+            let matchesCategory = selectedCategory === "" || category === selectedCategoryText;
+
+            card.style.display = (matchesSearch && matchesCategory) ? 'flex' : 'none';
+        });
+    }
+
+    customerSearchInput.addEventListener('input', filterCustomerTemplates);
+    customerCategorySelect.addEventListener('change', filterCustomerTemplates);
+</script>
+
 
 @endpush

@@ -214,14 +214,14 @@
             wrapper.classList.add('opacity-50', 'pointer-events-none');
 
             const searchText = searchInput.value.toLowerCase();
-           
+
             setTimeout(() => {
                 cards.forEach(card => {
                     const title = card.querySelector("h3").textContent.toLowerCase();
                     const cardCategoryId = card.getAttribute("data-category-id");
 
                     let matchesSearch = !searchText || title.includes(searchText);
-                 
+
                     if (matchesSearch) {
                         card.style.display = "block";
                     } else {
@@ -235,7 +235,39 @@
         }
 
         searchInput.addEventListener("input", filterCards);
-      
+
+    });
+</script>
+
+<!-- Switch to Questions tab & Wait briefly to ensure tab content loads, then filter by category -->
+ 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const viewButtons = document.querySelectorAll(".view-category-btn");
+        const categorySelect = document.querySelector('select');
+        const tabButton = document.getElementById("tab-questions-sub");
+
+        viewButtons.forEach(button => {
+            button.addEventListener("click", function() {
+                const categoryId = this.getAttribute("data-category-id");
+
+                //  Switch to Questions tab
+                if (typeof showTab === "function") {
+                    showTab('questionssub', tabButton);
+                } else {
+                    // fallback: simulate click if showTab is not global
+                    tabButton.click();
+                }
+
+                //  Wait briefly to ensure tab content loads, then filter by category
+                setTimeout(() => {
+                    if (categorySelect) {
+                        categorySelect.value = categoryId;
+                        categorySelect.dispatchEvent(new Event("change"));
+                    }
+                }, 300);
+            });
+        });
     });
 </script>
 

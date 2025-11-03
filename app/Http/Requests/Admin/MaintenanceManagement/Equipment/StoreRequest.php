@@ -45,6 +45,8 @@ class StoreRequest extends FormRequest
 
             'equipment_id' => 'required|string|max:255|unique:equipment,equipment_id',
             'equipment_hours' => 'nullable|numeric|min:0',
+            'is_tracked' => 'nullable|boolean',
+            'overage_rate' => 'nullable|numeric|min:0',
 
             'brand' => 'required|string|max:255',
             'model' => 'nullable|string|max:255',

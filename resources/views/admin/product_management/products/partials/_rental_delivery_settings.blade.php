@@ -477,7 +477,10 @@
                 <div id="rental-prepaid-fuel-errors"></div>
             </div>
 
-            <div>
+            <div class="col-span-2">
+            </div>
+
+            {{-- <div>
                 <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Overage Rate / Hr.
                 </label>
@@ -513,7 +516,7 @@
                     <span id="hour-tracking-error" class="text-xs text-red-500 block mt-1">{{ $message }}</span>
                 @enderror
 
-            </div>
+            </div> --}}
 
             <div>
                 <div class="flex items-center gap-1">
@@ -545,7 +548,7 @@
                 </div>
             </div>
 
-            <div class="relative overflow-visible"> <!-- important: prevent clipping -->
+            {{-- <div class="relative overflow-visible"> <!-- important: prevent clipping -->
                 <div class="flex items-center gap-1">
                     <label class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         <span class="relative group">
@@ -580,7 +583,7 @@
                         </span>
                     </label>
                 </div>
-            </div>
+            </div> --}}
 
         </div>
 

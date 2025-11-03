@@ -26,6 +26,10 @@ class ListResource extends JsonResource
             'product_category_id' => $this->product_category_id ?? 0,
             'equipment_id' => $this->equipment_id ?? 0,
             'equipment_hours' => $this->equipment_hours ?? 0,
+
+            'is_tracked' => $this->is_tracked ?? '',
+
+            'overage_rate' => $this->overage_rate ?? 0,
             'brand' => $this->brand ?? '',
             'model' => $this->model ?? '',
             'model_year' => $this->model_year ?? '',

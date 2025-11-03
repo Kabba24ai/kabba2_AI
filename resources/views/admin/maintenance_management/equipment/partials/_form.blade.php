@@ -47,20 +47,98 @@
                 </div>
 
                 <div>
-                    <label for="equipment_hours" class="block text-sm font-medium text-gray-700 mb-1">
-                        Equipment Hours
-                    </label>
+                    <div class="flex justify-between items-center ">
+                        <div>
+                            <label for="equipment_hours" class="block text-sm font-medium text-gray-700 mb-1">
+                                Equipment Hours
+                            </label>
+                        </div>
+                        <div>
+                            {!! html()->checkbox('is_tracked', true)->id('is_tracked')->checked(old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? true : false) : false))->class('mr-2') !!}
+
+                            <label for="is_tracked" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Tracked
+                            </label>
+                        </div>
+                    </div>
+
                     {!! html()->text('equipment_hours')->class([
                             'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('equipment_hours'),
                             'border-red-500' => $errors->has('equipment_hours'),
                         ])->attributes([
-                            'maxlength' => 240,
-                            'data-parsley-maxlength' => 240,
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
                             'placeholder' => 'Enter Equipment Hours',
                             'autocomplete' => 'off',
                         ]) !!}
                     @error('equipment_hours')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                    @error('is_tracked')
+                        <span id="is-tracked-error" class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center ">
+                        <label for="overage_rate" class="block text-sm font-medium text-gray-700 mb-1">
+                            Overage Rate
+                        </label>
+                        <div class="relative overflow-visible"> <!-- important: prevent clipping -->
+                            <div class="flex items-center gap-1">
+                                <label
+                                    class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <span class="relative group">
+                                        <span
+                                            class="text-blue-400 hover:text-blue-500 text-sm flex items-center gap-1 cursor-pointer">
+                                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                                        </span>
+
+                                        <!-- Tooltip -->
+                                        <div class="tooltip-panel tooltip-panel--center">
+                                            *Overage Rate / Hr. is automatically calculated based upon your Overage
+                                            Percentage setting in Settings.
+                                            <br><br>
+                                            <strong>Overage Rate</strong> Rate is a percentage used to compute the
+                                            <strong>hourly
+                                                overage
+                                                fee</strong> for this product.
+                                            <br><br>
+                                            <strong>
+                                                Formula:</strong> Hourly Overage = <strong>Daily Rental Rate × Overage
+                                                Rate (%).
+                                            </strong>
+                                            <br>
+                                            If a renter exceeds their allocated hours (e.g., 8/day, 14/weekend, 40/week,
+                                            160/month),
+                                            this
+                                            fee applies <strong>for each hour over.</strong>
+                                            <br><br>
+                                            <strong>Example:</strong> Daily Rate <strong>$300</strong> × Overage Rate
+                                            <strong>10% =
+                                                $30/hour</strong> over the limit.
+                                            <br><br>
+                                            <strong>Note:</strong> Partial hours are billed as a full hour.
+                                        </div>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {!! html()->text('overage_rate')->class([
+                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('overage_rate'),
+                            'border-red-500' => $errors->has('overage_rate'),
+                        ])->attributes([
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'placeholder' => 'Enter Overage Rate',
+                            'autocomplete' => 'off',
+                        ]) !!}
+                    @error('overage_rate')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
@@ -150,7 +228,14 @@
                     <label for="date_acquired" class="block text-sm font-medium text-gray-700 mb-1">
                         Date Acquired
                     </label>
-                    {!! html()->text('date_acquired', isset($equipment) ? ($equipment->date_acquired ? \App\Helpers\CustomHelper::formatDate($equipment->date_acquired) : '') : '')->class([
+                    {!! html()->text(
+                            'date_acquired',
+                            isset($equipment)
+                                ? ($equipment->date_acquired
+                                    ? \App\Helpers\CustomHelper::formatDate($equipment->date_acquired)
+                                    : '')
+                                : '',
+                        )->class([
                             'datepicker w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('date_acquired'),
                             'border-red-500' => $errors->has('date_acquired'),
@@ -232,7 +317,8 @@
                 </div>
 
                 <div>
-                    <label for="term_in_months" class="block text-sm font-medium text-gray-700 mb-1">Term (Months)</label>
+                    <label for="term_in_months" class="block text-sm font-medium text-gray-700 mb-1">Term
+                        (Months)</label>
                     {!! html()->number('term_in_months')->class([
                             'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('term_in_months'),
@@ -588,14 +674,16 @@
     <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
     @vite('resources/admin/js/tinymce.js')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const powerTypeSelect = document.querySelector('select[name="power_source_type"]');
             const hasDefCheckbox = document.getElementById('has_def');
             const dieselCapacityField = document.querySelector('input[name="diesel_tank_capacity"]').closest('div');
             const defCapacityField = document.querySelector('input[name="def_tank_capacity"]').closest('div');
             const gasTankCapacityField = document.querySelector('input[name="gas_tank_capacity"]').closest('div');
-            const standardBatteryCount = document.querySelector('input[name="standard_battery_count"]').closest('div');
-            const expandedBatteryCount = document.querySelector('input[name="expanded_battery_count"]').closest('div');
+            const standardBatteryCount = document.querySelector('input[name="standard_battery_count"]').closest(
+                'div');
+            const expandedBatteryCount = document.querySelector('input[name="expanded_battery_count"]').closest(
+                'div');
 
             function toggleFields() {
                 const powerSourceType = powerTypeSelect.value;

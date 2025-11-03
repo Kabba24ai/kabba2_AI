@@ -13,7 +13,7 @@ class StoreController extends Controller
         $data = $request->validated();
 
         $data['has_def'] = ($data['has_def'] ?? false) ? 'Yes' : 'No';
-
+        $data['is_tracked'] = ($data['is_tracked'] ?? false) ? 'Yes' : 'No';
         Equipment::create($data);
 
         return redirect()

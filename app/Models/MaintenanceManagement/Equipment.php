@@ -31,6 +31,8 @@ class Equipment extends Model
         'product_category_id',
         'equipment_id',
         'equipment_hours',
+        'is_tracked', // 'Yes', 'No'
+        'overage_rate',
         'brand',
         'model',
         'model_year',

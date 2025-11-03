@@ -12,6 +12,7 @@ class UpdateController extends Controller
     {
         $data = $request->validated();
         $data['has_def'] = ($data['has_def'] ?? false) ? 'Yes' : 'No';
+        $data['is_tracked'] = ($data['is_tracked'] ?? false) ? 'Yes' : 'No';
 
         $equipment = Equipment::where('unique_id', $unique_id)->firstOrFail();
 

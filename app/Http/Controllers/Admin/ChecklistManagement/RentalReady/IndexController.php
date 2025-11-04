@@ -17,12 +17,10 @@ class IndexController extends Controller
 
         $rentalreadycategory = RentalReadyChecklistCategory::withCount('questions')
         ->with(['questions.answers'])
+        ->orderBy('category_name', 'asc')
         ->get();
 
         $totalQuestions = RentalReadyChecklistQuestion::whereHas('category')->count();
-
-
-
 
 
         $checklisttemplate = RentalReadyChecklistTemplate::with([

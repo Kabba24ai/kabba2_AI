@@ -49,6 +49,7 @@ class UpdateController extends Controller
                     'delivery_amt'         => $option['delivery_amt'] ?? null,
                     'return_amt'           => $option['return_amt'] ?? null,
                     'required'             => $option['syncEnabled'] ?? false,
+                    'is_damaged' => $option['is_damaged'] ?? 0,
                 ]);
 
                 if (!$answer || !$answer->id) {

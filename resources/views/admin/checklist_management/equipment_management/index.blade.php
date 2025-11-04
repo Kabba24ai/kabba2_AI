@@ -251,6 +251,7 @@
             name: eq.equipment_name,
             model: eq.model,
             serial: eq.serial_number,
+            equipment_id: eq.equipment_id,
             category_id: eq.category_id,
             category: eq.category_name ?? 'N/A',
             checklist_master_id: eq.checklist_master_id,
@@ -363,7 +364,7 @@
             </div>
           <div class="text-sm text-gray-600 space-y-1">
             <div>Model: ${eq.model}</div>
-            <div>Serial: ${eq.serial}</div>
+            <div>Equipment Id : ${eq.equipment_id}</div>
             <div>Category: ${eq.category}</div>
             <div>Order Product: ${eq.orderproduct ?? '-'}</div>
             <div class="flex items-center gap-1">

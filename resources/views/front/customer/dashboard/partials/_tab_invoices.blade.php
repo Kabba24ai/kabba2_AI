@@ -259,27 +259,37 @@
                          <div>
                              <p class="text-sm font-medium text-gray-900">Billing Address</p>
                              <p class="text-xs text-gray-700 mt-1">
+                                 @if($customer->billingAddress)
                                  @if($customer->billingAddress->full_name)
                                  {{ $customer->billingAddress->full_name }} <br>
                                  @endif
 
-                                 @if($customer->billingAddress?->address || $customer->billingAddress?->city)
-                                 {{ $customer->billingAddress->address ?? '' }}{{ $customer->billingAddress?->city ? ', ' . $customer->billingAddress->city : '' }}<br>
+                                 @if($customer->billingAddress->address || $customer->billingAddress->city)
+                                 {{ $customer->billingAddress->address ?? '' }}
+                                 {{ $customer->billingAddress->city ? ', ' . $customer->billingAddress->city : '' }}<br>
                                  @endif
 
-                                 @if($customer->billingAddress?->state?->name || $customer->billingAddress?->zip_code)
-                                 {{ $customer->billingAddress?->state?->name ?? '' }}{{ $customer->billingAddress?->zip_code ? ' ' . $customer->billingAddress->zip_code : '' }}<br>
+                                 @if(optional($customer->billingAddress->state)->name || $customer->billingAddress->zip_code)
+                                 {{ optional($customer->billingAddress->state)->name ?? '' }}
+                                 {{ $customer->billingAddress->zip_code ? ' ' . $customer->billingAddress->zip_code : '' }}<br>
                                  @endif
 
-                                 @if($customer->billingAddress?->phone)
+                                 @if($customer->billingAddress->phone)
                                  {{ App\Helpers\CustomHelper::formatPhone($customer->billingAddress->phone) }}
                                  @endif
+                                 @else
+                                 <span class="text-gray-500 italic">No billing address on file.</span>
+                                 @endif
                              </p>
-                             <a id="updateAddressLink" x-on:click="activeTab = 'account'"
-                                 href="javascript:void(0)" class="text-blue-600 text-xs hover:text-blue-800 flex items-center gap-1">
+
+                             <a id="updateAddressLink"
+                                 x-on:click="activeTab = 'account'"
+                                 href="javascript:void(0)"
+                                 class="text-blue-600 text-xs hover:text-blue-800 flex items-center gap-1">
                                  Update / New Address
                              </a>
                          </div>
+
                      </div>
                  </div>
 
@@ -345,7 +355,6 @@
                  document.querySelector('#discountModalWrapper [data-field="due"]').textContent = btn.dataset.due;
                  document.querySelector('#discountModalWrapper [data-field="amount"]').textContent = btn.dataset.amount;
                  document.querySelector('#discountModalWrapper [data-field="Payamount"]').textContent = btn.dataset.amount;
-
 
                  document.querySelector('#amount').value = btn.dataset.amount;
                  document.querySelector('#invoice_id').value = btn.dataset.invoice;

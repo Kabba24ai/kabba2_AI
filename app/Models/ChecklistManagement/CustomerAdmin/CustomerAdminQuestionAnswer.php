@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CustomerAdminQuestionAnswer extends Model
 {
-    protected $fillable = ['unique_id', 'answer_delivery_text', 'answer_return_text', 'delivery_amt', 'return_amt', 'required', 'sync_texts', 'answer_sync_map', 'question_id', 'index_number'];
+    protected $fillable = ['unique_id', 'answer_delivery_text', 'answer_return_text', 'delivery_amt', 'return_amt', 'required', 'sync_texts', 'answer_sync_map', 'question_id', 'index_number' , 'is_damaged'];
 
      protected static function boot()
     {

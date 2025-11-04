@@ -78,7 +78,7 @@
         </div>
     </div>
     <!-- Address Information -->
-    <div class="bg-white rounded-md shadow-sm p-5 max-h-60 overflow-y-scroll overflow-x-hidden">
+    <div class="bg-white rounded-md shadow-sm p-5  overflow-y-scroll overflow-x-hidden">
         <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
             <svg class="w-5 h-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>

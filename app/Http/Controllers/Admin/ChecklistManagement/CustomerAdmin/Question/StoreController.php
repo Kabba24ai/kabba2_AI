@@ -16,6 +16,8 @@ class StoreController extends Controller
     public function __invoke(StoreRequest $request)
 {
     $validated = $request->validated();
+
+    // dd($validated);
     
     DB::beginTransaction();
 
@@ -29,9 +31,9 @@ class StoreController extends Controller
         'required_question'       => $validated['required_question'] ?? 0,
     ]);
 
-if (!$question || !$question->id) {
-    throw new \Exception('Failed to create question.');
-}
+    if (!$question || !$question->id) {
+        throw new \Exception('Failed to create question.');
+    }
 
 
         // options is already an array, no need to json_decode
@@ -45,8 +47,13 @@ if (!$question || !$question->id) {
                     'answer_return_text'   => $option['answer_return_text'] ?? null,
                     'delivery_amt'         => $option['delivery_amt'] ?? null,
                     'return_amt'           => $option['return_amt'] ?? null,
-                    'required'             => $option['syncEnabled'] ?? 0,
-    ]);
+                    'required'             => $option['required'] ?? 0,
+
+                    'sync_texts'           => !empty($option['syncEnabled']) && $option['syncEnabled'] !== 'false' ? 1 : 0, // ✅
+
+
+                    'is_damaged' => $option['is_damaged'] ?? 0,
+                ]);
 
     if (!$answer || !$answer->id) {
         throw new \Exception("Failed to create answer at index $index");

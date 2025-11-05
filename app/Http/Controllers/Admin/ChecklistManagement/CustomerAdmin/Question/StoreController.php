@@ -49,7 +49,7 @@ class StoreController extends Controller
                     'return_amt'           => $option['return_amt'] ?? null,
                     'required'             => $option['required'] ?? 0,
 
-                    'sync_texts'           => !empty($option['syncEnabled']) && $option['syncEnabled'] !== 'false' ? 1 : 0, // ✅
+                    'sync_texts'           => !empty($option['syncEnabled']) && $option['syncEnabled'] !== 'false' ? 1 : 0, 
 
 
                     'is_damaged' => $option['is_damaged'] ?? 0,

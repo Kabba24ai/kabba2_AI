@@ -383,7 +383,7 @@
    <script>
        let answerOptions = [{
            id: 1,
-           text: '',
+           text: 'inspection required',
            status: 'Maint. Hold'
        }];
        let nextId = 2;
@@ -430,6 +430,10 @@
                     </button>
                 </div>`;
 
+               // Lock first input & select
+               const inputDisabled = index === 0 ? 'readonly' : '';
+               const selectDisabled = index === 0 ? 'disabled' : '';
+
                wrapper.innerHTML = `
 
      ${dragHandle}
@@ -437,13 +441,13 @@
     <div class="flex-1">
         <input type="text" placeholder="Answer description..."
             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value="${option.text}"
-            oninput="updateText(${index}, this.value)" required>
+            value="${option.text}" 
+            oninput="updateText(${index}, this.value)"  ${inputDisabled} required>
     </div>
 
     <div>
         <select class="w-full mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onchange="updateStatus(${index}, this.value)">
+            onchange="updateStatus(${index}, this.value)"  ${selectDisabled} >
             <option ${option.status === 'Rental Ready' ? 'selected' : ''}>Rental Ready</option>
             <option ${option.status === 'Maint. Hold' ? 'selected' : ''}>Maint. Hold</option>
             <option ${option.status === 'Damaged' ? 'selected' : ''}>Damaged</option>
@@ -608,8 +612,8 @@
                // nextId = 1;
                answerOptions = [{
                    id: 1,
-                   text: '',
-                   status: 'Rental Ready'
+                   text: 'Inspection Required',
+                   status: 'Maint. Hold'
                }];
                nextId = 2;
                renderOptions();

@@ -112,7 +112,7 @@
                            'return_amt' => $answer->return_amt,
                            'index_number' => $answer->index_number,
                            'is_damaged' => $answer->is_damaged,
-                            'syncEnabled' => $answer->sync_texts ? 1 : 0,
+                           'syncEnabled' => $answer->sync_texts ? 1 : 0,
                            ];
                            })
                            ->values();
@@ -650,8 +650,7 @@
            let answerOptions = [{
                id: 1,
                answer_delivery_text: '',
-    answer_return_text: '',
-
+               answer_return_text: '',
                delivery_amt: 0,
                return_amt: 0,
                syncEnabled: true ,
@@ -659,21 +658,25 @@
 
            }];
 
-           let nextId = 2;
-
-           function openQuestionModal() {
-               document.getElementById('questionModal').classList.remove('hidden');
-               renderOptions();
-           }
-
-           function closeQuestionModal() {
-               document.getElementById('questionModal').classList.add('hidden');
-           }
+           let nextId = 1;
 
            function syncInputsToData() {
                const containers = document.querySelectorAll('#sortable-list > div');
 
                containers.forEach((wrapper, index) => {
+
+                if (!answerOptions[index]) {
+    answerOptions[index] = {
+      id: nextId++,
+      answer_delivery_text: '',
+      answer_return_text: '',
+      delivery_amt: 0,
+      return_amt: 0,
+      syncEnabled: true,
+      is_damaged: 0
+    };
+  }
+
                    const deliveryText = wrapper.querySelector('.delivery_text')?.value || '';
                    const returnText = wrapper.querySelector('.return_text')?.value || '';
                    const deliveryAmt = parseFloat(wrapper.querySelector('.delivery_amt')?.value) || 0;
@@ -687,6 +690,11 @@
                    answerOptions[index].return_amt = syncEnabled ? deliveryAmt : returnAmt;
                    answerOptions[index].syncEnabled = syncEnabled;
                });
+
+               
+           console.log('Rendering options:', answerOptions);
+            
+
            }
 
 
@@ -697,7 +705,6 @@
                const container = document.getElementById('sortable-list');
                container.innerHTML = '';
 
-               console.log('Rendering options:', answerOptions);
 
                answerOptions.forEach((option, index) => {
                    const wrapper = document.createElement('div');
@@ -953,41 +960,63 @@
            }
 
            function updateSyncStatus(index, isEnabled) {
-               answerOptions[index].syncEnabled = isEnabled;
+                // Ensure the index exists in answerOptions
+                 // 1. Ensure this answerOptions index exists
+                if (!answerOptions[index]) {
+                    console.warn(`answerOptions[${index}] missing, creating new`);
+                    answerOptions[index] = {
+                        id: nextId++,
+                        answer_delivery_text: '',
+                        answer_return_text: '',
+                        delivery_amt: 0,
+                        return_amt: 0,
+                        syncEnabled: isEnabled,
+                        is_damaged: 0
+                    };
+                } else {
+                    answerOptions[index].syncEnabled = isEnabled;
+                }
 
-               // Update UI based on sync status
-               const returnInputs = document.querySelectorAll('.return_text');
-               //const returnAmtInputs = document.querySelectorAll('.return_amt');
-               const returnLabels = document.querySelectorAll('.border-green-200 .text-green-900');
+                // 2. Find the corresponding wrapper div for this index
+    const wrapper = document.querySelector(`#sortable-list > div[data-id="${answerOptions[index].id}"]`);
+    if (!wrapper) {
+        console.warn('Wrapper not found for option id', answerOptions[index].id);
+        return;
+    }
+// 3. Get the specific input fields within that wrapper
+    const deliveryTextInput = wrapper.querySelector('.delivery_text');
+    const deliveryAmtInput  = wrapper.querySelector('.delivery_amt');
+    const returnTextInput   = wrapper.querySelector('.return_text');
+    const returnAmtInput    = wrapper.querySelector('.return_amt');
+    const labelSpan         = wrapper.querySelector('.border-green-200 span');
 
-               if (returnInputs[index]) {
-                   if (isEnabled) {
-                       returnInputs[index].value = answerOptions[index].delivery_text;
+    // 4. Sync data if enabled
+    if (isEnabled) {
+        const deliveryText = deliveryTextInput?.value || '';
+        const deliveryAmt  = parseFloat(deliveryAmtInput?.value) || 0;
 
-                    //    answerOptions[index].return_text = answerOptions[index].delivery_text;
+        // Copy delivery → return
+        if (returnTextInput) returnTextInput.value = deliveryText;
+        if (returnAmtInput)  returnAmtInput.value  = deliveryAmt;
 
-                       answerOptions[index].answer_return_text = answerOptions[index].answer_delivery_text;
-                   }
-               }
-               /*
-               if (returnAmtInputs[index]) {
-                   if (isEnabled) {
-                       returnAmtInputs[index].value = answerOptions[index].delivery_amt;
-                       answerOptions[index].return_amt = answerOptions[index].delivery_amt;
-                   }
-               }
-                   */
+        // Update data model
+        answerOptions[index].answer_delivery_text = deliveryText;
+        answerOptions[index].delivery_amt = deliveryAmt;
+        answerOptions[index].answer_return_text = deliveryText;
+        answerOptions[index].return_amt = deliveryAmt;
+    }
 
-               if (returnLabels[index]) {
-                   const span = returnLabels[index].querySelector('span');
-                   if (span) {
-                       span.textContent = isEnabled ? '(Synced)' : '';
-                   }
-               }
+    // 5. Update "(Synced)" label
+    if (labelSpan) {
+        labelSpan.textContent = isEnabled ? '(Synced)' : '';
+    }
 
-               updateChargeDisplay(index);
-            //    renderOptions(); // Re-render to update all UI elements
-           }
+    // 6. Optionally refresh charges
+    if (typeof updateChargeDisplay === 'function') {
+        updateChargeDisplay(index);
+    }
+}
+
 
            // Before submitting form, sync options into hidden input
            document.getElementById('questionForm').addEventListener('submit', function(e) {
@@ -1031,7 +1060,153 @@
                toggleTextSync();
            });
        </script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
 
+function resetAnswerOptions() {
+    answerOptions.splice(0, answerOptions.length); // clear in place
+    answerOptions.push({
+        id: 1,
+        answer_delivery_text: '',
+        answer_return_text: '',
+        delivery_amt: 0,
+        return_amt: 0,
+        syncEnabled: true,
+        is_damaged: 0
+    });
+    nextId = 2;
+}
+
+
+    // ===== Cache important elements =====
+    const modalWrapper = document.getElementById("questionModal");
+    const form = document.getElementById("questionForm");
+    const questionNameInput = document.getElementById("question_name");
+    const categorySelect = document.getElementById("category_id");
+    const requiredCheckbox = document.getElementById("required_question");
+    const btnText = form.querySelector('button[type="submit"]');
+    const questionDeliveryInput = document.getElementById("question_delivery_text");
+    const questionReturnInput = document.getElementById("question_return_text");
+
+    // ===== Default "Create" action URL =====
+    const createAction = "{{ route('admin.checklist-management.customer-admin.questions.store') }}";
+
+    // ====== Handle Edit Button ======
+    document.querySelectorAll(".edit-question-btn").forEach(button => {
+        button.addEventListener("click", function() {
+         
+            // --- Extract question data ---
+            const questionId = this.dataset.id;
+            const questionName = this.dataset.name;
+            const categoryId = this.dataset.category;
+            const required = this.dataset.required === "1";
+            const questionDelivery = this.getAttribute("data-delivery-text") || "";
+            const questionReturn = this.getAttribute("data-return-text") || "";
+            const updateRoute = this.dataset.route;
+
+            // --- Prefill form fields ---
+            questionNameInput.value = questionName;
+            categorySelect.value = categoryId;
+            requiredCheckbox.checked = required;
+            questionDeliveryInput.value = questionDelivery;
+            questionReturnInput.value = questionReturn;
+
+            // --- Load options ---
+            const options = JSON.parse(this.dataset.options || "[]");
+            answerOptions = options.map(opt => ({
+                id: opt.id,
+                answer_delivery_text: opt.answer_delivery_text || "",
+                answer_return_text: opt.answer_return_text || "",
+                delivery_amt: opt.delivery_amt || 0,
+                return_amt: opt.return_amt || 0,
+                syncEnabled: opt.syncEnabled ?? true,
+                is_damaged: opt.is_damaged ?? 0,
+            }));
+            nextId = answerOptions.length + 1;
+
+            renderOptions();
+
+            // --- Set form to update mode ---
+            form.setAttribute("action", updateRoute);
+            let methodField = form.querySelector("input[name='_method']");
+            if (!methodField) {
+                methodField = document.createElement("input");
+                methodField.type = "hidden";
+                methodField.name = "_method";
+                form.appendChild(methodField);
+            }
+            methodField.value = "PUT";
+
+            // --- Change submit button text ---
+            btnText.textContent = "Update Question";
+
+            // --- Show modal ---
+            modalWrapper.classList.remove("hidden");
+        });
+    });
+
+    // ====== Handle "+ New Question" ======
+    window.openQuestionModal = function() {
+
+        resetAnswerOptions();
+
+
+    // --- Reset form element ---
+    form.reset(); //  Reset all input fields (built-in)
+
+    console.log('Resetting question modal for new question.');
+    console.log(answerOptions);
+
+    // --- Remove any leftover PUT method field ---
+    const methodField = form.querySelector("input[name='_method']");
+    if (methodField) methodField.remove();
+
+    // --- Restore form action to create route ---
+    form.setAttribute("action", createAction);
+
+    // --- Clear any previous Parsley or validation messages (if used) ---
+    const parsleyErrors = form.querySelectorAll(".parsley-errors-list");
+    parsleyErrors.forEach(el => el.innerHTML = "");
+
+    // --- Reset manual fields (just to be safe) ---
+    questionNameInput.value = "";
+    categorySelect.value = "";
+    requiredCheckbox.checked = true;
+    questionDeliveryInput.value = "";
+    questionReturnInput.value = "";
+
+    // --- Destroy old array reference completely ---
+answerOptions.length = 0; // clears array in-place (removes all old elements)
+
+    // --- Reset global answerOptions ---
+    answerOptions = [{
+        id: 1,
+        answer_delivery_text: "",
+        answer_return_text: "",
+        delivery_amt: 0,
+        return_amt: 0,
+        syncEnabled: true,
+        is_damaged: 0
+    }];
+    nextId = 2;
+
+    // --- Re-render options ---
+    renderOptions();
+
+    // --- Reset submit button text ---
+    btnText.textContent = "Save Question";
+
+    // --- Finally, open the modal ---
+    modalWrapper.classList.remove("hidden");
+};
+
+
+    // ====== Handle Close ======
+    window.closeQuestionModal = function() {
+        modalWrapper.classList.add("hidden");
+    };
+});
+</script>
 
 
 
@@ -1122,118 +1297,6 @@
                cards.forEach(card => wrapper.appendChild(card));
            });
        </script>
-       <script>
-           document.addEventListener("DOMContentLoaded", function() {
+       
 
-
-               const modalWrapper = document.getElementById("questionModal"); // your modal wrapper
-               const form = document.getElementById("questionForm");
-               const questionNameInput = document.getElementById("question_name");
-               const categorySelect = document.getElementById("category_id");
-               const requiredCheckbox = document.getElementById("required_question");
-               const btnText = form.querySelector('button[type="submit"]');
-               const question_delivery_textInput = document.getElementById('question_delivery_text');
-               const question_return_textInput = document.getElementById('question_return_text');
-
-               // Store original form action for creating new questions
-               const createAction = "{{ route('admin.checklist-management.customer-admin.questions.store') }}";
-
-               // Handle Edit button clicks
-               document.querySelectorAll(".edit-question-btn").forEach(btn => {
-                   btn.addEventListener("click", function() {
-
-                    console.log('Edit button clicked:', this.dataset);
-
-                          // Extract data attributes
-
-                       const questionId = this.dataset.id;
-                       const questionName = this.dataset.name;
-                       const categoryId = this.dataset.category;
-                       const required = this.dataset.required === '1';
-
-                       // Use getAttribute instead of dataset to be more explicit
-                       const question_delivery_text = this.getAttribute('data-delivery-text');
-                       const question_return_text = this.getAttribute('data-return-text');
-
-                       const options = JSON.parse(this.dataset.options || '[]');
-                       const updateRoute = this.dataset.route;
-
-
-                       // Prefill form inputs
-                       questionNameInput.value = questionName;
-                       question_delivery_textInput.value = question_delivery_text;
-                       question_return_textInput.value = question_return_text;
-                       categorySelect.value = categoryId;
-                       requiredCheckbox.checked = required;
-
-                       // Set answerOptions global variable and render
-
-                       answerOptions = options.map(opt => ({
-                           id: opt.id,
-                           answer_delivery_text: opt.answer_delivery_text,
-                           answer_return_text: opt.answer_return_text,
-                           delivery_amt: opt.delivery_amt,
-                           return_amt: opt.return_amt,
-                           index_number: opt.index_number,
-                           is_damaged: opt.is_damaged
-                       }));
-
-                       nextId = answerOptions.length + 1;
-                       renderOptions();
-
-                       // Switch form action to update route
-                       form.setAttribute("action", updateRoute);
-
-                       // Add hidden _method=PUT
-                       let methodField = form.querySelector("input[name='_method']");
-                       if (!methodField) {
-                           methodField = document.createElement("input");
-                           methodField.type = "hidden";
-                           methodField.name = "_method";
-                           form.appendChild(methodField);
-                       }
-                       methodField.value = "PUT";
-
-                       // Change submit button text
-                       btnText.textContent = "Update Question";
-
-                       // Show modal
-                       modalWrapper.classList.remove("hidden");
-                   });
-               });
-
-               // Reset for Create
-               window.openQuestionModal = function() {
-                   form.setAttribute("action", createAction);
-
-                   let methodField = form.querySelector("input[name='_method']");
-                   if (methodField) methodField.remove();
-
-                   questionNameInput.value = "";
-                   categorySelect.value = "";
-                   requiredCheckbox.checked = true;
-
-                   // Reset options
-                   // answerOptions = [];
-                   // nextId = 1;
-                   answerOptions = [{
-                       id: 1,
-                       delivery_text: '',
-                       return_text: '',
-                       delivery_amt: 0,
-                       return_amt: 0,
-                       syncEnabled: true
-                   }];
-                   nextId = 2;
-                   renderOptions();
-
-                   btnText.textContent = "Save Question";
-                   modalWrapper.classList.remove("hidden");
-               };
-
-               window.closeQuestionModal = function() {
-                   modalWrapper.classList.add("hidden");
-               };
-           });
-       </script>
    @endpush

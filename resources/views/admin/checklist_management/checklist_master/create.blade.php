@@ -279,7 +279,7 @@
 
         <!-- Action Buttons -->
         <div class="flex flex-col md:flex-row justify-between mt-8 gap-4">
-            <a href="{{ route('admin.checklist-management.checklist-master.index') }}" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">Cancel New Checklist and Create Rental Ready Template</a>
+            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">Cancel New Checklist and Create Rental Ready Template</a>
 
 
             <button id="continueStep2Btn" onclick="validateStep2BeforeContinue()"
@@ -418,7 +418,7 @@
 
         <!-- Action Buttons -->
         <div class="flex flex-col md:flex-row justify-between mt-8 gap-4">
-            <a href="{{ route('admin.checklist-management.checklist-master.index') }}" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">Cancel New Checklist and Create Rental Ready Template</a>
+            <a href="{{ route('admin.checklist-management.customer-admin.index') }}" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">Cancel New Checklist and Create Customer Admin Template</a>
             <button id="continueStep3Btn" onclick="goToStep(4)"
                 class="bg-gray-200 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium md:w-auto flex items-center gap-2"
 

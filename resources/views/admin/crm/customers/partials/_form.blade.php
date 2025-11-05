@@ -247,8 +247,19 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">City </label>
                 <input type="text" id="billing_city" name="addresses[0][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter City">
             </div>
+ <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
+                    <input id="billing_zip" type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter Zip Code" maxlength="8">
+                </div>
 
-            <div>
+          
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+                <!-- Zip Code 1 -->
+               
+                
+
+                 <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">State </label>
                 <select id="billing_state" name="addresses[0][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm">
                     <option value="">-- Select State --</option>
@@ -258,15 +269,7 @@
                 </select>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-                <!-- Zip Code 1 -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
-                    <input id="billing_zip" type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter Zip Code" maxlength="8">
-                </div>
-
-                <!-- Zip Code 2 -->
-                <div>
+             <div>
 
                     <label class="block text-sm font-medium text-gray-700 mb-1 ">Country </label>
                     {!! html()->select('addresses[0][Country]', [
@@ -330,8 +333,15 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">City </label>
                 <input type="text" id="delivery_city" name="addresses[1][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter City">
             </div>
+<div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
+                    <input id="delivery_zip" type="text" name="addresses[1][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter Zip Code" maxlength="8">
+                </div>
+          
 
-            <div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+
+                  <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">State </label>
                 <select id="delivery_state" name="addresses[1][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm">
                     <option value="">-- Select State --</option>
@@ -340,13 +350,6 @@
                     @endforeach
                 </select>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-                <!-- Zip Code 1 -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
-                    <input id="delivery_zip" type="text" name="addresses[1][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter Zip Code" maxlength="8">
-                </div>
 
                 <!-- Zip Code 2 -->
                 <div>

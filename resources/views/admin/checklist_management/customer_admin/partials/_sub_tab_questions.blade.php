@@ -542,27 +542,34 @@
                    </div>
 
 
-                   <div class="flex justify-end gap-2 px-6 pb-4">
+                   <div class="flex justify-between items-center px-6 pb-4">
 
-                    <div class="flex justify-between items-center">
-                              
-                               <button type="button" onclick="addOption()"
-                                   class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"><svg
-                                       xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                       viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                       stroke-linecap="round" stroke-linejoin="round"
-                                       class="lucide lucide-plus w-4 h-4">
-                                       <path d="M5 12h14"></path>
-                                       <path d="M12 5v14"></path>
-                                   </svg>Add Answer Pair</button>
-                    </div>
+  <!-- Center Add Button -->
+  <div class="flex-1 flex justify-center">
+    <button type="button" onclick="addOption()"
+      class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"
+        class="lucide lucide-plus w-4 h-4">
+        <path d="M5 12h14"></path>
+        <path d="M12 5v14"></path>
+      </svg>
+      Add Answer Pair
+    </button>
+  </div>
 
-                       <button type="button" onclick="closeQuestionModal()"
-                           class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Cancel</button>
-                       <button type="submit"
-                           class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600">Save
-                           Question</button>
-                   </div>
+  <!-- Right Side Buttons -->
+  <div class="flex items-center gap-2">
+    <button type="button" onclick="closeQuestionModal()"
+      class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Cancel</button>
+    <button type="submit"
+      class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600">
+      Save Question
+    </button>
+  </div>
+</div>
+
 
                    {{ html()->form()->close() }}
 

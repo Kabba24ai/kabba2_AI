@@ -19,25 +19,26 @@ class TaxDocumentDeleteController extends Controller
      * @param  string  $unique_id
      * @return RedirectResponse
      */
-    public function __invoke(string $unique_id): RedirectResponse
+    public function __invoke(string $unique_id): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
-
-        Log::info('Customer media info', ['media' => $customer->media]);
 
         $mediaId = $customer->media;
         if ($mediaId) {
             MediaHelper::removeFile($customer->media);
         }
+
         $customer->update([
             'tax_document_media_id' => null,
             'tax_document_upload_date' => null,
-            'tax_document_status' =>  '',
-
+            'tax_document_status' => '',
         ]);
 
-        flash('Tax document deleted successfully.')->success();
+        // if (request()->ajax()) {
+            return response()->json(['success' => true]);
+        // }
 
-        return redirect()->back();
+        // flash('Tax document deleted successfully.')->success();
+        // return redirect()->back();
     }
 }

@@ -411,9 +411,7 @@
         <div class="flex flex-col md:flex-row justify-between mt-8 gap-4">
             <a href="{{ route('admin.checklist-management.checklist-master.index') }}" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">Cancel New Checklist and Create Rental Ready Template</a>
             <button id="continueStep3Btn" onclick="goToStep(4)"
-                class="bg-gray-200 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium md:w-auto flex items-center gap-2"
-
-                disabled> Continue to Customer Template
+                class="bg-gray-200 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium md:w-auto flex items-center gap-2"> Continue to Customer Template
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4">
                     <path d="M5 12h14"></path>
                     <path d="m12 5 7 7-7 7"></path>
@@ -557,7 +555,7 @@
                 document.getElementById('templatecustomer').classList.remove('hidden');
                 document.getElementById('selectedTemplateCustomer').textContent = selectedRadio2.dataset.templateName;
                 document.getElementById('Assigned-customer-template').textContent = `"${selectedRadio2.dataset.templateName}"`;
-                document.getElementById('continueStep3Btn').disabled = false;
+                document.getElementById('continueStep3Btn').disabled = true;
             }
         }
 
@@ -752,31 +750,33 @@
         const selectedCustomer = document.getElementById('selectedTemplateCustomer');
         const continue3Btn = document.getElementById('continueStep3Btn');
 
-        // Disable button initially
-        continue3Btn.disabled = true;
+        // --- Always keep Step 3 Continue button enabled for Edit mode ---
+        continue3Btn.disabled = false;
+        continue3Btn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+        continue3Btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
 
         radios.forEach(radio => {
             radio.addEventListener('change', function() {
                 customerBox.classList.remove('hidden');
                 selectedCustomer.textContent = this.dataset.templateName;
 
-                //  also update final summary box
+                // Update final summary
                 const assignedcustomertemplate = document.getElementById('Assigned-customer-template');
                 if (assignedcustomertemplate) {
                     assignedcustomertemplate.textContent = '"' + this.dataset.templateName + '"';
                 }
 
                 document.getElementById('hiddenCustomerTemplateId').value = this.value;
-
-                // Enable button when a template is selected
-                continue3Btn.disabled = false;
-                continue3Btn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
-                continue3Btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
-
             });
+        });
+
+        // Continue to Step 4 when clicked
+        continue3Btn.addEventListener('click', function() {
+            goToStep(4);
         });
     });
 </script>
+
 
 
 <!--  JS Filter -->

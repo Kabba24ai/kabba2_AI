@@ -692,15 +692,15 @@
                });
 
                
-           console.log('Rendering options:', answerOptions);
-            
+          console.log("Rendering options:", JSON.parse(JSON.stringify(answerOptions)));
+
 
            }
 
 
            function renderOptions() {
 
-               syncInputsToData(); // <-- ADD THIS LINE
+            //    syncInputsToData(); // <-- ADD THIS LINE
                //alert(JSON.stringify(answerOptions));
                const container = document.getElementById('sortable-list');
                container.innerHTML = '';
@@ -874,6 +874,7 @@
            }
 
            function addOption() {
+            syncInputsToData();
                answerOptions.push({
                    id: nextId++,
                    delivery_text: '',
@@ -1064,8 +1065,11 @@
 document.addEventListener("DOMContentLoaded", function() {
 
 function resetAnswerOptions() {
-    answerOptions.splice(0, answerOptions.length); // clear in place
-    answerOptions.push({
+    console.log("Resetting answer options for new question.== start");
+    console.log("Before reset:", JSON.stringify(answerOptions, null, 4));
+
+    // Clear in place (important: this keeps references intact)
+    answerOptions.splice(0, answerOptions.length, {
         id: 1,
         answer_delivery_text: '',
         answer_return_text: '',
@@ -1074,8 +1078,13 @@ function resetAnswerOptions() {
         syncEnabled: true,
         is_damaged: 0
     });
+
     nextId = 2;
+
+    console.log("After reset:", JSON.stringify(answerOptions[0], null, 4));
+    console.log("Resetting answer options for new question.== end");
 }
+
 
 
     // ===== Cache important elements =====
@@ -1093,27 +1102,29 @@ function resetAnswerOptions() {
 
     // ====== Handle Edit Button ======
     document.querySelectorAll(".edit-question-btn").forEach(button => {
-        button.addEventListener("click", function() {
-         
-            // --- Extract question data ---
-            const questionId = this.dataset.id;
-            const questionName = this.dataset.name;
-            const categoryId = this.dataset.category;
-            const required = this.dataset.required === "1";
-            const questionDelivery = this.getAttribute("data-delivery-text") || "";
-            const questionReturn = this.getAttribute("data-return-text") || "";
-            const updateRoute = this.dataset.route;
+    button.addEventListener("click", function() {
+        console.log("Opening EDIT modal for:", this.dataset.id);
 
-            // --- Prefill form fields ---
-            questionNameInput.value = questionName;
-            categorySelect.value = categoryId;
-            requiredCheckbox.checked = required;
-            questionDeliveryInput.value = questionDelivery;
-            questionReturnInput.value = questionReturn;
+        // --- Extract question data ---
+        const questionId = this.dataset.id;
+        const questionName = this.dataset.name;
+        const categoryId = this.dataset.category;
+        const required = this.dataset.required === "1";
+        const questionDelivery = this.getAttribute("data-delivery-text") || "";
+        const questionReturn = this.getAttribute("data-return-text") || "";
+        const updateRoute = this.dataset.route;
 
-            // --- Load options ---
+        // --- Prefill base form fields ---
+        questionNameInput.value = questionName;
+        categorySelect.value = categoryId;
+        requiredCheckbox.checked = required;
+        questionDeliveryInput.value = questionDelivery;
+        questionReturnInput.value = questionReturn;
+
+        // --- Parse options safely ---
+        try {
             const options = JSON.parse(this.dataset.options || "[]");
-            answerOptions = options.map(opt => ({
+            answerOptions.splice(0, answerOptions.length, ...options.map(opt => ({
                 id: opt.id,
                 answer_delivery_text: opt.answer_delivery_text || "",
                 answer_return_text: opt.answer_return_text || "",
@@ -1121,95 +1132,87 @@ function resetAnswerOptions() {
                 return_amt: opt.return_amt || 0,
                 syncEnabled: opt.syncEnabled ?? true,
                 is_damaged: opt.is_damaged ?? 0,
-            }));
+            })));
             nextId = answerOptions.length + 1;
+        } catch (e) {
+            console.error("Failed to parse options:", e);
+            resetAnswerOptions();
+        }
 
-            renderOptions();
+        renderOptions();
 
-            // --- Set form to update mode ---
-            form.setAttribute("action", updateRoute);
-            let methodField = form.querySelector("input[name='_method']");
-            if (!methodField) {
-                methodField = document.createElement("input");
-                methodField.type = "hidden";
-                methodField.name = "_method";
-                form.appendChild(methodField);
-            }
-            methodField.value = "PUT";
+        // --- Setup form for update ---
+        form.setAttribute("action", updateRoute);
 
-            // --- Change submit button text ---
-            btnText.textContent = "Update Question";
+        let methodField = form.querySelector("input[name='_method']");
+        if (!methodField) {
+            methodField = document.createElement("input");
+            methodField.type = "hidden";
+            methodField.name = "_method";
+            form.appendChild(methodField);
+        }
+        methodField.value = "PUT";
 
-            // --- Show modal ---
-            modalWrapper.classList.remove("hidden");
-        });
+        // --- Update button text ---
+        btnText.textContent = "Update Question";
+
+        // --- Open modal ---
+        modalWrapper.classList.remove("hidden");
+
+        console.log('Form ready for EDIT question:', answerOptions);
     });
+});
+
 
     // ====== Handle "+ New Question" ======
-    window.openQuestionModal = function() {
+   window.openQuestionModal = function() {
+    console.log('Opening NEW question modal...');
 
-        resetAnswerOptions();
+    // --- Reset global data ---
+    resetAnswerOptions();
 
+    // --- Reset the form itself ---
+    form.reset();
 
-    // --- Reset form element ---
-    form.reset(); //  Reset all input fields (built-in)
+    // --- Clear any old validation messages ---
+    form.querySelectorAll(".parsley-errors-list").forEach(el => el.innerHTML = "");
 
-    console.log('Resetting question modal for new question.');
-    console.log(answerOptions);
-
-    // --- Remove any leftover PUT method field ---
+    // --- Remove hidden _method input (if exists) ---
     const methodField = form.querySelector("input[name='_method']");
     if (methodField) methodField.remove();
 
-    // --- Restore form action to create route ---
+    // --- Reset form action to create route ---
     form.setAttribute("action", createAction);
 
-    // --- Clear any previous Parsley or validation messages (if used) ---
-    const parsleyErrors = form.querySelectorAll(".parsley-errors-list");
-    parsleyErrors.forEach(el => el.innerHTML = "");
-
-    // --- Reset manual fields (just to be safe) ---
+    // --- Reset static fields ---
     questionNameInput.value = "";
     categorySelect.value = "";
     requiredCheckbox.checked = true;
     questionDeliveryInput.value = "";
     questionReturnInput.value = "";
 
-    // --- Destroy old array reference completely ---
-answerOptions.length = 0; // clears array in-place (removes all old elements)
-
-    // --- Reset global answerOptions ---
-    answerOptions = [{
-        id: 1,
-        answer_delivery_text: "",
-        answer_return_text: "",
-        delivery_amt: 0,
-        return_amt: 0,
-        syncEnabled: true,
-        is_damaged: 0
-    }];
-    nextId = 2;
-
-    // --- Re-render options ---
+    // --- Render a clean default answer option ---
     renderOptions();
 
-    // --- Reset submit button text ---
+    // --- Set button text ---
     btnText.textContent = "Save Question";
 
-    // --- Finally, open the modal ---
+    // --- Show modal ---
     modalWrapper.classList.remove("hidden");
+
+    console.log('Form ready for NEW question:', answerOptions);
 };
 
 
+
     // ====== Handle Close ======
-    window.closeQuestionModal = function() {
-        modalWrapper.classList.add("hidden");
-    };
+   window.closeQuestionModal = function() {
+    modalWrapper.classList.add("hidden");
+    console.log("Modal closed");
+};
+
 });
 </script>
-
-
-
 
        <!-- delete-category -->
        <script>

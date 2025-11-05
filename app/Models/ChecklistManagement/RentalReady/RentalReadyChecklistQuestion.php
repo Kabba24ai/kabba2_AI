@@ -20,6 +20,12 @@ class RentalReadyChecklistQuestion extends Model
                 $model->unique_id = ModelHelper::generateUniqueID($model, 'QST'); // Prefix QST
             }
         });
+
+        //  When question is deleted (soft or hard), also delete pivot links
+        static::deleting(function ($model) {
+            // Also soft-delete all linked template questions
+            $model->templateQuestions()->delete();
+        });
     }
 
     public function category() {
@@ -28,5 +34,9 @@ class RentalReadyChecklistQuestion extends Model
 
     public function answers() {
         return $this->hasMany(RentalReadyChecklistQuestionAnswer::class, 'question_id')->orderBy('index_number', 'asc');
+    }
+    public function templateQuestions()
+    {
+        return $this->hasMany(RentalReadyChecklistTemplateQuestion::class, 'question_id');
     }
 }

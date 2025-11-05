@@ -17,6 +17,11 @@ class CustomerAdminQuestion extends Model
                 $model->unique_id = ModelHelper::generateUniqueID($model, 'CAQST'); // Prefix QST
             }
         });
+
+        // Delete all template-question links when a question is deleted
+        static::deleting(function ($question) {
+            $question->templateQuestions()->delete();
+        });
     }
 
 
@@ -26,5 +31,10 @@ class CustomerAdminQuestion extends Model
 
     public function answers() {
         return $this->hasMany(CustomerAdminQuestionAnswer::class, 'question_id')->orderBy('index_number', 'asc');
+    }
+
+    public function templateQuestions()
+    {
+        return $this->hasMany(CustomerAdminTemplateQuestion::class, 'question_id');
     }
 }

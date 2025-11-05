@@ -51,7 +51,10 @@ Route::prefix('customers')
     // Delete
     Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 
-    Route::delete('/tax-document/{unique_id}', TaxDocumentDeleteController::class)->name('tax-document.delete');
+    // Route::post('/tax-document/{unique_id}', TaxDocumentDeleteController::class)->name('tax-document.delete');
+    Route::delete('/tax-document/{unique_id}', TaxDocumentDeleteController::class)
+    ->name('tax-document.delete');
+
     Route::get('/{unique_id}/login', LoginController::class)->name('login');
 
     // Impersonate Login

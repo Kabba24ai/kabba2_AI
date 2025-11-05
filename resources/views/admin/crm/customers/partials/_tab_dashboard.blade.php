@@ -20,7 +20,7 @@
                     @endif
                     {{ $customer->tax_status }}
                 </div>
-                <p class="text-xs text-gray-400 mt-1">Valid until N/A</p>
+                <p class="text-xs text-gray-400 mt-1">Valid until {{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</p>
             </div>
         </div>
     </div>
@@ -98,7 +98,7 @@
             @foreach ($customer->addresses->where('is_primary', 1) as $addresse)
             <div>
                 <p class="text-xs font-medium text-gray-500 mb-1">
-                   {{ ($addresse->type=='Shipping' ? 'Delivery' : $addresse->type) }} Address
+                    {{ ($addresse->type=='Shipping' ? 'Delivery' : $addresse->type) }} Address
                     <span class="ml-2 inline-block bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
                         Default Address
                     </span>
@@ -164,8 +164,8 @@
                         <div class="flex-1 pr-3">
                             <p class="text-sm text-gray-800 leading-relaxed font-semibold">{{ $note->description }} </p>
                             <div class="mt-1 text-xs text-gray-500 space-y-1">
-                                <div>Created {{ $note->created_date }} {{ $note->created_time }} by <span class="font-semibold">{{ $note->user->full_name }}</span></div>
-                                <div>Updated {{ $note->updated_at }} </div>
+                                <div>Created {{ \App\Helpers\CustomHelper::formatDateTime($customer->created_at ?? null) }}  by <span class="font-semibold">{{ $note->user->full_name }}</span></div>
+                                <div>Updated {{ \App\Helpers\CustomHelper::formatDateTime($note->updated_at) }} </div>
                             </div>
                         </div>
                     </div>
@@ -230,7 +230,7 @@
 </div> -->
 
 <!-- <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-    
+
     <div class="bg-white rounded-md shadow-sm p-5">
         <h3 class="text-base font-semibold text-gray-900 flex items-center gap-1 mb-4">
             <x-heroicon-o-user class="w-5 h-5 text-gray-900" />
@@ -263,7 +263,7 @@
         </div>
     </div>
 
-  
+
     <div class="bg-white rounded-md shadow-sm p-5 h-[250px] overflow-y-scroll overflow-x-hidden">
         <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
             <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
@@ -287,7 +287,7 @@
                     </span>
                 </p>
                 @php
-              
+
                 $mainParts = array_filter([
                 $addresse->address,
                 $addresse->city,
@@ -295,7 +295,7 @@
                 $addresse->zip_code,
                 ]);
 
-               
+
                 $parts = $mainParts;
                 if (!empty($mainParts) && !empty($addresse->country)) {
                 $parts[] = $addresse->country;

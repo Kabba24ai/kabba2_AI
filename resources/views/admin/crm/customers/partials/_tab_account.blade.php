@@ -889,7 +889,7 @@ $defaultAddresses = [
                         'Resale Certificate' => 'Resale Certificate',
                         'Non-Profit Exemption' => 'Non-Profit Exemption'
                         ])
-                        ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')
+                        ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')->required()
                         !!}
                     </div>
 
@@ -1132,18 +1132,59 @@ $defaultAddresses = [
 <script>
     window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
 </script>
-
 <script>
-    function confirmAndDelete(id) {
-        window.showConfirm(
-            `Are you sure you want to delete this document ? This action cannot be undone!`,
-            'Delete Document'
-        ).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById(`delete-media-form-${id}`).submit();
+function confirmAndDelete(customerId) {
+    window.showConfirm(
+        `Are you sure you want to delete this document? This action cannot be undone!`,
+        'Delete Document'
+    ).then((result) => {
+        if (!result.isConfirmed) return;
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const deleteUrl = "{{ route('admin.crm.customers.tax-document.delete', ['unique_id' => $customer->unique_id]) }}";
+
+        fetch(deleteUrl, {
+            method: 'POST', // ✅ still POST — we send a fake DELETE method inside
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ _method: 'DELETE' }) // ✅ Laravel interprets this as DELETE
+        })
+        .then(async res => {
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                return res.json();
+            } else {
+                const text = await res.text();
+                console.error('Non-JSON response:', text);
+                throw new Error('Unexpected response format');
             }
+        })
+        .then(data => {
+            if (data.success) {
+                notyf.success('Tax document deleted successfully');
+                const wrapper = document.getElementById('taxDocPreviewWrapper');
+                wrapper.classList.add('opacity-0');
+                setTimeout(() => {
+                    wrapper.innerHTML = `
+                        <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
+                            No tax document has been uploaded yet.
+                        </div>
+                    `;
+                    wrapper.classList.remove('opacity-0');
+                }, 300);
+            } else {
+                notyf.error(data.message || 'Failed to delete document');
+            }
+        })
+        .catch(err => {
+            console.error('Delete error:', err);
+            notyf.error('Error deleting document');
         });
-    }
+    });
+}
 
     function confirmAndSuspend(id) {
         if (confirm("Are you sure you want to suspend this customer?")) {

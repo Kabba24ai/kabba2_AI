@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin\Auth\Login;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Iam\Personnel\User;
+
 
 // Request
 use App\Http\Requests\Admin\Auth\Login\PostRequest;
@@ -26,6 +28,23 @@ class PostController extends Controller
         $credentials = $request->only('email', 'password');
 
         try {
+
+             // Find user by email
+            $user = User::where('email', $credentials['email'])->first();
+
+            // Check user existence
+            if (!$user) {
+                return back()
+                    ->withInput($request->only('email'))
+                    ->withErrors(['email' => 'No account found with that email address.']);
+            }
+
+            //  Check if user is inactive
+            if (isset($user->status) && $user->status === 'Inactive') {
+                return back()
+                    ->withInput($request->only('email'))
+                    ->withErrors(['email' => 'Your account is inactive. Please contact the administrator.']);
+            }
 
             // Attempt login with the selected guard
             if (Auth::guard('web')->attempt($credentials)) {
@@ -52,6 +71,5 @@ class PostController extends Controller
 
         return redirect(route('admin.dashboard.index'));
     }
-
 
 }

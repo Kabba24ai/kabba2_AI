@@ -29,6 +29,7 @@ class SettingSeeder extends Seeder
         $this->addDefaultSalesFunnelSettings();
         $this->addMailSendSettings();
         $this->addInvoiceSettings();
+        $this->addPriceSettings();
     }
 
     private function addDefaultSalesFunnelSettings()
@@ -131,6 +132,38 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
                 'setting_name' => 'customer_email_send_email_address',
                 'setting_title' => 'Customer Development/Staging Email',
                 'sort_order' => $sortOrder++,
+            ],
+        ];
+    }
+
+    private function addPriceSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Price Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'diesel_price_per_gallon',
+                'setting_title' => 'Diesel / Gallon',
+                'sort_order' => $sortOrder++,
+                'is_required' => true,
+                'default_value' => '3.70',
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'gas_price_per_gallon',
+                'setting_title' => 'Gas / Gallon',
+                'sort_order' => $sortOrder++,
+                'is_required' => true,
+                'default_value' => '2.95',
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'def_price_per_gallon',
+                'setting_title' => 'DEF / Gallon',
+                'sort_order' => $sortOrder++,
+                'is_required' => true,
+                'default_value' => '3.98',
             ],
         ];
     }

@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\Configurations\MailSendSettings\SaveController as
 use App\Http\Controllers\Admin\Configurations\PaymentIntegration\SaveController as SavePaymentIntegrationController;
 use App\Http\Controllers\Admin\Configurations\SocialMediaIntegration\SaveController as SaveSocialMediaController;
 use App\Http\Controllers\Admin\Configurations\InvoiceSettings\SaveController as SaveInvoiceSettingsController;
+use App\Http\Controllers\Admin\Configurations\PriceSettings\SaveController as SavePriceSettingsController;
 
 Route::prefix('configurations')
 ->name('configurations.')
@@ -31,6 +32,7 @@ Route::prefix('configurations')
     Route::post('/payment-integration-settings', SavePaymentIntegrationController::class)->name('save-payment-integration-settings');
     Route::post('/social-media-settings', SaveSocialMediaController::class)->name('save-social-media-settings');
     Route::post('/invoice-settings', SaveInvoiceSettingsController::class)->name('save-invoice-settings');
+    Route::post('/price-settings', SavePriceSettingsController::class)->name('save-price-settings');
 
     Route::post('/verify-master', VerifyMasterController::class)->name('verify-master');
     Route::post('/settings/reset', SettingsResetController::class)->name('reset-settings');

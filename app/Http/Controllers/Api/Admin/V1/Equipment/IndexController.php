@@ -46,10 +46,11 @@ class IndexController extends BaseController
             if ($isRentedAndDelivered) {
                 $questions = optional($item->orderProduct->checklistQuestions) ?? collect();
             } else {
-                $questions = optional($item->checklistMaster?->customerAdminTemplate?->templateQuestions)
-                        ->pluck('question')   // same as map->question but clearer
-                        ->filter()            // remove nulls
-                        ->values() ?? collect();
+                $templateQuestions = $item->checklistMaster?->customerAdminTemplate?->templateQuestions;
+                $questions = collect($templateQuestions)
+                    ->pluck('question')
+                    ->filter()
+                    ->values();
             }
             $item->setRelation('checklistQA', $questions);
             return $item;

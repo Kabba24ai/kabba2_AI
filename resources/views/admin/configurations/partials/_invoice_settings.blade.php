@@ -6,7 +6,7 @@
 
     <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0 mb-6">
         <div>
-            <label for="standard_delivery_range" class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="due_date_pay_upon_receipt" class="block text-sm font-medium text-gray-700 mb-1 required">
                 Due Date Pay Upon Receipt
             </label>
 

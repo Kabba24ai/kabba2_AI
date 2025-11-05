@@ -48,7 +48,8 @@ class UpdateController extends Controller
                     'answer_return_text'   => $option['answer_return_text'] ?? null,
                     'delivery_amt'         => $option['delivery_amt'] ?? null,
                     'return_amt'           => $option['return_amt'] ?? null,
-                    'required'             => $option['syncEnabled'] ?? false,
+                    'required'             => $option['required'] ?? false,
+                    'sync_texts'           => !empty($option['syncEnabled']) && $option['syncEnabled'] !== 'false' ? 1 : 0,
                     'is_damaged' => $option['is_damaged'] ?? 0,
                 ]);
 

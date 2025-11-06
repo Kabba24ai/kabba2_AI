@@ -10,7 +10,7 @@ use App\Http\Requests\Api\Admin\V1\CustomerChecklists\IndexRequest;
 
 // Resources
 use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource;
-
+use App\Http\Resources\Api\Admin\V1\Equipment\ListResource as EquipmentListResource;
 // Model
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
@@ -76,6 +76,7 @@ class IndexController extends BaseController
             'success' => true,
             'message' => trans('messages.api.admin.v1.customer_checklists.customer_checklist_found'),
             'customer_checklist_questions' => ListResource::collection($questions),
+            'equipment' => new EquipmentListResource($equipment ?? null),
         ]);
     }
 }

@@ -865,22 +865,22 @@
 
         // console.log(sizeFeeMap,sizeTrackInsuranceFeeMap);
         document.addEventListener("DOMContentLoaded", function() {
-            const hourTracking = document.querySelector('input[name="hour_tracking"]');
-            const hourRateInput = document.querySelector('input[name="hour_rate"]');
+            // const hourTracking = document.querySelector('input[name="hour_tracking"]');
+            // const hourRateInput = document.querySelector('input[name="hour_rate"]');
 
-            function toggleHourRateReadonly() {
-                if (hourTracking.checked) {
-                    hourRateInput.removeAttribute("readonly");
-                } else {
-                    hourRateInput.value = "";
-                    hourRateInput.setAttribute("readonly", true);
-                }
-            }
+            // function toggleHourRateReadonly() {
+            //     if (hourTracking.checked) {
+            //         hourRateInput.removeAttribute("readonly");
+            //     } else {
+            //         hourRateInput.value = "";
+            //         hourRateInput.setAttribute("readonly", true);
+            //     }
+            // }
 
-            if (hourTracking && hourRateInput) {
-                hourTracking.addEventListener("change", toggleHourRateReadonly);
-                toggleHourRateReadonly();
-            }
+            // if (hourTracking && hourRateInput) {
+            //     hourTracking.addEventListener("change", toggleHourRateReadonly);
+            //     toggleHourRateReadonly();
+            // }
 
             // Damage Waiver Auto-Calculation
             const dailyPriceInput = document.querySelector('input[name="rental_daily"]');
@@ -924,9 +924,9 @@
             }
 
             dailyPriceInput.addEventListener("input", () => {
-                if (hourTracking.checked) {
-                    updateOverageRate(dailyPriceInput, hourRateInput);
-                }
+                // if (hourTracking.checked) {
+                //     updateOverageRate(dailyPriceInput, hourRateInput);
+                // }
                 updateDamageWaiver(dailyPriceInput, damageWaiverDailyInput);
             });
 

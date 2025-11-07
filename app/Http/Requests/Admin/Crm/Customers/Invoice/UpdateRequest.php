@@ -36,7 +36,7 @@ class UpdateRequest extends FormRequest
             'invoice_number'    => ['nullable', 'string', 'max:50'],
             'invoice_status'    => ['nullable'],
             'invoice_date'      => ['required', 'date'],
-            'due_date'          => ['nullable', 'date'],
+            'due_date'          => ['nullable', 'date', 'after_or_equal:invoice_date'],
             'customer_id'       => ['required', 'exists:customers,id'],
             'subtotal'          => ['nullable', 'numeric', 'min:0'],
             'tax'               => ['nullable', 'numeric', 'min:0'],
@@ -56,6 +56,8 @@ class UpdateRequest extends FormRequest
             'customer_id.required' => 'Please select a customer for this invoice.',
             'customer_id.exists'   => 'Selected customer does not exist.',
             'invoice_date.required' => 'Invoice date is required.',
+            'due_date.after_or_equal' => 'Due date must be the same as or after the invoice date.', 
+
             'total.required'       => 'Invoice total is required.',
             'invoice_data.required' => 'Invoice items data is required.',
             'invoice_data.json'    => 'Invoice items must be a valid JSON string.',

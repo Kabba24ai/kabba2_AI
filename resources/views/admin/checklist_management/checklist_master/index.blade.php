@@ -105,7 +105,7 @@
                             <div class="text-sm text-gray-900"> {{ $Master->rentalReadyTemplate?->questions?->count() ?? 0 }}
                                 {{ Str::plural('question', $Master->rentalReadyTemplate?->questions?->count() ?? 0) }}
                             </div>
-                            <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors"> {{ $Master->rentalReadyTemplate->template_name ?? 'No template assigned' }} </a>
+                            <a href="{{ route('admin.checklist-management.rental-ready.index', ['template' => $Master->rentalReadyTemplate->template_name ?? '']) }}" class="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors"> {{ $Master->rentalReadyTemplate->template_name ?? 'No template assigned' }} </a>
                         </div>
                     </div>
                 </td>
@@ -119,7 +119,7 @@
                             </div>
 
                             @if ($Master->customerAdminTemplate)
-                            <a href="{{ route('admin.checklist-management.customer-admin.index') }}"
+                            <a href="{{ route('admin.checklist-management.customer-admin.index', ['template' => $Master->customerAdminTemplate->template_name]) }}"
                                 class="text-xs text-purple-600 hover:text-purple-800 hover:underline transition-colors"
                                 title="Go to this Customer Admin Template">
                                 {{ $Master->customerAdminTemplate->template_name }}
@@ -137,12 +137,6 @@
                         <a href="{{ route('admin.checklist-management.checklist-master.edit',$Master->unique_id) }}" class="text-blue-600">
                             <x-heroicon-o-pencil class="w-4 h-4" />
                         </a>
-
-
-                        <!-- <a href="#" class="text-red-600">
-                            <x-heroicon-o-trash class="w-4 h-4" />
-                        </a> -->
-
 
                         <form action="{{ route('admin.checklist-management.checklist-master.delete', $Master->unique_id) }}"
                             method="POST"

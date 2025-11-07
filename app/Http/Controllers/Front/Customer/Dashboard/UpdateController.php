@@ -35,6 +35,7 @@ class UpdateController extends Controller
                 'email' => $validated['email'] ?? null,
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
+                'same_as_billing' => !empty($validated['sameAsBilling']) ? 1 : 0,
             ];
 
            
@@ -69,8 +70,10 @@ class UpdateController extends Controller
                             'phone'         => $address['phone'] ?? null,
                             'address'       => $address['address'] ?? null,
                             'city'          => $address['city'] ?? null,
-                            'state_id'      => $address['state_id'] ?? null,
+                            'state_id'      => !empty($address['state_id']) ? (int)$address['state_id'] : null,
                             'zip_code'      => $address['zip_code'] ?? null,
+                            'country'      => $address['country'] ?? null,
+
                             'customer_id'   => $customer->id,
                             'is_primary'  => 1 ,
                         ];

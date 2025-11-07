@@ -533,8 +533,17 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const availableCredit = {{\App\Helpers\CustomHelper::getAvailableCredit($customer)}};
-        const creditLimit = {{$customer->credit_limit ?? 0}};
+        const availableCredit = {
+            {
+                \
+                App\ Helpers\ CustomHelper::getAvailableCredit($customer)
+            }
+        };
+        const creditLimit = {
+            {
+                $customer - > credit_limit ?? 0
+            }
+        };
         const usedCredit = creditLimit - availableCredit;
 
         const percentUsed = creditLimit > 0 ? Math.min((usedCredit / creditLimit) * 100, 100) : 0;
@@ -890,12 +899,24 @@
             });
 
             // Close
-            const closeModal = () => modalWrapper.style.display = 'none';
+            // const closeModal = () => modalWrapper.style.display = 'none';
+
+            // Close
+            const closeModal = () => {
+                modalWrapper.style.display = 'none';
+                resetForm(modalWrapper); //  Clear fields and restore defaults
+
+                //  Clear Parsley validation if exists
+                const form = modalWrapper.querySelector('form');
+                if (form && $(form).parsley) {
+                    $(form).parsley().reset();
+                }
+
+            };
+
             closeBtn.addEventListener('click', closeModal);
             cancelBtn.addEventListener('click', closeModal);
-            // modalWrapper.addEventListener('click', (e) => {
-            //     if (e.target === modalWrapper) closeModal();
-            // });
+
         }
 
         // Setup all modals

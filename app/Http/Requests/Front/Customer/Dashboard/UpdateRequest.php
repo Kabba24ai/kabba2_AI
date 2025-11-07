@@ -24,8 +24,8 @@ class UpdateRequest extends FormRequest
 
         return [
             'unique_id' => ['required'],
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
             'company_name' => ['nullable', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -38,6 +38,8 @@ class UpdateRequest extends FormRequest
             'company_phone' => ['nullable'],
         
             'alladdresslist'=>['nullable'],
+
+            'sameAsBilling' => ['nullable'],
 
             'website_protocol' => ['nullable'],
             'website_extension' => ['nullable'],

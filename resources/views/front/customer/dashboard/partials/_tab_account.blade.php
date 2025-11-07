@@ -28,7 +28,7 @@
             <div class="flex items-center gap-2">
                 <button type="button" id="editBtn" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition">Edit Information</button>
                 <button type="submit" id="saveBtn" style="display:none;" class="bg-green-600 text-white px-4 py-2 rounded text-sm saveBtn">Save Changes</button>
-                <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Cancel</button>
+                <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-4 py-2 rounded text-sm cancelBtn">Cancel</button>
             </div>
         </div>
     </div>
@@ -44,9 +44,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
 
             <div class="min-w-0">
-                <label class="text-xs text-gray-500 font-medium required">First Name </label>
+                <label class="text-xs text-gray-500 font-medium ">First Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
-                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
 
                 {!! html()->text('first_name', old('first_name', $customer->first_name ?? ''))
                 ->class([
@@ -54,18 +53,16 @@
                 'border-red-500' => $errors->has('first_name'),
                 ])
                 ->attributes([
-
                 'placeholder' => 'Enter First Name',
                 'id' => 'first_name',
                 'autocomplete' => 'off',
-                ])
-                ->required() !!}
+                ]) !!}
 
 
             </div>
 
             <div class="min-w-0">
-                <label class="text-xs text-gray-500 font-medium required">Last Name </label>
+                <label class="text-xs text-gray-500 font-medium ">Last Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
                 <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
 
@@ -79,11 +76,11 @@
                 'id' => 'last_name',
                 'autocomplete' => 'off',
                 ])
-                ->required() !!}
+                !!}
 
             </div>
 
-            <div class="sm:col-span-2 min-w-0">
+            <div class="min-w-0">
                 <label class="text-xs text-gray-500 font-medium required">Email Address </label>
                 <div class=" static-view">
                     <p class="text-gray-900 flex items-center gap-1 text-sm">
@@ -115,7 +112,7 @@
 
             </div>
 
-            <div class="sm:col-span-2 min-w-0">
+            <div class="min-w-0">
                 <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
                 <div class=" static-view">
                     <p class="text-gray-900 flex items-center gap-1 text-gray-900">
@@ -150,8 +147,8 @@
             <x-heroicon-o-building-office class="w-5 h-5 text-gray-900" /> Company Information
         </h3>
         <div class="grid grid-cols-1 gap-4 text-sm text-gray-700">
-            <div class="col-span-2">
-                <label class="text-xs text-gray-500 font-medium required">Company Name </label>
+            <div>
+                <label class="text-xs text-gray-500 font-medium ">Company Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
                 <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
 
@@ -165,12 +162,12 @@
                 'placeholder' => 'Enter Company Name',
                 'id' => 'company_name',
                 ])
-                ->required() !!}
+                !!}
 
 
             </div>
 
-            <div class="col-span-2">
+            <div>
                 <label class="text-xs text-gray-500 font-medium">Company Phone</label>
                 <div class=" static-view">
                     <p class=" text-gray-900 text-sm flex items-center gap-1">
@@ -178,8 +175,6 @@
                     </p>
                 </div>
                 <!-- Edit View -->
-                <!-- <input class="masked-phone edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_phone ?? '' }}" /> -->
-
 
                 {!! html()->text('company_phone', old('company_phone', $customer->company_phone ?? ''))
                 ->class([
@@ -277,20 +272,31 @@ $defaultAddresses = [
 
         <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
 
+        <div class="flex items-center justify-between mb-4">
 
-        <h3 class="text-base font-semibold mb-4 flex flex-wrap items-start gap-1">
-            <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
-            {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
-            @if ($addresse && $addresse->is_primary)
-            - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>
+            <h3 class="text-base font-semibold mb-4 flex flex-wrap items-start gap-1">
+                <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
+                {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
+                @if ($addresse && $addresse->is_primary)
+                - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>
+                @endif
+            </h3>
+            @if ($addressItem['label']=='Shipping')
+            <!-- Checkbox -->
+            <label class="edit-view flex items-center space-x-2 text-sm text-gray-700 cursor-pointer  font-semibold mb-4 gap-1">
+                <input type="checkbox" id="sameAsBilling" name="sameAsBilling"
+                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" {{ old('sameAsBilling', $customer->same_as_billing ?? 0) ? 'checked' : '' }}>
+                <span>Same as billing address</span>
+            </label>
             @endif
-        </h3>
+        </div>
+
 
         <div class="space-y-4">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium mb-1 required">First Name </label>
+                    <label class="text-xs text-gray-500 font-medium mb-1 ">First Name </label>
                     {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -299,10 +305,10 @@ $defaultAddresses = [
                     ->attributes([
                     'placeholder' => 'Enter First Name',
                     'class' => 'first_name'
-                    ])->required() !!}
+                    ]) !!}
                 </div>
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium mb-1 required">Last Name </label>
+                    <label class="text-xs text-gray-500 font-medium mb-1 ">Last Name </label>
                     {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -312,19 +318,32 @@ $defaultAddresses = [
 
                     'placeholder' => 'Last Name',
                     'class' => 'last_name'
-                    ])->required() !!}
+                    ]) !!}
                 </div>
             </div>
 
             <div>
-                <label class="text-xs text-gray-500 font-medium mb-1 edit-view required">Address </label>
+                <label class="text-xs text-gray-500 font-medium mb-1 edit-view ">Address </label>
                 <div class="static-view text-gray-900 text-sm">
 
-                    {{ $addresse?->full_name ?? '' }}<br>
-                    {{ $addresse?->address ?? '' }} {{ $addresse?->city ? ', ' . $addresse->city : '' }}<br>
-                    {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}<br>
+                    @php
+                    // Collect all non-empty fields except country
+                    $mainParts = array_filter([
+                    $addresse?->address,
+                    $addresse?->city,
+                    $addresse?->state?->name,
+                    $addresse?->zip_code,
+                    ]);
 
-                    {{ App\Helpers\CustomHelper::formatPhone(optional($addresse)->phone) ?? ' ' }}
+                    // Add country only if there is at least one other part
+                    $parts = $mainParts;
+                    if (!empty($mainParts) && !empty($addresse->country)) {
+                    $parts[] = $addresse->country;
+                    }
+                    @endphp
+
+                    <p>{{ implode(', ', $parts) ?: 'No address provided.' }}</p>
+
 
                 </div>
 
@@ -336,12 +355,12 @@ $defaultAddresses = [
                 ->attributes([
                 'placeholder' => 'Enter Address',
                 'class' => 'address'
-                ])->required() !!}
+                ]) !!}
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium mb-1 required">City </label>
+                    <label class="text-xs text-gray-500 font-medium mb-1 ">City </label>
                     {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -350,10 +369,10 @@ $defaultAddresses = [
                     ->attributes([
                     'placeholder' => 'Enter City',
                     'class' => 'city'
-                    ])->required() !!}
+                    ]) !!}
                 </div>
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium mb-1 required">Zip Code </label>
+                    <label class="text-xs text-gray-500 font-medium mb-1 ">Zip Code </label>
                     {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -363,13 +382,13 @@ $defaultAddresses = [
                     'maxlength' => 8,
                     'placeholder' => 'ZIP Code',
                     'class' => 'zip_code'
-                    ])->required() !!}
+                    ]) !!}
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium mb-1 required">State </label>
+                    <label class="text-xs text-gray-500 font-medium mb-1 ">State </label>
                     {!! html()
                     ->select("addresses[$index][state_id]",
                     ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
@@ -378,12 +397,31 @@ $defaultAddresses = [
                     ->class([
                     'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
                     'border-red-500' => $errors->has("addresses.$index.state_id"),
-                    ]) ->attribute('required', true)
+                    ])
                     !!}
                 </div>
 
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium mb-1 required">Phone Number </label>
+                    <label class="text-xs text-gray-500 font-medium ">Country </label>
+
+                    {!! html()->select("addresses[$index][Country]", [
+                    'USA' => 'USA',
+                    'Canada' => 'Canada',
+                    'UK' => 'UK',
+                    'India' => 'India',
+                    ], old("addresses.$index.Country", $addresse->country ?? 'USA')
+                    ) // default to USA if old or user value is not set
+                    ->class('pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm Country')
+                    ->attributes([
+                    'autocomplete' => 'off',
+                    ])
+
+                    !!}
+
+                </div>
+
+                <div class="edit-view">
+                    <label class="text-xs text-gray-500 font-medium mb-1 ">Phone Number </label>
 
 
                     {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
@@ -398,7 +436,7 @@ $defaultAddresses = [
                     'autocomplete' => 'tel',
                     'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
                     'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
-                    ])->required() !!}
+                    ]) !!}
 
                 </div>
 
@@ -675,6 +713,10 @@ $defaultAddresses = [
     });
 </script>
 
+
+
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('customerForm');
@@ -701,6 +743,7 @@ $defaultAddresses = [
                     city: block.querySelector('.city')?.value || '',
                     zip_code: block.querySelector('.zip_code')?.value || '',
                     state_id: block.querySelector('.state_id')?.value || '',
+                    country: block.querySelector('.Country')?.value || 'USA',
                 });
             });
 
@@ -745,6 +788,8 @@ $defaultAddresses = [
         const cancelBtn = document.getElementById('cancelBtntaxdoc');
         const form = document.getElementById('taxDocForm');
         const fileInput = document.getElementById('fileInput');
+
+
 
         function resetTaxDocModalForm() {
             form.reset();
@@ -832,6 +877,142 @@ $defaultAddresses = [
 
     });
 </script>
+
+
+
+<!-- Sync fields ( first name , last name ) -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const firstName = document.querySelector('#first_name');
+        const lastName = document.querySelector('#last_name');
+
+        const billingFirst = document.getElementById('addresses[0][first_name]');
+        const billingLast = document.getElementById('addresses[0][last_name]');
+        const deliveryFirst = document.getElementById('addresses[1][first_name]');
+        const deliveryLast = document.getElementById('addresses[1][last_name]');
+
+        let billingLinked = true;
+        let deliveryLinked = true;
+
+        // Sync names from main fields → address fields
+        firstName.addEventListener('input', () => {
+            if (billingLinked) billingFirst.value = firstName.value;
+            if (deliveryLinked) deliveryFirst.value = firstName.value;
+        });
+
+        lastName.addEventListener('input', () => {
+            if (billingLinked) billingLast.value = lastName.value;
+            if (deliveryLinked) deliveryLast.value = lastName.value;
+        });
+
+        // Stop syncing when user manually edits address fields
+        billingFirst.addEventListener('input', () => billingLinked = false);
+        billingLast.addEventListener('input', () => billingLinked = false);
+        deliveryFirst.addEventListener('input', () => deliveryLinked = false);
+        deliveryLast.addEventListener('input', () => deliveryLinked = false);
+    });
+</script>
+
+<!-- Sync fields Same As Billing -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize IMask for both fields
+        const phoneMasks = {};
+        document.querySelectorAll('.masked-phone').forEach(input => {
+            phoneMasks[input.id] = IMask(input, {
+                mask: '(000) 000-0000'
+            });
+        });
+
+        const billingFields = {
+            first_name: document.getElementById('addresses[0][first_name]'),
+            last_name: document.getElementById('addresses[0][last_name]'),
+            address: document.getElementById('addresses[0][address]'),
+            city: document.getElementById('addresses[0][city]'),
+            state: document.getElementById('addresses[0][state_id]'),
+            zip: document.getElementById('addresses[0][zip_code]'),
+            country: document.getElementById('addresses[0][Country]'),
+            phone: document.getElementById('addresses[0][phone]'),
+        };
+
+        const deliveryFields = {
+            first_name: document.getElementById('addresses[1][first_name]'),
+            last_name: document.getElementById('addresses[1][last_name]'),
+            address: document.getElementById('addresses[1][address]'),
+            city: document.getElementById('addresses[1][city]'),
+            state: document.getElementById('addresses[1][state_id]'),
+            zip: document.getElementById('addresses[1][zip_code]'),
+            country: document.getElementById('addresses[1][Country]'),
+            phone: document.getElementById('addresses[1][phone]'),
+        };
+
+
+        const sameAsBilling = document.querySelector('#sameAsBilling');
+
+        // Copy billing → delivery safely (works even with IMask)
+        const copyBillingToDelivery = () => {
+            for (let key in billingFields) {
+                if (key === 'phone') {
+                    // Use IMask-safe API
+                    const billingMask = phoneMasks[billingFields[key].id];
+                    const deliveryMask = phoneMasks[deliveryFields[key].id];
+                    deliveryMask.unmaskedValue = billingMask.unmaskedValue;
+                } else {
+                    deliveryFields[key].value = billingFields[key].value;
+                }
+            }
+        };
+
+        const clearDelivery = () => {
+            for (let key in deliveryFields) {
+                if (key === 'country') {
+                    deliveryFields[key].value = 'USA';
+                } else {
+                    deliveryFields[key].value = '';
+                }
+            }
+            // Reset mask explicitly
+            const deliveryMask = phoneMasks['delivery_phone'];
+            if (deliveryMask) deliveryMask.unmaskedValue = '';
+        };
+
+        const toggleDeliveryFields = (disabled) => {
+            for (let key in deliveryFields) {
+                deliveryFields[key].disabled = disabled;
+                deliveryFields[key].classList.toggle('bg-gray-100', disabled);
+                deliveryFields[key].classList.toggle('cursor-not-allowed', disabled);
+            }
+        };
+
+        // Initial setup
+        if (sameAsBilling.checked) {
+            copyBillingToDelivery();
+            toggleDeliveryFields(true);
+        }
+
+        // Listen for billing changes (with slight delay)
+        for (let key in billingFields) {
+            billingFields[key].addEventListener('input', () => {
+                if (sameAsBilling.checked) {
+                    setTimeout(copyBillingToDelivery, 10); // Wait for IMask to finish formatting
+                }
+            });
+        }
+
+        // Checkbox toggle
+        sameAsBilling.addEventListener('change', () => {
+            if (sameAsBilling.checked) {
+                copyBillingToDelivery();
+                toggleDeliveryFields(true);
+            } else {
+                clearDelivery();
+                toggleDeliveryFields(false);
+            }
+        });
+    });
+</script>
+
 
 
 @endpush

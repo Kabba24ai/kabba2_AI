@@ -25,7 +25,7 @@
 
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Discount Amount</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
@@ -47,7 +47,7 @@
                 </div>
                 <!-- Discount Reason -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Discount Reason </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Discount Reason </label>
 
                     {!! html()->select('reason', [
                     '' => 'Select discount reason',
@@ -64,7 +64,7 @@
 
                 <!-- Person Responsible -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
 
                     {!! html()
                     ->select('responsible_person',
@@ -196,7 +196,7 @@
             const item = invoice_data.find(p => p.id === itemId);
             if (!item) return;
             if (item.type !== 'discount') return;
-            
+
             // store editing ID in the form itself
             discountForm.dataset.editingId = itemId;
 

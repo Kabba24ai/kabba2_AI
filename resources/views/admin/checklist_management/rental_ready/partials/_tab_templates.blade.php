@@ -142,7 +142,7 @@
                                   </span>
 
                                   <!-- Access the real question -->
-                                  <span class="flex-1 font-medium">
+                                  <span class="flex-1 font-medium">z
                                       {{ $templateQuestion->question->question_name ?? 'No Question' }}
                                   </span>
 
@@ -426,12 +426,9 @@ document.addEventListener('DOMContentLoaded', function () {
     openBtn.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-
-
+    // modal.addEventListener('click', (e) => {
+    //   if (e.target === modal) closeModal();
+    // });
 
 
 window.syncQuestionsInput = function () {

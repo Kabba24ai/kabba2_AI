@@ -279,28 +279,32 @@ $defaultAddresses = [
         <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id ?? '' }}" class="address_id">
         <input type="hidden" name="addresses[{{ $index }}][type]" value="{{ $addressItem['label'] }}" class="type">
         <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
-        <div class="flex items-center justify-between mb-4">
 
-            <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
-                <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+
+            <h3 class="text-base font-semibold flex items-center flex-wrap gap-2 text-gray-900">
+                <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900 flex-shrink-0" />
                 {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
                 @if ($addresse && $addresse->is_primary)
-                - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>
+                <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-0.5 rounded">
+                    Default Address
+                </span>
                 @endif
-
-
-
-
             </h3>
+
             @if ($addressItem['label']=='Shipping')
             <!-- Checkbox -->
-            <label class="edit-view flex items-center space-x-2 text-sm text-gray-700 cursor-pointer  font-semibold mb-4 gap-1">
+            <label class="edit-view flex items-center gap-2 text-sm text-gray-700 cursor-pointer font-semibold">
                 <input type="checkbox" id="sameAsBilling" name="sameAsBilling"
-                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" {{ old('sameAsBilling', $customer->same_as_billing ?? 0) ? 'checked' : '' }}>
+                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    {{ old('sameAsBilling', $customer->same_as_billing ?? 0) ? 'checked' : '' }}>
                 <span>Same as billing address</span>
             </label>
             @endif
         </div>
+
+
+
 
         <div class="space-y-4">
 
@@ -339,10 +343,10 @@ $defaultAddresses = [
                     @php
                     // Collect all non-empty fields except country
                     $mainParts = array_filter([
-                    $addresse->address,
-                    $addresse->city,
-                    $addresse->state?->name,
-                    $addresse->zip_code,
+                    $addresse?->address,
+                    $addresse?->city,
+                    $addresse?->state?->name,
+                    $addresse?->zip_code,
                     ]);
 
                     // Add country only if there is at least one other part
@@ -411,7 +415,7 @@ $defaultAddresses = [
                 </div>
 
                 <div class="edit-view">
-                    <label class="text-xs text-gray-500 font-medium ">State </label>
+                    <label class="text-xs text-gray-500 font-medium ">Country </label>
 
                     {!! html()->select("addresses[$index][Country]", [
                     'USA' => 'USA',
@@ -1133,58 +1137,60 @@ $defaultAddresses = [
     window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
 </script>
 <script>
-function confirmAndDelete(customerId) {
-    window.showConfirm(
-        `Are you sure you want to delete this document? This action cannot be undone!`,
-        'Delete Document'
-    ).then((result) => {
-        if (!result.isConfirmed) return;
+    function confirmAndDelete(customerId) {
+        window.showConfirm(
+            `Are you sure you want to delete this document? This action cannot be undone!`,
+            'Delete Document'
+        ).then((result) => {
+            if (!result.isConfirmed) return;
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const deleteUrl = "{{ route('admin.crm.customers.tax-document.delete', ['unique_id' => $customer->unique_id]) }}";
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const deleteUrl = "{{ route('admin.crm.customers.tax-document.delete', ['unique_id' => $customer->unique_id]) }}";
 
-        fetch(deleteUrl, {
-            method: 'POST', // ✅ still POST — we send a fake DELETE method inside
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ _method: 'DELETE' }) // ✅ Laravel interprets this as DELETE
-        })
-        .then(async res => {
-            const contentType = res.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                return res.json();
-            } else {
-                const text = await res.text();
-                console.error('Non-JSON response:', text);
-                throw new Error('Unexpected response format');
-            }
-        })
-        .then(data => {
-            if (data.success) {
-                notyf.success('Tax document deleted successfully');
-                const wrapper = document.getElementById('taxDocPreviewWrapper');
-                wrapper.classList.add('opacity-0');
-                setTimeout(() => {
-                    wrapper.innerHTML = `
+            fetch(deleteUrl, {
+                    method: 'POST', // ✅ still POST — we send a fake DELETE method inside
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        _method: 'DELETE'
+                    }) // ✅ Laravel interprets this as DELETE
+                })
+                .then(async res => {
+                    const contentType = res.headers.get("content-type");
+                    if (contentType && contentType.includes("application/json")) {
+                        return res.json();
+                    } else {
+                        const text = await res.text();
+                        console.error('Non-JSON response:', text);
+                        throw new Error('Unexpected response format');
+                    }
+                })
+                .then(data => {
+                    if (data.success) {
+                        notyf.success('Tax document deleted successfully');
+                        const wrapper = document.getElementById('taxDocPreviewWrapper');
+                        wrapper.classList.add('opacity-0');
+                        setTimeout(() => {
+                            wrapper.innerHTML = `
                         <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-4 rounded-md">
                             No tax document has been uploaded yet.
                         </div>
                     `;
-                    wrapper.classList.remove('opacity-0');
-                }, 300);
-            } else {
-                notyf.error(data.message || 'Failed to delete document');
-            }
-        })
-        .catch(err => {
-            console.error('Delete error:', err);
-            notyf.error('Error deleting document');
+                            wrapper.classList.remove('opacity-0');
+                        }, 300);
+                    } else {
+                        notyf.error(data.message || 'Failed to delete document');
+                    }
+                })
+                .catch(err => {
+                    console.error('Delete error:', err);
+                    notyf.error('Error deleting document');
+                });
         });
-    });
-}
+    }
 
     function confirmAndSuspend(id) {
         if (confirm("Are you sure you want to suspend this customer?")) {

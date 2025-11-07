@@ -535,7 +535,8 @@
                            {!! html()->text('amount', old('amount'))->attributes([
                            'placeholder' => '0',
                            'autocomplete' => 'off',
-
+                           'data-parsley-min' => '0.01',
+                           'min' => '0.01',
                            'data-digit-input' => 'true',
                            'data-parsley-maxlength' => 8,
                            'maxlength' => 8,
@@ -731,6 +732,8 @@
                            'autocomplete' => 'off',
                            'data-digit-input' => 'true',
                            'data-parsley-maxlength' => 8,
+                           'data-parsley-min' => '0.01',
+                           'min' => '0.01',
                            'maxlength' => 8,
                            ])
                            ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
@@ -855,7 +858,8 @@
                            {!! html()->text('amount' , old('amount') )->attributes([
                            'placeholder' => '0',
                            'autocomplete' => 'off',
-
+                           'data-parsley-min' => '0.01',
+                           'min' => '0.01',
                            'data-digit-input' => 'true',
                            'data-parsley-maxlength' => 8,
                            'maxlength' => 8,
@@ -988,7 +992,8 @@
                            {!! html()->text('amount', old('amount'))->attributes([
                            'placeholder' => '0',
                            'autocomplete' => 'off',
-
+                           'data-parsley-min' => '0.01',
+                           'min' => '0.01',
                            'data-digit-input' => 'true',
                            'data-parsley-maxlength' => 8,
                            'maxlength' => 8,

@@ -10,27 +10,27 @@
 @include('flash::message')
 
 {{-- Header --}}
-<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3 sm:gap-4">
+
     {{-- Left side: Title --}}
-    <div>
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">
-            Customers
-        </h3>
-    </div>
+    <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">
+        Customers
+    </h3>
 
     {{-- Right side: Action buttons --}}
-    <div class="flex items-center gap-3">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
         <a href="{{ route('admin.crm.customers.create') }}"
-            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 w-full sm:w-auto text-center">
             + Add Customer
         </a>
 
         <a href="javascript:void(0)" onclick="openModal('TagModalWrapper')"
-            class="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+            class="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium shadow transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 w-full sm:w-auto text-center">
             Manage Tags
         </a>
     </div>
 </div>
+
 
 
 <div class="flex flex-wrap items-end gap-4 w-full mb-6">

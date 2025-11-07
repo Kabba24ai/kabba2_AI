@@ -442,11 +442,16 @@
                 footerButton.classList.remove("hidden");
             } else {
                 // Has order product → hide/show based on status
-                if (eq.badge === "Available" || eq.badge === "Rented") {
+                if (eq.badge === "Available") {
                     footerButton.classList.add("hidden");
                 } else {
                     footerButton.classList.remove("hidden");
                 }
+            }
+
+            //  ensure rented equipment always stays hidden
+            if (eq.badge === "Rented") {
+                footerButton.classList.add("hidden");
             }
 
             placeholder.classList.add("hidden");

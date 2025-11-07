@@ -740,27 +740,63 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <!-- delete- -->
 
-<script>
-  //Search Template by Name
-document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('searchTemplatesInput');
+<!-- search  -->
+ <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchTemplatesInput");
+    const tabButton = document.getElementById("tab-templates");
+    const wrapper = document.getElementById("cardsWrapper");
+    const cards = document.querySelectorAll(".question-cardtemp");
 
-    searchInput.addEventListener('input', function () {
+    if (!searchInput || !wrapper || !tabButton) return;
+
+    function filterCards() {
         const searchText = searchInput.value.toLowerCase();
+        wrapper.classList.add("opacity-50", "pointer-events-none");
 
-        document.querySelectorAll('.question-cardtemp').forEach(card => {
-            const title = card.querySelector('h3')?.textContent.toLowerCase() || "";
-            const description = card.querySelector('p')?.textContent.toLowerCase() || "";
-            
-            if (title.includes(searchText) || description.includes(searchText)) {
-                card.style.display = "";
-            } else {
-                card.style.display = "none";
+        setTimeout(() => {
+            cards.forEach(card => {
+                const title = card.querySelector("h3")?.textContent.toLowerCase() || "";
+                const desc = card.querySelector("p")?.textContent.toLowerCase() || "";
+                const visible = title.includes(searchText) || desc.includes(searchText);
+                card.style.display = visible ? "" : "none";
+            });
+
+            wrapper.classList.remove("opacity-50", "pointer-events-none");
+        }, 150);
+    }
+
+    // 🔹 Check for ?template= in URL
+    const params = new URLSearchParams(window.location.search);
+    const templateParam = params.get("template");
+
+    if (templateParam) {
+        // Pre-fill search & filter
+        searchInput.value = templateParam;
+        filterCards();
+
+        // 🔹 Auto-activate "Templates" tab — add small delay to ensure tabs are ready
+        setTimeout(() => {
+            if (typeof showTab === "function") {
+                showTab("templates", tabButton);
             }
-        });
-    });
+
+            // ✅ Visually mark this tab as active (if your showTab doesn’t handle it)
+            tabButton.classList.add("bg-blue-100", "text-blue-700", "font-semibold");
+
+            // Optional: focus input for clarity
+            searchInput.focus();
+        }, 300);
+    }
+
+    // 🔹 Filter on input change
+    searchInput.addEventListener("input", filterCards);
 });
 </script>
+
+
+
+
 
 
 @endpush

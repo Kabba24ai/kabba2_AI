@@ -24,7 +24,7 @@
                 ])->open() }}
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Refund Amount</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
                         <!-- <input id="ramount" type="text" placeholder="0.00" maxlength="8" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"> -->
@@ -41,7 +41,7 @@
                 </div>
                 <!-- Refund Reason -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Refund Reason</label>
 
                     {!! html()->select('reason', [
                     '' => 'Select refund reason',
@@ -60,7 +60,7 @@
 
                 <!-- Person Responsible -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible</label>
 
                     {!! html()
                     ->select('responsible_person',

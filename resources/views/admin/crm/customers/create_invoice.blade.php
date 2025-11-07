@@ -128,7 +128,13 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                         old('due_date', isset($invoice->due_date) ? \App\Helpers\CustomHelper::formatDate($invoice->due_date) : '')
                         )
                         ->class('w-full border rounded-md datepicker px-3 py-2 text-sm bg-white text-gray-700 border-gray-300')
-                        ->attributes(['id' => 'due_date','placeholder' => 'MM-DD-YYYY','autocomplete' => 'off'])
+                        ->attributes([
+                        'id' => 'due_date',
+                        'placeholder' => 'MM-DD-YYYY',
+                        'autocomplete' => 'off' ,
+                        'data-parsley-afterinvoice' => '', 
+                        'data-parsley-afterinvoice-message' => 'Due date must be same or after invoice date.',
+                        ])
                         ->required() !!}
                     </div>
 
@@ -1100,94 +1106,85 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         }, 100);
     }
 </script>
-
 @if ($isEdit)
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const statusSelect = document.getElementById("invoice_status");
-        const paymentWrapper = document.getElementById("payment-method-wrapper");
+    document.addEventListener('DOMContentLoaded', () => {
+        const statusSelect = document.getElementById('invoice_status');
+        const paymentWrapper = document.getElementById('payment-method-wrapper');
+        const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
 
+        //  Show/hide payment methods based on invoice status
         function togglePaymentMethods() {
-            if (statusSelect.value === "paid") {
-                paymentWrapper.classList.remove("hidden");
+            if (statusSelect.value === 'paid') {
+                paymentWrapper.classList.remove('hidden');
             } else {
-                paymentWrapper.classList.add("hidden");
+                paymentWrapper.classList.add('hidden');
             }
         }
 
-        // Initial check on page load
-        togglePaymentMethods();
-
-        // Listen for changes
-        statusSelect.addEventListener("change", togglePaymentMethods);
-    });
-</script>
-
-@endif
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const invoiceStatus = document.getElementById('invoice_status');
-        const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
-
-        // Show confirmation popup
+        // Generic confirmation dialog
         function showChangeConfirm(newValue, callback) {
+            //  Format the displayed label
+            let displayValue = newValue;
+            if (newValue.toLowerCase() === 'cheque') {
+                displayValue = 'Check';
+            }
+
             window.showConfirm(
-                `You are about to change the value to "${newValue}". Do you want to continue?`,
+                `You are about to change the status to "${displayValue}". Do you want to continue?`,
                 'Confirm Change'
-            ).then((result) => {
-                callback(result.isConfirmed);
-            });
+            ).then(result => callback(result.isConfirmed));
         }
 
-        // Handle invoice status change
-        invoiceStatus.addEventListener('mousedown', function(e) {
-            // Store initial value
-            invoiceStatus.dataset.initial = invoiceStatus.value;
+        // Store initial value before change
+        statusSelect.addEventListener('mousedown', () => {
+            statusSelect.dataset.initial = statusSelect.value;
         });
 
-        invoiceStatus.addEventListener('change', function(e) {
+        //  Handle invoice status change with confirm
+        statusSelect.addEventListener('change', e => {
             const newValue = e.target.value;
-            e.preventDefault(); // prevent default change
-            invoiceStatus.value = invoiceStatus.dataset.initial; // revert temporarily
+            e.preventDefault();
+            statusSelect.value = statusSelect.dataset.initial;
 
-            showChangeConfirm(newValue, function(confirmed) {
+            showChangeConfirm(newValue, confirmed => {
                 if (confirmed) {
-                    invoiceStatus.value = newValue; // apply change only if confirmed
-                    invoiceStatus.dataset.initial = newValue; // update initial
+                    statusSelect.value = newValue;
+                    statusSelect.dataset.initial = newValue;
+                    togglePaymentMethods(); // Only show payment section after confirm
+                } else {
+                    togglePaymentMethods(); // Keep correct visibility on cancel
                 }
             });
         });
 
-        // Handle payment method change
-        paymentRadios.forEach(radio => {
-            // store initial checked state
-            if (radio.checked) {
-                radio.dataset.initial = "checked";
-            }
+        //  Initial check when page loads
+        togglePaymentMethods();
 
-            radio.addEventListener('click', function(e) {
+        //  Handle payment method radio change with confirm
+        paymentRadios.forEach(radio => {
+            if (radio.checked) radio.dataset.initial = 'checked';
+
+            radio.addEventListener('click', e => {
                 const clickedValue = radio.value;
                 const prevChecked = document.querySelector('input[name="payment_method"][data-initial="checked"]');
 
-                showChangeConfirm(clickedValue, function(confirmed) {
+                showChangeConfirm(clickedValue, confirmed => {
                     if (confirmed) {
-                        // update checked states
-                        paymentRadios.forEach(r => r.dataset.initial = "");
-                        radio.dataset.initial = "checked";
+                        paymentRadios.forEach(r => r.dataset.initial = '');
+                        radio.dataset.initial = 'checked';
                         radio.checked = true;
                     } else {
-                        // revert to previous checked
                         if (prevChecked) prevChecked.checked = true;
                     }
                 });
 
-                e.preventDefault(); // prevent immediate change
+                e.preventDefault(); // Prevent instant toggle before confirm
             });
         });
     });
 </script>
+@endif
 
 <!-- JS Section -->
 <script>
@@ -1233,6 +1230,5 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         paymentTermsSelect.addEventListener('change', calculateDueDate);
     });
 </script>
-
 
 @endpush

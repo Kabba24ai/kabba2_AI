@@ -202,45 +202,56 @@
     });
 </script>
 
-
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const searchInput = document.querySelector('input[placeholder="Search Templates..."]');
         const cards = document.querySelectorAll(".question-cardtemp");
         const wrapper = document.getElementById("cardsWrapper");
+        const tabButton = document.getElementById("tab-templates");
 
         function filterCards() {
-            // Add loading effect
             wrapper.classList.add('opacity-50', 'pointer-events-none');
-
             const searchText = searchInput.value.toLowerCase();
 
             setTimeout(() => {
                 cards.forEach(card => {
                     const title = card.querySelector("h3").textContent.toLowerCase();
-                    const cardCategoryId = card.getAttribute("data-category-id");
-
-                    let matchesSearch = !searchText || title.includes(searchText);
-
-                    if (matchesSearch) {
-                        card.style.display = "block";
-                    } else {
-                        card.style.display = "none";
-                    }
+                    const matchesSearch = !searchText || title.includes(searchText);
+                    card.style.display = matchesSearch ? "block" : "none";
                 });
-
-                // Remove loading effect
                 wrapper.classList.remove('opacity-50', 'pointer-events-none');
-            }, 150); // simulate small delay for UX
+            }, 150);
         }
 
-        searchInput.addEventListener("input", filterCards);
+        // ✅ Check if "template" parameter exists in URL
+        const params = new URLSearchParams(window.location.search);
+        const templateParam = params.get("template");
 
+        if (templateParam) {
+            // Pre-fill input
+            searchInput.value = templateParam;
+
+            // Filter the cards
+            filterCards();
+
+            // ✅ Automatically activate the "Templates" tab
+            if (typeof showTab === "function" && tabButton) {
+                showTab('templates', tabButton);
+            }
+
+            // Optional UX improvement: focus input
+            searchInput.focus();
+        }
+
+        // Handle manual typing too
+        searchInput.addEventListener("input", filterCards);
     });
 </script>
 
+
+
 <!-- Switch to Questions tab & Wait briefly to ensure tab content loads, then filter by category -->
- 
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const viewButtons = document.querySelectorAll(".view-category-btn");

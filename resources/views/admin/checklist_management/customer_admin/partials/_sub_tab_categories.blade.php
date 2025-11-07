@@ -105,7 +105,7 @@
                         'class' => 'mt-1 w-full px-4 py-2 text-sm border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500',
                         'required' => true,
                         'id' => 'category_name',
-                        'data-parsley-required-message' => 'Category name is required.',
+                        'data-parsley-validate' => true,
                     ])->placeholder('Enter category name') }}
                         @error('category_name')
                         <p class="text-sm text-red-600">{{ $message }}</p>
@@ -113,7 +113,7 @@
 
 
                     </div>
-                    <div class="">
+                    <div class="" id="descriptionWrapper">
                         <label class="block text-sm font-medium text-gray-700">Description</label>
                         <!-- <textarea class="mt-1 w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Optional description..."></textarea> -->
                         {{ html()->textarea('description')->attributes([
@@ -125,7 +125,7 @@
 
 
                     <!--  New Checkbox Field -->
-                    <div class="flex items-start space-x-2 mb-6">
+                    <div class="flex items-start space-x-2 mb-6" id="createRentalFolder">
                         {{ html()->checkbox('create_rental_folder', false)->attributes([
             'id' => 'create_rental_folder',
             'class' => 'mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
@@ -166,6 +166,8 @@
             const categoryNameInput = document.getElementById("category_name");
             const descriptionInput = document.getElementById("description");
             const btnText = document.getElementById("categoryBtnText");
+            const createRentalFolder = document.getElementById("createRentalFolder");
+            const descriptionWrapper = document.getElementById("descriptionWrapper");
 
             // Handle Edit button clicks
             document.querySelectorAll(".edit-category-btn").forEach(btn => {
@@ -193,6 +195,17 @@
 
                     // Change button text
                     btnText.textContent = "Update Category";
+
+                    //  Hide checkbox in edit mode
+                    if (createRentalFolder) {
+                        createRentalFolder.classList.add("hidden");
+                    }
+
+                    //  Add bottom margin to description
+                    if (descriptionWrapper) {
+                        descriptionWrapper.classList.add("mb-6");
+                    }
+
 
                     modalWrapper.classList.remove("hidden");
                 });
@@ -240,8 +253,29 @@
     <!-- Open modal -->
     <script>
         function openCategoriesModal() {
-            document.getElementById('CategoryModalWrapper').classList.remove('hidden');
+            const modal = document.getElementById('CategoryModalWrapper');
+            const form = document.getElementById('categoryForm');
+            const createRentalFolder = document.getElementById('createRentalFolder');
+            const descriptionWrapper = document.getElementById('descriptionWrapper');
+
+            //  Reset form fields (this actually clears input values)
+            if (form) form.reset();
+
+            //  Show modal
+            if (modal) modal.classList.remove('hidden');
+
+            //  Show rental folder checkbox
+            if (createRentalFolder) createRentalFolder.classList.remove('hidden');
+
+            //  Remove margin class if it was added in edit mode
+            if (descriptionWrapper) descriptionWrapper.classList.remove('mb-6');
+
+            //  Optional: Clear Parsley validation errors (if using Parsley)
+            if ($(form).data('parsley')) {
+                $(form).parsley().reset();
+            }
         }
+
 
         // Close modal
         function closeCategoryModal() {
@@ -249,12 +283,12 @@
         }
 
         // Optional: Close when clicking outside modal content
-        window.addEventListener('click', function(e) {
-            const modal = document.getElementById('CategoryModalWrapper');
-            if (e.target === modal) {
-                closeCategoryModal();
-            }
-        });
+        // window.addEventListener('click', function(e) {
+        //     const modal = document.getElementById('CategoryModalWrapper');
+        //     if (e.target === modal) {
+        //         closeCategoryModal();
+        //     }
+        // });
 
         // Optional: Listen to external event to open modal (like Alpine's window event)
         window.addEventListener('open-address-modal', () => {

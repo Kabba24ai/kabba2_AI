@@ -66,8 +66,8 @@ class ListResource extends JsonResource
             'in_store_pickup' => $this->in_store_pickup ?? false,
             'delivery_and_pickup' => $this->delivery_and_pickup ?? false,
 
-            'hour_tracking' => $this->hour_tracking ?? false,
-            'hour_rate' => $this->hour_rate ?? 0,
+            // 'hour_tracking' => $this->hour_tracking ?? false,
+            // 'hour_rate' => $this->hour_rate ?? 0,
 
             'status' => $this->status ?? '',
 

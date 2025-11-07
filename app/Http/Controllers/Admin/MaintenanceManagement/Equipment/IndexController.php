@@ -40,6 +40,12 @@ class IndexController extends Controller
 
         $query = Equipment::with('productCategory');
 
+        // status filter
+        $query->when($request->status, function ($q, $status) {
+            $q->where('current_status', $status);
+        });
+
+
         // Search filter
         $query->when($request->search, function ($q, $search) {
             $q->where('equipment_name', 'like', '%' . $search . '%');

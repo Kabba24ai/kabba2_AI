@@ -29,7 +29,7 @@ class OrderCustomerChecklistListener
             default => null,
         };
 
-        $message = match ($type) {
+        $message = match ($typeEnum) {
             OrderCustomerChecklistType::ChecklistDelivery => "{$user->full_name} delivery checklist filled and machine delivered.",
             OrderCustomerChecklistType::ChecklistReturn => "{$user->full_name} return checklist filled and machine returned.",
             OrderCustomerChecklistType::ChecklistRemoved => "{$user->full_name} removed the checklist from the order.",

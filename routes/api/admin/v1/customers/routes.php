@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\V1\Customers\IndexController;
 use App\Http\Controllers\Api\Admin\V1\Customers\StoreController;
 use App\Http\Controllers\Api\Admin\V1\Customers\Tags\IndexController as TagsIndexController;
 use App\Http\Controllers\Api\Admin\V1\Customers\Tags\StoreController as TagsStoreController;
+use App\Http\Controllers\Api\Admin\V1\Customers\Cards\IndexController as CardsIndexController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,5 +27,9 @@ Route::group(['prefix' => 'customers'], function () {
     Route::group(['prefix' => 'tags'], function () {
         Route::post('/', TagsIndexController::class);
         Route::post('/store', TagsStoreController::class);
+    });
+
+    Route::group(['prefix' => 'cards'], function () {
+        Route::post('/', CardsIndexController::class);
     });
 });

@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 // Controllers
 use App\Http\Controllers\Api\Admin\V1\Users\IndexController;
+use App\Http\Controllers\Api\Admin\V1\Users\DeviceTokenController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -17,4 +19,5 @@ use App\Http\Controllers\Api\Admin\V1\Users\IndexController;
 
 Route::group(['prefix' => 'users'], function () {
     Route::post('/', IndexController::class);
+    Route::post('/device-token', DeviceTokenController::class);
 });

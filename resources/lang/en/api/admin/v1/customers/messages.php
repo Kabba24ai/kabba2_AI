@@ -11,4 +11,9 @@ return [
         'tags_found' => 'Tags found.',
         'tag_created_successfully' => 'Customer tag created successfully.',
     ],
+
+    'cards' => [
+        'no_cards_found' => 'No customer cards found.',
+        'cards_found' => 'Customer cards found.',
+    ],
 ];

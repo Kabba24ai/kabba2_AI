@@ -137,4 +137,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(\App\Models\Locations\State::class, 'state', 'id');
     }
+
+    public function devices()
+    {
+        return $this->hasMany(UserDevice::class, 'user_id', 'id');
+    }
 }

@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\SaveDeliveryCont
 use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\SaveReturnController;
 use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\RemoveController as CustomerChecklistsRemoveController;
 use App\Http\Controllers\Api\Admin\V1\Orders\RentalReadyChecklists\SaveController;
+use App\Http\Controllers\Api\Admin\V1\Orders\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,7 @@ Route::group(['prefix' => 'orders'], function () {
     Route::post('/upload-media', UploadMediaController::class);
     Route::post('/remove-media', RemoveMediaController::class);
     Route::post('/update-address', UpdateAddressController::class);
+    Route::post('/payment', PaymentController::class);
 
     Route::group(['prefix' => 'schedules'], function () {
         Route::post('/', SchedulesIndexController::class);

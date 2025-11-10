@@ -29,96 +29,303 @@ class AuthorizeNetService
         $this->isTestMode = $isTestMode === true || $isTestMode === 'true' || $isTestMode === 1 || $isTestMode === '1';
     }
 
-    public function findOrCreateCustomerProfileAndPaymentProfile(string $uniqueId, array $customer, string $opaqueDataValue)
+    /**
+     * Create a new customer profile with payment profile.
+     *
+     * @param string $uniqueId
+     * @param array $customer
+     * @param string|null $opaqueDataValue
+     * @param array $cardData
+     * @return array
+     */
+    public function createCustomer(string $uniqueId, array $customer, ?string $opaqueDataValue = null, array $cardData = []): array
     {
-        // 1. Try to find customer profile by merchantCustomerId (your uniqueId)
-        $profileId = $this->findExistingCustomerProfileId($uniqueId);
+        // Set up customer profile
+        $profile = new AnetAPI\CustomerProfileType();
+        $profile->setMerchantCustomerId($uniqueId);
+        $profile->setEmail($customer['email'] ?? $uniqueId);
+        $profile->setDescription($customer['description'] ?? '');
 
-        // 2. If profile does not exist, create it (with payment profile)
-        if (!$profileId) {
-            // Set up profile
-            $profile = new AnetAPI\CustomerProfileType();
-            $profile->setMerchantCustomerId($uniqueId);
-            $profile->setEmail($customer['email'] ?? $uniqueId);
-            $profile->setDescription($customer['description'] ?? '');
+        // Set up billing address
+        $customerAddress = new AnetAPI\CustomerAddressType();
+        if (!empty($customer['first_name'])) {
+            $customerAddress->setFirstName($customer['first_name']);
+        }
+        if (!empty($customer['last_name'])) {
+            $customerAddress->setLastName($customer['last_name']);
+        }
+        if (!empty($customer['email'])) {
+            $customerAddress->setEmail($customer['email']);
+        }
+        if (!empty($customer['company'])) {
+            $customerAddress->setCompany($customer['company']);
+        }
+        if (!empty($customer['address'])) {
+            $customerAddress->setAddress($customer['address']);
+        }
 
-            // Set up billing address (optional, for profile)
-            $customerAddress = new AnetAPI\CustomerAddressType();
-            if (!empty($customer['first_name'])) {
-                $customerAddress->setFirstName($customer['first_name']);
-            }
-            if (!empty($customer['last_name'])) {
-                $customerAddress->setLastName($customer['last_name']);
-            }
-            if (!empty($customer['email'])) {
-                $customerAddress->setEmail($customer['email']);
-            }
-            if (!empty($customer['company'])) {
-                $customerAddress->setCompany($customer['company']);
-            }
+        // Set up payment profile
+        $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
+        $paymentProfile->setCustomerType('individual');
+        $paymentProfile->setBillTo($customerAddress);
 
+        // Handle payment method - prioritize opaqueDataValue over cardData
+        if (!empty($opaqueDataValue)) {
             // Set up payment profile with Accept.js opaqueData
             $opaqueData = new AnetAPI\OpaqueDataType();
             $opaqueData->setDataDescriptor('COMMON.ACCEPT.INAPP.PAYMENT');
             $opaqueData->setDataValue($opaqueDataValue);
 
-            $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
-            $paymentProfile->setCustomerType('individual');
-            $paymentProfile->setPayment((new AnetAPI\PaymentType())->setOpaqueData($opaqueData));
-            // Optionally set billing address on payment profile:
-            $paymentProfile->setBillTo($customerAddress);
+            $paymentType = new AnetAPI\PaymentType();
+            $paymentType->setOpaqueData($opaqueData);
+            $paymentProfile->setPayment($paymentType);
+        } elseif (!empty($cardData) && !empty($cardData['card_number'])) {
+            // Set up payment profile with card data
+            $creditCard = new AnetAPI\CreditCardType();
+            $creditCard->setCardNumber(preg_replace('/\s+/', '', $cardData['card_number']));
 
-            $profile->setPaymentProfiles([$paymentProfile]); // Add payment profile
-
-            $createRequest = new AnetAPI\CreateCustomerProfileRequest();
-            $createRequest->setMerchantAuthentication($this->merchantAuthentication);
-            $createRequest->setProfile($profile);
-            $createRequest->setValidationMode($this->isTestMode ? 'none' : 'liveMode');
-
-            $controller = new AnetController\CreateCustomerProfileController($createRequest);
-            $createResponse = $controller->executeWithApiResponse($this->getApiEnvironment());
-
-            if ($createResponse && $createResponse->getMessages()->getResultCode() === 'Ok') {
-                $profileId = $createResponse->getCustomerProfileId();
-                $paymentProfileId = $createResponse->getCustomerPaymentProfileIdList()[0] ?? null;
-                return [
-                    'customer_profile_id' => $profileId,
-                    'payment_profile_id' => $paymentProfileId,
-                ];
-            } else {
-                if ($createResponse && $createResponse->getMessages() && $createResponse->getMessages()->getMessage()) {
-                    $msgObj = $createResponse->getMessages()->getMessage()[0];
-                    $errorCode = method_exists($msgObj, 'getCode') ? $msgObj->getCode() : '';
-                    $errorText = method_exists($msgObj, 'getText') ? $msgObj->getText() : '';
-                    $error = "[$errorCode] $errorText";
-                } else {
-                    $error = 'Unknown error';
-                }
-                throw new \Exception('Failed to create customer profile: ' . $error);
+            if (!empty($cardData['mm_yy'])) {
+                $expiry = $cardData['mm_yy'];
+                $expiryData = explode('/', $expiry);
+                $expiration_month = str_pad($expiryData[0], 2, '0', STR_PAD_LEFT);
+                $expiration_year = $expiryData[1];
+                $creditCard->setExpirationDate('20' . $expiration_year . '-' . $expiration_month);
             }
+
+            if (!empty($cardData['card_cvv'])) {
+                $creditCard->setCardCode($cardData['card_cvv']);
+            }
+
+            $paymentType = new AnetAPI\PaymentType();
+            $paymentType->setCreditCard($creditCard);
+            $paymentProfile->setPayment($paymentType);
         } else {
-            // Profile exists – look for payment profiles
-            $getProfileRequest = new AnetAPI\GetCustomerProfileRequest();
-            $getProfileRequest->setMerchantAuthentication($this->merchantAuthentication);
-            $getProfileRequest->setCustomerProfileId($profileId);
+            throw new \Exception('Either opaqueDataValue or valid cardData must be provided');
+        }
 
-            $getProfileController = new AnetController\GetCustomerProfileController($getProfileRequest);
-            $getProfileResponse = $getProfileController->executeWithApiResponse($this->getApiEnvironment());
+        $profile->setPaymentProfiles([$paymentProfile]);
 
-            $paymentProfiles = $getProfileResponse->getProfile()->getPaymentProfiles();
+        // Create the request
+        $createRequest = new AnetAPI\CreateCustomerProfileRequest();
+        $createRequest->setMerchantAuthentication($this->merchantAuthentication);
+        $createRequest->setProfile($profile);
+        $createRequest->setValidationMode($this->isTestMode ? 'none' : 'liveMode');
 
-            // You should decide your logic for "matching" (e.g., by last4, or maybe by card fingerprint if available)
-            // For now, let's just take the first one
-            $paymentProfileId = $paymentProfiles && count($paymentProfiles) > 0 ? $paymentProfiles[0]->getCustomerPaymentProfileId() : null;
+        $controller = new AnetController\CreateCustomerProfileController($createRequest);
+        $createResponse = $controller->executeWithApiResponse($this->getApiEnvironment());
 
-            // If you want to create a new one (for a new card), you can do so here
-            // (similar code as when you create a new profile, but use CreateCustomerPaymentProfileRequest)
-
+        if ($createResponse && $createResponse->getMessages()->getResultCode() === 'Ok') {
+            $profileId = $createResponse->getCustomerProfileId();
+            $paymentProfileId = $createResponse->getCustomerPaymentProfileIdList()[0] ?? null;
             return [
                 'customer_profile_id' => $profileId,
                 'payment_profile_id' => $paymentProfileId,
             ];
+        } else {
+            $error = 'Unknown error';
+            if ($createResponse && $createResponse->getMessages() && $createResponse->getMessages()->getMessage()) {
+                $msgObj = $createResponse->getMessages()->getMessage()[0];
+                $errorCode = method_exists($msgObj, 'getCode') ? $msgObj->getCode() : '';
+                $errorText = method_exists($msgObj, 'getText') ? $msgObj->getText() : '';
+                $error = "[$errorCode] $errorText";
+            }
+            throw new \Exception('Failed to create customer profile: ' . $error);
         }
+    }
+
+    public function findOrCreateCustomerProfileAndPaymentProfile(string $uniqueId, array $customer, ?string $opaqueDataValue = null, ?array $cardData = [])
+    {
+        // 1. Try to find customer profile by merchantCustomerId (your uniqueId)
+        $profileId = $this->findExistingCustomerProfileId($uniqueId);
+
+        // 2. If profile does not exist, create it using the new createCustomer method
+        if (!$profileId) {
+            return $this->createCustomer($uniqueId, $customer, $opaqueDataValue, $cardData);
+        }
+
+        // 3. Profile exists - get existing payment profiles
+        $getProfileRequest = new AnetAPI\GetCustomerProfileRequest();
+        $getProfileRequest->setMerchantAuthentication($this->merchantAuthentication);
+        $getProfileRequest->setCustomerProfileId($profileId);
+
+        $getProfileController = new AnetController\GetCustomerProfileController($getProfileRequest);
+        $getProfileResponse = $getProfileController->executeWithApiResponse($this->getApiEnvironment());
+
+        if (!$getProfileResponse || $getProfileResponse->getMessages()->getResultCode() !== 'Ok') {
+            throw new \Exception('Failed to retrieve customer profile');
+        }
+
+        $paymentProfiles = $getProfileResponse->getProfile()->getPaymentProfiles();
+
+        // 4. Handle payment profile logic
+        if (!empty($opaqueDataValue)) {
+            // For opaque data, create a new payment profile
+            return $this->createPaymentProfileForExistingCustomer($profileId, $customer, $opaqueDataValue, null);
+        } elseif (!empty($cardData) && !empty($cardData['card_number'])) {
+            // For card data, check if a similar payment profile exists
+            $existingPaymentProfileId = $this->findMatchingPaymentProfile($paymentProfiles, $cardData);
+
+            if ($existingPaymentProfileId) {
+                return [
+                    'customer_profile_id' => $profileId,
+                    'payment_profile_id' => $existingPaymentProfileId,
+                ];
+            } else {
+                // Create new payment profile with card data
+                return $this->createPaymentProfileForExistingCustomer($profileId, $customer, null, $cardData);
+            }
+        } else {
+            throw new \Exception('Failed to create payment profile: No payment method provided');
+            // No payment method provided, return existing profile with first payment profile
+            // $paymentProfileId = $paymentProfiles && count($paymentProfiles) > 0
+            //     ? $paymentProfiles[0]->getCustomerPaymentProfileId()
+            //     : null;
+
+            // return [
+            //     'customer_profile_id' => $profileId,
+            //     'payment_profile_id' => $paymentProfileId,
+            // ];
+        }
+    }
+
+    /**
+     * Create a payment profile for an existing customer.
+     *
+     * @param string $customerProfileId
+     * @param array $customer
+     * @param string|null $opaqueDataValue
+     * @param array|null $cardData
+     * @return array
+     */
+    private function createPaymentProfileForExistingCustomer(string $customerProfileId, array $customer, ?string $opaqueDataValue = null, ?array $cardData = null): array
+    {
+        // Set up payment profile
+        $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
+        $paymentProfile->setCustomerType('individual');
+
+        // Set up billing address
+        $customerAddress = new AnetAPI\CustomerAddressType();
+        if (!empty($customer['first_name'])) {
+            $customerAddress->setFirstName($customer['first_name']);
+        }
+        if (!empty($customer['last_name'])) {
+            $customerAddress->setLastName($customer['last_name']);
+        }
+        if (!empty($customer['email'])) {
+            $customerAddress->setEmail($customer['email']);
+        }
+        if (!empty($customer['company'])) {
+            $customerAddress->setCompany($customer['company']);
+        }
+        if (!empty($customer['address'])) {
+            $customerAddress->setAddress($customer['address']);
+        }
+        $paymentProfile->setBillTo($customerAddress);
+
+        // Handle payment method
+        if (!empty($opaqueDataValue)) {
+            $opaqueData = new AnetAPI\OpaqueDataType();
+            $opaqueData->setDataDescriptor('COMMON.ACCEPT.INAPP.PAYMENT');
+            $opaqueData->setDataValue($opaqueDataValue);
+
+            $paymentType = new AnetAPI\PaymentType();
+            $paymentType->setOpaqueData($opaqueData);
+            $paymentProfile->setPayment($paymentType);
+        } elseif (!empty($cardData) && !empty($cardData['card_number'])) {
+            $creditCard = new AnetAPI\CreditCardType();
+            $creditCard->setCardNumber(preg_replace('/\s+/', '', $cardData['card_number']));
+
+            if (!empty($cardData['mm_yy'])) {
+                $expiry = $cardData['mm_yy'];
+                $expiryData = explode('/', $expiry);
+                $expiration_month = str_pad($expiryData[0], 2, '0', STR_PAD_LEFT);
+                $expiration_year = $expiryData[1];
+                $creditCard->setExpirationDate('20' . $expiration_year . '-' . $expiration_month);
+            }
+
+            if (!empty($cardData['card_cvv'])) {
+                $creditCard->setCardCode($cardData['card_cvv']);
+            }
+
+            $paymentType = new AnetAPI\PaymentType();
+            $paymentType->setCreditCard($creditCard);
+            $paymentProfile->setPayment($paymentType);
+        } else {
+            throw new \Exception('Either opaqueDataValue or valid cardData must be provided');
+        }
+
+        // Create the payment profile request
+        $createRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
+        $createRequest->setMerchantAuthentication($this->merchantAuthentication);
+        $createRequest->setCustomerProfileId($customerProfileId);
+        $createRequest->setPaymentProfile($paymentProfile);
+        $createRequest->setValidationMode($this->isTestMode ? 'none' : 'liveMode');
+
+        $controller = new AnetController\CreateCustomerPaymentProfileController($createRequest);
+        $createResponse = $controller->executeWithApiResponse($this->getApiEnvironment());
+
+        if ($createResponse && $createResponse->getMessages()->getResultCode() === 'Ok') {
+            return [
+                'customer_profile_id' => $customerProfileId,
+                'payment_profile_id' => $createResponse->getCustomerPaymentProfileId(),
+            ];
+        } else {
+            $error = 'Unknown error';
+            if ($createResponse && $createResponse->getMessages() && $createResponse->getMessages()->getMessage()) {
+                $msgObj = $createResponse->getMessages()->getMessage()[0];
+                $errorCode = method_exists($msgObj, 'getCode') ? $msgObj->getCode() : '';
+                $errorText = method_exists($msgObj, 'getText') ? $msgObj->getText() : '';
+                $error = "[$errorCode] $errorText";
+            }
+            throw new \Exception('Failed to create payment profile: ' . $error);
+        }
+    }
+
+    /**
+     * Find a matching payment profile based on card data.
+     *
+     * @param array $paymentProfiles
+     * @param array $cardData
+     * @return string|null
+     */
+    private function findMatchingPaymentProfile(array $paymentProfiles, array $cardData): ?string
+    {
+        if (empty($paymentProfiles) || empty($cardData['card_number'])) {
+            return null;
+        }
+
+        $cardNumber = preg_replace('/\s+/', '', $cardData['card_number']);
+        $last4 = substr($cardNumber, -4);
+
+        foreach ($paymentProfiles as $profile) {
+            $payment = $profile->getPayment();
+            if ($payment && $payment->getCreditCard()) {
+                $existingCard = $payment->getCreditCard();
+                $existingCardNumber = $existingCard->getCardNumber();
+
+                // Compare last 4 digits (Authorize.Net masks the card number)
+                if ($existingCardNumber && substr($existingCardNumber, -4) === $last4) {
+                    // Additional check for expiration date if available
+                    if (!empty($cardData['mm_yy'])) {
+                        $expiry = $cardData['mm_yy'];
+                        $expiryData = explode('/', $expiry);
+                        $expiration_month = str_pad($expiryData[0], 2, '0', STR_PAD_LEFT);
+                        $expiration_year = $expiryData[1];
+                        $newExpirationDate = '20' . $expiration_year . '-' . $expiration_month;
+
+                        $existingExpirationDate = $existingCard->getExpirationDate();
+                        if ($existingExpirationDate === $newExpirationDate) {
+                            return $profile->getCustomerPaymentProfileId();
+                        }
+                    } else {
+                        // If no expiration date to compare, just match on last 4
+                        return $profile->getCustomerPaymentProfileId();
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -281,10 +488,15 @@ class AuthorizeNetService
 
                 $transactionRequest->setProfile($profilePayment);
             } else {
+                return [
+                    'status' => 'failure',
+                    'payment_status' => 'Failed',
+                    'message' => 'Failed to create or retrieve customer/payment profile',
+                ];
                 // fallback to opaque data if profile/payment profile could not be created
-                $paymentType = new AnetAPI\PaymentType();
-                $paymentType->setOpaqueData($opaqueData);
-                $transactionRequest->setPayment($paymentType);
+                // $paymentType = new AnetAPI\PaymentType();
+                // $paymentType->setOpaqueData($opaqueData);
+                // $transactionRequest->setPayment($paymentType);
             }
         } else {
             // ---- 2. Fallback: Guest Transaction with OpaqueData (no profile) ----
@@ -345,6 +557,177 @@ class AuthorizeNetService
             'customer_profile_id' => $customerProfileId,
             'payment_profile_id' => $paymentProfileId,
         ];
+    }
+
+    /**
+     * Create a payment transaction using card data, creating/finding both
+     * customer and payment profiles if customer data is present.
+     *
+     * @param array $cardData ['card_number' => string, 'mm_yy' => string, 'card_cvv' => string]
+     * @param float $amount
+     * @param array $options ['customer' => [...], 'order_number' => ...]
+     * @return array
+     */
+    public function createCardDataTransaction(array $cardData, float $amount, array $options = []): array
+    {
+        // Validate card data
+        if (empty($cardData['card_number']) || empty($cardData['mm_yy']) || empty($cardData['card_cvv'])) {
+            return [
+                'status' => 'failure',
+                'payment_status' => 'Failed',
+                'message' => 'Card number, expiration date, and CVV are required',
+            ];
+        }
+
+        $cardNumber = preg_replace('/\s+/', '', $cardData['card_number']);
+        $expiry = $cardData['mm_yy'];
+        $expiryData = explode('/', $expiry);
+
+        if (count($expiryData) !== 2) {
+            return [
+                'status' => 'failure',
+                'payment_status' => 'Failed',
+                'message' => 'Invalid expiration date format. Use MM/YY format',
+            ];
+        }
+
+        $expiration_month = str_pad($expiryData[0], 2, '0', STR_PAD_LEFT);
+        $expiration_year = $expiryData[1];
+
+        $transactionRequest = new AnetAPI\TransactionRequestType();
+        $transactionRequest->setTransactionType('authCaptureTransaction');
+        $transactionRequest->setAmount($amount);
+
+        $customerProfileId = null;
+        $paymentProfileId = null;
+
+        // ---- 1. Use Customer & Payment Profile if Customer Info is Provided ----
+        if (!empty($options['customer']['unique_id']) && !empty($options['customer'])) {
+            try {
+                // Try to find or create both customer & payment profile using card data
+                $profileResult = $this->findOrCreateCustomerProfileAndPaymentProfile(
+                    $options['customer']['unique_id'],
+                    $options['customer'],
+                    null, // No opaque data
+                    $cardData // Card data for payment profile
+                );
+                $customerProfileId = $profileResult['customer_profile_id'];
+                $paymentProfileId = $profileResult['payment_profile_id'];
+
+                if ($customerProfileId && $paymentProfileId) {
+                    // Use the profile and payment profile for the transaction
+                    $profilePayment = new AnetAPI\CustomerProfilePaymentType();
+                    $profilePayment->setCustomerProfileId($customerProfileId);
+
+                    $paymentProfileObj = new AnetAPI\PaymentProfileType();
+                    $paymentProfileObj->setPaymentProfileId($paymentProfileId);
+                    $profilePayment->setPaymentProfile($paymentProfileObj);
+
+                    $transactionRequest->setProfile($profilePayment);
+                } else {
+                   throw new \Exception('Failed to create or retrieve customer/payment profile');
+                    // fallback to direct card data if profile/payment profile could not be created
+                    //$this->setDirectCardPayment($transactionRequest, $cardNumber, $expiration_month, $expiration_year, $cardData['card_cvv']);
+                }
+            } catch (\Exception $e) {
+                // If profile creation fails, fallback to direct card payment
+                logger()->warning('Profile creation failed, using direct card payment: ' . $e->getMessage());
+                return [
+                    'status' => 'failure',
+                    'payment_status' => 'Failed',
+                    'message' => 'Failed to create or retrieve customer/payment profile: ' . $e->getMessage(),
+                ];
+                //$this->setDirectCardPayment($transactionRequest, $cardNumber, $expiration_month, $expiration_year, $cardData['card_cvv']);
+            }
+        } else {
+            // ---- 2. Fallback: Guest Transaction with Direct Card Data (no profile) ----
+            $this->setDirectCardPayment($transactionRequest, $cardNumber, $expiration_month, $expiration_year, $cardData['card_cvv']);
+        }
+
+        // ---- 3. Optional: Set Order/Invoice Number ----
+        if (!empty($options['order_number'])) {
+            $order = new AnetAPI\OrderType();
+            $order->setInvoiceNumber($options['order_number']);
+            $transactionRequest->setOrder($order);
+        }
+
+        // ---- 4. Create Transaction Request ----
+        $request = new AnetAPI\CreateTransactionRequest();
+        $request->setMerchantAuthentication($this->merchantAuthentication);
+        $request->setRefId('ref' . time());
+        $request->setTransactionRequest($transactionRequest);
+
+        $controller = new AnetController\CreateTransactionController($request);
+        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        logger()->info('AuthorizeNet card transaction response: ' . json_encode($response));
+
+        // ---- 5. Handle Response ----
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+            $transactionResponse = $response->getTransactionResponse();
+
+            // If payment profile IDs exist, fetch card type from the profile
+            $cardType = null;
+            if ($customerProfileId && $paymentProfileId) {
+                $cardInfo = $this->getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId);
+                $cardType = $cardInfo['card_type'];
+            }
+
+            return [
+                'status' => 'success',
+                'payment_status' => 'Paid',
+                'message' => 'Payment successful',
+                'transaction_id' => $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null,
+                'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
+                'customer_profile_id' => $customerProfileId,
+                'payment_profile_id' => $paymentProfileId,
+                'card_number' => $transactionResponse && method_exists($transactionResponse, 'getAccountNumber') ? $transactionResponse->getAccountNumber() : null,
+                'card_type' => $cardType,
+            ];
+        }
+
+        // ---- 6. Handle Error ----
+        $errorMessage = 'Payment failed';
+        if ($response) {
+            // Prefer transactionResponse errors first if present
+            $tr = method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null;
+            if ($tr && method_exists($tr, 'getErrors') && $tr->getErrors()) {
+                $err = $tr->getErrors()[0];
+                $errorMessage .= ': ' . ($err->getErrorText() ?? 'Unknown error');
+            } elseif ($response->getMessages() && isset($response->getMessages()->getMessage()[0])) {
+                $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
+            }
+        }
+
+        return [
+            'status' => 'failure',
+            'error_code' => $response && $response->getMessages() && $response->getMessages()->getMessage()[0] ? $response->getMessages()->getMessage()[0]->getCode() : null,
+            'payment_status' => 'Failed',
+            'message' => $errorMessage,
+            'customer_profile_id' => $customerProfileId,
+            'payment_profile_id' => $paymentProfileId,
+        ];
+    }
+
+    /**
+     * Helper method to set direct card payment on transaction request.
+     *
+     * @param AnetAPI\TransactionRequestType $transactionRequest
+     * @param string $cardNumber
+     * @param string $expirationMonth
+     * @param string $expirationYear
+     * @param string $cardCvv
+     * @return void
+     */
+    private function setDirectCardPayment(AnetAPI\TransactionRequestType $transactionRequest, string $cardNumber, string $expirationMonth, string $expirationYear, string $cardCvv): void
+    {
+        $creditCard = new AnetAPI\CreditCardType();
+        $creditCard->setCardNumber($cardNumber);
+        $creditCard->setExpirationDate('20' . $expirationYear . '-' . $expirationMonth);
+        $creditCard->setCardCode($cardCvv);
+
+        $paymentType = new AnetAPI\PaymentType();
+        $paymentType->setCreditCard($creditCard);
+        $transactionRequest->setPayment($paymentType);
     }
 
     /**

@@ -30,7 +30,7 @@ class ListResource extends JsonResource
             'sort_order' => $this->sort_order ?? 0,
 
             'child_categories' => $this->whenLoaded('childCategories', function () {
-                return ListResource::collection($this->childCategories);
+                return ListResource::collection($this->childCategories ?? []);
             }),
         ];
 

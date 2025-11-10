@@ -54,7 +54,7 @@ class ListResource extends JsonResource
             'checklist_master_id' => $this->checklist_master_id ?? 0,
             'equipment_notes' => $this->equipment_notes ?? '',
             'current_status' => $this->current_status->label() ?? '',
-            'product_category' => new ProductCategoriesListResource($this->whenLoaded('productCategory') ?? []),
+            'product_category' => new ProductCategoriesListResource($this->whenLoaded('productCategory')),
 
             'current_order_id' => $this->current_order_id ?? 0,
             'current_order_product_id' => $this->current_order_product_id ?? 0,

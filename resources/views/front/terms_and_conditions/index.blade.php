@@ -56,8 +56,8 @@
                 action="{{ route('front.terms-and-conditions.sign', ['orderUniqueId' => $order->unique_id]) }}">
                 <div id="terms-dynamic-content" class="flex flex-col gap-y-3 container rich-content">
                     @if ($order->terms_status->isPending())
-                        {{-- {!!  \App\Helpers\TermsContentHelper::generateTermsContent($order)['terms_content'] !!} --}}
-                        {!! $order->pending_terms_content !!}
+                        {!!  \App\Helpers\TermsContentHelper::generateTermsContent($order)['terms_content'] !!}
+                        {{-- {!! $order->pending_terms_content !!} commented because before sign user may check latest update terms and then he can sign --}}
                     @else
                         {{-- {!! $order->pending_terms_content !!} --}}
                         {!! $order->accepted_terms_content !!}

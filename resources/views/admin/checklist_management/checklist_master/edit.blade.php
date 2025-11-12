@@ -139,20 +139,47 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-6 pt-6">
-                <button id="continueBtn" onclick="goToStep(2)" disabled class="flex items-center gap-2 px-6 py-2 bg-gray-200  rounded-md text-gray-500 cursor-not-allowed flex-1 justify-center text-sm font-medium ">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Save Changes
-                </button>
-                <a href="{{ route('admin.checklist-management.checklist-master.index') }}" class="text-sm text-gray-600 hover:underline">Cancel</a>
+            <div class="flex items-center justify-center gap-6 pt-6 w-full max-w-3xl mx-auto">
+                <!-- Left group: Save + Edit buttons centered -->
+                <div class="flex flex-1 justify-center gap-4">
+                    <button id="savethetemp"
+                        class="flex items-center gap-2 px-6 py-2 bg-blue-600 rounded-md text-white justify-center text-sm font-medium flex-1 max-w-[180px]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-save w-4 h-4">
+                            <path
+                                d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z">
+                            </path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Save Changes
+                    </button>
 
+                    <button id="continueBtn" onclick="goToStep(2)" disabled
+                        class="flex items-center gap-2 px-6 py-2 bg-green-600 rounded-md text-gray-500 cursor-not-allowed justify-center text-sm font-medium flex-1 max-w-[180px]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-save w-4 h-4">
+                            <path
+                                d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z">
+                            </path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Edit Checklist
+                    </button>
+                </div>
+
+                <!-- Cancel link aligned right -->
+                <a href="{{ route('admin.checklist-management.checklist-master.index') }}"
+                    class="text-sm text-gray-600 hover:underline whitespace-nowrap">
+                    Cancel
+                </a>
             </div>
+
         </div>
     </div>
 
@@ -185,7 +212,7 @@
                 <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
                 {!! html()->select(
                 'equipment_category',
-                ['' => 'All Category'] + $equipmentCategories,
+                ['' => 'All Categorys'] + $equipmentCategories,
                 old('equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm')
@@ -329,7 +356,7 @@
                 <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
                 {!! html()->select(
                 'customer_equipment_category',
-                ['' => 'All Category'] + $equipmentCategories,
+                ['' => 'All Categorys'] + $equipmentCategories,
                 old('customer_equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm') !!}
@@ -591,7 +618,7 @@
 
         if (input.value.trim() !== '') {
             btn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
-            btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'cursor-pointer');
+            btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
             btn.disabled = false;
         } else {
             btn.classList.add('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
@@ -837,6 +864,24 @@
 
     customerSearchInput.addEventListener('input', filterCustomerTemplates);
     customerCategorySelect.addEventListener('change', filterCustomerTemplates);
+</script>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const saveButton = document.getElementById('savethetemp');
+        const form = document.getElementById('checklistmasterForm');
+
+        if (saveButton && form) {
+            saveButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveButton.disabled = true;
+                saveButton.innerHTML = 'Saving...';
+                form.submit();
+            });
+        }
+    });
 </script>
 
 

@@ -76,6 +76,8 @@ class SendInvoiceEmailListener
 
             // Update invoice only if sent successfully
             $invoice->is_email_send = 'send';
+            $invoice->mail_send_at = now();
+
             $invoice->save();
 
         } catch (\Throwable $e) {

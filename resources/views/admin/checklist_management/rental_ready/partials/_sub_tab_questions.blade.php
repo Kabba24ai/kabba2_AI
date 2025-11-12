@@ -97,7 +97,7 @@
                                    stroke-width="2" viewBox="0 0 24 24">
                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                                </svg>
-                               <span>Show Questions ({{ $question->answers->count() }}) </span>
+                               <span>Show Answers ({{ $question->answers->count() }}) </span>
                            </button>
                            <!-- Edit -->
 
@@ -324,11 +324,11 @@
                    const isVisible = !answers.classList.contains('hidden');
                    if (isVisible) {
                        answers.classList.add('hidden');
-                       text.textContent = `Show Questions (${count})`;
+                       text.textContent = `Show Answers (${count})`;
                        icon.classList.remove('rotate-90');
                    } else {
                        answers.classList.remove('hidden');
-                       text.textContent = 'Hide Questions';
+                       text.textContent = 'Hide Answers';
                        icon.classList.add('rotate-90');
                    }
                });
@@ -365,11 +365,11 @@
 
                        if (globalState) {
                            answers.classList.remove('hidden');
-                           span.textContent = 'Hide Questions';
+                           span.textContent = 'Hide Answers';
                            icon.classList.add('rotate-90');
                        } else {
                            answers.classList.add('hidden');
-                           span.textContent = `Show Questions (${count})`;
+                           span.textContent = `Show Answers (${count})`;
                            icon.classList.remove('rotate-90');
                        }
                    });

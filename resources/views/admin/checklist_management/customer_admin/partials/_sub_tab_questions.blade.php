@@ -44,7 +44,7 @@
 
                    <!-- Answer Visibility Toggle -->
                    <div>
-                       <label class="block text-sm font-medium text-gray-700 mb-1">Answer Visibility</label>
+                       <label class="block text-sm font-medium text-gray-700 mb-1">Questions Visibility</label>
                        <button id="toggleGlobalAnswers"
                            class="w-full font-medium px-4 py-2 text-sm rounded-md flex items-center justify-center gap-2 border border-blue-300 text-blue-600 hover:bg-gray-50 transition">
                            <svg id="icon-show" class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
@@ -60,7 +60,7 @@
                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.042 10.042 0 013.03-4.362M6.873 6.876A9.953 9.953 0 0112 5c4.477 0 8.267 2.943 9.541 7a9.966 9.966 0 01-1.249 2.527M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18" />
                            </svg>
-                           <span id="toggleText">Show All Answers</span>
+                           <span id="toggleText">Show Questions</span>
                        </button>
                    </div>
                </div>
@@ -418,7 +418,7 @@
                        </div>
 
 
-                       <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                       <div class="border border-gray-200 rounded-lg p-4">
                            <div class="flex items-center gap-2 mb-4">
                                <input type="checkbox" id="syncTexts" name="syncTexts" checked=""
                                    onchange="toggleTextSync()"
@@ -621,7 +621,7 @@
                        // Toggle global button UI
                        iconShow.classList.toggle('hidden', globalState);
                        iconHide.classList.toggle('hidden', !globalState);
-                       toggleText.textContent = globalState ? 'Hide All Answers' : 'Show All Answers';
+                       toggleText.textContent = globalState ? 'Hide Questions' : 'Show Questions';
                        globalToggle.classList.toggle('border-blue-300', !globalState);
                        globalToggle.classList.toggle('border-gray-300', globalState);
                        globalToggle.classList.toggle('text-blue-600', !globalState);

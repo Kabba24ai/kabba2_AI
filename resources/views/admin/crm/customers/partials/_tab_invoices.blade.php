@@ -108,8 +108,9 @@
                      <th class="px-4 w-32 py-3">Created</th>
                      <th class="px-4 w-32 py-3">Due Date</th>
                      <th class="px-4 w-32 py-3 text-right">Amount</th>
+                     <th class="px-4 w-32 py-3 text-right">Payment Status</th>
                      <th class="px-4 w-32 py-3 text-right">Mail Status</th>
-                     <th class="px-4 w-32 py-3 text-right">Status</th>
+
                      <th class="px-4 py-3 w-24 text-right">Action</th>
                  </tr>
              </thead>
@@ -136,23 +137,6 @@
 
                      <td class="px-4 py-3 text-right">
                          @php
-                         $mailstatusColors = [
-                         'send' => ['color' => 'green', 'label' => 'Sent'],
-                         'unsend' => ['color' => 'yellow', 'label' => 'Pending'],
-                         ];
-
-                         $statusKey = strtolower($invoice->is_email_send ?? '');
-                         $statusData = $mailstatusColors[$statusKey] ?? ['color' => 'gray', 'label' => ucfirst($statusKey) ?: 'N/A'];
-                         @endphp
-
-                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $statusData['color'] }}-100 text-{{ $statusData['color'] }}-800">
-                             {{ $statusData['label'] }}
-                         </span>
-                     </td>
-
-
-                     <td class="px-4 py-3 text-right">
-                         @php
                          $statusColors = [
                          'paid' => 'green',
                          'overdue' => 'red',
@@ -164,6 +148,35 @@
                              {{ $invoice->invoice_status }}
                          </span>
                      </td>
+
+                    
+
+
+                     <td class="px-4 py-3 text-right">
+                         @php
+                         $mailstatusColors = [
+                         'send' => ['color' => 'green', 'label' => 'Sent'],
+                         'unsend' => ['color' => 'yellow', 'label' => 'Pending'],
+                         ];
+
+                         $statusKey = strtolower($invoice->is_email_send ?? '');
+                         $statusData = $mailstatusColors[$statusKey] ?? ['color' => 'gray', 'label' => ucfirst($statusKey) ?: 'N/A'];
+                         @endphp
+                         @if($invoice->is_email_send === 'send' && $invoice->mail_send_at)
+                         {{-- Show the date next to "Sent" --}}
+                         <span class="ml-2 text-gray-600 text-[11px]">
+                             {{ App\Helpers\CustomHelper::formatDate($invoice->mail_send_at) ?? '-' }}
+                         </span>
+                         @else
+
+
+                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $statusData['color'] }}-100 text-{{ $statusData['color'] }}-800">
+                             {{ $statusData['label'] }}
+                         </span>
+                         @endif
+                     </td>
+
+
                      <td class="px-4 py-3 whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
                              <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}" target="_blank" class="text-blue-600 inline-flex items-center">
@@ -201,7 +214,7 @@
          const wrapper = document.getElementById('invoiceTableWrapper');
 
          if (!table || !loader) {
-           
+
              return;
          }
 

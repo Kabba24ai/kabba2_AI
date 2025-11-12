@@ -462,7 +462,7 @@ $defaultAddresses = [
 </div>
 
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 items-stretch">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 items-stretch">
 
     <div class=" flex flex-col h-full">
         <!-- Tags and Notes -->
@@ -713,7 +713,7 @@ $defaultAddresses = [
 
 </div>
 
-<div class="bg-white p-4 rounded shadow border border-gray-200 mt-6 mb-0">
+<div class="bg-white p-4 rounded-lg shadow border border-gray-200 mt-6 mb-0">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
 
     </div>
@@ -807,7 +807,7 @@ $defaultAddresses = [
                 </a>
             </div>
 
-            <div id="taxDocPreviewWrapper">
+            <div id="taxDocPreviewWrapper"  class="w-full sm:w-auto overflow-x-auto">
                 @if ($customer->media)
                 @include('admin.crm.customers.partials.tax_doc_preview', ['customer' => $customer])
                 @else

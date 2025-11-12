@@ -501,6 +501,78 @@
                             </ul>
                         </div>
                     </li>
+
+                    @php
+    
+                        //  New logic for Website Management active state
+                        $websiteManagementActive = 
+                            Route::is('admin.website-management.home-page.*') ||
+                            Route::is('admin.website-management.faq-page.*') ||
+                            Route::is('admin.website-management.contact-us.*') ||
+                            Route::is('admin.website-management.footer.*') ||
+                            Route::is('admin.website-management.branding.*');
+                    @endphp
+
+
+                    <!-- Website Management -->
+                    <li x-data="{ open: {{ $websiteManagementActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $websiteManagementActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-globe-alt class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Website Mgt</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ? 'lg:hidden' : '']">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="javascript:void(0)"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.home-page.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-home class="w-5 h-5" /> Home Page
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.website-management.faq-page.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.faq-page.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-question-mark-circle class="w-5 h-5" /> FAQ Page
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.contact-us.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-envelope class="w-5 h-5" /> Contact Us
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.footer.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-rectangle-group class="w-5 h-5" /> Footer
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.branding.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-swatch class="w-5 h-5" /> Branding
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+
                     <!-- Settings -->
                     <li x-data="{ open: {{ $settingsActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"

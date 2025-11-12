@@ -200,7 +200,7 @@
 
                 {!! html()->select(
                 'equipment_category',
-                ['' => 'All Category'] + $equipmentCategories,
+                ['' => 'All Categorys'] + $equipmentCategories,
                 old('equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm')
@@ -340,7 +340,7 @@
                 <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
                 {!! html()->select(
                 'customer_equipment_category',
-                ['' => 'All Category'] + $equipmentCategories,
+                ['' => 'All Categorys'] + $equipmentCategories,
                 old('customer_equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm') !!}

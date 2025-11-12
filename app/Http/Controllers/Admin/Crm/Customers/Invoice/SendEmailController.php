@@ -23,6 +23,7 @@ class SendEmailController extends Controller
             event(new InvoiceEmailEvent($invoice));
 
 
+
             // If no exception -> success
             flash('Invoice email sent successfully.')->success();
         } catch (\Throwable $e) {

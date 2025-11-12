@@ -27,6 +27,7 @@ class Invoice extends Model
         'invoice_status',
         'is_email_send',
         'payment_method',
+        'mail_send_at',
     ];
 
     public static function boot()

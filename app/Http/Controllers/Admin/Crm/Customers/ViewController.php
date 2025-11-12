@@ -74,10 +74,10 @@ class ViewController extends Controller
         // biling sumary
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
-        // Load tag objects 
+        // Load tag objects
         $customer->tag_objects = $customer->tag_objects ?? [];
 
-        // dd($customer);
+        // dd($customer->invoices);
 
         return view('admin.crm.customers.view', [
             'customer' => $customer,

@@ -60,5 +60,9 @@ Route::name('admin.')->group(function ($router) {
         // hrm
         require base_path('routes/admin/hrm/routes.php');
 
+        
+        // website_management
+        require base_path('routes/admin/website_management/routes.php');
+
     });
 });

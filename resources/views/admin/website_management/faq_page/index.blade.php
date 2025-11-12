@@ -1,0 +1,699 @@
+@extends('admin.layouts.app')
+
+@section('title', 'Faq Page')
+
+@push('css')
+@endpush
+
+@section('content')
+
+@include('flash::message')
+@include('admin.partials.formErrors')
+
+@php
+$activeTab = session('active_tab', 'faq'); // default to "faq" if not set
+@endphp
+
+
+
+<div class="bg-white rounded-md p-5 shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <!-- Left Section -->
+    <div>
+        <div class="flex items-center space-x-3 mb-2">
+            <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+            <h1 class="text-2xl font-semibold text-gray-900">FAQ</h1>
+        </div>
+        <p class="text-gray-600">Manage your frequently asked questions and categories</p>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="border-b border-gray-200">
+    <nav id="tabs" class="flex flex-wrap gap-2 sm:gap-6">
+        <button
+            class="tab-link text-sm font-medium px-3 py-2 {{ $activeTab === 'faq' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600' }}"
+            data-tab="faq">
+            FAQs Management
+        </button>
+
+        <button
+            class="tab-link text-sm font-medium px-3 py-2 {{ $activeTab === 'categories' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600' }}"
+            data-tab="categories">
+            Categories
+        </button>
+
+        <button
+            class="tab-link text-sm font-medium px-3 py-2 {{ $activeTab === 'analytics' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600' }}"
+            data-tab="analytics">
+            Analytics
+        </button>
+
+        <button
+            class="tab-link text-sm font-medium px-3 py-2 {{ $activeTab === 'settings' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600' }}"
+            data-tab="settings">
+            Settings
+        </button>
+    </nav>
+
+</div>
+
+<!-- Tabs Content -->
+<div class="mt-6">
+    <div id="faq" class="tab-content {{ $activeTab === 'faq' ? 'block' : 'hidden' }}">
+        <!-- Header -->
+        <div class="flex flex-wrap justify-between items-center">
+            <h1 class="text-xl font-semibold text-gray-900">Manage FAQs</h1>
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium">
+                    <option>Bulk Actions</option>
+                    <option>Delete</option>
+                    <option>Mark Active</option>
+                    <option>Mark Inactive</option>
+                </select>
+                <button id="applyButton" class="bg-gray-400 text-white px-4 py-2 rounded-lg font-medium text-sm" disabled>
+                    Apply (0)
+                </button>
+                <button onclick="openNewFAQModal()" class="bg-blue-600 rounded-lg px-4 py-2 text-sm font-medium text-white">
+                    + Add New FAQ
+                </button>
+            </div>
+        </div>
+        <div class=" space-y-4 sm:space-y-6">
+            <!-- Select All -->
+            <div class="flex items-center gap-2 mb-5 mt-5">
+                <input type="checkbox" id="selectAll" class="w-4 h-4 border-gray-300 rounded">
+                <label for="selectAll" class="text-sm text-gray-700">
+                    Select All <span id="selectedCount" class="text-gray-500">0 of 3 selected</span>
+                </label>
+            </div>
+            <!-- Accordion -->
+            <div class="bg-white border rounded-lg shadow-sm">
+                <button class="accordion-btn w-full flex justify-between items-center p-4 text-left font-semibold text-gray-900 hover:bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <svg class="accordion-arrow w-5 h-5 text-gray-600 transition-transform duration-200"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <span>Booking & Reservations</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">2 FAQs</span>
+                    </div>
+                </button>
+                <div class="accordion-content border-t divide-y hidden px-6 mb-5">
+                    <!-- FAQ Items -->
+                    <div id="faqItem" class="faq-item p-4 flex flex-wrap justify-between items-start sm:items-center gap-2 sm:gap-4 border rounded-lg p-4 cursor-move hover:shadow-md transition-shadow border-gray-200 mt-5" draggable="true">
+                        <div class="flex items-start gap-3">
+                            <input type="checkbox" class="faq-checkbox mt-1 w-4 h-4 border-gray-300 rounded">
+                            <span class="drag-handle text-gray-400 select-none">⋮⋮</span>
+                            <div>
+                                <h3 class="font-medium text-gray-900">How do I make a reservation?</h3>
+                                <p class="text-gray-600 text-sm">Making a reservation is simple! Browse our available properties, select your dates, and click “Book Now”.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-md">Active</span>
+                            <button class="p-1 text-gray-400 hover:text-gray-600 transition-colors" title="Settings">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-4 h-4">
+                                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button id="editBtn" class="p-1 text-gray-400 hover:text-blue-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4">
+                                    <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                                    <line x1="2" x2="22" y1="10" y2="10"></line>
+                                </svg>
+                            </button>
+                            <button class="p-1 text-gray-400 hover:text-red-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 w-4 h-4">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                    <line x1="10" x2="10" y1="11" y2="17"></line>
+                                    <line x1="14" x2="14" y1="11" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Inline Edit Form -->
+                    <div id="editForm" class="hidden bg-white border border-gray-200 rounded-lg shadow p-4 sm:p-6 mt-4 space-y-5">
+                        <div class="flex items-center"><input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-3"></div>
+                        <div>
+                            <input id="questionInput" type="text" value="How do I make a reservation?"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                        </div>
+
+                        <div>
+                            <textarea id="answerInput" rows="5"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">Making a reservation is simple! Browse our available properties, select your dates, and click Book Now.</textarea>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <input id="activeCheck" type="checkbox" checked class="w-4 h-4 border-gray-300 rounded text-blue-600">
+                                <label for="activeCheck" class="text-sm font-medium text-gray-700">Active</label>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="saveBtn" class="inline-flex items-center rounded-lg px-4 py-2 font-medium border border-transparent text-sm text-white bg-green-600 hover:bg-green-700 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-3 h-3 mr-1">
+                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                        <polyline points="7 3 7 8 15 8"></polyline>
+                                    </svg>
+                                    Save
+                                </button>
+                                <button id="cancelBtn" class="inline-flex items-center rounded-lg px-4 py-2 font-medium border border-gray-300 text-sm  text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x w-3 h-3 mr-1">
+                                        <path d="M18 6 6 18"></path>
+                                        <path d="m6 6 12 12"></path>
+                                    </svg>
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">Related Questions</h3>
+                            <p class="text-sm text-gray-500 mb-2">Select questions that are related to this FAQ</p>
+                            <select id="relatedSelectfaq" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-3 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Related Questions</option>
+                                <option value="booking">Booking & Reservations</option>
+                                <option value="property">Property Information</option>
+                            </select>
+                            <div id="relatedQuestionsfaq" class="space-y-2 text-sm max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2 "></div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item p-4 flex flex-wrap justify-between items-start sm:items-center gap-2 sm:gap-4 border rounded-lg p-4 cursor-move hover:shadow-md transition-shadow border-gray-200 mt-5" draggable="true">
+                        <div class="flex items-start gap-3">
+                            <input type="checkbox" class="faq-checkbox mt-1 w-4 h-4 border-gray-300 rounded">
+                            <span class="drag-handle text-gray-400 select-none">⋮⋮</span>
+                            <div>
+                                <h3 class="font-medium text-gray-900">Can I modify or cancel my reservation?</h3>
+                                <p class="text-gray-600 text-sm">Yes! You can modify or cancel your reservation through your account dashboard.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-md">Active</span>
+                            <button class="p-1 text-gray-400 hover:text-gray-600 transition-colors" title="Settings">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-4 h-4">
+                                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button class="p-1 text-gray-400 hover:text-blue-600 transition-colors" id="editButton">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4">
+                                    <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                                    <line x1="2" x2="22" y1="10" y2="10"></line>
+                                </svg>
+                            </button>
+                            <button class="p-1 text-gray-400 hover:text-red-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 w-4 h-4">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                    <line x1="10" x2="10" y1="11" y2="17"></line>
+                                    <line x1="14" x2="14" y1="11" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="faq-item p-4 flex flex-wrap justify-between items-start sm:items-center gap-2 sm:gap-4 border rounded-lg p-4 cursor-move hover:shadow-md transition-shadow border-gray-200 mt-5" draggable="true">
+                        <div class="flex items-start gap-3">
+                            <input type="checkbox" class="faq-checkbox mt-1 w-4 h-4 border-gray-300 rounded">
+                            <span class="drag-handle text-gray-400 select-none">⋮⋮</span>
+                            <div>
+                                <h3 class="font-medium text-gray-900">What amenities are included?</h3>
+                                <p class="text-gray-600 text-sm">Amenities vary by property but typically include Wi-Fi, kitchen, linens, and towels.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-md">Active</span>
+                            <button class="p-1 text-gray-400 hover:text-gray-600 transition-colors" title="Settings">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-4 h-4">
+                                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button class="p-1 text-gray-400 hover:text-blue-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4">
+                                    <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                                    <line x1="2" x2="22" y1="10" y2="10"></line>
+                                </svg>
+                            </button>
+                            <button class="p-1 text-gray-400 hover:text-red-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 w-4 h-4">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                    <line x1="10" x2="10" y1="11" y2="17"></line>
+                                    <line x1="14" x2="14" y1="11" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="categories" class="tab-content {{ $activeTab === 'categories' ? 'block' : 'hidden' }}">
+
+        @include('admin.website_management.faq_page.partials._tab_categories')
+    </div>
+
+    <div id="analytics" class="tab-content {{ $activeTab === 'analytics' ? 'block' : 'hidden' }}">
+
+        <div class="max-w-7xl mx-auto space-y-6">
+            <!-- Header -->
+            <div class="flex flex-wrap justify-between items-center">
+                <h1 class="text-xl font-semibold text-gray-900">Analytics Dashboard</h1>
+                <div class="flex items-center gap-2 text-sm text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bar-chart3 w-5 h-5 text-gray-400">
+                        <path d="M3 3v18h18"></path>
+                        <path d="M18 17V9"></path>
+                        <path d="M13 17V5"></path>
+                        <path d="M8 17v-3"></path>
+                    </svg>
+                    Real-time insights
+                </div>
+            </div>
+            <!-- Top Metrics -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1 -->
+                <div class="bg-white p-5 rounded-lg shadow border border-gray-200 flex items-center gap-4">
+                    <div class="p-3 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye h-8 w-8 text-blue-600">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Total Views</p>
+                        <p class="text-2xl font-semibold text-gray-900">3</p>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white p-5 rounded-lg shadow border border-gray-200 flex items-center gap-4">
+                    <div class="p-3 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search h-8 w-8 text-green-600">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Total Searches</p>
+                        <p class="text-2xl font-semibold text-gray-900">0</p>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white p-5 rounded-lg shadow border border-gray-200 flex items-center gap-4">
+                    <div class=" p-3 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bar-chart3 h-8 w-8 text-purple-600">
+                            <path d="M3 3v18h18"></path>
+                            <path d="M18 17V9"></path>
+                            <path d="M13 17V5"></path>
+                            <path d="M8 17v-3"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Active FAQs</p>
+                        <p class="text-2xl font-semibold text-gray-900">3</p>
+                    </div>
+                </div>
+                <!-- Card 4 -->
+                <div class="bg-white p-5 rounded-lg shadow border border-gray-200 flex items-center gap-4">
+                    <div class=" p-3 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up h-8 w-8 text-orange-600">
+                            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                            <polyline points="16 7 22 7 22 13"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Categories</p>
+                        <p class="text-2xl font-semibold text-gray-900">2</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Middle Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Top Search Terms -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Top Search Terms</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-500 text-center py-4">No search data yet</p>
+                    </div>
+                </div>
+                <!-- Most Viewed FAQs -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Most Viewed FAQs</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium text-gray-500 w-6">#1</span>
+                                    <span class="text-sm text-gray-900 ml-3 truncate max-w-xs">Can I modify or cancel my reservation?</span>
+                                </div>
+                                <span class="text-sm text-gray-500">3 views</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom Section -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">FAQ Helpfulness Ratings</h3>
+                </div>
+                <div class="p-6">
+                    <p class="text-gray-500 text-center py-4">No rating data yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings" class="tab-content {{ $activeTab === 'settings' ? 'block' : 'hidden' }}">
+
+        <div class="bg-white rounded-md shadow p-4 sm:p-6">
+            <h2 class="text-lg font-semibold mb-2">Settings</h2>
+        </div>
+    </div>
+</div>
+
+
+<div id="NewFAQModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-xl flex flex-col max-h-full overflow-hidden border border-gray-200">
+
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-lg font-semibold text-gray-900">Add New FAQ</h2>
+                </div>
+                <button onclick="closeNewFAQModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+            <!-- Scrollable Content -->
+            <div class=" overflow-y-auto max-h-[70vh]">
+
+                <div class="mx-auto bg-white rounded-lg shadow p-6 space-y-5">
+                    <div class="mb-3">
+                        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select id="category"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select Category</option>
+                            <option value="booking">Booking & Reservations</option>
+                            <option value="property">Property Information</option>
+                            <option value="payment">Payment & Billing</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="question" class="block text-sm font-medium text-gray-700 mb-1">Question</label>
+                        <input id="question" type="text" placeholder="Enter FAQ question"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="answer" class="block text-sm font-medium text-gray-700 mb-1">Answer</label>
+                        <textarea id="answer" placeholder="Enter FAQ answer" rows="5"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"></textarea>
+                    </div>
+
+                    <div class="flex items-center space-x-2 mb-3">
+                        <input id="active" type="checkbox" checked class="w-4 h-4 border-gray-300 rounded" />
+                        <label for="active" class="text-sm font-medium text-gray-700">Active</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <h3 class="text-sm font-semibold text-gray-900">Related Questions</h3>
+                        <p class="text-xs text-gray-500 mb-2">Select questions that are related to this FAQ</p>
+
+                        <select id="relatedCategory"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-3">
+                            <option value="">All Categories</option>
+                            <option value="booking">Booking & Reservations</option>
+                            <option value="property">Property Information</option>
+                        </select>
+
+                        <div id="relatedQuestions" class="space-y-2 text-sm">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
+                <button type="button" onclick="closeNewFAQModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@endsection
+
+@push('js')
+
+<script>
+    const fileInput = document.getElementById("iconUpload");
+    const previewContainer = document.getElementById("previewContainer");
+    const previewImage = document.getElementById("previewImage");
+    const removeIcon = document.getElementById("removeIcon");
+
+    // Handle upload
+    fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                previewImage.src = event.target.result;
+                previewContainer.classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Remove image
+    removeIcon.addEventListener("click", () => {
+        previewContainer.classList.add("hidden");
+        previewImage.src = "";
+        fileInput.value = "";
+    });
+</script>
+<!-- Tab 1 script  -->
+<script>
+    // --- Related Questions ---
+    const relatedData = {
+        booking: [
+            "Can I modify or cancel my reservation?",
+
+        ],
+        property: [
+            "What amenities are included?",
+        ],
+        all: [
+            "Can I modify or cancel my reservation?",
+            "What amenities are included?",
+        ]
+    };
+
+    const relatedSelectfaq = document.getElementById('relatedSelectfaq');
+    const relatedQuestionsfaq = document.getElementById('relatedQuestionsfaq');
+
+    function renderRelated(category) {
+        const list = category && relatedData[category] ? relatedData[category] : relatedData.all;
+        relatedQuestionsfaq.innerHTML = list.map(q => `
+        <div class="flex items-center space-x-2">
+          <input type="checkbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded">
+          <label class="text-gray-700">${q}</label>
+        </div>
+      `).join('');
+    }
+    relatedSelectfaq.addEventListener('change', e => renderRelated(e.target.value));
+    renderRelated();
+
+    // --- Edit Toggle ---
+    const faqItem = document.getElementById('faqItem');
+    const editForm = document.getElementById('editForm');
+    const editBtn = document.getElementById('editBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    editBtn.addEventListener('click', () => {
+        faqItem.classList.add('hidden');
+        editForm.classList.remove('hidden');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        editForm.classList.add('hidden');
+        faqItem.classList.remove('hidden');
+    });
+
+    saveBtn.addEventListener('click', () => {
+        const question = document.getElementById('questionInput').value;
+        const answer = document.getElementById('answerInput').value;
+        const active = document.getElementById('activeCheck').checked;
+
+        faqItem.querySelector('h3').textContent = question;
+        faqItem.querySelector('p').textContent = answer;
+        faqItem.querySelector('span.bg-green-100').textContent = active ? 'Active' : 'Inactive';
+        faqItem.querySelector('span.bg-green-100').className = active ?
+            'bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-md' :
+            'bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded-md';
+
+        editForm.classList.add('hidden');
+        faqItem.classList.remove('hidden');
+    });
+</script>
+
+
+<script>
+    function openNewFAQModal() {
+        document.getElementById('NewFAQModal').classList.remove('hidden');
+        renderOptions();
+    }
+
+    function closeNewFAQModal() {
+        document.getElementById('NewFAQModal').classList.add('hidden');
+    }
+</script>
+
+<script>
+    const relatedData = {
+        booking: [
+            "Can I modify or cancel my reservation?",
+            "How do I make a reservation?",
+        ],
+        property: [
+            "What amenities are included?",
+        ],
+        all: [
+            "Can I modify or cancel my reservation?",
+            "How do I make a reservation?",
+            "What amenities are included?",
+        ],
+    };
+
+    const relatedCategory = document.getElementById("relatedCategory");
+    const relatedQuestions = document.getElementById("relatedQuestions");
+
+    function renderQuestions(category) {
+        const questions = category && relatedData[category] ? relatedData[category] : relatedData.all;
+        relatedQuestions.innerHTML = "";
+        questions.forEach((q) => {
+            const div = document.createElement("div");
+            div.className = "flex items-center space-x-2";
+            div.innerHTML = `
+          <input type="checkbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" id="${q}">
+          <label for="${q}" class="text-gray-700">${q}</label>
+        `;
+            relatedQuestions.appendChild(div);
+        });
+    }
+
+    relatedCategory.addEventListener("change", (e) => {
+        renderQuestions(e.target.value);
+    });
+
+    // Load default "All Categories" on start
+    renderQuestions("");
+</script>
+
+
+<script>
+    const tabs = document.querySelectorAll('.tab-link');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // reset styles
+            tabs.forEach(t => {
+                t.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                t.classList.add('text-gray-600');
+            });
+            contents.forEach(c => c.classList.add('hidden'));
+
+            // set active styles (no `.active` class used)
+            tab.classList.remove('text-gray-600');
+            tab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            document.getElementById(tab.dataset.tab).classList.remove('hidden');
+        });
+    });
+</script>
+
+
+<script>
+    // Accordion toggle
+    const accordionBtn = document.querySelector('.accordion-btn');
+    const accordionContent = document.querySelector('.accordion-content');
+    const accordionArrow = document.querySelector('.accordion-arrow');
+
+    accordionBtn.addEventListener('click', () => {
+        accordionContent.classList.toggle('hidden');
+        accordionArrow.classList.toggle('rotate-180');
+    });
+
+    // Checkbox counting
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.faq-checkbox');
+    const selectedCount = document.getElementById('selectedCount');
+    const applyButton = document.getElementById('applyButton');
+
+    function updateCount() {
+        const selected = document.querySelectorAll('.faq-checkbox:checked').length;
+        selectedCount.textContent = `${selected} of ${checkboxes.length} selected`;
+        applyButton.textContent = `Apply (${selected})`;
+        applyButton.disabled = selected === 0;
+        applyButton.className = selected ?
+            'bg-blue-600 text-white px-4 py-2 rounded-md text-sm' :
+            'bg-gray-400 text-white px-4 py-2 rounded-md text-sm';
+        selectAll.checked = selected === checkboxes.length;
+    }
+
+    selectAll.addEventListener('change', e => {
+        checkboxes.forEach(cb => cb.checked = e.target.checked);
+        updateCount();
+    });
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+
+    // Drag & drop sorting
+    const faqItems = document.querySelectorAll('.faq-item');
+    let draggedItem = null;
+
+    faqItems.forEach(item => {
+        item.addEventListener('dragstart', () => {
+            draggedItem = item;
+            setTimeout(() => item.classList.add('hidden'), 0);
+        });
+        item.addEventListener('dragend', () => {
+            item.classList.remove('hidden');
+            draggedItem = null;
+        });
+        item.addEventListener('dragover', e => {
+            e.preventDefault();
+            item.classList.add('drag-over');
+        });
+        item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+        item.addEventListener('drop', e => {
+            e.preventDefault();
+            item.classList.remove('drag-over');
+            const parent = item.parentNode;
+            const items = Array.from(parent.querySelectorAll('.faq-item'));
+            const draggedIndex = items.indexOf(draggedItem);
+            const droppedIndex = items.indexOf(item);
+            if (draggedIndex < droppedIndex) {
+                parent.insertBefore(draggedItem, item.nextSibling);
+            } else {
+                parent.insertBefore(draggedItem, item);
+            }
+        });
+    });
+</script>
+@endpush

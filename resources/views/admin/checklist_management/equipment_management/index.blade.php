@@ -105,7 +105,7 @@
 
                             {!! html()
                             ->select('inspectorSelect',
-                            $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select Inspector Person', '')->toArray(),
+                            $users->mapWithKeys(fn ($user) => [$user->id => $user->full_name])->prepend('Select Inspector', '')->toArray(),
                             old('inspectorSelect')
                             )
                             ->id('inspectorSelect')
@@ -256,7 +256,7 @@
             category: eq.category_name ?? 'N/A',
             checklist_master_id: eq.checklist_master_id,
             hours: eq.equipment_hours,
-            lastInspection: eq.latest_rental_ready_template?.inspection_time ?? '-',
+            lastInspection: eq.last_inspection ?? '-',
             orderproduct: eq.order_product?.product_name ?? '-',
             orderproductid: eq.order_product?.id ?? null,
             orderid: eq.order?.id ?? null,

@@ -5,6 +5,7 @@ namespace App\Models\MaintenanceManagement;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Helpers\CustomHelper;
 
 // Helpers
 use App\Helpers\ModelHelper;
@@ -67,7 +68,7 @@ class Equipment extends Model
         'current_status' => EquipmentCurrentStatus::class,
         'power_source_type' => EquipmentPowerSourceType::class,
     ];
-    protected $appends = ['status_label', 'category_name'];
+    protected $appends = ['status_label', 'category_name', 'last_inspection'];
 
     public static function boot()
     {
@@ -178,5 +179,19 @@ class Equipment extends Model
     {
         return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
             ->latest('id');
+    }
+    public function getLastInspectionAttribute(): string
+    {
+        $inspection = $this->latestRentalReadyTemplate;
+
+        if (!$inspection) {
+            return '-';
+        }
+
+        $employeeName = $inspection->employee_name ?? 'N/A';
+        $inspectionDate = CustomHelper::formatDateTime($inspection->inspection_date, 'M d, Y');
+        $inspectionTime = CustomHelper::formatDateTime($inspection->inspection_time, 'h:i A');
+
+        return trim("{$employeeName} - {$inspectionDate} {$inspectionTime}");
     }
 }

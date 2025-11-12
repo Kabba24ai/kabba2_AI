@@ -19,7 +19,7 @@ class IndexController extends Controller
 
         $categories = ProductCategory::getHierarchy();
 
-        // dd($equipments->checklistMaster->rentalReadyTemplate->);
+        // dd($equipments);
 
         return view('admin.checklist_management.equipment_management.index', [
             'users' => $users,

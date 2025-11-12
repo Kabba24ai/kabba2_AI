@@ -22,6 +22,49 @@
         @include('admin.maintenance_management.equipment.partials._filters')
         @include('admin.maintenance_management.equipment.partials._table')
     </div>
+    <!-- Checklist Master Assign Modal -->
+    <div id="checklistMasterAssignModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="addressModalTitle" class="text-lg font-semibold"> Checklist Master : <span
+                        id="checklistMasterAssignModalTitle"></span></h2>
+                <button type="button"
+                    class="close-checklist-master-assign-modal text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <!-- Body -->
+            {{ html()->form()->attributes([
+                    'data-parsley-validate' => true,
+                    'class' => 'flex-1',
+                    'id' => 'checklistMasterAssignForm',
+                ])->open() }}
+
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required" for="checklist_master_unique_id">Checklist Master</label>
+                    <select name="checklist_master_unique_id" id="checklist_master_unique_id"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
+                        <option value="" data-current-status="">Select Checklist Master</option>
+                    </select>
+                </div>
+                <input type="hidden" id="equipment-unique-id" name="equipment_unique_id" value="">
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button"
+                    class="close-checklist-master-assign-modal px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="submit" id="checklist-master-assign-submit"
+                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    Assign
+                </button>
+            </div>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -30,25 +73,29 @@
         document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');
             let categorySelect = document.querySelector('select[name="category"]');
+            let checklistMasterSelect = document.querySelector('select[name="checklist_master"]');
             //let status = document.querySelector('select[name="status"]');
-            let serviceDue = document.querySelector('select[name="serviceDue"]');
-            let rentalReady = document.querySelector('select[name="rentalReady"]');
-            let equipService = document.querySelector('select[name="equipService"]');
+            // let serviceDue = document.querySelector('select[name="serviceDue"]');
+            // let rentalReady = document.querySelector('select[name="rentalReady"]');
+            // let equipService = document.querySelector('select[name="equipService"]');
             let loader = document.querySelector('#equipment-loading');
             let wrapper = document.querySelector('#equipment-table-wrapper');
             let timeout = null;
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
             function fetchEquipments() {
                 const search = searchInput.value;
                 const category = categorySelect.value;
-                const serviceDueValue = serviceDue.value;
-                const rentalReadyValue = rentalReady.value;
-                const equipServiceValue = equipService.value;
+                const checklistMasterValue = checklistMasterSelect.value;
+                // const serviceDueValue = serviceDue.value;
+                // const rentalReadyValue = rentalReady.value;
+                // const equipServiceValue = equipService.value;
 
                 const params = new URLSearchParams();
                 if (search.length >= 3 || search.length === 0) params.append('search', search);
                 if (category) params.append('category', category);
-                if (serviceDueValue) params.append('serviceDue', serviceDueValue);
+                if (checklistMasterValue) params.append('checklist_master', checklistMasterValue);
+                if (perPage) params.append('per_page', perPage);
 
                 // Show loader
                 loader.classList.remove('hidden');
@@ -83,10 +130,109 @@
 
             // Instant change on selects
             categorySelect.addEventListener('change', fetchEquipments);
-           //status.addEventListener('change', fetchEquipments);
-            serviceDue.addEventListener('change', fetchEquipments);
-            rentalReady.addEventListener('change', fetchEquipments);
-            equipService.addEventListener('change', fetchEquipments);
+            checklistMasterSelect.addEventListener('change', fetchEquipments);
+            //status.addEventListener('change', fetchEquipments);
+            // serviceDue.addEventListener('change', fetchEquipments);
+            // rentalReady.addEventListener('change', fetchEquipments);
+            // equipService.addEventListener('change', fetchEquipments);
+
+            const modal = document.getElementById('checklistMasterAssignModal');
+            const checklistMasterAssignForm = document.getElementById('checklistMasterAssignForm');
+            const checklistMasterUniqueId = document.getElementById('checklist_master_unique_id');
+            const assignBtn = document.getElementById('checklist-master-assign-submit');
+            const closeModalButtons = document.querySelectorAll('.close-checklist-master-assign-modal');
+            const equipmentUniqueIdInput = document.getElementById('equipment-unique-id');
+            // --- Event delegation for OPEN buttons (works after table refresh) ---
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.checklist-master-assign-btn');
+                if (!btn) return;
+
+                const equipmentUniqueId = btn.getAttribute('data-equipment-unique-id');
+                equipmentUniqueIdInput.value = equipmentUniqueId;
+                modal.classList.remove('hidden');
+            });
+
+            // --- Event delegation for CLOSE buttons (works after table refresh) ---
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.close-checklist-master-assign-modal');
+                if (!btn) return;
+                clearModalFields();
+                modal.classList.add('hidden');
+            });
+
+            function clearModalFields() {
+                if (checklistMasterUniqueId) checklistMasterUniqueId.selectedIndex = 0;
+                if (equipmentUniqueIdInput) equipmentUniqueIdInput.value = '';
+            }
+
+            // Form submit
+            checklistMasterAssignForm?.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (window.$ && $(checklistMasterAssignForm).parsley && !$(checklistMasterAssignForm).parsley()
+                    .isValid()) {
+                    $(checklistMasterAssignForm).parsley().validate();
+                    return;
+                }
+
+                const submitBtn = document.getElementById('checklist-master-assign-submit');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Assigning...';
+                }
+
+                const formData = new FormData(checklistMasterAssignForm);
+
+                apiFetch('{{ route('admin.maintenance-management.equipment.checklist-master-assign') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(data => {
+                        if (data?.success) {
+                            modal.classList.add('hidden');
+                            if (window.notyf) notyf.success(data.message);
+                            clearModalFields();
+                            fetchChecklistMasters();
+                            fetchEquipments();
+                        } else {
+                            if (window.notyf) notyf.error(data?.message || 'Something went wrong.');
+                        }
+                    })
+                    .finally(() => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Assign';
+                        }
+                    });
+            });
+
+            fetchChecklistMasters();
+            // Fetch checklist master options
+            function fetchChecklistMasters(){
+                apiFetch('{{ route('admin.checklist-management.checklist-master.fetch') }}')
+                    .then(data => {
+                        if (data?.success) {
+                            checklistMasterUniqueId.innerHTML = '';
+                            const defaultOption = document.createElement('option');
+                            defaultOption.textContent = 'Select Checklist Master';
+                            defaultOption.disabled = true;
+                            defaultOption.selected = true;
+                            checklistMasterUniqueId.appendChild(defaultOption);
+                            data.checklistMasters.forEach(checklistMaster => {
+                                const option = document.createElement('option');
+                                option.value = checklistMaster.unique_id;
+                                option.textContent = checklistMaster.checklist_system_name;
+                                checklistMasterUniqueId.appendChild(option);
+                            });
+                        }
+                    });
+            };
+
         });
     </script>
 @endpush

@@ -23,6 +23,12 @@
                         <td class="py-3 px-3">
                             {!! \App\Helpers\CustomHelper::statusBadge($item->current_status->label()) !!}
                         </td>
+                        <td class="px-3 py-3 text-center">
+                            <button type="button" class="text-blue-600 underline checklist-master-assign-btn text-sm"
+                                data-equipment-unique-id="{{ $item->unique_id }}">
+                                {{ $item->checklistMaster?->checklist_system_name ?? 'Assign' }}
+                            </button>
+                        </td>
                         <td class="py-4 px-6">
                             <span class="text-sm text-gray-900">-</span>
                         </td>

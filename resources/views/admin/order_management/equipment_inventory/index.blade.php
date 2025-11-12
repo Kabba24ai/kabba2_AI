@@ -136,6 +136,7 @@
             let wrapper = document.querySelector('#equipment-table-wrapper');
             let equipmentStatusCheckboxes = document.querySelectorAll('input[name="equipment_status[]"]');
             let timeout = null;
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
             function fetchEquipment() {
                 const params = new URLSearchParams();
@@ -144,6 +145,7 @@
                 if (categorySelect.value) params.append('category', categorySelect.value);
                 // if (statusSelect.value) params.append('status', statusSelect.value);
                 if (storeSelect.value) params.append('store', storeSelect.value);
+                if (perPage) params.append('per_page', perPage);
 
                 // Add all checked equipment_status checkboxes
                 equipmentStatusCheckboxes.forEach(cb => {

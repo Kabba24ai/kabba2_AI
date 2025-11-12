@@ -85,6 +85,7 @@
             let loader = document.querySelector('#product-loading');
             let wrapper = document.querySelector('#product-table-wrapper');
             let timeout = null;
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
             function fetchProducts() {
                 const search = searchInput.value;
@@ -96,6 +97,7 @@
                 if (category) params.append('category', category);
                 if (priceSelect.value) params.append('price', priceSelect.value);
                 if (type) params.append('type', type);
+                if (perPage) params.append('per_page', perPage);
 
                 // Show loader
                 loader.classList.remove('hidden');

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\EditController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\UpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\DeleteController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\FetchController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignChecklistMasterController;
 
 Route::prefix('equipment')
     ->name('equipment.')
@@ -29,5 +30,7 @@ Route::prefix('equipment')
         Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 
         Route::get('/fetch-equipment', FetchController::class)->name('fetch');
+
+        Route::post('/checklist-master-assign', AssignChecklistMasterController::class)->name('checklist-master-assign');
 
     });

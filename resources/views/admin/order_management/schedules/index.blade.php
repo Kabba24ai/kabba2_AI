@@ -257,10 +257,10 @@
             let transportModeInputs = document.querySelectorAll('input[name="transport_mode[]"]');
             let scheduleTypeInputs = document.querySelectorAll('input[name="schedule_type[]"]');
             let rescheduledOnlyInput = document.querySelector('input[name="rescheduled_only"]');
-
             let loadingIndicator = document.querySelector('#schedule-loading');
             let wrapper = document.querySelector('#schedule-table-wrapper');
             let timeout = null;
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
             function fetchSchedules() {
                 const params = new URLSearchParams();
@@ -280,6 +280,7 @@
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
                 if (rescheduledOnlyInput && rescheduledOnlyInput.checked) params.append('rescheduled_only',
                     rescheduledOnlyInput.value);
+                if (perPage) params.append('per_page', perPage);
 
                 // --- START: Handle schedule_type[] checkboxes ---
                 let anyScheduleTypeChecked = false;

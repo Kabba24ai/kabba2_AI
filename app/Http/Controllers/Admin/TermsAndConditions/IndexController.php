@@ -21,7 +21,25 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
 
-        $terms = Terms::orderBy('is_global','ASC')->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, Terms::count()) : (int) $perPage;
+
+        $terms = Terms::query();
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $terms->where(function ($query) use ($searchTerm) {
+                $query->where('title', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        if ($request->filled('is_global')) {
+            $isGlobal = $request->input('is_global');
+            $terms->where('is_global', $isGlobal);
+        }
+
+
+        $terms = $terms->orderBy('is_global','ASC')->paginate($perPageVal)->withQueryString();
 
         return view('admin.terms_and_conditions.index', [
             'terms' => $terms,

@@ -278,6 +278,7 @@
             const paymentMethod = paymentMethodInput.value;
             const paymentStatus = paymentStatusInput.value;
             const product = productInput.value;
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
             const params = new URLSearchParams();
             params.set('page', 1); // Always reset to first page on filter
@@ -292,6 +293,8 @@
             if (paymentMethod) params.append('payment_method', paymentMethod);
             if (paymentStatus) params.append('payment_status', paymentStatus);
             if (product) params.append('product', product);
+            if (perPage) params.append('per_page', perPage);
+
 
             // Show loader
 

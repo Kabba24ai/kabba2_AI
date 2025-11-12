@@ -3,21 +3,19 @@
 namespace App\Http\Controllers\Admin\Crm\BillingSummary;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Customers\Customer;
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 // Models
 
 class IndexController extends Controller
 {
-
     public function __invoke(Request $request)
     {
-        $query = Customer::with('orders.payments', 'addresses', 'accounts')
-            ->whereIn('status', ['Active', 'Archived']);
+        $query = Customer::with('orders.payments', 'addresses', 'accounts')->whereIn('status', ['Active', 'Archived']);
 
         // Apply filters
         if ($request->filled('search_name')) {
@@ -71,72 +69,51 @@ class IndexController extends Controller
         if ($request->filled('sort')) {
             switch ($request->sort) {
                 case 'balance':
-                    $query->orderByRaw("ROUND(available_credit_balance, 2) DESC")
-                        ->orderByRaw("
+                    $query->orderByRaw('ROUND(available_credit_balance, 2) DESC')->orderByRaw("
     CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
 ");
                     break;
                 case 'days':
-                    $query->joinSub(
-                        DB::table('customer_accounts')
-                            ->select('customer_id', DB::raw('MAX(date) as last_payment_date'))
-                            ->where('type', 'payment')
-                            ->groupBy('customer_id'),
-                        'last_payment',
-                        function ($join) {
+                    $query
+                        ->joinSub(DB::table('customer_accounts')->select('customer_id', DB::raw('MAX(date) as last_payment_date'))->where('type', 'payment')->groupBy('customer_id'), 'last_payment', function ($join) {
                             $join->on('last_payment.customer_id', '=', 'customers.id');
-                        }
-                    )
-                    ->select('customers.*')
-                    ->selectRaw('DATEDIFF(NOW(), last_payment.last_payment_date) as days_since_last_payment_sql')
-                    ->orderBy('days_since_last_payment_sql', 'desc')
-                        ->orderByRaw("
+                        })
+                        ->select('customers.*')
+                        ->selectRaw('DATEDIFF(NOW(), last_payment.last_payment_date) as days_since_last_payment_sql')
+                        ->orderBy('days_since_last_payment_sql', 'desc')->orderByRaw("
     CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
 ");
                     break;
                 case 'bad_debt':
-                    $query->leftJoinSub(
-                        DB::table('customer_accounts')
-                            ->select('customer_id', DB::raw('MAX(date) as last_payment_date'))
-                            ->where('type', 'payment')
-                            ->groupBy('customer_id'),
-                        'last_payment',
-                        function ($join) {
+                    $query
+                        ->leftJoinSub(DB::table('customer_accounts')->select('customer_id', DB::raw('MAX(date) as last_payment_date'))->where('type', 'payment')->groupBy('customer_id'), 'last_payment', function ($join) {
                             $join->on('last_payment.customer_id', '=', 'customers.id');
-                        }
-                    )
-                    ->select('customers.*')
-                    ->selectRaw('DATEDIFF(NOW(), last_payment.last_payment_date) as days_since_last_payment_sql')
-                    ->where(function ($q) {
-                        $q->whereRaw('DATEDIFF(NOW(), last_payment.last_payment_date) > 45')
-                        ->orWhere(function ($q2) {
-                            $q2->where(function ($q3) {
-                                $q3->where('credit_limit', '<=', 0)
-                                    ->orWhereNull('credit_limit')
-                                    ->orWhere('is_credit_account', '=', 0);
-                            })
-                            ->where('available_credit_balance', '>', 0);
-                        });
-                    })
-                    ->orderByRaw("ROUND(available_credit_balance, 2) DESC")
-                        ->orderByRaw("
+                        })
+                        ->select('customers.*')
+                        ->selectRaw('DATEDIFF(NOW(), last_payment.last_payment_date) as days_since_last_payment_sql')
+                        ->where(function ($q) {
+                            $q->whereRaw('DATEDIFF(NOW(), last_payment.last_payment_date) > 45')->orWhere(function ($q2) {
+                                $q2->where(function ($q3) {
+                                    $q3->where('credit_limit', '<=', 0)->orWhereNull('credit_limit')->orWhere('is_credit_account', '=', 0);
+                                })->where('available_credit_balance', '>', 0);
+                            });
+                        })
+                        ->orderByRaw('ROUND(available_credit_balance, 2) DESC')->orderByRaw("
     CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
 ");
 
                     break;
             }
-        } else{
-
+        } else {
             // Default sorting by available_credit_balance
-            $query->orderByRaw("ROUND(available_credit_balance, 2) DESC")
-                ->orderByRaw("
+            $query->orderByRaw('ROUND(available_credit_balance, 2) DESC')->orderByRaw("
     CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
 ");
         }
         // Handle AJAX request for filtering and sorting
-
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
         if ($request->ajax()) {
-
             // Clone AFTER filters are applied this will send whne ajex request
             $baseQuery = clone $query;
             $allCustomers = $baseQuery->get();
@@ -144,8 +121,7 @@ class IndexController extends Controller
             $totalOutstanding = $allCustomers->sum('available_credit_balance');
 
             $overdueCustomers = $allCustomers->filter(function ($customer) {
-                return $customer->credit_limit !== null &&
-                    $customer->available_credit_balance > $customer->credit_limit;
+                return $customer->credit_limit !== null && $customer->available_credit_balance > $customer->credit_limit;
             });
 
             $overdueCustomerCount = $overdueCustomers->count();
@@ -154,8 +130,8 @@ class IndexController extends Controller
                 return abs($customer->credit_limit - $customer->available_credit_balance);
             });
 
-            $customers = $query->paginate(10)->withQueryString();
 
+            $customers = $query->paginate($perPageVal)->withQueryString();
 
             $tableView = view('admin.crm.billing_summary.partials._table', compact('customers'))->render();
 
@@ -171,44 +147,38 @@ class IndexController extends Controller
         // If not AJAX, return full view
 
         // Clone AFTER filters are applied
-            $baseQuery = clone $query;
-            $allCustomers = $baseQuery->get();
+        $baseQuery = clone $query;
+        $allCustomers = $baseQuery->get();
 
-            // Filter out bad debt customers (for totals)
-            $badDebtIds = $allCustomers
-                ->filter(fn($c) => CustomHelper::isBadDebitCustomer($c))
-                ->pluck('id')
-                ->toArray();
+        // Filter out bad debt customers (for totals)
+        $badDebtIds = $allCustomers->filter(fn($c) => CustomHelper::isBadDebitCustomer($c))->pluck('id')->toArray();
 
-            $filteredCustomers = $allCustomers->reject(function ($customer) {
-                return CustomHelper::isBadDebitCustomer($customer);
-            });
+        $filteredCustomers = $allCustomers->reject(function ($customer) {
+            return CustomHelper::isBadDebitCustomer($customer);
+        });
 
-            $totalOutstanding = $filteredCustomers->sum('available_credit_balance');
+        $totalOutstanding = $filteredCustomers->sum('available_credit_balance');
 
-            $overdueCustomers = $filteredCustomers->filter(function ($customer) {
-                return $customer->credit_limit !== null &&
-                    $customer->available_credit_balance > $customer->credit_limit;
-            });
+        $overdueCustomers = $filteredCustomers->filter(function ($customer) {
+            return $customer->credit_limit !== null && $customer->available_credit_balance > $customer->credit_limit;
+        });
 
-            $overdueCustomerCount = $overdueCustomers->count();
+        $overdueCustomerCount = $overdueCustomers->count();
 
-            $totalOverdueAmount = $overdueCustomers->sum(function ($customer) {
-                return abs($customer->credit_limit - $customer->available_credit_balance);
-            });
+        $totalOverdueAmount = $overdueCustomers->sum(function ($customer) {
+            return abs($customer->credit_limit - $customer->available_credit_balance);
+        });
 
-            // Remove bad-debt IDs from table query as well
-            $query->whereNotIn('customers.id', $badDebtIds);
+        // Remove bad-debt IDs from table query as well
+        $query->whereNotIn('customers.id', $badDebtIds);
 
-            $customers = $query->paginate(10)->withQueryString();
+        $customers = $query->paginate($perPageVal)->withQueryString();
 
         return view('admin.crm.billing_summary.index', [
-                'customers' => $customers,
-                'totalOutstanding' => $totalOutstanding,
-                'overdueCustomerCount' => $overdueCustomerCount,
-                'totalOverdueAmount' => $totalOverdueAmount
-            ]);
-
+            'customers' => $customers,
+            'totalOutstanding' => $totalOutstanding,
+            'overdueCustomerCount' => $overdueCustomerCount,
+            'totalOverdueAmount' => $totalOverdueAmount,
+        ]);
     }
-
 }

@@ -61,6 +61,7 @@
             let loader = document.querySelector('#stores-loading');
             let wrapper = document.querySelector('#stores-table-wrapper');
             let timeout = null;
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
             function fetchStores() {
                 const search = searchInput.value;
@@ -70,6 +71,8 @@
                 params.set('page', 1); // Always reset to first page on filter
                 if (search.length >= 3 || search.length === 0) params.append('search', search);
                 if (status) params.append('status', status);
+                if (perPage) params.append('per_page', perPage);
+
                 // Show loader
                 loader.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');

@@ -40,6 +40,8 @@ class IndexController extends Controller
             $q->whereIn('current_status', EquipmentCurrentStatus::getValues());
         });
 
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
         $order = ['damaged', 'maintenance', 'rented', 'available'];
         $equipment = $query
             ->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id')
@@ -48,7 +50,7 @@ class IndexController extends Controller
             ->orderBy('product_categories.title', 'asc')
             ->orderBy('equipment_name', 'asc')
             ->orderBy('equipment_id', 'asc')
-            ->paginate(10)
+            ->paginate($perPageVal)
             ->withQueryString();
 
         $categories = ProductCategory::getHierarchy();

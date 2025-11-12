@@ -50,11 +50,14 @@ class IndexController extends Controller
 
         // ---- ordering: by derived category title then product name ----
         // If you want products without categories LAST, use the commented line.
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
+
         $products = $query
             ->orderBy('ct.first_category_title', 'asc') // or:
             // ->orderByRaw('ct.first_category_title IS NULL, ct.first_category_title ASC')
             ->orderBy('products.product_name', 'asc')
-            ->paginate(10)
+            ->paginate($perPageVal)
             ->withQueryString();
 
         // AJAX partial

@@ -27,14 +27,14 @@ class IndexController extends Controller
                     ->orWhere('inside_sales_name', 'like', "%{$request->search_name_email}%");
             });
         }
-        
+
 
         // Search by company
         if ($request->filled('company_search')) {
             $query->where('name', 'like', "%{$request->company_search}%");
         }
 
-        
+
         // Search by tags
         if ($request->filled('tags_search')) {
             $tagNames = array_map('trim', explode(',', $request->tags_search));
@@ -53,7 +53,7 @@ class IndexController extends Controller
 
         // Search by part
         if ($request->filled('part_search')) {
-         
+
         }
 
         // Category filter
@@ -69,7 +69,10 @@ class IndexController extends Controller
         // Always sort alphabetically by supplier name
         $query->orderBy('name', 'ASC');
 
-        $suppliers = $query->latest()->paginate(10)->withQueryString();
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
+
+        $suppliers = $query->latest()->paginate($perPageVal)->withQueryString();
 
         // Append tag objects
         $suppliers->each(function ($supplier) {

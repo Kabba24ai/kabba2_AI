@@ -193,10 +193,12 @@
         const wrapper = document.querySelector('#supplier-table-wrapper');
 
         let timeout = null;
+        const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
         // --- Global function to fetch suppliers ---
         window.fetchSuppliers = function() {
             const params = new URLSearchParams();
+            if (perPage) params.append('per_page', perPage);
 
             // Append input values
             inputs.forEach(input => {

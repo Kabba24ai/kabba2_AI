@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin\OrderManagement\Schedules;
 
 use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
-use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Http\Request;
 
 // Models
@@ -22,6 +21,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
+
         // Fetch real product-wise order data
         $query = OrderProduct::query()->with('order', 'order.customer', 'order.shippingAddress', 'order.lastPayment')->where('product_data->product_type', 'Rental')->whereNotNull('delivery_date');
 
@@ -154,7 +154,9 @@ class IndexController extends Controller
             });
         }
 
-        $orderProducts = $query->orderBy('delivery_date', 'asc')->paginate(10)->withQueryString(); // keeps filters in pagination links
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
+        $orderProducts = $query->orderBy('delivery_date', 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 
         if ($request->ajax()) {
             $html = view('admin.order_management.schedules.partials._table', [
@@ -168,7 +170,7 @@ class IndexController extends Controller
 
         $categories = ProductCategory::getHierarchy();
         $stores = Store::orderBy('store_name')->get();
-        ;
+
         $users = User::orderBy('first_name', 'asc')->get()->map(function ($user) {
             return [
                 'unique_id' => $user->unique_id,

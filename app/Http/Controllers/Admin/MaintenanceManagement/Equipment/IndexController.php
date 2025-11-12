@@ -38,13 +38,22 @@ class IndexController extends Controller
         //     }
         // });
 
-        $query = Equipment::with('productCategory');
+        $query = Equipment::with('productCategory', 'checklistMaster');
+
+        // Checklist Master filter
+        $query->when($request->checklist_master, function ($q, $checklistMaster) {
+            if ($checklistMaster === 'assigned') {
+                $q->whereNotNull('checklist_master_id');
+            } elseif ($checklistMaster === 'Pending') {
+                $q->whereNull('checklist_master_id');
+            }
+        });
+
 
         // status filter
         $query->when($request->status, function ($q, $status) {
             $q->where('current_status', $status);
         });
-
 
         // Search filter
         $query->when($request->search, function ($q, $search) {
@@ -56,10 +65,12 @@ class IndexController extends Controller
             $q->where('product_category_id', $category);
         });
 
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
         $equipment = $query
             ->orderBy('equipment_name', 'asc')
             ->orderBy(ProductCategory::select('title')->whereColumn('product_categories.id', 'equipment.product_category_id'), 'asc')
-            ->paginate(10)
+            ->paginate($perPageVal)
             ->withQueryString();
 
         // Calculate stats

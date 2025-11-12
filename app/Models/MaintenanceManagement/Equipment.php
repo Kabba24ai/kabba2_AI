@@ -124,8 +124,6 @@ class Equipment extends Model
         return $this->belongsTo(ChecklistMaster::class, 'checklist_master_id');
     }
 
-
-
     public function customerAdminTemplates()
     {
         return $this->hasOneThrough(

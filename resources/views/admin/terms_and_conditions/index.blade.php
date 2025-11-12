@@ -35,7 +35,7 @@
             </div>
 
             {{-- Type Dropdown --}}
-            <select name="is_global"
+            <select name="is_global" id="is_global" onchange="fetchTerms()"
                 class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                 <option value="">All Terms</option>
                 <option value="Yes" @selected(request('is_global') === 'Yes')>Global</option>
@@ -131,4 +131,28 @@
 @endsection
 
 @push('js')
+<script>
+    const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+    const isGlobal = document.getElementById('is_global')?.value || new URLSearchParams(location.search).get('is_global') || null;
+    const searchInput = document.querySelector('input[name="search"]');
+    let timeout = null;
+
+    function fetchTerms() {
+        const params = new URLSearchParams();
+
+        if (perPage) params.append('per_page', perPage);
+        if (isGlobal) params.append('is_global', isGlobal);
+        if (searchInput && (searchInput.value.length >= 3 || searchInput.value.length ===
+                        0)) params.append('search', searchInput.value);
+
+        const url = `{{ route('admin.terms-and-conditions.index') }}?${params.toString()}`;
+        window.location.href = url;
+    }
+
+
+    if (searchInput) searchInput.addEventListener('input', function() {
+        clearTimeout(timeout);
+        timeout = setTimeout(fetchTerms, 400);
+    });
+</script>
 @endpush

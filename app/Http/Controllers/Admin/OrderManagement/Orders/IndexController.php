@@ -63,7 +63,9 @@ class IndexController extends Controller
                 $q->whereRelation('lastPayment', 'status', $request->payment_status);
             });
 
-        $orders = $query->latest('id')->paginate(10)->withQueryString(); // keeps filters in pagination links
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
+        $orders = $query->latest('id')->paginate($perPageVal)->withQueryString();
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {

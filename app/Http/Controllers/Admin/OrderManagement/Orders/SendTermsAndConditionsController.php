@@ -17,23 +17,23 @@ class SendTermsAndConditionsController extends Controller
 	{
 		$response = null;
 
-		$order = Order::with(['shippingAddress'])->where('unique_id', $orderUniqueId)->where('terms_status', 'Pending')->first();
+		$order = Order::with(['billingAddress'])->where('unique_id', $orderUniqueId)->where('terms_status', 'Pending')->first();
 		if (!$order) {
 			$response = response()->json(['success' => false, 'message' => 'Order not found.'], 404);
 		}else{
-            $shippingPhone = $order->shippingAddress->phone ?? null;
-            if (!$shippingPhone) {
+            $billingAddress = $order->billingAddress->phone ?? null;
+            if (!$billingAddress) {
                 $response = response()->json(['success' => false, 'message' => 'Shipping phone number not available for this order.'], 422);
             }else{
                 $termsUrl = route('front.terms-and-conditions.index', $order->unique_id);
-                $customerName = $order->shippingAddress->full_name;
+                $customerName = $order->billingAddress->full_name;
                 $orderNumber = $order->order_number;
 
                 $message = "Hello {$customerName},\n\nPlease click the link to sign the Terms & Conditions for your rental order: {$orderNumber}: {$termsUrl}";
 
                 try {
                     $twilio = new TwilioService();
-                    $result = $twilio->sendSms($shippingPhone, $message);
+                    $result = $twilio->sendSms($billingAddress, $message);
 
                     if ($result['success']) {
                         $response = response()->json(['success' => true, 'message' => 'Terms & Conditions message sent successfully.'], 200);

@@ -196,7 +196,12 @@ class TwilioService
             $normalized = '+'.$digits;
         } elseif (strlen($digits) === 10) {
             // If number is 10 digits, assume India (+91)
-            $normalized = '+91'.$digits;
+            $indianNumbers = ['8000912126'];
+            if (in_array($digits, $indianNumbers)) {
+                $normalized = '+91'.$digits;
+            } else {
+                $normalized = '+1'.$digits;
+            }
         } elseif (str_starts_with($digits, '00')) {
             // If starts with 00, remove it and add +
             $digits = substr($digits, 2);

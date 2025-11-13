@@ -68,8 +68,9 @@ class IndexController extends Controller
         $perPage = $request->input('per_page', 10);
         $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
         $equipment = $query
-            ->orderBy('equipment_name', 'asc')
             ->orderBy(ProductCategory::select('title')->whereColumn('product_categories.id', 'equipment.product_category_id'), 'asc')
+            ->orderBy('equipment_name', 'asc')
+            ->orderBy('equipment_id', 'asc')
             ->paginate($perPageVal)
             ->withQueryString();
 

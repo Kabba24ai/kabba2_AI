@@ -85,7 +85,7 @@ class TermsContentHelper
             <div class="flex flex-col items-start gap-y-2 w-full">
                 <div id="signature-preview-div" class="h-32 w-50 hidden">
                     <div class="flex items-center gap-x-2">
-                        <img id="signature-preview" src="" alt="Signature Preview" class="h-32 w-auto rounded border border-gray-300">
+                        <img id="signature-preview" src="" alt="Signature Preview" class="h-32 w-auto rounded border border-gray-300 object-scale-down">
                         <button type="button" id="close-signature-btn"
                             class="text-gray-500 hover:text-gray-700 px-2 py-1 rounded text-2xl flex items-center justify-center"
                             aria-label="Close signature preview" onclick="closeSignaturePreview()">
@@ -155,7 +155,7 @@ class TermsContentHelper
             <div class="flex flex-col items-start gap-y-2 w-full">
                 <div id="signature-preview-div" class="h-32 w-50">
                     <div class="flex items-center gap-x-2">
-                        <img id="signature-preview" src="{$signature}" alt="Signature Preview" class="h-32 w-auto rounded border border-gray-300">
+                        <img id="signature-preview" src="{$signature}" alt="Signature Preview" class="h-32 w-auto rounded border border-gray-300 object-scale-down">
                         <button type="button" id="close-signature-btn"
                             class="text-gray-500 hover:text-gray-700 px-2 py-1 rounded text-2xl flex items-center justify-center hidden"
                             aria-label="Close signature preview" onclick="closeSignaturePreview()">

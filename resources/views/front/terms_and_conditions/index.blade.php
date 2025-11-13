@@ -63,12 +63,12 @@
                         {!! $order->accepted_terms_content !!}
                     @endif
 
-                    <div class="flex flex-col gap-y-1 mt-4">
+                    {{-- <div class="flex flex-col gap-y-1 mt-4">
                         @empty(!$contactUsSettings)
                             <p>{{ $contactUsSettings['address1'] ?? '' }}</p>
                             <p>{{ $contactUsSettings['address2'] ?? '' }}</p>
                         @endempty
-                    </div>
+                    </div> --}}
                     @if ($order->terms_status->isPending())
                         <div class="border-t mt-8 pt-4">
                             <button type="submit" id="submit-button"

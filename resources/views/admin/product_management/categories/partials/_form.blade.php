@@ -47,7 +47,7 @@
             class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Status</label>
         {{ html()->select(
                 'status',
-                ['Published' => 'Published', 'Draft' => 'Draft', 'Pending' => 'Pending'],
+                ['Published' => 'Published', 'Pending' => 'Pending'],
                 isset($objProductCategory) ? null : 'Published',
             )->class([
                 'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',

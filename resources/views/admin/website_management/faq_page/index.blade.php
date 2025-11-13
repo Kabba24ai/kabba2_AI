@@ -14,8 +14,6 @@
 $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
 @endphp
 
-
-
 <div class="bg-white rounded-md p-5 shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <!-- Left Section -->
     <div>
@@ -44,7 +42,7 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
             Categories
         </button>
 
-        <button
+        <!-- <button
             class="tab-link text-sm font-medium px-3 py-2 {{ $activeTab === 'analytics' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600' }}"
             data-tab="analytics">
             Analytics
@@ -54,7 +52,7 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
             class="tab-link text-sm font-medium px-3 py-2 {{ $activeTab === 'settings' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600' }}"
             data-tab="settings">
             Settings
-        </button>
+        </button> -->
     </nav>
 
 </div>
@@ -89,7 +87,7 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
                 </label>
             </div>
             <!-- Accordion -->
-            <div class="bg-white border rounded-lg shadow-sm">
+            <!-- <div class="bg-white border rounded-lg shadow-sm">
                 <button class="accordion-btn w-full flex justify-between items-center p-4 text-left font-semibold text-gray-900 hover:bg-gray-50">
                     <div class="flex items-center gap-3">
                         <svg class="accordion-arrow w-5 h-5 text-gray-600 transition-transform duration-200"
@@ -101,7 +99,7 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
                     </div>
                 </button>
                 <div class="accordion-content border-t divide-y hidden px-6 mb-5">
-                    <!-- FAQ Items -->
+                   
                     <div id="faqItem" class="faq-item p-4 flex flex-wrap justify-between items-start sm:items-center gap-2 sm:gap-4 border rounded-lg p-4 cursor-move hover:shadow-md transition-shadow border-gray-200 mt-5" draggable="true">
                         <div class="flex items-start gap-3">
                             <input type="checkbox" class="faq-checkbox mt-1 w-4 h-4 border-gray-300 rounded">
@@ -136,7 +134,7 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
                             </button>
                         </div>
                     </div>
-                    <!-- Inline Edit Form -->
+                    
                     <div id="editForm" class="hidden bg-white border border-gray-200 rounded-lg shadow p-4 sm:p-6 mt-4 space-y-5">
                         <div class="flex items-center"><input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-3"></div>
                         <div>
@@ -256,7 +254,50 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
                     </div>
 
                 </div>
-            </div>
+            </div> -->
+
+            @foreach($categories as $category)
+                <div class="bg-white border rounded-lg shadow-sm mb-5">
+                    <!-- Accordion Header -->
+                    <button class="accordion-btn w-full flex justify-between items-center p-4 text-left font-semibold text-gray-900 hover:bg-gray-50">
+                        <div class="flex items-center gap-3">
+                            <svg class="accordion-arrow w-5 h-5 text-gray-600 transition-transform duration-200"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                            <span>{{ $category->category_name }}</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {{ $category->questions->count() }} FAQs
+                            </span>
+                        </div>
+                    </button>
+
+                    <!-- Accordion Content -->
+                    <div class="accordion-content border-t divide-y hidden px-6 mb-5">
+                        @forelse($category->questions as $question)
+                            <div class="faq-item p-4 flex flex-wrap justify-between items-start sm:items-center gap-2 sm:gap-4 border rounded-lg cursor-move hover:shadow-md transition-shadow border-gray-200 mt-5" draggable="true">
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" class="faq-checkbox mt-1 w-4 h-4 border-gray-300 rounded">
+                                    <span class="drag-handle text-gray-400 select-none">⋮⋮</span>
+                                    <div>
+                                        <h3 class="font-medium text-gray-900">{{ $question->question_name }}</h3>
+                                        <p class="text-gray-600 text-sm">{{ $question->answer }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-{{ $question->status === 'Active' ? 'green' : 'gray' }}-100 text-{{ $question->status === 'Active' ? 'green' : 'gray' }}-800 text-xs font-medium px-2 py-1 rounded-md">
+                                        {{ $question->status }}
+                                    </span>
+                                    
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-gray-500 text-sm mt-3">No questions found in this category.</p>
+                        @endforelse
+                    </div>
+                </div>
+                @endforeach
+
         </div>
     </div>
 
@@ -381,8 +422,40 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
 
     <div id="settings" class="tab-content {{ $activeTab === 'settings' ? 'block' : 'hidden' }}">
 
-        <div class="bg-white rounded-md shadow p-4 sm:p-6">
-            <h2 class="text-lg font-semibold mb-2">Settings</h2>
+        <div class="mx-auto space-y-6">
+            <!-- Page Title -->
+            <h1 class="text-xl font-semibold text-gray-900">Settings</h1>
+            <!-- Settings Card -->
+            <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-5 sm:p-6">
+                <h2 class="text-lg sm:text-xl font-medium text-gray-900 mb-5">FAQ Display Settings</h2>
+                <!-- Settings List -->
+                <div class="space-y-5">
+                    <!-- Option 1 -->
+                    <div class="flex justify-between items-start sm:items-center flex-wrap sm:flex-nowrap gap-3">
+                        <div>
+                            <p class="font-medium text-gray-900">Show search box</p>
+                            <p class="text-gray-500 text-sm">Allow users to search through FAQs</p>
+                        </div>
+                        <input type="checkbox" checked class="w-4 h-4 accent-blue-600 cursor-pointer">
+                    </div>
+                    <!-- Option 2 -->
+                    <div class="flex justify-between items-start sm:items-center flex-wrap sm:flex-nowrap gap-3">
+                        <div>
+                            <p class="font-medium text-gray-900">Auto-expand first category</p>
+                            <p class="text-gray-500 text-sm">Automatically expand the first FAQ category</p>
+                        </div>
+                        <input type="checkbox" class="w-4 h-4 accent-blue-600 cursor-pointer">
+                    </div>
+                    <!-- Option 3 -->
+                    <div class="flex justify-between items-start sm:items-center flex-wrap sm:flex-nowrap gap-3">
+                        <div>
+                            <p class="font-medium text-gray-900">Auto-expand all categories</p>
+                            <p class="text-gray-500 text-sm">Automatically expand all FAQ categories</p>
+                        </div>
+                        <input type="checkbox" checked class="w-4 h-4 accent-blue-600 cursor-pointer">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -400,56 +473,88 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
             </div>
             <!-- Scrollable Content -->
             <div class=" overflow-y-auto max-h-[70vh]">
+                   <!-- {{-- Form --}} -->
+                   {{ html()->form('POST', route('admin.website-management.faq-page.faq-question.store'))
+                ->id('questionForm')
+                ->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => ''
+                ])
+                ->acceptsFiles()
+                ->open() }}
 
+
+                   <input type="hidden" name="options" id="optionsInput">
                 <div class="mx-auto bg-white rounded-lg shadow p-6 space-y-5">
                     <div class="mb-3">
                         <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <select id="category"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select Category</option>
-                            <option value="booking">Booking & Reservations</option>
-                            <option value="property">Property Information</option>
-                            <option value="payment">Payment & Billing</option>
-                        </select>
+                        {!! html()->select(
+                           'category',
+                           ['' => '-- Select Category --'] + $categories->pluck('category_name', 'id')->toArray()
+                           )
+                           ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500')
+                           ->attributes(['id' => 'category_id'])
+                           ->required()
+                           !!}
+
                     </div>
 
                     <div class="mb-3">
                         <label for="question" class="block text-sm font-medium text-gray-700 mb-1">Question</label>
-                        <input id="question" type="text" placeholder="Enter FAQ question"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" />
+                        <!-- <input id="question" type="text" placeholder="Enter FAQ question"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" /> -->
+                         {!! html()->text('question')
+                           ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
+                           ->attributes(['id' => 'question', 'placeholder' => 'Enter FAQ question'])
+                           ->required() !!}
                     </div>
 
                     <div class="mb-3">
                         <label for="answer" class="block text-sm font-medium text-gray-700 mb-1">Answer</label>
-                        <textarea id="answer" placeholder="Enter FAQ answer" rows="5"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"></textarea>
+                        <!-- <textarea id="answer" placeholder="Enter FAQ answer" rows="5"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"></textarea> -->
+                        {!! html()->textarea('answer')
+                        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500')
+                        ->attributes(['id' => 'answer', 'placeholder' => 'Enter FAQ answer', 'rows' => '5'])
+                        ->required() !!}
                     </div>
 
                     <div class="flex items-center space-x-2 mb-3">
-                        <input id="active" type="checkbox" checked class="w-4 h-4 border-gray-300 rounded" />
+                        <!-- <input id="active" type="checkbox" checked class="w-4 h-4 border-gray-300 rounded" /> -->
+                        {!! html()->checkbox('active', true)
+                        ->class('w-4 h-4 border-gray-300 rounded focus:ring-blue-500')
+                        ->attributes(['id' => 'active']) !!}
                         <label for="active" class="text-sm font-medium text-gray-700">Active</label>
                     </div>
 
                     <div class="mb-3">
                         <h3 class="text-sm font-semibold text-gray-900">Related Questions</h3>
                         <p class="text-xs text-gray-500 mb-2">Select questions that are related to this FAQ</p>
-
-                        <select id="relatedCategory"
+                        <!-- <select id="relatedCategory"
                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-3">
-                            <option value="">All Categories</option>
+                            <option value="">All questions</option>
                             <option value="booking">Booking & Reservations</option>
                             <option value="property">Property Information</option>
-                        </select>
+                        </select> -->
+                        {!! html()->select(
+                           'relatedCategory',
+                           ['' => '-- Select Question --'] + $relatedCategory->pluck('question_name', 'id')->toArray()
+                           )
+                           ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500')
+                           ->attributes(['id' => 'relatedCategory'])
+                           !!}
 
                         <div id="relatedQuestions" class="space-y-2 text-sm">
                         </div>
                     </div>
-
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
                 <button type="button" onclick="closeNewFAQModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+                <button type="submit" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600">Save Question</button>
             </div>
+            {{ html()->form()->close() }}
         </div>
     </div>
 </div>
@@ -630,13 +735,28 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
 
 <script>
     // Accordion toggle
-    const accordionBtn = document.querySelector('.accordion-btn');
-    const accordionContent = document.querySelector('.accordion-content');
-    const accordionArrow = document.querySelector('.accordion-arrow');
+    // const accordionBtn = document.querySelector('.accordion-btn');
+    // const accordionContent = document.querySelector('.accordion-content');
+    // const accordionArrow = document.querySelector('.accordion-arrow');
 
-    accordionBtn.addEventListener('click', () => {
-        accordionContent.classList.toggle('hidden');
-        accordionArrow.classList.toggle('rotate-180');
+    // accordionBtn.addEventListener('click', () => {
+    //     accordionContent.classList.toggle('hidden');
+    //     accordionArrow.classList.toggle('rotate-180');
+    // });
+    document.addEventListener('DOMContentLoaded', () => {
+        // Select ALL accordions, not just the first one
+        const accordions = document.querySelectorAll('.accordion-btn');
+
+        accordions.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = btn.nextElementSibling; // Find content after button
+                const arrow = btn.querySelector('.accordion-arrow');
+
+                // Toggle only this accordion
+                content.classList.toggle('hidden');
+                arrow.classList.toggle('rotate-180');
+            });
+        });
     });
 
     // Checkbox counting

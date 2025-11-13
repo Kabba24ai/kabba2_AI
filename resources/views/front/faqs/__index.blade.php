@@ -18,27 +18,18 @@
             </p>
 
             <!-- Search Box -->
-             <form method="GET" action="{{ route('front.faqs.index') }}" class="relative max-w-xl mx-auto mt-6">
             <div class="relative max-w-xl mx-auto mt-6">
-                <!-- <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
-                </svg>
-                </span>
-                <input type="text" placeholder="Search for answers..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 text-sm sm:text-base" /> -->
                 <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
                 </svg>
-            </span>
-            <input type="text" name="q" value="{{ $search ?? '' }}" placeholder="Search for answers..."
-                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 text-sm sm:text-base" />
+                </span>
+                <input type="text" placeholder="Search for answers..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 text-sm sm:text-base" />
             </div>
-             </form>
         </div>
     </div>
 
-    <?php /*<div class="max-w-3xl mx-auto space-y-4  px-4 sm:px-6 lg:px-8 py-6">
+    <div class="max-w-3xl mx-auto space-y-4  px-4 sm:px-6 lg:px-8 py-6">
 
         <!-- Category 1 -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -226,90 +217,9 @@
             </div>
         </div>
 
-    </div> */ ?>
-    <div class="max-w-3xl mx-auto space-y-4 px-4 sm:px-6 lg:px-8 py-6">
-    @foreach($categories as $category)
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <button class="category-toggle w-full flex justify-between items-center p-4 text-left cursor-pointer">
-            <div class="flex items-start gap-3">
-                <div class="text-yellow-500 text-2xl">📁</div>
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900">{{ $category->category_name }}</h3>
-                    <p class="text-gray-600 text-sm">{{ $category->description }}</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
-                    {{ $category->questions->count() }} {{ Str::plural('question', $category->questions->count()) }}
-                </span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </div>
-        </button>
+    </div> 
+    
 
-        <div class="category-content hidden border-t border-gray-100">
-            @forelse($category->questions as $question)
-            <div class="px-6 py-4 border-b border-gray-100">
-                <button id="faq_{{$question->unique_id}}" class="faq-toggle flex justify-between items-center w-full text-left font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
-                    {{ $question->question_name }}
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-
-                <div class="faq-content hidden text-gray-700 text-sm leading-relaxed mt-3">
-                    <p class="text-gray-700 leading-relaxed prose prose-sm max-w-none">{{ $question->answer }}</p>
-                    <hr class="my-3 border-gray-200" />
-
-                    <div class="mt-4 mb-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Was this helpful?</span>
-                                <div class="flex items-center space-x-2">
-                                    <button class="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-up w-4 h-4 mr-1">
-                                        <path d="M7 10v12"></path>
-                                        <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
-                                        </svg>
-                                        Yes
-                                    </button>
-                                    <button class="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-down w-4 h-4 mr-1">
-                                        <path d="M17 14V2"></path>
-                                        <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"></path>
-                                        </svg>
-                                        No
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                    @if($question->related)
-                    <div class="border-t border-gray-200 pt-3">
-                        <p class="flex items-center gap-1 font-medium text-gray-900 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb w-4 h-4 text-yellow-500 mr-2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg> Related
-                        </p>
-                        <!-- <a href="#faq_{{ $question->related->unique_id }}" class="text-blue-600 text-sm hover:underline block mt-1">
-                            {{ $question->related->question_name }}
-                        </a> -->
-                        <a href="{{ route('front.faqs.index', ['open' => $question->related->unique_id]) }}" 
-                        class="text-blue-600 text-sm hover:underline block mt-1">
-                        {{ $question->related->question_name }}
-                        </a>
-                    </div>
-                    @else 
-                     no relative
-                    @endif
-                </div>
-            </div>
-            @empty
-            <p class="text-gray-500 text-sm p-4">No questions found for this category.</p>
-            @endforelse
-        </div>
-    </div>
-
-    @endforeach
-</div>
 
 @endsection
 
@@ -338,42 +248,6 @@
       });
     });
     
-
-    // ---- Auto-expand for search or related click ----
-    document.addEventListener('DOMContentLoaded', () => {
-        // Detect 'open' query param (if any)
-        const urlParams = new URLSearchParams(window.location.search);
-        const openId = urlParams.get('open');
-
-        if (openId) {
-            const targetFaq = document.querySelector(`#faq-${openId}`);
-            if (targetFaq) {
-                const categoryContent = targetFaq.closest('.category-content');
-                const categoryBtn = categoryContent?.previousElementSibling;
-                const faqBtn = targetFaq.querySelector('.faq-toggle');
-                const faqContent = targetFaq.querySelector('.faq-content');
-
-                // Open the parent category
-                if (categoryContent && categoryBtn) {
-                    categoryContent.classList.remove('hidden');
-                    const catIcon = categoryBtn.querySelector('svg');
-                    catIcon?.classList.add('rotate-180');
-                }
-
-                // Open the question itself
-                if (faqBtn && faqContent) {
-                    faqContent.classList.remove('hidden');
-                    const faqIcon = faqBtn.querySelector('svg');
-                    faqIcon?.classList.add('rotate-180');
-
-                    // Smooth scroll to it
-                    setTimeout(() => {
-                        faqBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300);
-                }
-            }
-        }
-    });
   </script>
 
 @endpush

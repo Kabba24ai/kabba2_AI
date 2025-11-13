@@ -410,7 +410,7 @@
             <tbody class="divide-y divide-gray-200">
                 @php $rowCount = 0; @endphp
 
-                @forelse ($customer->orders->sortByDesc('order_date') as $order)
+                @forelse ($customer->orders->sortByDesc('id') as $order)
                 @foreach ($order->products as $product)
 
                 @if ($rowCount >= 5)

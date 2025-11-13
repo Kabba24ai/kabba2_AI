@@ -43,4 +43,10 @@ class FaqCategory extends Model
     {
         return $this->belongsTo(\App\Models\Global\Media::class, 'category_icon_media_id');
     }
+
+    public function questions()
+    {
+        return $this->hasMany(FaqQuestions::class, 'category_id', 'id');
+    }
+    
 }

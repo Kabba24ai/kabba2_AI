@@ -20,6 +20,9 @@ class Store extends Model
         'state_id',
         'city',
         'zip_code',
+        'latitude',
+        'longitude',
+        'details',
         'is_primary', // Yes, No*
         'status', // Active* , Inactive, Archive
         'created_by',

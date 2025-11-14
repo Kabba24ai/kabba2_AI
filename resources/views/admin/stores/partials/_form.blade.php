@@ -65,6 +65,27 @@
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
             </div>
+
+             {{-- Details --}}
+            <div class="md:col-span-3">
+                <label for="details" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Details
+                </label>
+                {!! html()->text('details', old('details', $store->details ?? null))->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('details'),
+                        'border-red-500' => $errors->has('details'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter any additional details about the store',
+                        'autocomplete' => 'off',
+                        'id' => 'details',
+                    ])->required() !!}
+                @error('details')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
         </div>
     </div>
 
@@ -168,6 +189,42 @@
                         'id' => 'country',
                     ])->required() !!}
                 @error('country')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Latitude --}}
+            <div>
+                <label for="latitude" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Latitude
+                </label>
+                {{ html()->text('latitude', old('latitude', $store->latitude ?? null))->class(
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                    )->attributes([
+                        'maxlength' => 50,
+                        'placeholder' => 'Enter latitude',
+                        'autocomplete' => 'off',
+                        'id' => 'latitude',
+                    ])->required() }}
+                @error('latitude')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Longitude --}}
+            <div>
+                <label for="longitude" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                    Longitude
+                </label>
+                {{ html()->text('longitude', old('longitude', $store->longitude ?? null))->class(
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                    )->attributes([
+                        'maxlength' => 50,
+                        'placeholder' => 'Enter longitude',
+                        'autocomplete' => 'off',
+                        'id' => 'longitude',
+                    ])->required() }}
+                @error('longitude')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
             </div>

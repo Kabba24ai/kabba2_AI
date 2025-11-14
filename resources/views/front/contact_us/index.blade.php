@@ -32,7 +32,7 @@
 
                             {{-- Address --}}
                             <div class="flex items-start gap-3 mb-6 text-sm md:text-base">
-                                <span class="mt-1 text-blue-600">
+                                <span class="mt-1 text-black">
                                     <i class="fa-solid fa-location-dot"></i>
                                 </span>
                                 <div class="text-left">
@@ -45,7 +45,7 @@
                             {{-- Buttons --}}
                             <div class="flex flex-wrap gap-4 mb-6">
                                 <a href="tel:16158156734"
-                                    class="inline-flex items-center justify-center gap-3 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition">
+                                    class="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-600 px-6 py-3 text-sm font-semibold text-white hover:bg-gray-700 transition">
                                     <span><i class="fa-solid fa-phone"></i></span>
                                     <span>{{ $store->phone }}</span>
                                 </a>
@@ -58,15 +58,15 @@
                             </div>
 
                             {{-- Info bar --}}
-                            <div class="mt-2 border-l-4 border-blue-600 bg-blue-50 px-6 py-4 text-sm text-slate-700">
-                                Full service location with walk-in, phone &amp; turnkey delivery immediately available
+                            <div class="mt-2 border-l-4 border-gray-600 bg-gray-50 px-6 py-4 text-sm text-slate-700">
+                                {{ $store->details ?? 'Full service location with walk-in, phone &amp; turnkey delivery immediately available' }}
                             </div>
                         </div>
 
                         {{-- Map / image area --}}
-                        <div class="mt-6 bg-[#e3e3e3] w-full h-[560px]">
+                        <div class="mt-6 bg-[#e3e3e3] w-full h-[360px]">
                             <iframe class="w-full h-full"
-                                src="https://maps.google.com/?q={{ urlencode($store->full_address) }}&output=embed"
+                                src="https://maps.google.com/?q={{ $store->latitude }},{{ $store->longitude }}&output=embed"
                                 style="border:0;" allowfullscreen="" loading="lazy"
                                 referrerpolicy="no-referrer-when-downgrade"></iframe>
                         </div>

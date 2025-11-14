@@ -98,6 +98,7 @@
                             'maxlength' => 8,
                             'placeholder' => 'Enter Overage Rate',
                             'autocomplete' => 'off',
+                            old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? false : true) : false) ? 'readonly' : null,
                         ]) !!}
                     @error('overage_rate')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -124,7 +125,7 @@
                 </div>
 
                 <div>
-                    <label for="store_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="store_id" class="block text-sm font-medium text-gray-700 mb-1 required">
                         Store
                     </label>
                     {!! html()->select('store_id', ['' => 'Select Store'] + $stores)->class([
@@ -701,8 +702,10 @@
             function toggleOverageRate() {
                 if (isTracked.checked) {
                     overageRate.removeAttribute('readonly');
+                    overageRate.setAttribute('required', 'required');
                 } else {
                     overageRate.setAttribute('readonly', 'readonly');
+                    overageRate.removeAttribute('required');
                     overageRate.value = '';
                 }
             }

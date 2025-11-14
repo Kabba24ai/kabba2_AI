@@ -85,13 +85,13 @@ class IndexController extends Controller
         ];
 
         $categories = ProductCategory::getHierarchy();
-        $stores = Store::active()->pluck('store_name', 'id')->toArray();
+
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {
             return view('admin.maintenance_management.equipment.partials._table', compact('equipment'))->render();
         }
 
-        return view('admin.maintenance_management.equipment.index', compact('equipment', 'stats', 'categories', 'stores'));
+        return view('admin.maintenance_management.equipment.index', compact('equipment', 'stats', 'categories'));
     }
 }

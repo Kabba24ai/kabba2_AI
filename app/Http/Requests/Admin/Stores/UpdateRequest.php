@@ -40,6 +40,9 @@ class UpdateRequest extends FormRequest
             'address' => ['required', 'string', 'max:500'],
             'zip_code' => ['required', 'string', 'max:20'],
             'country' => ['required', 'string', 'max:100'],
+            'latitude' => ['required', 'string'],
+            'longitude' => ['required', 'string'],
+            'details' => ['nullable', 'string', 'max:255'],
         ];
     }
 

@@ -220,7 +220,7 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
                                 <span class="drag-handle text-gray-400 select-none">⋮⋮</span>
                                 <div>
                                     <h3 class="font-medium text-gray-900">{{ $question->question_name }}</h3>
-                                    <p class="text-gray-600 text-sm">{{ $question->answer }}</p>
+                                    <p class="text-gray-600 text-sm">{!! $question->answer !!}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3 w-full sm:w-auto justify-end sm:justify-start">
@@ -270,7 +270,7 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
 
                             <div>
                                 <textarea rows="5"
-                                    class="answer-input w-full border border-gray-300 rounded-md px-3 py-2 text-sm">{{ $question->answer }}</textarea>
+                                    class="tinymce answer-input w-full border border-gray-300 rounded-md px-3 py-2 text-sm">{{ $question->answer }}</textarea>
                             </div>
 
                             <div class="flex items-center justify-between">
@@ -532,10 +532,9 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
 
                     <div class="mb-3">
                         <label for="answer" class="block text-sm font-medium text-gray-700 mb-1">Answer</label>
-                        <!-- <textarea id="answer" placeholder="Enter FAQ answer" rows="5"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"></textarea> -->
+
                         {!! html()->textarea('answer')
-                        ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500')
+                        ->class('tinymce w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500')
                         ->attributes(['id' => 'answer', 'placeholder' => 'Enter FAQ answer', 'rows' => '5'])
                         ->required() !!}
                     </div>
@@ -588,6 +587,8 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
 @endsection
 
 @push('js')
+<script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+@vite('resources/admin/js/tinymce.js')
 
 <script>
     const fileInput = document.getElementById("iconUpload");
@@ -740,6 +741,12 @@ $activeTab = session('active_tab', 'faq'); // default to "faq" if not set
                         faqItem.classList.remove('hidden');
 
                         notyf.success(' FAQ updated successfully!');
+
+                        //  Refresh after short delay
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                        
                     } else {
                         console.error(data.message);
                         notyf.error(' Update failed. Please try again.');

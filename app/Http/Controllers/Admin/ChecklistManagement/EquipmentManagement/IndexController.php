@@ -15,7 +15,7 @@ class IndexController extends Controller
     {
         $users = User::where('status', 'Active')->get();
 
-        $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct','order'])->orderBy('equipment_name', 'asc')->get();
+        $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order'])->orderBy('equipment_name', 'asc')->get();
 
         $categories = ProductCategory::getHierarchy();
 

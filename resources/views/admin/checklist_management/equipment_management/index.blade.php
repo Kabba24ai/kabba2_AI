@@ -116,7 +116,12 @@
                             !!}
 
                         </div>
-                        <div>
+                        <div id="equipmentHoursNotTracked" class="hidden">
+                            <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Hours</label>
+                            <input type="text" value="Not Tracked"
+                                class="w-full border px-3 py-2 rounded-md text-sm bg-gray-100" disabled>
+                        </div>
+                        <div id="equipmentHoursWrapper">
                             <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Hours</label>
                             <input id="equipmentHours" name="equipmentHours" type="number" class="w-full border px-3 py-2 rounded-md text-sm" placeholder="Enter hours" min="0" step="0.1">
                         </div>
@@ -259,9 +264,11 @@
             lastInspection: eq.last_inspection ?? '-',
             orderproduct: eq.order_product?.product_name ?? '-',
             orderproductid: eq.order_product?.id ?? null,
+            order_route: eq.order?.view_link ?? null,
             orderid: eq.order?.id ?? null,
             badge: eq.status_label,
-            icon: icons[eq.current_status] ?? icons.available
+            icon: icons[eq.current_status] ?? icons.available,
+            is_tracked: eq.is_tracked ?? 'No',
         }));
 
         // console.log('equipment :- ', equipment);
@@ -281,6 +288,9 @@
         const checklistContent = document.getElementById("checklistContent");
         const placeholder = document.getElementById("placeholder");
         const equipmentHoursInput = document.getElementById("equipmentHours");
+
+        const hoursWrapper = document.getElementById("equipmentHoursWrapper");
+        const hoursNotTracked = document.getElementById("equipmentHoursNotTracked");
         const inspectionDateInput = document.getElementById("inspectionDate");
         const progressTop = document.getElementById("progressTop");
         const progressBottom = document.getElementById("progressBottom");
@@ -440,24 +450,59 @@
             if (eq.orderproductid == null) {
                 // Fresh template (no order product linked)
                 footerButton.classList.remove("hidden");
+                checklistContent.classList.remove("hidden");
             } else {
                 // Has order product → hide/show based on status
                 if (eq.badge === "Available") {
                     footerButton.classList.add("hidden");
+                    checklistContent.classList.remove("hidden");
                 } else {
                     footerButton.classList.remove("hidden");
+                    checklistContent.classList.remove("hidden");
                 }
             }
 
             //  ensure rented equipment always stays hidden
             if (eq.badge === "Rented") {
                 footerButton.classList.add("hidden");
+
+                checklistContent.classList.remove("hidden");
+                checklistContent.innerHTML = `
+                <div class="p-4  border  rounded-lg ">
+                    <p class="font-medium  ">
+                        This ${eq.name} - ID: ${eq.equipment_id} is currently <span class="text-red-600 font-bold">Rented</span>
+                        and cannot be updated in the Rental Ready system.
+                    </p>
+                    <p class="mt-2">
+                        If the rental is completed, please update the order to close out the rental →
+                        ${eq.order_route}
+                        
+                    </p>
+                </div>
+            `;
+
+                        return; // Stop execution — DO NOT load checklist questions
             }
 
             placeholder.classList.add("hidden");
             checklistContainer.classList.remove("hidden");
             checklistTitle.textContent = `Rental Ready Checklist - ${eq.name}`;
             equipmentHoursInput.value = eq.hours;
+
+            if (eq.is_tracked === "Yes") {
+                // Show normal input
+                hoursWrapper.classList.remove("hidden");
+                hoursNotTracked.classList.add("hidden");
+
+                equipmentHoursInput.disabled = false;
+                equipmentHoursInput.placeholder = "Enter hours";
+                equipmentHoursInput.value = eq.hours ?? 0;
+
+            } else {
+                // Show "Not tracked" box
+                hoursWrapper.classList.add("hidden");
+                hoursNotTracked.classList.remove("hidden");
+            }
             checklistContent.innerHTML = "";
 
             document.getElementById("equipmentId").value = eq.id;
@@ -631,7 +676,14 @@
                         notyf.error(data.message);
 
 
-                        checklistContent.innerHTML = `<p class="text-red-500">${data.message}</p>`;
+                        // put this once near the top of your script
+                        const editRouteTemplate = '{{ route("admin.maintenance-management.equipment.edit", ":id") }}';
+
+                        // when building the HTML (inside openChecklist)
+                        checklistContent.innerHTML = `<p class="text-red-500">
+                        There is no Checklist assigned to this Equipment ID - Assign a Checklist to this Equipment ID now:
+                        <a href="${editRouteTemplate.replace(':id', eq.unique_id)}" class="text-blue-600">Click Here</a>
+                        </p>`;
                     }
                 })
                 .catch(err => {

@@ -140,11 +140,11 @@
 
                 <button
                     class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
-                    <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Invoice
+                    <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
                 </button>
                 <button
                     class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Invoice
+                    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt 
                 </button>
                 <button class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
                     <x-heroicon-o-check class="w-4 h-4 mr-1" /> Save

@@ -271,7 +271,7 @@
                 </button>
 
                 <div class="faq-content hidden text-gray-700 text-sm leading-relaxed mt-3">
-                    <p class="text-gray-700 leading-relaxed prose prose-sm max-w-none">{{ $question->answer }}</p>
+                    <p class="text-gray-700 leading-relaxed prose prose-sm max-w-none">{!! $question->answer !!}</p>
                     <hr class="my-3 border-gray-200" />
 
 

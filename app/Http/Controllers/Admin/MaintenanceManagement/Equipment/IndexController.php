@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\Stores\Store;
 use Illuminate\Http\Request;
 
 class IndexController extends Controller
@@ -84,12 +85,13 @@ class IndexController extends Controller
         ];
 
         $categories = ProductCategory::getHierarchy();
+        $stores = Store::active()->pluck('store_name', 'id')->toArray();
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {
             return view('admin.maintenance_management.equipment.partials._table', compact('equipment'))->render();
         }
 
-        return view('admin.maintenance_management.equipment.index', compact('equipment', 'stats', 'categories'));
+        return view('admin.maintenance_management.equipment.index', compact('equipment', 'stats', 'categories', 'stores'));
     }
 }

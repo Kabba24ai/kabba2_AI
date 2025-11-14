@@ -53,13 +53,7 @@
                                 Equipment Hours
                             </label>
                         </div>
-                        <div>
-                            {!! html()->checkbox('is_tracked', true)->id('is_tracked')->checked(old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? true : false) : false))->class('mr-2') !!}
 
-                            <label for="is_tracked" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Tracked
-                            </label>
-                        </div>
                     </div>
 
                     {!! html()->text('equipment_hours')->class([
@@ -86,45 +80,12 @@
                         <label for="overage_rate" class="block text-sm font-medium text-gray-700 mb-1">
                             Overage Rate
                         </label>
-                        <div class="relative overflow-visible"> <!-- important: prevent clipping -->
-                            <div class="flex items-center gap-1">
-                                <label
-                                    class="whitespace-nowrap block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    <span class="relative group">
-                                        <span
-                                            class="text-blue-400 hover:text-blue-500 text-sm flex items-center gap-1 cursor-pointer">
-                                            <x-heroicon-o-information-circle class="w-5 h-5" />
-                                        </span>
+                         <div>
+                            {!! html()->checkbox('is_tracked', true)->id('is_tracked')->checked(old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? true : false) : true))->class('mr-2') !!}
 
-                                        <!-- Tooltip -->
-                                        <div class="tooltip-panel tooltip-panel--center">
-                                            *Overage Rate / Hr. is automatically calculated based upon your Overage
-                                            Percentage setting in Settings.
-                                            <br><br>
-                                            <strong>Overage Rate</strong> Rate is a percentage used to compute the
-                                            <strong>hourly
-                                                overage
-                                                fee</strong> for this product.
-                                            <br><br>
-                                            <strong>
-                                                Formula:</strong> Hourly Overage = <strong>Daily Rental Rate × Overage
-                                                Rate (%).
-                                            </strong>
-                                            <br>
-                                            If a renter exceeds their allocated hours (e.g., 8/day, 14/weekend, 40/week,
-                                            160/month),
-                                            this
-                                            fee applies <strong>for each hour over.</strong>
-                                            <br><br>
-                                            <strong>Example:</strong> Daily Rate <strong>$300</strong> × Overage Rate
-                                            <strong>10% =
-                                                $30/hour</strong> over the limit.
-                                            <br><br>
-                                            <strong>Note:</strong> Partial hours are billed as a full hour.
-                                        </div>
-                                    </span>
-                                </label>
-                            </div>
+                            <label for="is_tracked" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Tracked
+                            </label>
                         </div>
                     </div>
                     {!! html()->text('overage_rate')->class([
@@ -158,6 +119,23 @@
                             'autocomplete' => 'off',
                         ])->required() !!}
                     @error('equipment_id')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="store_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Store
+                    </label>
+                    {!! html()->select('store_id', ['' => 'Select Store'] + $stores)->class([
+                            'choices-select w-full px-2 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                            'border-red-300 bg-red-50' => $errors->has('store_id'),
+                            'border-gray-300' => !$errors->has('store_id'),
+                        ])->attributes([
+                            'data-parsley-errors-container' => '#store_id-errors',
+                        ])->required() !!}
+                    <div id="store_id-errors"></div>
+                    @error('store_id')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
@@ -716,6 +694,19 @@
 
             // Initial toggle based on existing values
             toggleFields();
+
+            const isTracked = document.getElementById('is_tracked');
+            const overageRate = document.querySelector('input[name="overage_rate"]');
+
+            function toggleOverageRate() {
+                if (isTracked.checked) {
+                    overageRate.removeAttribute('readonly');
+                } else {
+                    overageRate.setAttribute('readonly', 'readonly');
+                    overageRate.value = '';
+                }
+            }
+            isTracked.addEventListener('change', toggleOverageRate);
         });
     </script>
 @endpush

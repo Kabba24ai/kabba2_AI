@@ -54,6 +54,8 @@ class UpdateRequest extends FormRequest
                 Rule::unique('equipment', 'equipment_id')->ignore($uniqueId, 'unique_id'),
             ],
 
+            'store_id' => 'nullable|exists:stores,id',
+
             'equipment_hours' => 'nullable|numeric|min:0',
             'is_tracked' => 'nullable|boolean',
             'overage_rate' => 'nullable|numeric|min:0',

@@ -19,10 +19,20 @@
          <!-- Category Card -->
          <div class="category-card category-item flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow cursor-move"
              draggable="true"
-             data-id="{{ $category->id }}">
+             data-id="{{ $category->id }}"
+             data-unique-id="{{ $category->unique_id }}">
 
              <div class="flex items-start gap-3">
                  <span class="drag-handle text-gray-400 select-none text-xl leading-4">⋮⋮</span>
+                 @if($category->iconMedia && $category->iconMedia->getUrl())
+                 <img
+                     src="{{ $category->iconMedia->getUrl() }}"
+                     alt="{{ $category->category_name }}"
+                     class="w-10 h-10 rounded-full object-cover">
+                 @else
+
+                 @endif
+
                  <div>
                      <h3 class="card-title font-medium text-gray-900">
                          {{ $category->category_name }}
@@ -33,12 +43,12 @@
                      </p>
 
                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-2">
-                         {{ $category->faqs_count ?? 0 }} FAQs
+                         {{ $category->questions->count() ?? 0 }} FAQs
                      </span>
                  </div>
              </div>
 
-             <div class="flex items-center gap-3">
+             <div class="flex items-center gap-3 w-full sm:w-auto justify-end sm:justify-start">
                  <!-- Edit Button -->
                  <button type="button" class="edit-btn p-1 text-gray-400 hover:text-blue-600 transition-colors">
                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -50,17 +60,24 @@
                  </button>
 
                  <!-- Delete Button -->
-                 <button type="button" class="delete-btn p-1 text-gray-400 hover:text-blue-600 transition-colors">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                         class="lucide lucide-trash2 w-4 h-4">
-                         <path d="M3 6h18"></path>
-                         <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                         <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                         <line x1="10" x2="10" y1="11" y2="17"></line>
-                         <line x1="14" x2="14" y1="11" y2="17"></line>
-                     </svg>
-                 </button>
+
+                 <form action="{{ route('admin.website-management.faq-page.delete', $category->unique_id) }}" method="POST"
+                     class="delete-customer-form" data-faq-page-name="{{ $category->category_name }}">
+                     @csrf
+                     @method('DELETE')
+                     <button type="submit" class="delete-btn p-1 text-gray-400 hover:text-blue-600 transition-colors">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             class="lucide lucide-trash2 w-4 h-4">
+                             <path d="M3 6h18"></path>
+                             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                             <line x1="10" x2="10" y1="11" y2="17"></line>
+                             <line x1="14" x2="14" y1="11" y2="17"></line>
+                         </svg>
+                     </button>
+                 </form>
+
              </div>
          </div>
 
@@ -129,7 +146,7 @@
                      Save
                  </button>
 
-                 <button type="button" class="cancel-btn border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1">
+                 <button type="submit" class="cancel-btn border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1">
                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                          class="lucide lucide-x w-3 h-3 mr-1">
@@ -264,7 +281,6 @@
  </script>
 
 
-
  <script>
      const items = document.querySelectorAll('.category-item');
      let dragged = null;
@@ -313,10 +329,12 @@
          });
      });
  </script>
-
  <script>
      document.querySelectorAll('.category-item').forEach(categoryCard => {
-         const form = categoryCard.nextElementSibling; // the edit form right after each card
+
+         const updateRoute = @json(route('admin.website-management.faq-page.update', ['unique_id' => 'PLACEHOLDER_ID']));
+
+         const form = categoryCard.nextElementSibling; // edit form right after card
          const editBtn = categoryCard.querySelector('.edit-btn');
          const deleteBtn = categoryCard.querySelector('.delete-btn');
          const cancelBtn = form.querySelector('.cancel-btn');
@@ -332,65 +350,132 @@
          const titleText = categoryCard.querySelector('.card-title');
          const descText = categoryCard.querySelector('.card-desc');
 
-         // 📝 Edit Button
+         //Edit Button
          editBtn.addEventListener('click', () => {
              categoryCard.classList.add('hidden');
              form.classList.remove('hidden');
          });
 
-         // ❌ Cancel Button
-         cancelBtn.addEventListener('click', () => {
-             form.classList.add('hidden');
-             categoryCard.classList.remove('hidden');
-             iconInput.value = ''; // reset upload
-         });
+         //Cancel Button
+         if (cancelBtn) {
+             cancelBtn.addEventListener('click', () => {
+                 form.classList.add('hidden');
+                 categoryCard.classList.remove('hidden');
+                 iconInput.value = ''; // reset upload
+             });
+         }
 
-         // 💾 Save Button (local only)
+         //  Save Button (AJAX update)
          saveBtn.addEventListener('click', () => {
-             titleText.textContent = titleInput.value;
-             descText.textContent = descInput.value;
+             const formData = new FormData();
+             formData.append('category_name', titleInput.value);
+             formData.append('description', descInput.value);
+             formData.append('default_expand', form.querySelector('.input-expand').checked ? 1 : 0);
 
-             // handle image preview update
-             if (!iconRow.classList.contains('hidden') && iconPreview.src) {
-                 let imgInCard = categoryCard.querySelector('img');
-                 if (imgInCard) {
-                     imgInCard.src = iconPreview.src;
-                 } else {
-                     const newImg = document.createElement('img');
-                     newImg.src = iconPreview.src;
-                     newImg.className = 'w-10 h-10 rounded-full object-cover';
-                     categoryCard.querySelector('.flex.items-start')
-                         .insertBefore(newImg, categoryCard.querySelector('.flex.items-start').children[1]);
+             if (iconInput.files[0]) {
+                 formData.append('icon', iconInput.files[0]);
+             }
+
+             const uniqueId = categoryCard.dataset.uniqueId;
+             const url = updateRoute.replace('PLACEHOLDER_ID', uniqueId);
+
+             saveBtn.disabled = true;
+             saveBtn.textContent = 'Saving...';
+
+             fetch(url, {
+                     method: 'POST',
+                     headers: {
+                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                         'Accept': 'application/json' // tell Laravel this is AJAX
+                     },
+                     body: formData
+                 })
+                 .then(res => res.json())
+                 .then(data => {
+                     if (data.success) {
+                         // Update the card instantly
+                         titleText.textContent = data.category.category_name;
+                         descText.textContent = data.category.description || '';
+
+                         // Update preview if icon changed
+                         if (data.category.icon_url) {
+                             const img = categoryCard.querySelector('.category-icon');
+                             if (img) img.src = data.category.icon_url;
+                         }
+
+                         // Hide form and show card again
+                         form.classList.add('hidden');
+                         categoryCard.classList.remove('hidden');
+
+                         //  Success toast
+                         notyf.success('FAQ category updated successfully.');
+
+                         //  Refresh after short delay
+                         setTimeout(() => {
+                             window.location.reload();
+                         }, 1200);
+                     } else {
+                         notyf.error(data.message || 'Failed to update FAQ category.');
+                     }
+                 })
+                 .catch(err => {
+                     console.error('Update failed:', err);
+                     notyf.error('An error occurred while updating.');
+                 })
+                 .finally(() => {
+                     saveBtn.disabled = false;
+                     saveBtn.textContent = 'Save';
+                 });
+         });
+
+         if (iconInput) {
+             iconInput.addEventListener('change', e => {
+                 const file = e.target.files[0];
+                 if (file) {
+                     const reader = new FileReader();
+                     reader.onload = ev => {
+                         iconPreview.src = ev.target.result;
+                         iconRow.classList.remove('hidden');
+                     };
+                     reader.readAsDataURL(file);
                  }
-             }
+             });
+         }
+         //  Remove image preview
+         if (removeIcon) {
+             removeIcon.addEventListener('click', () => {
+                 iconInput.value = '';
+                 iconPreview.src = '';
+                 iconRow.classList.add('hidden');
+             });
+         }
 
-             form.classList.add('hidden');
-             categoryCard.classList.remove('hidden');
-         });
-
-         //  Image upload preview
-         iconInput.addEventListener('change', e => {
-             const file = e.target.files[0];
-             if (file) {
-                 const reader = new FileReader();
-                 reader.onload = ev => {
-                     iconPreview.src = ev.target.result;
-                     iconRow.classList.remove('hidden');
-                 };
-                 reader.readAsDataURL(file);
-             }
-         });
-
-         //  Remove image
-         removeIcon.addEventListener('click', () => {
-             iconInput.value = '';
-             iconPreview.src = '';
-             iconRow.classList.add('hidden');
-         });
-
-        
      });
  </script>
 
+
+ <!-- delete- -->
+ <script>
+     document.addEventListener('DOMContentLoaded', function() {
+         document.querySelectorAll('.delete-customer-form').forEach(function(form) {
+             form.addEventListener('submit', function(e) {
+                 e.preventDefault(); // stop auto submit
+
+                 const templateName = form.getAttribute('data-faq-page-name') || 'this item';
+
+                 window.showConfirm(
+                     `Delete "${templateName}"? This action cannot be undone!`,
+                     'Delete item'
+                 ).then((result) => {
+                     if (result.isConfirmed) {
+                         form.submit();
+                     }
+                 });
+             });
+         });
+     });
+ </script>
+
+ <!-- delete- -->
 
  @endpush

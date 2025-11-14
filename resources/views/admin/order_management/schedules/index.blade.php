@@ -220,7 +220,7 @@
                     </select>
                     <div class="flex items-center justify-between gap-3 mt-2">
                         <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                        <a href="#" class="text-blue-600 hover:underline text-sm font-semibold"
+                        <a href="#" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"
                             id="equipment-page-link"></a>
                     </div>
                 </div>

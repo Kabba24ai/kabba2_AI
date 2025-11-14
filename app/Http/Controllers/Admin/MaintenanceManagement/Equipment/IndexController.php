@@ -39,7 +39,7 @@ class IndexController extends Controller
         //     }
         // });
 
-        $query = Equipment::with('productCategory', 'checklistMaster');
+        $query = Equipment::with('productCategory', 'checklistMaster', 'store', 'order.customer','activeEquipmentRentalReadyTemplate');
 
         // Checklist Master filter
         $query->when($request->checklist_master, function ($q, $checklistMaster) {

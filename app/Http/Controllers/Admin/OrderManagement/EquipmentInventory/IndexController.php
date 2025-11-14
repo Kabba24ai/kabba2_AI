@@ -16,7 +16,7 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $query = Equipment::with('productCategory', 'order', 'orderProduct','lastOrderProduct', 'activeEquipmentRentalReadyTemplate');
+        $query = Equipment::with('productCategory', 'order', 'order.customer', 'store', 'orderProduct','lastOrderProduct', 'activeEquipmentRentalReadyTemplate');
 
         // filter
         $query->when($request->filled('search'), function ($q) use ($request) {

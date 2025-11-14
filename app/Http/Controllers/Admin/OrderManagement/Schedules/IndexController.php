@@ -23,7 +23,7 @@ class IndexController extends Controller
     {
 
         // Fetch real product-wise order data
-        $query = OrderProduct::query()->with('order', 'order.customer', 'order.shippingAddress', 'order.lastPayment')->where('product_data->product_type', 'Rental')->whereNotNull('delivery_date');
+        $query = OrderProduct::query()->with('equipment','order', 'order.customer', 'order.shippingAddress', 'order.lastPayment')->where('product_data->product_type', 'Rental')->whereNotNull('delivery_date');
 
         if ($request->filled('customer_name')) {
             $query->whereHas('order.shippingAddress', function ($q) use ($request) {

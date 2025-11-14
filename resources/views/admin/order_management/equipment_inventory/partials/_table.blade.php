@@ -82,10 +82,8 @@
                         </div>
                     </td>
                     <td class="px-4 py-4">
-                        <div class="font-medium">{{ $eq->activeEquipmentRentalReadyTemplate?->employee_name ?? '-' }}
-                        </div>
-                        <div class="text-xs text-gray-500">
-
+                        <div class="font-medium">
+                            {{ $eq->activeEquipmentRentalReadyTemplate?->employee_name ?? '-' }}
                         </div>
                     </td>
                     <td class="px-4 py-4">
@@ -96,8 +94,8 @@
                                     {{ $eq->order->customer_name ?? '-' }}
                                 </a>
                             @else
-                                @if ($eq->lastOrderProduct?->pickupStore->store_name)
-                                    {{ $eq->lastOrderProduct->pickupStore->store_name }}
+                                @if ($eq->store?->store_name)
+                                    {{ $eq->store->store_name }}
                                 @else
                                     -
                                 @endif
@@ -105,7 +103,7 @@
                         </div>
                     </td>
                     <td class="px-4 py-3 text-center">
-                        @if ($eq->orderproduct?->delivery_date)
+                        @if ($eq->orderProduct?->delivery_date)
                             @php
                                 $iconColor =
                                     $eq->orderProduct->delivery_status === 'Completed'

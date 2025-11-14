@@ -3,10 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\IndexController;
-use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\ChecklistQuestionsController ;
+use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\ChecklistQuestionsController;
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\StoreController;
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -20,15 +18,13 @@ use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\StoreCont
 */
 
 Route::prefix('equipment-management')
-->name('equipment-management.')
-->group(function ($router) {
+    ->name('equipment-management.')
+    ->group(function ($router) {
+        Route::get('/', IndexController::class)->name('index');
 
-     Route::get('/', IndexController::class)->name('index');
+        Route::get('/{equipment}', IndexController::class)->name('show');
 
-    Route::get('/{equipment}', IndexController::class)->name('show');
+        Route::post('/get-checklist-questions', ChecklistQuestionsController::class)->name('get-checklist-questions');
 
-
-    Route::post('/get-checklist-questions', ChecklistQuestionsController::class)->name('get-checklist-questions');
-
-    Route::post('/store', StoreController::class)->name('store');
-});
+        Route::post('/store', StoreController::class)->name('store');
+    });

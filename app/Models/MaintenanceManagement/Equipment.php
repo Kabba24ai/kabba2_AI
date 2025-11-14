@@ -19,6 +19,7 @@ use App\Models\Orders\Order;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
 use App\Models\Orders\OrderProduct;
+use App\Models\Stores\Store;
 
 class Equipment extends Model
 {
@@ -91,6 +92,12 @@ class Equipment extends Model
         return $query->where('current_status', '!=', EquipmentCurrentStatus::Rented);
     }
 
+    // relationships
+    public function store()
+    {
+        return $this->belongsTo(Store::class, 'store_id', 'id');
+    }
+
     public function order()
     {
         return $this->belongsTo(Order::class, 'current_order_id', 'id');
@@ -144,8 +151,8 @@ class Equipment extends Model
         switch ($this->current_status) {
             case EquipmentCurrentStatus::Maintenance:
                 return [
-                    'link' => ($this?->order?->unique_id) ? route('admin.order-management.orders.edit', $this?->order?->unique_id) : '#',
-                    'title' => ($this?->order?->unique_id) ? route('admin.order-management.orders.edit', $this?->order?->unique_id) : ''
+                    'link' => ($this?->unique_id) ? route('admin.checklist-management.equipment-management.show', $this?->unique_id) : '#',
+                    'title' => ($this?->unique_id) ? 'Go to Equipment Management' : ''
                 ];
                 break;
             case EquipmentCurrentStatus::Damaged:

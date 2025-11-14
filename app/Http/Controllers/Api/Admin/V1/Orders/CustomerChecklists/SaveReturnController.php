@@ -124,6 +124,7 @@ class SaveReturnController extends BaseController
 
         if ($equipment) {
             $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
+            $equipment->store_id = $validated['store_id'];
             $equipment->saveQuietly();
         }
 

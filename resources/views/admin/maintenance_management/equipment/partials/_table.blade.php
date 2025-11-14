@@ -30,10 +30,23 @@
                             </button>
                         </td>
                         <td class="py-4 px-6">
-                            <span class="text-sm text-gray-900">-</span>
+                           <div class="font-medium">
+                                {{ $item->activeEquipmentRentalReadyTemplate?->employee_name ?? '-' }}
+                            </div>
                         </td>
                         <td class="py-4 px-6">
-                            <span class="text-sm text-gray-900">-</span>
+                            @if ($item->status_label == 'Rented' && $item->order?->customer?->unique_id)
+                                <a href="{{ route('admin.crm.customers.view', $item->order->customer->unique_id) }}"
+                                    target="_blank" class="text-blue-600 hover:underline">
+                                    {{ $item->order->customer_name ?? '-' }}
+                                </a>
+                            @else
+                                @if ($item->store?->store_name)
+                                    {{ $item->store->store_name }}
+                                @else
+                                    -
+                                @endif
+                            @endif
                         </td>
                         <td class="py-3 px-3">
                             -

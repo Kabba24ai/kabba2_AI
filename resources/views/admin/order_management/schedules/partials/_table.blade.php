@@ -9,6 +9,7 @@
                 <th class="px-4 py-3 text-left">Delivery Address</th>
                 <th class="px-4 py-3 text-left">Phone</th>
                 <th class="px-4 py-3 text-center">Equipment</th>
+                <th class="px-4 py-3 text-center">Location</th>
                 <th class="px-4 py-3 text-center">Delivery Date</th>
                 <th class="px-4 py-3 text-center">Return Date</th>
                 <th class="px-4 py-3 text-center">Payment</th>
@@ -48,6 +49,22 @@
                             data-order="{{ $orderProduct?->order?->order_number }}">
                             {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
                         </button>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="inline-flex items-center gap-1">
+                            @if ($orderProduct?->equipment?->status_label == 'Rented' && $orderProduct?->equipment?->order?->customer?->unique_id)
+                                <a href="{{ route('admin.crm.customers.view', $orderProduct?->equipment?->order->customer->unique_id) }}"
+                                    target="_blank" class="text-blue-600 hover:underline">
+                                    {{ $orderProduct?->equipment?->order->customer_name ?? '-' }}
+                                </a>
+                            @else
+                                @if ($orderProduct?->equipment?->store?->store_name)
+                                    {{ $orderProduct?->equipment?->store->store_name }}
+                                @else
+                                    -
+                                @endif
+                            @endif
+                        </div>
                     </td>
                     <td class="px-4 py-3 text-center">
                         @php

@@ -144,7 +144,7 @@
                 </button>
                 <button
                     class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt 
+                    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
                 </button>
                 <button class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
                     <x-heroicon-o-check class="w-4 h-4 mr-1" /> Save
@@ -315,7 +315,7 @@
                         </div>
                     @endif
                 </div>
-                <p class="text-sm text-blue-600 shipping-address-section {{ $order->shippingAddress->isSameAs($order->billingAddress) ? '' : 'hidden' }}"
+                <p class="text-sm text-gray-600 shipping-address-section {{ $order->shippingAddress->isSameAs($order->billingAddress) ? '' : 'hidden' }}"
                     id="shipping_same_as_billing">Same as Billing</p>
 
             </div>

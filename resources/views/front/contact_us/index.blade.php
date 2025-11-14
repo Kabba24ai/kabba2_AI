@@ -50,7 +50,7 @@
                                     <span>{{ $store->phone }}</span>
                                 </a>
 
-                                <a href="sms:{{ $store->phone }}?body=Hi, I'm interested in know more about your rental services. Could you please provide me with information about availability and pricing?"
+                                <a href="sms:{{ $store->phone }}?body=Hello, I’m interested in learning more about your rental services. Could you please provide information regarding current availability and pricing?"
                                     class="inline-flex items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
                                     <span><i class="fa-regular fa-comment-dots"></i></span>
                                     <span>Click to Text</span>
@@ -59,7 +59,7 @@
 
                             {{-- Info bar --}}
                             <div class="mt-2 border-l-4 border-gray-600 bg-gray-50 px-6 py-4 text-sm text-slate-700">
-                                {{ $store->details ?? 'Full service location with walk-in, phone &amp; turnkey delivery immediately available' }}
+                                {{ $store->details }}
                             </div>
                         </div>
 

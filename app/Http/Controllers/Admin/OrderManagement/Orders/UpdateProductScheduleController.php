@@ -31,6 +31,7 @@ class UpdateProductScheduleController extends Controller
 
         $deliveryChanged = false;
         $pickupChanged = false;
+        $storeChange = false;
 
         // Only update the single field passed for delivery or pickup/return using $validatedData
         if ($validatedData['type'] === 'delivery') {
@@ -57,6 +58,10 @@ class UpdateProductScheduleController extends Controller
             foreach ($pickupFields as $field) {
                 if (array_key_exists($field, $validatedData)) {
                     $orderProduct->$field = $validatedData[$field];
+                    //
+                    if ($field === 'pickup_store_id') {
+                        $storeChange = true;
+                    }
                     // Track if mode was changed
                     if ($field === 'pickup_transport_mode') {
                         $pickupChanged = true;
@@ -74,6 +79,14 @@ class UpdateProductScheduleController extends Controller
         }
 
         $orderProduct->save();
+
+        if ($storeChange) {
+            $equipment = $orderProduct->equipment;
+            if ($equipment) {
+                $equipment->store_id = $validatedData['pickup_store_id'];
+                $equipment->saveQuietly();
+            }
+        }
 
         $user = auth()->user();
 

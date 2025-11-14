@@ -12,8 +12,7 @@
                     <div class="flex justify-between items-center ">
                         <h1 class="text-2xl md:text-3xl lg:text-4xl tracking-tight leading-[110%] font-bold">Terms
                             And Condition</h1>
-                        <ul
-                            class="px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative">
+                        <ul class="px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative">
                             <li class="tracking-normal whitespace-nowrap after:content-['/'] after:pl-1.5">
                                 <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
                             </li>
@@ -29,15 +28,20 @@
 
     <section class="lg:pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-8 md:px-[.7rem]">
-            <div class="max-w-[800px] border p-6 mx-auto my-10 text-center">
+            <div class="max-w-[800px] border p-6 mx-auto mt-10 text-center">
                 <h2 class="text-[24px] font-bold">Rent ‘n King Rental Agreement</h2>
                 <a href="{{ route('front.home.index') }}"
                     class="text-blue-500 hover:text-black transition-all duration-500 ease-in-out">www.RentnKing.com</a>
                 <p>Development 360, Inc</p>
             </div>
-            <h3 class="text-red-500 text-center text-[24px] mb-6">Order ID {{ $order->order_number }}</h3>
+            <h3 class="text-center  mb-6">Order ID {{ $order->order_number }}</h3>
             @if ($order->terms_status->isPending())
-                <ul class="inline-block w-full text-center">
+                <p class="text-red text-[34px] text-center font-bold">
+                    Almost done!<br>
+                    <span >Please scroll to the bottom and click the yellow button to sign.</span>
+                </p>
+
+                {{-- <ul class="inline-block w-full text-center">
                     <li class="w-[33%] inline-block -mr-2 step-item active relative">
                         <i class="fa-solid fa-circle text-[40px] text-[#36c6d3] w-[40px] h-[40px]"></i>
                         <span class="text-[#36c6d3] block mt-3 font-medium">Step 1</span>
@@ -50,13 +54,13 @@
                         <i class="fa-solid fa-circle text-[40px] text-[#36c6d3] w-[40px] h-[40px]"></i>
                         <span class="text-[#36c6d3] block mt-3 font-medium">Step 3</span>
                     </li>
-                </ul>
+                </ul> --}}
             @endif
             <form id="customer-order-sign-form" method="post"
                 action="{{ route('front.terms-and-conditions.sign', ['orderUniqueId' => $order->unique_id]) }}">
                 <div id="terms-dynamic-content" class="flex flex-col gap-y-3 container rich-content">
                     @if ($order->terms_status->isPending())
-                        {!!  \App\Helpers\TermsContentHelper::generateTermsContent($order)['terms_content'] !!}
+                        {!! \App\Helpers\TermsContentHelper::generateTermsContent($order)['terms_content'] !!}
                         {{-- {!! $order->pending_terms_content !!} commented because before sign user may check latest update terms and then he can sign --}}
                     @else
                         {{-- {!! $order->pending_terms_content !!} --}}
@@ -285,13 +289,14 @@
             }
 
             apiFetch(action, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: formData
-                }).then(response => {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content')
+                },
+                body: formData
+            }).then(response => {
                 if (response.success) {
                     notyf.success(response.message);
                     // Redirect to signed URL

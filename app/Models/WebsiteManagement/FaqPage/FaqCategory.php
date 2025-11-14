@@ -5,6 +5,7 @@ namespace App\Models\WebsiteManagement\FaqPage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Helpers\ModelHelper;
+use App\Models\Global\Media;
 
 class FaqCategory extends Model
 {
@@ -42,6 +43,11 @@ class FaqCategory extends Model
     public function iconMedia()
     {
         return $this->belongsTo(\App\Models\Global\Media::class, 'category_icon_media_id');
+    }
+
+     public function media()
+    {
+        return $this->belongsTo(Media::class, 'category_icon_media_id', 'id');
     }
 
     public function questions()

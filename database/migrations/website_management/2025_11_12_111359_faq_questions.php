@@ -20,7 +20,7 @@ return new class extends Migration
             $table->index('category_id', 'idx_faq_categories');
             $table->index('question_name', 'idx_faq_questions_name');
         });
-    }
+    }   
 
     public function down(): void
     {

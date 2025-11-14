@@ -3,10 +3,11 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Admin\WebsiteManagement\FaqPage\FaqQuestion\StoreController;
-//use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\EditController;
-//use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\UpdateController;
-//use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\DeleteController;
-//use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\FetchController;
+
+use App\Http\Controllers\Admin\WebsiteManagement\FaqPage\FaqQuestion\UpdateController;
+
+use App\Http\Controllers\Admin\WebsiteManagement\FaqPage\FaqQuestion\DeleteController;
+use App\Http\Controllers\Admin\WebsiteManagement\FaqPage\FaqQuestion\BulkDeleteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,10 +26,12 @@ Route::prefix('faq-question')
 
     Route::post('/store', StoreController::class)->name('store');
 
-    //Route::get('/edit/{unique_id}', EditController::class)->name('edit');
-    //Route::put('/update/{unique_id}', UpdateController::class)->name('update');
+    Route::post('/{unique_id}/update', UpdateController::class)->name('update');
 
-    //Route::delete('/delete/{unique_id}', DeleteController::class)->name('delete');
+    Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 
-    //Route::get('/fetch', FetchController::class)->name('fetch');
+
+    Route::post('/bulk-delete', BulkDeleteController::class)
+        ->name('bulk-delete');
+
 });

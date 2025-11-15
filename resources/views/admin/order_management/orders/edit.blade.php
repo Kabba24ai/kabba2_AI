@@ -138,6 +138,7 @@
                     </div>
                 </div>
 
+
                 <button
                     class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
                     <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
@@ -146,6 +147,20 @@
                     class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
                     <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
                 </button>
+
+               @if ($order->receipt_status === 'created')
+    <a href="{{ route('admin.order-management.orders.receipt-email', $order->id) }}""
+        class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
+        <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
+</a>
+
+    <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
+        class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+        <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
+    </a>
+@endif
+
+
                 <button class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
                     <x-heroicon-o-check class="w-4 h-4 mr-1" /> Save
                 </button>

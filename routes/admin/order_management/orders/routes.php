@@ -13,6 +13,10 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateNoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateOrderAddressController;
 
+use App\Http\Controllers\Admin\OrderManagement\Orders\ReceiptDownload;
+use App\Http\Controllers\Admin\OrderManagement\Orders\SendReceiptEmailController;
+
+
 use App\Http\Controllers\Admin\OrderManagement\Orders\AddToAccountPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\SendTermsAndConditionsController;
 
@@ -52,8 +56,11 @@ Route::prefix('orders')
         // Send Terms and Conditions
         Route::post('/{unique_id}/send-terms', SendTermsAndConditionsController::class)->name('send-terms');
 
-        // Notes
-        Route::prefix('notes')
+        Route::get('/{unique_id}/receipt-download', ReceiptDownload::class)->name('receipt-download');
+    Route::get('/{unique_id}/receipt-email', SendReceiptEmailController::class)->name('receipt-email');
+
+    // Notes
+    Route::prefix('notes')
             ->name('notes.')
             ->group(function () {
                 Route::get('/{unique_id}', NotesIndexController::class)->name('index');

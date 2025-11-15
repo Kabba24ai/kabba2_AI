@@ -82,6 +82,7 @@ class DownloadController extends Controller
         ]);
 
         // Stream in browser OR download
+
         // return $pdf->stream('invoice-' . $invoice->unique_id . '.pdf');
 
         return $pdf->download('invoice-' . $invoice->unique_id . '.pdf');

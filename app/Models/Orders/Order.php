@@ -47,6 +47,8 @@ class Order extends Model
         'terms_accepted_at', // DateTime when terms were accepted
         'terms_status', // Accepted, Declined, Pending*, Exempt
         'signature_image', // Base64 encoded image of signature
+        
+        'receipt_status'
     ];
 
     protected $casts = [
@@ -219,4 +221,6 @@ class Order extends Model
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
+
+
 }

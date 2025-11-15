@@ -254,18 +254,18 @@
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
                     {{ $category->questions->count() }} {{ Str::plural('question', $category->questions->count()) }}
                 </span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform duration-200 {{ $category->default_expand ? 'rotate-180' : '' }}"" fill=" none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
             </div>
         </button>
 
-        <div class="category-content hidden border-t border-gray-100">
+        <div class="category-content {{ $category->default_expand ? '' : 'hidden' }} border-t border-gray-100">
             @forelse($category->questions as $question)
-            <div class="px-6 py-4 border-b border-gray-100">
-                <button id="faq-{{$question->unique_id}}" class="faq-toggle flex justify-between items-center w-full text-left font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
+            <div class="px-6 py-2 border-b border-gray-100">
+                <button id="faq-{{$question->unique_id}}" class="faq-toggle flex justify-between items-center w-full text-left font-medium text-sm text-gray-900 hover:text-blue-600 cursor-pointer">
                     {{ $question->question_name }}
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400  transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
@@ -294,7 +294,7 @@
                         </a>
                     </div>
                     @else
-                    no relative
+                    
                     @endif
                 </div>
             </div>
@@ -321,10 +321,20 @@
             btn.addEventListener('click', () => {
                 const content = btn.nextElementSibling;
                 const icon = btn.querySelector('svg');
-                content.classList.toggle('hidden');
-                icon.classList.toggle('rotate-180');
+
+                // Only toggle if user manually clicks
+                const isHidden = content.classList.contains('hidden');
+
+                if (isHidden) {
+                    content.classList.remove('hidden');
+                    icon.classList.add('rotate-180');
+                } else {
+                    content.classList.add('hidden');
+                    icon.classList.remove('rotate-180');
+                }
             });
         });
+
 
         document.querySelectorAll('.faq-toggle').forEach(btn => {
             btn.addEventListener('click', () => {

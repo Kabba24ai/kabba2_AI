@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use App\Models\Customers\Invoice;
 use App\Models\Customers\InvoiceItem;
 use App\Models\Customers\Customer;
+use App\Models\Customers\Receipt;
+
+
+
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Facades\Log;
 use App\Events\Front\Checkout\OrderPlacedEvent;
@@ -22,9 +26,6 @@ class UpdateController extends Controller
     public function __invoke(UpdateRequest $request, string $unique_id)
     {
         $validated = $request->validated();
-
-        // dd($validated['payment_method']);
-        // die();
 
         DB::beginTransaction();
 
@@ -166,7 +167,6 @@ class UpdateController extends Controller
                         default  => 'Invoice Card',
                     };
 
-
                     $payment = $order->payments()->create([
                         'payment_datetime'     => now(),
                         'payment_method'       => ucfirst($paymentMethod),
@@ -191,13 +191,58 @@ class UpdateController extends Controller
                         'status' => $payment->status,
                     ]);
 
-
                     $orderActionType = 'invoice_payment_from_admin';
                     $employee = auth()->user();
 
-
                     // Fire OrderPlaced event
                     event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+
+
+                    // Create receipt
+
+                    if (
+                        $order->invoice &&
+                        $order->invoice->invoice_status === 'paid' &&    
+                        $order->receipt_status === 'pending' 
+                    ) {
+                       
+                        $receipt = Receipt::create([
+                            'invoice_id'         => $order->invoice->id,
+                            'customer_id'        => $order->customer->id,
+                            'order_id'=> $order->id ,
+                            'receipt_created_by' => auth()->id(),
+                            'payment_method'     => $order->invoice->payment_method,
+                            'receipt_date'       => now(),
+                            'order_date'         => $order->order_date,
+                            'payment_status'     => 'paid',
+                            'subtotal'           => $order->invoice->subtotal,
+                            'sales_tax'          => $order->invoice->sales_tax,
+                            'total'              => $order->invoice->total,
+                        ]);
+
+                        // Create receipt items based on invoice items
+                        foreach ($order->invoice->items as $invItem) {
+                            $receipt->items()->create([
+                                'type'      => $invItem->type,
+                                'item_name' => $invItem->item_name,
+                                'unit'      => $invItem->unit,
+                                'qty'       => $invItem->qty,
+                                'tax'       => $invItem->tax,
+                                'total'     => $invItem->total,
+                                'item_id'=> $invItem->item_id,
+                            ]);
+                        }
+
+                        // Update order to mark receipt as created
+                        $order->receipt_status = 'created';
+                        $order->save();
+
+                        Log::info('Receipt Created for Order', [
+                            'order_id'   => $order->id,
+                            'order_num'  => $order->order_number,
+                            'receipt_id' => $receipt->id,
+                        ]); 
+                    }
                 }
             });
 
@@ -207,7 +252,6 @@ class UpdateController extends Controller
                     return $item->orderProduct?->order?->order_number;
                 })
             ]);
-
 
 
             DB::commit();

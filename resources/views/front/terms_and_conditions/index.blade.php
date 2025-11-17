@@ -36,7 +36,7 @@
             </div>
             <h3 class="text-center  mb-6">Order ID {{ $order->order_number }}</h3>
             @if ($order->terms_status->isPending())
-                <p class="text-red text-[34px] text-center font-bold">
+                <p class="text-red text-[34px] text-center font-bold mb-3">
                     Almost done!<br>
                     <span >Please scroll to the bottom and click the yellow button to sign.</span>
                 </p>

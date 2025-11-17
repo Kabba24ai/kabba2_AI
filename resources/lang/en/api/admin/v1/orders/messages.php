@@ -26,6 +26,6 @@ return [
     'no_equipment_found' => 'No equipment found',
     'equipment_status' => 'Equipment Status is :status, it needs to be Rented',
     'checklist_removed_successfully' => 'Checklist removed successfully',
-    'equipment_is_rented' => `This item is currently Rented. so can't be assigned to this Order`,
+    'equipment_is_rented' => 'This item is currently Rented, so it can not be assigned to this Order',
 ];
 

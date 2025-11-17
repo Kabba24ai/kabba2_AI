@@ -32,7 +32,7 @@
 
                             {{-- Address --}}
                             <div class="flex items-start gap-3 mb-6 text-sm md:text-base">
-                                <span class="mt-1 text-black">
+                                <span class="mt-1 text-blue-500" >
                                     <i class="fa-solid fa-location-dot"></i>
                                 </span>
                                 <div class="text-left">
@@ -43,10 +43,11 @@
                             </div>
 
                             {{-- Buttons --}}
-                            <div class="flex flex-wrap gap-4 mb-6">
+                            <div class="flex flex-wrap gap-4 mb-6 justify-between" >
                                 <a href="tel:16158156734"
-                                    class="inline-flex items-center justify-center gap-3 rounded-lg bg-yellow-400 px-6 py-3 text-sm font-semibold hover:bg-yellow-300 transition">
-                                    <span><i class="fa-solid fa-phone"></i></span>
+                                    class="inline-flex items-center justify-center gap-3 rounded-lg py-3 text-sm font-semibold transition">                                    
+                                    <span class="text-blue-500"><i class="fa-solid fa-phone"></i></span>
+                                    <span class="text-gray-400 text-sm"> Call Us: </span>
                                     <span>{{ $store->phone }}</span>
                                 </a>
 
@@ -58,7 +59,7 @@
                             </div>
 
                             {{-- Info bar --}}
-                            <div class="mt-2 border-l-4 border-gray-600 bg-gray-50 px-6 py-4 text-sm text-slate-700">
+                            <div class="mt-2 border-l-4 border-blue-600 bg-gray-50 px-6 py-4 text-sm text-slate-700">
                                 {{ $store->details }}
                             </div>
                         </div>

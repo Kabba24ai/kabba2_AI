@@ -55,13 +55,13 @@
         @endforeach
 
         {{-- Display Settings --}}
-        <div class="md:col-span-2">
+        <div class="md:col-span-2 hidden">
             <div class="text-left">
                 <h2 class="text-xl font-semibold text-gray-900 mt-4">Display Settings</h2>
             </div>
         </div>
 
-        <div class="space-y-1.5">
+        <div class="space-y-1.5 hidden">
             <div class="flex items-start space-x-2">
                 <input type="hidden" name="social[show_social_media_icons]" value="0">
                 <input class="h-4 w-4 text-blue-600 border-gray-300 rounded" type="checkbox"
@@ -81,7 +81,7 @@
             @enderror
         </div>
 
-        <div class="space-y-1.5">
+        <div class="space-y-1.5 hidden">
             <div class="flex items-start space-x-2">
                 <input type="hidden" name="social[enable_social_sharing]" value="0">
                 <input class="h-4 w-4 text-blue-600 border-gray-300 rounded" type="checkbox"

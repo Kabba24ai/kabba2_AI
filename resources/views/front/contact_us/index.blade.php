@@ -44,10 +44,16 @@
 
                             {{-- Buttons --}}
                             <div class="flex flex-wrap gap-4 mb-6 justify-between" >
-                                <a href="tel:16158156734"
-                                    class="inline-flex items-center justify-center gap-3 rounded-lg py-3 text-sm font-semibold transition">                                    
+                                <!-- <a href="tel:{{$store->phone}}"
+                                   class="inline-flex items-center justify-center gap-3 rounded-lg bg-blue-400 px-6 py-3 text-sm font-semibold hover:bg-blue-300 transition">                                    
                                     <span class="text-blue-500"><i class="fa-solid fa-phone"></i></span>
-                                    <span class="text-gray-400 text-sm"> Call Us: </span>
+                                     <span class="text-gray-400 text-sm"> Call Us: </span>
+                                    <span>{{ $store->phone }}</span>
+                                </a> -->
+
+                               <a href="tel:{{$store->phone}}"
+                                   class="inline-flex items-center justify-center gap-3 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold hover:bg-blue-700 transition text-white">                                    
+                                    <span class="text-white"><i class="fa-solid fa-phone"></i></span>
                                     <span>{{ $store->phone }}</span>
                                 </a>
 
@@ -59,9 +65,11 @@
                             </div>
 
                             {{-- Info bar --}}
+                            @if($store->details)
                             <div class="mt-2 border-l-4 border-blue-600 bg-gray-50 px-6 py-4 text-sm text-slate-700">
                                 {{ $store->details }}
                             </div>
+                            @endif
                         </div>
 
                         {{-- Map / image area --}}

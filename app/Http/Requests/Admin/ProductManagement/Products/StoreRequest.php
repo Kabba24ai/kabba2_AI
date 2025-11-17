@@ -25,7 +25,7 @@ class StoreRequest extends ApiBaseFormRequest
             'product_name' => ['required', 'string', 'max:240', 'unique:products,product_name'],
             'product_type' => ['required', 'in:Rental,Retail'],
 
-            'is_general_term_type' => ['required', 'boolean'],
+            'is_general_term_type' => ['nullable', 'boolean', 'required_if:product_type,Rental'],
             'is_custom_term_type' => ['nullable', 'boolean'],
 
             'terms' => ['required_if:is_custom_term_type,1'],

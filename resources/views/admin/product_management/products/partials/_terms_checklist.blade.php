@@ -14,7 +14,7 @@
                 {{ $isGeneral ? 'checked' : '' }}
                 class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
                 data-parsley-multiple="term_type"
-                data-parsley-required="true"
+                x-bind:data-parsley-required="$store.productForm.selectedType === 'Rental'"
                 data-parsley-required-message="Please select at least one option."
                 data-parsley-errors-container="#terms-error"
                 data-parsley-class-handler="#terms-group"

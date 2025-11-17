@@ -219,7 +219,7 @@ class CartHelper
 
             'pickup_transport_mode' => $pickupTransportMode ?? null,
             'pickup_store_id' => $validated['delivery_store_id'] ?? null,
-            'pickup_date' => $endDate->format(config('app.date.date_format')) ?? null,
+            'pickup_date' => $endDate ? $endDate->format(config('app.date.date_format')) : null,
             'pickup_time' => $pickupTime ?? null,
 
             'product_option_items' => $resolvedOptions,

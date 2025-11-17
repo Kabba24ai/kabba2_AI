@@ -147,19 +147,21 @@
                         <div>
                             <div class="flex flex-col md:flex-row items-center justify-items-start gap-4">
                                 <!-- Calendar icon button -->
-                                <div class="flex items-center space-x-2">
-                                    <a href="javascript:void(0);" id="openDatePicker" class="flex items-center ">
-                                        <img src="{{ asset('storage/front/images/calendar_icon.png') }}"
-                                            alt="Calendar Icon" class="w-6 h-6 md:w-[52px] h-[52px]" />
-                                        <span id="selectedDateText" class="text-sm md:text-base text-gray-700">Start
-                                            Date</span>
-                                    </a>
-                                    <!-- Hidden input stays outside for accessibility/JS -->
-                                    <input type="text" name="delivery_date" id="scheduleStartDateInput"
-                                        data-format="{{ config('app.date.js_date_format') }}"
-                                        data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                        class="sr-only" readonly placeholder="Select Start Date" />
-                                </div>
+                                @if ($productDetail->product_type === 'Rental')
+                                    <div class="flex items-center space-x-2">
+                                        <a href="javascript:void(0);" id="openDatePicker" class="flex items-center ">
+                                            <img src="{{ asset('storage/front/images/calendar_icon.png') }}"
+                                                alt="Calendar Icon" class="w-6 h-6 md:w-[52px] h-[52px]" />
+                                            <span id="selectedDateText" class="text-sm md:text-base text-gray-700">Start
+                                                Date</span>
+                                        </a>
+                                        <!-- Hidden input stays outside for accessibility/JS -->
+                                        <input type="text" name="delivery_date" id="scheduleStartDateInput"
+                                            data-format="{{ config('app.date.js_date_format') }}"
+                                            data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                            class="sr-only" readonly placeholder="Select Start Date" />
+                                    </div>
+                                @endif
                                 <!-- Qty controls -->
                                 <div class="flex items-center space-x-2 pr-5">
                                     <button type="button"

@@ -24,7 +24,9 @@ class TermsContentHelper
      */
     public static function generateTermsArrayFromOrder($order): Collection
     {
-        $globalTerms = Terms::query()->global()->first();
+        $globalTerms = $order->products->contains(fn($orderProduct) => $orderProduct->product->is_general_term_type)
+            ? Terms::query()->global()->first()
+            : null;
 
         $productTerms = $order->products->pluck('product.terms')->flatten()->unique('id')->values()->map(
             fn($term) => [

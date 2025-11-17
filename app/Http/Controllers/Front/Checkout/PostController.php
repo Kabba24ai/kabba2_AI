@@ -18,6 +18,7 @@ use App\Events\Front\Checkout\OrderPlacedEvent;
 // Helpers
 use App\Helpers\CartHelper;
 use App\Helpers\CustomHelper;
+use App\Helpers\SignedUrlHelper;
 use App\Helpers\TermsContentHelper;
 
 // Request
@@ -35,7 +36,6 @@ use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
 use App\Models\Stores\Store;
 use Illuminate\Support\Facades\Log;
-
 
 class PostController extends Controller
 {
@@ -62,7 +62,7 @@ class PostController extends Controller
 
         try {
             DB::beginTransaction();
-            if(auth()->guard('customer')->check()) {
+            if (auth()->guard('customer')->check()) {
                 $customer = auth()->guard('customer')->user();
             } else {
                 // 1. Find or create customer
@@ -187,7 +187,7 @@ class PostController extends Controller
                 'platform' => 'Web',
             ]);
 
-            if(!empty($validated['orderNotes'])) {
+            if (!empty($validated['orderNotes'])) {
                 // Create order note if provided
                 $order->notes()->create([
                     'note' => $validated['orderNotes'],
@@ -224,13 +224,10 @@ class PostController extends Controller
                 'zip_code' => $deliveryAddress->zip_code,
             ]);
 
-
             $primaryStoreId = Store::primary()->value('id');
-
 
             foreach ($cartSummary['cart_items'] as $item) {
                 if ($product = Product::where('unique_id', $item['product_unique_id'])->first()) {
-
                     $order->products()->create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
@@ -239,7 +236,7 @@ class PostController extends Controller
                         'quantity' => $item['quantity'],
                         'hour_tracking' => $item['hour_tracking'] ?? 'No',
                         'hour_rate' => $item['hour_rate'] ?? 0,
-                        'allocated_hours' => $item['allocated_hours'] ?? 0.00,
+                        'allocated_hours' => $item['allocated_hours'] ?? 0.0,
                         'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],
                         'total' => $item['total'],
@@ -269,112 +266,107 @@ class PostController extends Controller
             $order->terms_status = OrderTermsStatus::Pending;
             $order->saveQuietly(); // saveQuietly() saves the model to the database without firing any Eloquent events (like "saved", "updated", etc.)
 
-                // If payment type is card, process payment using AuthorizeNetService
-                if (strtolower($validated['payment']) === 'card') {
-                    $amount = $order->grand_total;
-                    if (session()->has('impersonated_by_admin') && !empty($validated['customer_card'])) {
-                        $cardDetail =  $customer->cards()->where('unique_id', $validated['customer_card'])->first();
+            // If payment type is card, process payment using AuthorizeNetService
+            if (strtolower($validated['payment']) === 'card') {
+                $amount = $order->grand_total;
+                if (session()->has('impersonated_by_admin') && !empty($validated['customer_card'])) {
+                    $cardDetail = $customer->cards()->where('unique_id', $validated['customer_card'])->first();
 
-                        $paymentProfileId  = $cardDetail->payment_profile_id;
-                        $customerProfileId = $customer->authorize_profile_id;
+                    $paymentProfileId = $cardDetail->payment_profile_id;
+                    $customerProfileId = $customer->authorize_profile_id;
 
-                        if (!$customerProfileId) {
-                            DB::rollBack();
-                            return back()->withInput()->with('error', 'Customer profile not found for saved card.');
-                        }
+                    if (!$customerProfileId) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Customer profile not found for saved card.');
+                    }
 
-                        $authorizeNetService = new AuthorizeNetService();
+                    $authorizeNetService = new AuthorizeNetService();
 
-                        // Your service should wrap Authorize.Net CIM createTransactionRequest
-                        // e.g. createProfileTransaction / chargeCustomerProfile
-                        $paymentResult = $authorizeNetService->chargeCustomerProfile(
-                            $customerProfileId,
-                            $paymentProfileId,
-                            $amount,
-                            [
-                                'order_number' => $order->order_number,
-                                'customer'     => $customer->toArray(),
-                            ]
-                        );
+                    // Your service should wrap Authorize.Net CIM createTransactionRequest
+                    // e.g. createProfileTransaction / chargeCustomerProfile
+                    $paymentResult = $authorizeNetService->chargeCustomerProfile($customerProfileId, $paymentProfileId, $amount, [
+                        'order_number' => $order->order_number,
+                        'customer' => $customer->toArray(),
+                    ]);
 
-                        if (($paymentResult['status'] ?? null) !== 'success') {
-                            logger()->error('Profile payment failed for Order ID: '.$order->unique_id.' - '.($paymentResult['message'] ?? 'Unknown error'));
-                            DB::rollBack();
-                            return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
-                        }
+                    if (($paymentResult['status'] ?? null) !== 'success') {
+                        logger()->error('Profile payment failed for Order ID: ' . $order->unique_id . ' - ' . ($paymentResult['message'] ?? 'Unknown error'));
+                        DB::rollBack();
+                        return back()
+                            ->withInput()
+                            ->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
 
-                        $payment = $order->payments()->create([
-                            'payment_datetime'     => now(),
-                            'payment_method'       => $validated['payment'],
-                            'amount'               => $amount,
-                            'transaction_id'       => $paymentResult['transaction_id'] ?? null,
-                            'auth_code'            => $paymentResult['auth_code'] ?? null,
-                            'customer_profile_id'  => $customerProfileId,
-                            'payment_profile_id'   => $paymentProfileId,
-                            'card_number'          => $paymentResult['card_number'] ?? null,
-                            'card_first_name'      => $cardDetail->first_name ?? null, // optional
-                            'card_last_name'       => $cardDetail->last_name ?? null,  // optional
-                            'status'               => $paymentResult['payment_status'] ?? 'Pending',
-                            'created_by_id'        => $customer->id,
-                            'created_by_type'      => Customer::class,
-                        ]);
-
-
-
+                    $payment = $order->payments()->create([
+                        'payment_datetime' => now(),
+                        'payment_method' => $validated['payment'],
+                        'amount' => $amount,
+                        'transaction_id' => $paymentResult['transaction_id'] ?? null,
+                        'auth_code' => $paymentResult['auth_code'] ?? null,
+                        'customer_profile_id' => $customerProfileId,
+                        'payment_profile_id' => $paymentProfileId,
+                        'card_number' => $paymentResult['card_number'] ?? null,
+                        'card_first_name' => $cardDetail->first_name ?? null, // optional
+                        'card_last_name' => $cardDetail->last_name ?? null, // optional
+                        'status' => $paymentResult['payment_status'] ?? 'Pending',
+                        'created_by_id' => $customer->id,
+                        'created_by_type' => Customer::class,
+                    ]);
                 } else {
-                        $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
-                        $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
+                    $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
+                    $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
 
-                        if (!$opaqueDataValue || !$opaqueDataDescriptor) {
-                            DB::rollback();
-                            return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
-                        }
-                        $authorizeNetService = new AuthorizeNetService();
-                        if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
-                            DB::rollback();
-                            return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
-                        }
-                        $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
-                        if ($paymentResult['status'] !== 'success') {
-                            logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
-                            // DB::rollback();
-                            // return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
-                        }
-                        $payment = $order->payments()->create([
-                            'payment_datetime' => now(),
-                            'payment_method' => $validated['payment'],
-                            'amount' => $amount,
-                            'transaction_id' => $paymentResult['transaction_id'] ?? null,
-                            'auth_code' => $paymentResult['auth_code'] ?? null,
-                            'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
-                            'payment_profile_id' => $paymentResult['payment_profile_id'] ?? null,
-                            'card_number' => $paymentResult['card_number'] ?? null,
-                            'card_first_name' => $validated['firstName'] ?? null,
-                            'card_last_name' => $validated['lastName'] ?? null,
-                            'status' => $paymentResult['payment_status'] ?? 'Pending',
-                            'created_by_id' => $customer->id,
-                            'created_by_type' => Customer::class,
-                        ]);
+                    if (!$opaqueDataValue || !$opaqueDataDescriptor) {
+                        DB::rollback();
+                        return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
+                    }
+                    $authorizeNetService = new AuthorizeNetService();
+                    if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
+                        DB::rollback();
+                        return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
+                    }
+                    $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
+                    if ($paymentResult['status'] !== 'success') {
+                        logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
+                        // DB::rollback();
+                        // return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
+                    $payment = $order->payments()->create([
+                        'payment_datetime' => now(),
+                        'payment_method' => $validated['payment'],
+                        'amount' => $amount,
+                        'transaction_id' => $paymentResult['transaction_id'] ?? null,
+                        'auth_code' => $paymentResult['auth_code'] ?? null,
+                        'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
+                        'payment_profile_id' => $paymentResult['payment_profile_id'] ?? null,
+                        'card_number' => $paymentResult['card_number'] ?? null,
+                        'card_first_name' => $validated['firstName'] ?? null,
+                        'card_last_name' => $validated['lastName'] ?? null,
+                        'status' => $paymentResult['payment_status'] ?? 'Pending',
+                        'created_by_id' => $customer->id,
+                        'created_by_type' => Customer::class,
+                    ]);
 
-                        if(empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
-                            // If payment profile is created, save it to customer's cards
-                            $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
-                            $customer->saveQuietly();
-                        }
+                    if (empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
+                        // If payment profile is created, save it to customer's cards
+                        $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
+                        $customer->saveQuietly();
+                    }
 
-                        if (!empty($paymentResult['payment_profile_id'])) {
-                            $customer->cards()->updateOrCreate([
+                    if (!empty($paymentResult['payment_profile_id'])) {
+                        $customer->cards()->updateOrCreate(
+                            [
                                 'payment_profile_id' => $paymentResult['payment_profile_id'],
-                            ], [
+                            ],
+                            [
                                 'first_name' => $validated['firstName'] ?? null,
                                 'last_name' => $validated['lastName'] ?? null,
                                 'card_number' => $paymentResult['card_number'] ?? null,
                                 'card_type' => $paymentResult['card_type'] ?? null,
-                            ]);
-                        }
+                            ],
+                        );
                     }
-
-
+                }
 
                 // ---- AFTER PAYMENT IS CREATED ----
 
@@ -382,32 +374,30 @@ class PostController extends Controller
 
                 $receipt = null;
 
-                if (
-                    $paymentResult['status'] == 'success'
-                ) {
+                if ($paymentResult['status'] == 'success') {
                     $receipt = Receipt::create([
-                        'customer_id'        => $order->customer_id,
-                        'order_id'           => $order->id,
-            
-                        'payment_method'     => 'card',
-                        'receipt_date'       => now(),
-                        'order_date'         => $order->order_date,
-                        'payment_status'     => 'paid',
-                        'subtotal'           => $order->subtotal,
-                        'sales_tax'          => $order->tax_amount,
-                        'total'              => $order->grand_total,
+                        'customer_id' => $order->customer_id,
+                        'order_id' => $order->id,
+
+                        'payment_method' => 'card',
+                        'receipt_date' => now(),
+                        'order_date' => $order->order_date,
+                        'payment_status' => 'paid',
+                        'subtotal' => $order->subtotal,
+                        'sales_tax' => $order->tax_amount,
+                        'total' => $order->grand_total,
                     ]);
 
                     //  Add receipt items from invoice items
                     foreach ($order->products as $invItem) {
                         $receipt->items()->create([
-                            'type'      => 'order',
+                            'type' => 'order',
                             'item_name' => $invItem->product_name,
-                            'unit'      => $invItem->price,
-                            'qty'       => $invItem->quantity,
-                            'tax'       => $invItem->tax,
-                            'total'     => $invItem->total,
-                            'item_id'   => $invItem->unique_id,
+                            'unit' => $invItem->price,
+                            'qty' => $invItem->quantity,
+                            'tax' => $invItem->tax,
+                            'total' => $invItem->total,
+                            'item_id' => $invItem->unique_id,
                         ]);
                     }
 
@@ -416,32 +406,29 @@ class PostController extends Controller
                     $order->saveQuietly();
 
                     Log::info('Receipt Created for Order', [
-                        'order_id'   => $order->id,
-                        'order_num'  => $order->order_number,
+                        'order_id' => $order->id,
+                        'order_num' => $order->order_number,
                         'receipt_id' => $receipt->id,
                     ]);
                 }
 
-                if (! $receipt) {
+                if (!$receipt) {
                     Log::error("Receipt creation FAILED for order {$order->id}");
                     // optionally mark order as: $order->receipt_status = 'failed';
                 }
-
-
             } else {
-                    // If payment type is not card, just create a pending payment record
-                    $payment =$order->payments()->create([
-                        'payment_datetime' => now(),
-                        'payment_method' => $validated['payment'],
-                        'amount' => $order->grand_total,
-                        'status' => ($validated['payment'] === 'Account') ? 'Account' : 'Pending',
-                        'created_by_id' => $customer->id,
-                        'created_by_type' => Customer::class,
-                    ]);
-                }
+                // If payment type is not card, just create a pending payment record
+                $payment = $order->payments()->create([
+                    'payment_datetime' => now(),
+                    'payment_method' => $validated['payment'],
+                    'amount' => $order->grand_total,
+                    'status' => $validated['payment'] === 'Account' ? 'Account' : 'Pending',
+                    'created_by_id' => $customer->id,
+                    'created_by_type' => Customer::class,
+                ]);
+            }
 
             $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-
 
             if ($validated['payment'] === 'Account') {
                 $products = $order->products;
@@ -451,7 +438,7 @@ class PostController extends Controller
                     $record->customer_id = $customer->id;
                     $record->order_id = $order->id;
 
-                    $record->amount = $product->sub_total ;
+                    $record->amount = $product->sub_total;
                     // $record->sales_tax = $product->tax ?? 0;
                     $record->sales_tax = $product->tax > 0 ? $salesTaxSetting?->setting_value : 0.0;
 
@@ -468,34 +455,31 @@ class PostController extends Controller
                 }
             }
 
-
-
-            if(session()->has('tax_exempt')) {
+            if (session()->has('tax_exempt')) {
                 session()->forget('tax_exempt'); // Clear tax exempt session if already set
             }
-
 
             DB::commit();
 
             $orderActionType = null;
 
-            if(session()->has('order.number')){
+            if (session()->has('order.number')) {
                 // Reorder performed while impersonating
                 $orderActionType = 'reorder';
-            }elseif(session()->has('master_passcode')) {
+            } elseif (session()->has('master_passcode')) {
                 // Master passcode flow
                 $orderActionType = 'master_passcode';
-            }elseif(!empty($validated['employee_code']) && auth()->guard('customer')->check()) {
+            } elseif (!empty($validated['employee_code']) && auth()->guard('customer')->check()) {
                 // Customer is logged in (with an employee code)
                 $orderActionType = 'website_login';
-            }elseif(auth()->guard('customer')->check()) {
+            } elseif (auth()->guard('customer')->check()) {
                 // Customer is logged in (without an employee code)
                 $employee = null;
                 $orderActionType = 'customer_account_login';
-            }elseif(!empty($validated['employee_code'])){
+            } elseif (!empty($validated['employee_code'])) {
                 // New account created with an employee code (no customer login)
                 $orderActionType = 'new_account';
-            }else{
+            } else {
                 // Guest checkout, no employee code
                 $employee = null;
                 $orderActionType = 'customer_no_account';
@@ -512,7 +496,11 @@ class PostController extends Controller
             // Generate a signed URL for the thank you page with order unique id
             // $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
 
-            $redirectUrl = route('front.terms-and-conditions.index', ['orderUniqueId' => $order->unique_id]);
+            if (!empty($termsContentData['terms_content'])) {
+                $redirectUrl = route('front.terms-and-conditions.index', ['orderUniqueId' => $order->unique_id]);
+            } else {
+                $redirectUrl = SignedUrlHelper::make('front.checkout.thank-you', ['order' => $order->unique_id], 5);
+            }
 
             // Success: redirect to signed thank you page with order id
             return redirect($redirectUrl);
@@ -524,6 +512,4 @@ class PostController extends Controller
             return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
         }
     }
-
-
 }

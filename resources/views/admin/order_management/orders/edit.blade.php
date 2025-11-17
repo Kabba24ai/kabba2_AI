@@ -871,39 +871,41 @@
                     <div class="grid grid-cols-2 gap-2 text-center text-xs font-medium text-gray-700 mb-2">
                         <!-- Terms -->
                         <div class="flex flex-col items-center">
-                            <div>Terms</div>
-                            <div class="flex justify-center mb-1 gap-1">
-                                @if ($order->terms_status->isPending())
-                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                        target="_blank" title="View Terms">
-                                        <span
-                                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
-                                            <x-heroicon-o-x-mark class="w-4 h-4" />
-                                        </span>
-                                    </a>
-                                    <button id="send-terms"
-                                        data-url="{{ route('admin.order-management.orders.send-terms', ['unique_id' => $order->unique_id]) }}">
-                                        <span
-                                            class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-yellow-500 text-white text-base font-bold">
-                                            <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
-
-                                            <!-- Tooltip -->
+                            @if (!empty($order->pending_terms_content))
+                                <div>Terms</div>
+                                <div class="flex justify-center mb-1 gap-1">
+                                    @if ($order->terms_status->isPending())
+                                        <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                            target="_blank" title="View Terms">
                                             <span
-                                                class="absolute top-full mb-1 hidden group-hover:block px-2 py-1 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap">
-                                                Send terms signature request
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                                <x-heroicon-o-x-mark class="w-4 h-4" />
                                             </span>
-                                        </span>
-                                    </button>
-                                @else
-                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                        target="_blank" title="View Terms">
-                                        <span
-                                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
-                                            <x-heroicon-o-check class="w-4 h-4" />
-                                        </span>
-                                    </a>
-                                @endif
-                            </div>
+                                        </a>
+                                        <button id="send-terms"
+                                            data-url="{{ route('admin.order-management.orders.send-terms', ['unique_id' => $order->unique_id]) }}">
+                                            <span
+                                                class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-yellow-500 text-white text-base font-bold">
+                                                <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
+
+                                                <!-- Tooltip -->
+                                                <span
+                                                    class="absolute top-full mb-1 hidden group-hover:block px-2 py-1 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap">
+                                                    Send terms signature request
+                                                </span>
+                                            </span>
+                                        </button>
+                                    @else
+                                        <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                            target="_blank" title="View Terms">
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
+                                                <x-heroicon-o-check class="w-4 h-4" />
+                                            </span>
+                                        </a>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                         <!-- License -->
                         <!-- License -->

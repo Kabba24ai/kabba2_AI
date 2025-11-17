@@ -22,7 +22,7 @@ class IndexController extends Controller
     {
         $productDetail = Product::published()->with('categories', 'options.items', 'relatedProducts', 'mediaChildren.media')->where('slug', $slug)->firstOrFail();
 
-        $stores = Store::with('state')->get();
+        $stores = Store::active()->with('state')->get();
 
         // 1. Find the category from the product's categories by slug
         $category = $productDetail->categories->sortBy('slug')->first();

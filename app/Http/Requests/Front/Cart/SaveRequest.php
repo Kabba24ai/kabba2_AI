@@ -54,7 +54,7 @@ class SaveRequest extends FormRequest
             'product_type' => ['required', 'in:Rental,Retail'],
             'product_variant' => ['nullable', 'in:daily,monthly,weekend,weekly,retail'],
             'quantity' => ['required', 'integer', 'min:1'],
-            'delivery_date' => ['required'],
+            'delivery_date' => ['nullable','required_if:product_type,Rental'],
             'service_method' => ['nullable', 'in:In Store Pickup,Delivery'],
             'distance_type'  => ['nullable','required_if:service_method,Delivery', 'in:Standard,Extended,Custom'],
             'service_option' => ['nullable', 'in:Delivery + Pickup,Delivery Only,Return Only'],

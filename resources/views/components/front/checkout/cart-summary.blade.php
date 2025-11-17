@@ -127,7 +127,9 @@
                         </ul>
                     </div>
                 </div>
-                <h4 class="mt-3 text-[15px]">Schedule Date: {{ $item['delivery_date'] ?? '-' }}</h4>
+                @if ($item['delivery_date'])
+                    <h4 class="mt-3 text-[15px]">Schedule Date: {{ $item['delivery_date'] ?? '-' }}</h4>
+                @endif
             </div>
         @endforeach
 

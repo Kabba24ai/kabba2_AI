@@ -28,9 +28,11 @@ export function initAddToCart(context) {
         addToCartBtn.disabled = true;
         addToCartBtn.classList.add('opacity-60', 'cursor-not-allowed');
 
+        const scheduleInput = document.getElementById('scheduleStartDateInput');
+        const scheduleDate = scheduleInput ? scheduleInput.value : '';
+
         const qty = parseInt(document.getElementById('qty').value);
         const storeId = document.getElementById('storeSelect')?.value || '';
-        const scheduleDate = document.getElementById('scheduleStartDateInput').value;
         const serviceOption = document.getElementById('deliveryOptionSelect')?.value || '';
         const serviceMethod = document.querySelector('input[name="service_method"]:checked')?.value || '';
         const dateError = document.getElementById('dateError');
@@ -62,7 +64,7 @@ export function initAddToCart(context) {
                 storeError.classList.remove('hidden');
             }
         }
-        if (!scheduleDate) {
+        if (context.productType === 'Rental' && !scheduleDate) {
             errorMsg = 'Please select a date before adding to cart.';
             if (dateError) {
                 dateError.textContent = errorMsg;
@@ -77,7 +79,7 @@ export function initAddToCart(context) {
             }
         }
 
-        if ((context.productType === 'Rental' && !storeId && serviceOption !== 'Delivery + Pickup') || !scheduleDate || !qty) {
+        if ((context.productType === 'Rental' && !storeId && serviceOption !== 'Delivery + Pickup') || (context.productType === 'Rental' && !scheduleDate) || !qty) {
             if (loader) loader.classList.add('hidden');
             addToCartBtn.disabled = false;
             addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');

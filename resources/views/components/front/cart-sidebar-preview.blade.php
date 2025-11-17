@@ -37,10 +37,12 @@
                         (x{{ $item['quantity'] }})
                     </div>
 
-                    <div class="text-sm text-black">
-                        <span class="font-semibold">Schedule Date :</span>
-                        <span>{{ $item['delivery_date'] }}</span>
-                    </div>
+                    @if (!empty($item['delivery_date']))
+                        <div class="text-sm text-black">
+                            <span class="font-semibold">Schedule Date :</span>
+                            <span>{{ $item['delivery_date'] }}</span>
+                        </div>
+                    @endif
 
                     {{-- @if (!empty($item['service_method']))
                         <div class="text-sm text-gray-700">

@@ -27,7 +27,7 @@ class UpdateRequest extends ApiBaseFormRequest
             'product_type' => ['required', 'in:Rental,Retail'],
             'slug' => ['required', 'string', 'max:240', Rule::unique('products', 'slug')->ignore($this->route('unique_id'), 'unique_id')],
 
-            'is_general_term_type' => ['required', 'boolean'],
+            'is_general_term_type' => ['nullable', 'boolean', 'required_if:product_type,Rental'],
             'is_custom_term_type' => ['nullable', 'boolean'],
 
             'image_sort_order' => ['nullable'],

@@ -21,19 +21,21 @@ class SaveRequest extends FormRequest
     public function rules()
     {
         return [
-            'privacy.privacy_policy_title' => 'required|string|max:255',
-            'privacy.privacy_policy_status' => 'required|string|in:Published,Draft,Pending',
-            'privacy.privacy_policy_description' => 'required|string',
+            // Privacy Policy
+            'privacy.privacy_policy_title'        => 'required|string|max:255',
+            'privacy.privacy_policy_description'  => 'required|string',
+
+        
         ];
     }
 
     public function messages()
     {
         return [
-            'privacy.privacy_policy_title.required' => 'The title is required.',
-            'privacy.privacy_policy_status.required' => 'The status is required.',
-            'privacy.privacy_policy_status.in' => 'Invalid status selected.',
-            'privacy.privacy_policy_description.required' => 'The description cannot be empty.',
+            // Privacy
+            'privacy.privacy_policy_title.required'       => 'Privacy Policy title is required.',
+            'privacy.privacy_policy_description.required' => 'Privacy Policy description is required.',
+
         ];
     }
 }

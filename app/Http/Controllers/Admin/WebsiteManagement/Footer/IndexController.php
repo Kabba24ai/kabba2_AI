@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Locations\State;
 
-use App\Models\MaintenanceManagement\Supplier;
-use App\Models\MaintenanceManagement\SupplierTag;
+use App\Models\Configurations\Setting;
 
 
 
@@ -15,7 +14,18 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-               return view('admin.maintenance_management.suppliers.index');
 
+        $settings = Setting::whereNotIn('setting_type', ['Email Settings'])
+            ->orderBy('sort_order', 'asc')
+            ->get()
+            ->groupBy('setting_type'); // keys are strings
+
+        session()->forget('master_verified');
+        $settings = $settings->sortKeys();
+        $settings = $settings->map(function ($group) {
+            return $group->keyBy('setting_name');
+        });
+
+        return view('admin.website_management.footer.index', compact('settings'));
     }
 }

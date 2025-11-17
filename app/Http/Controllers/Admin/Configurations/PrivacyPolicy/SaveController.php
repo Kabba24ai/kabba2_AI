@@ -19,13 +19,7 @@ class SaveController extends Controller
                 ->update(['setting_value' => $value]);
         }
 
-        // Save Terms & Conditions settings
-        foreach ($validated['terms'] as $key => $value) {
-            Setting::where('setting_name', $key)
-                ->where('setting_type', 'Terms & Conditions Settings')
-                ->update(['setting_value' => $value]);
-        }
-
+      
         flash()->success(__('Settings updated successfully.'));
         return redirect()->back();
     }

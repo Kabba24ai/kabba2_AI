@@ -925,6 +925,17 @@ svg.checkmark {
 /* Jignesh End */
 
 
+#privacy_policy_description_ifr,
+    #privacy_policy_description+.tox.tox-tinymce {
+        height: 500px !important;
+        min-height: 500px !important;
+    }
 
+
+    #terms_conditions_description_ifr,
+    #terms_conditions_description+.tox.tox-tinymce {
+        height: 500px !important;
+        min-height: 500px !important;
+    }
 
 

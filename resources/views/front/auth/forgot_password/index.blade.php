@@ -119,36 +119,75 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
 
+
+        const resendBtn = document.querySelector("button[type='button']");
+
+        function showResendButton() {
+            resendBtn.classList.remove("hidden");
+        }
+
+        function startResendTimer(seconds) {
+            resendBtn.disabled = true;
+            resendBtn.innerText = `Resend (${seconds})`;
+
+            let timer = setInterval(() => {
+                seconds--;
+                resendBtn.innerText = `Resend (${seconds})`;
+
+                if (seconds <= 0) {
+                    clearInterval(timer);
+                    resendBtn.disabled = false;
+                    resendBtn.innerText = "Resend";
+                }
+            }, 1000);
+        }
+
+
+
         const checkEmailBtn = document.getElementById("checkEmailBtn");
         const otpSection = document.getElementById("otp-section");
 
-        checkEmailBtn.addEventListener("click", function() {
+        checkEmailBtn.addEventListener("click", function(event) {
+            event.preventDefault();
+
             let email = document.getElementById("email").value;
 
             if (email.trim() === "") {
-                alert("Please enter your email");
+                notyf.error('Please enter your email');
                 return;
             }
 
-            // AJAX call to check if user exists
-            fetch("{{ route('front.auth.register.check.email.unique') }}?email=" + email)
+            fetch("{{ route('front.auth.forgot-password.sendOtp') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({
+                        email: email
+                    })
+                })
                 .then(res => res.json())
                 .then(data => {
 
-                    if (data.valid === true) {
-                        // EMAIL NOT FOUND
-                        alert("This email does not exist in our system.");
+                    if (!data.success) {
+
+                        if (data.cooldown) {
+                            startResendTimer(data.remaining);
+                        }
+
+                        notyf.error(data.message);
                         return;
                     }
 
-                    // EMAIL FOUND → Show OTP section
                     otpSection.classList.remove("hidden");
+                    showResendButton();
+                    startResendTimer(60);
 
-                    // Optionally you can send the OTP here
-                    // fetch('/send-otp?email=' + email);
-
+                    notyf.success("OTP sent!");
                 });
         });
+
 
     });
 </script>

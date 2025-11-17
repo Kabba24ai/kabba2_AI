@@ -45,7 +45,7 @@
                             {{-- Buttons --}}
                             <div class="flex flex-wrap gap-4 mb-6">
                                 <a href="tel:16158156734"
-                                    class="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-600 px-6 py-3 text-sm font-semibold text-white hover:bg-gray-700 transition">
+                                    class="inline-flex items-center justify-center gap-3 rounded-lg bg-yellow-400 px-6 py-3 text-sm font-semibold hover:bg-yellow-300 transition">
                                     <span><i class="fa-solid fa-phone"></i></span>
                                     <span>{{ $store->phone }}</span>
                                 </a>

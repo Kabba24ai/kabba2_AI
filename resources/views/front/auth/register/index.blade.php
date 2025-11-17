@@ -174,14 +174,22 @@
                                 <p class="text-xs text-gray-500">
                                     Your personal data will be used to support your experience throughout this website, to
                                     manage access to your account, and for other purposes described in our
-                                    <a href="#" class="underline">privacy policy</a>.
+                                    <a href="{{ route('front.privacy-policy.index') }}" class="underline font-bold text-yellow-500">privacy policy</a>.
                                 </p>
 
                                 {{-- Terms Agreement --}}
-                                <div class="flex items-center">
+                                <!-- <div class="flex items-center">
                                     <input type="checkbox" class="mr-2" id="terms" required>
-                                    <label for="terms" class="text-sm">I agree to terms & Policy.</label>
+                                    <a href="" class="text-sm">I agree to terms & conditions.</a>
+                                </div> -->
+                                 <div class="flex items-center">
+                                    <input type="checkbox" class="mr-2" id="terms" required>
+                                    <a href="{{ route('front.terms-and-conditions.general') }}" class="text-center text-sm block">
+                                        I agree to
+                                        <span class="font-bold text-yellow-500"> terms & conditions.</span>
+                                    </a>
                                 </div>
+                                
 
                                 {{-- Submit Button --}}
                                 <div class="w-full mt-5 text-center">
@@ -193,9 +201,13 @@
                                 </div>
                             {{ html()->form()->close() }}
 
+                            <a href="{{ route('front.auth.login.index') }}" class="text-center text-sm mt-4 block">
+                                Already have an account?
+                                <span class="font-bold text-yellow-500"> Login</span>
+                            </a>
 
-                            <p class="text-center text-sm mt-6">Already have an account? <a
-                                    href="{{ route('front.auth.login.index') }}" class="text-gray-700 hover:text-black">Login</a></p>
+                            <!-- <p class="text-center text-sm mt-6">Already have an account? <a
+                                    href="{{ route('front.auth.login.index') }}" class="text-gray-700 hover:text-black">Login</a></p> -->
                         </div>
                     </main>
 

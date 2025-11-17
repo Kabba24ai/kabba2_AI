@@ -15,4 +15,8 @@ Route::name('auth.')->group(function () {
 
     // Reset password
     require base_path('routes/front/auth/reset_password/routes.php');
+
+     // forgot_password
+    require base_path('routes/front/auth/forgot_password/routes.php');
+    
 });

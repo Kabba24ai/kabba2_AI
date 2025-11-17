@@ -18,6 +18,9 @@ use App\Http\Controllers\Admin\Configurations\PaymentIntegration\SaveController 
 use App\Http\Controllers\Admin\Configurations\SocialMediaIntegration\SaveController as SaveSocialMediaController;
 use App\Http\Controllers\Admin\Configurations\InvoiceSettings\SaveController as SaveInvoiceSettingsController;
 use App\Http\Controllers\Admin\Configurations\PriceSettings\SaveController as SavePriceSettingsController;
+use App\Http\Controllers\Admin\Configurations\TermsConditions\SaveController as SaveTermsController;
+use App\Http\Controllers\Admin\Configurations\PrivacyPolicy\SaveController as SavePrivacyPolicyController;
+
 
 Route::prefix('configurations')
 ->name('configurations.')
@@ -36,6 +39,9 @@ Route::prefix('configurations')
 
     Route::post('/verify-master', VerifyMasterController::class)->name('verify-master');
     Route::post('/settings/reset', SettingsResetController::class)->name('reset-settings');
+
+    Route::post('/terms-and-conditions', SaveTermsController::class)->name('save-terms-and-conditions');
+    Route::post('/privacy-policy', SavePrivacyPolicyController::class)->name('save-privacy-policy');
 
     // Route::prefix('legacy')->name('legacy.')->group(function ($router) {
     //     Route::get('/', LegacyIndexController::class)->name('index');

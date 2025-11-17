@@ -30,6 +30,9 @@ class SettingSeeder extends Seeder
         $this->addMailSendSettings();
         $this->addInvoiceSettings();
         $this->addPriceSettings();
+        $this->addPrivacyPolicySettings();
+        $this->addTermsConditionsSettings();
+
     }
 
     private function addDefaultSalesFunnelSettings()
@@ -1116,7 +1119,78 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals canâ€
     }
 
 
-    /**
+    private function addPrivacyPolicySettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Privacy Policy Settings'] = [
+
+            // Title
+            [
+                'value_type'     => 'text',
+                'setting_name'   => 'privacy_policy_title',
+                'setting_title'  => 'Privacy Policy Title',
+                'default_value'  => 'Privacy Policy',
+                'sort_order'     => $sortOrder++,
+            ],
+
+            // Status
+            [
+                'value_type'     => 'checkbox',
+                'setting_name'   => 'privacy_policy_status',
+                'setting_title'  => 'Enable Privacy Policy',
+                'default_value'  => true,
+                'sort_order'     => $sortOrder++,
+            ],
+
+            // Description (Content)
+            [
+                'value_type'     => 'textarea',
+                'setting_name'   => 'privacy_policy_description',
+                'setting_title'  => 'Privacy Policy Description',
+                'default_value'  => 'Enter your privacy policy content here...',
+                'sort_order'     => $sortOrder++,
+            ],
+        ];
+    }
+
+
+    private function addTermsConditionsSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Terms & Conditions Settings'] = [
+
+            // Title
+            [
+                'value_type'     => 'text',
+                'setting_name'   => 'terms_conditions_title',
+                'setting_title'  => 'Terms & Conditions Title',
+                'default_value'  => 'Terms & Conditions',
+                'sort_order'     => $sortOrder++,
+            ],
+
+            // Status
+            [
+                'value_type'     => 'checkbox',
+                'setting_name'   => 'terms_conditions_status',
+                'setting_title'  => 'Enable Terms & Conditions',
+                'default_value'  => true,
+                'sort_order'     => $sortOrder++,
+            ],
+
+            // Description (Content)
+            [
+                'value_type'     => 'textarea',
+                'setting_name'   => 'terms_conditions_description',
+                'setting_title'  => 'Terms & Conditions Description',
+                'default_value'  => 'Enter your terms & conditions content here...',
+                'sort_order'     => $sortOrder++,
+            ],
+        ];
+    }
+
+    /** 
      * Run the database seeds.
      *
      * @return void

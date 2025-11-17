@@ -80,7 +80,7 @@
     </div>
 </section>
 
-<section class="pb-20  bg-gray-2">
+<section class="pb-20 pt-20 bg-gray-2">
     <div class="container relative overflow-hidden">
         <h2 class="section-title">About Rent 'n King</h2>
         <!-- about content -->

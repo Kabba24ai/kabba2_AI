@@ -104,7 +104,7 @@
                                     <input type="checkbox" name="remember" class="mr-2"> Remember me
                                 </label>
                                 <a href="javascript:void(0)" id="openAddressModal" class="mb-2">Master Passcode</a>
-                                <a href="#" class="text-gray-600 hover:underline mb-2">Forgot password?</a>
+                                <a href="{{route('front.auth.forgot-password.index')}}" class="text-gray-600 hover:underline mb-2">Forgot password?</a>
                             </div>
 
                             {{-- Submit --}}
@@ -117,10 +117,15 @@
                                 </button>
                             </div>
 
-                            <p class="text-center text-sm mt-4">Don't have an account?
+                            <!-- <p class="text-center text-sm mt-4">Don't have an account?
                                 <a href="{{ route('front.auth.register.index') }}"
                                     class="text-gray-700 hover:text-black">Sign up</a>
-                            </p>
+                            </p> -->
+                            <a href="{{ route('front.auth.register.index') }}" class="text-center text-sm mt-4 block">
+                                Don't have an account?
+                                <span class="font-bold text-yellow-500"> Sign up</span>
+                            </a>
+                            <!-- <a href="{{ route('front.auth.register.index') }}" class="text-center text-sm mt-4">Don't have an account? Sign up </a> -->
                             {{ html()->form()->close() }}
 
                         </div>

@@ -1,13 +1,12 @@
 @extends('front.layouts.app')
 
-@section('title', $settings['privacy_policy_title'] ?? 'Privacy Policy')
+@section('title', $settings['terms_conditions_title'] ?? 'Terms & Conditions')
 
 @section('content')
 
 @php
-$status = $settings['privacy_policy_status'] ?? 'Draft';
+$status = $settings['terms_conditions_status'] ?? 'Draft';
 @endphp
-
 
 <!-- Page Title Section -->
 <section
@@ -16,15 +15,21 @@ $status = $settings['privacy_policy_status'] ?? 'Draft';
         <div id="breadcrumbs" class="pt-24 pb-5 ">
             <div class="w-full">
                 <div class="flex justify-between items-center ">
-                    <h1 class="text-2xl md:text-3xl lg:text-4xl tracking-tight leading-[110%] font-bold">{{ $settings['privacy_policy_title'] ?? 'Privacy Policy' }}</h1>
+                    <h1 class="text-2xl md:text-3xl lg:text-4xl tracking-tight leading-[110%] font-bold">
+                        {!! $settings['terms_conditions_title'] ?? 'Terms & Conditions' !!}
+                    </h1>
+
                     <ul class="px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative">
                         <li class="tracking-normal whitespace-nowrap after:content-['/'] after:pl-1.5">
                             <a href="{{ route('front.home.index') }}" class="opacity-25">Home</a>
                         </li>
                         <li>
-                            <a href="javascript:voice(0)">{{ $settings['privacy_policy_title'] ?? 'Privacy Policy' }}</a>
+                            <a href="javascript:void(0)">
+                                {!! $settings['terms_conditions_title'] ?? 'Terms & Conditions' !!}
+                            </a>
                         </li>
                     </ul>
+
                 </div>
             </div>
         </div>
@@ -34,15 +39,16 @@ $status = $settings['privacy_policy_status'] ?? 'Draft';
 <section class="bg-gray-50 py-16">
     <div class="container mx-auto max-w-4xl px-6">
 
-        {{-- If NOT published → show notice --}}
+        {{-- Not Published Notice --}}
         @if ($status !== 'Published')
         <div class="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700 p-4 mb-6 rounded">
-            <p><strong>Notice:</strong> This Privacy Policy is currently not published.</p>
+            <p><strong>Notice:</strong> These Terms & Conditions are currently not published.</p>
         </div>
+
         @else
-        {{-- Show Content Only When Published --}}
+        {{-- Published Content --}}
         <div class="prose max-w-none rich-content">
-            {!! $settings['privacy_policy_description'] ?? '' !!}
+            {!! $settings['terms_conditions_description'] ?? '' !!}
         </div>
         @endif
 

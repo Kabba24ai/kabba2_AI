@@ -4,10 +4,6 @@
 
 @section('content')
 
-@php
-$status = $settings['terms_conditions_status'] ?? 'Draft';
-@endphp
-
 <!-- Page Title Section -->
 <section
     class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-white md:border-r-[30px] md:border-r-white bg-gray-50">
@@ -39,18 +35,11 @@ $status = $settings['terms_conditions_status'] ?? 'Draft';
 <section class="bg-gray-50 py-16">
     <div class="container mx-auto max-w-4xl px-6">
 
-        {{-- Not Published Notice --}}
-        @if ($status !== 'Published')
-        <div class="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700 p-4 mb-6 rounded">
-            <p><strong>Notice:</strong> These Terms & Conditions are currently not published.</p>
-        </div>
-
-        @else
-        {{-- Published Content --}}
+       
         <div class="prose max-w-none rich-content">
             {!! $settings['terms_conditions_description'] ?? '' !!}
         </div>
-        @endif
+        
 
     </div>
 </section>

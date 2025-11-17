@@ -12,13 +12,21 @@ class SaveController extends Controller
     {
         $validated = $request->validated();
 
+        // Save Privacy Policy settings
         foreach ($validated['privacy'] as $key => $value) {
             Setting::where('setting_name', $key)
                 ->where('setting_type', 'Privacy Policy Settings')
                 ->update(['setting_value' => $value]);
         }
 
-        flash()->success(__('Privacy Policy updated successfully.'));
+        // Save Terms & Conditions settings
+        foreach ($validated['terms'] as $key => $value) {
+            Setting::where('setting_name', $key)
+                ->where('setting_type', 'Terms & Conditions Settings')
+                ->update(['setting_value' => $value]);
+        }
+
+        flash()->success(__('Settings updated successfully.'));
         return redirect()->back();
     }
 }

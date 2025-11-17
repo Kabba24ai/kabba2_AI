@@ -41,7 +41,7 @@
         </div>
 
         {{-- Status --}}
-        <div class="space-y-1.5">
+        <div class="space-y-1.5 hidden">
             <label class="block text-sm font-medium text-gray-700 text-left">
                 Status
             </label>

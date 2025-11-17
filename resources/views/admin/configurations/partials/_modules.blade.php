@@ -91,7 +91,7 @@
             </button>
 
             <!-- FIXED -->
-            <button
+            <!-- <button
                 class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                 x-bind:class="activeTab === 'terms-and-conditions' ?
             'text-brand-500 border-brand-500 dark:text-brand-400 dark:border-brand-400' :
@@ -99,7 +99,7 @@
                 x-on:click="activeTab = 'terms-and-conditions'"
                 id="tab-terms-and-conditions">
                 Terms and Conditions
-            </button>
+            </button> -->
 
             <!-- FIXED -->
             <button
@@ -109,7 +109,7 @@
             'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
                 x-on:click="activeTab = 'privacy-policy'"
                 id="tab-privacy-policy">
-                Privacy Policy
+               Terms and Privacy Policy
             </button>
 
         </nav>
@@ -187,7 +187,7 @@
                 </div>
             </x-admin.configurations.config-form>
         </div>
-        <div x-show="activeTab === 'terms-and-conditions'">
+        <!-- <div x-show="activeTab === 'terms-and-conditions'">
             <x-admin.configurations.config-form
                 id="config-terms-form"
                 :action="route('admin.configurations.save-terms-and-conditions')"
@@ -196,7 +196,7 @@
                     @include('admin.configurations.partials._terms_and_conditions')
                 </div>
             </x-admin.configurations.config-form>
-        </div>
+        </div> -->
 
         <div x-show="activeTab === 'privacy-policy'">
             <x-admin.configurations.config-form

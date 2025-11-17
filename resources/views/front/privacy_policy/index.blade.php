@@ -4,9 +4,6 @@
 
 @section('content')
 
-@php
-$status = $settings['privacy_policy_status'] ?? 'Draft';
-@endphp
 
 
 <!-- Page Title Section -->
@@ -34,17 +31,11 @@ $status = $settings['privacy_policy_status'] ?? 'Draft';
 <section class="bg-gray-50 py-16">
     <div class="container mx-auto max-w-4xl px-6">
 
-        {{-- If NOT published → show notice --}}
-        @if ($status !== 'Published')
-        <div class="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700 p-4 mb-6 rounded">
-            <p><strong>Notice:</strong> This Privacy Policy is currently not published.</p>
-        </div>
-        @else
-        {{-- Show Content Only When Published --}}
+        
         <div class="prose max-w-none rich-content">
             {!! $settings['privacy_policy_description'] ?? '' !!}
         </div>
-        @endif
+       
 
     </div>
 </section>

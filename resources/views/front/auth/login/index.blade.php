@@ -99,12 +99,12 @@
 
 
                             {{-- Remember Me & Forgot --}}
-                            <div class="flex flex-wrap justify-between items-center text-xs text-gray-600">
-                                <label class="mb-2">
-                                    <input type="checkbox" name="remember" class="mr-2"> Remember me
+                            <div class="flex flex-wrap justify-between items-top text-xs text-gray-600">
+                                <label class="mb-2 flex items-center">
+                                    <input type="checkbox" name="remember" class="mr-2"> <span> Remember me</span>
                                 </label>
                                 <a href="javascript:void(0)" id="openAddressModal" class="mb-2">Master Passcode</a>
-                                <a href="{{route('front.auth.forgot-password.index')}}" class="text-gray-600 hover:underline mb-2">Forgot password?</a>
+                                <a href="#" class="text-gray-600 hover:underline mb-2">Forgot password?</a>
                             </div>
 
                             {{-- Submit --}}
@@ -123,7 +123,7 @@
                             </p> -->
                             <a href="{{ route('front.auth.register.index') }}" class="text-center text-sm mt-4 block">
                                 Don't have an account?
-                                <span class="font-bold text-yellow-500"> Sign up</span>
+                                <span class="underline"> Sign up</span>
                             </a>
                             <!-- <a href="{{ route('front.auth.register.index') }}" class="text-center text-sm mt-4">Don't have an account? Sign up </a> -->
                             {{ html()->form()->close() }}

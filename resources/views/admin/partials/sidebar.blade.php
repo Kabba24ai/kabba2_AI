@@ -4,7 +4,7 @@
     <!-- SIDEBAR HEADER -->
     <div :class="sidebarToggle ? 'justify-center' : 'justify-between'"
         class="sidebar-header flex items-center gap-2 pt-8 pb-7">
-        <a href="index.html">
+        <a href="{{ route('admin.dashboard.index') }}">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
                 <img class="dark:hidden w-10" src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}"
                     alt="Logo" />
@@ -503,14 +503,14 @@
                     </li>
 
                     @php
-    
-                        //  New logic for Website Management active state
-                        $websiteManagementActive = 
-                            Route::is('admin.website-management.home-page.*') ||
-                            Route::is('admin.website-management.faq-page.*') ||
-                            Route::is('admin.website-management.contact-us.*') ||
-                            Route::is('admin.website-management.footer.*') ||
-                            Route::is('admin.website-management.branding.*');
+
+                    // New logic for Website Management active state
+                    $websiteManagementActive =
+                    Route::is('admin.website-management.home-page.*') ||
+                    Route::is('admin.website-management.faq-page.*') ||
+                    Route::is('admin.website-management.contact-us.*') ||
+                    Route::is('admin.website-management.footer.*') ||
+                    Route::is('admin.website-management.branding.*');
                     @endphp
 
 
@@ -557,7 +557,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('admin.website-management.footer.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.footer.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-rectangle-group class="w-5 h-5" /> Footer
                                     </a>

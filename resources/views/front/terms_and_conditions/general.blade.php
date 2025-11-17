@@ -1,6 +1,6 @@
 @extends('front.layouts.app')
 
-@section('title', $settings['terms_conditions_title'] ?? 'Terms & Conditions')
+@section('title', 'Terms & Conditions')
 
 @section('content')
 
@@ -12,7 +12,7 @@
             <div class="w-full">
                 <div class="flex justify-between items-center ">
                     <h1 class="text-2xl md:text-3xl lg:text-4xl tracking-tight leading-[110%] font-bold">
-                        {!! $settings['terms_conditions_title'] ?? 'Terms & Conditions' !!}
+                        Terms & Conditions
                     </h1>
 
                     <ul class="px-5 py-2 lg:py-3 max-w-full text-sm font-medium items-center inline-flex gap-3 relative">
@@ -21,7 +21,7 @@
                         </li>
                         <li>
                             <a href="javascript:void(0)">
-                                {!! $settings['terms_conditions_title'] ?? 'Terms & Conditions' !!}
+                                Terms & Conditions
                             </a>
                         </li>
                     </ul>
@@ -35,11 +35,11 @@
 <section class="bg-gray-50 py-16">
     <div class="container mx-auto max-w-4xl px-6">
 
-       
+
         <div class="prose max-w-none rich-content">
-            {!! $settings['terms_conditions_description'] ?? '' !!}
+            {!! $settings->content ?? '' !!}
         </div>
-        
+
 
     </div>
 </section>

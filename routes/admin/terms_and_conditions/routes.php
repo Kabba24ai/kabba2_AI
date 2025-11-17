@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\TermsAndConditions\EditController;
 use App\Http\Controllers\Admin\TermsAndConditions\UpdateController;
 use App\Http\Controllers\Admin\TermsAndConditions\DeleteController;
 
+use App\Http\Controllers\Admin\TermsAndConditions\GlobalTermsController;
+
 Route::prefix('terms-and-conditions')
 ->name('terms-and-conditions.')
 ->group(function ($router) {
@@ -26,4 +28,6 @@ Route::prefix('terms-and-conditions')
 
     // Delete
     Route::delete('/{unique_id}', DeleteController::class)->name('delete');
+
+    Route::get('/global', GlobalTermsController::class)->name('global');
 });

@@ -24,8 +24,6 @@ class StoreController extends Controller
     public function __invoke(StoreRequest $request)
     {
         // Fetch the inspection user
-
-
         $inspectionUser = User::find($request->input('inspectorSelect'));
         $status = $request->input('equipment_status') ?? 'maintenance';
 
@@ -196,7 +194,7 @@ class StoreController extends Controller
 
                 $template = EquipmentRentalReadyTemplate::create([
                     'equipment_id' => $request->input('equipment_id'),
-                    'employee_id' => $request->input('inspectorSelect'),
+                    'employee_id' => $request->input('insepectorSlect'),
                     'employee_name' => optional($inspectionUser)->full_name,
                     'order_product_id' => $orderProductId,
                     'order_id' => $orderId,
@@ -289,6 +287,7 @@ class StoreController extends Controller
 
             // Update equipment status
             if ($equipment = Equipment::find($request->input('equipment_id'))) {
+                
                 $equipment->update([
                     'current_status' => match ($status) {
                         'available' => 'available',
@@ -297,6 +296,7 @@ class StoreController extends Controller
                     },
                     'updated_by' => auth()->id(),
                     'current_status_changed_at' => now(),
+                    'current_status_updated_by' => $request->input('inspectorSelect'),
                 ]);
                 Log::info('Equipment status updated', ['equipment_id' => $equipment->id, 'current_status' => $equipment->current_status]);
             } else {

@@ -63,6 +63,7 @@ class Equipment extends Model
         'current_status_changed_at',
         'current_order_id',
         'current_order_product_id',
+        'current_status_updated_by',
         'created_by',
         'updated_by',
     ];
@@ -189,11 +190,18 @@ class Equipment extends Model
         return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
             ->latest('id');
     }
+    public function statusUpdatedByUser()
+    {
+        return $this->belongsTo(\App\Models\Iam\Personnel\User::class, 'current_status_updated_by', 'id');
+    }
     public function getLastInspectionAttribute(): string
     {
         $inspectionDateTime = $this->current_status_changed_at
             ? \App\Helpers\CustomHelper::formatDateTime($this->current_status_changed_at)
             : '-';
-        return trim("  {$inspectionDateTime}");
+        
+        $updatedBy = $this->statusUpdatedByUser?->full_name ?? '-';
+        return trim("{$updatedBy} - {$inspectionDateTime}");
+        //return trim("  {$inspectionDateTime}");
     }
 }

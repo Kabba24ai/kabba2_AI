@@ -140,19 +140,19 @@
 
 
                 <!-- <button
-                    class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
-                    <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
-                </button>
-                <button
-                    class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
-                </button> -->
+                        class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
+                        <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
+                    </button>
+                    <button
+                        class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                        <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
+                    </button> -->
 
-               @if ($order->receipt_status === 'created')
+                @if ($order->receipt_status === 'created')
                     <a href="{{ route('admin.order-management.orders.receipt-email', $order->id) }}""
                         class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
                         <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
-                </a>
+                    </a>
 
                     <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
                         class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
@@ -174,8 +174,8 @@
                 @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                 <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
             </a>
-            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}" method="POST"
-                target="_blank" class="inline-flex items-center">
+            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}"
+                method="POST" target="_blank" class="inline-flex items-center">
                 @csrf
                 <button type="submit" class="inline-flex items-center hover:underline">
                     <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
@@ -439,7 +439,8 @@
                                 <ul class="pl-5 list-disc text-gray-600 text-sm">
                                     <li class="flex justify-between">
                                         <span>
-                                            {{ ucfirst($orderProduct->distance_type) }} ({{ ucfirst($orderProduct->distance_range) }})
+                                            {{ ucfirst($orderProduct->distance_type) }}
+                                            ({{ ucfirst($orderProduct->distance_range) }})
                                         </span>
                                         <span>
                                             {{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->product_data['service_option_price'] ?? 0) }}
@@ -895,7 +896,6 @@
                                                 </span>
                                             </span>
                                         </button>
-
                                     @else
                                         <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
                                             target="_blank" title="View Terms">
@@ -906,9 +906,8 @@
                                         </a>
                                     @endif
                                 </div>
-                                @if(!empty($order->last_terms_sms_sent_at))
-                                    <span
-                                        class="text-yellow-500 text-xs font-bold">
+                                @if (!empty($order->last_terms_sms_sent_at))
+                                    <span class="text-yellow-500 text-xs font-bold">
                                         {{ \App\Helpers\CustomHelper::formatDateTime($order->last_terms_sms_sent_at) }}
                                     </span>
                                 @endif
@@ -1013,6 +1012,10 @@
                 </div>
             </div>
             <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col relative">
+                <!-- Title -->
+                <h2 class="text-black font-semibold text-lg mb-2">
+                    Order / Delivery Instructions
+                </h2>
                 <!-- Add Note Button -->
                 <button
                     class="absolute top-4 right-4 flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
@@ -1601,7 +1604,7 @@
                                             <th class="py-2 px-2">Delivered</th>
                                             <th class="py-2 px-2">Returned</th>
                                             <!-- <th class="py-2 px-2">Balance</th>
-                                                            <th class="py-2 px-2">Value</th> -->
+                                                                <th class="py-2 px-2">Value</th> -->
                                             <th class="py-2 px-2 text-right">Customer Owes</th>
                                         </tr>
                                     </thead>
@@ -1862,11 +1865,11 @@
 
                                                     <!-- Save button pinned to bottom on md+ -->
                                                     <!-- <div class="mt-auto flex justify-end">
-                                                                        <button type="submit"
-                                                                            class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
-                                                                            Save
-                                                                        </button>
-                                                                    </div> -->
+                                                                            <button type="submit"
+                                                                                class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
+                                                                                Save
+                                                                            </button>
+                                                                        </div> -->
                                                 </div>
 
                                             </div>

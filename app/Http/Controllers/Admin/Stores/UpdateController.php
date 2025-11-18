@@ -9,36 +9,29 @@ use App\Http\Requests\Admin\Stores\UpdateRequest;
 
 // Models
 use App\Models\Stores\Store;
+use App\Models\Stores\HoursOfOperation;
 
 class UpdateController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-
     public function __invoke($unique_id, UpdateRequest $request)
     {
-
         $validatedData = $request->validated();
 
         $store = Store::where('unique_id', $unique_id)->firstOrFail();
-        // If is_primary is set to true/yes in the request
-        if (isset($validatedData['is_primary']) && $validatedData['is_primary']) {
-            // Remove primary flag from all other stores
-            Store::where('id', '!=', $store->id)
-                ->update(['is_primary' => 'No']);
+
+        // Handle primary store logic
+        if (isset($validatedData['is_primary']) && $validatedData['is_primary'] === 'Yes') {
+            Store::where('id', '!=', $store->id)->update(['is_primary' => 'No']);
         }
 
-        $store->fill($validatedData);
-        $store->save();
+        // Update main store fields
+        $store->fill($validatedData)->save();
 
+        // Update hours
+        $this->updateHours($store->id, $validatedData);
 
         flash('Store updated successfully.')->success();
 
-        // Determine the redirection based on the button clicked
         $action = $request->input('action');
 
         return match ($action) {
@@ -46,6 +39,54 @@ class UpdateController extends Controller
             'save_new' => redirect()->route('admin.stores.create'),
             default => redirect()->route('admin.stores.index'),
         };
+    }
 
+    private function updateHours(int $storeId, array $data)
+    {
+        $days = [
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday'
+        ];
+
+        foreach ($days as $day) {
+
+            $isClosed = $data["{$day}_closed"];
+            $start = $data["{$day}_start"] ?? null;
+            $end = $data["{$day}_end"] ?? null;
+
+            $record = HoursOfOperation::where('store_id', $storeId)
+                ->where('day_name', ucfirst($day))
+                ->first();
+
+            if ($record) {
+                // Update existing record
+                $record->update([
+                    'is_closed'  => $isClosed,
+                    'start_time' => $isClosed ? null : $this->convertTo24Hour($start),
+                    'end_time'   => $isClosed ? null : $this->convertTo24Hour($end),
+                ]);
+            } else {
+                // Create missing day
+                HoursOfOperation::create([
+                    'store_id'   => $storeId,
+                    'day_name'   => ucfirst($day),
+                    'is_closed'  => $isClosed,
+                    'start_time' => $isClosed ? null : $this->convertTo24Hour($start),
+                    'end_time'   => $isClosed ? null : $this->convertTo24Hour($end),
+                ]);
+            }
+        }
+    }
+
+
+    private function convertTo24Hour(?string $time)
+    {
+        if (!$time) return null;
+        return date("H:i:s", strtotime($time));
     }
 }

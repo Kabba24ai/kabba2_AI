@@ -7,11 +7,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         return true;
@@ -19,17 +14,23 @@ class StoreRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $this->merge(PurifyHelper::purify($this->all(),[]));
+        // Sanitize all input
+        $cleaned = PurifyHelper::purify($this->all(), []);
+
+        // Days of the week
+        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+        // Convert checkboxes ("on" or missing) into real booleans
+        foreach ($days as $day) {
+            $cleaned["{$day}_closed"] = $this->boolean("{$day}_closed");
+        }
+
+        $this->merge($cleaned);
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
-     */
     public function rules(): array
     {
-        return [
+        $rules = [
             'store_name' => ['required', 'string', 'max:240', 'unique:stores,store_name'],
             'status' => ['required', 'in:Active,Inactive,Archived'],
             'is_primary' => ['nullable', 'in:Yes,No'],
@@ -44,6 +45,20 @@ class StoreRequest extends FormRequest
             'longitude' => ['required', 'string'],
             'details' => ['nullable', 'string', 'max:255'],
         ];
-    }
 
+        // Days of the week
+        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+        foreach ($days as $day) {
+
+            // Closed input REQUIRED + boolean
+            $rules["{$day}_closed"] = ['required', 'boolean'];
+
+            // Time fields optional
+            $rules["{$day}_start"] = ['nullable', 'string'];
+            $rules["{$day}_end"] = ['nullable', 'string'];
+        }
+
+        return $rules;
+    }
 }

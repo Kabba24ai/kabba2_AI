@@ -86,4 +86,13 @@ class Store extends Model
         });
     }
 
+    public function hours()
+    {
+        return $this->hasMany(HoursOfOperation::class);
+    }
+
+    public function hoursOfOperation()
+    {
+        return $this->hasMany(HoursOfOperation::class);
+    }
 }

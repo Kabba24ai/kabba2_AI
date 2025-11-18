@@ -9,6 +9,8 @@ use App\Http\Requests\Admin\Stores\StoreRequest;
 
 // Models
 use App\Models\Stores\Store;
+use App\Models\Stores\HoursOfOperation;
+
 
 class StoreController extends Controller
 {
@@ -34,6 +36,9 @@ class StoreController extends Controller
                 ->update(['is_primary' => 'No']);
         }
 
+        // Save hours of operation
+        $this->saveHours($store->id, $validatedData);
+
         flash('Store created successfully.')->success();
 
         // Determine the redirection based on the button clicked
@@ -44,5 +49,43 @@ class StoreController extends Controller
             'save_new' => redirect()->route('admin.stores.create'),
             default => redirect()->route('admin.stores.index'), // fallback
         };
+    }
+
+    private function saveHours(int $storeId, array $data)
+    {
+        $days = [
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday'
+        ];
+
+        foreach ($days as $day) {
+
+            $isClosed = $data["{$day}_closed"];
+
+            HoursOfOperation::create([
+                'store_id'   => $storeId,
+                'day_name'   => ucfirst($day),
+                'is_closed'  => $isClosed,
+
+                'start_time' => $isClosed ? null : $this->convertTo24Hour($data["{$day}_start"] ?? null),
+                'end_time'   => $isClosed ? null : $this->convertTo24Hour($data["{$day}_end"] ?? null),
+            ]);
+        }
+    }
+
+    private function convertTo24Hour(?string $time)
+    {
+        if (!$time) {
+            return null;
+        }
+
+        // Convert "12:00 PM" to "12:00:00"
+        $parsed = date("H:i:s", strtotime($time));
+        return $parsed;
     }
 }

@@ -551,9 +551,10 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('admin.website-management.contact-us.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.contact-us.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-envelope class="w-5 h-5" /> Contact Us
+                                        <x-heroicon-s-phone class="w-5 h-5" />
+                                        Contact Us
                                     </a>
                                 </li>
                                 <li>

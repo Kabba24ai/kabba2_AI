@@ -21,10 +21,16 @@ class EditController extends Controller
     public function __invoke($unique_id, Request $request)
     {
 		$store = Store::where('unique_id', $unique_id)->firstOrFail();
+
+
+        $hours = $store->hours()->get()->keyBy('day_name');
+
         $states = State::orderBy('name', 'asc')->pluck('name', 'id')->prepend('Select State', '');
-		return view('admin.stores.edit', [
+
+        return view('admin.stores.edit', [
             'store' => $store,
             'states' => $states,
+            'hours'  => $hours,
         ]);
     }
 }

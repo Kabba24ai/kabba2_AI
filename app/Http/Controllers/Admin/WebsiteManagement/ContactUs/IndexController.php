@@ -15,7 +15,7 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-                       return view('admin.website_management.faq_page.index');
+                       return view('admin.website_management.contact_us.index');
 
     }
 }

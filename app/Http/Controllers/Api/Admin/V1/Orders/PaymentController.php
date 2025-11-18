@@ -81,9 +81,9 @@ class PaymentController extends BaseController
                 $authorizeNetService = new AuthorizeNetService();
 
                 $cardData = [
-                    'card_number' => $validated['cardNumber'],
-                    'mm_yy' => $validated['expirationDate'],
-                    'card_cvv' => $validated['cardCode'],
+                    'card_number' => $validated['card_number'],
+                    'mm_yy' => $validated['mm_yy'],
+                    'card_cvv' => $validated['cvc'],
                 ];
 
                 $paymentResult = $authorizeNetService->createCardDataTransaction($cardData, $amount, [

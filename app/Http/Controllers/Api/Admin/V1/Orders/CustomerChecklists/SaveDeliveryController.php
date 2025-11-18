@@ -173,6 +173,7 @@ class SaveDeliveryController extends BaseController
             $orderProductData['assigned_at'] = now();
 
             $equipment->current_status = EquipmentCurrentStatus::Rented->value;
+            $equipment->current_status_changed_at = now();
             $equipment->current_order_id = $orderProduct->order_id;
             $equipment->current_order_product_id = $orderProduct->id;
             $equipment->saveQuietly();

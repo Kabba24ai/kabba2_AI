@@ -296,6 +296,7 @@ class SaveController extends BaseController
 
         $equipmentData = [
             'current_status' => $currentStatus,
+            'current_status_changed_at' => now(),
         ];
 
         if($currentStatus === EquipmentCurrentStatus::Available){

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\Admin\V1\Equipment;
 
+use App\Helpers\CustomHelper;
 use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource as CustomerChecklistQuestionsListResource;
 use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource as OrderProductsListResource;
 use App\Http\Resources\Api\Admin\V1\ProductCategories\ListResource as ProductCategoriesListResource;
@@ -54,6 +55,7 @@ class ListResource extends JsonResource
             'checklist_master_id' => $this->checklist_master_id ?? 0,
             'equipment_notes' => $this->equipment_notes ?? '',
             'current_status' => $this->current_status->label() ?? '',
+            'current_status_changed_at' => CustomHelper::formatDateTime($this->current_status_changed_at) ?? '',
             'product_category' => new ProductCategoriesListResource($this->whenLoaded('productCategory')),
 
             'current_order_id' => $this->current_order_id ?? 0,

@@ -296,6 +296,7 @@ class StoreController extends Controller
                         'maintenance' => 'maintenance',
                     },
                     'updated_by' => auth()->id(),
+                    'current_status_changed_at' => now(),
                 ]);
                 Log::info('Equipment status updated', ['equipment_id' => $equipment->id, 'current_status' => $equipment->current_status]);
             } else {

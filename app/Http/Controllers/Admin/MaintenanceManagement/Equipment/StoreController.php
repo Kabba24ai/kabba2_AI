@@ -14,7 +14,7 @@ class StoreController extends Controller
 
         $data['has_def'] = ($data['has_def'] ?? false) ? 'Yes' : 'No';
         $data['is_tracked'] = ($data['is_tracked'] ?? false) ? 'Yes' : 'No';
-        //$data['current_status_changed_at'] = now();
+        $data['current_status_changed_at'] = now();
         Equipment::create($data);
 
         return redirect()

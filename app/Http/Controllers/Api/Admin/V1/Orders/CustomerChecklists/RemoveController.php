@@ -63,6 +63,7 @@ class RemoveController extends BaseController
 
             if ($equipment = Equipment::where('id', $orderProduct->equipment_id)->first()) {
                 $equipment->current_status = EquipmentCurrentStatus::Available->value;
+                $equipment->current_status_changed_at = now();
                 $equipment->current_order_id = null;
                 $equipment->current_order_product_id = null;
                 $equipment->saveQuietly();

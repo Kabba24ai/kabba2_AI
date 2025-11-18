@@ -112,7 +112,7 @@
 
                                 {!! html()->select(
                                         'inspectorSelect',
-                                        $users->mapWithKeys(fn($user) => [$user->id => $user->full_name])->prepend('Select Inspector', '')->toArray(),
+                                        $users->sortBy('full_name')->mapWithKeys(fn($user) => [$user->id => $user->full_name])->prepend('Select Inspector', '')->toArray(),
                                         old('inspectorSelect'),
                                     )->id('inspectorSelect')->class(['w-full border px-3 py-2 rounded-md text-sm'])->required() !!}
 
@@ -406,11 +406,14 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                     Hours: ${ (eq.hours ?? 0).toLocaleString() }
                                 </div>
-                                <div>Last Inspection: ${eq.customername} - ${eq.lastInspection}</div>
+                               
+                                <div>Last Inspection: ${eq.lastInspection}</div>
                             </div>
                             </div>
 
                         </div>`;
+
+                        // <div>Last Inspection: ${eq.customername} - ${eq.lastInspection}</div>
 
                     // Card click handler
                     card.addEventListener("click", () => {
@@ -500,6 +503,8 @@
                     </p>
                 </div>
             `;
+                    placeholder.classList.add("hidden");
+                    checklistContainer.classList.remove("hidden");
 
                     return; // Stop execution — DO NOT load checklist questions
                 }
@@ -702,13 +707,13 @@
                             updateAllCounts();
                             updateProgress();
                         } else {
-                            notyf.error(data.message);
+                            //notyf.error(data.message);
 
 
                             // put this once near the top of your script
                             const editRouteTemplate =
                                 '{{ route('admin.maintenance-management.equipment.edit', ':id') }}';
-
+                            footerButton.classList.add("hidden");
                             // when building the HTML (inside openChecklist)
                             checklistContent.innerHTML = `<p class="text-red-500">
                         There is no Checklist assigned to this Equipment ID - Assign a Checklist to this Equipment ID now:

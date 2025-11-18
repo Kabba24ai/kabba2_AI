@@ -12,7 +12,7 @@
             <div class="w-5/5 md:w-1/5 lg:w-1/5 md:mt-0">
                 <h3 class="font-bold text-white text-base mb-2 ">Other Links</h3>
                 <a href="{{ route('front.contact-us.index') }}" class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Contact Us</a>
-                <a href="{{ route('front.terms-and-conditions.general') }}" class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Terms and conditions</a>
+                <a href="{{ route('front.terms-and-conditions.general') }}" class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Terms & Conditions</a>
                 <a href="{{ route('front.privacy-policy.index') }}" class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Privacy Policy</a>
             </div>
 

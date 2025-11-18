@@ -1,6 +1,6 @@
 @extends('admin.layouts.app', ['contentClass' => 'max-w-(--breakpoint-2xl)'])
 
-@section('title', 'footer Section')
+@section('title', 'Footer Section')
 
 @section('content')
 <div class="bg-gray-50 flex flex-col">
@@ -12,7 +12,7 @@
                     <x-heroicon-o-cog-8-tooth class="h-10 w-10" />
                     <div class="h-6 border-l border-gray-300"></div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">footer Section</h1>
+                        <h1 class="text-2xl font-bold text-gray-900">Footer Section</h1>
                         <p class="text-sm text-gray-600">Manage system settings and configurations</p>
                     </div>
                 </div>

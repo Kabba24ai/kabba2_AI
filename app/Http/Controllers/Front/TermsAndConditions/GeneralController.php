@@ -10,13 +10,13 @@ class GeneralController extends Controller
 {
     public function __invoke()
     {
-        // Fetch all Terms & Conditions settings in one query
-        // $settings = Setting::where('setting_type', 'Terms & Conditions Settings')
-        //     ->pluck('setting_value', 'setting_name')
-        //     ->toArray();
 
          $settings = Terms::where('is_global', 'Yes')->orderBy('id', 'ASC')->first();
 
+        // Remove product terms placeholder if present
+        if ($settings) {
+            $settings->content = str_replace('[product_terms][/product_terms]', '', $settings->content);
+        }
 
         return view('front.terms_and_conditions.general', [
             'settings' => $settings,

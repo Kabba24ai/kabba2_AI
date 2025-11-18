@@ -12,12 +12,13 @@
         {{-- Notice --}}
         <div class="mt-4 rounded-md p-4 md:col-span-2 text-left bg-blue-50 border border-blue-200 text-blue-900">
             <div class="flex items-start space-x-3">
-                <x-heroicon-o-information-circle class="w-8 h-8 text-blue-600" />
+                <div>
+                    <x-heroicon-o-information-circle class="w-4 h-5 text-blue-600 self-start" />
+                </div>
                 <div>
                     <h4 class="text-sm font-medium text-blue-800">Info</h4>
                     <p class="text-sm mt-1 text-blue-700">
-                        Configure your social media presence. These links will appear on your website footer,
-                        contact page, and can be used for social sharing functionality.
+                        Configure your social media presence. These links will appear on your website footer and can be used for social sharing functionality.
                     </p>
                 </div>
             </div>

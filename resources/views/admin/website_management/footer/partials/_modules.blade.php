@@ -15,14 +15,14 @@
             dark:[&::-webkit-scrollbar-track]:bg-transparent 
             [&::-webkit-scrollbar]:h-1.5">
 
-            <!-- Terms & Policy -->
+            <!-- Terms & Conditions -->
             <button id="tab-terms-policy"
                 class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors"
                 x-bind:class="activeTab === 'terms-policy'
                     ? 'text-brand-500 border-brand-500 dark:text-brand-400 dark:border-brand-400'
                     : 'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
                 x-on:click="activeTab = 'terms-policy'">
-                Terms & Policy
+                Terms & Conditions
             </button>
 
             <!-- Privacy Policy -->
@@ -72,16 +72,16 @@
 
         <!-- Terms & Policy -->
         <div x-show="activeTab === 'terms-policy'">
-            
-                @include('admin.website_management.footer.partials._terms_policy')
-            
+
+            @include('admin.website_management.footer.partials._terms_policy')
+
         </div>
 
         <!-- Contact -->
         <div x-show="activeTab === 'contact'">
-           
-                @include('admin.website_management.footer.partials._contact_us_settings')
-           
+
+            @include('admin.website_management.footer.partials._contact_us_settings')
+
         </div>
 
         <!-- Social Media -->
@@ -96,9 +96,9 @@
 
         <!-- FAQ -->
         <div x-show="activeTab === 'faq'">
-            
-                @include('admin.website_management.footer.partials._faq_settings')
-           
+
+            @include('admin.website_management.footer.partials._faq_settings')
+
         </div>
 
         <!-- Privacy Policy -->

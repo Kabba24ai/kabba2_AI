@@ -191,16 +191,9 @@ class Equipment extends Model
     }
     public function getLastInspectionAttribute(): string
     {
-        $inspection = $this->latestRentalReadyTemplate;
-
-        if (!$inspection) {
-            return '-';
-        }
-
-        $employeeName = $inspection->employee_name ?? 'N/A';
-        $inspectionDate = CustomHelper::formatDateTime($inspection->inspection_date, 'M d, Y');
-        $inspectionTime = CustomHelper::formatDateTime($inspection->inspection_time, 'h:i A');
-
-        return trim("{$employeeName} - {$inspectionDate} {$inspectionTime}");
+        $inspectionDateTime = $this->current_status_changed_at
+            ? \App\Helpers\CustomHelper::formatDateTime($this->current_status_changed_at)
+            : '-';
+        return trim("  {$inspectionDateTime}");
     }
 }

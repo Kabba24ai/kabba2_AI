@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Iam\Personnel\User;
 use App\Models\Customers\Customer;
 use App\Models\Customers\Receipt;
+use App\Services\ReceiptService;
 
 
 
@@ -47,22 +48,11 @@ class ReceiptDownload extends Controller
         $users = User::where('status', 'Active')->get();
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
-        // ✔ Get receipt by order ID, not unique_id
-        $receipt = Receipt::with([
-            'invoice',
-            'items',
-            'items.orderProduct',
-            'customer.addresses.state',
-            'customer.billingAddress',
-            'customer.shippingAddress',
-        ])
-            ->where('order_id', $order->id)
-            ->latest()
-            ->firstOrFail();
 
-            
+        //  auto-create or get existing receipt
+        $receipt = ReceiptService::getOrCreateReceipt($order);
 
-// dd($receipt);
+
 
         $pdf = Pdf::loadView('admin.order_management.orders.print_receipt', [
             'customer' => $customer,

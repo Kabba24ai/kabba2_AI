@@ -55,6 +55,8 @@ class ListResource extends JsonResource
             'checklist_master_id' => $this->checklist_master_id ?? 0,
             'equipment_notes' => $this->equipment_notes ?? '',
             'current_status' => $this->current_status->label() ?? '',
+
+            'current_status_updated_by' => $this->statusUpdatedByUser?->full_name ?? 0,
             'current_status_changed_at' => CustomHelper::formatDateTime($this->current_status_changed_at) ?? '',
             'product_category' => new ProductCategoriesListResource($this->whenLoaded('productCategory')),
 

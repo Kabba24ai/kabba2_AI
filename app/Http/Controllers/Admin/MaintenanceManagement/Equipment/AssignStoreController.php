@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 use App\Http\Controllers\Controller;
 
 // Requests
-use App\Http\Requests\Admin\MaintenanceManagement\Equipment\AssignChecklistMasterRequest;
+use App\Http\Requests\Admin\MaintenanceManagement\Equipment\AssignStoreRequest;
 
 // Models
-use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\Stores\Store;
 
-class AssignChecklistMasterController extends Controller
+class AssignStoreController extends Controller
 {
     /**
      * Handle the incoming request.
@@ -19,34 +19,34 @@ class AssignChecklistMasterController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Contracts\View\View
      */
-    public function __invoke(AssignChecklistMasterRequest $request)
+    public function __invoke(AssignStoreRequest $request)
     {
         $validated = $request->validated();
 
-        $checklistMaster = ChecklistMaster::where('unique_id', $validated['checklist_master_unique_id'])->first();
+        $store = Store::where('unique_id', $validated['store_unique_id'])->first();
         $equipment = Equipment::where('unique_id', $validated['equipment_unique_id'])->first();
 
-        if (!$checklistMaster || !$equipment) {
+        if (!$store || !$equipment) {
             return response()->json([
                 'success' => false,
-                'message' => 'Checklist Master or Equipment not found.',
+                'message' => 'Store or Equipment not found.',
             ], 404);
         }
 
-        if ($equipment->checklist_master_id === $checklistMaster->id) {
+        if ($equipment->store_id === $store->id) {
             return response()->json([
                 'success' => false,
-                'message' => 'This Checklist Master is already assigned to the Equipment.',
+                'message' => 'This Store is already assigned to the Equipment.',
             ], 400);
         }
 
         // Assign equipment details to order product
-        $equipment->checklist_master_id = $checklistMaster->id;
+        $equipment->store_id = $store->id;
         $equipment->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'Checklist Master assigned successfully!',
+            'message' => 'Store assigned successfully!',
         ]);
     }
 }

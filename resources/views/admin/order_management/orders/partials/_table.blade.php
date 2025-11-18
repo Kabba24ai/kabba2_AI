@@ -30,8 +30,7 @@
                     </td>
                     <td class="px-4 py-3">
                         <div class="font-medium">{{ $order->billingAddress->full_name }}</div>
-                        {{-- <div class="text-gray-500 text-xs">{{ $order->customer?->unique_id }}
-</div> --}}
+                        {{-- <div class="text-gray-500 text-xs">{{ $order->customer?->unique_id }}</div> --}}
                     </td>
                     <td class="px-4 py-3">
                         {{ $order->company_name }}

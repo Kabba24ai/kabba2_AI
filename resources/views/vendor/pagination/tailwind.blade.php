@@ -32,20 +32,25 @@
         </div>
 
         <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <form method="GET" action="{{ url()->current() }}"
-                class="flex items-center space-x-3">
+            <form method="GET" action="{{ url()->current() }}" class="flex items-center space-x-3">
 
                 {{-- Preserve query params --}}
                 @foreach (request()->except(['page', 'per_page']) as $k => $v)
-                    <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                    @if (is_array($v))
+                        @foreach ($v as $item)
+                            <input type="hidden" name="{{ $k }}[]" value="{{ $item }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                    @endif
                 @endforeach
+
                 {{-- Dropdown --}}
                 <select id="per_page_sm" name="per_page" onchange="this.form.submit()"
                     class="block border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition text-center">
                     @foreach ($perPageOptions as $opt)
                         @php $label = $opt === 'all' ? 'All' : $opt; @endphp
-                        <option value="{{ $opt }}"
-                            {{ (string) $perPage === (string) $opt ? 'selected' : '' }}>
+                        <option value="{{ $opt }}" {{ (string) $perPage === (string) $opt ? 'selected' : '' }}>
                             {{ $label }}
                         </option>
                     @endforeach

@@ -16,10 +16,8 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $query = Equipment::with('productCategory', 'order', 'order.customer', 'store', 'orderProduct','lastOrderProduct', 'activeEquipmentRentalReadyTemplate');
-
-        // filter
-        $query->when($request->filled('search'), function ($q) use ($request) {
+        $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'orderProduct','lastOrderProduct', 'activeEquipmentRentalReadyTemplate')
+        ->when($request->filled('search'), function ($q) use ($request) {
             $q->where('equipment_name', 'like', '%' . $request->search . '%')
                 ->orWhere('equipment_id', 'like', '%' . $request->search . '%')
                 ->orWhereHas('order', function ($q) use ($request) {
@@ -39,7 +37,6 @@ class IndexController extends Controller
         }, function ($q) {
             $q->whereIn('current_status', EquipmentCurrentStatus::getValues());
         });
-
 
         $order = ['damaged', 'maintenance', 'rented', 'available'];
         $query
@@ -61,8 +58,9 @@ class IndexController extends Controller
         $statuses = EquipmentCurrentStatus::cases(); // returns all enum cases
 
         if ($request->ajax()) {
+            $html = view('admin.order_management.equipment_inventory.partials._table', compact('equipment'))->render();
             return response()->json([
-                'html' => view('admin.order_management.equipment_inventory.partials._table', compact('equipment'))->render(),
+                'html' => $html,
                 'total' => $equipment->count(),
             ]);
         }

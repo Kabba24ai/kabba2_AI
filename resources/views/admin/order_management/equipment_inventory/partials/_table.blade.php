@@ -82,9 +82,7 @@
                         </div>
                     </td>
                     <td class="px-4 py-4">
-                        <div class="font-medium">
-                            {{ $eq->activeEquipmentRentalReadyTemplate?->employee_name ?? '-' }}
-                        </div>
+                        {{ $eq?->statusUpdatedByUser?->full_name ?? '-' }}
                     </td>
                     <td class="px-4 py-4">
                         <div class="inline-flex items-center gap-1">

@@ -38,6 +38,7 @@ class AssignEquipmentController extends Controller
            Equipment::where('id', $orderProduct->equipment_id)
                 ->update([
                     'current_status' => EquipmentCurrentStatus::Available->value,
+                    'current_status_updated_by' => $user->id,
                     'current_status_changed_at' => now(),
                     'current_order_id' => null,
                     'current_order_product_id' => null,
@@ -59,6 +60,7 @@ class AssignEquipmentController extends Controller
         $orderProduct->save();
 
         $equipment->current_status = EquipmentCurrentStatus::Rented->value;
+        $equipment->current_status_updated_by = $user->id;
         $equipment->current_status_changed_at = now();
         $equipment->current_order_id = $orderProduct->order_id;
         $equipment->current_order_product_id = $orderProduct->id;

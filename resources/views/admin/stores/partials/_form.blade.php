@@ -333,12 +333,8 @@
                 </label>
 
                 <!-- Start Time -->
-                <div class="relative  w-32 ">
-                    <input
-                        name="{{ strtolower($day) }}_start"
-                        class="timepicker w-full border rounded-md px-3 py-2 text-sm shadow-sm pr-10
-               focus:outline-none focus:ring-2 bg-white text-gray-700
-               border-gray-300"
+                <div class="relative ">
+                    <input name="{{ strtolower($day) }}_start" class="timepicker w-full md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm pr-10 focus:outline-none focus:ring-2 bg-white text-gray-700 border-gray-300"
                         autocomplete="off"
                         value="{{ $start }}"
                         data-format="HH:mm" {{ $closed ? 'disabled' : '' }} />
@@ -347,23 +343,17 @@
                     </span>
                 </div>
 
-                <span class="text-center w-10">to</span>
+                <span class="text-center text-sm  w-10">to</span>
 
                 <!-- End Time -->
-                <div class="relative  w-32">
-                    <input
-                        name="{{ strtolower($day) }}_end"
-                        value="{{ $end }}"
-                        class="timepicker w-full border rounded-md px-3 py-2 text-sm shadow-sm pr-10
-               focus:outline-none focus:ring-2 bg-white text-gray-700
-               border-gray-300"
+                <div class="relative">
+                    <input name="{{ strtolower($day) }}_end" value="{{ $end }}" class="timepicker w-full md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm pr-10 focus:outline-none focus:ring-2 bg-white text-gray-700 border-gray-300"
                         autocomplete="off"
                         data-format="HH:mm" {{ $closed ? 'disabled' : '' }} />
                     <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
                         <x-heroicon-o-clock class="w-4 h-4 text-gray-800" />
                     </span>
                 </div>
-
 
             </div>
             @endforeach

@@ -276,14 +276,19 @@
                         <td style="padding-top:20px;">
                             <table role="presentation" style="width:100%; font-size:14px;">
                                 <tr>
-                                    <td align="left" style="font-weight:600;">Payment Status:{{ ucfirst($receipt->payment_status) }}</td>
                                     <td align="left" style="font-weight:600;">
-
+                                        Payment Status: {{ ucfirst($receipt->payment_status) }}
+                                    </td>
+                                    <td align="right" style="font-weight:600;">
+                                        @if(strtolower($receipt->payment_status) === 'paid')
+                                        <img src="{{ public_path('storage/admin/images/icons/paid.webp') }}" alt="Paid" style="width:100px; height:100px;">
+                                        @endif
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
+
 
 
                     <!-- Totals -->

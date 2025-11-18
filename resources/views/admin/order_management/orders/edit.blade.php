@@ -139,26 +139,28 @@
                 </div>
 
 
-                <!-- <button
-                        class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
-                        <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
-                    </button>
-                    <button
-                        class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                        <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
-                    </button> -->
 
-                @if ($order->receipt_status === 'created')
-                    <a href="{{ route('admin.order-management.orders.receipt-email', $order->id) }}""
-                        class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
-                        <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
-                    </a>
+               
 
-                    <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
-                        class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                        <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
-                    </a>
-                @endif
+             <!-- Blade Links with Tailwind loader -->
+<a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
+   class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
+   <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
+   <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+   </svg>
+</a>
+
+
+<a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
+   class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 receipt-action">
+   <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
+   <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+   </svg>
+</a>
 
 
                 <button class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
@@ -3322,6 +3324,34 @@
         }
     </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.receipt-action').forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (this.classList.contains('processing')) {
+                e.preventDefault();
+                return;
+            }
 
+            e.preventDefault();
+            this.classList.add('processing');
+
+            const loader = this.querySelector('.loader-svg');
+           if (loader) {
+    loader.classList.remove('hidden');
+    const icon = this.querySelector('svg:not(.loader-svg)');
+    if (icon) icon.classList.add('hidden');
+}
+
+            // Wait for next repaint
+            requestAnimationFrame(() => {
+                const href = this.getAttribute('href');
+                window.location.href = href;
+            });
+        });
+    });
+});
+
+</script>
 
 @endpush

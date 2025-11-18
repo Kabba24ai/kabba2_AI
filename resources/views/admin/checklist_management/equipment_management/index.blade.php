@@ -275,7 +275,7 @@
                 category: eq.category_name ?? 'N/A',
                 checklist_master_id: eq.checklist_master_id,
                 hours: eq.equipment_hours,
-                lastInspection: eq.last_inspection ?? '-',
+                lastInspection: eq.last_inspection ?? '',
                 orderproduct: eq.order_product?.product_name ?? '-',
                 orderproductid: eq.order_product?.id ?? null,
                 order_route: eq.order?.view_link ?? null,
@@ -283,6 +283,7 @@
                 badge: eq.status_label,
                 icon: icons[eq.current_status] ?? icons.available,
                 is_tracked: eq.is_tracked ?? 'No',
+                customername: eq.order?.customer_name ?? ' ',
             }));
 
             // console.log('equipment :- ', equipment);
@@ -405,7 +406,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                     Hours: ${ (eq.hours ?? 0).toLocaleString() }
                                 </div>
-                                <div>Last Inspection: ${eq.lastInspection}</div>
+                                <div>Last Inspection: ${eq.customername} - ${eq.lastInspection}</div>
                             </div>
                             </div>
 

@@ -7,24 +7,28 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Customers\Receipt;
 use App\Events\Admin\Receipts\ReceiptEmailEvent;
 
+use App\Services\ReceiptService;
+use App\Models\Orders\Order;
+
+
 class SendReceiptEmailController extends Controller
 {
     public function __invoke(string $unique_id)
     {
         try {
 
-            // ✔ Get receipt by order ID, not unique_id
-            $receipt = Receipt::with([
-                'invoice',
-                'items',
-                'items.orderProduct',
-                'customer.addresses.state',
-                'customer.billingAddress',
-                'customer.shippingAddress',
-            ])
-                ->where('order_id', $unique_id)
-                ->latest()
-                ->firstOrFail();
+            $order = Order::with(
+                'shippingAddress',
+                'products.product.categories',
+                'lastPayment',
+                'products.deliverySignatureMedia',
+                'products.returnSignatureMedia'
+            )->where('unique_id', $unique_id)->firstOrFail();
+
+        
+            //  auto-create or get existing receipt
+            $receipt = ReceiptService::getOrCreateReceipt($order);
+
 
             event(new ReceiptEmailEvent($receipt));
 

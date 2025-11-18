@@ -60,6 +60,7 @@ class Equipment extends Model
         'checklist_master_id',
         'equipment_notes',
         'current_status', // available, rented, maintenance, damaged
+        'current_status_changed_at',
         'current_order_id',
         'current_order_product_id',
         'created_by',

@@ -867,11 +867,11 @@
                 @endforeach
 
                 {{-- Status Checklist --}}
-                <div class="border rounded-xl p-4 bg-white">
-                    <div class="grid grid-cols-2 gap-2 text-center text-xs font-medium text-gray-700 mb-2">
-                        <!-- Terms -->
-                        <div class="flex flex-col items-center">
-                            @if (!empty($order->pending_terms_content))
+                @if (!empty($order->pending_terms_content))
+                    <div class="border rounded-xl p-4 bg-white">
+                        <div class="grid grid-cols-2 gap-2 text-center text-xs font-medium text-gray-700 mb-2">
+                            <!-- Terms -->
+                            <div class="flex flex-col items-center">
                                 <div>Terms</div>
                                 <div class="flex justify-center mb-1 gap-1">
                                     @if ($order->terms_status->isPending())
@@ -895,6 +895,7 @@
                                                 </span>
                                             </span>
                                         </button>
+
                                     @else
                                         <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
                                             target="_blank" title="View Terms">
@@ -905,85 +906,91 @@
                                         </a>
                                     @endif
                                 </div>
-                            @endif
-                        </div>
-                        <!-- License -->
-                        <!-- License -->
-                        <div class="flex flex-col items-center">
-                            <div>License</div>
-                            <div class="flex justify-center mb-1">
-                                @if ($order->licenseMedia->isNotEmpty())
+                                @if(!empty($order->last_terms_sms_sent_at))
                                     <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold cursor-pointer"
-                                        onclick="openAllMedia({{ $order->id }}, 'license')">
-                                        <x-heroicon-o-check class="w-4 h-4" />
-                                    </span>
-
-                                    <script type="application/json" id="media-{{ $order->id }}-license">
-                                        {!! $order->licenseMedia->map(fn($m) => [
-                                            'url'  => optional($m->media)->url,
-                                            'type' => $m->type, // "image" or "video"
-                                        ])->toJson() !!}
-                                    </script>
-                                @else
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
-                                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                                        class="text-yellow-500 text-xs font-bold">
+                                        {{ \App\Helpers\CustomHelper::formatDateTime($order->last_terms_sms_sent_at) }}
                                     </span>
                                 @endif
                             </div>
-                        </div>
+                            <!-- License -->
+                            <!-- License -->
+                            <div class="flex flex-col items-center">
+                                <div>License</div>
+                                <div class="flex justify-center mb-1">
+                                    @if ($order->licenseMedia->isNotEmpty())
+                                        <span
+                                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold cursor-pointer"
+                                            onclick="openAllMedia({{ $order->id }}, 'license')">
+                                            <x-heroicon-o-check class="w-4 h-4" />
+                                        </span>
 
-                        {{-- <!-- Checklist -->
-                        <div>
-                            <div>Checklist</div>
-                            <div class="flex justify-center gap-1 mb-1">
-                                <span
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                <span
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                        <script type="application/json" id="media-{{ $order->id }}-license">
+                                            {!! $order->licenseMedia->map(fn($m) => [
+                                                'url'  => optional($m->media)->url,
+                                                'type' => $m->type, // "image" or "video"
+                                            ])->toJson() !!}
+                                        </script>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
+
+                            {{-- <!-- Checklist -->
+                            <div>
+                                <div>Checklist</div>
+                                <div class="flex justify-center gap-1 mb-1">
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                </div>
+                            </div>
+                            <!-- Machine Hours -->
+                            <div>
+                                <div>Machine Hours</div>
+                                <div class="flex justify-center gap-1 mb-1">
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                </div>
+                            </div>
+                            <!-- Video -->
+                            <div>
+                                <div>Video</div>
+                                <div class="flex justify-center gap-1 mb-1">
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                </div>
+                            </div> --}}
                         </div>
-                        <!-- Machine Hours -->
-                        <div>
-                            <div>Machine Hours</div>
-                            <div class="flex justify-center gap-1 mb-1">
-                                <span
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                <span
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                            </div>
+                        <!-- Legend -->
+                        <div class="flex items-center justify-center gap-4 text-xs mt-2">
+                            <span class="flex items-center">
+                                <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
+                            </span>
+                            <span class="font-semibold">|</span>
+                            <span class="flex items-center">
+                                <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Pending
+                            </span>
+                            <span class="font-semibold">|</span>
+                            <span class="flex items-center">
+                                <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>N/A
+                            </span>
+                            <span class="font-semibold">|</span>
+                            <span>D=Delivery</span>
+                            <span class="font-semibold">|</span>
+                            <span>R=Return</span>
                         </div>
-                        <!-- Video -->
-                        <div>
-                            <div>Video</div>
-                            <div class="flex justify-center gap-1 mb-1">
-                                <span
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                <span
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                            </div>
-                        </div> --}}
                     </div>
-                    <!-- Legend -->
-                    <div class="flex items-center justify-center gap-4 text-xs mt-2">
-                        <span class="flex items-center">
-                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
-                        </span>
-                        <span class="font-semibold">|</span>
-                        <span class="flex items-center">
-                            <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Pending
-                        </span>
-                        <span class="font-semibold">|</span>
-                        <span class="flex items-center">
-                            <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>N/A
-                        </span>
-                        <span class="font-semibold">|</span>
-                        <span>D=Delivery</span>
-                        <span class="font-semibold">|</span>
-                        <span>R=Return</span>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
 

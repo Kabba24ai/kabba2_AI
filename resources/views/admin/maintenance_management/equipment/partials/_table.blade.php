@@ -49,10 +49,11 @@
                             @endif
                         </td>
                         <td class="py-3 px-3">
-                            -
-                        </td>
-                        <td class="py-4 px-3">
-                            -
+                            @if(!empty($item->current_status_changed_at))
+                                {{ \App\Helpers\CustomHelper::formatDateTime($item->current_status_changed_at) }}
+                            @else
+                                -
+                            @endif
                         </td>
                         <td class="py-4 px-3">
                             -

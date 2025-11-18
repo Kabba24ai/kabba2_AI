@@ -16,6 +16,7 @@ class UpdateController extends Controller
 
         $equipment = Equipment::where('unique_id', $unique_id)->firstOrFail();
 
+
         $equipment->update($data);
 
         return redirect()

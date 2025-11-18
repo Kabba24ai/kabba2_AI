@@ -36,6 +36,8 @@ class SendTermsAndConditionsController extends Controller
                     $result = $twilio->sendSms($billingAddress, $message);
 
                     if ($result['success']) {
+                        $order->last_terms_sms_sent_at = now()->format('Y-m-d H:i:s');
+                        $order->save();
                         $response = response()->json(['success' => true, 'message' => 'Terms & Conditions message sent successfully.'], 200);
                     } else {
                         $response = response()->json(['success' => false, 'message' => 'Failed to send Terms & Conditions message: ' . ($result['message'] ?? 'Unknown error')], 500);

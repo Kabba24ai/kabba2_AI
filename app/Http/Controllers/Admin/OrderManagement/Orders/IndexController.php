@@ -22,10 +22,10 @@ class IndexController extends Controller
     {
         // Fetch orders from the database, most recent first
         $query = Order::query()
-            ->with('shippingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia' , 'products.returnSignatureMedia')
+            ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia' , 'products.returnSignatureMedia')
             ->when($request->filled('customer_name'), function ($q) use ($request) {
                 $name = trim($request->customer_name);
-                $q->whereHas('shippingAddress', function ($s) use ($name) {
+                $q->whereHas('billingAddress', function ($s) use ($name) {
                     $s->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$name}%"]);
                 });
             })
@@ -36,7 +36,7 @@ class IndexController extends Controller
             })
 
             ->when($request->filled('customer_phone'), function ($q) use ($request) {
-                $q->whereHas('shippingAddress', function ($s) use ($request) {
+                $q->whereHas('billingAddress', function ($s) use ($request) {
                     $s->where('phone', 'like', "%{$request->customer_phone}%");
                 });
             })

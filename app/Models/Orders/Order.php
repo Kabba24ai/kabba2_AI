@@ -46,8 +46,9 @@ class Order extends Model
         'accepted_terms_content', // Content of terms that were accepted
         'terms_accepted_at', // DateTime when terms were accepted
         'terms_status', // Accepted, Declined, Pending*, Exempt
+        'last_terms_sms_sent_at',
         'signature_image', // Base64 encoded image of signature
-        
+
         'receipt_status'
     ];
 

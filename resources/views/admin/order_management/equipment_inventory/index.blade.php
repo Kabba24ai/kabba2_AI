@@ -50,7 +50,7 @@
             <div class="w-full sm:w-48">
                 <select name="category"
                     class=" w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
-                    <option value="">All Category</option>
+                    <option value="">All Product Categories</option>
                     @foreach ($categories as $id => $title)
                         <option value="{{ $id }}" @selected(request('category') == $id)>
                             {{ $title }}

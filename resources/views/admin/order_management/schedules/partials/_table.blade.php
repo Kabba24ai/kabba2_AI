@@ -5,10 +5,12 @@
                 <th class="px-4 py-3 text-left">Product</th>
                 <th class="px-4 py-3 text-center">Order</th>
                 <th class="px-4 py-3 text-left">Customer</th>
-                <th class="px-4 py-3 text-left">Company</th>
+                <!-- <th class="px-4 py-3 text-left">Company</th> -->
                 <th class="px-4 py-3 text-left">Delivery Address</th>
                 <th class="px-4 py-3 text-left">Phone</th>
                 <th class="px-4 py-3 text-center">Equipment</th>
+                <th class="px-4 py-3 text-center">Equipment Id</th>
+
                 <th class="px-4 py-3 text-center">Location</th>
                 <th class="px-4 py-3 text-center">Delivery Date</th>
                 <th class="px-4 py-3 text-center">Return Date</th>
@@ -20,15 +22,54 @@
         <tbody class="divide-y">
             @forelse ($orderProducts as $orderProduct)
                 <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-left min-w-3xs max-w-3xs">{{ $orderProduct->product_name }}</td>
+                    <td class="px-4 py-3 text-left min-w-3xs max-w-3xs">
+                        {{ $orderProduct->product_name }}
+                 
+                               @if(optional(optional($orderProduct->equipment)->productcategory)->title)
+        <div class=" text-xs text-gray-500 mt-1  flex items-center gap-1">
+            <span>{{ $orderProduct->equipment->productcategory->title }}</span>
+        </div>
+    @endif
+                            
+                    </td>
                     <td class="px-4 py-3 text-center">
                         {!! $orderProduct->order->view_link !!}
                     </td>
-                    <td class="px-4 py-3 text-left">
-                        <div class="font-medium">{{ $orderProduct->order->customer_name }}</div>
-                        {{-- <div class="text-gray-500 text-xs">{{ $orderProduct->order->customer?->unique_id ?? '-' }}</div> --}}
-                    </td>
-                    <td class="px-4 py-3">
+                   <td class="px-4 py-3 text-left">
+
+    <div class="font-medium">
+        {{ $orderProduct->order->customer_name }}
+    </div>
+
+    @php
+        $customer = $orderProduct->order->customer;
+    @endphp
+
+    @if ($customer && $customer->company_name)
+        <div class="text-xs text-gray-500 mt-1 ">
+
+            @if (!empty($customer->company_website))
+                <!-- With website: underline + clickable -->
+                <a href="{{ $customer->company_website }}"
+                   target="_blank"
+                   class="underline ">
+                    {{ $customer->company_name }}
+                </a>
+
+            @else
+                <!-- No website: same style but not clickable -->
+                <span class="">
+                    {{ $customer->company_name }}
+                </span>
+            @endif
+
+        </div>
+    @endif
+
+</td>
+
+
+                    <!-- <td class="px-4 py-3">
                         {{ $orderProduct->order->customer->company_name }}
                         @if (!empty($orderProduct->order->customer->company_website))
                             <a href="{{ $orderProduct->order->customer->company_website }}" target="_blank">
@@ -38,7 +79,7 @@
                                 </div>
                             </a>
                         @endif
-                    </td>
+                    </td> -->
                     <td class="px-4 py-3 truncate min-w-xs max-w-xs">
                         {{ $orderProduct->order->shippingAddress->full_address }}</td>
                     <td class="px-4 py-3 text-left ">{{ $orderProduct->order->shippingAddress->phone }}</td>
@@ -50,6 +91,14 @@
                             {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
                         </button>
                     </td>
+                   <td class="px-4 py-3 text-center">
+    @if(!empty($orderProduct->equipment_details['equipment_id']))
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+            {{ $orderProduct->equipment_details['equipment_id'] }}
+        </span>
+    @endif
+</td>
+
                     <td class="px-4 py-3 text-center">
                         <div class="inline-flex items-center gap-1">
                             @if ($orderProduct?->equipment?->status_label == 'Rented' && $orderProduct?->equipment?->order?->customer?->unique_id)

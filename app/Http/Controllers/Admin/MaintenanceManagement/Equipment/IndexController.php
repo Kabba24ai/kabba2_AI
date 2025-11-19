@@ -50,6 +50,15 @@ class IndexController extends Controller
             }
         });
 
+        // Checklist Master filter
+        $query->when($request->location_store, function ($q, $locationstore) {
+            if ($locationstore === 'assigned') {
+                $q->whereNotNull('store_id');
+            } elseif ($locationstore === 'Pending') {
+                $q->whereNull('store_id');
+            }
+        });
+
         // status filter
         $query->when($request->status, function ($q, $status) {
             $q->where('current_status', $status);

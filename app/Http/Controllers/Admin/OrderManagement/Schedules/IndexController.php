@@ -23,7 +23,7 @@ class IndexController extends Controller
     {
 
         // Fetch real product-wise order data
-        $query = OrderProduct::query()->with('equipment', 'equipment.productcategory','order', 'order.customer', 'order.shippingAddress', 'order.lastPayment')->where('product_data->product_type', 'Rental')->whereNotNull('delivery_date');
+        $query = OrderProduct::query()->with('equipment', 'equipment.productcategory','order', 'order.customer' ,'product.categories', 'order.shippingAddress', 'order.lastPayment')->where('product_data->product_type', 'Rental')->whereNotNull('delivery_date');
 
         if ($request->filled('customer_name')) {
             $query->whereHas('order.shippingAddress', function ($q) use ($request) {
@@ -180,7 +180,7 @@ class IndexController extends Controller
         $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
 
 
-        // $all = $query->orderBy('delivery_date', 'asc')->get(); // keeps filters in pagination links
+        // $all = $query->orderBy('delivery_date', 'asc')->limit(2)->get(); // keeps filters in pagination links
 
 
         // dd($all);

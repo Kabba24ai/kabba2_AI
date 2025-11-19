@@ -154,8 +154,8 @@
     </a>
 
     @if ($order->latestReceipt && !empty($order->latestReceipt->mail_send_at))
-        <div class="text-xs text-gray-600 mt-1 ml-[2px]">
-            Last emailed:
+        <div class="text-xs text-gray-600 mt-1 ml-[2px] text-center">
+            
             {{ \App\Helpers\CustomHelper::formatDateTime($order->latestReceipt->mail_send_at) }}
          
         </div>

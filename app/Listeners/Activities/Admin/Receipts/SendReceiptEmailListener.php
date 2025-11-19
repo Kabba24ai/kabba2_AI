@@ -27,15 +27,13 @@ class SendReceiptEmailListener
 
         try {
 
-            $paid_stamp = base64_encode(file_get_contents(public_path('storage/admin/images/icons/paid.png')));
-
+           
 
             $pdf = Pdf::setOption(['isRemoteEnabled' => true])->loadView('admin.order_management.orders.print_receipt', [
                 'receipt'  => $receipt,
                 'order'    => $receipt->order,
                 'customer' => $customer,
                 'sales_tax' => config('settings.sales_tax'),
-                'paid_stamp' => $paid_stamp,
             ]);
 
             $pdfData = $pdf->output();

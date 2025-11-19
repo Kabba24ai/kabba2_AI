@@ -276,17 +276,7 @@
                         <td style="padding-top:5px;">
                             <div style="position:relative; width:100%; display:block;">
 
-                                <!-- Watermark Stamp -->
-                                @if(strtolower($receipt->payment_status) === 'paid')
-                                <img src="data:image/png;base64,{{ $paid_stamp }}"
-                                    style="
-                    position:absolute;
-                    top:-10px;
-                    left:60px;
-                    width:60px;
-                    opacity:1;
-                 ">
-                                @endif
+                                
 
                                 <!-- Text -->
                                 <div style="position:relative; font-weight:600; z-index:10;">

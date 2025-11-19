@@ -27,7 +27,7 @@ class SendReceiptEmailListener
 
         try {
 
-            $paid_stamp = base64_encode(file_get_contents(public_path('storage/admin/images/icons/paid.PNG')));
+            $paid_stamp = base64_encode(file_get_contents(public_path('storage/admin/images/icons/paid.png')));
 
 
             $pdf = Pdf::setOption(['isRemoteEnabled' => true])->loadView('admin.order_management.orders.print_receipt', [

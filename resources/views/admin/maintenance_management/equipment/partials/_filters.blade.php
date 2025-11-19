@@ -17,9 +17,9 @@
                 class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                 <option value="">Select Category</option>
                 @foreach ($categories as $id => $title)
-                    <option value="{{ $id }}" @selected(request('category') == $id)>
-                        {{ $title }}
-                    </option>
+                <option value="{{ $id }}" @selected(request('category')==$id)>
+                    {{ $title }}
+                </option>
                 @endforeach
             </select>
         </div>
@@ -28,10 +28,20 @@
             <select name="checklist_master"
                 class="choices-select w-full mt-2 rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                 <option value="">Checklist Master</option>
-                <option value="assigned" @selected(request('checklist_master') == 'assigned')>Assigned</option>
-                <option value="Pending" @selected(request('checklist_master') == 'Pending')>Pending</option>
+                <option value="assigned" @selected(request('checklist_master')=='assigned' )>Assigned</option>
+                <option value="Pending" @selected(request('checklist_master')=='Pending' )>Pending</option>
             </select>
         </div>
+
+        <div class="w-full sm:w-48">
+            <select name="location_store"
+                class="choices-select w-full mt-2 rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                <option value="">Location Master</option>
+                <option value="assigned" @selected(request('location_store')=='assigned' )>Assigned</option>
+                <option value="Pending" @selected(request('location_store')=='Pending' )>Pending</option>
+            </select>
+        </div>
+
 
 
         <div class="w-full sm:w-auto sm:ml-auto">
@@ -47,43 +57,43 @@
 </div>
 
 
-   {{-- Service Due --}}
-        {{-- <select name="serviceDue"
+{{-- Service Due --}}
+{{-- <select name="serviceDue"
             class="flex-1 min-w-[140px] px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
       <option value="">All Service</option>
       <option value="due-soon" {{ request('serviceDue') === 'due-soon' ? 'selected' : '' }}>Due Soon</option>
-      <option value="overdue" {{ request('serviceDue') === 'overdue' ? 'selected' : '' }}>Past Due</option>
-    </select> --}}
+<option value="overdue" {{ request('serviceDue') === 'overdue' ? 'selected' : '' }}>Past Due</option>
+</select> --}}
 
-        {{-- Rental Ready --}}
-        {{-- <select name="rentalReady"
+{{-- Rental Ready --}}
+{{-- <select name="rentalReady"
             class="flex-1 min-w-[160px] px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
       <option value="">All Rental Ready</option>
       <option value="assigned" {{ request('rentalReady') === 'assigned' ? 'selected' : '' }}>Rental Ready Assigned</option>
-      <option value="not-assigned" {{ request('rentalReady') === 'not-assigned' ? 'selected' : '' }}>No Rental Ready</option>
-    </select> --}}
+<option value="not-assigned" {{ request('rentalReady') === 'not-assigned' ? 'selected' : '' }}>No Rental Ready</option>
+</select> --}}
 
-        {{-- Equipment Service --}}
-        {{-- <select name="equipService"
+{{-- Equipment Service --}}
+{{-- <select name="equipService"
             class="flex-1 min-w-[160px] px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
       <option value="">All Equip. Service</option>
       <option value="assigned" {{ request('equipService') === 'assigned' ? 'selected' : '' }}>Service Assigned</option>
-      <option value="not-assigned" {{ request('equipService') === 'not-assigned' ? 'selected' : '' }}>No Service</option>
-    </select> --}}
+<option value="not-assigned" {{ request('equipService') === 'not-assigned' ? 'selected' : '' }}>No Service</option>
+</select> --}}
 
-        {{-- Clear button --}}
-        {{-- @if (request()->hasAny(['search', 'category', 'status', 'serviceDue', 'rentalReady', 'equipService']))
+{{-- Clear button --}}
+{{-- @if (request()->hasAny(['search', 'category', 'status', 'serviceDue', 'rentalReady', 'equipService']))
       <a href="{{ route('admin.maintenance-management.equipment.index') }}"
-         class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-3 text-gray-600 hover:text-gray-800">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        <span>Clear</span>
-      </a>
-    @endif --}}
+class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-3 text-gray-600 hover:text-gray-800">
+<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+</svg>
+<span>Clear</span>
+</a>
+@endif --}}
 
-        {{-- Filter button --}}
-        {{-- <button type="submit"
+{{-- Filter button --}}
+{{-- <button type="submit"
             class="flex-shrink-0 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg">
       Filter
     </button> --}}

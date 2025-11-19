@@ -25,7 +25,8 @@ class EditController extends Controller
             'products.checklistQuestions.returnSelectedAnswer',
             'products.checklistQuestions.latestAnswer',
             'products.deliverySignatureMedia' , 'products.returnSignatureMedia',
-            'products.checklistQuestions.latestValidAnswer'])->where('unique_id', $uniqueid)->firstOrFail();
+            'products.checklistQuestions.latestValidAnswer',
+            'latestReceipt'])->where('unique_id', $uniqueid)->firstOrFail();
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::orderBy('first_name')->get();

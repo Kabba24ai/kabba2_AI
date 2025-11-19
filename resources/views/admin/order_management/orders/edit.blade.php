@@ -140,20 +140,30 @@
 
 
 
-               
+
 
              <!-- Blade Links with Tailwind loader -->
-<a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
-   class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
-   <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
-   <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-   </svg>
-</a>
+<div class="flex flex-col">
+    <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
+       class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
+        <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
+        <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+    </a>
 
+    @if ($order->latestReceipt && !empty($order->latestReceipt->mail_send_at))
+        <div class="text-xs text-gray-600 mt-1 ml-[2px]">
+            Last emailed:
+            {{ \App\Helpers\CustomHelper::formatDateTime($order->latestReceipt->mail_send_at) }}
+         
+        </div>
+    @endif
+</div>
 
-<a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
+<div class="flex flex-col">
+    <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
    class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 receipt-action">
    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
    <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -161,6 +171,9 @@
      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
    </svg>
 </a>
+</div>
+
+
 
 
                 <button class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">

@@ -10,8 +10,11 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\EditController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\UpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\DeleteController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\FetchController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\FetchWithCatController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignChecklistMasterController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignStoreController;
+
+
 
 Route::prefix('equipment')
     ->name('equipment.')
@@ -31,6 +34,8 @@ Route::prefix('equipment')
         Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 
         Route::get('/fetch-equipment', FetchController::class)->name('fetch');
+        Route::get('/fetch-categorys-equipments', FetchWithCatController::class)->name('fetch-with-categorys');
+
 
         Route::post('/checklist-master-assign', AssignChecklistMasterController::class)->name('checklist-master-assign');
         Route::post('/store-assign', AssignStoreController::class)->name('store-assign');

@@ -232,4 +232,9 @@ class ProductCategory extends Model
         $allHierarchy = self::getHierarchy();
         return $allHierarchy[$this->id] ?? $this->title ?? 'No Category';
     }
+    public function equipments()
+{
+    return $this->hasMany(\App\Models\MaintenanceManagement\Equipment::class, 'product_category_id', 'id');
+}
+
 }

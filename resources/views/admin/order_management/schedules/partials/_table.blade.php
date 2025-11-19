@@ -26,9 +26,18 @@
                         {{ $orderProduct->product_name }}
                  
                                @if(optional(optional($orderProduct->equipment)->productcategory)->title)
-        <div class=" text-xs text-gray-500 mt-1  flex items-center gap-1">
-            <span>{{ $orderProduct->equipment->productcategory->title }}</span>
+       
+    @endif
+
+     @if ($orderProduct->product && $orderProduct->product->categories->count())
+        
+            @foreach ($orderProduct->product->categories as $category)
+             <div class=" text-xs text-gray-500 mt-1  flex items-center gap-1">
+            <span> {{ $category->title }}</span>
         </div>
+               
+            @endforeach
+       
     @endif
                             
                     </td>

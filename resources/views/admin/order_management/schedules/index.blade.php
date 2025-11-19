@@ -212,6 +212,16 @@
                             'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
                         ])->required() !!}
                 </div>
+
+                <div>
+    <label class="text-sm font-medium text-gray-700 required">Category</label>
+    <select id="category_select"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-700">
+        <option value="">Select Category</option>
+    </select>
+</div>
+
+
                 <div>
                     <label class="text-sm font-medium text-gray-700 required" for="equipment_unique_id">Equipment</label>
                     <select name="equipment_unique_id" id="equipment_unique_id"
@@ -392,10 +402,14 @@
             const modal = document.getElementById('equipmentAssignModal');
             const equipmentAssignModalTitle = document.getElementById('equipmentAssignModalTitle');
             const equipmentAssignForm = document.getElementById('equipmentAssignForm');
+            const categorySelect = document.getElementById('category_select');
             const equipmentSelect = document.getElementById('equipment_unique_id');
             const assignBtn = document.getElementById('equipment-assign-submit');
             const statusDisplayId = 'equipment-status-display';
             const equipmentPageLinkId = 'equipment-page-link';
+
+            let fullData = {}; // store categories + equipment
+
 
             // --- Event delegation for OPEN buttons (works after table refresh) ---
             document.addEventListener('click', function(e) {
@@ -448,6 +462,70 @@
                 // Disable assign button until a valid available option is chosen
                 if (assignBtn) assignBtn.disabled = true;
             }
+
+            categorySelect.addEventListener('change', function () {
+
+    const selectedCatId = Number(this.value);
+    equipmentSelect.innerHTML = '';
+
+    // Default option
+    equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
+
+    const category = fullData.find(c => c.id === selectedCatId);
+    if (!category) return;
+
+    const equipments = category.equipments;
+
+    // Group by status
+    const groups = {
+        available: [],
+        rented: [],
+        damaged: [],
+        maintenance: [],
+        other: []
+    };
+
+    equipments.forEach(equipment => {
+        const status = (equipment.current_status || '').toLowerCase();
+
+        if (status === 'available') groups.available.push(equipment);
+        else if (status === 'rented') groups.rented.push(equipment);
+        else if (status === 'damaged') groups.damaged.push(equipment);
+        else if (status === 'maintenance') groups.maintenance.push(equipment);
+        else groups.other.push(equipment);
+    });
+
+    // Helper to create optgroup
+    function appendGroup(label, list) {
+        if (list.length === 0) return;
+
+        const group = document.createElement('optgroup');
+        group.label = label;
+
+        list.forEach(equipment => {
+            const opt = document.createElement('option');
+            opt.value = equipment.unique_id;
+            opt.textContent = equipment.equipment_name;
+            opt.setAttribute('data-current-status', equipment.current_status || '');
+            opt.setAttribute('data-link', equipment.link || '');
+            opt.setAttribute('data-link-title', equipment.link_title || '');
+            group.appendChild(opt);
+        });
+
+        equipmentSelect.appendChild(group);
+    }
+
+    // Append in correct order
+    appendGroup('Available', groups.available);
+    appendGroup('Rented', groups.rented);
+    appendGroup('Damaged', groups.damaged);
+    appendGroup('Maintenance', groups.maintenance);
+    appendGroup('Other', groups.other);
+
+    updateEquipmentStatus();
+});
+
+
 
             // Update status and button
             function updateEquipmentStatus() {
@@ -558,28 +636,48 @@
 
             fetchEquipment();
             // Fetch equipment options
-            function fetchEquipment(){
-                apiFetch('{{ route('admin.maintenance-management.equipment.fetch') }}')
-                    .then(data => {
-                        if (data?.success) {
-                            equipmentSelect.innerHTML = '';
-                            const defaultOption = document.createElement('option');
-                            defaultOption.textContent = 'Select Equipment';
-                            defaultOption.disabled = true;
-                            defaultOption.selected = true;
-                            equipmentSelect.appendChild(defaultOption);
-                            data.equipments.forEach(equipment => {
-                                const option = document.createElement('option');
-                                option.value = equipment.unique_id;
-                                option.textContent = equipment.equipment_name;
-                                option.setAttribute('data-current-status', equipment.current_status || '');
-                                option.setAttribute('data-link', equipment.link || '');
-                                option.setAttribute('data-link-title', equipment.link_title || '');
-                                equipmentSelect.appendChild(option);
-                            });
-                        }
-                    });
-            };
+            // function fetchEquipment(){
+            //     apiFetch('{{ route('admin.maintenance-management.equipment.fetch') }}')
+            //         .then(data => {
+            //             if (data?.success) {
+            //                 equipmentSelect.innerHTML = '';
+            //                 const defaultOption = document.createElement('option');
+            //                 defaultOption.textContent = 'Select Equipment';
+            //                 defaultOption.disabled = true;
+            //                 defaultOption.selected = true;
+            //                 equipmentSelect.appendChild(defaultOption);
+            //                 data.equipments.forEach(equipment => {
+            //                     const option = document.createElement('option');
+            //                     option.value = equipment.unique_id;
+            //                     option.textContent = equipment.equipment_name;
+            //                     option.setAttribute('data-current-status', equipment.current_status || '');
+            //                     option.setAttribute('data-link', equipment.link || '');
+            //                     option.setAttribute('data-link-title', equipment.link_title || '');
+            //                     equipmentSelect.appendChild(option);
+            //                 });
+            //             }
+            //         });
+            // };
+
+//  Fetch equipment options with cat 
+            function fetchEquipment() {
+    apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categorys') }}')
+        .then(data => {
+            if (data?.success) {
+
+                fullData = data.categories;  // store
+
+                categorySelect.innerHTML = '<option value="">Select Category</option>';
+
+                data.categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.title;
+                    categorySelect.appendChild(option);
+                });
+            }
+        });
+}
 
         });
     </script>

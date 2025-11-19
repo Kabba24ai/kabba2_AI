@@ -49,6 +49,9 @@ class Customer extends Authenticatable
         'same_as_billing',
         'tags',
 
+        'password_reset_token',
+        'password_reset_token_expiry',
+
     ];
 
     protected $appends = [

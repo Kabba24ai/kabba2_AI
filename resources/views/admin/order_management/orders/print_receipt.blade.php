@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <title>Receipt - #{{ $receipt->order_id }}</title>
-
+<!--
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
-    </style>
+    </style> -->
 
 </head>
 
@@ -273,27 +273,34 @@
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding-top:20px;">
-                            <table role="presentation" style="width:100%; font-size:14px;">
-                                <tr>
-                                    <td align="left" style="font-weight:600;">
-                                        Payment Status: {{ ucfirst($receipt->payment_status) }}
-                                    </td>
-                                    <td align="right" style="font-weight:600;">
-                                        @if(strtolower($receipt->payment_status) === 'paid')
-                                        <img src="{{ public_path('storage/admin/images/icons/paid.webp') }}" alt="Paid" style="width:100px; height:100px;">
-                                        @endif
-                                    </td>
-                                </tr>
-                            </table>
+                        <td style="padding-top:5px;">
+                            <div style="position:relative; width:100%; display:block;">
+
+                                <!-- Watermark Stamp -->
+                                @if(strtolower($receipt->payment_status) === 'paid')
+                                <img src="data:image/png;base64,{{ $paid_stamp }}"
+                                    style="
+                    position:absolute;
+                    top:-10px;
+                    left:60px;
+                    width:60px;
+                    opacity:1;
+                 ">
+                                @endif
+
+                                <!-- Text -->
+                                <div style="position:relative; font-weight:600; z-index:10;">
+                                    Payment Status: {{ ucfirst($receipt->payment_status) }}
+                                </div>
+
+                            </div>
                         </td>
                     </tr>
 
 
-
                     <!-- Totals -->
                     <tr>
-                        <td style="padding-top:20px;">
+                        <td style="">
                             <table role="presentation" style="width:100%; font-size:14px;">
                                 <tr>
                                     <td align="left">Subtotal:</td>

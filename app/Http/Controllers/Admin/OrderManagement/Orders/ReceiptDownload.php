@@ -52,14 +52,16 @@ class ReceiptDownload extends Controller
         //  auto-create or get existing receipt
         $receipt = ReceiptService::getOrCreateReceipt($order);
 
+        $paid_stamp = base64_encode(file_get_contents(public_path('storage/admin/images/icons/paid.PNG')));
 
 
-        $pdf = Pdf::loadView('admin.order_management.orders.print_receipt', [
+        $pdf = Pdf::setOption(['isRemoteEnabled' => true])->loadView('admin.order_management.orders.print_receipt', [
             'customer' => $customer,
             'order'    => $order,
             'users'    => $users,
             'sales_tax' => $sales_tax,
             'receipt'  => $receipt,
+            'paid_stamp' => $paid_stamp,
         ]);
 
         return $pdf->stream("receipt-{$receipt->unique_id}.pdf");

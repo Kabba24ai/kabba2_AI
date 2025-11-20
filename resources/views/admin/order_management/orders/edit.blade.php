@@ -413,7 +413,7 @@
                           <p class="text-sm text-gray-500">
     Equipment:
     @if ($orderProduct->equipment)
-        {{ $orderProduct->equipment->equipment_name }} - {{ $orderProduct->equipment->equipment_id }}
+        {{ $orderProduct->equipment->equipment_name }} || {{ $orderProduct->equipment->equipment_id }}
     @else
         N/A
     @endif

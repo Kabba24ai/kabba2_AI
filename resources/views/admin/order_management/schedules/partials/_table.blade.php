@@ -22,7 +22,7 @@
         <tbody class="divide-y">
             @forelse ($orderProducts as $orderProduct)
                 <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-left min-w-3xs max-w-3xs">
+                   <td class="px-4 py-3 text-left min-w-3xs max-w-3xs">
     {{ $orderProduct->product_name }}
 
     @php
@@ -30,25 +30,22 @@
         $count = $categories->count();
     @endphp
 
-    {{-- If only 1 category → show simple text --}}
     @if ($count === 1)
         <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
             <span>{{ $categories->first()->title }}</span>
         </div>
 
-    {{-- If multiple categories → show tooltip --}}
     @elseif ($count > 1)
         <label class="whitespace-nowrap block text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">
             <span class="relative group">
 
                 <!-- Trigger -->
                 <span class="text-blue-400 hover:text-blue-500 text-xs flex items-center gap-1 cursor-pointer">
-                    <x-heroicon-o-information-circle class="w-4 h-4" />
                     Categories ({{ $count }})
                 </span>
 
-                <!-- Tooltip Panel -->
-                <div class="tooltip-panel">
+                <!-- NEW Custom Tooltip -->
+                <div class="custom-tooltip">
                     <strong>Categories:</strong>
                     <br><br>
 
@@ -59,9 +56,9 @@
 
             </span>
         </label>
-
     @endif
 </td>
+
 
                     <td class="px-4 py-3 text-center">
                         {!! $orderProduct->order->view_link !!}

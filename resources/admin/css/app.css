@@ -244,6 +244,19 @@ button:disabled,
   .tooltip-panel--center {
     @apply left-1/2 -translate-x-1/2 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2;
   }
+
+    /* NEW Custom Tooltip */
+  .custom-tooltip {
+    @apply absolute z-[9999]
+           hidden group-hover:block w-[244px] sm:w-[244px] 
+           bg-white dark:bg-gray-900
+           border border-gray-200 dark:border-gray-700
+           rounded-md shadow-xl p-3
+           text-xs text-gray-700 dark:text-gray-200
+           whitespace-normal break-words
+           /* POSITION ABOVE */
+           bottom-full mb-2 left-1/2 -translate-x-1/2;
+  }
 }
 
 @utility menu-item {

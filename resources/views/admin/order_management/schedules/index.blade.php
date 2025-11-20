@@ -539,11 +539,12 @@
     }
 
     // Append groups
-    appendGroup('Maint. Hold', groups.maintenance);
-appendGroup('Rented', groups.rented);
-appendGroup('Damaged', groups.damaged);
-appendGroup('Available', groups.available);
-appendGroup('Other', groups.other);
+    appendGroup('Available', groups.available);
+    appendGroup('Maint. Hold', groups.maintenance);    
+    appendGroup('Damaged', groups.damaged);
+
+    appendGroup('Rented', groups.rented);
+    appendGroup('Other', groups.other);
 
 
     updateEquipmentStatus();
@@ -749,15 +750,10 @@ function loadAllEquipments() {
         equipmentSelect.appendChild(group);
     }
 
-    // appendGroup('Available', groups.available);
-    // appendGroup('Rented', groups.rented);
-    // appendGroup('Damaged', groups.damaged);
-    // appendGroup('Maint. Hold', groups.maintenance);
-    // appendGroup('Other', groups.other);
+    appendGroup('Available', groups.available);
     appendGroup('Maint. Hold', groups.maintenance);
-appendGroup('Rented', groups.rented);
 appendGroup('Damaged', groups.damaged);
-appendGroup('Available', groups.available);
+appendGroup('Rented', groups.rented);
 appendGroup('Other', groups.other);
 
 

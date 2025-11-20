@@ -463,25 +463,48 @@
                 if (assignBtn) assignBtn.disabled = true;
             }
 
-            categorySelect.addEventListener('change', function () {
+           categorySelect.addEventListener('change', function () {
 
     const selectedCatId = Number(this.value);
-    equipmentSelect.innerHTML = '';
-
-    // Default option
     equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
 
-    const category = fullData.find(c => c.id === selectedCatId);
-    if (!category) return;
+    let equipments = [];
 
-    const equipments = category.equipments;
+    // If no category selected -> load ALL equipments
+    if (!selectedCatId) {
+        fullData.forEach(cat => {
+            if (Array.isArray(cat.equipments)) {
+                equipments = equipments.concat(cat.equipments);
+            }
+        });
+    } 
+    else {
+        // Only selected category
+        const category = fullData.find(c => c.id === selectedCatId);
+        if (!category) return;
+        equipments = category.equipments || [];
+    }
+
+      //  If category has NO equipment
+    if (equipments.length === 0) {
+        const opt = document.createElement('option');
+        opt.textContent = 'No equipments';
+        opt.disabled = true;
+        opt.selected = true;
+        equipmentSelect.appendChild(opt);
+
+        updateEquipmentStatus();
+        return;
+    }
 
     // Group by status
     const groups = {
-        available: [],
-        rented: [],
+         maintenance: [],
+          rented: [],
+       
+       
         damaged: [],
-        maintenance: [],
+        available: [],
         other: []
     };
 
@@ -515,15 +538,17 @@
         equipmentSelect.appendChild(group);
     }
 
-    // Append in correct order
-    appendGroup('Available', groups.available);
-    appendGroup('Rented', groups.rented);
-    appendGroup('Damaged', groups.damaged);
-    appendGroup('Maintenance', groups.maintenance);
-    appendGroup('Other', groups.other);
+    // Append groups
+    appendGroup('Maint. Hold', groups.maintenance);
+appendGroup('Rented', groups.rented);
+appendGroup('Damaged', groups.damaged);
+appendGroup('Available', groups.available);
+appendGroup('Other', groups.other);
+
 
     updateEquipmentStatus();
 });
+
 
 
 
@@ -558,6 +583,21 @@
                         statusColor = 'text-green-600';
                         isAvailable = true;
                         break;
+
+                          case 'rented':
+        statusText = 'Rented';
+        statusColor = 'text-gray-600';
+        isAvailable = false;
+
+        // SweetAlert message for rented items
+        window.showError(
+            "This item is currently Rented, so it cannot be assigned to this Order.",
+            "Rented "
+        );
+
+        break;
+
+
                     case 'damaged':
                         statusText = 'Not Available';
                         statusColor = 'text-red-600';
@@ -635,37 +675,14 @@
             });
 
             fetchEquipment();
-            // Fetch equipment options
-            // function fetchEquipment(){
-            //     apiFetch('{{ route('admin.maintenance-management.equipment.fetch') }}')
-            //         .then(data => {
-            //             if (data?.success) {
-            //                 equipmentSelect.innerHTML = '';
-            //                 const defaultOption = document.createElement('option');
-            //                 defaultOption.textContent = 'Select Equipment';
-            //                 defaultOption.disabled = true;
-            //                 defaultOption.selected = true;
-            //                 equipmentSelect.appendChild(defaultOption);
-            //                 data.equipments.forEach(equipment => {
-            //                     const option = document.createElement('option');
-            //                     option.value = equipment.unique_id;
-            //                     option.textContent = equipment.equipment_name;
-            //                     option.setAttribute('data-current-status', equipment.current_status || '');
-            //                     option.setAttribute('data-link', equipment.link || '');
-            //                     option.setAttribute('data-link-title', equipment.link_title || '');
-            //                     equipmentSelect.appendChild(option);
-            //                 });
-            //             }
-            //         });
-            // };
 
-//  Fetch equipment options with cat 
-            function fetchEquipment() {
+//  Fetch equipment options with cat
+           function fetchEquipment() {
     apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categorys') }}')
         .then(data => {
             if (data?.success) {
 
-                fullData = data.categories;  // store
+                fullData = data.categories; // store full categories
 
                 categorySelect.innerHTML = '<option value="">Select Category</option>';
 
@@ -675,9 +692,79 @@
                     option.textContent = cat.title;
                     categorySelect.appendChild(option);
                 });
+
+                //  Load all equipment immediately after data arrives
+                loadAllEquipments();
             }
         });
 }
+
+
+function loadAllEquipments() {
+    equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
+
+    let equipments = [];
+
+    fullData.forEach(cat => {
+        if (Array.isArray(cat.equipments)) {
+            equipments = equipments.concat(cat.equipments);
+        }
+    });
+
+    // Group by status
+    const groups = {
+        available: [],
+        rented: [],
+        damaged: [],
+        maintenance: [],
+        other: []
+    };
+
+    equipments.forEach(equipment => {
+        const status = (equipment.current_status || '').toLowerCase();
+
+        if (status === 'available') groups.available.push(equipment);
+        else if (status === 'rented') groups.rented.push(equipment);
+        else if (status === 'damaged') groups.damaged.push(equipment);
+        else if (status === 'maintenance') groups.maintenance.push(equipment);
+        else groups.other.push(equipment);
+    });
+
+    function appendGroup(label, list) {
+        if (list.length === 0) return;
+
+        const group = document.createElement('optgroup');
+        group.label = label;
+
+        list.forEach(equipment => {
+            const opt = document.createElement('option');
+            opt.value = equipment.unique_id;
+            opt.textContent = equipment.equipment_name;
+            opt.setAttribute('data-current-status', equipment.current_status || '');
+            opt.setAttribute('data-link', equipment.link || '');
+            opt.setAttribute('data-link-title', equipment.link_title || '');
+            group.appendChild(opt);
+        });
+
+        equipmentSelect.appendChild(group);
+    }
+
+    // appendGroup('Available', groups.available);
+    // appendGroup('Rented', groups.rented);
+    // appendGroup('Damaged', groups.damaged);
+    // appendGroup('Maint. Hold', groups.maintenance);
+    // appendGroup('Other', groups.other);
+    appendGroup('Maint. Hold', groups.maintenance);
+appendGroup('Rented', groups.rented);
+appendGroup('Damaged', groups.damaged);
+appendGroup('Available', groups.available);
+appendGroup('Other', groups.other);
+
+
+    updateEquipmentStatus();
+}
+
+
 
         });
     </script>

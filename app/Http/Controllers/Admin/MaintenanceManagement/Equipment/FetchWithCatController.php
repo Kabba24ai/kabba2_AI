@@ -11,7 +11,7 @@ class FetchWithCatController extends Controller
     public function __invoke()
         {
             $categories = ProductCategory::with(['equipments' => function ($q) {
-                $q->notRented()->orderBy('equipment_name');
+                $q->orderBy('equipment_name');
             }])
             ->orderBy('title')
             ->get()

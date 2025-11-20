@@ -12,15 +12,15 @@ class CreateController extends Controller
     {
         $categories = ['Bulldozers', 'Compressors', 'Excavators', 'Generators', 'Loaders', 'Supplies'];
 
-        $equipmentOptions = Equipment::select('id as id', 'equipment_name as name', 'category')
-            ->orderBy('category')
-            ->orderBy('equipment_name')
-            ->get()
-            ->toArray();
+        // $equipmentOptions = Equipment::select('id as id', 'equipment_name as name', 'category')
+        //     ->orderBy('category')
+        //     ->orderBy('equipment_name')
+        //     ->get()
+        //     ->toArray();
 
-       $suppliers = Supplier::orderBy('name')->pluck('name')->toArray();
+        $suppliers = Supplier::orderBy('name')->get(['unique_id', 'name']);
 
-        return view('admin.maintenance_management.parts.create', compact('categories', 'equipmentOptions', 'suppliers'));
+        return view('admin.maintenance_management.parts.create', compact('categories', 'suppliers'));
     }
 }
 

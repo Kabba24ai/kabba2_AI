@@ -16,8 +16,13 @@
 
         {{-- Flash + Error --}}
         @include('flash::message')
-        @include('admin.partials.formErrors')
-        {{ html()->form('POST', route('admin.product-management.options.create'))->attribute('autocomplete', 'off')->open() }}
+        {{ html()->form()->attributes([
+                'action' => route('admin.product-management.options.create'),
+                'method' => 'POST',
+                'autocomplete' => 'off',
+                'data-parsley-validate' => true,
+                'class' => 'space-y-8',
+            ])->open() }}
         @include('admin.product_management.options.partials._form')
 
         <div class="mt-6 flex justify-end gap-4">
@@ -34,15 +39,6 @@
                 <x-heroicon-o-plus class="w-4 h-4 ml-2" />
             </button>
 
-            <!-- Save & New Button -->
-            <button type="submit"
-                name="action"
-                value="save_and_new"
-                class="inline-flex items-center px-6 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-semibold shadow transition">
-                Save & New
-                <x-heroicon-o-plus class="w-4 h-4 ml-2" />
-            </button>
-
             <!-- Save & Exit Button -->
             <button type="submit"
                 name="action"
@@ -50,6 +46,15 @@
                 class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold shadow transition">
                 Save & Exit
                 <x-heroicon-o-arrow-right-on-rectangle class="w-4 h-4 ml-2" />
+            </button>
+
+            <!-- Save As New Button -->
+            <button type="submit"
+                name="action"
+                value="save_as_new"
+                class="inline-flex items-center px-6 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-semibold shadow transition">
+                Save As New
+                <x-heroicon-o-plus class="w-4 h-4 ml-2" />
             </button>
         </div>
         {{ html()->form()->close() }}

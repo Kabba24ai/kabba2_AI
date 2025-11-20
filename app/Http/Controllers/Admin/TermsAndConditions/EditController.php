@@ -21,8 +21,13 @@ class EditController extends Controller
     {
 		$terms = Terms::where('unique_id', $unique_id)->first();
 
+          // Check if this edit came from the GlobalTermsController
+        $isGlobalRedirect = $request->query('global', false);
+
+
 		return view('admin.terms_and_conditions.edit', [
             'terms' => $terms,
+             'isGlobalRedirect' => $isGlobalRedirect,
         ]);
     }
 }

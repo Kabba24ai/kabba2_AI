@@ -2,108 +2,206 @@
 
 namespace App\Models\MaintenanceManagement;
 
-use App\Helpers\ModelHelper;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Cviebrock\EloquentSluggable\Sluggable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Helpers\CustomHelper;
+
+// Helpers
+use App\Helpers\ModelHelper;
+
+// Equipments
+use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Enums\Equipments\EquipmentPowerSourceType;
+use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
+use App\Models\Orders\Order;
+use App\Models\ProductManagement\ProductCategory;
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
+use App\Models\Orders\OrderProduct;
+use App\Models\Stores\Store;
 
 class Equipment extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'equipments';
+    protected $table = 'equipment';
 
     protected $fillable = [
         'unique_id',
         'equipment_name',
-        'category',
+        'product_category_id',
         'equipment_id',
+        'equipment_hours',
+        'store_id',
+        'is_tracked', // 'Yes', 'No'
+        'overage_rate',
         'brand',
         'model',
         'model_year',
         'date_acquired',
-        'cost',
-        'ownership_type',
+        'purchase_cost',
+        'ownership_type', // owned, financed, leased
         'finance_company',
-        'term',
-        'rate',
+        'term_in_months',
+        'interest_rate',
         'monthly_payment',
-        'vin',
+        'vehicle_identification_number',
         'serial_number',
-        'plate',
+        'license_plate',
         'imei',
-        'rental_ready_checklist',
-        'equipment_service_list',
+        'power_source_type', // diesel, gas, batteries
+        'has_def', // Yes, No
+        'diesel_tank_capacity',
+        'def_tank_capacity',
+        'gas_tank_capacity',
+        'standard_battery_count',
+        'expanded_battery_count',
+        'checklist_master_id',
         'equipment_notes',
-        'status',
-        'tech_manager',
-        'location',
-        'service_interval',
-        'current_hours',
-        'last_service',
+        'current_status', // available, rented, maintenance, damaged
+        'current_status_changed_at',
+        'current_order_id',
+        'current_order_product_id',
+        'current_status_updated_by',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
-        'date_acquired' => 'date',
-        'last_service' => 'date',
-        'cost' => 'decimal:2',
-        'rate' => 'decimal:2',
-        'monthly_payment' => 'decimal:2',
-        'model_year' => 'integer',
-        'term' => 'integer',
-        'service_interval' => 'integer',
-        'current_hours' => 'integer',
+        'current_status' => EquipmentCurrentStatus::class,
+        'power_source_type' => EquipmentPowerSourceType::class,
     ];
+    protected $appends = ['status_label', 'category_name', 'last_inspection'];
 
-    public function getServiceStatusAttribute()
+    public static function boot()
     {
-        if (!$this->service_interval || !$this->current_hours) {
-            return ['status' => 'n/a', 'color' => 'text-gray-400'];
-        }
+        parent::boot();
+        self::creating(function ($model) {
+            $model->unique_id = ModelHelper::generateUniqueID($model, 'EQP');
+        });
+    }
 
-        $percentComplete = ($this->current_hours % $this->service_interval) / $this->service_interval;
+    // scopes
 
-        if ($percentComplete >= 1) {
-            return ['status' => 'overdue', 'color' => 'text-red-500'];
-        } elseif ($percentComplete >= 0.8) {
-            return ['status' => 'due-soon', 'color' => 'text-yellow-500'];
-        } else {
-            return ['status' => 'good', 'color' => 'text-green-500'];
+    public function scopeAvailable($query)
+    {
+        return $query->where('current_status', EquipmentCurrentStatus::Available);
+    }
+
+    public function scopeNotRented($query)
+    {
+        return $query->where('current_status', '!=', EquipmentCurrentStatus::Rented);
+    }
+
+    // relationships
+    public function store()
+    {
+        return $this->belongsTo(Store::class, 'store_id', 'id');
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'current_order_id', 'id');
+    }
+
+    public function orderProduct()
+    {
+        return $this->belongsTo(OrderProduct::class, 'current_order_product_id', 'id');
+    }
+
+
+    public function lastOrderProduct()
+    {
+        return $this->hasOne(OrderProduct::class, 'equipment_id')->latestOfMany('id');
+    }
+
+    public function productCategory()
+    {
+        return $this->belongsTo(ProductCategory::class, 'product_category_id', 'id');
+    }
+
+    public function getCategoryNameAttribute()
+    {
+        return $this->productCategory?->title ?? '';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->current_status?->label() ?? 'Unknown';
+    }
+    public function checklistMaster()
+    {
+        return $this->belongsTo(ChecklistMaster::class, 'checklist_master_id');
+    }
+
+    public function customerAdminTemplates()
+    {
+        return $this->hasOneThrough(
+            CustomerAdminTemplate::class, // related
+            ChecklistMaster::class,     // through
+            'id',                       // through.firstKey      -> checklist_masters.id
+            'id',                       // related.secondKey     -> customer_admin_templates.id
+            'checklist_master_id',      // parent.localKey       -> equipment.checklist_master_id
+            'customer_admin_template_id'// through.secondLocalKey-> checklist_masters.customer_admin_template_id
+        );
+
+    }
+
+    public function linkWithTitle()
+    {
+        switch ($this->current_status) {
+            case EquipmentCurrentStatus::Maintenance:
+                return [
+                    'link' => ($this?->unique_id) ? route('admin.checklist-management.equipment-management.show', $this?->unique_id) : '#',
+                    'title' => ($this?->unique_id) ? 'Go to Equipment Management' : ''
+                ];
+                break;
+            case EquipmentCurrentStatus::Damaged:
+                return [
+                    'link' => route('admin.checklist-management.equipment-management.index'),
+                    'title' => 'Go to Rental Ready'
+                ];
+                break;
+            default:
+                return [
+                    'link' => '#',
+                    'title' => ''
+                ];
+                break;
         }
     }
 
-    public function getStatusColorAttribute()
+    public function lastRentalReadyTemplate()
     {
-        $colors = [
-            'available' => 'bg-green-100 text-green-800 border-green-200',
-            'rented' => 'bg-blue-100 text-blue-800 border-blue-200',
-            'maintenance' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            'damaged' => 'bg-red-100 text-red-800 border-red-200'
-        ];
-
-        return $colors[$this->status] ?? 'bg-gray-100 text-gray-800 border-gray-200';
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')->latestOfMany('id');
     }
 
-    public function getTruncatedRentalReadyAttribute()
+
+    public function latestRentalReadyTemplate()
     {
-        if (!$this->rental_ready_checklist) {
-            return '-';
-        }
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
+            ->latest('inspection_date')
+            ->latest('inspection_time');
+    }
+
+    public function activeEquipmentRentalReadyTemplate()
+    {
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
+            ->latest('id');
+    }
+    public function statusUpdatedByUser()
+    {
+        return $this->belongsTo(\App\Models\Iam\Personnel\User::class, 'current_status_updated_by', 'id');
+    }
+    public function getLastInspectionAttribute(): string
+    {
+        $inspectionDateTime = $this->current_status_changed_at
+            ? \App\Helpers\CustomHelper::formatDateTime($this->current_status_changed_at)
+            : '-';
         
-        return strlen($this->rental_ready_checklist) > 16 
-            ? substr($this->rental_ready_checklist, 0, 16) . '...'
-            : $this->rental_ready_checklist;
-    }
-
-    public function getTruncatedServiceListAttribute()
-    {
-        if (!$this->equipment_service_list) {
-            return '-';
-        }
-        
-        return strlen($this->equipment_service_list) > 16 
-            ? substr($this->equipment_service_list, 0, 16) . '...'
-            : $this->equipment_service_list;
+        $updatedBy = $this->statusUpdatedByUser?->full_name ?? '-';
+        return trim("{$updatedBy} - {$inspectionDateTime}");
+        //return trim("  {$inspectionDateTime}");
     }
 }

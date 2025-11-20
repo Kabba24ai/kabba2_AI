@@ -8,10 +8,23 @@
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-950">
             @forelse($products as $product)
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                    <td class="px-6 py-4">
-                        <div class="font-medium text-gray-800 dark:text-gray-100">{{ $product->product_name }}</div>
+                    <td class="text-left px-6 py-4 text-gray-600 dark:text-gray-400">
+                        @if ($product->categories && $product->categories->count())
+                            {{ $product->categories->pluck('title')->join(', ') }}
+                        @else
+                            <span class="text-gray-400 italic">None</span>
+                        @endif
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="text-left px-6 py-4">
+                        <div class="font-medium text-gray-800 dark:text-gray-100">{{ $product->product_name }}</div>
+                        @if ($product->is_on_sale)
+                            <span
+                                class="ml-0 inline-block rounded bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 px-2 py-0.5 text-xs font-semibold align-middle">
+                                On Sale
+                            </span>
+                        @endif
+                    </td>
+                    <td class="text-left px-6 py-4">
                         <span
                             class="inline-block rounded-full text-xs px-2 py-1 font-semibold
                             {{ $product->product_type === 'Rental'
@@ -20,26 +33,22 @@
                             {{ $product->product_type }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($product->retail_price ?? $product->rental_daily) }}
+                    <td class="text-left px-6 py-4 text-gray-600 dark:text-gray-400">
+                        {{ \App\Helpers\CustomHelper::formatCurrency(
+                            $product->product_type === 'Retail' ? $product->getRetailPrice() : $product->getRentalPrice('daily'),
+                        ) }}
                     </td>
-                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($product->rental_weekend) }}
+                    <td class="text-left px-6 py-4 text-gray-600 dark:text-gray-400">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice('weekend')) }}
                     </td>
-                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($product->rental_weekly) }}
+                    <td class="text-left px-6 py-4 text-gray-600 dark:text-gray-400">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice('weekly')) }}
                     </td>
-                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($product->rental_monthly) }}
+                    <td class="text-left px-6 py-4 text-gray-600 dark:text-gray-400">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice('monthly')) }}
                     </td>
-                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        @if ($product->categories && $product->categories->count())
-                            {{ $product->categories->pluck('title')->join(', ') }}
-                        @else
-                            <span class="text-gray-400 italic">None</span>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4">
+
+                    <td class="text-center px-6 py-4">
                         <span
                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             @if ($product->status === 'Published') bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400
@@ -49,9 +58,9 @@
                             {{ $product->status }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-right space-x-2">
+                    <td class="text-right  px-6 py-4 space-x-2">
                         {{-- Edit Button --}}
-                        <a href="{{ route('admin.product-management.products.edit', $product->unique_id) }}"
+                        <a href="{{ route('admin.product-management.products.edit', $product->unique_id) }}" target="_blank"
                             class="inline-flex items-center justify-center rounded-md p-1.5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"
                             title="Edit">
                             <x-heroicon-o-pencil class="w-5 h-5" />

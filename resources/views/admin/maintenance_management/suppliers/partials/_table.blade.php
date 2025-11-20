@@ -1,127 +1,133 @@
   {{-- Suppliers Table --}}
-    <div class="px-6 py-6">
-        <div class="bg-white rounded-lg shadow">
-            <div class="overflow-x-auto">
-                <table class="w-full" id="suppliers-table-wrapper">
-                    <thead class="bg-gray-50 border-b border-gray-200" >
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Supplier
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Contact
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Products
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Parts
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <div id="suppliers-loading" class="hidden"></div>
-                        
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($suppliers as $supplier)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4">
-                                    <div>
-                                        <div class="text-sm font-medium text-gray-900">{{ $supplier->name ?: 'Unnamed Supplier' }}</div>
-                                        <div class="text-sm text-gray-500 flex items-center gap-1">
-                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            </svg>
-                                            {{ $supplier->city }}{{ $supplier->city && $supplier->state ? ', ' : '' }}{{ $supplier->state }}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div>
-                                        <div class="text-sm text-gray-900 flex items-center gap-1">
-                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                            </svg>
-                                            {{ $supplier->sales_name ?: 'No contact' }}
-                                        </div>
-                                        @if($supplier->main_email)
-                                            <div class="text-sm text-gray-500 flex items-center gap-1">
-                                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                                </svg>
-                                                {{ $supplier->main_email }}
-                                            </div>
-                                        @endif
-                                        @if($supplier->main_phone)
-                                            <div class="text-sm text-gray-500 flex items-center gap-1">
-                                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                                                </svg>
-                                                {{ $supplier->main_phone }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-wrap gap-1">
-                                        {{-- Product categories would be displayed here based on parts relationships --}}
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-50 text-purple-600">
-                                            To be implemented
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-900">
-                                    <span class="flex items-center gap-1">
-                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                                        </svg>
-                                        {{ $supplier->parts_count }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-2">
-                                        <a href="{{ route('admin.maintenance-management.suppliers.edit', $supplier->unique_id) }}" 
-                                            class="p-1 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 rounded-lg transition-colors" 
-                                            title="Edit Part">
-                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                            </svg>
-                                        </a>
-                                        <form method="POST" action="{{ route('admin.maintenance-management.suppliers.delete', $supplier->unique_id) }}" 
-                                              class="inline" 
-                                              onsubmit="return confirm('Are you sure you want to delete this supplier?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="text-red-600 hover:text-red-900 p-1" 
-                                                    title="Delete">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                    No suppliers found.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            
-            {{-- Pagination --}}
-            @if($suppliers->hasPages())
-                <div class="px-6 py-4 border-t border-gray-200">
-                    {{ $suppliers->links() }}
-                </div>
-            @endif
-        </div>
-    </div>
+
+
+  <div id="supplier-table-wrapper" class="overflow-x-auto rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
+          <thead class="bg-gray-100 text-gray-600">
+              <tr>
+                  <th class="px-4 py-3 text-left font-semibold">Supplier</th>
+                  <th class="px-4 py-3 text-left font-semibold">Contact</th>
+                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Product Category</th>
+                  <th class="px-4 py-3 text-left font-semibold">Status</th>
+                  <th class="px-4 py-3 text-left font-semibold">Parts Category</th>
+                  <th class="px-4 py-3 text-left font-semibold">Parts</th>
+                  <th class="px-4 py-3 text-left font-semibold">Tags</th>
+                  <th class="px-4 py-3 text-left font-semibold">Actions</th>
+              </tr>
+          </thead>
+
+          <tbody class="bg-white divide-y divide-gray-200">
+
+              @forelse($suppliers as $supplier)
+              <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                          <div class="flex-shrink-0 h-10 w-10">
+                              @if (optional($supplier->media)->getUrl())
+                              <img src="{{ $supplier->media->getUrl() }}" alt="{{ $supplier->name }}" class="h-10 w-10 rounded-full object-cover">
+                              @else
+
+                              <div class="h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-violet-600 flex items-center justify-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
+                                      <rect width="20" height="14" x="2" y="3" rx="2"></rect>
+                                      <line x1="8" x2="16" y1="21" y2="21"></line>
+                                      <line x1="12" x2="12" y1="17" y2="21"></line>
+                                  </svg>
+                              </div>
+
+                              @endif
+
+                          </div>
+                          <div class="ml-4">
+                              <div class="text-sm font-medium text-gray-900">{{ $supplier->name }}</div>
+
+                          </div>
+                      </div>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900 flex items-center">
+                          <x-heroicon-o-envelope class="w-4 h-4 mr-2 text-gray-400" />
+                          {{ $supplier->email ?? 'N/A'}}
+                      </div>
+                      <div class="text-sm text-gray-500 flex items-center mt-1">
+                          <x-heroicon-o-phone class="w-4 h-4 mr-2 text-gray-400" />
+                          {{ $supplier->phone ?? 'N/A'}}
+                      </div>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <!-- {{ $supplier->category->name ?? 'N/A' }} -->
+                          Accessories
+                      </span>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap">
+                      @php
+                      $statusColor = match(strtolower($supplier->status)) {
+                      'active' => 'bg-green-100 text-green-800 border-green-200',
+                      'inactive' => 'bg-red-100 text-red-800 border-red-200',
+                      default => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                      };
+                      @endphp
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border {{ $statusColor }}">
+                          <span class="capitalize">{{ $supplier->status }}</span>
+                      </span>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {{ $supplier->category->name ?? 'N/A' }}
+                      </span>
+                  </td>
+
+                  {{-- Categories --}}
+                  <td class="px-6 py-4 text-sm text-gray-900">
+                      <div class="flex flex-wrap gap-1">
+                          <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700 whitespace-nowrap">Engine Oil Filter</span>
+                          <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700 whitespace-nowrap">LED Display Panel</span>
+                      </div>
+                  </td>
+
+                  {{-- Tags --}}
+                  <td class="px-6 py-4 text-sm text-gray-900">
+                      <div class="flex flex-wrap gap-1">
+                          @foreach ($supplier->tag_objects as $tag)
+                          <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
+                              #{{ Str::slug($tag->name) }}
+                          </span>
+                          @endforeach
+                      </div>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex items-center space-x-2">
+                          <button class="text-blue-600 rounded transition-colors" title="View Details" onclick="viewSupplier({{ $supplier->id }})">
+                              <x-heroicon-o-eye class="w-5 h-5" />
+                          </button>
+                          <button class="text-green-600 rounded transition-colors" title="Edit" onclick="editSupplier({{ $supplier->id }})">
+                              <x-heroicon-o-pencil class="w-5 h-5" />
+                          </button>
+                          <button class="text-red-600 rounded transition-colors" title="Delete" onclick="deleteSupplier({{ $supplier->id }}, '{{ $supplier->name }}')">
+                              <x-heroicon-o-trash class="w-5 h-5" />
+                          </button>
+                      </div>
+                  </td>
+              </tr>
+              @empty
+              <tr>
+                  <td colspan="7" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+                      No Data found.
+                  </td>
+              </tr>
+              @endforelse
+
+
+
+
+          </tbody>
+
+      </table>
+
+  </div>

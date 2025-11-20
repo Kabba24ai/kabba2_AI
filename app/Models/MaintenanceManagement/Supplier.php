@@ -1,10 +1,14 @@
-<?php 
+<?php
 
 namespace App\Models\MaintenanceManagement;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Models\Locations\State;
+use App\Helpers\ModelHelper;
+use App\Models\Global\Media;
+
 
 class Supplier extends Model
 {
@@ -13,119 +17,116 @@ class Supplier extends Model
     protected $fillable = [
         'unique_id',
         'name',
-        'account_number',
-        'status',
-        'street_address',
-        'city',
-        'state',
-        'zip_code',
-        'tax_id',
-        'main_phone',
-        'main_email',
+        'email',
+        'phone',
         'website',
-        'sales_name',
-        'sales_phone',
-        'sales_cell',
-        'sales_email',
-        'inside_sales_name',
-        'inside_sales_phone',
-        'inside_sales_cell',
-        'inside_sales_email',
-        'technical_name',
-        'technical_phone',
-        'technical_cell',
-        'technical_email',
-        'parts_name',
-        'parts_phone',
-        'parts_cell',
-        'parts_email',
+        'address',
+        'city',
+        'state_id',
+        'zip_code',
+        'country',
+        'tax_id',
+        'supplier_category_id',
+        'status',
         'payment_terms',
-        'shipping_terms',
-        'notes',
+        'tags',
+        'primary_contact_name',
+        'primary_contact_email',
+        'primary_contact_phone',
+        'inside_sales_name',
+        'inside_sales_email',
+        'inside_sales_phone',
+        'technical_support_name',
+        'technical_support_email',
+        'technical_support_phone',
+
+        'company_logo_media_id',
     ];
 
-    protected static function boot()
+    public static function boot()
     {
         parent::boot();
-        
-        static::creating(function ($supplier) {
-            if (empty($supplier->unique_id)) {
-                $supplier->unique_id = Str::uuid();
-            }
+        self::creating(function ($model) {
+            $model->unique_id = ModelHelper::generateUniqueID($model, 'SUP');
         });
     }
 
-    public function getRouteKeyName()
+    /** ---------------------
+     *  RELATIONSHIPS
+     * --------------------- */
+
+    public function state()
     {
-        return 'unique_id';
+        return $this->belongsTo(State::class, 'state_id');
     }
 
-    // Relationship with Parts (assuming you have a parts table)
-    public function partsAsSupplier()
+    public function category()
     {
-        return $this->hasMany(Part::class, 'supplier', 'unique_id');
+        return $this->belongsTo(PartCategory::class, 'supplier_category_id');
     }
 
-    public function partsAsAlternative1()
+    public function media()
     {
-        return $this->hasMany(Part::class, 'supplier_alt_1', 'unique_id');
+        return $this->belongsTo(Media::class, 'company_logo_media_id', 'id');
     }
 
-    public function partsAsAlternative2()
+    public function getTagObjectsAttribute()
     {
-        return $this->hasMany(Part::class, 'supplier_alt_2', 'unique_id');
+        // If there are no tags, return an empty collection
+        if (empty($this->tags)) {
+            return collect();
+        }
+
+        // Convert the string to an array of IDs
+        $tagIds = array_filter(explode(',', $this->tags));
+
+        // Fetch tag models
+        return SupplierTag::whereIn('id', $tagIds)->get();
+    }
+    public function getLogoUrlAttribute()
+    {
+        return $this->media ? $this->media->file_url : null;
     }
 
-    // Get all parts where this supplier is involved
-    public function allParts()
-    {
-        return Part::where('supplier', $this->unique_id)
-                  ->orWhere('supplier_alt_1', $this->unique_id)
-                  ->orWhere('supplier_alt_2', $this->unique_id);
-    }
 
-    // Get parts count
-    public function getPartsCountAttribute()
-    {
-        return $this->allParts()->count();
-    }
+    /** ---------------------
+     *  ACCESSORS
+     * --------------------- */
 
-    // Get product categories (derived from parts)
-    public function getProductCategoriesAttribute()
-    {
-        // This would be based on your parts categorization system
-        // For now, returning empty array - you can implement based on your parts structure
-        return [];
-    }
-
-    // Full address accessor
     public function getFullAddressAttribute()
     {
         $parts = array_filter([
-            $this->street_address,
+            $this->address,
             $this->city,
-            $this->state,
-            $this->zip_code
+            optional($this->state)->name,
+            $this->zip_code,
+            $this->country
         ]);
-        
+
         return implode(', ', $parts);
     }
 
-    // Search scope
+    public function getTagsArrayAttribute()
+    {
+        return $this->tags ? array_map('trim', explode(',', $this->tags)) : [];
+    }
+
+    /** ---------------------
+     *  SCOPES
+     * --------------------- */
+
     public function scopeSearch($query, $search)
     {
-        return $query->where(function($q) use ($search) {
+        return $query->where(function ($q) use ($search) {
             $q->where('name', 'like', "%{$search}%")
-              ->orWhere('main_email', 'like', "%{$search}%")
-              ->orWhere('sales_name', 'like', "%{$search}%")
-              ->orWhere('sales_email', 'like', "%{$search}%");
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('primary_contact_name', 'like', "%{$search}%")
+                ->orWhere('primary_contact_email', 'like', "%{$search}%");
         });
     }
 
-    // Status scope
     public function scopeActive($query)
     {
         return $query->where('status', 'Active');
     }
 }
-

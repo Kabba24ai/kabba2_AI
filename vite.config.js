@@ -1,17 +1,24 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
-import autoprefixer from 'autoprefixer';
+import 'dotenv/config'; // Loads .env automatically
 
 export default defineConfig(() => {
-    const hmrHost = process.env.VITE_HMR_HOST || 'kabba.local';
+    const hmrHost = process.env.FRONT_DOMAIN  || 'kabba.local';
+    const originProtocol = process.env.VITE_ORIGIN_PROTOCOL || 'https';
 
     return {
         server: {
+            https: process.env.VITE_SSL_KEY && process.env.VITE_SSL_CERT
+            ? {
+                key: process.env.VITE_SSL_KEY,
+                cert: process.env.VITE_SSL_CERT,
+            }
+            : false,
             host: '0.0.0.0',
             port: 8000,
             strictPort: true,
-            origin: `http://${hmrHost}:8000`,
+            origin: `${originProtocol}://${hmrHost}:8000`,
             cors: true,
             hmr: {
                 host: hmrHost,
@@ -22,6 +29,9 @@ export default defineConfig(() => {
             // },
         },
         build: {
+            rollupOptions: {
+                external: ['tinymce']
+            },
             sourcemap: false, // no source maps in production
             minify: "terser",
             terserOptions: {
@@ -39,20 +49,9 @@ export default defineConfig(() => {
         },
         optimizeDeps: {
             exclude: [
-                // exclude css or js should be list here
+                'tinymce'
             ],
-            include: [
-                'alpinejs',
-                'jquery',
-                '@alpinejs/persist',
-                'flowbite',
-                '@ckeditor/ckeditor5-build-classic',
-                'signature_pad',
-                'sortablejs',
-                '@fortawesome/fontawesome-free/js/all.js',
-                'air-datepicker',
-                'notyf'
-            ],
+
         },
         //logLevel: "info",
         plugins: [
@@ -70,13 +69,19 @@ export default defineConfig(() => {
                     // Admin entry points
                     'resources/admin/css/app.css',
                     'resources/admin/js/app.js',
+                    'resources/admin/js/tinymce.js',
 
                     // Front entry points
                     "resources/front/assets/css/app.css",
                     "resources/front/assets/js/app.js",
-                    "resources/front/assets/js/products/product-details-page.js"
+                    "resources/front/assets/js/products/product-details-page.js",
+
+                    //public
+                    "public/tinymce/skins/content/default/content.css"
+
+
                 ],
-                refresh: true,
+                refresh: ['resources/views/**/*.php',  'routes/**/*.php'],
             }),
         ],
     };

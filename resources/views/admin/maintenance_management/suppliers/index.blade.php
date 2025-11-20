@@ -3,150 +3,284 @@
 @section('title', 'Supplier Management')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    {{-- Header --}}
-    <div class="bg-white border-b border-gray-200">
-        <div class="px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <svg class="h-7 w-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                        </svg>
-                        Supplier Management
-                    </h1>
-                    <p class="text-gray-600 mt-1">Manage your supplier database and relationships</p>
-                </div>
-                <a href="{{ route('admin.maintenance-management.suppliers.create') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+
+{{-- Header --}}
+<div class=" border-b border-gray-200">
+    <div class="py-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+            <!-- Left Section -->
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <svg class="h-7 w-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Supplier
+                </h1>
+                <p class="text-gray-600 mt-1 text-sm sm:text-base">Manage your supplier database</p>
+            </div>
+
+
+            <!-- Right Buttons -->
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <!-- Manage Category -->
+                <!-- <a href="javascript:void(0)" onclick="openModal('CategoryModalWrapper')"
+                    class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                    </svg>
+                    Manage Category
+                </a> -->
+
+                <!-- Manage Tags -->
+                <a href="javascript:void(0)" onclick="openModal('TagModalWrapper')"
+                    class="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+                        <path d="M7 7h.01" />
+                    </svg>
+                    Manage Tags
+                </a>
+
+                <!-- Add Supplier -->
+                <a href="javascript:void(0)" onclick="openAddSupplierModal()"
+                    class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"></path>
+                        <path d="M12 5v14"></path>
                     </svg>
                     Add Supplier
                 </a>
             </div>
         </div>
     </div>
+</div>
 
-    {{-- Search --}}
-    <div class="px-6 py-4 bg-white border-b border-gray-200">
-        <form method="GET" action="{{ route('admin.maintenance-management.suppliers.index') }}" class="flex gap-4 items-end">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search Suppliers</label>
-                <div class="relative w-[300px]">
-                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <input
-                        type="text"
-                        name="search"
-                        value="{{ request('search') }}"
-                        placeholder="Search by name, contact, email..."
-                        class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                </div>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search Products</label>
-                <div class="relative w-[300px]">
-                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                    <input
-                        type="text"
-                        name="product_search"
-                        value="{{ request('product_search') }}"
-                        placeholder="Search by product type (e.g., bucket teeth)..."
-                        class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                </div>
-            </div>
+{{-- Search --}}
+<div class=" py-4 border-b border-gray-200 mb-6">
+    <form method="GET" action="{{ route('admin.maintenance-management.suppliers.index') }}" class="flex flex-wrap gap-4 items-end">
 
-            <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
-                Search
-            </button>
-            
-            @if(request()->hasAny(['search', 'product_search']))
-                <a href="{{ route('admin.maintenance-management.suppliers.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
-                    Clear
-                </a>
-            @endif
-        </form>
-    </div>
-
-    {{-- Stats --}}
-    <div class="px-6 py-4 bg-white border-b border-gray-200">
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div class="bg-purple-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-purple-600">{{ $suppliers->total() }}</div>
-                <div class="text-sm text-purple-600">Total Suppliers</div>
-            </div>
-            <div class="bg-green-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-green-600">{{ $stats['active_suppliers'] }}</div>
-                <div class="text-sm text-green-600">Active Suppliers</div>
-            </div>
-            <div class="bg-blue-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-blue-600">0</div>
-                <div class="text-sm text-blue-600">Product Types</div>
-            </div>
-            <div class="bg-orange-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-orange-600">{{ $stats['total_parts'] }}</div>
-                <div class="text-sm text-orange-600">Total Parts</div>
+        {{-- Name / Email --}}
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name / Email</label>
+            <div class="relative">
+                <input type="text" name="search_name_email" value="{{ request('search_name_email') }}"
+                    placeholder="Search by name or email..."
+                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
         </div>
-    </div>
 
-    @include('admin.maintenance_management.suppliers.partials._table')
+        {{-- Company --}}
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
+            <div class="relative">
+                <input type="text" name="company_search" value="{{ request('company_search') }}"
+                    placeholder="Search by company..."
+                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+            </div>
+        </div>
+
+        {{-- Tags --}}
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+            <div class="relative">
+                <input type="text" name="tags_search" value="{{ request('tags_search') }}"
+                    placeholder="Search tags..."
+                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+            </div>
+        </div>
+
+        {{-- Search by Part --}}
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Search by Part</label>
+            <div class="relative">
+                <input type="text" name="part_search" value="{{ request('part_search') }}"
+                    placeholder="Search by part..."
+                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+            </div>
+        </div>
+
+        {{-- Category Dropdown --}}
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Parts Category</label>
+            <select id="supplierCategory" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+
+        {{-- Status Dropdown --}}
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                <option value="">All</option>
+                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+
+            </select>
+        </div>
+
+        {{-- Buttons --}}
+        <div class="flex gap-2">
+
+            <a href="{{ route('admin.maintenance-management.suppliers.index') }}" class="text-sm text-gray-600 bg-white px-3 py-2 rounded-md border border-gray-300">
+                Clear All Filters
+            </a>
+
+        </div>
+    </form>
 </div>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    let searchInput = document.querySelector('input[name="search"]');
-    //let status = document.querySelector('select[name="status"]');
-    let productSearch = document.querySelector('input[name="product_search"]');
-    let loader = document.querySelector('#suppliers-loading');
-    let wrapper = document.querySelector('#suppliers-table-wrapper');
-    let timeout = null;
 
-    function fetchSuppliers() {
-        const search = searchInput.value;
-        const product_search = productSearch.value;
-
-        const params = new URLSearchParams();
-        if (search.length >= 3 || search.length === 0) params.append('search', search);
-        if (product_search) params.append('product_search', product_search);
-
-        // Show loader
-        loader.classList.remove('hidden');
-        wrapper.classList.add('opacity-50', 'pointer-events-none');
-
-        fetch("{{ route('admin.maintenance-management.suppliers.index') }}?" + params.toString(), {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-            .then(response => response.text())
-            .then(html => {
-                wrapper.innerHTML = html;
-            })
-            .catch(error => {
-                wrapper.innerHTML =
-                    '<div class="text-red-500 p-4">Something went wrong loading the data.</div>';
-                console.error('Error fetching parts:', error);
-            })
-            .finally(() => {
-                loader.classList.add('hidden');
-                wrapper.classList.remove('opacity-50', 'pointer-events-none');
-            });
-    }
+@include('flash::message')
+@include('admin.partials.formErrors')
 
 
-    // Debounce search input
-    searchInput.addEventListener('input', function() {
-        clearTimeout(timeout);
-        timeout = setTimeout(fetchSuppliers, 400); // Wait 400ms before firing
-    });
-    productSearch.addEventListener('change', fetchSuppliers);
-});
-</script>
+
+@include('admin.maintenance_management.suppliers.partials._table')
+
+
+@include('admin.maintenance_management.suppliers.partials._model_category')
+@include('admin.maintenance_management.suppliers.partials._model_tag')
+@include('admin.maintenance_management.suppliers.partials._model_add_supplier')
+@include('admin.maintenance_management.suppliers.partials._model_view_supplier')
 
 @endsection
+
+
+@push('js')
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // === Common Modal Functions ===
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('hidden');
+        }
+
+
+        // === Optional: Close when clicking outside modal content ===
+        window.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-wrapper')) {
+                e.target.classList.add('hidden');
+            }
+        });
+
+        // === Make globally accessible ===
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll(
+            'input[name="search_name_email"], input[name="company_search"], input[name="tags_search"], input[name="part_search"]'
+        );
+        const selects = document.querySelectorAll(
+            'select[name="category"], select[name="status"]'
+        );
+        const wrapper = document.querySelector('#supplier-table-wrapper');
+
+        let timeout = null;
+        const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+
+        // --- Global function to fetch suppliers ---
+        window.fetchSuppliers = function() {
+            const params = new URLSearchParams();
+            if (perPage) params.append('per_page', perPage);
+
+            // Append input values
+            inputs.forEach(input => {
+                if (input.value.length >= 1 || input.value.length === 0) {
+                    params.append(input.name, input.value);
+                }
+            });
+
+            // Append select values
+            selects.forEach(select => {
+                if (select.value) {
+                    params.append(select.name, select.value);
+                }
+            });
+
+            // Add loader effect
+            wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+            fetch(`{{ route('admin.maintenance-management.suppliers.index') }}?${params.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    wrapper.innerHTML = data.html;
+                })
+                .catch(err => {
+                    wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading suppliers.</div>';
+                    console.error(err);
+                })
+                .finally(() => {
+                    wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                });
+        };
+
+        // --- Input listeners with debounce ---
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    window.fetchSuppliers();
+                }, 400);
+            });
+        });
+
+        // --- Select listeners (instant filter) ---
+        selects.forEach(select => {
+            select.addEventListener('change', window.fetchSuppliers);
+        });
+
+        // --- Global delete supplier function ---
+        window.deleteSupplier = function(id, name) {
+            window.showConfirm(
+                `Are you sure you want to delete "${name}"?`,
+                'Delete Supplier'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    let deleteUrl = `{{ route('admin.maintenance-management.suppliers.delete', ['supplier' => ':id']) }}`;
+                    deleteUrl = deleteUrl.replace(':id', id);
+
+                    fetch(deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                notyf.success(data.message);
+                                window.fetchSuppliers(); // Refresh table after deletion
+                            } else {
+                                notyf.error(data.message || "Failed to delete supplier!");
+                            }
+                        })
+                        .catch(() => notyf.error("Error deleting supplier!"));
+                }
+            });
+        };
+    });
+</script>
+
+@endpush

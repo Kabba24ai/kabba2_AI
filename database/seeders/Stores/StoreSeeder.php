@@ -21,6 +21,7 @@ class StoreSeeder extends Seeder
                 'state_id'      => 43,
                 'city'       => 'Bon Aqua',
                 'is_primary' => 'Yes',
+                'country'    => 'USA',
             ],
             [
                 'store_name' => 'Charlotte',
@@ -30,6 +31,7 @@ class StoreSeeder extends Seeder
                 'state_id'      => 43,
                 'city'       => 'Charlotte',
                 'is_primary' => 'No',
+                'country'    => 'USA',
             ],
         ];
 

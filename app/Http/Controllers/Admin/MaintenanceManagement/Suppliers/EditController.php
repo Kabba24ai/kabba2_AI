@@ -7,9 +7,16 @@ use App\Models\MaintenanceManagement\Supplier;
 
 class EditController extends Controller
 {
-    public function __invoke(Supplier $unique_id)
+    public function __invoke($id)
     {
-        $supplier = $unique_id; // Laravel route model binding
-        return view('admin.maintenance_management.suppliers.edit', compact('supplier'));
+        $supplier = Supplier::with(['state', 'category', 'media'])->findOrFail($id);
+
+        // Load tag objects 
+        $supplier->tag_objects = $supplier->tag_objects ?? [];
+
+        return response()->json([
+            'status' => true,
+            'data' => $supplier,
+        ]);
     }
 }

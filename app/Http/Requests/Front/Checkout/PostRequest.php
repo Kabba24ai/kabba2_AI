@@ -33,44 +33,34 @@ class PostRequest extends FormRequest
         // Only run these for guests, not auth users with stored addresses
         $rules = [];
 
-        if (!auth()->check()) {
-            $rules = [
-                // Billing fields
-                'billingFirstName' => ['required', 'string', 'max:100'],
-                'billingLastName' => ['required', 'string', 'max:100'],
-                'billingCompany' => ['nullable', 'string', 'max:100'],
-                'billingEmail' => ['required', 'email', 'max:200'],
-                'billingPhone' => ['required', 'string', 'max:20'],
-                'billingAddress' => ['required', 'string', 'max:200'],
-                'billingState' => ['required', 'exists:states,id'],
-                'billingCity' => ['required', 'string', 'max:100'],
-                'billingZip' => ['required', 'string', 'max:8'],
+        $rules = [
+            // Billing fields
+            'billingFirstName' => ['required', 'string', 'max:100'],
+            'billingLastName' => ['required', 'string', 'max:100'],
+            'billingCompany' => ['nullable', 'string', 'max:100'],
+            'billingEmail' => ['required', 'email', 'max:200'],
+            'billingPhone' => ['required', 'string', 'max:20'],
+            'billingAddress' => ['required', 'string', 'max:200'],
+            'billingState' => ['required', 'exists:states,id'],
+            'billingCity' => ['required', 'string', 'max:100'],
+            'billingZip' => ['required', 'string', 'max:8'],
 
-                'showPassword' => ['nullable', 'in:Yes'],
-                'password' => ['nullable','required_if:showPassword,Yes', 'string', 'min:8', 'confirmed'],
-            ];
-        }
+            // 'showPassword' => ['nullable', 'in:Yes'],
+            // 'password' => ['nullable', 'required_if:showPassword,Yes', 'string', 'min:8', 'confirmed'],
+        ];
 
         // Delivery info
         $rules = array_merge($rules, [
-            'sameAsBilling' => ['nullable', 'in:Yes'],
-            'deliveryFirstName' => ['nullable', 'string', 'max:100'],
-            'deliveryLastName' => ['nullable', 'string', 'max:100'],
-            'deliveryEmail' => ['nullable', 'email', 'max:200'],
-            'deliveryPhone' => ['nullable', 'string', 'max:20'],
-            'deliveryAddress' => ['nullable', 'string', 'max:200'],
-            'deliveryState' => ['nullable', 'exists:states,id'],
-            'deliveryCity' => ['nullable', 'string', 'max:100'],
-            'deliveryZip' => ['nullable', 'string', 'max:8'],
-
-            // 'deliveryFirstName' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
-            // 'deliveryLastName' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
-            // 'deliveryEmail' => ['required_unless:sameAsBilling,Yes', 'email', 'max:200'],
-            // 'deliveryPhone' => ['required_unless:sameAsBilling,Yes', 'string', 'max:20'],
-            // 'deliveryAddress' => ['required_unless:sameAsBilling,Yes', 'string', 'max:200'],
-            // 'deliveryState' => ['required_unless:sameAsBilling,Yes', 'exists:states,id'],
-            // 'deliveryCity' => ['required_unless:sameAsBilling,Yes', 'string', 'max:100'],
-            // 'deliveryZip' => ['required_unless:sameAsBilling,Yes', 'string', 'max:8'],
+            'sameAsBilling' => ['nullable', 'in:Yes,No'],
+            // If not same as billing, require delivery fields
+            'deliveryFirstName' => ['nullable', 'required_unless:sameAsBilling,Yes', 'string', 'max:100'],
+            'deliveryLastName' => ['nullable', 'required_unless:sameAsBilling,Yes', 'string', 'max:100'],
+            'deliveryEmail' => ['nullable', 'required_unless:sameAsBilling,Yes', 'email', 'max:200'],
+            'deliveryPhone' => ['nullable', 'required_unless:sameAsBilling,Yes', 'string', 'max:20'],
+            'deliveryAddress' => ['nullable', 'required_unless:sameAsBilling,Yes', 'string', 'max:200'],
+            'deliveryState' => ['nullable', 'required_unless:sameAsBilling,Yes', 'exists:states,id'],
+            'deliveryCity' => ['nullable', 'required_unless:sameAsBilling,Yes', 'string', 'max:100'],
+            'deliveryZip' => ['nullable', 'required_unless:sameAsBilling,Yes', 'string', 'max:8'],
         ]);
 
         // Order notes (optional)
@@ -80,23 +70,74 @@ class PostRequest extends FormRequest
         $rules['taxExempt'] = ['nullable'];
 
         // cart
-        $rules['cart'] = ['nullable'];
+        $rules['cart'] = [
+            'required',
+            function ($attribute, $value, $fail) {
+                $cart = json_decode($value, true);
+                if (empty($cart) || !is_array($cart)) {
+                    $fail('Your cart is empty. Please add products before placing an order.');
+                }
+            },
+        ];
 
         // Payment
         $rules['payment'] = ['required', 'in:COD,Account,Card'];
 
         // If credit is selected, validate card fields
         if ($this->input('payment') === 'Card') {
-            $rules = array_merge($rules, [
-                'firstName' => ['required', 'string', 'max:50'],
-                'lastName' => ['required', 'string', 'max:50'],
-                'cardNumber' => ['required', 'digits_between:13,19'],
-                'expiry' => ['required', 'regex:/^(0[1-9]|1[0-2])\/?([0-9]{2})$/'],
-                'cvc' => ['required', 'digits_between:3,4'],
-            ]);
+            // If impersonated by admin: either customer_card OR card details
+
+            if (session()->has('impersonated_by_admin')) {
+                $rules['customer_card'] = ['nullable', 'required_without_all:firstName,lastName,cardNumber,expiry,cvc'];
+
+                $rules = array_merge($rules, [
+                    'firstName' => ['nullable', 'required_without:customer_card', 'string', 'max:50'],
+                    'lastName' => ['nullable', 'required_without:customer_card', 'string', 'max:50'],
+                    'cardNumber' => ['nullable', 'required_without:customer_card'],
+                    'expiry' => ['nullable', 'required_without:customer_card', 'regex:/^(0[1-9]|1[0-2])\/?([0-9]{2})$/'],
+                    'cvc' => ['nullable', 'required_without:customer_card', 'digits_between:3,4'],
+                    'opaqueDataValue' => ['nullable', 'string', 'max:255'],
+                    'opaqueDataDescriptor' => ['nullable', 'string', 'max:255'],
+                ]);
+
+            } else {
+                $rules = array_merge($rules, [
+                    'firstName' => ['required', 'string', 'max:50'],
+                    'lastName' => ['required', 'string', 'max:50'],
+                    'cardNumber' => ['required'],
+                    'expiry' => ['required', 'regex:/^(0[1-9]|1[0-2])\/?([0-9]{2})$/'],
+                    'cvc' => ['required', 'digits_between:3,4'],
+                    'opaqueDataValue' => ['nullable', 'string', 'max:255'],
+                    'opaqueDataDescriptor' => ['nullable', 'string', 'max:255'],
+                ]);
+            }
         }
 
+        if (session()->has('impersonated_by_admin') || session()->has('master_passcode')) {
+            $rules['employee_code'] = ['required', 'string', 'max:10', 'exists:users,employee_code'];
+        }else{
+            $rules['employee_code'] = ['nullable', 'string', 'max:10', 'exists:users,employee_code'];
+        }
         return $rules;
+    }
+
+    public function withValidator($validator)
+    {
+        if (auth('customer')->check()) {
+            $userEmail = auth('customer')->user()->email;
+
+            $validator->after(function ($validator) use ($userEmail) {
+                $billingEmail = $this->input('billingEmail');
+                $deliveryEmail = $this->input('deliveryEmail');
+
+                if ($billingEmail && $billingEmail !== $userEmail) {
+                    $validator->errors()->add('billingEmail', 'The billing email must match your account email.');
+                }
+                if ($deliveryEmail && $deliveryEmail !== $userEmail) {
+                    $validator->errors()->add('deliveryEmail', 'The delivery email must match your account email.');
+                }
+            });
+        }
     }
 
     public function messages()

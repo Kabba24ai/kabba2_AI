@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Question;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestion;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestionAnswer;
+use App\Http\Requests\Admin\ChecklistManagement\CustomerAdmin\Question\UpdateRequest;
+
+class UpdateController extends Controller
+{
+    /**
+     * Handle the incoming request.
+     */
+    public function __invoke(UpdateRequest $request, $id)
+    {
+        
+        $validated = $request->validated();
+
+        DB::beginTransaction();
+
+        try {
+            // Find existing question
+            $question = CustomerAdminQuestion::findOrFail($id);
+
+            // Update question fields
+            $question->update([
+                'question_name'          => $validated['question_name'],
+                'category_id'            => $validated['category_id'],
+                'question_delivery_text' => $validated['question_delivery_text'],
+                'question_return_text'   => $validated['question_return_text'],
+                'required_question'      => $validated['required_question'] ?? 0,
+            ]);
+
+            // Options is already an array (thanks to prepareForValidation in UpdateRequest)
+            $options = $validated['options'];
+
+            // Clear old answers
+            $question->answers()->delete();
+
+            // Re-insert answers
+            foreach ($options as $index => $option) {
+                $answer = CustomerAdminQuestionAnswer::create([
+                    'question_id'          => $question->id,
+                    'index_number'         => $index + 1,
+                    'answer_delivery_text' => $option['answer_delivery_text'] ?? null,
+                    'answer_return_text'   => $option['answer_return_text'] ?? null,
+                    'delivery_amt'         => $option['delivery_amt'] ?? null,
+                    'return_amt'           => $option['return_amt'] ?? null,
+                    'required'             => $option['required'] ?? false,
+                    'sync_texts'           => !empty($option['syncEnabled']) && $option['syncEnabled'] !== 'false' ? 1 : 0,
+                    'is_damaged' => $option['is_damaged'] ?? 0,
+                ]);
+
+                if (!$answer || !$answer->id) {
+                    throw new \Exception("Failed to create answer at index $index");
+                }
+            }
+
+            DB::commit();
+
+            flash('Question updated successfully.')->success();
+
+            session()->flash('active_tab', 'questions');
+            session()->flash('active_subtab', 'questions');
+
+            return redirect()->route('admin.checklist-management.customer-admin.index');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            //dd($e->getMessage());
+            //die();
+
+            flash('Something went wrong while updating the question.')->error();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['error' => 'An error occurred while updating the question.']);
+        }
+    }
+}

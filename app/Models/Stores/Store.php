@@ -16,18 +16,26 @@ class Store extends Model
         'phone',
         'email',
         'address',
+        'country', // USA
         'state_id',
         'city',
         'zip_code',
+        'latitude',
+        'longitude',
+        'details',
         'is_primary', // Yes, No*
         'status', // Active* , Inactive, Archive
         'created_by',
         'updated_by',
     ];
 
+    protected $appends = [
+        'full_address',
+    ];
+
     public function scopeOrderByAdmin($query)
     {
-        return $query->orderBy('title', 'asc');
+        return $query->orderBy('store_name', 'asc');
     }
 
     public function scopeActive($query)
@@ -35,11 +43,27 @@ class Store extends Model
         return $query->where('status', 'Active');
     }
 
-    public function state()
-{
-    return $this->belongsTo(\App\Models\Locations\State::class);
-}
+    public function scopePrimary($query)
+    {
+        return $query->where('is_primary', 'Yes');
+    }
 
+    public function state()
+    {
+        return $this->belongsTo(\App\Models\Locations\State::class);
+    }
+
+    public function getFullAddressAttribute()
+    {
+        $parts = [
+            $this->address,
+            $this->city,
+            optional($this->state)->name,
+            $this->zip_code
+        ];
+
+        return implode(', ', array_filter($parts));
+    }
 
     public static function boot()
     {
@@ -51,6 +75,24 @@ class Store extends Model
             if (auth()->check()) {
                 $model->created_by = auth()->id();
             }
+
         });
+
+        self::saving(function ($model) {
+            // Set updated_by
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+    }
+
+    public function hours()
+    {
+        return $this->hasMany(HoursOfOperation::class);
+    }
+
+    public function hoursOfOperation()
+    {
+        return $this->hasMany(HoursOfOperation::class);
     }
 }

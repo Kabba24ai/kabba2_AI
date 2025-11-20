@@ -17,8 +17,19 @@ class StoreController extends Controller
     {
         $validated = $request->validated();
 
-        DB::beginTransaction();
+        $baseName = $validated['name'];
+        $counter = 1;
+        $uniqueName = $baseName;
 
+        while (ProductOption::where('name', $uniqueName)->exists()) {
+            $uniqueName = "{$baseName} ({$counter})";
+            $counter++;
+        }
+
+        $validated['name'] = $uniqueName;
+
+        DB::beginTransaction();
+        $action = $request->input('action');
         try {
             // Create the product option (main record)
             $productOption = ProductOption::create([
@@ -50,9 +61,8 @@ class StoreController extends Controller
 
             flash('Product Option created successfully.')->success();
 
-            return match ($request->input('action')) {
+            return match ($action) {
                 'save' => redirect()->route('admin.product-management.options.edit', ['unique_id' => $productOption->unique_id]),
-                'save_new' => redirect()->route('admin.product-management.options.create'),
                 default => redirect()->route('admin.product-management.options.index'),
             };
         } catch (\Exception $e) {

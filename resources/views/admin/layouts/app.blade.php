@@ -14,6 +14,7 @@
 
     <!-- Core Css -->
     @vite(['resources/admin/css/app.css', 'resources/admin/js/app.js'])
+    <meta name="vite-app-css" content="{{ Vite::asset('resources/css/app.css') }}">
 
     @stack('css')
     <style>
@@ -23,19 +24,15 @@
     </style>
 </head>
 
-<body
-    x-data="{
-     page: 'blank',
-     'loaded': true,
-     'darkMode': false,
-     'stickyMenu': false,
-     'sidebarToggle': false,
-     'scrollTop': false
-    }"
-    x-init="darkMode = JSON.parse(localStorage.getItem('darkMode'));
-        $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
-        :class="{ 'dark bg-gray-900': darkMode === true }"
-    >
+<body x-data="{
+    page: 'blank',
+    'loaded': true,
+    'darkMode': false,
+    'stickyMenu': false,
+    'sidebarToggle': false,
+    'scrollTop': false
+}" x-init="darkMode = JSON.parse(localStorage.getItem('darkMode'));
+$watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))" :class="{ 'dark bg-gray-900': darkMode === true }">
 
     <!-- ===== Preloader Start ===== -->
     @include('admin.partials.preloader')
@@ -61,7 +58,8 @@
 
             <!-- ===== Main Content Start ===== -->
             <main>
-                <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+                {{-- //max-w-(--breakpoint-2xl) --}}
+                <div class="{{ $contentClass ?? '' }} mx-auto p-4 md:p-6">
                     <!-- Breadcrumb Start -->
                     {{-- <div x-data="{ pageName: `Blank Page` }">
                         @include('admin.partials.breadcrumb')
@@ -78,5 +76,12 @@
     </div>
     <!-- ===== Page Wrapper End ===== -->
     @stack('js')
+    <script>
+        window.Laravel = {
+            success: @json(session('success')),
+            error: @json(session('error'))
+        };
+    </script>
 </body>
+
 </html>

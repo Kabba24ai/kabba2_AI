@@ -39,6 +39,10 @@ class StoreController extends Controller
                 'status' => $validated['status'] ?? 'Pending',
                 'is_general_term_type' => $validated['is_general_term_type'] ?? false,
                 'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
+                'truck_fee_size_setting' => $validated['truck_fee_size_setting'] ?? null,
+                'track_insurance_size_setting' => $validated['track_insurance_size_setting'] ?? null,
+                'prepaid_cleaning_rate_setting' => $validated['prepaid_cleaning_rate_setting'] ?? null,
+                'prepaid_fuel_rate_setting' => $validated['prepaid_fuel_rate_setting'] ?? null,
             ];
 
             // Add fields based on product_type
@@ -57,21 +61,26 @@ class StoreController extends Controller
                     'rental_damage_waiver_weekend' => null,
                     'rental_damage_waiver_weekly' => null,
                     'rental_damage_waiver_monthly' => null,
+                    'rental_track_insurance_daily' => null,
+                    'rental_track_insurance_weekend' => null,
+                    'rental_track_insurance_weekly' => null,
+                    'rental_track_insurance_monthly' => null,
                     'rental_prepaid_cleaning' => null,
                     'rental_prepaid_fuel' => null,
-                    'rental_fuel_gallons' => null,
-                    'rental_fuel_type' => null,
-                    'rental_def_gallons' => null,
                     'standard_delivery_fee' => null,
                     'extended_delivery_fee' => null,
                     'in_store_pickup' => null,
                     'delivery_and_pickup' => null,
-                    'hour_tracking' => null,
-                    'hour_rate' => null,
+                    // 'hour_tracking' => null,
+                    // 'hour_rate' => null,
                     'sale_price_daily' => null,
                     'sale_price_weekend' => null,
                     'sale_price_weekly' => null,
                     'sale_price_monthly' => null,
+
+                    // is_default_funnel field
+                    'is_default_funnel' => false, // Rentals cannot be default funnel
+                    'has_high_demand_alert' => false,
                 ]);
             } elseif ($validated['product_type'] === 'Rental') {
                 $productData = array_merge($productData, [
@@ -85,19 +94,21 @@ class StoreController extends Controller
                     'rental_damage_waiver_weekly' => $validated['rental_damage_waiver_weekly'] ?? null,
                     'rental_damage_waiver_monthly' => $validated['rental_damage_waiver_monthly'] ?? null,
 
+                    'rental_track_insurance_daily' => $validated['rental_track_insurance_daily'] ?? null,
+                    'rental_track_insurance_weekend' => $validated['rental_track_insurance_weekend'] ?? null,
+                    'rental_track_insurance_weekly' => $validated['rental_track_insurance_weekly'] ?? null,
+                    'rental_track_insurance_monthly' => $validated['rental_track_insurance_monthly'] ?? null,
+
                     'rental_prepaid_cleaning' => $validated['rental_prepaid_cleaning'] ?? null,
                     'rental_prepaid_fuel' => $validated['rental_prepaid_fuel'] ?? null,
-                    'rental_fuel_gallons' => $validated['rental_fuel_gallons'] ?? null,
-                    'rental_fuel_type' => $validated['rental_fuel_type'] ?? null,
-                    'rental_def_gallons' => $validated['rental_def_gallons'] ?? null,
 
                     'standard_delivery_fee' => $validated['standard_delivery_fee'] ?? null,
                     'extended_delivery_fee' => $validated['extended_delivery_fee'] ?? null,
 
                     'in_store_pickup' => $validated['in_store_pickup'] ?? null,
-                    'delivery_and_pickup' => $validated['delivery_and_pickup'] ?? null,
-                    'hour_tracking' => $validated['hour_tracking'] ?? null,
-                    'hour_rate' => $validated['hour_rate'] ?? null,
+                    'delivery_and_pickup' => $validated['delivery_and_pickup'] ?? 'No',
+                    // 'hour_tracking' => $validated['hour_tracking'] ?? 'No',
+                    // 'hour_rate' => $validated['hour_rate'] ?? null,
 
                     'sale_price_daily' => $validated['sale_price_daily'] ?? null,
                     'sale_price_weekend' => $validated['sale_price_weekend'] ?? null,
@@ -108,6 +119,10 @@ class StoreController extends Controller
                     'retail_price' => null,
                     'retail_sale_price' => null,
                     'retail_product_cost' => null,
+
+                    // is_default_funnel field
+                    'is_default_funnel' => $validated['is_default_funnel'] ?? false,
+                    'has_high_demand_alert' => $validated['has_high_demand_alert'] ?? false,
                 ]);
             }
 
@@ -125,6 +140,7 @@ class StoreController extends Controller
             // ✅ Upload & associate hover image (single)
             if ($request->hasFile('hover_image')) {
                 $mediaData = MediaHelper::uploadStorageFile('Public Asset', $request->file('hover_image'), 'products', $product);
+
                 if (!empty($mediaData['mediaObj'])) {
                     $product->media_id = $mediaData['mediaObj']->id;
                     $product->save();
@@ -133,11 +149,13 @@ class StoreController extends Controller
 
             // ✅ Upload & associate multiple main images to ProductMediaChild
             if ($request->hasFile('images')) {
+                $position = 1;
                 foreach ($request->file('images') as $image) {
                     $mediaData = MediaHelper::uploadStorageFile('Public Asset', $image, 'products', $product);
                     if (!empty($mediaData['mediaObj'])) {
                         ProductMediaChild::create([
                             'product_id' => $product->id,
+                            'sort_order' => $position++,
                             'media_id' => $mediaData['mediaObj']->id,
                         ]);
                     }
@@ -151,27 +169,58 @@ class StoreController extends Controller
             $product->options()->sync($validated['options'] ?? []);
 
             // Sync related products
-            $product->relatedProducts()->sync($validated['related_products'] ?? []);
+            if (isset($validated['related_products']) && is_array($validated['related_products'])) {
+                // Prepare sync data with sort order
+                $syncData = [];
+                foreach ($validated['related_products'] as $index => $productId) {
+                    $syncData[$productId] = ['sort_order' => $index + 1];
+                }
+                $product->relatedProducts()->sync($syncData);
+            } else {
+                $product->relatedProducts()->sync([]);
+            }
 
             DB::commit();
 
-            flash('Product created successfully.')->success();
-
-           return match ($request->input('action')) {
-                'save' => redirect()->route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
-                'save_new' => redirect()->route('admin.product-management.products.create'),
-                default => redirect()->route('admin.product-management.products.index'),
+            // Determine redirect target
+            $action = $request->input('action', 'save');
+            $redirectUrl = match ($action) {
+                'save'      => route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
+                'save_new'  => route('admin.product-management.products.create'),
+                default     => route('admin.product-management.products.index'),
             };
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product created successfully.',
+                'redirect_url' => $redirectUrl,
+                'action' => $action
+            ]);
+
+            // flash('Product created successfully.')->success();
+
+            // return match ($request->input('action')) {
+            //     'save' => redirect()->route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
+            //     'save_new' => redirect()->route('admin.product-management.products.create'),
+            //     default => redirect()->route('admin.product-management.products.index'),
+            // };
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
-            flash('something went wrong.')->error();
+            // Handle error for AJAX
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating the product.'
+            ], 500);
 
-            return redirect()
-                ->back()
-                ->withInput()
-                ->withErrors(['error' => 'An error occurred while saving the product.']);
+
+            // flash('something went wrong.')->error();
+
+            // return redirect()
+            //     ->back()
+            //     ->withInput()
+            //     ->withErrors(['error' => 'An error occurred while saving the product.']);
         }
     }
 }

@@ -8,6 +8,81 @@
 @import '../../../shared/css/choice.css';
 @import '../../../shared/css/notyf.css';
 
+/* Tailwind-friendly scoped defaults */
+@layer components {
+  /* Lists */
+  .rich-content :where(ul){ list-style: disc; padding-left: 2.25rem; margin:.5rem 0 .75rem; }
+  .rich-content :where(ol){ list-style: decimal; padding-left: 2.25rem; margin:.5rem 0 .75rem; }
+  .rich-content :where(li){ margin:.25rem 0; }
+
+   /* Headings (Tailwind CSS) */
+  .rich-content :where(h1){ @apply text-3xl font-bold my-4 mb-3; }
+  .rich-content :where(h2){ @apply text-2xl font-bold my-4 mb-3; }
+  .rich-content :where(h3){ @apply text-xl font-semibold my-3 mb-2; }
+  .rich-content :where(h4){ @apply text-lg font-semibold my-3 mb-2; }
+  .rich-content :where(h5){ @apply font-semibold my-2; }
+  .rich-content :where(h6){ @apply font-semibold uppercase tracking-wide my-2; }
+
+  /* Paragraphs */
+  .rich-content :where(p){ @apply leading-relaxed; }
+
+  /* Horizontal rule */
+  .rich-content :where(hr){ @apply my-6 border-t border-gray-300; }
+
+  /* Underline (handles <u>, TinyMCE span styles, and editor class) */
+  .rich-content :where(u, span[style*="text-decoration: underline"], .mce-underline){
+    text-decoration: underline;
+    text-underline-offset: 2px; /* nice visual spacing */
+    text-decoration-thickness: from-font;
+  }
+
+  /* Links */
+  .rich-content :where(a){ @apply underline text-blue-600 hover:text-blue-700; }
+  /* If Purify allows inline styles on <a>, this keeps underline even if TinyMCE toggles it via style */
+  .rich-content :where(a[style*="text-decoration: underline"]){ text-decoration: underline; }
+
+  /* Emphasis / strong */
+  .rich-content :where(b, strong){ @apply font-semibold; }
+  .rich-content :where(i, em){ @apply italic; }
+  .rich-content :where(s, del){ @apply line-through; }
+  .rich-content :where(ins){ text-decoration: underline; }
+  .rich-content :where(mark){ @apply bg-yellow-200; }
+
+  /* Superscript / subscript */
+  .rich-content :where(sup){ font-size: .75em; vertical-align: super; line-height: 0; }
+  .rich-content :where(sub){ font-size: .75em; vertical-align: sub;   line-height: 0; }
+
+  /* Code, pre, kbd */
+  .rich-content :where(code, kbd, samp){ @apply font-mono text-sm; }
+  .rich-content :where(code){ @apply bg-gray-100 rounded px-1 py-0.5; }
+  .rich-content :where(pre){
+    @apply bg-gray-100 rounded p-3 overflow-x-auto my-3;
+    /* ensure code inside pre doesn’t add extra background/padding */
+  }
+  .rich-content :where(pre > code){ background: transparent; padding: 0; }
+
+  /* Blockquotes */
+  .rich-content :where(blockquote){
+    @apply border-l-4 border-gray-300 pl-4 italic text-gray-700 my-4;
+  }
+
+  /* Images / figure */
+  .rich-content :where(img){ max-width: 100%; height: auto; display: block; }
+  .rich-content :where(figure){ @apply my-4; }
+  .rich-content :where(figcaption){ @apply text-center text-sm text-gray-500 mt-2; }
+
+  /* Tables */
+  .rich-content :where(table){ width:100%; border-collapse: collapse; }
+  .rich-content :where(caption){ @apply text-sm text-gray-600 mb-2; }
+  .rich-content :where(thead th){ @apply bg-gray-50; }
+  .rich-content :where(th,td){ @apply border border-gray-300 p-2 text-left; }
+  .rich-content :where(tbody tr:nth-child(odd)){ @apply bg-gray-50; }
+
+  /* Optional: tidy nested lists */
+  .rich-content :where(ul ul, ol ol, ul ol, ol ul){ margin-top:.25rem; margin-bottom:.25rem; }
+}
+
+
 
 body {
     font-family: 'Rubik', sans-serif !important;
@@ -317,7 +392,7 @@ body {
 :root {
     --color: #231E41;
     --red: #ff0000;
-    --light: #f9fafc;
+    --light: #f3f3f3;
     --light-sky: #0dcaf0;
     --dark: #222;
     --gray: #fafafa;
@@ -560,7 +635,6 @@ body {
     font-size: 2rem;
     font-weight: bold;
     text-align: center;
-    margin-bottom: 40px;
 }
 
 .bg-gray-900.bg-opacity-50.dark\:bg-opacity-80.fixed.inset-0.z-40 {
@@ -606,7 +680,7 @@ body {
 }
 
 .banner {
-    height: 730px;
+    height: 430px;
 }
 
 .category-product {
@@ -614,13 +688,112 @@ body {
     height: auto;
 }
 
+.text-custom-blue {
+    color: #71bed7;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.dashboard-nav li:hover {
+    background-color: #F5C332;
+    color: #fff;
+}
+
+.dashboard-nav li.active {
+    background-color: #F5C332;
+    border: 1px solid #F5C332;
+    color: #fff;
+}
+
+.dash-sidebar {
+    box-shadow: 0px 0px 8px rgba(34, 34, 34, 0.14);
+    padding-bottom: 10px;
+}
+
+.address-box {
+    box-shadow: 0px 0px 8px rgba(34, 34, 34, 0.14);
+}
+
+.box-shadow {
+    box-shadow: 0px 0px 8px rgba(34, 34, 34, 0.14);
+}
+
+.section-padding {
+    padding-bottom: 50px;
+}
+
+.faq-title {
+    font-size: 30px;
+}
+
+.pt-100 {
+    padding-top: 100px;
+}
+input:-webkit-autfill {
+    box-shadow: 0px 0px 0px 1000px white inset !important;
+    -webkit-text-fill-color: #000 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+input:-webkit-autofill ~ label{
+    transform: scale(1.15) translateY(0rem) translateX(-0.625rem);
+}
+.mobile-d-none{display: none;}
+.required:after {
+    content: "*";
+    color: #fb2c36;
+    margin-left: .25rem;
+}
+.equipment-ren::before{
+  content: "";
+  height: 100px;
+  position: absolute;
+  top: -30px;
+  width: 100%;
+}
+.equipment-ren{
+    position: relative;
+}
+.menu-wrap:hover .mega { display: block; }
+.mega-col li:hover > .flyout { display: block; }
+
+header, nav { overflow: visible; }
+.submenu-top{
+    top: 50px;
+}
+.width-60{width: 60%;}
 /* ============== */
+@media screen and (min-width:2500px) and (max-width:2599px){
+    .width-60{width: 34%;}
+}
+@media screen and (min-width:2400px) and (max-width:2499px){
+    .width-60{width: 36%;}
+}
+@media screen and (min-width:2300px) and (max-width:2399px){
+    .width-60{width: 38%;}
+}
+@media screen and (min-width:2200px) and (max-width:2299px){
+    .width-60{width: 41%;}
+}
+@media screen and (min-width:2100px) and (max-width:2199px){
+    .width-60{width: 41%;}
+}
 
-
-@media screen and (min-width:1500px) {
+@media screen and (min-width:2000px) and (max-width:2099px){
+    .width-60{width: 43%;}
+}
+@media screen and (min-width:1900px) and (max-width:1999px){
+    .width-60{width: 45%;}
+}
+@media screen and (min-width:1800px) and (max-width:1899px){
+    .width-60{width: 48%;}
+}
+@media screen and (min-width:1500px) and (max-width:1700px) {
     .container {
         max-width: 1320px;
     }
+    .width-60{width: 60%;}
 }
 
 @media screen and (min-width:992px) and (max-width:1400px) {
@@ -650,6 +823,14 @@ body {
     .banner {
         height: 350px;
     }
+
+    .faq-title {
+        font-size: 26px;
+    }
+    .header-price{padding: 15px;}
+    .price-tag-box{margin-top: 10px;}
+    .h-card-height{height: 235px;}
+    .mobile-d-none{display: block;}
 }
 
 @media screen and (max-width:699px) {
@@ -681,10 +862,33 @@ body {
     .banner {
         height: 180px;
     }
+
+    .section-padding {
+        padding-bottom: 0px;
+    }
+
+    .faq-title {
+        font-size: 26px;
+    }
+    .header-price{padding: 15px;}
+    .price-tag-box{margin-top: 10px;}
+    .h-card-height{height: 235px;}
+    .mobile-d-none{display: block;}
 }
 
 @media screen and (min-width:280px) and (max-width:350px) {}
 
-.text-custom-blue {
-    color: #71bed7;
+
+.modal-scrollable {
+    height: calc(100% - 3rem);
+}
+
+.overflow-y-auto {
+    overflow-y: auto;
+}
+.mb-100{
+    margin-bottom: 100px;
+}
+.mt-100{
+    margin-top: 100px;
 }

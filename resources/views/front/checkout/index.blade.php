@@ -3,7 +3,6 @@
 @section('title', $title)
 
 @section('content')
-
     <!-- Page Title Section -->
     <section
         class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc]">
@@ -14,7 +13,7 @@
                         <h1 class="text-[28px] md:text-[34px] lg:text-[40px] tracking-[-2px] leading-[110%] font-bold">
                             {{ $title }}</h1>
                         <ul
-                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
+                            class="px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
@@ -29,47 +28,128 @@
     </section>
     <section class="lg:pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <div class="flex gap-x-2">
-                <div class="w-full md:w-2/3 border-r px-4 md:pr-8 pb-12">
-                    <!-- Billing Info -->
-                    <h2 class="text-2xl font-bold mb-1">Billing information</h2>
-                    @include('front.partials.message')
+            <div class="flex flex-col md:flex-row gap-2">
+                <div class="w-full md:w-1/2 md:border-r px-0 lg:px-4 md:pr-6 pb-12">
                     {{ html()->form()->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-4',
-                            'id'=> 'checkout-form'
+                            'id' => 'checkout-form',
                         ])->open() }}
                     @csrf
+
+                    <!-- Billing Info -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 mb-2 gap-3">
+                        <h2 class="text-2xl font-bold m-0">Billing information</h2>
+
+                        <!-- Inputs row -->
+                        <div class="flex items-center justify-between w-full sm:w-auto gap-3">
+                            <!-- Employee Code (left) -->
+                            <div class="flex flex-col">
+                                <label for="employeeCode" class="sr-only">Employee Code</label>
+                                <div class="w-40">
+                                    {{ html()->text('employee_code', old('employee_code'))->class([
+                                            'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
+                                            'input-error' => $errors->has('employee_code'),
+                                        ])->attributes([
+                                            'maxlength' => 20,
+                                            'data-parsley-maxlength' => 20,
+                                            'placeholder' => 'Employee Code',
+                                            'autocomplete' => 'off',
+                                            'id' => 'employee_code',
+                                        ]) }}
+
+                                    @error('employee_code')
+                                        <p class="mt-1 text-red-600 dark:text-red-400 text-xs">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Tax Exempt (right) -->
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="tax_exempt" value="0" />
+                                <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
+                                    class="accent-blue-500 h-5 w-5 sm:h-4 sm:w-4 align-middle"
+                                    {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
+                                <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <input type="hidden" name="cart" id="cart-input">
+                    @error('cart')
+                        <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
+                    @enderror
                     <!-- Address Selection -->
-                    @auth
+                    @auth('customer')
+                        @php
+                            // $addresses =
+                            //     auth('customer')->user()->addresses()->where('type', 'Billing')->get() ?? collect();
+                            // $primaryAddress = $addresses->firstWhere('is_primary', true);
+
+                            $primaryAddress = auth('customer')->user()->billingAddress;
+                            $companyName = auth('customer')->user()->company_name ?? null;
+                            $companyWebsite = auth('customer')->user()->company_website ?? null;
+                        @endphp
                         <div>
-                            <label for="selAddress" class="block text-sm font-medium text-gray-800 mb-1">
+                            {{-- <label for="selAddress" class="block text-sm font-medium text-gray-800 mt-3">
                                 Select available addresses:
                             </label>
-                            <select id="selAddress" name="selAddress"
-                                class="block w-full border border-gray-300 rounded-md py-2 px-3 text-gray-700 bg-white">
-                                <option>7080 MCADOO BRANCH ROAD, LYLES, Tennessee, 37098</option>
-                            </select>
-                            <div class="border-2 border-dashed border-green-600 rounded-md p-4 mt-4 relative bg-green-50/10">
-                                <h5 class="text-base font-bold">BEN LAMPLEY</h5>
-                                <p>7080 MCADOO BRANCH ROAD, LYLES, Tennessee, 37098</p>
-                                <p class="text-sm">Phone: (931) 996-9192</p>
-                                <p class="mt-2 text-sm">Email: BENLAMPLEY30@GMAIL.COM</p>
-                                <span class="text-green-600 font-medium text-xs absolute top-2 right-3">Default</span>
+                            <select id="selAddress" name="address_id"
+                                class="block w-full border border-gray-300 rounded-md py-2 px-3 text-gray-700 bg-white capitalize">
+                                <option disabled selected value="">Select Address...</option>
+                                <option value="new" class="font-bold">+ Add New Address</option>
+                                @foreach ($addresses as $addressItem)
+                                    <option value="{{ $addressItem->id }}" data-addressItem="{{ json_encode($addressItem) }}"
+                                        {{ old('selAddress') == $addressItem->id || (empty(old('selAddress')) && $addressItem->is_primary) ? 'selected' : '' }}>
+                                        {{ collect([$addressItem->address, $addressItem->city, $addressItem->state_name, $addressItem->zip_code])->filter()->join(', ') }}
+                                    </option>
+                                @endforeach
+                            </select> --}}
+                            <!-- Selected Address Preview -->
+                            <div id="selectedAddressPreview"
+                                class="border-2 border-dashed border-green-600 rounded-md p-4 mt-4 relative capitalize bg-green-50/10 {{ $primaryAddress ? '' : 'hidden' }}">
+                                <h5 class="text-base font-bold" id="addressName">
+                                    {{ $primaryAddress ? $primaryAddress->full_name : '' }}
+                                </h5>
+                                <p id="addressFull">
+                                    {{ $primaryAddress ? $primaryAddress->full_address : '' }}
+                                </p>
+                                <p class="text-sm" id="addressPhone">
+                                    {{ $primaryAddress ? 'Phone: ' . $primaryAddress->phone : '' }}
+                                </p>
+                                <p class="mt-2 text-sm" id="addressEmail">
+                                    {{ $primaryAddress ? 'Email: ' . $primaryAddress->email : '' }}
+                                </p>
+                                <span class="text-green-600 font-medium text-xs absolute top-2 right-3" id="addressDefault">
+                                    {{ $primaryAddress && $primaryAddress->is_primary ? 'Default' : '' }}
+                                </span>
                             </div>
                         </div>
                     @else
-                        <div class="mb-6 text-sm text-gray-600">
-                            Already have an account?
-                            <a href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline ml-1">Login</a>
+                        <div class="mb-6 text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <div class="flex items-center gap-x-2">
+                                <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create
+                                    Account</a>
+                                <span class="mx-1">|</span>
+                                <a href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To
+                                    Account</a>
+                            </div>
                         </div>
+                        @php
+                            $primaryAddress = null;
+                            $companyName = null;
+                            $companyWebsite = null;
+                        @endphp
+                    @endauth
+                    <!-- Tax Exempt -->
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div id="billingDiv" class="space-y-4 {{ $primaryAddress ? 'hidden' : '' }}">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 ">
                             <div>
                                 <label for="billingFirstName" class="block text-sm text-gray-600 mb-1">First Name</label>
-                                {{ html()->text('billingFirstName')->class([
+                                {{ html()->text('billingFirstName', old('billingFirstName', $primaryAddress ? $primaryAddress->first_name : null))->class([
                                         'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
                                         'input-error' => $errors->has('billingFirstName'),
                                     ])->attributes([
@@ -77,6 +157,7 @@
                                         'data-parsley-maxlength' => 240,
                                         'placeholder' => 'First Name',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingFirstName',
                                     ])->required() }}
                                 <span id="errorBillingFirstName"></span>
                                 @error('billingFirstName')
@@ -85,7 +166,7 @@
                             </div>
                             <div>
                                 <label for="billingLastName" class="block text-sm text-gray-600 mb-1">Last Name</label>
-                                {{ html()->text('billingLastName')->class([
+                                {{ html()->text('billingLastName', old('billingLastName', $primaryAddress ? $primaryAddress->last_name : null))->class([
                                         'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
                                         'input-error' => $errors->has('billingLastName'),
                                     ])->attributes([
@@ -93,6 +174,7 @@
                                         'data-parsley-maxlength' => 240,
                                         'placeholder' => 'Last Name',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingLastName',
                                     ])->required() }}
                                 <span id="errorBillingLastName"></span>
                                 @error('billingLastName')
@@ -102,13 +184,14 @@
                         </div>
                         <div>
                             <label for="billingCompany" class="block text-sm text-gray-600 mb-1">Company Name</label>
-                            {{ html()->text('billingCompany')->class(
+                            {{ html()->text('billingCompany', old('billingCompany', $companyName ? $companyName : null))->class(
                                     'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                 )->attributes([
                                     'maxlength' => 240,
                                     'data-parsley-maxlength' => 240,
                                     'placeholder' => 'Company Name',
                                     'autocomplete' => 'off',
+                                    'id' => 'billingCompany',
                                 ]) }}
                             @error('billingCompany')
                                 <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -117,40 +200,53 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <div>
                                 <label for="billingEmail" class="block text-sm text-gray-600 mb-1">Email</label>
-                                {{ html()->email('billingEmail')->class(
+                                {{ html()->email(
+                                        'billingEmail',
+                                        auth('customer')->check()
+                                            ? auth('customer')->user()->email
+                                            : old('billingEmail', $primaryAddress ? $primaryAddress->email : null),
+                                    )->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
-                                    )->attributes([
-                                        'maxlength' => 240,
-                                        'data-parsley-type' => 'email',
-                                        'placeholder' => 'Email',
-                                        'autocomplete' => 'off',
-                                    ])->required() }}
+                                    )->attributes(
+                                        array_merge(
+                                            [
+                                                'maxlength' => 240,
+                                                'data-parsley-type' => 'email',
+                                                'placeholder' => 'Email',
+                                                'autocomplete' => 'off',
+                                                'id' => 'billingEmail',
+                                            ],
+                                            auth('customer')->check() ? ['readonly' => 'readonly'] : [],
+                                        ),
+                                    )->required() }}
                                 @error('billingEmail')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
                                 <label for="billingPhone" class="block text-sm text-gray-600 mb-1">Phone</label>
-                                {{ html()->text('billingPhone')->class(
+                                {{ html()->text('billingPhone', old('billingPhone', $primaryAddress ? $primaryAddress->phone : null))->class(
                                         'masked-phone w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 240,
-                                        'placeholder' => 'Phone',
+                                        'placeholder' => '(xxx) xxx-xxxx',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingPhone',
                                     ])->required() }}
                                 @error('billingPhone')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
-                        <div>
+                        <div class="mb-2">
                             <label for="billingAddress" class="block text-sm text-gray-600 mb-1">Address</label>
-                            {{ html()->textarea('billingAddress')->class(
+                            {{ html()->textarea('billingAddress', old('billingAddress', $primaryAddress ? $primaryAddress->address : null))->class(
                                     'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                 )->attributes([
                                     'rows' => 2,
                                     'maxlength' => 500,
                                     'placeholder' => 'Address',
+                                    'id' => 'billingAddress',
                                 ])->required() }}
                             @error('billingAddress')
                                 <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -163,7 +259,8 @@
                                     class="w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none">
                                     <option disabled value="">Select State...</option>
                                     @foreach ($states as $id => $name)
-                                        <option value="{{ $id }}" @selected(old('billingState') == $id)>{{ $name }}
+                                        <option value="{{ $id }}" @selected(old('billingState', $primaryAddress ? $primaryAddress->state_id : null) == $id)>
+                                            {{ $name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -173,25 +270,28 @@
                             </div>
                             <div>
                                 <label for="billingCity" class="block text-sm text-gray-600 mb-1">City</label>
-                                {{ html()->text('billingCity')->class(
+                                {{ html()->text('billingCity', old('billingCity', $primaryAddress ? $primaryAddress->city : null))->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 50,
                                         'placeholder' => 'City',
                                         'autocomplete' => 'off',
+                                        'id' => 'billingCity',
                                     ])->required() }}
                                 @error('billingCity')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
-                                <label for="billingZip" class="block text-sm text-gray-600 mb-1">ZIp Code</label>
-                                {{ html()->text('billingZip')->class(
+                                <label for="billingZip" class="block text-sm text-gray-600 mb-1">Zip Code</label>
+                                {{ html()->number('billingZip', old('billingZip', $primaryAddress ? $primaryAddress->zip_code : null))->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 8,
                                         'placeholder' => 'Zip code',
                                         'autocomplete' => 'off',
+                                        'data-parsley-type' => 'number',
+                                        'id' => 'billingZip',
                                     ])->required() }}
                                 @error('billingZip')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -199,50 +299,54 @@
                             </div>
                         </div>
 
-                        <!-- Password section -->
-                        <div class="flex items-center gap-2 mt-2">
-                            <input id="showPassword" name="showPassword" type="checkbox" value="Yes" class="accent-blue-600 h-4 w-4" checked />
-                            <label for="showPassword" class="text-sm">Enter Your Custom Password</label>
-                        </div>
-                        <div id="passwordFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                            <div>
-                                <label for="password" class="block text-sm text-gray-600 mb-1">Password</label>
-                                <input type="password" name="password" placeholder="Password" autocomplete="new-password"
-                                    class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password') ? ' border-red-400' : '' }}" />
-                                @error('password')
-                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="password_confirmation" class="block text-sm text-gray-600 mb-1">Password
-                                    confirmation</label>
-                                <input type="password" name="password_confirmation" placeholder="Password confirmation"
-                                    autocomplete="new-password"
-                                    class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password_confirmation') ? ' border-red-400' : '' }}" />
-                                @error('password_confirmation')
-                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
+                        {{-- <!-- Password section -->
+                                            <div class="flex items-center gap-2 mt-2">
+                                                <input id="showPassword" name="showPassword" type="checkbox" value="Yes"
+                                                    class="accent-blue-600 h-4 w-4" checked />
+                                                <label for="showPassword" class="text-sm">Enter Your Custom Password</label>
+                                            </div>
+                                            <div id="passwordFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                                <div>
+                                                    <label for="password" class="block text-sm text-gray-600 mb-1">Password</label>
+                                                    <input type="password" name="password" placeholder="Password" autocomplete="new-password"
+                                                        class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password') ? ' border-red-400' : '' }}" />
+                                                    @error('password')
+                                                        <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                                <div>
+                                                    <label for="password_confirmation" class="block text-sm text-gray-600 mb-1">Password
+                                                        confirmation</label>
+                                                    <input type="password" name="password_confirmation" placeholder="Password confirmation"
+                                                        autocomplete="new-password"
+                                                        class="w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none{{ $errors->has('password_confirmation') ? ' border-red-400' : '' }}" />
+                                                    @error('password_confirmation')
+                                                        <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}
 
 
-                        <div class="text-xs text-gray-600 leading-relaxed mt-2">
-                            By providing your phone number and/or email, you agree to receive order information from
-                            us via text and/or email as well as other information pertaining to renting or buying
-                            equipment.
-                            <a href="#" class="text-blue-600 hover:underline ml-1">Learn More</a>
-                        </div>
-                    @endauth
-
+                        {{-- <div class="text-xs text-gray-600 leading-relaxed mt-2">
+                                                By providing your phone number and/or email, you agree to receive order information from
+                                                us via text and/or email as well as other information pertaining to renting or buying
+                                                equipment.
+                                                <a href="#" class="text-blue-600 hover:underline ml-1">Learn More</a>
+                                            </div> --}}
+                    </div>
 
                     <!-- Delivery Info -->
                     <h4 class="text-lg font-semibold">Delivery information</h4>
                     <div class="flex items-center gap-2 mb-4">
-                        <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4" value="Yes"
-                            name="sameAsBilling" checked />
+                        <input type="hidden" name="sameAsBilling" value="{{ old('sameAsBilling', 'Yes') }}">
+                        <input id="sameAsBilling" type="checkbox" class="accent-blue-500 h-4 w-4"
+                            {{ old('sameAsBilling', 'Yes') == 'Yes' ? 'checked' : '' }} />
                         <label for="sameAsBilling" class="text-sm">Same as billing information</label>
+                        @error('sameAsBilling')
+                            <span class="text-sm text-red-500 ml-2">{{ $message }}</span>
+                        @enderror
                     </div>
-                    <div id="deliveryDiv" class="space-y-4 hidden">
+                    <div id="deliveryDiv" class="space-y-4 {{ old('sameAsBilling', 'Yes') == 'Yes' ? 'hidden' : '' }}">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="deliveryFirstName" class="block text-sm text-gray-600 mb-1">First Name</label>
@@ -283,6 +387,8 @@
                                         'placeholder' => 'Email',
                                         'autocomplete' => 'off',
                                         'id' => 'deliveryEmail',
+                                    ])->attributes([
+                                        'readonly' => true,
                                     ]) }}
                                 @error('deliveryEmail')
                                     <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
@@ -294,7 +400,7 @@
                                         'masked-phone w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
                                             ($errors->has('deliveryPhone') ? ' border-red-400' : ''),
                                     )->attributes([
-                                        'placeholder' => 'Phone',
+                                        'placeholder' => '(xxx) xxx-xxxx',
                                         'autocomplete' => 'off',
                                         'id' => 'deliveryPhone',
                                     ]) }}
@@ -348,12 +454,13 @@
                             </div>
                             <div>
                                 <label for="deliveryZip" class="block text-sm text-gray-600 mb-1">Zip code</label>
-                                {{ html()->text('deliveryZip')->class(
+                                {{ html()->number('deliveryZip')->class(
                                         'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none' .
                                             ($errors->has('deliveryZip') ? ' border-red-400' : ''),
                                     )->attributes([
                                         'placeholder' => 'Zip Code',
                                         'autocomplete' => 'off',
+                                        'data-parsley-type' => 'number',
                                         'id' => 'deliveryZip',
                                     ]) }}
                                 @error('deliveryZip')
@@ -362,7 +469,6 @@
                             </div>
                         </div>
                     </div>
-
 
                     <!-- Order Notes -->
                     <div>
@@ -380,30 +486,40 @@
                         @enderror
                     </div>
 
-                    <!-- Tax Exempt -->
-                    <div class="flex items-center gap-2">
-                        <input id="taxExempt" type="checkbox" class="accent-blue-500 h-4 w-4" />
-                        <label for="taxExempt" class="text-sm">Tax Exempt</label>
-                    </div>
-
                     <!-- Payment Method -->
                     <div class="mx-auto" id="paymentForm">
                         <h4 class="text-lg font-semibold mb-3">Payment method</h4>
                         <div class="space-y-4">
 
                             <!-- Credit/Debit -->
-                            <div class="border-2 rounded-lg p-4 payment-option" data-value="Card">
+                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'Card') == 'Card' ? 'border-blue-500' : '' }}"
+                                data-value="Card">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="payment" value="Card" />
-                                    <span>Pay Using Credit or Debit</span>
+                                    <input type="radio" name="payment" value="Card"
+                                        {{ old('payment', 'Card') == 'Card' ? 'checked' : '' }} />
+                                    <span>Credit or Debit</span>
                                 </label>
 
-                                <div id="cardSection" class="block">
+                                <div id="cardSection"
+                                    class="{{ old('payment', 'Card') == 'Card' ? 'block' : 'hidden' }}">
+                                    @if (session()->has('impersonated_by_admin'))
+                                        <select name="customer_card" id="customer_card"
+                                            class="w-full max-w-sm rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none{{ $errors->has('card') ? ' border-red-400' : '' }}">
+                                            <option value="">New Card</option>
+                                            @foreach (auth('customer')->user()->cards as $card)
+                                                <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('customer_card')
+                                            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                        @enderror
+                                    @endif
                                     <!-- Card Visual -->
-                                    <div class="relative h-52 w-full max-w-md  mt-4 card-container">
+                                    <div class="relative h-card-height lg:h-52 w-full max-w-sm  mt-4 card-container">
                                         <!-- Card Front -->
                                         <div id="cardFront"
-                                            class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front">
+                                            class="absolute w-full h-full rounded-xl p-5 bg-gradient-to-r from-gray-300 to-gray-300 text-white shadow-lg transition-all duration-300 card-face card-front"
+                                            style="{{ old('payment', 'Card') == 'Card' ? '' : 'display:block' }}">
                                             <div
                                                 class="w-10 h-7 relative bg-gray-400 rounded mt-5 before:w-[70%] before:content-[''] before:h-[60%] before:bg-gray-300 before:top-[20%] before:rounded-r before:absolute">
                                             </div>
@@ -432,34 +548,136 @@
                                         </div>
                                     </div>
                                     <!-- Card Inputs -->
-                                    <div class="grid md:grid-cols-2 gap-4 mt-4">
-                                        <input type="text" placeholder="First name" id="firstName"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
-                                        <input type="text" placeholder="Last name" id="lastName"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
-                                        <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm md:col-span-2 focus:border-blue-500" />
-                                        <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
-                                        <input type="text" placeholder="CVC" maxlength="4" id="cvc"
-                                            class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500" />
+                                    <div class="grid md:grid-cols-2 gap-4 mt-4 max-w-sm">
+                                        <div class="md:col-span-1">
+                                            <input type="text" placeholder="First name" id="firstName"
+                                                name="firstName" value="{{ old('firstName') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('firstName')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="md:col-span-1">
+                                            <input type="text" placeholder="Last name" id="lastName" name="lastName"
+                                                value="{{ old('lastName') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('lastName')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <input type="text" placeholder="Card number" maxlength="19"
+                                                id="cardNumber" name="cardNumber" value="{{ old('cardNumber') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('cardNumber')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="md:col-span-1">
+                                            <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
+                                                name="expiry" value="{{ old('expiry') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('expiry')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="md:col-span-1">
+                                            <input type="text" placeholder="CVC" maxlength="4" id="cvc"
+                                                name="cvc" value="{{ old('cvc') }}"
+                                                class="border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 w-full" />
+                                            @error('cvc')
+                                                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <input type="hidden" name="opaqueDataValue" id="opaqueDataValue" />
+                                        <input type="hidden" name="opaqueDataDescriptor" id="opaqueDataDescriptor" />
                                     </div>
                                 </div>
                             </div>
                             <!-- Cash On Delivery -->
-                            <div class="border-2 rounded-lg p-4 payment-option" data-value="COD">
+                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'COD' ? 'border-blue-500' : '' }}"
+                                data-value="COD">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="payment" value="COD" checked />
-                                    <span>Cash on delivery (COD)</span>
+                                    <input type="radio" name="payment" value="COD"
+                                        {{ old('payment') == 'COD' ? 'checked' : '' }} />
+                                    <span>Cash on Delivery (COD)</span>
                                 </label>
+                                <p id="codNote"
+                                    class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">
+                                    COD Orders are not reserved / locked in until paid. If you want to lock in your order,
+                                    please pay using a credit card or call sales.
+                                </p>
                             </div>
                             <!-- Add Account -->
-                            <div class="border-2 rounded-lg p-4 payment-option" data-value="Account">
-                                <label class="inline-flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="payment" value="Account" />
-                                    <span>Add Account</span>
-                                </label>
-                            </div>
+
+                            @php
+                                $customer = auth('customer')->user();
+                            @endphp
+                            @if ($customer && $customer->credit_limit > 0 && $customer->is_credit_account == 1)
+                                @php
+                                    $days = $customer->days_since_last_payment;
+                                    $badge = $customer->payment_status_badge;
+                                @endphp
+
+                                @if ($badge === 'safe')
+                                    {{-- Green (1–30) --}}
+                                    <div class="flex items-center justify-between border-2 rounded-lg p-4 payment-option "
+                                        data-value="Account">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="payment" value="Account"
+                                                {{ old('payment') == 'Account' ? 'checked' : '' }} />
+                                            <span>Add to Account</span>
+                                            <p>*Account is Current & in good standing!</p>
+
+                                        </label>
+                                        <div class="bg-green-500 p-2 rounded-full inline-flex items-center justify-center">
+                                            <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />
+                                        </div>
+                                    </div>
+                                @elseif($badge === 'warning')
+                                    {{-- Dark Yellow (31–45) --}}
+                                    <div class="flex items-center justify-between border-2 rounded-lg p-4 payment-option "
+                                        data-value="Account">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="payment" value="Account"
+                                                {{ old('payment') == 'Account' ? 'checked' : '' }} />
+                                            <span>Add to Account</span>
+                                            <p>*Account has payments due - Management Approval Required</p>
+                                        </label>
+                                        <div
+                                            class="bg-yellow-700 p-2 rounded-full inline-flex items-center justify-center">
+                                            <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />
+                                        </div>
+                                    </div>
+                                @elseif($badge === 'danger')
+                                    {{-- Pink (46+) --}}
+                                    <div class="flex items-center justify-between border-2 rounded-lg p-4 payment-option "
+                                        data-value="Account">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="payment" value="Account"
+                                                {{ old('payment') == 'Account' ? 'checked' : '' }} />
+                                            <span>Add to Account</span>
+                                            <p>*Account is Past Due • Management Approval Required</p>
+                                        </label>
+                                        <div class="bg-pink-500 p-2 rounded-full inline-flex items-center justify-center">
+                                            <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />
+                                        </div>
+                                    </div>
+                                @elseif($badge === 'no-payment')
+                                    <div class="flex items-center justify-between border-2 rounded-lg p-4 payment-option "
+                                        data-value="Account">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="payment" value="Account"
+                                                {{ old('payment') == 'Account' ? 'checked' : '' }} />
+                                            <span>Add to Account</span>
+                                            <p>*Account is Current & in good standing!</p>
+                                        </label>
+                                        <div class="bg-green-500 p-2 rounded-full inline-flex items-center justify-center">
+                                            <x-heroicon-o-currency-dollar class="w-6 h-6 text-white" />
+                                        </div>
+                                    </div>
+                                @endif
+                            @endif
                         </div>
                     </div>
 
@@ -473,60 +691,36 @@
                             </svg>
                             Back
                         </a>
-                        <button type="submit"
-                            class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition">
-                            Checkout
+                        <button type="submit" id="checkoutBtn"
+                            class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
+                            <span id="checkoutBtnText">Checkout</span>
+                            <span id="checkoutBtnLoader" class="hidden">
+                                <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
+                            </span>
                         </button>
                     </div>
                     {{ html()->form()->close() }}
                 </div>
 
-                <div class="w-1/3 mt-10 pl-6">
+                <!-- Cart Summary -->
+                <div id="cartSummary" class="w-full md:w-1/2 mt:0 lg:mt-10 pl-0 lg:pl-6">
                     <div class="border-b pb-4 mb-6">
-                        <div class="flex">
-                            <div class="w-1/3">
-                                <div class="border rounded relative ">
-                                    <img src="{{ asset('storage/front/images/product-detail/skid-steer-daily.png') }}"
-                                        alt="image" class="w-24 p-1">
-                                    <span
-                                        class="bg-gray-400 w-[22px] h-[22px] text-white rounded-full absolute -top-2 -right-[8px] text-[14px] text-center font-bold">1</span>
-                                </div>
-                            </div>
-                            <div class=" ml-4 w-2/3">
-                                <h4 class="text-[14px] flex">
-                                    Skid Steer Open Cab - Daily
-                                    <span class="font-bold">$334.00</span>
-                                </h4>
-                                <h5 class="text-[13px]">Options Total:</h5>
-                                <ul class="flex flex-col">
-                                    <li class="flex justify-between leading-[16px]">
-                                        <span class="text-[12px] before:content-['-'] before:pr-1">Prepaid Fuel</span>
-                                        <span class="text-[12px] font-bold">+ $118.00</span>
-                                    </li>
-                                    <li class="flex justify-between leading-[16px]">
-                                        <span class="text-[12px] before:content-['-'] before:pr-1">Toothed Bucket</span>
-                                    </li>
-                                    <li class="flex justify-between leading-[16px]">
-                                        <span class="text-[12px] before:content-['-'] before:pr-1">Damage Waiver</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <h4 class="mt-3">Schedule Date: 05/14/2025 - 05/15/2025</h4>
+                        <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
+                        <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
                     </div>
                     <div class="border-b pb-6">
                         <ul class="flex flex-col">
                             <li class="flex justify-between mb-1">
                                 <span class="">Subtotal:</span>
-                                <span class=" font-bold">+ $452.00</span>
+                                <span class=" font-bold">$0.00</span>
                             </li>
                             <li class="flex justify-between mb-1">
                                 <span class="">Tax</span>
-                                <span class=" font-bold">+ $0.00</span>
+                                <span class=" font-bold">$0.00</span>
                             </li>
                             <li class="flex justify-between mb-1">
                                 <span class=" font-bold">Total</span>
-                                <span class=" font-bold">+ $452.00</span>
+                                <span class=" font-bold">$0.00</span>
                             </li>
                         </ul>
                     </div>
@@ -543,37 +737,227 @@
                 <h5 class="text-lg text-white">Enter Admin Code</h5>
                 <button onclick="cancelModal()" class="px-4 py-2 text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            {{ html()->form()->attributes([
+                    'autocomplete' => 'off',
+                    'data-parsley-validate' => true,
+                    'class' => 'space-y-4',
+                    'id' => 'taxForm',
+                ])->open() }}
+            @csrf
             <div class="p-6 py-4">
                 <span class="font-medium">Note: </span>
                 <p class="text-gray-700 mb-4 inline text-sm italic">Tax Exempt sales must be pre-approved with
                     documentation on file prior to placing the order. Call if you need assistance with placing an order with
                     Tax Exempt status.</p>
-                <form action="#">
-                    <input type="password" name="name" id="name"
-                        class="form-input mt-1 block w-full px-4 py-2 rounded-md border border-gray-300 shadow-sm "
-                        placeholder=" Admin Code" />
-                </form>
+                <input type="password" name="admin_code" id="admin_code"
+                    class="form-input mt-1 block w-full px-4 py-2 rounded-md border border-gray-300 shadow-sm"
+                    placeholder="Admin Code" required data-parsley-type="digits" data-parsley-minlength="6"
+                    data-parsley-required-message="Please enter the admin code"
+                    data-parsley-type-message="Admin code must be numeric"
+                    data-parsley-minlength-message="Admin code must be at least 6 digits" />
+
             </div>
 
             <div class="border-t p-6 py-4">
                 <div class="text-right flex flex-col md:flex-row whitespace-nowrap justify-end gap-3">
-                    <button onclick="cancelModal()"
+                    <button type="button" onclick="cancelModal()"
                         class="bg-gray-600 hover:bg-gray-700 text-white text-base font-medium rounded px-8 py-3 ">Cancel</button>
-                    <button onclick="confirmModal()"
-                        class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 ">Submit</button>
+                    <button type="submit" id="taxSubmitBtn"
+                        class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3">
+                        <span id="taxSubmitText">Submit</span>
+                        <span id="taxSubmitLoader" class="hidden">
+                            <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
+                        </span>
+                    </button>
                 </div>
             </div>
+            {{ html()->form()->close() }}
         </div>
     </div>
 @endsection
 
 @push('js')
+    @if ($paymentSetting['payment_test_mode'] ?? false)
+        <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js"></script>
+    @else
+        <script type="text/javascript" src="https://js.authorize.net/v1/Accept.js"></script>
+    @endif
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            document.getElementById('checkout-form').addEventListener('submit', function(e) {
-                let cart = localStorage.getItem('rental_cart');
-                document.getElementById('cart-input').value = cart; // pass as JSON string
+            const form = document.getElementById('checkout-form');
+            if (!form) return;
+
+            var checkoutBtn = document.getElementById('checkoutBtn');
+            var checkoutBtnText = document.getElementById('checkoutBtnText');
+            var checkoutBtnLoader = document.getElementById('checkoutBtnLoader');
+
+            function disableCheckoutButton() {
+                if (!checkoutBtn) return;
+                checkoutBtn.disabled = true;
+                checkoutBtnText.classList.add('hidden');
+                checkoutBtnLoader.classList.remove('hidden');
+            }
+
+            function enableCheckoutButton() {
+                if (!checkoutBtn) return;
+                checkoutBtn.disabled = false;
+                checkoutBtnText.classList.remove('hidden');
+                checkoutBtnLoader.classList.add('hidden');
+            }
+
+            form.addEventListener('submit', function(e) {
+
+                const employeeCode = document.getElementById('employee_code').value.trim();
+                const isRequired = '{{ session()->has('impersonated_by_admin') || session()->has('master_passcode') }}';
+                if(isRequired && !employeeCode) {
+                    notyf.error('Employee code is required.');
+                    e.preventDefault();
+                    return;
+                }
+
+                const parsleyForm = $(form).parsley();
+
+                const isFormValid = parsleyForm.validate({
+                    force: true
+                });
+                if (!isFormValid) {
+                    // Stop everything: do not show loader
+                    e.preventDefault();
+
+                    // Use custom helper method
+                    const parsleyErrors = Parsley.getHiddenFieldErrors(parsleyForm);
+                    if (parsleyErrors.length > 0) {
+                        parsleyErrors.forEach(error => notyf.error(error));
+                    }
+
+                    enableCheckoutButton();
+                    return;
+                }
+
+                // 1. Cart validation
+                let cart = window.CartStorage.getCart();
+                if (!cart || cart.length === 0) {
+                    e.preventDefault();
+                    notyf.error('Your cart is empty. Please add items before checking out.');
+                    return;
+                }
+                document.getElementById('cart-input').value = JSON.stringify(cart);
+
+                // 2. Only process credit card fields if "Card" payment is selected
+                const paymentType = document.querySelector('input[name="payment"]:checked');
+                if (paymentType && paymentType.value === 'Card') {
+
+                    // Get impersonation + saved card info (adapt selectors to your form)
+                    const impersonatedByAdmin = '{{ session('impersonated_by_admin') }}';
+                    const customerCard = document.getElementById('customer_card')?.value?.trim();
+
+                    // If impersonated and using a saved card → no need to tokenize new card
+                    if (impersonatedByAdmin && customerCard) {
+                        // Just submit directly (no Accept.js needed)
+                        disableCheckoutButton();
+                        form.submit();
+                        return;
+                    }
+
+                    e.preventDefault(); // Pause form submit until Accept.js finishes
+                    disableCheckoutButton();
+                    try {
+
+                        // Card fields
+                        const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                        const expiry = document.getElementById('expiry').value.trim();
+                        const cvc = document.getElementById('cvc').value.trim();
+
+                        // Basic validation
+                        function luhnCheck(num) {
+                            let arr = (num + '').split('').reverse().map(x => parseInt(x));
+                            let sum = arr.reduce((acc, val, idx) => {
+                                if (idx % 2) {
+                                    val *= 2;
+                                    if (val > 9) val -= 9;
+                                }
+                                return acc + val;
+                            }, 0);
+                            return sum % 10 === 0;
+                        }
+
+                        if (!/^\d{13,19}$/.test(cardNumber) || !luhnCheck(cardNumber)) {
+                            throw new Error('Invalid or missing card number.');
+                        }
+
+                        if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+                            throw new Error('Invalid or missing expiry date. Use MM/YY.');
+                        }
+                        const [mm, yy] = expiry.split('/');
+                        const now = new Date();
+                        const expiryYear = 2000 + parseInt(yy, 10);
+                        const expiryMonth = parseInt(mm, 10);
+
+                        if (
+                            expiryMonth < 1 || expiryMonth > 12 ||
+                            expiryYear < now.getFullYear() ||
+                            (expiryYear === now.getFullYear() && expiryMonth < (now.getMonth() + 1))
+                        ) {
+                            throw new Error('Card expiry is in the past.');
+                        }
+
+                        if (!/^\d{3,4}$/.test(cvc)) {
+                            throw new Error('Invalid or missing CVC code.');
+                        }
+
+                        // 3. If validation passes, use Accept.js to tokenize the card
+                        const [expMonth, expYearShort] = expiry.split('/');
+                        const expYear = '20' + expYearShort;
+
+                        // Fill in your actual config values here (best: pass from Blade using Laravel config)
+                        const authData = {
+                            clientKey: "{{ Crypt::decryptString($paymentSetting['payment_api_public_key']) ?? '' }}",
+                            apiLoginID: "{{ Crypt::decryptString($paymentSetting['payment_api_key']) ?? '' }} "
+                        };
+                        const cardData = {
+                            cardNumber: cardNumber,
+                            month: expMonth,
+                            year: expYear,
+                            cardCode: cvc
+                        };
+                        const secureData = {
+                            authData: authData,
+                            cardData: cardData
+                        };
+
+                        Accept.dispatchData(secureData, function(response) {
+                            if (response.messages.resultCode === "Error") {
+                                let errorMsg = response.messages.message.map(m => m.text).join(
+                                    ', ');
+                                notyf.error('Card Error: ' + errorMsg);
+                                enableCheckoutButton();
+                            } else {
+                                document.getElementById('opaqueDataValue').value = response
+                                    .opaqueData
+                                    .dataValue;
+                                document.getElementById('opaqueDataDescriptor').value = response
+                                    .opaqueData.dataDescriptor;
+                                form.submit(); // Now actually submit the form
+                            }
+                        });
+                    } catch (error) {
+                        notyf.error(error.message);
+                        enableCheckoutButton();
+                    }
+
+                    // Don't submit until Accept.js finishes
+                    return false;
+                } else {
+                    // For non-card payments: disable briefly
+                    disableCheckoutButton();
+
+                    // Restore button after 2 seconds (optional)
+                    setTimeout(() => {
+                        enableCheckoutButton();
+                    }, 2000);
+                }
             });
 
             // ================================
@@ -583,6 +967,7 @@
             const paymentOptions = document.querySelectorAll('.payment-option');
             const radioButtons = document.querySelectorAll('input[name="payment"]');
             const cardSection = document.getElementById('cardSection');
+            const codNote = document.getElementById('codNote');
 
             function updateHighlight() {
                 paymentOptions.forEach(opt => {
@@ -591,10 +976,13 @@
                 });
                 const checkedRadio = document.querySelector('input[name="payment"]:checked');
                 const selected = checkedRadio.value;
+
                 document.querySelector(`.payment-option[data-value="${selected}"]`).classList.add(
                     'border-blue-500');
                 // Show/hide card input section
                 cardSection.style.display = selected === 'Card' ? 'block' : 'none';
+                codNote.style.display = selected === 'COD' ? 'block' : 'none';
+
             }
             radioButtons.forEach(r => r.addEventListener('change', updateHighlight));
             updateHighlight();
@@ -661,67 +1049,182 @@
             // Sync "Same as Billing" for Delivery Info
             // ========================================
             const sameAsBilling = document.getElementById('sameAsBilling');
+            const hiddenSameAsBilling = document.querySelector('input[name="sameAsBilling"][type="hidden"]');
             const deliveryDiv = document.getElementById('deliveryDiv');
 
-            // Map billing fields to delivery fields
+            // Map billing fields to delivery fields (exclude deliveryEmail)
             const fields = [
                 ['billingFirstName', 'deliveryFirstName'],
                 ['billingLastName', 'deliveryLastName'],
-                ['billingEmail', 'deliveryEmail'],
+                // ['billingEmail', 'deliveryEmail'], // deliveryEmail should always match billingEmail, not editable
                 ['billingPhone', 'deliveryPhone'],
-                ['billingAddress', 'deliveryAddress'],
+                //['billingAddress', 'deliveryAddress'],
                 ['billingState', 'deliveryState'],
-                ['billingCity', 'deliveryCity'],
-                ['billingZip', 'deliveryZip'],
+                // ['billingCity', 'deliveryCity'],
+                // ['billingZip', 'deliveryZip'],
             ];
 
+            // Always keep deliveryEmail in sync with billingEmail
+            function syncDeliveryEmail() {
+                const billing = document.getElementById('billingEmail');
+                const delivery = document.getElementById('deliveryEmail');
+                if (billing && delivery) {
+                    delivery.value = billing.value;
+                }
+            }
+
+            // Define the sync function
             function syncDeliveryFields() {
                 fields.forEach(([billingId, deliveryId]) => {
                     const billing = document.getElementById(billingId);
                     const delivery = document.getElementById(deliveryId);
                     if (billing && delivery) {
-                        if (billing.tagName === 'SELECT') {
-                            delivery.value = billing.value;
-                        } else if (billing.tagName === 'TEXTAREA') {
-                            delivery.value = billing.value;
-                        } else {
-                            delivery.value = billing.value;
-                        }
+                        delivery.value = billing.value;
                     }
                 });
+                syncDeliveryEmail();
             }
+
+            // Handler references for easy removal
+            function addBillingListeners() {
+                fields.forEach(([billingId, _]) => {
+                    const billing = document.getElementById(billingId);
+                    if (billing) {
+                        billing.addEventListener('input', syncDeliveryFields);
+                        billing.addEventListener('change', syncDeliveryFields);
+                    }
+                });
+                // Always sync deliveryEmail with billingEmail
+                const billingEmail = document.getElementById('billingEmail');
+                if (billingEmail) {
+                    billingEmail.addEventListener('input', syncDeliveryEmail);
+                    billingEmail.addEventListener('change', syncDeliveryEmail);
+                }
+            }
+
+            function removeBillingListeners() {
+                fields.forEach(([billingId, _]) => {
+                    const billing = document.getElementById(billingId);
+                    if (billing) {
+                        billing.removeEventListener('input', syncDeliveryFields);
+                        billing.removeEventListener('change', syncDeliveryFields);
+                    }
+                });
+                // Remove deliveryEmail sync
+                const billingEmail = document.getElementById('billingEmail');
+                if (billingEmail) {
+                    billingEmail.removeEventListener('input', syncDeliveryEmail);
+                    billingEmail.removeEventListener('change', syncDeliveryEmail);
+                }
+            }
+
+            sameAsBilling.addEventListener('change', function() {
+                if (this.checked) {
+                    hiddenSameAsBilling.value = 'Yes';
+                    syncDeliveryFields(); // Sync immediately
+                    addBillingListeners(); // Start syncing on billing field changes
+                    deliveryDiv.classList.add('hidden'); // Hide delivery section
+                } else {
+                    hiddenSameAsBilling.value = 'No';
+                    removeBillingListeners(); // Stop syncing
+                    deliveryDiv.classList.remove('hidden'); // Show delivery section
+                    // Prefill delivery fields with billing values when showing delivery section
+                    syncDeliveryFields();
+                    // Still keep deliveryEmail in sync and readonly
+                    syncDeliveryEmail();
+                }
+            });
+
+            // On page load, always sync deliveryEmail and keep it readonly/disabled
+            syncDeliveryEmail();
+            const deliveryEmail = document.getElementById('deliveryEmail');
+            if (deliveryEmail) {
+                deliveryEmail.readOnly = true;
+                // deliveryEmail.disabled = true;
+            }
+
+            // Helper to fill billing fields from address object
+            function fillBillingFields(addr) {
+                if (!addr) return;
+                if (document.getElementById('billingFirstName')) document.getElementById('billingFirstName').value =
+                    addr.first_name || '';
+                if (document.getElementById('billingLastName')) document.getElementById('billingLastName').value =
+                    addr.last_name || '';
+                if (document.getElementById('billingCompany')) document.getElementById('billingCompany').value =
+                    addr.company || '';
+                // if (document.getElementById('billingEmail')) document.getElementById('billingEmail').value = addr.email || '';
+                if (document.getElementById('billingPhone')) document.getElementById('billingPhone').value = addr
+                    .phone || '';
+                if (document.getElementById('billingAddress')) document.getElementById('billingAddress').value =
+                    addr.address || '';
+                if (document.getElementById('billingState')) document.getElementById('billingState').value = addr
+                    .state_id || '';
+                if (document.getElementById('billingCity')) document.getElementById('billingCity').value = addr
+                    .city || '';
+                if (document.getElementById('billingZip')) document.getElementById('billingZip').value = addr
+                    .zip_code || '';
+            }
+
+            function updateAddressPreview() {
+                const sel = document.getElementById('selAddress');
+                const preview = document.getElementById('selectedAddressPreview');
+                const billingDiv = document.getElementById('billingDiv');
+                const selectedOption = sel ? sel.options[sel.selectedIndex] : null;
+
+
+                if (selectedOption) {
+                    if (selectedOption.value === 'new') {
+                        // Show billingDiv, hide preview, clear billing fields
+                        billingDiv.classList.remove('hidden');
+                        preview.classList.add('hidden');
+                        fillBillingFields({});
+                        return;
+                    }
+                    if (selectedOption.dataset.addressitem) {
+                        const addr = JSON.parse(selectedOption.dataset.addressitem);
+                        document.getElementById('addressName').textContent = (addr.full_name || '');
+                        document.getElementById('addressFull').textContent = [
+                            addr.addressItem,
+                            addr.city,
+                            addr.state_name,
+                            addr.zip_code
+                        ].filter(Boolean).join(', ');
+                        document.getElementById('addressPhone').textContent = 'Phone: ' + (addr.phone || '');
+                        document.getElementById('addressEmail').textContent = 'Email: ' + (addr.email || '');
+                        document.getElementById('addressDefault').textContent = addr.is_primary ? 'Default' : '';
+                        preview.classList.remove('hidden');
+                        billingDiv.classList.add('hidden');
+                        fillBillingFields(addr);
+                        return;
+                    }
+                }
+                // Default: hide preview, show billingDiv, clear billing fields
+                preview.classList.add('hidden');
+                billingDiv.classList.remove('hidden');
+                fillBillingFields({});
+            }
+
+            const sel = document.getElementById('selAddress');
+            if (sel) {
+                sel.addEventListener('change', updateAddressPreview);
+            }
+
 
             // ============================
             // Custom Password Show/Hide
             // ============================
-            sameAsBilling.addEventListener('change', function() {
-                if (this.checked) {
-                    syncDeliveryFields();
-                    deliveryDiv.classList.add('hidden');
-                    // Listen for changes in billing to update delivery fields
-                    fields.forEach(([billingId, deliveryId]) => {
-                        const billing = document.getElementById(billingId);
-                        if (billing) {
-                            billing.addEventListener('input', syncDeliveryFields);
-                            billing.addEventListener('change', syncDeliveryFields);
-                        }
-                    });
-                } else {
-                    deliveryDiv.classList.remove('hidden');
-                    // Remove listeners if needed (not strictly necessary here for most forms)
-                }
-            });
-
             const showPassword = document.getElementById('showPassword');
             const passwordFields = document.getElementById('passwordFields');
 
-            function togglePasswordFields() {
-                passwordFields.style.display = showPassword.checked ? '' : 'none';
-            }
+            if (showPassword && passwordFields) {
+                function togglePasswordFields() {
+                    passwordFields.style.display = showPassword.checked ? '' : 'none';
+                }
 
-            showPassword.addEventListener('change', togglePasswordFields);
-            // Set initial state
-            togglePasswordFields();
+                showPassword.addEventListener('change', togglePasswordFields);
+                // Set initial state
+                togglePasswordFields();
+            }
 
             // ============================
             // Tax Exempt Modal Show/Hide
@@ -731,9 +1234,11 @@
 
             function handleTaxExemptChange() {
                 if (taxExempt.checked) {
+                    document.getElementById('admin_code').value = '';
                     taxModal.classList.remove('hidden');
                 } else {
                     taxModal.classList.add('hidden');
+                    handleTaxExemptRequest(false);
                 }
             }
 
@@ -746,12 +1251,69 @@
                 taxExempt.checked = false;
             };
 
-            // Optional: When submitted, also hide modal (customize as needed)
-            window.confirmModal = function() {
-                taxModal.classList.add('hidden');
-                // Optionally: keep checkbox checked
-                // Optionally: Add your validation or AJAX here
-            };
+            document.getElementById('taxForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const form = this;
+                const parsleyForm = $(form).parsley();
+
+                const isFormValid = parsleyForm.validate({
+                    force: true
+                });
+                if (!isFormValid) {
+                    return;
+                }
+
+                handleTaxExemptRequest();
+            });
+
+            function handleTaxExemptRequest(is_tax_exempt = true) {
+                const adminCode = document.getElementById('admin_code').value;
+                const submitButton = document.getElementById('taxSubmitBtn');
+                const submitText = document.getElementById('taxSubmitText');
+                const submitLoader = document.getElementById('taxSubmitLoader');
+
+                // Disable button & show loader
+                submitButton.disabled = true;
+                submitText.classList.add('hidden');
+                submitLoader.classList.remove('hidden');
+
+                const taxExemptUrl = '{{ route('front.checkout.tax-exempt') }}';
+                apiFetch(taxExemptUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            is_tax_exempt: is_tax_exempt,
+                            passcode: adminCode
+                        })
+                    })
+                    .then(response => {
+                        if (response.success) {
+                            notyf.success(response.message);
+                            window.loadCartSidebarPreview(); // Refresh cart preview
+                            if (is_tax_exempt) {
+                                cancelModal();
+                                // If tax exempt is enabled, check the box
+                                document.getElementById('taxExempt').checked = true;
+                            } else {
+                                // If tax exempt is disabled, uncheck the box
+                                document.getElementById('taxExempt').checked = false;
+                            }
+                        } else {
+                            notyf.error(response.message);
+                            document.getElementById('taxExempt').checked = false;
+                        }
+                    })
+                    .finally(() => {
+                        // Re-enable button & hide loader
+                        submitButton.disabled = false;
+                        submitText.classList.remove('hidden');
+                        submitLoader.classList.add('hidden');
+                    });
+            }
         });
     </script>
 @endpush

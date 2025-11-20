@@ -10,18 +10,3 @@
         <div class="clear"></div>
     </div>
 @endif
-
-@push('js')
-@if (session('success') || session('error'))
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            @if (session('success'))
-                notyf.success(@json(session('success')));
-            @endif
-            @if (session('error'))
-                notyf.error(@json(session('error')));
-            @endif
-        });
-    </script>
-@endif
-@endpush

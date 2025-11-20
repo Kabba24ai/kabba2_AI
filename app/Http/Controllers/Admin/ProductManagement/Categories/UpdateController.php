@@ -24,7 +24,6 @@ class UpdateController extends Controller
 
     public function __invoke($unique_id, UpdateRequest $request)
     {
-
         $validatedData = $request->validated();
 
         // Normalize is_featured to 'Yes' or 'No'
@@ -41,10 +40,28 @@ class UpdateController extends Controller
             $objProductCategory->media_id = $mediaData['mediaObj']->id ?? null;
         }
 
+        // Handle hover media
+        if ($request->has('hover_media') && !is_null($request->file('hover_media'))) {
+            if (!is_null($objProductCategory->hover_media_id)) {
+                MediaHelper::removeFile($objProductCategory->hoverMedia);
+            }
+            $hoverMediaData = MediaHelper::uploadStorageFile("Public Asset", $request->file('hover_media'), 'product-categories', $objProductCategory);
+            $objProductCategory->hover_media_id = $hoverMediaData['mediaObj']->id ?? null;
+        }
+
         $objProductCategory->save();
 
         // Sync products
-        $objProductCategory->products()->sync($validatedData['products'] ?? []);
+        if (isset($validatedData['products']) && is_array($validatedData['products'])) {
+            // Prepare sync data with sort order
+            $syncData = [];
+            foreach ($validatedData['products'] as $index => $productId) {
+                $syncData[$productId] = ['sort_order' => $index + 1];
+            }
+            $objProductCategory->products()->sync($syncData);
+        } else {
+            $objProductCategory->products()->sync([]);
+        }
 
 
         flash('Product category updated successfully.')->success();

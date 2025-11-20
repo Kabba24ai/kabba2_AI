@@ -47,3 +47,13 @@ window.showStickyError = function(msg, duration = 3000) {
     }, 20);
 };
 
+document.addEventListener("DOMContentLoaded", function() {
+    if (window.Laravel) {
+        if (window.Laravel.success) {
+            notyf.success(window.Laravel.success);
+        }
+        if (window.Laravel.error) {
+            notyf.error(window.Laravel.error);
+        }
+    }
+});

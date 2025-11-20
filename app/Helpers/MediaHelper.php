@@ -96,8 +96,6 @@ class MediaHelper
             $file_size = \File::size($file);
 
             $original_file_name_without_extension = Str::lower(pathinfo($original_file_name, PATHINFO_FILENAME));
-            $replace_words = ["png", "jpg", "jpeg", 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
-            $original_file_name_without_extension = str_replace($replace_words, '', $original_file_name_without_extension);
             $filename = Str::random(6) . '-media-' . preg_replace("/[^a-z0-9\_\-\.]/i", '', $original_file_name_without_extension . '.' . $file_extension);
 
             // File Store s3 Bucket

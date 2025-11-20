@@ -174,7 +174,17 @@
 @import '../../shared/css/parsley.css';
 @import '../../shared/css/choice.css';
 @import '../../shared/css/notyf.css';
+@import '../../shared/css/flatpickr.css';
 
+
+.tox-promotion, .tox-statusbar__branding {
+    display: none !important;
+}
+
+.tox-tinymce-aux
+{
+    z-index: 99999 !important;
+}
 
 .custom-scroll::-webkit-scrollbar {
     width: 6px;
@@ -199,6 +209,12 @@
     scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
 }
 
+button:disabled,
+[role="button"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /*
 
   The default border color has changed to `currentColor` in Tailwind CSS v4,
@@ -208,6 +224,40 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+@layer components {
+  .tooltip-panel {
+    @apply absolute z-[9999] hidden group-hover:block
+           bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700
+           rounded shadow-xl p-3
+           text-xs text-gray-700 dark:text-gray-200
+           whitespace-normal break-words
+           w-[24rem] sm:w-[30rem] max-w-[90vw]
+           left-0
+           bottom-full mb-2
+           sm:bottom-auto sm:top-full sm:mt-2;
+  }
+
+  .tooltip-panel--left {
+    @apply w-[24rem] sm:w-[30rem] left-0 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2;
+  }
+
+  .tooltip-panel--center {
+    @apply left-1/2 -translate-x-1/2 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2;
+  }
+
+    /* NEW Custom Tooltip */
+  .custom-tooltip {
+    @apply absolute z-[9999]
+           hidden group-hover:block w-[244px] sm:w-[244px] 
+           bg-white dark:bg-gray-900
+           border border-gray-200 dark:border-gray-700
+           rounded-md shadow-xl p-3
+           text-xs text-gray-700 dark:text-gray-200
+           whitespace-normal break-words
+           /* POSITION ABOVE */
+           bottom-full mb-2 left-1/2 -translate-x-1/2;
+  }
+}
 
 @utility menu-item {
   @apply text-theme-sm relative flex items-center gap-3 rounded-lg px-3 py-2 font-medium;
@@ -319,11 +369,11 @@
     -webkit-appearance: none;
   }
 
-  label.required::after {
+  .required::after {
     content: '*';
     color: theme('colors.red.500');
     margin-left: 0.25rem;
-    }
+  }
 
 }
 
@@ -796,3 +846,109 @@ span.flatpickr-weekday,
 .modal-scrollable {
   height: calc(100% - 3rem);
 }
+
+#taxDocumentPreview .w-140
+{
+  width: 140px;
+}
+#taxDocumentPreview .h-130
+{
+  height: 130px;
+}
+.billing-summary-w-16{
+  width: 16%;
+}
+.billing-summary-w-13{
+  width: 13%;
+}
+.billing-summary-w-15{
+  width: 15%;
+}
+.bg-pink-100 {
+   background-color: #ffdff9;
+}
+.cus-width-20{
+  width: 20%;
+}
+.cus-width-15{
+  width: 15%;
+}
+.cus-width-10{
+  width: 10%;
+}
+.cus-width-3{
+  width: 3%;
+}
+.cus-width-5{
+  width: 5%;
+}
+.hidden-step-header { display: none; }
+.card-radio-step:checked + label {
+  border-color: #22c55e;
+  background-color: #ecfdf5;
+}
+.card-radio-step:checked + label svg.checkmark {
+  display: block;
+}
+.card-radio-step-two:checked + label {
+  border-color: rgb(99 102 241);
+  background-color: rgb(238 242 255);
+}
+.card-radio-step-two:checked + label svg.checkmark {
+  display: block;
+}
+svg.checkmark {
+  display: none;
+}
+
+
+@media screen and (min-width: 1920px) and (max-width: 2500px) {
+  .cus-width-10 { width: 5%;}
+  .cus-width-15 { width: 10%;}
+}
+@media screen and (min-width: 1300px) and (max-width: 1400px) {
+.cus-width-15 {  width: 17%;}
+.cus-width-20 {  width: 18%; }
+}
+@media screen and (min-width: 1000px) and (max-width: 1174px) {
+  .billing-summary-w-16{width: 15% !important;}
+  .billing-summary-w-15{width: 14% !important;}
+  .billing-summary-w-13{width: 12% !important;}
+}
+@media screen and (min-width:768px) and (max-width:992px) {
+  .billing-summary-w-16{width: 30%;}
+  .billing-summary-w-15{width: 30%;}
+  .billing-summary-w-13{width: 30%;}
+}
+@media screen and (max-width:699px) {
+  .billing-summary-w-16{width: 100%;}
+  .billing-summary-w-15{width: 100%;}
+  .billing-summary-w-13{width: 100%;}
+}
+
+
+
+
+/* Jignesh Custom CSS */
+.bg-indigo-600 {
+    --tw-bg-opacity: 1;
+    background-color: rgb(79 70 229 / var(--tw-bg-opacity, 1));
+}
+
+/* Jignesh End */
+
+
+#privacy_policy_description_ifr,
+    #privacy_policy_description+.tox.tox-tinymce {
+        height: 500px !important;
+        min-height: 500px !important;
+    }
+
+
+    #terms_conditions_description_ifr,
+    #terms_conditions_description+.tox.tox-tinymce {
+        height: 500px !important;
+        min-height: 500px !important;
+    }
+
+

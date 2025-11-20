@@ -4,14 +4,19 @@ namespace App\Models\Customers;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
 // Helpers
 use App\Helpers\ModelHelper;
 use App\Models\Orders\Order;
 use Carbon\Carbon;
 use App\Models\Global\Media;
 use App\Models\Iam\Personnel\User;
-class Customer extends Model
+
+class Customer extends Authenticatable
 {
+    use Notifiable;
     protected $fillable = [
         'unique_id',
         'first_name',
@@ -20,12 +25,13 @@ class Customer extends Model
 
         'company_phone',
         'company_website',
-
+        'tax_document_status',
         'email',
         'password',
         'media_id',
         'phone',
         'dob',
+        'authorize_profile_id',
         'status', // Active*, Inactive, Archive
         'is_guest', // true or false
         'tax_status', // Taxable* , Exempt
@@ -36,10 +42,20 @@ class Customer extends Model
         'credit_limit',
         'account_approved_by',
         'account_application_completed',
-        'tax_status_approved_by'
+        'tax_status_approved_by',
+        'is_reset',
+        'tax_document_type',
+
+        'same_as_billing',
+        'tags',
+
+        'password_reset_token',
+        'password_reset_token_expiry',
+
     ];
 
     protected $appends = [
+        'full_name',
         'is_tax_exempt_valid', // true = Exempt, false = Taxable
     ];
 
@@ -62,14 +78,14 @@ class Customer extends Model
     }
 
     public function accountApprovedBy()
-{
-    return $this->belongsTo(User::class, 'account_approved_by');
-}
+    {
+        return $this->belongsTo(User::class, 'account_approved_by');
+    }
 
-public function taxStatusApprovedBy()
-{
-    return $this->belongsTo(User::class, 'tax_status_approved_by');
-}
+    public function taxStatusApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'tax_status_approved_by');
+    }
 
     /**
      * Determine if the customer's tax-exempt status is currently valid.
@@ -116,6 +132,15 @@ public function taxStatusApprovedBy()
         return $this->orders()->sum('grand_total');
     }
 
+    public function getTotalAccountOrderAmountAttribute()
+    {
+        return $this->orders()
+            ->whereHas('payments', function ($query) {
+                $query->where('payment_method', 'Account')->whereRaw('id = (SELECT MIN(id) FROM order_payments WHERE order_id = orders.id)');
+            })
+            ->sum('grand_total');
+    }
+
     public function addresses()
     {
         return $this->hasMany(CustomerAddress::class);
@@ -123,11 +148,163 @@ public function taxStatusApprovedBy()
 
     public function billingAddress()
     {
-        return $this->hasOne(CustomerAddress::class)->where('type', 'Billing');
+        return $this->hasOne(CustomerAddress::class)->where('type', 'Billing')->primary();
     }
 
     public function shippingAddress()
     {
-        return $this->hasOne(CustomerAddress::class)->where('type', 'Shipping');
+        return $this->hasOne(CustomerAddress::class)->where('type', 'Shipping')->primary();
+    }
+
+    public function accounts()
+    {
+        return $this->hasMany(CustomerAccount::class)->orderBy('date', 'desc');
+    }
+
+    // CustomerAccount where type is payment
+    public function paymentAccounts()
+    {
+        return $this->hasMany(CustomerAccount::class)
+            ->where('type', 'payment')
+            ->orderBy('date', 'desc');
+    }
+    public function cards()
+    {
+        return $this->hasMany(CustomerCard::class);
+    }
+
+    public function getPaidSalesAttribute()
+    {
+        return $this->orders()
+            ->whereHas('payments', function ($query) {
+                $query->where('status', 'Paid')->whereRaw('id = (SELECT MIN(id) FROM order_payments WHERE order_id = orders.id)');
+            })
+            ->sum('grand_total');
+    }
+
+    // Total Pending Sales (via OrderPayment status)
+    public function getPendingSalesAttribute()
+    {
+        return $this->orders()
+            ->whereHas('payments', function ($query) {
+                $query->where('status', 'Pending')->whereRaw('id = (SELECT MIN(id) FROM order_payments WHERE order_id = orders.id)');
+            })
+            ->sum('grand_total');
+    }
+
+    public function getTaxStatus(): string
+    {
+        return $this->tax_status ?? 'Taxable';
+    }
+
+    public function getLastPaymentAttribute()
+    {
+        return $this->accounts()->where('type', 'payment')->orderByDesc('date')->first();
+    }
+
+    public function getDaysSinceLastPaymentAttribute()
+    {
+        $lastPayment = $this->last_payment;
+
+        if (!$lastPayment || !$lastPayment->date) {
+            return null;
+        }
+
+        return Carbon::parse($lastPayment->date)->diffInDays(Carbon::now());
+    }
+
+    public function getPaymentStatusBadgeAttribute()
+    {
+        $days = $this->days_since_last_payment;
+
+        if ($days === null) {
+            return 'no-payment'; // No payment yet
+        }
+
+        if ($days <= 30) {
+            return 'safe'; // Green
+        } elseif ($days <= 45) {
+            return 'warning'; // Dark Yellow
+        } else {
+            return 'danger'; // Pink
+        }
+    }
+
+ /**
+     * Get all  invoices for the customer.
+     */
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Get total paid invoice amount for the customer.
+     */
+    public function getTotalPaidInvoicesAttribute()
+    {
+        return $this->invoices()
+            ->where('invoice_status', 'paid')
+            ->sum('total');
+    }
+
+    /**
+     * Get total pending invoice amount for the customer.
+     */
+    public function getTotalPendingInvoicesAttribute()
+    {
+        return $this->invoices()
+            ->where('invoice_status', 'pending')
+            ->sum('total');
+    }
+
+    /**
+     * Get total overdue invoice amount for the customer.
+     */
+    public function getTotalOverdueInvoicesAttribute()
+    {
+        return $this->invoices()
+            ->where('invoice_status', 'overdue')
+            ->sum('total');
+    }
+
+    /**
+     * Get total number of unpaid invoices for the customer.
+     */
+    public function getUnpaidInvoicesCountAttribute()
+    {
+        return $this->invoices()
+            ->where('invoice_status', '!=', 'paid')
+            ->count();
+    }
+
+    /**
+     * Get Notes for the customer.
+     */
+    public function notes()
+    {
+        return $this->hasMany(\App\Models\Customers\CustomerNote::class);
+    }
+
+    public function getTagObjectsAttribute()
+    {
+        if (empty($this->tags)) {
+            return collect();
+        }
+
+        // Decode JSON if it's JSON; fallback to comma-separated format
+        $tagIds = is_array($this->tags)
+            ? $this->tags
+            : (json_decode($this->tags, true) ?: explode(',', $this->tags));
+
+        $tagIds = array_filter($tagIds);
+
+        return Tag::whereIn('id', $tagIds)->get();
+    }
+
+
+    public function getTagsArrayAttribute()
+    {
+        return $this->tags ? array_map('trim', explode(',', $this->tags)) : [];
     }
 }

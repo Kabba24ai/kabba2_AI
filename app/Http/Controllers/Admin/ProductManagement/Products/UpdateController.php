@@ -19,14 +19,22 @@ class UpdateController extends Controller
         $validated = $request->validated();
 
         $product = Product::where('unique_id', $unique_id)->firstOrFail();
-
         DB::beginTransaction();
 
         try {
+            $slug = $validated['slug'] ?? null;
+            if ($validated['product_type'] === 'Retail' && $slug !== null) {
+                // Ensure slug does not end with '-rental'
+                if (str_ends_with($slug, '-rental')) {
+                    $slug = str_replace('-rental', '', $slug);
+                }
+            }
+
             // Base fields
             $productData = [
                 'product_name' => $validated['product_name'],
                 'product_type' => $validated['product_type'],
+                'slug' => $slug,
                 'short_description' => $validated['short_description'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'seo_title' => $validated['seo_title'] ?? null,
@@ -36,6 +44,10 @@ class UpdateController extends Controller
                 'status' => $validated['status'] ?? 'Pending',
                 'is_general_term_type' => $validated['is_general_term_type'] ?? false,
                 'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
+                'truck_fee_size_setting' => $validated['truck_fee_size_setting'] ?? null,
+                'track_insurance_size_setting' => $validated['track_insurance_size_setting'] ?? null,
+                'prepaid_cleaning_rate_setting' => $validated['prepaid_cleaning_rate_setting'] ?? null,
+                'prepaid_fuel_rate_setting' => $validated['prepaid_fuel_rate_setting'] ?? null,
             ];
 
             // Include only relevant fields and clear opposite-type fields
@@ -54,21 +66,24 @@ class UpdateController extends Controller
                     'rental_damage_waiver_weekend' => null,
                     'rental_damage_waiver_weekly' => null,
                     'rental_damage_waiver_monthly' => null,
+                    'rental_track_insurance_daily' => null,
+                    'rental_track_insurance_weekend' => null,
+                    'rental_track_insurance_weekly' => null,
+                    'rental_track_insurance_monthly' => null,
                     'rental_prepaid_cleaning' => null,
                     'rental_prepaid_fuel' => null,
-                    'rental_fuel_gallons' => null,
-                    'rental_fuel_type' => null,
-                    'rental_def_gallons' => null,
                     'standard_delivery_fee' => null,
                     'extended_delivery_fee' => null,
                     'in_store_pickup' => null,
                     'delivery_and_pickup' => null,
-                    'hour_tracking' => null,
-                    'hour_rate' => null,
+                    // 'hour_tracking' => null,
+                    // 'hour_rate' => null,
                     'sale_price_daily' => null,
                     'sale_price_weekend' => null,
                     'sale_price_weekly' => null,
                     'sale_price_monthly' => null,
+                    'is_default_funnel' => false,
+                    'has_high_demand_alert' => false,
                 ];
             } elseif ($validated['product_type'] === 'Rental') {
                 $productData += [
@@ -82,18 +97,20 @@ class UpdateController extends Controller
                     'rental_damage_waiver_weekly' => $validated['rental_damage_waiver_weekly'] ?? null,
                     'rental_damage_waiver_monthly' => $validated['rental_damage_waiver_monthly'] ?? null,
 
+                    'rental_track_insurance_daily' => $validated['rental_track_insurance_daily'] ?? null,
+                    'rental_track_insurance_weekend' => $validated['rental_track_insurance_weekend'] ?? null,
+                    'rental_track_insurance_weekly' => $validated['rental_track_insurance_weekly'] ?? null,
+                    'rental_track_insurance_monthly' => $validated['rental_track_insurance_monthly'] ?? null,
+
                     'rental_prepaid_cleaning' => $validated['rental_prepaid_cleaning'] ?? null,
                     'rental_prepaid_fuel' => $validated['rental_prepaid_fuel'] ?? null,
-                    'rental_fuel_gallons' => $validated['rental_fuel_gallons'] ?? null,
-                    'rental_fuel_type' => $validated['rental_fuel_type'] ?? null,
-                    'rental_def_gallons' => $validated['rental_def_gallons'] ?? null,
 
                     'standard_delivery_fee' => $validated['standard_delivery_fee'] ?? null,
                     'extended_delivery_fee' => $validated['extended_delivery_fee'] ?? null,
                     'in_store_pickup' => $validated['in_store_pickup'] ?? null,
-                    'delivery_and_pickup' => $validated['delivery_and_pickup'] ?? null,
-                    'hour_tracking' => $validated['hour_tracking'] ?? null,
-                    'hour_rate' => $validated['hour_rate'] ?? null,
+                    'delivery_and_pickup' => $validated['delivery_and_pickup'] ?? 'No',
+                    // 'hour_tracking' => $validated['hour_tracking'] ?? 'No',
+                    // 'hour_rate' => $validated['hour_rate'] ?? null,
 
                     'sale_price_daily' => $validated['sale_price_daily'] ?? null,
                     'sale_price_weekend' => $validated['sale_price_weekend'] ?? null,
@@ -104,6 +121,9 @@ class UpdateController extends Controller
                     'retail_price' => null,
                     'retail_sale_price' => null,
                     'retail_product_cost' => null,
+
+                    'is_default_funnel' => $validated['is_default_funnel'] ?? false,
+                    'has_high_demand_alert' => $validated['has_high_demand_alert'] ?? false,
                 ];
             }
 
@@ -117,7 +137,16 @@ class UpdateController extends Controller
             $product->options()->sync($validated['options'] ?? []);
 
             // Sync related products
-            $product->relatedProducts()->sync($validated['related_products'] ?? []);
+            if (isset($validated['related_products']) && is_array($validated['related_products'])) {
+                // Prepare sync data with sort order
+                $syncData = [];
+                foreach ($validated['related_products'] as $index => $productId) {
+                    $syncData[$productId] = ['sort_order' => $index + 1];
+                }
+                $product->relatedProducts()->sync($syncData);
+            } else {
+                $product->relatedProducts()->sync([]);
+            }
 
             // Replace custom terms if Custom selected
             if (!empty($validated['is_custom_term_type']) && !empty($validated['terms'])) {
@@ -154,6 +183,30 @@ class UpdateController extends Controller
                     $image->delete();
                 });
 
+            // Decode sort order JSON
+            $imageOrder = json_decode($validated['image_sort_order'] ?? '[]', true);
+
+            // Map into ['id-or-name' => sort_order]
+            $ordered = [];
+            $pos = 1;
+
+            foreach ($imageOrder as $key) {
+                // strip "new-" prefix if you want only the filename
+                $cleanKey = str_starts_with($key, 'new-')
+                    ? substr($key, 4)
+                    : $key;
+
+                $ordered[$cleanKey] = $pos++;
+            }
+
+            // Update existing
+            foreach ($product->mediaChildren as $child) {
+                $id = (string) $child->id;
+                if (isset($ordered[$id])) {
+                    $child->update(['sort_order' => $ordered[$id]]);
+                }
+            }
+
             // Upload and attach additional product images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
@@ -162,31 +215,53 @@ class UpdateController extends Controller
                         ProductMediaChild::create([
                             'product_id' => $product->id,
                             'media_id' => $mediaData['mediaObj']->id,
+                            'sort_order' => $ordered[$mediaData['mediaObj']->original_file_name] ?? 0,
                         ]);
                     }
                 }
             }
 
-
             DB::commit();
 
-            flash('Product updated successfully.')->success();
-
-            return match ($request->input('action')) {
-                'save' => redirect()->route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
-                'save_new' => redirect()->route('admin.product-management.products.create'),
-                default => redirect()->route('admin.product-management.products.index'),
+            // Determine redirect target
+            $action = $request->input('action', 'save');
+            $redirectUrl = match ($action) {
+                'save'      => route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
+                'save_new'  => route('admin.product-management.products.create'),
+                default     => route('admin.product-management.products.index'),
             };
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product updated successfully.',
+                'redirect_url' => $redirectUrl,
+                'action' => $action
+            ]);
+
+
+            // flash('Product updated successfully.')->success();
+
+            // return match ($request->input('action')) {
+            //     'save' => redirect()->route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
+            //     'save_new' => redirect()->route('admin.product-management.products.create'),
+            //     default => redirect()->route('admin.product-management.products.index'),
+            // };
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
-            flash('Something went wrong while updating the product.')->error();
+            // Handle error for AJAX
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating the product.'
+            ], 500);
 
-            return redirect()
-                ->back()
-                ->withInput()
-                ->withErrors(['error' => 'An error occurred while updating the product.']);
+            // flash('Something went wrong while updating the product.')->error();
+
+            // return redirect()
+            //     ->back()
+            //     ->withInput()
+            //     ->withErrors(['error' => 'An error occurred while updating the product.']);
         }
     }
 }

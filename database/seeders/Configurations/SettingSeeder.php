@@ -19,59 +19,234 @@ class SettingSeeder extends Seeder
     {
         $this->settings = [];
         $this->addEmailSettings();
+        $this->addAllocatedHoursSettings();
         $this->addProductSettings();
         $this->addContactUsSettings();
         $this->addSocialMediaSettings();
+        $this->addAdminSettings();
+        $this->addPaymentSettings();
+        $this->addCommunicationSettings();
+        $this->addDefaultSalesFunnelSettings();
+        $this->addMailSendSettings();
+        $this->addInvoiceSettings();
+        $this->addPriceSettings();
+        $this->addPrivacyPolicySettings();
+        $this->addTermsConditionsSettings();
+
+    }
+
+    private function addDefaultSalesFunnelSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Default Sales Funnel Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'cod_order_message',
+                'setting_title' => 'COD Order Message',
+                'default_value' => "Your COD order has been placed but COD Orders are not reserved / locked in until paid. To lock in your reservation, call (615) 815-6734 to make payment. Always call the day of your COD reservation to confirm inventory availability before arriving",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'cod_message_enabled',
+                'setting_title' => 'Enable COD Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_day_before_truck_message',
+                'setting_title' => 'Rental Day Before Truck Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return. Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_day_before_store_message',
+                'setting_title' => 'Rental Day Before Store Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_same_day_truck_message',
+                'setting_title' => 'Rental Same Day Truck Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_same_day_store_message',
+                'setting_title' => 'Rental Same Day Store Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'rental_day_before_truck_message_enabled',
+                'setting_title' => 'Enable Rental Day Before Truck Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'rental_day_before_store_message_enabled',
+                'setting_title' => 'Enable Rental Day Before Store Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'rental_same_day_truck_message_enabled',
+                'setting_title' => 'Enable Rental Same Day Truck Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'rental_same_day_store_message_enabled',
+                'setting_title' => 'Enable Rental Same Day Store Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+        ];
     }
 
     private function addEmailSettings()
     {
+        $sortOrder = 1;
+
         $this->settings['Email Settings'] = [
             [
                 'value_type' => 'text',
                 'setting_name' => 'dev_staging_email',
                 'setting_title' => 'Development/Staging Email',
-                'sort_order' => 1,
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'customer_email_send_email_address',
                 'setting_title' => 'Customer Development/Staging Email',
-                'sort_order' => 2,
+                'sort_order' => $sortOrder++,
             ],
+        ];
+    }
+
+    private function addPriceSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Price Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'diesel_price_per_gallon',
+                'setting_title' => 'Diesel / Gallon',
+                'sort_order' => $sortOrder++,
+                'is_required' => true,
+                'default_value' => '3.70',
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'gas_price_per_gallon',
+                'setting_title' => 'Gas / Gallon',
+                'sort_order' => $sortOrder++,
+                'is_required' => true,
+                'default_value' => '2.95',
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'def_price_per_gallon',
+                'setting_title' => 'DEF / Gallon',
+                'sort_order' => $sortOrder++,
+                'is_required' => true,
+                'default_value' => '3.98',
+            ],
+        ];
+    }
+
+    private function addAllocatedHoursSettings()
+    {
+        $sortOrder = 0;
+
+        $this->settings['Allocated Hours Settings'] = [
+            [
+                'value_type' => 'number',
+                'setting_name' => 'daily_hours',
+                'setting_title' => 'Daily Hours',
+                'placeholder' => 'Enter Daily Hours',
+                'default_value' => 8,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'weekend_hours',
+                'setting_title' => 'Weekend Hours',
+                'placeholder' => 'Enter Weekend Hours',
+                'default_value' => 14,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'weekly_hours',
+                'setting_title' => 'Weekly Hours',
+                'placeholder' => 'Enter Weekly Hours',
+                'default_value' => 40,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'monthly_hours',
+                'setting_title' => 'Monthly Hours',
+                'placeholder' => 'Enter Monthly Hours',
+                'default_value' => 160,
+                'sort_order' => $sortOrder++,
+            ],
+
         ];
     }
 
     private function addProductSettings()
     {
+        $sortOrder = 0;
+
         $this->settings['Product Settings'] = [
             [
                 'value_type' => 'number',
                 'setting_name' => 'sales_tax',
                 'setting_title' => 'Sales Tax',
+                'placeholder' => '8.25',
                 'default_value' => 0.0975,
-                'sort_order' => 1,
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'standard_delivery_range',
                 'setting_title' => 'Standard Delivery Range Up To',
                 'default_value' => 15,
-                'sort_order' => 2,
+                'placeholder' => 'Enter numerical distance',
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'number',
                 'setting_name' => 'extended_delivery_range',
                 'setting_title' => 'Extended Delivery Range Up To',
                 'default_value' => 30,
-                'sort_order' => 3,
+                'placeholder' => 'Enter numerical distance',
+                'sort_order' => $sortOrder++,
             ],
             [
-                'value_type' => 'boolean',
+                'value_type' => 'checkbox',
                 'setting_name' => 'include_extended_range',
                 'setting_title' => 'Include Extended Range Option',
                 'default_value' => true,
-                'sort_order' => 4,
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'options',
@@ -79,197 +254,943 @@ class SettingSeeder extends Seeder
                 'setting_title' => 'Distance Unit',
                 'setting_options' => json_encode(['Miles', 'Kilometers']),
                 'default_value' => 'Miles',
-                'sort_order' => 5,
+                'sort_order' => $sortOrder++,
             ],
+
+            [
+                'value_type' => 'json',
+                'setting_name' => 'prepaid_cleaning_rates',
+                'setting_title' => 'Prepaid Cleaning Rates',
+                'default_value' => json_encode(
+                    [
+                        [
+                            'description' => 'Easy: Stump Grinder',
+                            'rate' => 19,
+                        ],
+                        [
+                            'description' => 'Moderate: Trencher',
+                            'rate' => 29,
+                        ],
+                        [
+                            'description' => 'Large: Skid Steer',
+                            'rate' => 39,
+                        ],
+                        [
+                            'description' => 'Large w/Cab:',
+                            'rate' => 49,
+                        ],
+                        [
+                            'description' => 'Commercial:',
+                            'rate' => 67,
+                        ],
+                    ],
+                    JSON_UNESCAPED_UNICODE,
+                ),
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'json',
+                'setting_name' => 'prepaid_fuel_rates',
+                'setting_title' => 'Prepaid Fuel Rates',
+                'default_value' => json_encode(
+                    [
+                        [
+                            'description' => 'Gas: xSmall: 1 Gallon',
+                            'rate' => 3,
+                        ],
+                        [
+                            'description' => 'Gas: Small: 2 Gallons',
+                            'rate' => 6,
+                        ],
+                        [
+                            'description' => 'Gas: Medium: Georgia Buggy',
+                            'rate' => 14,
+                        ],
+                        [
+                            'description' => 'Gas: Large: Compactor',
+                            'rate' => 18,
+                        ],
+                        [
+                            'description' => 'Diesel: Small: 1.5 Ton Ex',
+                            'rate' => 17,
+                        ],
+                        [
+                            'description' => 'Diesel: Medium: Mini Skid',
+                            'rate' => 37,
+                        ],
+                        [
+                            'description' => 'Diesel: Large: Skid Steer',
+                            'rate' => 67,
+                        ],
+                        [
+                            'description' => 'Diesel: xLarge: TB290',
+                            'rate' => 97,
+                        ],
+                        [
+                            'description' => 'Diesel: Commercial: Dozer',
+                            'rate' => 147,
+                        ]
+                    ],
+                    JSON_UNESCAPED_UNICODE,
+                ),
+                // 'default_value' => json_encode([]),
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'number',
+                'setting_name' => 'damage_waiver_percentage',
+                'setting_title' => 'Damage Waiver Percentage',
+                'default_value' => 14,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'overage_rate_percentage',
+                'setting_title' => 'Overage Rate Percentage',
+                'default_value' => 16.7,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_standard_delivery_fee',
+                'setting_title' => 'Small Standard Delivery Fee',
+                'default_value' => 49,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_extended_delivery_fee',
+                'setting_title' => 'Small Extended Delivery Fee',
+                'default_value' => 69,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_standard_delivery_fee',
+                'setting_title' => 'Medium Standard Delivery Fee',
+                'default_value' => 69,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_extended_delivery_fee',
+                'setting_title' => 'Medium Extended Delivery Fee',
+                'default_value' => 94,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_standard_delivery_fee',
+                'setting_title' => 'Large Standard Delivery Fee',
+                'default_value' => 89,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_extended_delivery_fee',
+                'setting_title' => 'Large Extended Delivery Fee',
+                'default_value' => 124,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_standard_delivery_fee',
+                'setting_title' => 'X-Large Standard Delivery Fee',
+                'default_value' => 97,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_extended_delivery_fee',
+                'setting_title' => 'X-Large Extended Delivery Fee',
+                'default_value' => 139,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_standard_delivery_fee',
+                'setting_title' => '2X-Large Standard Delivery Fee',
+                'default_value' => 124,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_extended_delivery_fee',
+                'setting_title' => '2X-Large Extended Delivery Fee',
+                'default_value' => 164,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_standard_delivery_fee',
+                'setting_title' => 'Commercial Standard Delivery Fee',
+                'default_value' => 375,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_extended_delivery_fee',
+                'setting_title' => 'Commercial Extended Delivery Fee',
+                'default_value' => 450,
+                'sort_order' => $sortOrder++,
+            ],
+
+            //--- Track Insurance ---
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_daily_track_insurance_fee',
+                'setting_title' => 'Small Daily Track Insurance Fee',
+                'default_value' => 9,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_daily_track_insurance_fee',
+                'setting_title' => 'Medium Daily Track Insurance Fee',
+                'default_value' => 18,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_daily_track_insurance_fee',
+                'setting_title' => 'Large Daily Track Insurance Fee',
+                'default_value' => 24,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_daily_track_insurance_fee',
+                'setting_title' => 'X-Large Daily Track Insurance Fee',
+                'default_value' => 29,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_daily_track_insurance_fee',
+                'setting_title' => '2X-Large Daily Track Insurance Fee',
+                'default_value' => 34,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_daily_track_insurance_fee',
+                'setting_title' => 'Commercial Daily Track Insurance Fee',
+                'default_value' => 67,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_weekend_track_insurance_fee',
+                'setting_title' => 'Small Weekend Track Insurance Fee',
+                'default_value' => 12,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_weekend_track_insurance_fee',
+                'setting_title' => 'Medium Weekend Track Insurance Fee',
+                'default_value' => 24,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_weekend_track_insurance_fee',
+                'setting_title' => 'Large Weekend Track Insurance Fee',
+                'default_value' => 36,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_weekend_track_insurance_fee',
+                'setting_title' => 'X-Large Weekend Track Insurance Fee',
+                'default_value' => 39,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_weekend_track_insurance_fee',
+                'setting_title' => '2X-Large Weekend Track Insurance Fee',
+                'default_value' => 47,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_weekend_track_insurance_fee',
+                'setting_title' => 'Commercial Weekend Track Insurance Fee',
+                'default_value' => 97,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_weekly_track_insurance_fee',
+                'setting_title' => 'Small Weekly Track Insurance Fee',
+                'default_value' => 19,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_weekly_track_insurance_fee',
+                'setting_title' => 'Medium Weekly Track Insurance Fee',
+                'default_value' => 36,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_weekly_track_insurance_fee',
+                'setting_title' => 'Large Weekly Track Insurance Fee',
+                'default_value' => 48,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_weekly_track_insurance_fee',
+                'setting_title' => 'X-Large Weekly Track Insurance Fee',
+                'default_value' => 57,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_weekly_track_insurance_fee',
+                'setting_title' => '2X-Large Weekly Track Insurance Fee',
+                'default_value' => 67,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_weekly_track_insurance_fee',
+                'setting_title' => 'Commercial Weekly Track Insurance Fee',
+                'default_value' => 134,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_monthly_track_insurance_fee',
+                'setting_title' => 'Small Monthly Track Insurance Fee',
+                'default_value' => 27,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_monthly_track_insurance_fee',
+                'setting_title' => 'Medium Monthly Track Insurance Fee',
+                'default_value' => 54,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_monthly_track_insurance_fee',
+                'setting_title' => 'Large Monthly Track Insurance Fee',
+                'default_value' => 72,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_monthly_track_insurance_fee',
+                'setting_title' => 'X-Large Monthly Track Insurance Fee',
+                'default_value' => 57,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_monthly_track_insurance_fee',
+                'setting_title' => '2X-Large Monthly Track Insurance Fee',
+                'default_value' => 97,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_monthly_track_insurance_fee',
+                'setting_title' => 'Commercial Monthly Track Insurance Fee',
+                'default_value' => 197,
+                'sort_order' => $sortOrder++,
+            ],
+
+
+
             // --- Prepaid Fuel ---
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'prepaid_fuel_info',
-                'setting_title' => 'Prepaid Fuel Information',
-                'default_value' => "I understand that the machine is delivered full of fuel and I’m responsible for returning it full of fuel. If returned without a full tank, I will be charged $8/gallon. If I take the 'Pre-Paid Fuel' option, I can just walk away from this obligation.",
-                'sort_order' => 6,
+                'setting_title' => 'Prepaid Fuel Message',
+                'placeholder' => 'Enter message for prepaid fuel popup...',
+                'default_value' => "<p>The machine is delivered full and must be returned full. If it isn&rsquo;t, <strong>fuel charges plus a service fee</strong> (to cover time and handling) will apply.</p><p><br>Choosing Prepaid Fuel removes the need to refill at return.</p>",
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_fuel_decline_label',
-                'setting_title' => 'Prepaid Fuel Decline Label',
-                'default_value' => self::DECLINE_LABEL,
-                'sort_order' => 7,
+                'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
+                'default_value' => "I'll Fill It Up",
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_fuel_approve_label',
-                'setting_title' => 'Prepaid Fuel Approve Label',
-                'default_value' => self::APPROVE_LABEL,
-                'sort_order' => 8,
+                'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
+                'default_value' => "Fill It For Me",
+                'sort_order' => $sortOrder++,
             ],
             // --- Prepaid Cleaning ---
+
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'prepaid_cleaning_info',
-                'setting_title' => 'Prepaid Cleaning Information',
-                'default_value' => "I understand I’ll be responsible for bringing the equipment back clean or be charged. This does not cover 'Extreme' cleaning, only standard.",
-                'sort_order' => 9,
+                'setting_title' => 'Prepaid Cleaning Message',
+                'placeholder' => 'Enter message for prepaid cleaning popup...',
+                'default_value' => "<p>I&rsquo;m responsible for returning the equipment clean and in the same condition as received; otherwise, cleaning charges apply.</p><p><br>The cleaning option covers Standard cleaning only (light dirt/debris). Extreme cleaning (e.g., heavy mud, interior spills, trash/odor removal) is billed separately.</p>",
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_cleaning_decline_label',
-                'setting_title' => 'Prepaid Cleaning Decline Label',
-                'default_value' => self::DECLINE_LABEL,
-                'sort_order' => 10,
+                'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
+                'default_value' => "I'll Clean It",
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'prepaid_cleaning_approve_label',
-                'setting_title' => 'Prepaid Cleaning Approve Label',
-                'default_value' => self::APPROVE_LABEL,
-                'sort_order' => 11,
+                'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
+                'default_value' => "Clean It For Me",
+                'sort_order' => $sortOrder++,
             ],
-            // --- Fuel Gallons ---
+
+            // --- Track Insurance ---
             [
                 'value_type' => 'textarea',
-                'setting_name' => 'fuel_gallons_info',
-                'setting_title' => 'Fuel Gallons Information',
-                'default_value' => 'This includes a set number of fuel gallons in your rental package.',
-                'sort_order' => 12,
+                'setting_name' => 'track_insurance_info',
+                'setting_title' => 'Thrown Track Insurance Message',
+                'placeholder' => 'Enter message for thrown track insurance popup...',
+                'default_value' => '<p>By removing Track Insurance, you accept <strong>full financial responsibility</strong> for any thrown track during your rental (e.g., service call, labor, travel, and parts).</p><p><br>If a track comes off due to a defective or excessively worn component, it is covered automatically; however, this is uncommon.</p><p><br><em>*Covers 1 Thrown Track service per rental period</em></p>',
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
-                'setting_name' => 'fuel_gallons_decline_label',
-                'setting_title' => 'Fuel Gallons Decline Label',
-                'default_value' => self::DECLINE_LABEL,
-                'sort_order' => 13,
+                'setting_name' => 'track_insurance_decline_label',
+                'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
+                'default_value' => "I'll Take The Risk",
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
-                'setting_name' => 'fuel_gallons_approve_label',
-                'setting_title' => 'Fuel Gallons Approve Label',
-                'default_value' => self::APPROVE_LABEL,
-                'sort_order' => 14,
+                'setting_name' => 'track_insurance_approve_label',
+                'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
+                'default_value' => "Keep The Added Protection",
+                'sort_order' => $sortOrder++,
             ],
-            // --- Def Gallons ---
-            [
-                'value_type' => 'textarea',
-                'setting_name' => 'def_gallons_info',
-                'setting_title' => 'Def Gallons Information',
-                'default_value' => 'This includes a set number of DEF gallons in your rental package.',
-                'sort_order' => 15,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'def_gallons_decline_label',
-                'setting_title' => 'Def Gallons Decline Label',
-                'default_value' => self::DECLINE_LABEL,
-                'sort_order' => 16,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'def_gallons_approve_label',
-                'setting_title' => 'Def Gallons Approve Label',
-                'default_value' => self::APPROVE_LABEL,
-                'sort_order' => 17,
-            ],
+
             // --- Damage Waiver ---
             [
                 'value_type' => 'textarea',
                 'setting_name' => 'damage_waiver_info',
-                'setting_title' => 'Damage Waiver Information',
-                'default_value' => 'By removing the Damage Waiver, you agree to take full financial responsibility for any damage or repairs, or to provide business insurance.',
-                'sort_order' => 18,
+                'setting_title' => 'Damage Waiver Protection Message',
+                'placeholder' => 'Enter message for damage waiver protection popup...',
+                'default_value' => '<p>By removing the Damage Waiver, you accept <strong>full financial responsibility</strong> for any damage or repairs (e.g., parts, labor, service calls, and transport).</p>',
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'damage_waiver_decline_label',
-                'setting_title' => 'Damage Waiver Decline Label',
-                'default_value' => self::DECLINE_LABEL,
-                'sort_order' => 19,
+                'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
+                'default_value' => "I'll Take The Risk",
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'damage_waiver_approve_label',
-                'setting_title' => 'Damage Waiver Approve Label',
-                'default_value' => self::APPROVE_LABEL,
-                'sort_order' => 20,
+                'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
+                'default_value' => "Keep The Added Protection",
+                'sort_order' => $sortOrder++,
             ],
         ];
     }
 
     private function addContactUsSettings()
     {
+        $sortOrder = 1;
+
         $this->settings['Contact Us Settings'] = [
-            [
-                'value_type' => 'text',
-                'setting_name' => 'mobile',
-                'setting_title' => 'Mobile',
-                'sort_order' => 1,
-            ],
-            [
-                'value_type' => 'email',
-                'setting_name' => 'email',
-                'setting_title' => 'Email',
-                'sort_order' => 2,
-            ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'address1',
                 'setting_title' => 'Address 1',
-                'sort_order' => 3,
+                'default_value' => '10296 Highway 46, Bon Aqua, TN 37025',
+                'placeholder' => 'Enter address',
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'address2',
                 'setting_title' => 'Address 2',
-                'sort_order' => 4,
+                'default_value' => '4385 SR-48, Charlotte, TN 37055',
+                'placeholder' => 'Enter address',
+                'sort_order' => $sortOrder++,
             ],
-            // Enquiry
             [
                 'value_type' => 'text',
-                'setting_name' => 'enquiry-email',
-                'setting_title' => 'Enquiry Email',
-                'sort_order' => 5,
+                'setting_name' => 'sales_phone',
+                'setting_title' => 'Phone - Sales',
+                'placeholder' => 'USA (xxx) xxx-xxxx',
+                'default_value' => '(615) 815-6734',
+                'sort_order' => $sortOrder++,
             ],
-            // Complaint
             [
                 'value_type' => 'text',
-                'setting_name' => 'complaint-email',
-                'setting_title' => 'Complaint Email',
-                'sort_order' => 6,
+                'setting_name' => 'support_phone',
+                'setting_title' => 'Phone - Support',
+                'placeholder' => 'USA (xxx) xxx-xxxx',
+                'default_value' => '(615) 815-6734',
+                'sort_order' => $sortOrder++,
             ],
-            // Feedback
             [
-                'value_type' => 'text',
-                'setting_name' => 'feedback-email',
-                'setting_title' => 'Feedback Email',
-                'sort_order' => 7,
+                'value_type' => 'email',
+                'setting_name' => 'sales_email',
+                'setting_title' => 'Email - Sales',
+                'placeholder' => 'Enter sales email',
+                'default_value' => 'sales@rentnking.com',
+                'sort_order' => $sortOrder++,
             ],
+            [
+                'value_type' => 'email',
+                'setting_name' => 'support_email',
+                'setting_title' => 'Email - Support',
+                'placeholder' => 'Enter support email',
+                'default_value' => 'sales@rentnking.com',
+                'sort_order' => $sortOrder++,
+            ],
+
         ];
     }
 
     private function addSocialMediaSettings()
     {
+        $sortOrder = 1;
         $this->settings['Social Media Settings'] = [
+            [
+                'value_type' => 'setting_module_title',
+                'setting_name' => 'social_media_profiles_title',
+                'setting_title' => 'Social Media Profiles',
+                'sort_order' => $sortOrder++,
+            ],
+
             [
                 'value_type' => 'text',
                 'setting_name' => 'facebook_page_link',
                 'setting_title' => 'Facebook Page Link',
-                'sort_order' => 1,
-            ],
-            [
-                'value_type' => 'text',
-                'setting_name' => 'linkedin_page_link',
-                'setting_title' => 'LinkedIn Page Link',
-                'sort_order' => 2,
+                'placeholder' => 'https://www.facebook.com/yourpage',
+                'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'twitter_page_link',
                 'setting_title' => 'Twitter Page Link',
-                'sort_order' => 3,
+                'placeholder' => 'https://www.twitter.com/youraccount',
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'text',
+                'setting_name' => 'instagram_page_link',
+                'setting_title' => 'Instagram URL',
+                'placeholder' => 'https://www.instagram.com/youracount',
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'text',
+                'setting_name' => 'linkedin_page_link',
+                'setting_title' => 'LinkedIn Page Link',
+                'placeholder' => 'https://www.linkedIn.com/company/yourcompany',
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'text',
+                'setting_name' => 'youtube_page_link',
+                'setting_title' => 'Youtube Page Link',
+                'placeholder' => 'https://www.youtube.com/c/yourchannel',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'tiktok_page_link',
+                'setting_title' => 'Tiktok Page Link',
+                'placeholder' => 'https://www.tiktok.com/@youraccount',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'pinterest_page_link',
+                'setting_title' => 'Pinterest Page Link',
+                'placeholder' => 'https://www.pinterest.com/youraccount',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'snapchat_page_link',
+                'setting_title' => 'Snapchat Page Link',
+                'placeholder' => 'https://www.snapchat.com/add/youraccount',
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'setting_module_title',
+                'setting_name' => 'display_settings_title',
+                'setting_title' => 'Display Settings',
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'show_social_media_icons',
+                'setting_title' => 'Show Social Media Icons',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'enable_social_sharing',
+                'setting_title' => 'Enable Social Sharing',
+                'sort_order' => $sortOrder++,
             ],
         ];
     }
 
-    /**
+    private function addInvoiceSettings()
+    {
+        $sortOrder = 1;
+        $this->settings['Invoice Settings'] = [
+            [
+                'value_type' => 'number',
+                'setting_name' => 'due_date_pay_upon_receipt',
+                'setting_title' => 'Due Date Pay Upon Receipt',
+                'placeholder' => 'Example: 10',
+                'default_value' => 10,
+                'sort_order' => $sortOrder++,
+            ],
+        ];
+    }
+
+    private function addAdminSettings()
+    {
+        $sortOrder = 1;
+        $this->settings['Admin Settings'] = [
+            [
+                'value_type' => 'password',
+                'setting_name' => 'master_passcode',
+                'setting_title' => 'Master Passcode',
+                'default_value' => 12345678,
+                'placeholder' => 'Enter master passcode',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'password',
+                'setting_name' => 'master_password_entry',
+                'setting_title' => 'Master Password - Entry',
+                'default_value' => 12345678,
+                'placeholder' => 'Enter Password for access/edit',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'sort_order' => $sortOrder++,
+            ],
+        ];
+    }
+
+
+    private function addPaymentSettings()
+    {
+        $sortOrder = 1;
+        $this->settings['Payment Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'payment_gateway',
+                'setting_title' => 'Payment Gateway',
+                'placeholder' => 'Enter payment gateway name',
+                'default_value' => 'Authorize.Net',
+                'is_secure_field' => 1,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'payment_api_public_key',
+                'setting_title' => 'Payment API - Public Key',
+                'placeholder' => 'Enter public API key',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => '2BPBatfc47rsUN2za54WjY48Bc3395AemHWDSL86zbbUyuvhHcQ9LVXw873HYV5D',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'password',
+                'setting_name' => 'payment_api_key',
+                'setting_title' => 'Payment API Key',
+                'placeholder' => 'Enter API key',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => '2Y7eAt88',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'payment_api_secret',
+                'setting_title' => 'Payment API Secret Key',
+                'placeholder' => 'Enter secret key',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => '6X2E6Xk46bK7c9xP',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'boolean',
+                'setting_name' => 'payment_test_mode',
+                'setting_title' => 'Payment Test Mode',
+                'is_secure_field' => 1,
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+        ];
+    }
+
+    private function addCommunicationSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Communication Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'sms_gateway',
+                'setting_title' => 'SMS Gateway',
+                'placeholder' => 'Enter SMS gateway name',
+                'is_secure_field' => 1,
+                'default_value' => 'Twilio',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'twilio_sid',
+                'setting_title' => 'Twilio SID',
+                'placeholder' => 'Enter Twilio SID',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => 'AC9bf505b331e6e08f428ea0f143194c9f',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'twilio_auth_token',
+                'setting_title' => 'Twilio Auth Token',
+                'placeholder' => 'Enter Twilio Auth Token',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => '423d79bcf93860d3dd112d76a6d0495d',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'twilio_from_number',
+                'setting_title' => 'Twilio From Number',
+                'placeholder' => 'Enter Twilio from number',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => '+16157032809',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'twilio_messaging_service_sid',
+                'setting_title' => 'Twilio Messaging Service SID',
+                'placeholder' => 'Enter Twilio Messaging Service SID',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => 'MGaadb9b9a99198fb912890dd06a1fb2fc',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'boolean',
+                'setting_name' => 'sms_test_mode',
+                'setting_title' => 'SMS Test Mode',
+                'is_secure_field' => 1,
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+        ];
+    }
+
+
+    private function addMailSendSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Mail Send Settings'] = [
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_mailer',
+                'setting_title' => 'Mail Mailer',
+                'default_value' => 'smtp',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_host',
+                'setting_title' => 'Mail Host',
+                'default_value' => 'mail.kabba.ai',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'number',
+                'setting_name' => 'mail_port',
+                'setting_title' => 'Mail Port',
+                'default_value' => 465,
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_username',
+                'setting_title' => 'Mail Username',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'default_value' => 'billing@kabba.ai',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'password',
+                'setting_name' => 'mail_password',
+                'setting_title' => 'Mail Password',
+                'default_value' => '-PP}uX0C%}#8',
+                'is_secure_field' => 1,
+                'is_encrypted' => 1,
+                'is_required' => 1,
+                'is_eye_toggle' => 1,
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_encryption',
+                'setting_title' => 'Mail Encryption',
+                'default_value' => 'tls',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_from_address',
+                'setting_title' => 'Mail From Address',
+                'default_value' => 'billing@kabba.ai',
+                'sort_order'   => $sortOrder++,
+            ],
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'mail_from_name',
+                'setting_title' => 'Mail From Name',
+                'default_value' => config('app.name'),
+                'sort_order'   => $sortOrder++,
+            ],
+        ];
+    }
+
+
+    private function addPrivacyPolicySettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Privacy Policy Settings'] = [
+
+            // Title
+            [
+                'value_type'     => 'text',
+                'setting_name'   => 'privacy_policy_title',
+                'setting_title'  => 'Privacy Policy Title',
+                'default_value'  => 'Privacy Policy',
+                'sort_order'     => $sortOrder++,
+            ],
+
+            // Status
+            [
+                'value_type'     => 'checkbox',
+                'setting_name'   => 'privacy_policy_status',
+                'setting_title'  => 'Enable Privacy Policy',
+                'default_value'  => true,
+                'sort_order'     => $sortOrder++,
+            ],
+
+            // Description (Content)
+            [
+                'value_type'     => 'textarea',
+                'setting_name'   => 'privacy_policy_description',
+                'setting_title'  => 'Privacy Policy Description',
+                'default_value'  => 'Enter your privacy policy content here...',
+                'sort_order'     => $sortOrder++,
+            ],
+        ];
+    }
+
+
+    private function addTermsConditionsSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Terms & Conditions Settings'] = [
+
+            // Title
+            [
+                'value_type'     => 'text',
+                'setting_name'   => 'terms_conditions_title',
+                'setting_title'  => 'Terms & Conditions Title',
+                'default_value'  => 'Terms & Conditions',
+                'sort_order'     => $sortOrder++,
+            ],
+
+            // Status
+            [
+                'value_type'     => 'checkbox',
+                'setting_name'   => 'terms_conditions_status',
+                'setting_title'  => 'Enable Terms & Conditions',
+                'default_value'  => true,
+                'sort_order'     => $sortOrder++,
+            ],
+
+            // Description (Content)
+            [
+                'value_type'     => 'textarea',
+                'setting_name'   => 'terms_conditions_description',
+                'setting_title'  => 'Terms & Conditions Description',
+                'default_value'  => 'Enter your terms & conditions content here...',
+                'sort_order'     => $sortOrder++,
+            ],
+        ];
+    }
+
+    /** 
      * Run the database seeds.
      *
      * @return void
@@ -300,20 +1221,39 @@ class SettingSeeder extends Seeder
                         'setting_title' => $setting['setting_title'],
                         'value_type' => $setting['value_type'],
                         'setting_options' => $setting['setting_options'] ?? null,
-                        'setting_value' => $setting['default_value'] ?? null,
                         'sort_order' => $setting['sort_order'] ?? 0,
+                        'placeholder' => $setting['placeholder'] ?? null,
+                        'is_secure_field' => $setting['is_secure_field'] ?? 0,
+                        'is_required' => $setting['is_required'] ?? 0,
+                        'is_encrypted' => $setting['is_encrypted'] ?? 0,
+                        'is_eye_toggle' => $setting['is_eye_toggle'] ?? 0,
                     ],
                 );
 
+                //  Now trigger mutator
+                if (isset($setting['default_value'])) {
+                    $setting_item->setting_value = $setting['default_value'];
+                    $setting_item->save();
+                }
+
                 if ($updateExisting && !$setting_item->wasRecentlyCreated) {
-                    $updateData = [
+                    $setting_item->fill([
                         'setting_title' => $setting['setting_title'],
                         'value_type' => $setting['value_type'],
-                        'setting_value' => $setting['default_value'] ?? null,
                         'setting_options' => $setting['setting_options'] ?? null,
                         'sort_order' => $setting['sort_order'] ?? 0,
-                    ];
-                    $setting_item->update($updateData);
+                        'placeholder' => $setting['placeholder'] ?? null,
+                        'is_secure_field' => $setting['is_secure_field'] ?? 0,
+                        'is_required' => $setting['is_required'] ?? 0,
+                        'is_encrypted' => $setting['is_encrypted'] ?? 0,
+                        'is_eye_toggle' => $setting['is_eye_toggle'] ?? 0,
+                    ]);
+
+                    if (isset($setting['default_value'])) {
+                        $setting_item->setting_value = $setting['default_value']; //  goes through mutator
+                    }
+
+                    $setting_item->save();
                 }
             }
         }

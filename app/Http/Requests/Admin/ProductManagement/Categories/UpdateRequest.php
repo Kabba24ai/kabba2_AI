@@ -48,11 +48,22 @@ class UpdateRequest extends FormRequest
                         }
                     }),
             ],
+            'slug'=>[
+                'required',
+                'max:240',
+                Rule::unique('product_categories', 'slug')->ignore($uniqueId, 'unique_id'),
+            ],
             'short_content' => ['max:1000'],
             'content'=>['nullable'],
             'media' => [
-                $this->isMethod('post') ? 'required' : 'nullable',
-                'image', 'mimes:jpeg,jpg,png', 'max:2048'
+                'nullable',
+                'image', 'mimes:jpeg,jpg,png,webp', 'max:2048',
+                'dimensions:width=650,height=650',
+            ],
+            'hover_media' => [
+                'nullable',
+                'image', 'mimes:jpeg,jpg,png,webp', 'max:2048',
+                'dimensions:width=650,height=650',
             ],
             'status' => ['required', 'in:Published,Draft,Pending'],
             'is_featured' => ['nullable', 'in:Yes,No'],

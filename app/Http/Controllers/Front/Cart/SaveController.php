@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Front\Cart;
 
 use App\Helpers\CartHelper;
 use App\Http\Controllers\Controller;
+
+// Requests
 use App\Http\Requests\Front\Cart\SaveRequest;
-use App\Models\ProductManagement\Product;
 
 class SaveController extends Controller
 {
@@ -13,13 +14,13 @@ class SaveController extends Controller
     {
         $validated = $request->validated();
         try {
-            $cartItems = CartHelper::buildCartSummary([
-                'cart_data' => $validated,
+            $cartData = CartHelper::buildCartSummary([
+                'cart_items' => $validated,
             ]);
 
             return response()->json([
                 'success' => true,
-                'cart_items' => $cartItems,
+                'cart_data' => $cartData,
             ]);
         } catch (\Exception $e) {
             return response()->json(

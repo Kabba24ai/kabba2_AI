@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers\Front\TermsAndConditions;
 
+use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Orders\Order;
 
 class IndexController extends Controller
 {
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request)
+    public function __invoke($orderUniqueId, $device = null)
     {
+        $order = Order::query()->with('products')->where('unique_id', $orderUniqueId)->firstOrFail();
+
         return view('front.terms_and_conditions.index', [
-            'title' => 'Terms And Conditions'
+            'title' => 'Terms And Conditions',
+            'order' => $order,
+            'device' => $device,
         ]);
     }
 }

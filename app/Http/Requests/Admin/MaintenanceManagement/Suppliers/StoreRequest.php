@@ -8,42 +8,70 @@ class StoreRequest extends FormRequest
 {
     public function authorize()
     {
-        return true;
+        return true; // Adjust authorization logic as needed
     }
 
     public function rules()
     {
         return [
-            'name' => 'nullable|string|max:255',
-            'account_number' => 'nullable|string|max:255',
-            'status' => 'required|in:Active,Inactive',
-            'street_address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:2',
-            'zip_code' => 'nullable|string|max:10',
-            'tax_id' => 'nullable|string|max:255',
-            'main_phone' => 'nullable|string|max:255',
-            'main_email' => 'nullable|email|max:255',
-            'website' => 'nullable|url|max:255',
-            'sales_name' => 'nullable|string|max:255',
-            'sales_phone' => 'nullable|string|max:255',
-            'sales_cell' => 'nullable|string|max:255',
-            'sales_email' => 'nullable|email|max:255',
-            'inside_sales_name' => 'nullable|string|max:255',
-            'inside_sales_phone' => 'nullable|string|max:255',
-            'inside_sales_cell' => 'nullable|string|max:255',
-            'inside_sales_email' => 'nullable|email|max:255',
-            'technical_name' => 'nullable|string|max:255',
-            'technical_phone' => 'nullable|string|max:255',
-            'technical_cell' => 'nullable|string|max:255',
-            'technical_email' => 'nullable|email|max:255',
-            'parts_name' => 'nullable|string|max:255',
-            'parts_phone' => 'nullable|string|max:255',
-            'parts_cell' => 'nullable|string|max:255',
-            'parts_email' => 'nullable|email|max:255',
-            'payment_terms' => 'required|string|max:255',
-            'shipping_terms' => 'required|string|max:255',
-            'notes' => 'nullable|string',
+            // Company Information
+            'supplierCompany' => 'required',
+            'supplierEmail'   => 'nullable|email',
+            'supplierPhone'   => [
+                'nullable'
+            ],
+            'supplierWebsite' => 'nullable|url',
+            'supplierAddress' => 'nullable|string',
+            'supplierCity'    => 'nullable|string',
+            'supplierState'   => 'nullable|string',
+            'supplierZip'     => 'nullable|string',
+            'supplierCountry' => 'nullable|string',
+            'supplierTax'     => 'nullable|string',
+
+            // Supplier category & status
+            'supplierCategory'      => 'nullable',
+            'supplierStatus'        => 'required|string|in:Active,Inactive,Pending',
+            'supplierPaymentTerms'  => 'nullable',
+
+            // Tags (array)
+            'tags' => 'nullable|array',
+            'tags.*' => 'integer',
+
+            // Primary Contact
+            'primaryContactName'  => 'nullable',
+            'primaryContactEmail' => 'nullable|email',
+            'primaryContactPhone' => [
+                'nullable'
+            ],
+
+            'upload_company_logo' => 'nullable|file|mimes:jpg,jpeg,png|max:10240',
+
+            // Secondary Contact
+            'insideSalesName'  => 'nullable',
+            'insideSalesEmail' => 'nullable|email',
+            'insideSalesPhone' => [
+                'nullable'
+            ],
+
+            // Secondary Contact
+            'technicalSupportName'  => 'nullable',
+            'technicalSupportEmail' => 'nullable|email',
+            'technicalSupportPhone' => [
+                'nullable'
+            ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'supplierCompany.required' => 'Company Name is required.',
+            'supplierEmail.email' => 'Please enter a valid email address.',
+            'supplierWebsite.url' => 'Please enter a valid website URL.',
+            'supplierPhone.regex' => 'Phone number must be in format (xxx) xxx-xxxx.',
+            'primaryContactPhone.regex' => 'Primary contact phone must be in format (xxx) xxx-xxxx.',
+            'insideSalesPhone.regex' => 'Secondary contact phone must be in format (xxx) xxx-xxxx.',
+            'supplierStatus.required' => 'Status is required.',
         ];
     }
 }

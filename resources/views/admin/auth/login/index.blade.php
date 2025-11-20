@@ -73,7 +73,6 @@ $watch('darkMode', value => {
                         @include('flash::message')
                         {{-- Login Form --}}
                         {{ html()->form()->attributes([
-                            'class' => 'form w-100 module_form',
                             'id' => 'signInForm',
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
@@ -154,15 +153,21 @@ $watch('darkMode', value => {
             </div>
 
             {{-- Dark mode toggler --}}
-            <div class="fixed z-50 bottom-6 right-6">
+            {{-- <div class="fixed z-50 bottom-6 right-6">
                 <button
                     class="inline-flex items-center justify-center text-white transition-colors rounded-full size-14 bg-brand-500 hover:bg-brand-600"
                     @click="darkMode = !darkMode">
                     <x-heroicon-s-moon x-show="darkMode" class="w-6 h-6" />
                     <x-heroicon-s-sun x-show="!darkMode" class="w-6 h-6" />
                 </button>
-            </div>
+            </div> --}}
         </div>
     </div>
+    <script>
+        window.Laravel = {
+            success: @json(session('success')),
+            error: @json(session('error'))
+        };
+    </script>
 </body>
 </html>

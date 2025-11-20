@@ -6,7 +6,7 @@ import { initAddToCart } from './add-to-cart';
 
 // You can inject these context values in the Blade (see tip below)
 const context = window.productPageContext || {};
-
+console.log('Product Page Context:', context);
 document.addEventListener('DOMContentLoaded', function() {
     // Attach globally if needed in inline HTML
     window.changeQty = changeQty;
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (storeSelect) {
                 storeSelect.selectedIndex = 0;
             }
-            if (value === "Delivery + Return" || value === "Pickup + Return") {
+            if (value === "Delivery Only" || value === "Return Only") {
                 storeDiv.classList.remove('hidden');
             } else {
                 storeDiv.classList.add('hidden');
@@ -43,8 +43,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    storeSelect.addEventListener('change', function(event) {
+        const value = event.target.value;
+        const storeError = document.getElementById('storeError');
+        if (!value) {
+            storeError.textContent = 'Please select a store before adding to cart.';
+            storeError.classList.remove('hidden');
+        } else {
+            storeError.classList.add('hidden');
+        }
+    });
+
     // Datepicker, option grid modal, add to cart
     initDatepicker();
     initProductOptions();
     initAddToCart(context);
+
+
+    // --- Here: Update product form from cart, if present ---
+    if (window.CartStorage && typeof window.CartStorage.updateProductFormFromCart === 'function') {
+        window.CartStorage.updateProductFormFromCart();
+    }
+
 });

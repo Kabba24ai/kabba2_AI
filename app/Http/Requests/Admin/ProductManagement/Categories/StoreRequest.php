@@ -35,8 +35,14 @@ class StoreRequest extends FormRequest
             'short_content' => ['nullable', 'string', 'max:1000'],
             'content' => ['nullable', 'string'],
             'media' => [
-                $this->isMethod('post') ? 'required' : 'nullable',
-                'image', 'mimes:jpeg,jpg,png', 'max:2048'
+                'nullable',
+                'image', 'mimes:jpeg,jpg,png,webp', 'max:2048',
+                'dimensions:width=650,height=650',
+            ],
+            'hover_media' => [
+                'nullable',
+                'image', 'mimes:jpeg,jpg,png,webp', 'max:2048',
+                'dimensions:width=650,height=650',
             ],
             'status' => ['required', 'in:Published,Draft,Pending'],
             'is_featured' => ['nullable', 'in:Yes,No'],

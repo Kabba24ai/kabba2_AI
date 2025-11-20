@@ -3,37 +3,72 @@
 namespace App\Helpers;
 
 use App\Models\Configurations\Setting;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class ConfigurationHelper
 {
     public static function getSettings($setting_type = null, $key = null)
     {
-        // If key is provided, fetch just that setting (with optional type)
+        // Build base query
+        $query = Setting::query();
+
         if (!is_null($key)) {
-            $query = Setting::where('setting_name', $key);
-            if (!is_null($setting_type)) {
-                $query->where('setting_type', $setting_type);
-            }
-            $setting_item = $query->first();
-            if ($setting_item) {
-                return [
-                    $setting_item->setting_name => $setting_item->getSetting(),
-                    $setting_item->setting_name . '_formatted' => $setting_item->getSetting() > 0 ? number_format(floatval($setting_item->getSetting())) : '',
-                ];
-            }
-            return []; // Not found
+            $query->where('setting_name', $key);
+        }
+        if (!is_null($setting_type)) {
+            $query->where('setting_type', $setting_type);
         }
 
-        // Else: fetch all (optionally by type)
-        $setting_list = !is_null($setting_type) ? Setting::where('setting_type', $setting_type)->get() : Setting::get();
+        // Fetch settings
+        $settings = $query->get();
 
-        $settingArr = [];
-        if ($setting_list && count($setting_list) > 0) {
-            foreach ($setting_list as $setting_item) {
-                $settingArr[$setting_item->setting_name] = $setting_item->getSetting();
-                $settingArr[$setting_item->setting_name . '_formatted'] = $setting_item->getSetting() > 0 ? number_format(floatval($setting_item->getSetting())) : '';
-            }
+        $result = [];
+
+        foreach ($settings as $setting) {
+            $value = $setting->getSetting();
+            $result[$setting->setting_name] = $value;
+            $result[$setting->setting_name . '_formatted'] = $value > 0 ? number_format((float)$value) : '';
         }
-        return $settingArr;
+
+        if (!is_null($key)) {
+            return $result[$key] ?? null;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     *  Safely decrypt any given value.
+     * If it's not actually encrypted or invalid, it returns the value as-is.
+     */
+    public static function safeDecrypt(?string $value): ?string
+    {
+        if (empty($value)) {
+            return $value;
+        }
+
+        try {
+            return Crypt::decryptString($value);
+        } catch (DecryptException $e) {
+            // Not encrypted or invalid payload
+            return $value;
+        } catch (\Exception $e) {
+            // Any other errors (like wrong key, null)
+            return $value;
+        }
+    }
+
+    /**
+     *  Get and automatically decrypt a setting from DB.
+     *
+     * Example:
+     *   ConfigurationHelper::getDecryptedSetting('Mail Send Settings', 'mail_password');
+     */
+    public static function getDecryptedSetting(string $setting_type, string $key): ?string
+    {
+        $value = self::getSettings($setting_type, $key);
+        return self::safeDecrypt($value);
     }
 }

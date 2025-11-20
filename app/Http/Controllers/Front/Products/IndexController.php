@@ -18,14 +18,14 @@ class IndexController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke($categorySlug, $slug, $productType)
+    public function __invoke($slug, $productVariant)
     {
         $productDetail = Product::published()->with('categories', 'options.items', 'relatedProducts', 'mediaChildren.media')->where('slug', $slug)->firstOrFail();
 
-        $stores = Store::with('state')->get();
+        $stores = Store::active()->with('state')->get();
 
         // 1. Find the category from the product's categories by slug
-        $category = $productDetail->categories->where('slug', $categorySlug)->first();
+        $category = $productDetail->categories->sortBy('slug')->first();
 
         if (!$category) {
             $parentCategory = null;
@@ -37,7 +37,9 @@ class IndexController extends Controller
                 // Find children of this parent that are linked to the product and published
                 $childCategories = $productDetail->categories
                     ->where('parent_id', $category->id)
-                    ->where('is_published', true)
+                    ->filter(function ($cat) {
+                        return $cat->published();
+                    })
                     ->values();
             } else {
                 // If it's a child, find its parent (must also be linked and published)
@@ -51,7 +53,7 @@ class IndexController extends Controller
         return view('front.products.details', [
             'title' => $productDetail->product_name,
             'category' => $category,
-            'productType' => $productType,
+            'productVariant' => $productVariant,
             'productDetail' => $productDetail,
             'stores' => $stores,
             'parentCategory' => $parentCategory,

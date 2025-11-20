@@ -15,11 +15,17 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $category_tree = ProductCategory::with('media')->whereNull('parent_id')->limit(8)->get();
+        $category_tree = ProductCategory::published()->with('media')->whereNull('parent_id')->sortOrder()->get();
+
+        $order = session('order', []);
+        $cartData = $order['cart_data'] ?? [];
+
+        session()->forget('order.cart_data');
 
         return view('front.home.index', [
             'title' => 'Home',
             'category_tree'=> $category_tree,
+            'cart_data' => $cartData,
         ])->with('success', 'Something went wrong. Please try again.');
     }
 }

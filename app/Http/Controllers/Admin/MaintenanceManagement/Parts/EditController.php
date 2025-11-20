@@ -8,9 +8,10 @@ use App\Models\MaintenanceManagement\Supplier;
 
 class EditController extends Controller
 {
-    public function __invoke(Part $unique_id)
+    public function __invoke( $unique_id)
     {
-        $part = $unique_id; // Laravel route model binding
+
+        $part = Part::where('unique_id', $unique_id)->first(); // Laravel route model binding
 
         $categories = ['Bulldozers', 'Compressors', 'Excavators', 'Generators', 'Loaders', 'Supplies'];
         $equipmentOptions = [
@@ -19,7 +20,10 @@ class EditController extends Controller
             // ... rest of equipment options
         ];
 
-        $suppliers = Supplier::orderBy('name')->pluck('name')->toArray();
+        $suppliers = Supplier::orderBy('name')->get(['unique_id', 'name']);
+
+
+        // dd($part);
 
         return view('admin.maintenance_management.parts.edit', compact('part', 'categories', 'equipmentOptions', 'suppliers'));
     }

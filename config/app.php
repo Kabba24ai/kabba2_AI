@@ -153,11 +153,13 @@ return [
     */
     'date' => [
         'db_date_format' => env('DB_DATE_FORMAT', 'Y-m-d'),
-        'db_date_time_format' => env('DB_DATE_TIME_FORMAT', 'Y-m-d H:i:s'),
-        'date_time_format_without_second' => env('DATE_TIME_FORMAT_WITHOUT_SECOND', 'd/m/Y H:i'),
+        'db_time_format' => env('DB_TIME_FORMAT', 'h:i:s'),
+        'db_date_time_format' => env('DB_DATE_TIME_FORMAT', 'Y-m-d h:i:s'),
         'date_format' => env('DATE_FORMAT', 'd/m/Y'),
-        'fancy_date_time_format' => env('FANCY_DATE_TIME_FORMAT', 'd/m/Y - H:i'),
-        'js_date_format' => 'MM/dd/yyyy',
+        'time_format' => env('TIME_FORMAT', 'h:i A'),
+        'date_time_format' => env('DATE_TIME_FORMAT', 'd/m/Y - h:i A'),
+        'js_date_format' => env('JS_DATE_FORMAT', 'dd/MM/yyyy'),
+        'aire_datepicker_format' => env('AIRE_DATEPICKER_FORMAT', 'MM/dd/yyyy'),
     ],
 
     /*
@@ -194,8 +196,8 @@ return [
     |
     */
     'currency' => [
-        'code' => env('CURRENCY_CODE', '₹'),
-        'name' => env('CURRENCY_NAME', 'INR'),
+        'code' => env('CURRENCY_CODE', '$'),
+        'name' => env('CURRENCY_NAME', 'USD'),
     ],
 
 
@@ -209,5 +211,8 @@ return [
     'seeders' => [
         'existing_settings_update' => env('EXISTING_SETTINGS_UPDATE', false),
     ],
+
+
+    'super_admin_passcode' => env('SUPER_ADMIN_PASSCODE', '12345678'),
 
 ];

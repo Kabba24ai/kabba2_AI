@@ -17,6 +17,14 @@ Route::prefix('crm')
 ->name('crm.')
 ->group(function ($router) {
 
-    // customer_portal
-    require base_path('routes/admin/crm/customer_portal/routes.php');
+    // customers
+    require base_path('routes/admin/crm/customers/routes.php');
+
+    require base_path('routes/admin/crm/billing_summary/routes.php');
+
+    require base_path('routes/admin/crm/funnels/routes.php');
+
+    require base_path('routes/admin/crm/tags/routes.php');
+
+
 });

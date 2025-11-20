@@ -3,347 +3,451 @@
 @section('title', $title)
 
 @section('content')
-    <!-- Page Title Section -->
-    <section
-        class="transform transition-all duration-300 ease-in-out md:border-l-[30px] md:border-l-[#fff] md:border-r-[30px] md:border-r-[#fff] bg-[#f9fafc]">
-        <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-[30px] md:px-0">
-            <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
-                <div class="w-full">
-                    <div class="flex justify-between items-center ">
-                        <h1 class="text-[28px] md:text-[34px] lg:text-[40px] tracking-[-2px] leading-[110%] font-bold">FAQs
-                        </h1>
-                        <ul
-                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full text-[14px] font-medium items-center inline-flex gap-3 relative border-2 border-[#fff]">
-                            <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                <a href="index.php" class="opacity-25">Home</a>
-                            </li>
-                            <li>
-                                <a href="faq.php">FAQs</a>
-                            </li>
-                        </ul>
+<!-- Page Title Section -->
+<style>
+    .highlight-faq {
+        background-color: #fff3cd !important;
+        border-radius: 6px;
+        transition: background-color 1.5s ease-out;
+        padding: 10px 2px;
+    }
+</style>
+<div class="text-center px-4  w-full pt-130 pb-10">
+    <div class="max-w-2xl mx-auto space-y-5 px-4 sm:px-6 lg:px-8">
+        <!-- Title -->
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+            Frequently Asked Questions
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="text-gray-600 text-base sm:text-lg">
+            Find answers to questions about our equipment rentals & services.
+        </p>
+
+        <!-- Search Box -->
+        <form method="GET" action="{{ route('front.faqs.index') }}" class="relative max-w-xl mx-auto mt-6">
+            <div class="relative max-w-xl mx-auto mt-6">
+
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+                    </svg>
+                </span>
+                <input type="text" name="q" value="{{ $search ?? '' }}" placeholder="Search for answers..."
+                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 text-sm sm:text-base" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<?php /*<div class="max-w-3xl mx-auto space-y-4  px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Category 1 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Header -->
+            <button class="category-toggle w-full flex justify-between items-center p-4 text-left cursor-pointer">
+                <div class="flex items-start gap-3">
+                    <div class="text-yellow-500 text-2xl">📁</div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Booking & Reservations</h3>
+                        <p class="text-gray-600 text-sm">Everything you need to know about making and managing your reservations</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">2 questions</span>
+                    <!-- Category Arrow -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Category Content -->
+            <div class="category-content hidden border-t border-gray-100">
+                <!-- Question 1 -->
+                <div class="px-6 py-4 transition-colors border-b border-gray-100">
+                    <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
+                        Can I modify or cancel my reservation?
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="faq-content hidden text-gray-700 text-sm leading-relaxed mt-3">
+                        <p class="text-gray-700 leading-relaxed prose prose-sm max-w-none">Yes! You can modify or cancel your reservation through your account dashboard.</p>
+                        <hr class="my-3 border-gray-200" />
+
+                        <div class="mt-4 mb-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Was this helpful?</span>
+                                <div class="flex items-center space-x-2">
+                                    <button class="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-up w-4 h-4 mr-1">
+                                        <path d="M7 10v12"></path>
+                                        <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
+                                        </svg>
+                                        Yes
+                                    </button>
+                                    <button class="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-down w-4 h-4 mr-1">
+                                        <path d="M17 14V2"></path>
+                                        <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"></path>
+                                        </svg>
+                                        No
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-3">
+                            <p class="flex items-center gap-1 font-medium text-gray-900 text-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb w-4 h-4 text-yellow-500 mr-2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+                                Related
+                            </p>
+                            <a href="#" class="text-blue-600 text-sm hover:underline block mt-1">
+                                How do I make a reservation?
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="px-6 py-4 cursor-pointer">
+                    <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
+                        How do I make a reservation?
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="faq-content hidden text-gray-700 text-sm leading-relaxed mt-3">
+                        <p class="text-gray-700 leading-relaxed prose prose-sm max-w-none">Making a reservation is simple! Browse our available properties, select your dates, and click Book Now.</p>
+                        <hr class="my-3 border-gray-200" />
+
+                        <div class="mt-4 mb-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Was this helpful?</span>
+                                <div class="flex items-center space-x-2"><span class="text-sm text-gray-500">Thanks for your feedback!</span></div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-3">
+                            <p class="flex items-center gap-1 font-medium text-gray-900 text-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb w-4 h-4 text-yellow-500 mr-2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+                                Related
+                            </p>
+                            <a href="#" class="text-blue-600 text-sm hover:underline block mt-1">
+                                How do I make a reservation?
+                            </a>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <section class="lg:pb-[50px]">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Damage Waiver Details</h2>
-            <div
-                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4  [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
-                <div class="">
-                    <div id="accordion-flush" data-accordion="open"
-                        data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                        data-inactive-classes="text-black-500 dark:text-gray-400">
-                        <h2 id="accordion-flush-heading-1">
-                            <button type="button"
-                                class="faq-btn flex items-center justify-between w-full py-5 font-medium rtl:text-right text-black-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 gap-3"
-                                data-accordion-target="#accordion-flush-body-1" aria-expanded="false"
-                                aria-controls="accordion-flush-body-1">
-                                <span class="text-left">Is a Damage Waiver "Insurance"?</span>
-                                <span class="sb-plus-minus-toggle sb-collapsed"></span>
-                            </button>
-                        </h2>
-                        <div id="accordion-flush-body-1"
-                            class="hidden overflow-hidden max-h-0 transform transition-[max-height] duration-500 ease-in-out"
-                            aria-labelledby="accordion-flush-heading-1">
-                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">A Damage Waiver is not insurance and does
-                                    not provide unlimited liability protection for rented equipment.</p>
-                                <p class="text-gray-500 dark:text-gray-400">The Damage Waiver is an optional provision
-                                    offered to the Renter that provides additional protection against certain damages that
-                                    may occur during the normal use of the equipment.</p>
-                            </div>
-                        </div>
+        <!-- Category 2 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden  cursor-pointer">
+            <button class="category-toggle w-full flex justify-between items-center p-4 text-left cursor-pointer">
+                <div class="flex items-start gap-3">
+                    <div class="text-yellow-500 text-2xl">📁</div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Property Information</h3>
+                        <p class="text-gray-600 text-sm">Details about our properties and amenities</p>
                     </div>
                 </div>
 
-                <div class="">
-                    <div id="accordion-flush" data-accordion="open"
-                        data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                        data-inactive-classes="text-black-500 dark:text-gray-400">
-                        <h2 id="accordion-flush-heading-3">
-                            <button type="button"
-                                class="faq-btn flex items-center justify-between w-full py-5 font-medium rtl:text-right text-black-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 gap-3"
-                                data-accordion-target="#accordion-flush-body-3" aria-expanded="false"
-                                aria-controls="accordion-flush-body-3">
-                                <span class="text-left">What is NOT covered by the Damage Waiver?</span>
-                                <span class="sb-plus-minus-toggle sb-collapsed"></span>
-                            </button>
-                        </h2>
-                        <div id="accordion-flush-body-3" class="hidden" aria-labelledby="accordion-flush-heading-3">
-                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">The Damage Waiver does not cover all
-                                    potential damages and is not a substitute for insurance. Specifically, the waiver does
-                                    not cover:</p>
-                                <p class="text-gray-500 dark:text-gray-400 ml-6 mb-3"><b>Intentional damage:</b>Any
-                                    deliberate, reckless or incompetent handling of the equipment. </p>
-                                <p class="text-gray-500 dark:text-gray-400 ml-6 mb-3"><b>Damage to excluded items:</b>As
-                                    outlined in this agreement, certain items such as hoses, hose couplings, specific
-                                    attachments, and "thrown tracks" due to operator error are not covered.</p>
-                                <p class="text-gray-500 dark:text-gray-400 ml-6 mb-3"><b>Third-party liability:</b> Any
-                                    claims involving damage to third parties or property while using the rented equipment.
-                                </p>
-                                <p class="text-gray-500 dark:text-gray-400 ml-6 mb-3"><b>Negligence or misuse:</b>Any damage
-                                    caused by improper operation, carelessness, or use of the equipment outside of the
-                                    recommended guidelines. </p>
-                                <p class="text-gray-500 dark:text-gray-400 ml-6 mb-3"><b>Acts of theft:</b>Lost or stolen
-                                    equipment.</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">1 question</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </div>
-                <div class="">
-                    <div id="accordion-flush" data-accordion="open"
-                        data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                        data-inactive-classes="text-black-500 dark:text-gray-400">
-                        <h2 id="accordion-flush-heading-2">
-                            <button type="button"
-                                class="faq-btn flex items-center justify-between w-full py-5 font-medium rtl:text-right text-black-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 gap-3"
-                                data-accordion-target="#accordion-flush-body-2" aria-expanded="false"
-                                aria-controls="accordion-flush-body-2">
-                                <span class="text-left">What does the Damage Waiver cover?</span>
-                                <span class="sb-plus-minus-toggle sb-collapsed"></span>
-                            </button>
-                        </h2>
-                        <div id="accordion-flush-body-2" class="hidden" aria-labelledby="accordion-flush-heading-2">
-                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">The Damage Waiver provides limited
-                                    protection for damages resulting from ordinary wear and tear or accidental damage that
-                                    occurs during the normal operation of the rented equipment, as long as the equipment is
-                                    used according to the manufacturer's guidelines and within the scope of its intended
-                                    purpose.</p>
-                                <p class="text-gray-500 dark:text-gray-400 mb-3">Examples of covered items under normal use
-                                    include: </p>
-                                <p class="text-gray-500 ml-6 mb-3 dark:text-gray-400">General wear and tear on moving parts.
-                                </p>
-                                <p class="text-gray-500 ml-6 mb-3 dark:text-gray-400">Damage resulting from typical usage
-                                    scenarios. </p>
-                                <p class="text-gray-500 ml-6 mb-3 dark:text-gray-400">Hydraulic hoses and couplings that
-                                    fail due to normal wear and usage. </p>
-                                <p class="text-gray-500 ml-6 mb-3 dark:text-gray-400">Minor dents, scratches, tooth wear due
-                                    to normal usage.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </button>
 
-        </div>
-    </section>
+            <div class="category-content hidden border-t border-gray-100 cursor-pointer">
+                <div class="px-6 py-4 ">
+                    <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
+                        What amenities are included?
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
 
-    <section class="lg:pb-[50px]">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Rental Schedules / Cancelations
-            </h2>
-            <div
-                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4 [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
-                <div class="">
-                    <div id="accordion-flush" data-accordion="open"
-                        data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                        data-inactive-classes="text-black-500 dark:text-gray-400">
-                        <h2 id="accordion-flush-heading-4">
-                            <button type="button"
-                                class="faq-btn flex items-center justify-between w-full py-5 font-medium rtl:text-right text-black-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 gap-3"
-                                data-accordion-target="#accordion-flush-body-4" aria-expanded="false"
-                                aria-controls="accordion-flush-body-4">
-                                <span class="text-left">What is your policy on reschedules and cancellations?</span>
-                                <span class="sb-plus-minus-toggle sb-collapsed"></span>
-                            </button>
-                        </h2>
-                        <div id="accordion-flush-body-4" class="hidden" aria-labelledby="accordion-flush-heading-4">
-                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">We offer <i><strong>free
-                                            reschedules</strong></i> for any rental, allowing you to adjust your rental
-                                    dates without any additional cost. If you need to cancel your rental, it must be done
-                                    more than 24 hours before the scheduled rental time. Cancellations made within this
-                                    window will incur a 4.5% credit card fee and a $5 transaction fee if a credit card was
-                                    used for the original booking.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <div class="faq-content hidden text-gray-700 text-sm leading-relaxed  mt-3">
+                        <p class="text-gray-700 leading-relaxed prose prose-sm max-w-none">Amenities vary by property but typically include WiFi, kitchen, linens, and towels.</p>
+                        <hr class="my-3 border-gray-200" />
 
-                <div class="">
-                    <div id="accordion-flush" data-accordion="open"
-                        data-active-classes="bg-white dark:bg-gray-900 text-black-900 dark:text-white"
-                        data-inactive-classes="text-black-500 dark:text-black-400">
-
-                        <h2 id="accordion-flush-heading-7">
-                            <button type="button"
-                                class="faq-btn flex items-center justify-between w-full py-5 font-medium rtl:text-right text-black-500 border-b border-gray-200 dark:border-gray-700 dark:text-black-400 gap-3"
-                                data-accordion-target="#accordion-flush-body-7" aria-expanded="false"
-                                aria-controls="accordion-flush-body-">
-                                <span class="text-left">When can I expect my delivery?</span>
-                                <span class="sb-plus-minus-toggle sb-collapsed"></span>
-                            </button>
-                        </h2>
-                        <div id="accordion-flush-body-7" class="hidden" aria-labelledby="accordion-flush-heading-7">
-                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">Our store begins processing deliveries at
-                                    <i><strong>7:00 AM</strong></i> , but the exact time your order arrives depends on
-                                    several factors, including:
-                                </p>
-                                <p class="text-gray-500 dark:text-gray-400 mb-3 ml-6"><strong>~ Order Placement:</strong>
-                                    Deliveries are processed on a first-in, first-out basis, meaning orders placed earlier
-                                    will generally be delivered first.</p>
-                                <p class="text-gray-500 ml-6 mb-3 dark:text-gray-400"><strong>~ Availability of
-                                        Equipment:</strong> The equipment you’ve rented may depend on its return from a
-                                    previous rental, which can impact delivery times.</p>
-                                <p class="text-gray-500 ml-6 mb-3 dark:text-gray-400"><strong>~ Loading, Rigging, and
-                                        Transport Time:</strong> These factors also contribute to the delivery schedule, so
-                                    while we aim for efficiency, your equipment may not arrive exactly at <strong>9:00
-                                        AM</strong></p>
-                                <p class="text-gray-500 mb-3 dark:text-gray-400">Regardless of the actual delivery time,
-                                    <strong>your rental officially starts at 9:00 AM.</strong>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-    <section class="pb-[50px]">
-        <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <h2 class="text-[26px] md:text-[30px] font-bold  mb-10 mt-10 ">Cleaning Fees</h2>
-            <div
-                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4 [&>*:nth-child(1)]:border-t lg:[&>*:nth-child(2)]:border-t">
-                <div class="">
-                    <div id="accordion-flush" data-accordion="open"
-                        data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                        data-inactive-classes="text-black-500 dark:text-gray-400">
-                        <h2 id="accordion-flush-heading-8">
-                            <button type="button"
-                                class="faq-btn flex items-center justify-between w-full py-5 font-medium rtl:text-right text-black-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 gap-3"
-                                data-accordion-target="#accordion-flush-body-8" aria-expanded="false"
-                                aria-controls="accordion-flush-body-8">
-                                <span class="text-left">Are there cleaning fees associated when renting?</span>
-                                <span class="sb-plus-minus-toggle sb-collapsed"></span>
-                            </button>
-                        </h2>
-                        <div id="accordion-flush-body-8" class="hidden" aria-labelledby="accordion-flush-heading-8">
-                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">In most cases, there is no separate
-                                    cleaning fee included in the rental price. However, you are responsible for returning
-                                    the rented machine in the same clean condition you received it in. This means: </p>
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">~ Removing all debris, dirt, and leftover
-                                    materials from the machine's body, attachments, and internal components (where
-                                    applicable). </p>
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">~ Cleaning the tracks of tracked machines.
-                                    Packed dirt is never considered “clean” and must be physically removed and hosed out.
-                                </p>
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">~ Following any specific cleaning
-                                    instructions provided at the time of rental for certain machines (e.g., emptying floor
-                                    sanders, degreasing pressure washers). </p>
-                                <p class=" mb-3 text-gray-500 dark:text-gray-400">~ Returning the machine free of excessive
-                                    wear and tear beyond normal use.</p>
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">~ Closed cab machines must be wiped down
-                                    and swept clean of dirt.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="">
-                    <div id="accordion-flush" data-accordion="open"
-                        data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                        data-inactive-classes="text-black-500 dark:text-gray-400">
-
-                        <h2 id="accordion-flush-heading-9">
-                            <button type="button"
-                                class="faq-btn flex items-center justify-between w-full py-5 font-medium rtl:text-right text-black-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 gap-3"
-                                data-accordion-target="#accordion-flush-body-9" aria-expanded="false"
-                                aria-controls="accordion-flush-body-9">
-                                <span class="text-left">What happens if I return the machine excessively dirty?</span>
-                                <span class="sb-plus-minus-toggle sb-collapsed"></span>
-                            </button>
-                        </h2>
-                        <div id="accordion-flush-body-9" class="hidden" aria-labelledby="accordion-flush-heading-9">
-                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                <p class="mb-3 text-gray-500 dark:text-gray-400">If upon return, our team finds the machine
-                                    significantly dirty or with leftover materials that require additional cleaning, a
-                                    cleaning fee will be applied based on the time and effort required to bring it back to
-                                    its original state as detailed in the terms and conditions for each product. This fee
-                                    will be charged directly to your payment method on file and due immediately.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="">
-                    <div id="accordion-flush" data-accordion="open"
-                        data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                        data-inactive-classes="text-black-500 dark:text-gray-400">
-                        <h2 id="accordion-flush-heading-10">
-                            <button type="button"
-                                class="faq-btn flex items-center justify-between w-full py-5 font-medium rtl:text-right text-black-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 gap-3"
-                                data-accordion-target="#accordion-flush-body-10" aria-expanded="false"
-                                aria-controls="accordion-flush-body-10">
-                                <span class="text-left">How can I avoid cleaning fees?</span>
-                                <span class="sb-plus-minus-toggle sb-collapsed"></span>
-                            </button>
-                        </h2>
-                        <div id="accordion-flush-body-10" class="hidden" aria-labelledby="accordion-flush-heading-10">
-                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                <p class="mb-3 text-gray-500 dark:text-gray-400"><strong>Pre-paid cleaning:</strong> For a
-                                    small fee, you can opt for our pre-paid cleaning service. This covers standard cleaning
-                                    procedures and ensures you won't be charged a cleaning fee unless the machine is
-                                    returned in extremely dirty or damaged condition.</p>
-
-                                <p class="text-gray-500 dark:text-gray-400 mb-3"><strong>Simple cleaning: </strong>For most
-                                    rentals, a quick wipe-down to remove any visible dirt, debris, or leftover materials is
-                                    sufficient.</p>
-
-                                <p class="text-gray-500 dark:text-gray-400 mb-3"><strong>Car Wash / Power wash</strong> -
-                                    There is a self serve car wash near by and these work very well for cleaning equipment
-                                    if you do not have cleaning equipment at the jobsite where the machines are used</p>
-
-                                <p class="text-gray-500 dark:text-gray-400 mb-3"><strong>Heavy-duty cleaning needs:
-                                    </strong>If you anticipate using the machine for a project that will result in heavy
-                                    soiling, consider purchasing disposable liners or drop cloths (available for purchase at
-                                    Rent 'n King) to minimize cleanup on the machine itself.</p>
-                                <p class="text-gray-500 dark:text-gray-400 mb-3"><strong>Ask for help! </strong>Our team is
-                                    happy to provide additional cleaning tips or answer any questions you may have about
-                                    specific machines.</p>
+                        <div class="mt-4 mb-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Was this helpful?</span>
+                                <div class="flex items-center space-x-2">
+                                    <button class="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-up w-4 h-4 mr-1">
+                                        <path d="M7 10v12"></path>
+                                        <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
+                                        </svg>
+                                        Yes
+                                    </button>
+                                    <button class="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-down w-4 h-4 mr-1">
+                                        <path d="M17 14V2"></path>
+                                        <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"></path>
+                                        </svg>
+                                        No
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                     </div>
                 </div>
             </div>
-
         </div>
-    </section>
+
+        <div class="w-full max-w-4xl bg-gray-100 text-black rounded-lg shadow p-8 sm:p-12 text-center space-y-5 mb-100 mt-100">
+            <!-- Heading -->
+            <h2 class="text-2xl sm:text-3xl font-bold">Still need help?</h2>
+            <p class="text-sm sm:text-lg max-w-2xl mx-auto">
+                Can't find what you're looking for? Our support team is here to help you with any questions.
+            </p>
+
+            <!-- Buttons -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <!-- Text Us Button -->
+                <a href="#" class="flex items-center gap-2 bg-yellow-400 text-black hover:bg-yellow-500 font-medium px-5 py-2.5 rounded-md shadow-sm transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle w-5 h-5 mr-2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
+                    Click to Text Us
+                </a>
+
+                <!-- Call Us Button -->
+                <a href="tel:+1234567890" class="flex items-center gap-2 bg-yellow-400 text-black hover:bg-yellow-500 font-medium px-5 py-2.5 rounded-md shadow-sm transition-all">
+                    Call Us: (123) 456-7890
+                </a>
+            </div>
+        </div>
+
+    </div> */ ?>
+<div class="max-w-3xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8 py-6 pb-20">
+    @foreach($categories as $category)
+    <div class="bg-white rounded-xl shadow-sm border border-gray-300 overflow-hidden">
+        <button class="category-toggle w-full flex justify-between items-center p-4 text-left cursor-pointer">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 border border-gray-200 overflow-hidden">
+                    @if($category->iconMedia)
+                    <img
+                        src="{{ $category->iconMedia->getUrl() }}"
+                        alt="{{ $category->category_name }}"
+                        class="w-full h-full object-cover">
+                    @else
+                    <div class="text-yellow-500 text-2xl">📁</div>
+                    @endif
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900">{{ $category->category_name }}</h3>
+                    <p class="text-gray-600 text-sm">{{ $category->description }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
+                    {{ $category->questions->count() }} {{ Str::plural('question', $category->questions->count()) }}
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform duration-200 {{ $category->default_expand ? 'rotate-180' : '' }}"" fill=" none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+        </button>
+
+        <div class="category-content {{ $category->default_expand ? '' : 'hidden' }} border-t-2 border-gray-300">
+            @forelse($category->questions as $question)
+            <div class="px-6 py-2 @if(!$loop->last) border-b-2 border-gray-300 @endif">
+                <button id="faq-{{$question->unique_id}}" class="faq-toggle flex justify-between items-center w-full text-left font-medium text-sm text-gray-900 hover:text-blue-600 cursor-pointer">
+                    {{ $question->question_name }}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400  transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div class="faq-content hidden text-gray-700 text-sm leading-relaxed mt-3">
+                    <p class="text-gray-700 leading-relaxed prose prose-sm max-w-none">{!! $question->answer !!}</p>
+                    
+
+
+
+                    @if($question->related)
+                    <hr class="my-4 border-gray-300" />
+                    <div class=" pt-3">
+                        <p class="flex items-center gap-1 font-medium text-gray-900 text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb w-4 h-4 text-yellow-500 mr-2">
+                                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+                                <path d="M9 18h6"></path>
+                                <path d="M10 22h4"></path>
+                            </svg> Related
+                        </p>
+                        <!-- <a href="#faq_{{ $question->related->unique_id }}" class="text-blue-600 text-sm hover:underline block mt-1">
+                            {{ $question->related->question_name }}
+                        </a> -->
+                        <a href="{{ route('front.faqs.index', ['open' => $question->related->unique_id]) }}"
+                            class="text-blue-600 text-sm hover:underline block mt-1">
+                            {{ $question->related->question_name }}
+                        </a>
+                    </div>
+                    @else
+                    
+                    @endif
+                </div>
+            </div>
+            @empty
+            <p class="text-gray-500 text-sm p-4">No questions found for this category.</p>
+            @endforelse
+        </div>
+    </div>
+
+    @endforeach
+</div>
+
 @endsection
 
+
 @push('js')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const buttons = document.querySelectorAll('.faq-btn');
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
 
-            buttons.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    // Toggle 'active' class on button
-                    btn.classList.toggle('active');
+        /* --------------------------
+           CATEGORY + FAQ TOGGLE
+        -------------------------- */
+        document.querySelectorAll('.category-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = btn.nextElementSibling;
+                const icon = btn.querySelector('svg');
 
-                    // Handle accordion body
-                    const targetId = btn.getAttribute('data-accordion-target');
-                    const body = document.querySelector(targetId);
+                // Only toggle if user manually clicks
+                const isHidden = content.classList.contains('hidden');
 
-                    if (body.classList.contains('hidden')) {
-                        // Open accordion body
-                        body.classList.remove('max-h-0');
-                        body.classList.add('max-h-[1000px]'); // Add custom classes
-                    } else {
-                        // Close accordion body
-                        body.classList.add('max-h-0');
-                        body.classList.remove('max-h-[1000px]'); // Remove custom classes
-                    }
-                });
+                if (isHidden) {
+                    content.classList.remove('hidden');
+                    icon.classList.add('rotate-180');
+                } else {
+                    content.classList.add('hidden');
+                    icon.classList.remove('rotate-180');
+                }
             });
         });
-    </script>
+
+
+        document.querySelectorAll('.faq-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = btn.nextElementSibling;
+                const icon = btn.querySelector('svg');
+                content.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            });
+        });
+
+        /* ------------------------------------
+           1. Auto-expand when using ?open=ID
+        ------------------------------------ */
+        const urlParams = new URLSearchParams(window.location.search);
+        const openId = urlParams.get('open');
+
+        if (openId) {
+            expandFaq(openId, true); // highlight + scroll
+        }
+
+        /* ------------------------------------
+           2. Auto-expand matches from search
+        ------------------------------------ */
+        const matchedFaqs = @json($matchedFaqIds); // from controller
+
+        if (matchedFaqs.length > 0) {
+            matchedFaqs.forEach(id => expandFaq(id, false)); // do not scroll multiple times
+
+            // Scroll to first match
+            setTimeout(() => {
+                expandFaq(matchedFaqs[0], true);
+            }, 300);
+        }
+
+        /* ------------------------------------
+           Helper: expand FAQ programmatically
+        ------------------------------------ */
+        function expandFaq(uniqueId, scrollIntoView = false) {
+            const faqBtn = document.querySelector(`#faq-${uniqueId}`);
+            if (!faqBtn) return;
+
+            const faqContent = faqBtn.nextElementSibling;
+            const categoryContent = faqBtn.closest('.category-content');
+            const categoryBtn = categoryContent?.previousElementSibling;
+
+            // Open category
+            if (categoryContent && categoryBtn) {
+                categoryContent.classList.remove('hidden');
+                categoryBtn.querySelector('svg')?.classList.add('rotate-180');
+            }
+
+            // Open FAQ content
+            faqContent.classList.remove('hidden');
+            faqBtn.querySelector('svg')?.classList.add('rotate-180');
+
+            // Highlight FAQ
+            faqBtn.classList.add('highlight-faq');
+            setTimeout(() => faqBtn.classList.remove('highlight-faq'), 2500);
+
+            // Scroll (optional)
+            if (scrollIntoView) {
+                faqBtn.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+
+
+
+        document.addEventListener("input", function() {
+            const search = document.querySelector("input[name='q']").value.toLowerCase();
+
+            // Filter FAQ items
+            document.querySelectorAll(".faq-toggle").forEach(btn => {
+                const questionText = btn.innerText.toLowerCase();
+                const answerText = btn.nextElementSibling.innerText.toLowerCase();
+
+                const match = questionText.includes(search) || answerText.includes(search);
+
+                // Hide/show FAQ item
+                btn.parentElement.style.display = match || search === "" ? "" : "none";
+            });
+
+            // Category auto-expand + hide empty categories
+            document.querySelectorAll(".category-content").forEach(cat => {
+                const faqButtons = Array.from(cat.querySelectorAll(".faq-toggle"));
+
+                const hasMatch = faqButtons.some(btn => btn.parentElement.style.display !== "none");
+
+                if (search === "") {
+                    // Search is empty → reset categories to normal
+                    cat.classList.add("hidden");
+                    cat.previousElementSibling.querySelector("svg")?.classList.remove("rotate-180");
+                    cat.parentElement.style.display = ""; // show category wrapper
+                } else {
+                    if (hasMatch) {
+                        // Show category & expand it
+                        cat.parentElement.style.display = "";
+                        cat.classList.remove("hidden");
+                        cat.previousElementSibling.querySelector("svg")?.classList.add("rotate-180");
+                    } else {
+                        // Hide whole category (NO results inside)
+                        cat.parentElement.style.display = "none";
+                    }
+                }
+            });
+        });
+
+
+
+    });
+</script>
+
 @endpush

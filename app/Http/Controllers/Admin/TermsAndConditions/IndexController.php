@@ -20,21 +20,27 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        // Create an empty collection
-        $items = Terms::orderBy('is_global','ASC')->get();
 
-        // Set pagination parameters
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $perPage = 10;
-        $offset = ($currentPage - 1) * $perPage;
+        $perPage = $request->input('per_page', 10);
+        $perPageVal = $perPage === 'all' ? max(1, Terms::count()) : (int) $perPage;
 
-        // Slice the empty collection (though it's empty)
-        $currentItems = $items->slice($offset, $perPage)->values();
+        $terms = Terms::query();
 
-        // Create paginator
-        $terms = new LengthAwarePaginator($currentItems, $items->count(), $perPage, $currentPage, ['path' => request()->url(), 'query' => request()->query()]);
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $terms->where(function ($query) use ($searchTerm) {
+                $query->where('title', 'like', '%' . $searchTerm . '%');
+            });
+        }
 
-        $categories = Collection::make([]);
+        if ($request->filled('is_global')) {
+            $isGlobal = $request->input('is_global');
+            $terms->where('is_global', $isGlobal);
+        }
+
+
+        $terms = $terms->orderBy('is_global','ASC')->paginate($perPageVal)->withQueryString();
+
         return view('admin.terms_and_conditions.index', [
             'terms' => $terms,
         ]);

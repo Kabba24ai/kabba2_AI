@@ -3,22 +3,40 @@
 namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
+
+// Helpers
+use App\Helpers\ConfigurationHelper;
 
 // Models
+use App\Models\Iam\Personnel\User;
+use App\Models\Locations\State;
+use App\Models\Orders\Order;
+use App\Models\Stores\Store;
+
 
 class EditController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function __invoke(Request $request)
+  
+    public function __invoke($uniqueid)
     {
-        return view('admin.order_management.orders.edit');
+        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes', 'media.media',
+            'products.checklistQuestions.answers',
+            'products.checklistQuestions.deliverySelectedAnswer',
+            'products.checklistQuestions.returnSelectedAnswer',
+            'products.checklistQuestions.latestAnswer',
+            'products.deliverySignatureMedia' , 'products.returnSignatureMedia',
+            'products.checklistQuestions.latestValidAnswer',
+            'products.equipment',
+            'latestReceipt'])->where('unique_id', $uniqueid)->firstOrFail();
+
+        $stores = Store::orderBy('store_name')->get();
+        $employees = User::orderBy('first_name')->get();
+        $states = State::orderBy('name')->get();
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+
+
+        // dd($order);
+
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting'));
     }
 }

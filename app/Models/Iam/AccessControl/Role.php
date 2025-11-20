@@ -19,6 +19,8 @@ class Role extends SpatieRole
         'name',
         'guard_name',
         'short_name',
+        'color',
+        'description',
         'status', // 'Active','Inactive'
     ];
     protected $table = 'roles';
@@ -39,6 +41,22 @@ class Role extends SpatieRole
         parent::boot();
         self::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'ROLE');
+            $model->short_name = self::generateShortName($model->name);
         });
+
+          // When updating a role
+        self::updating(function ($model) {
+            $model->short_name = self::generateShortName($model->name);
+        });
+
     }
+
+     // Short name generator
+    protected static function generateShortName($name)
+    {
+        return strtolower(str_replace(' ', '_', trim($name)));
+    }
+
+    
+
 }

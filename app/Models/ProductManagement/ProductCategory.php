@@ -25,20 +25,27 @@ class ProductCategory extends Model
         'seo_title',
         'seo_description',
         'media_id',
+        'hover_media_id',
         'status', // Published, Draft, Pending
         'is_featured', // Yes, No
         'sort_order',
         'created_by',
         'updated_by',
     ];
+
     protected $table = 'product_categories';
+
+    protected $appends = [
+        'image_url',
+        'hover_image_url'
+    ];
 
     public function sluggable(): array
     {
         return [
             'slug' => [
                 'source' => 'title',
-                'onUpdate' => true,
+                'onUpdate' => false,
             ],
         ];
     }
@@ -75,15 +82,41 @@ class ProductCategory extends Model
         return $query->where('status', 'Published');
     }
 
+    public function isParentCategory(): bool
+    {
+        return $this->parent_id === null;
+    }
+
     public function media(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'media_id', 'id');
+    }
+
+    public function hoverMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'hover_media_id', 'id');
     }
 
     public function scopeActive($query)
     {
         return $query->where('status', 'Active');
     }
+
+    public function scopeParent($query)
+    {
+        return $query->whereNull('parent_id');
+    }
+
+    public function getHoverImageUrlAttribute()
+    {
+        return $this->hoverMedia ? $this->hoverMedia->getUrl() : asset('storage/admin/images/error/No_Image_Available.jpg');
+    }
+
+    public function getImageUrlAttribute()
+    {
+        return $this->media->url ?? asset('storage/admin/images/error/No_Image_Available.jpg');
+    }
+
 
     public static function boot()
     {
@@ -121,7 +154,87 @@ class ProductCategory extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, ProductCategoryChild::class)->withTimestamps();
+        return $this->belongsToMany(Product::class, ProductCategoryChild::class)
+                    ->withPivot('sort_order')
+                    ->withTimestamps()
+                    ->orderBy('pivot_sort_order', 'asc');
     }
+
+    public function publishedProducts()
+    {
+        return $this->products()->published();
+    }
+
+    // tree only
+    // public static function getHierarchy($except = []): array
+    // {
+    //     return new self()->getCategories($except);
+    // }
+
+    // private function getCategories($except = []): array
+    // {
+    //     $mainCategories = self::parent()->orderByAdmin()->whereNotIn('id', $except)->get();
+
+    //     foreach ($mainCategories as $category) {
+    //         $this->categories[$category->id] = $category->title;
+    //         $this->getChildCategories($category, 0, $except);
+    //     }
+
+    //     return $this->categories;
+    // }
+
+    // private function getChildCategories($category, $level, $except = [])
+    // {
+    //     if ($subCategories = $category->childCategories) {
+    //         $level++;
+    //         foreach ($subCategories as $subCategory) {
+    //             if (!in_array($subCategory->id, $except)) {
+    //                 $subCategory->title = str_repeat('-', $level) . $subCategory->title;
+    //                 $this->categories[$subCategory->id] = $subCategory->title;
+    //                 $this->getParentCategories($subCategory, $level, $except);
+    //             }
+    //         }
+    //     }
+    // }
+
+    // In your Category model
+    public static function getHierarchy(array $except = []): array
+    {
+        // 1 query, ordered once; exclude upfront
+        $all = self::query()->select('id', 'parent_id', 'title')->whereNotIn('id', $except)->orderByAdmin()->get();
+
+        // Group children by parent_id while preserving orderByAdmin order
+        $childrenByParent = [];
+        foreach ($all as $cat) {
+            $childrenByParent[$cat->parent_id ?? 0][] = $cat;
+        }
+
+        // Flatten the tree (depth-first) without mutating titles
+        $result = [];
+        foreach ($childrenByParent[0] ?? ($childrenByParent[null] ?? []) as $root) {
+            self::flattenCategory($root, $childrenByParent, $result, 0);
+        }
+
+        return $result; // [id => "---- Title"]
+    }
+
+    private static function flattenCategory($node, array &$childrenByParent, array &$result, int $level): void
+    {
+        $result[$node->id] = str_repeat("-", $level * 2). $node->title;
+
+        foreach ($childrenByParent[$node->id] ?? [] as $child) {
+            self::flattenCategory($child, $childrenByParent, $result, $level + 1);
+        }
+    }
+
+    public function getHierarchyLabel(): string
+    {
+        $allHierarchy = self::getHierarchy();
+        return $allHierarchy[$this->id] ?? $this->title ?? 'No Category';
+    }
+    public function equipments()
+{
+    return $this->hasMany(\App\Models\MaintenanceManagement\Equipment::class, 'product_category_id', 'id');
+}
 
 }

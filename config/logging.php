@@ -73,6 +73,23 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'jobs' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/jobs.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_DAILY_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
+        // Twilio specific daily channel
+        'twilio' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/twilio.log'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'days' => env('LOG_TWILIO_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

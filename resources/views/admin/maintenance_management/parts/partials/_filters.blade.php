@@ -1,7 +1,7 @@
 
 {{-- Filter Controls --}}
 <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-    <form method="GET" action="{{ route('admin.maintenance-management.equipments.index') }}" class="flex items-center justify-between space-x-4">
+    <form method="GET" action="{{ route('admin.maintenance-management.equipment.index') }}" class="flex items-center justify-between space-x-4">
         <div class="flex items-center space-x-4 flex-1">
             {{-- Search --}}
             <div class="relative max-w-sm">
@@ -48,21 +48,21 @@
 
             {{-- Clear Filters --}}
             @if(request()->hasAny(['search', 'category', 'status', 'serviceDue', 'rentalReady', 'equipService']))
-                <a href="{{ route('admin.maintenance-management.equipments.index') }}" class="flex items-center space-x-2 px-4 py-3 text-gray-600 hover:text-gray-800 transition-colors">
+                <a href="{{ route('admin.maintenance-management.equipment.index') }}" class="flex items-center space-x-2 px-4 py-3 text-gray-600 hover:text-gray-800 transition-colors">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                     <span>Clear</span>
                 </a>
             @endif
-            
+
             <button type="submit" class="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
                 Filter
             </button>
         </div>
 
         {{-- Add Equipment Button --}}
-        <a href="{{ route('admin.maintenance-management.equipments.create') }}" class="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex-shrink-0">
+        <a href="{{ route('admin.maintenance-management.equipment.create') }}" class="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex-shrink-0">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>

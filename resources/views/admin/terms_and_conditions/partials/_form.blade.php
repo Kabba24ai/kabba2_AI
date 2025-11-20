@@ -64,10 +64,15 @@
 
 </div>
 
-@if (!isset($terms) || $terms->is_global != 'Yes')
-    <button type="button" id="insert-shortcode-btn"
+@if (isset($terms) && $terms->is_global == 'Yes')
+    <button type="button" id="insert-shortcode-product-initials-btn"
         class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
-        Add Customer Initials
+        Add Product Terms
+    </button>
+@else
+    <button type="button" id="insert-shortcode-customer-initials-btn"
+        class="mb-3 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
+        Add Customer Approval
     </button>
 @endif
 
@@ -76,7 +81,7 @@
     <label for="content"
         class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Description</label>
     {{ html()->textarea('content', $terms->content ?? null)->class(
-            'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
+            'tinymce w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
         )->attributes([
             'autocomplete' => 'off',
             'id' => 'content-editor',
@@ -87,21 +92,33 @@
     @enderror
 </div>
 
+@if (isset($terms) && $terms->is_global == 'Yes')
+<div class="flex gap-3 mb-3">
+    <button type="button" id="insert-shortcode-customer-name-btn"
+        class="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
+        Add Customer Name
+    </button>
+    <button type="button" id="insert-shortcode-customer-signature-btn"
+        class="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded hover:bg-brand-700">
+        Add Customer Signature
+    </button>
+</div>
 {{-- Signature --}}
 <div class="mb-8">
     <label for="signature_block"
         class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Signature Block</label>
     {{ html()->textarea('signature_block', $terms->signature_block ?? null)->class(
-            'ckeditor w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
+            'tinymce w-full min-h-[300px] rounded-md border px-4 py-2 text-sm shadow-sm dark:bg-gray-900 dark:text-white border-gray-300 focus:ring-brand-500 focus:border-brand-500',
         )->attributes([
             'autocomplete' => 'off',
-            'id' => 'signature_block-editor',
-            'placeholder' => 'Enter Description Of The Terms',
-        ]) }}
+            'id' => 'signature-editor',
+            'placeholder' => 'Enter Signature',
+        ])->required() }}
     @error('signature_block')
         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
     @enderror
 </div>
+@endif
 
 {{-- SEO Meta Section --}}
 <div class="border border-gray-200 rounded-md p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 mb-6">
@@ -147,6 +164,8 @@
 
 
 @push('js')
+    <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+    @vite('resources/admin/js/tinymce.js')
     <script>
         document.addEventListener('alpine:init', () => {
             // Alpine store for shared state
@@ -174,20 +193,72 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            const insertBtn = document.getElementById('insert-shortcode-btn');
-            if (insertBtn) {
-                insertBtn.addEventListener('click', () => {
-                    const editor = window.editors['content-editor'];
+            const insertProductBtn = document.getElementById('insert-shortcode-product-initials-btn');
+            if (insertProductBtn) {
+                insertProductBtn.addEventListener('click', () => {
+                    const editor = tinymce.get('content-editor');
+                    const shortcode = '[product_terms][/product_terms]';
                     if (editor) {
-                        const viewFragment = editor.data.processor.toView(
-                            '[customer_initials][/customer_initials]');
-                        const modelFragment = editor.data.toModel(viewFragment);
-                        editor.model.insertContent(modelFragment);
+                        const content = editor.getContent();
+                        if (content.includes(shortcode)) {
+                            notyf.error('Product Terms shortcode already added.');
+                        } else {
+                            editor.insertContent(shortcode);
+                        }
                     } else {
-                        console.warn('Editor not ready.');
+                        console.warn('TinyMCE editor not ready.');
+                    }
+                });
+            }
+
+            const insertCustomerBtn = document.getElementById('insert-shortcode-customer-initials-btn');
+            if (insertCustomerBtn) {
+                insertCustomerBtn.addEventListener('click', () => {
+                    const editor = tinymce.get('content-editor');
+                    if (editor) {
+                        editor.insertContent('[customer_approval][/customer_approval]');
+                    } else {
+                        console.warn('TinyMCE editor not ready.');
+                    }
+                });
+            }
+
+            const insertCustomerNameBtn = document.getElementById('insert-shortcode-customer-name-btn');
+            if (insertCustomerNameBtn) {
+                insertCustomerNameBtn.addEventListener('click', () => {
+                    const editor = tinymce.get('signature-editor');
+                    const shortcode = '[customer_name][/customer_name]';
+                    if (editor) {
+                        const content = editor.getContent();
+                        if (content.includes(shortcode)) {
+                            notyf.error('Customer Name shortcode already added.');
+                        } else {
+                            editor.insertContent(shortcode);
+                        }
+                    } else {
+                        console.warn('TinyMCE editor not ready.');
+                    }
+                });
+            }
+
+            const insertCustomerSignatureBtn = document.getElementById('insert-shortcode-customer-signature-btn');
+            if (insertCustomerSignatureBtn) {
+                insertCustomerSignatureBtn.addEventListener('click', () => {
+                    const editor = tinymce.get('signature-editor');
+                    if (editor) {
+                        const content = editor.getContent();
+                        const shortcode = '[customer_signature][/customer_signature]';
+                        if (content.includes(shortcode)) {
+                            notyf.error('Customer Signature shortcode already added.');
+                        } else {
+                            editor.insertContent(shortcode);
+                        }
+                    } else {
+                        console.warn('TinyMCE editor not ready.');
                     }
                 });
             }
         });
     </script>
 @endpush
+

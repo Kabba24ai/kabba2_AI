@@ -35,24 +35,15 @@
 
     @stack('js')
 
-
-    @if (session('success') || session('error'))
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                @if (session('success'))
-                    notyf.success(@json(session('success')));
-                @endif
-                @if (session('error'))
-                    notyf.error(@json(session('error')));
-                @endif
-            });
-        </script>
-    @endif
     <!-- ===========================================
             Section: Set Global Date Format
     ========================================== -->
     <script>
         window.appDateFormat = "{{ config('app.date.date_format') }}";
+        window.Laravel = {
+            success: @json(session('success')),
+            error: @json(session('error'))
+        };
     </script>
 </body>
 </html>

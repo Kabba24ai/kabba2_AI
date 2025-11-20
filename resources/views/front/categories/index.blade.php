@@ -10,15 +10,26 @@
             <div id="breadcrumbs" class="pt-[100px] pb-[20px] ">
                 <div class="w-full">
                     <div class="flex flex-col lg:flex-row justify-between items-center ">
-                        <h1 class="text-[40px] tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
-                        <ul
-                            class="border-yellow-400 px-[20px] py-2 lg:py-3 max-w-full font-medium items-center inline-flex gap-3 relative border-2">
+                        <h1 class="text-3xl lg:text-4xl tracking-[-2px] leading-[110%] font-bold">{{ $category->title }}</h1>
+                        <ul class="px-5 py-4 mt-4 lg:mt-0 text-sm font-medium max-w-full flex flex-wrap items-center gap-3">
                             <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
                                 <a href="{{ route('front.home.index') }}" class="opacity-75">Home</a>
                             </li>
-                            <li>
-                                <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
-                            </li>
+                            @if ($category->isParentCategory())
+                                <li>
+                                    <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
+                                </li>
+                            @else
+                                <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
+                                    <a href="{{ route('front.categories.index', ['slug' => $category->parentCategory->slug]) }}"
+                                        class="opacity-75">
+                                        {{ $category->parentCategory->title }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)" class="cursor-not-allowed">{{ $category->title }}</a>
+                                </li>
+                            @endif
                         </ul>
                     </div>
                 </div>
@@ -43,10 +54,20 @@
                                 class="lg:h-80 w-full flex items-center justify-center relative rounded-lg overflow-hidden group transition-all duration-500">
                                 <div
                                     class="w-full h-full flex items-center justify-center bg-white transition-all duration-500 rounded-lg">
-                                    <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
+                                    {{-- <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
                                         class="w-[90%] h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105 "
+                                        loading="lazy" /> --}}
+                                    <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
+                                        class="w-[90%] h-full object-contain transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+                                        loading="lazy" />
+
+                                    <!-- Hover image (first gallery image) -->
+                                    <img src="{{ $product->hover_image_url }}"
+                                        alt="{{ $product->product_name }} hover"
+                                        class="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
                                         loading="lazy" />
                                 </div>
+
                             </div>
 
 
@@ -58,7 +79,7 @@
                                     <div class="grid grid-cols-2 gap-2">
                                         <!-- Repeat this button block for each rental period -->
                                         @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
-                                            <a href="{{ route('front.products.details', ['categorySlug' => $category->slug, 'slug' => $product->slug, 'productType' => $type]) }}"
+                                            <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productVariant' => $type]) }}"
                                                 class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                                 {{-- @if ($product->isRentalOnSale($type))
                                                     <span
@@ -68,13 +89,14 @@
                                                     </span>
                                                 @endif --}}
                                                 <span class="z-30">
-                                                    {{ ucfirst($type) }}
+                                                    {{ ucfirst(($type === 'weekend') ? 'Weekend Spcl.' : $type) }}
                                                     @if ($product->isRentalOnSale($type))
-                                                        - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                        - <span
+                                                            class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
                                                     @endif
                                                 </span>
                                                 <span>
-                                                    <span class="font-bold text-black">
+                                                    <span class="font-normal text-black">
                                                         {{ App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice($type)) }}
                                                     </span>
                                                     @if ($product->isRentalOnSale($type))
@@ -91,7 +113,7 @@
                                 @else
                                     <!-- Retail Product (centered button, no inline styles) -->
                                     <div class="grid grid-cols-2 gap-2">
-                                        <a href="{{ route('front.products.details', ['categorySlug' => $category->slug, 'slug' => $product->slug, 'productType' => 'retail']) }}"
+                                        <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productVariant' => 'retail']) }}"
                                             class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                             {{-- @if ($product->isRetailOnSale())
                                                 <span
@@ -101,13 +123,14 @@
                                                 </span>
                                             @endif --}}
                                             <span class="z-30">
-                                                {{ ucfirst('retail') }}
+                                                {{ ucfirst('Buy Now') }}
                                                 @if ($product->isRetailOnSale())
-                                                    - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                    - <span
+                                                        class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
                                                 @endif
                                             </span>
                                             <span>
-                                                <span class="font-bold text-lg text-black">
+                                                <span class="font-normal text-lg text-black">
                                                     {{ App\Helpers\CustomHelper::formatCurrency($product->getRetailPrice(false)) }}
                                                 </span>
                                                 @if ($product->isRetailOnSale())
@@ -120,8 +143,9 @@
                                         </a>
                                     </div>
                                 @endif
-                                <h6 class="text-[12px] mt-2 text-black text-center ">Select an Option to Learn More or
-                                    Reserve Today</h6>
+                                <h6 class="text-[12px] mt-2 text-black text-center ">
+                                    Select an Option to Learn More or Reserve Today
+                                </h6>
                             </div>
 
                         </div>
@@ -133,15 +157,15 @@
     </section>
 
     <!-- Categories Listing details -->
-    <section class="pb-[60px]">
+    <section class="py-[20px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-            <div class="flex flex-col gap-y-4">
+            <div class="flex flex-col rich-content">
                 {!! $category->content !!}
             </div>
         </div>
     </section>
 
-    <section class="pb-[60px]">
+    {{-- <section class="pb-[60px]">
         <div
             class="container mx-auto md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] px-[30px] md:px-[.7rem] relative overflow-hidden">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-y-10 lg-gap-10 2xl:gap-y-12 md:gap-8 ">
@@ -159,5 +183,5 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> --}}
 @endsection

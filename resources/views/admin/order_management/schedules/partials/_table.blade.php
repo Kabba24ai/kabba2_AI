@@ -23,24 +23,46 @@
             @forelse ($orderProducts as $orderProduct)
                 <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
                     <td class="px-4 py-3 text-left min-w-3xs max-w-3xs">
-                        {{ $orderProduct->product_name }}
-                 
-                               @if(optional(optional($orderProduct->equipment)->productcategory)->title)
-       
-    @endif
+    {{ $orderProduct->product_name }}
 
-     @if ($orderProduct->product && $orderProduct->product->categories->count())
-        
-            @foreach ($orderProduct->product->categories as $category)
-             <div class=" text-xs text-gray-500 mt-1  flex items-center gap-1">
-            <span> {{ $category->title }}</span>
+    @php
+        $categories = $orderProduct->product?->categories ?? collect();
+        $count = $categories->count();
+    @endphp
+
+    {{-- If only 1 category → show simple text --}}
+    @if ($count === 1)
+        <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+            <span>{{ $categories->first()->title }}</span>
         </div>
-               
-            @endforeach
-       
+
+    {{-- If multiple categories → show tooltip --}}
+    @elseif ($count > 1)
+        <label class="whitespace-nowrap block text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">
+            <span class="relative group">
+
+                <!-- Trigger -->
+                <span class="text-blue-400 hover:text-blue-500 text-xs flex items-center gap-1 cursor-pointer">
+                    <x-heroicon-o-information-circle class="w-4 h-4" />
+                    Categories ({{ $count }})
+                </span>
+
+                <!-- Tooltip Panel -->
+                <div class="tooltip-panel">
+                    <strong>Categories:</strong>
+                    <br><br>
+
+                    @foreach ($categories as $cat)
+                        • {{ $cat->title }} <br>
+                    @endforeach
+                </div>
+
+            </span>
+        </label>
+
     @endif
-                            
-                    </td>
+</td>
+
                     <td class="px-4 py-3 text-center">
                         {!! $orderProduct->order->view_link !!}
                     </td>
@@ -105,6 +127,9 @@
         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
             {{ $orderProduct->equipment_details['equipment_id'] }}
         </span>
+
+        @else
+    -
     @endif
 </td>
 

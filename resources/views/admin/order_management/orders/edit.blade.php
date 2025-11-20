@@ -410,7 +410,15 @@
                                 {{ $orderProduct->product_name }} -
                                 {{ ucwords($orderProduct->product_data['product_variant'] ?? '') }}
                             </a>
-                            <p class="text-sm text-gray-500">Equipment ID: {{ $orderProduct->sku ?? 'N/A' }}</p>
+                          <p class="text-sm text-gray-500">
+    Equipment:
+    @if ($orderProduct->equipment)
+        {{ $orderProduct->equipment->equipment_name }} - {{ $orderProduct->equipment->equipment_id }}
+    @else
+        N/A
+    @endif
+</p>
+
                         </div>
                     </div>
 

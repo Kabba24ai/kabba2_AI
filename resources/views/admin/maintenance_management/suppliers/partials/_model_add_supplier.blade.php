@@ -207,44 +207,19 @@
 
                         <!-- Supplier Category -->
                         <div>
+                            <div class="flex items-center justify-between mb-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Category</label>
+                             <button type="button" onclick="openCategoryModal()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Add
+                                </button>
+                            </div>
                             <select id="supplierCategorysform" name="supplierCategory" class="w-full px-3 py-2  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" required>
                                 <option value="">Select category</option>
                                 <!-- dynamically insert from categories list -->
                             </select>
-                        </div>
-
-                        <!-- Status -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-
-
-                            {!! html()->select('supplierStatus', [
-
-                            'Active' => 'Active',
-                            'Inactive' => 'Inactive',
-                            'Pending' => 'Pending',
-                            ], old('supplierStatus'))
-                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
-                            ->id('supplierStatus')->required() !!}
-
-                        </div>
-
-                        <!-- Payment Terms -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
-
-                            {!! html()->select('supplierPaymentTerms', [
-                            '' => 'Select Payment Terms',
-                            'Net 15' => 'Net 15',
-                            'Net 30' => 'Net 30',
-                            'Net 45' => 'Net 45',
-                            'Net 60' => 'Net 60',
-                            'Net 75' => 'Net 75',
-                            ], old('supplierPaymentTerms'))
-                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
-                            ->id('supplierPaymentTerms') !!}
-
                         </div>
 
                         <!-- Tags -->
@@ -265,6 +240,40 @@
                                 class="choices-select w-full rounded-md border border-gray-300 text-sm">
                             </select>
                         </div>
+                        <!-- Payment Terms -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
+
+                            {!! html()->select('supplierPaymentTerms', [
+                            '' => 'Select Payment Terms',
+                            'Net 15' => 'Net 15',
+                            'Net 30' => 'Net 30',
+                            'Net 45' => 'Net 45',
+                            'Net 60' => 'Net 60',
+                            'Net 75' => 'Net 75',
+                            ], old('supplierPaymentTerms'))
+                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->id('supplierPaymentTerms') !!}
+
+                        </div>
+
+
+                        <!-- Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+
+
+                            {!! html()->select('supplierStatus', [
+
+                            'Active' => 'Active',
+                            'Inactive' => 'Inactive',
+                            'Pending' => 'Pending',
+                            ], old('supplierStatus'))
+                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->id('supplierStatus')->required() !!}
+
+                        </div>
+
 
 
                         <div>
@@ -539,6 +548,43 @@
 </div>
 
 
+
+<!-- Category module   -->
+<div id="CategoryModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-sm flex flex-col max-h-full overflow-hidden border border-gray-200">
+
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-lg font-semibold text-gray-900">Add Category</h2>
+                </div>
+                <button type="button" onclick="closeCategoryModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+            <!-- Scrollable Content -->
+            <div class="px-6 overflow-y-auto max-h-[70vh] mt-5 mb-5">
+                <div class="mb-4">
+                    <label for="newCategoryInput2" class="block text-sm font-medium text-gray-700 mb-1 required"> New Category</label>
+
+                    <input class="w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm border-gray-300 " type="text" name="newCategoryInput2" id="newCategoryInput2">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
+                <button type="button" onclick="closeCategoryModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+                <button type="button" id="addCategoryBtn2" class="flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-all"> <svg id="addCategorySpinner2" xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 hidden animate-spin"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                            stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span id="addCategoryText2">Add</span> </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @push('js')
 <!-- Parsley to validate -->
 <script>
@@ -712,7 +758,7 @@
         }
     };
 
-    // set Existing Company Logo 
+    // set Existing Company Logo
 
     function setExistingCompanyLogo(media) {
         const fileNameDisplay = document.getElementById("fileNameDisplay");
@@ -842,6 +888,17 @@
 </script>
 
 
+<script>
+    function openCategoryModal() {
+        document.getElementById('CategoryModal').classList.remove('hidden');
+
+    }
+
+    function closeCategoryModal() {
+        document.getElementById('CategoryModal').classList.add('hidden');
+    }
+</script>
+
 
 <!-- this is for appear tags her form choice js  -->
 
@@ -903,5 +960,84 @@
 
 
 <!-- notes  -->
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const addCategoryBtn2 = document.getElementById('addCategoryBtn2');
+    const addCategoryText2 = document.getElementById('addCategoryText2');
+    const addCategorySpinner2 = document.getElementById('addCategorySpinner2');
+    const newCategoryInput2 = document.getElementById('newCategoryInput2');
+              // this is rerender the suppier form
+            const select = document.getElementById('supplierCategorysform');
+
+    function fetchCategories() {
+    fetch(`{{ route('admin.maintenance-management.parts.category.fetch') }}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+
+                // Save categories globally
+                window.categories = data.categories;
+
+                // Clear dropdown
+                select.innerHTML = '<option value="">Select Category</option>';
+
+                // Populate dropdown
+                window.categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    select.appendChild(opt);
+                });
+            }
+        })
+        .catch(() => notyf.error("Failed to load categories"));
+}
+
+
+    addCategoryBtn2.addEventListener('click', () => {
+        const name = newCategoryInput2.value.trim();
+        if (!name) {
+            notyf.error("Category cannot be empty!");
+            return;
+        }
+
+        addCategoryBtn2.disabled = true;
+        addCategorySpinner2.classList.remove('hidden');
+        addCategoryText2.textContent = 'Saving...';
+
+        fetch(`{{ route('admin.maintenance-management.parts.category.store') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ name })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                notyf.success(data.message || 'Category added!');
+                newCategoryInput2.value = '';
+                fetchCategories(); // refresh select dropdown
+            } else {
+                notyf.error(data.message || 'Failed to add category');
+            }
+        })
+        .catch(() => notyf.error("Failed to add category"))
+        .finally(() => {
+            addCategoryBtn2.disabled = false;
+            addCategorySpinner2.classList.add('hidden');
+            addCategoryText2.textContent = 'Add';
+            closeCategoryModal();
+        });
+    });
+    fetchCategories();
+
+});
+</script>
+
 
 @endpush

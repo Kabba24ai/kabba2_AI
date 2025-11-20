@@ -129,18 +129,18 @@
             });
 
 
-            // this is rerender the suppier form
-            const select = document.getElementById('supplierCategorysform');
-            if (!select) return;
+            // // this is rerender the suppier form
+            // const select = document.getElementById('supplierCategorysform');
+            // if (!select) return;
 
-            select.innerHTML = '<option value="">Select Category</option>';
-            window.categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.id;
-                opt.textContent = cat.name;
-                select.appendChild(opt);
-            });
-            // this is rerender the suppier form
+            // select.innerHTML = '<option value="">Select Category</option>';
+            // window.categories.forEach(cat => {
+            //     const opt = document.createElement('option');
+            //     opt.value = cat.id;
+            //     opt.textContent = cat.name;
+            //     select.appendChild(opt);
+            // });
+            // // this is rerender the suppier form
         }
 
 

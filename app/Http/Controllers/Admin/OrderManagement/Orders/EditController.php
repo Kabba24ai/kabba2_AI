@@ -26,6 +26,7 @@ class EditController extends Controller
             'products.checklistQuestions.latestAnswer',
             'products.deliverySignatureMedia' , 'products.returnSignatureMedia',
             'products.checklistQuestions.latestValidAnswer',
+            'products.equipment',
             'latestReceipt'])->where('unique_id', $uniqueid)->firstOrFail();
 
         $stores = Store::orderBy('store_name')->get();
@@ -34,7 +35,7 @@ class EditController extends Controller
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
 
-        // dd($order->products);
+        // dd($order);
 
         return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting'));
     }

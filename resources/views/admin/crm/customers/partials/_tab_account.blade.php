@@ -473,16 +473,8 @@ $defaultAddresses = [
                     <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
                     <button type="button" onclick="openTagModal()"
                         class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                        <!-- <svg xmlns="http://www.w3.org/2000/svg"
-                            class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg> -->
-
-                        + Add
+                       
+                       + Add
                     </button>
                 </div>
                 <select id="ContactTags" name="tags[]" multiple
@@ -490,26 +482,8 @@ $defaultAddresses = [
             </div>
 
             <!-- Tags -->
-            <div class="static-view bg-white rounded-lg shadow border border-gray-200 p-6 ">
-                <div class="">
-                    <div class="flex items-center justify-between mb-2">
-                        <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
-                    </div>
-
-                    <!-- <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label> -->
-                    <div class="flex flex-wrap gap-2">
-                        @foreach ($customer->tag_objects as $tag)
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
-                                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
-                                <path d="M7 7h.01"></path>
-                            </svg>
-                            #{{ $tag->name }}
-                        </span>
-                        @endforeach
-                    </div>
-
-                </div>
+            <div class="static-view bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-wrap gap-2 " id="customerTagsWrapperacount">
+                
 
             </div>
 
@@ -520,11 +494,8 @@ $defaultAddresses = [
                     <label class="block text-sm font-medium text-gray-700">Notes</label>
                     <button type="button" id="addNoteBtn"
                         class="edit-view text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                        <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 " fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg> -->
-                        + Add
+                        
+                       + Add
                     </button>
                 </div>
 
@@ -1053,9 +1024,9 @@ $defaultAddresses = [
                     <label class="block text-sm font-medium text-gray-700 mb-1 required">User</label>
 
                     {!! html()->select(
-                    'user_id',
+                    'userSelect',
                     $employees->pluck('full_name', 'id')->toArray()
-                    )->id('user_id')->class([
+                    )->id('userSelect')->class([
                     'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
                     ]) !!}
 
@@ -1457,7 +1428,7 @@ $defaultAddresses = [
     document.addEventListener("DOMContentLoaded", function() {
         const notesModal = document.getElementById('notesModal');
         const noteText = document.getElementById('note_text');
-        const userSelect = document.getElementById('user_id');
+        const userSelect = document.getElementById('userSelect');
         const noteList = document.getElementById('noteList');
         const addNoteBtn = document.getElementById('addNoteBtn');
         const saveNoteBtn = document.getElementById('saveNoteBtn');
@@ -1473,13 +1444,16 @@ $defaultAddresses = [
         const deleteUrlTemplate = `{{ route('admin.crm.customers.notes.delete', ['note' => 'NOTE_ID_PLACEHOLDER']) }}`;
 
         // Fetch all notes (from backend API)
-        function fetchNotes() {
-            fetch(`{{ route('admin.crm.customers.notes.fetch', $customer->id ?? 0) }}`)
+          window.fetchNotes = function() {
+
+          return  fetch(`{{ route('admin.crm.customers.notes.fetch', $customer->id ?? 0) }}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
                         notes = data.notes || [];
+
                         renderNotes();
+                        fetchNotes2();
                     } else {
                         notyf.error("Failed to fetch notes");
                     }
@@ -1491,7 +1465,6 @@ $defaultAddresses = [
         addNoteBtn.addEventListener('click', () => {
             modalTitle.textContent = "Add Note";
             noteText.value = "";
-            userSelect.selectedIndex = 0;
             editNoteId = null;
             notesModal.classList.remove('hidden');
         });
@@ -1515,6 +1488,7 @@ $defaultAddresses = [
                 text,
                 user_id: userId
             };
+
 
             if (editNoteId) {
                 const url = updateUrlTemplate.replace('NOTE_ID_PLACEHOLDER', editNoteId);

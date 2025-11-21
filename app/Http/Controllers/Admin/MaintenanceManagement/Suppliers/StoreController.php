@@ -44,6 +44,11 @@ class StoreController extends Controller
                 'technical_support_name' => $validated['technicalSupportName'] ?? null,
                 'technical_support_email' => $validated['technicalSupportEmail'] ?? null,
                 'technical_support_phone' => $validated['technicalSupportPhone'] ?? null,
+
+                'billing_contact_name' => $validated['BillingName'] ?? null,
+                'billing_contact_email' => $validated['BillingEmail'] ?? null,
+                'billing_contact_phone' => $validated['BillingPhone'] ?? null,
+                
             ]);
 
             // Handle company logo upload

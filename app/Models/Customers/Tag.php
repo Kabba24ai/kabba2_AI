@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use App\Helpers\ModelHelper;
 
+
 class Tag extends Model
 {
     use HasFactory;

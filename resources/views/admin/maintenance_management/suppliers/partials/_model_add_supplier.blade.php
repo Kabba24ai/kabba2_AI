@@ -7,10 +7,27 @@
 
             <!-- Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <div class="flex items-start gap-3">
+                <!-- <div class="flex items-start gap-3">
 
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800" id="form-model-tital">Add New Supplier</h3>
+                    </div>
+                </div> -->
+                <div class="flex items-center">
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-lg mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white">
+                            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+                            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+                            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                            <path d="M10 6h4"></path>
+                            <path d="M10 10h4"></path>
+                            <path d="M10 14h4"></path>
+                            <path d="M10 18h4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900" id="form-model-tital">Add New Supplier</h2>
+                        <p class="text-gray-600 mt-1">Enter supplier details</p>
                     </div>
                 </div>
                 <button onclick="closeModal('AddSupplier')"
@@ -33,8 +50,8 @@
                 <div class="bg-blue-50 p-4">
 
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <div class="bg-blue-600 p-1 rounded-lg mr-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
+                        <div class="bg-blue-600 p-2 rounded-lg mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
                                 <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
                                 <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
                                 <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
@@ -76,7 +93,7 @@
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
-                            'placeholder' => 'Enter Email',
+                            'placeholder' => 'company@example.com',
                             'id' => 'email',
                             'autocomplete' => 'off',
                             'name' => 'supplierEmail',
@@ -117,7 +134,7 @@
                             'border-gray-300' => !$errors->has('supplierWebsite'),
                             ])
                             ->attributes([
-                            'placeholder' => 'https://www.example.com',
+                            'placeholder' => 'https://www.company.com',
                             'id' => 'supplierWebsite',
                             'autocomplete' => 'off',
                             ]) !!}
@@ -130,7 +147,7 @@
 
                             {!! html()->text('supplierAddress', old('supplierAddress'))
                             ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
-                            ->attributes(['placeholder' => 'Enter address', 'id' => 'supplierAddress']) !!}
+                            ->attributes(['placeholder' => '123 Main Street', 'id' => 'supplierAddress']) !!}
                         </div>
 
                         <!-- City -->
@@ -139,7 +156,7 @@
 
                             {!! html()->text('supplierCity', old('supplierCity'))
                             ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
-                            ->attributes(['placeholder' => 'Enter city', 'id' => 'supplierCity']) !!}
+                            ->attributes(['placeholder' => 'City name', 'id' => 'supplierCity']) !!}
                         </div>
 
                         <!-- State -->
@@ -171,7 +188,7 @@
                             'border-gray-300' => !$errors->has('supplierZip'),
                             ])
                             ->attributes([
-                            'placeholder' => 'Enter ZIP code',
+                            'placeholder' => '12345',
                             'id' => 'supplierZip',
                             'autocomplete' => 'off',
                             ]) !!}
@@ -200,13 +217,13 @@
 
                             {!! html()->text('supplierTax', old('supplierTax'))
                             ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
-                            ->attributes(['placeholder' => 'Enter tax ID', 'id' => 'supplierTax']) !!}
+                            ->attributes(['placeholder' => 'US123456789', 'id' => 'supplierTax']) !!}
 
 
                         </div>
 
                         <!-- Supplier Category -->
-                        <div>
+                        <div class="hidden">
                             <div class="flex items-center justify-between mb-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Category</label>
                              <button type="button" onclick="openCategoryModal()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
@@ -216,9 +233,9 @@
                                     Add
                                 </button>
                             </div>
-                            <select id="supplierCategorysform" name="supplierCategory" class="w-full px-3 py-2  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" required>
+                            <select id="supplierCategorysform" name="supplierCategory" class="w-full px-3 py-2  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" >
                                 <option value="">Select category</option>
-                                <!-- dynamically insert from categories list -->
+                               
                             </select>
                         </div>
 
@@ -276,7 +293,7 @@
 
 
 
-                        <div>
+                        <!-- <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Upload Company Logo</label>
 
                             <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5     border border-gray-200 overflow-hidden flex flex-col max-h-full">
@@ -284,32 +301,32 @@
                                 <div class=" p-6 overflow-y-auto">
                                     <div class="max-w-md mx-auto">
 
-                                        <!-- Upload Box -->
+                                        
                                         <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
                                             <div id="uploadUI" class="flex flex-col items-center justify-center">
-                                                <!-- Icon -->
+                                               
                                                 <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
                                                 </svg>
-                                                <!-- Text -->
+                                             
                                                 <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
                                                 <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
 
-                                                <!-- File input -->
+                                              
                                                 <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
                                                     <input type="file" id="fileInput" name="upload_company_logo" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
                                                     <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
                                                 </label>
                                             </div>
 
-                                            <!-- File Display After Selection -->
+                                           
                                             <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-                                                <!-- File Name -->
+                                              
                                                 <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
 
-                                                <!-- Buttons: View & Close -->
+                                               
                                                 <div class="flex justify-center sm:justify-start gap-2">
                                                     <a id="viewFileLink" href="#" target="_blank"
                                                         class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
@@ -322,7 +339,7 @@
                                 </div>
                             </div>
 
-                        </div>
+                        </div> -->
                     </div>
 
                 </div>
@@ -330,8 +347,8 @@
                 <!-- Primary Contact -->
                 <div class="bg-green-50 p-4 rounded-md mt-5">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <div class="bg-green-600 p-1 rounded-lg mr-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
+                        <div class="bg-green-600 p-2 rounded-lg mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
                                 <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="12" cy="7" r="4"></circle>
                             </svg>
@@ -346,7 +363,7 @@
 
                             {!! html()->text('primaryContactName', old('primaryContactName'))
                             ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
-                            ->attributes(['placeholder' => 'Full name', 'id' => 'primaryContactName']) !!}
+                            ->attributes(['placeholder' => 'John Doe', 'id' => 'primaryContactName']) !!}
 
                         </div>
 
@@ -359,7 +376,7 @@
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
-                            'placeholder' => 'Enter Email',
+                            'placeholder' => 'john@company.com',
                             'id' => 'primaryContactEmail',
                             'autocomplete' => 'off',
                             'name' => 'primaryContactEmail',
@@ -392,17 +409,55 @@
                     </div>
                 </div>
 
-                <!-- insideSales (Optional) -->
-                <div class="bg-orange-50 p-4 rounded-md mt-5">
+                <!-- Technical Contact -->
+                <div class="bg-blue-50 p-4 rounded-md mt-5">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <div class="bg-orange-600 p-1 rounded-lg mr-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
+                        <div class="bg-blue-600 p-2 rounded-lg mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="9" cy="7" r="4"></circle>
                                 <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                             </svg>
-                        </div>Inside Sales
+                        </div>Technical Contact
+                        <!-- <span class="text-sm font-normal text-gray-500 ml-2">(Optional)</span> -->
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Contact Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
+                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" type="text" name="technicalSupportName" id="technicalSupportName" placeholder="Jane Smith">
+                        </div>
+
+                        <!-- Contact Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+
+                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="email" name="technicalSupportEmail" id="technicalSupportEmail" placeholder="jane@company.com" autocomplete="off" data-parsley-type="email" data-parsley-trigger="change">
+                        </div>
+
+                        <!-- Contact Phone -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
+
+                            <input class="masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="text" name="technicalSupportPhone" id="technicalSupportPhone" maxlength="14" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$" data-parsley-error-message="Please enter phone number in format (xxx) xxx-xxxx" placeholder="(xxx) xxx-xxxx" autocomplete="tel">
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- insideSales (Optional) -->
+                <div class="bg-orange-50 p-4 rounded-md mt-5">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <div class="bg-orange-600 p-2 rounded-lg mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>Parts Contact
                         <!-- <span class="text-sm font-normal text-gray-500 ml-2">(Optional)</span> -->
                     </h3>
 
@@ -414,7 +469,7 @@
 
                             {!! html()->text('insideSalesName', old('insideSalesName'))
                             ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500')
-                            ->attributes(['placeholder' => 'Full name', 'id' => 'insideSalesName']) !!}
+                            ->attributes(['placeholder' => 'Mike Johnson', 'id' => 'insideSalesName']) !!}
                         </div>
 
                         <!-- Contact Email -->
@@ -426,7 +481,7 @@
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
-                            'placeholder' => 'Enter Email',
+                            'placeholder' => 'mike@company.com',
                             'id' => 'insideSalesEmail',
                             'autocomplete' => 'off',
                             'name' => 'insideSalesEmail',
@@ -455,38 +510,41 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-blue-50 p-4 rounded-md mt-5">
+              
+                <div class="bg-purple-50 p-4 rounded-md mt-5">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <div class="bg-blue-600 p-1 rounded-lg mr-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
+                        <div class="bg-purple-600 p-2 rounded-lg mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="9" cy="7" r="4"></circle>
                                 <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                             </svg>
-                        </div>Technical Support
+                        </div>Billing Contact
                         <!-- <span class="text-sm font-normal text-gray-500 ml-2">(Optional)</span> -->
                     </h3>
 
+                    <!-- 3 inputs in one row -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Contact Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" type="text" name="technicalSupportName" id="technicalSupportName" placeholder="Full name">
+
+                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" type="text" name="BillingName" id="BillingName" placeholder="Sarah Wilson">
                         </div>
 
                         <!-- Contact Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
 
-                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="email" name="technicalSupportEmail" id="technicalSupportEmail" placeholder="Enter Email" autocomplete="off" data-parsley-type="email" data-parsley-trigger="change">
+                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="email" name="BillingEmail" id="BillingEmail" placeholder="sarah@company.com" autocomplete="off" data-parsley-type="email" data-parsley-trigger="change">
                         </div>
 
                         <!-- Contact Phone -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
 
-                            <input class="masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="text" name="technicalSupportPhone" id="technicalSupportPhone" maxlength="14" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$" data-parsley-error-message="Please enter phone number in format (xxx) xxx-xxxx" placeholder="(xxx) xxx-xxxx" autocomplete="tel">
+                            <input class="masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="text" name="BillingPhone" id="BillingPhone" maxlength="14" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$" data-parsley-error-message="Please enter phone number in format (xxx) xxx-xxxx" placeholder="(xxx) xxx-xxxx" autocomplete="tel">
 
                         </div>
                     </div>
@@ -610,61 +668,61 @@
 
 <!-- handleFileChange -->
 <script>
-    function handleFileChange(event) {
-        const file = event.target.files[0];
-        const fileNameDisplay = document.getElementById("fileNameDisplay");
-        const fileActions = document.getElementById("fileActions");
-        const viewLink = document.getElementById("viewFileLink");
-        const uploadUI = document.getElementById("uploadUI");
+    // function handleFileChange(event) {
+    //     const file = event.target.files[0];
+    //     const fileNameDisplay = document.getElementById("fileNameDisplay");
+    //     const fileActions = document.getElementById("fileActions");
+    //     const viewLink = document.getElementById("viewFileLink");
+    //     const uploadUI = document.getElementById("uploadUI");
 
-        if (file) {
-            // Allowed file extensions
-            const allowedExtensions = ["jpg", "jpeg", "png"];
-            const fileExtension = file.name.split(".").pop().toLowerCase();
+    //     if (file) {
+    //         // Allowed file extensions
+    //         const allowedExtensions = ["jpg", "jpeg", "png"];
+    //         const fileExtension = file.name.split(".").pop().toLowerCase();
 
-            // Max file size (10 MB)
-            const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
+    //         // Max file size (10 MB)
+    //         const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
 
-            // Validation: format
-            if (!allowedExtensions.includes(fileExtension)) {
+    //         // Validation: format
+    //         if (!allowedExtensions.includes(fileExtension)) {
 
-                notyf.error("Invalid file format. Allowed: JPG, JPEG, PNG.");
+    //             notyf.error("Invalid file format. Allowed: JPG, JPEG, PNG.");
 
-                event.target.value = ""; // Reset file input
-                return;
-            }
+    //             event.target.value = ""; // Reset file input
+    //             return;
+    //         }
 
-            // Validation: size
-            if (file.size > maxSize) {
-                notyf.error("File is too large. Maximum size allowed is 10 MB.");
+    //         // Validation: size
+    //         if (file.size > maxSize) {
+    //             notyf.error("File is too large. Maximum size allowed is 10 MB.");
 
-                event.target.value = ""; // Reset file input
-                return;
-            }
+    //             event.target.value = ""; // Reset file input
+    //             return;
+    //         }
 
-            //  Passed validation → show UI
-            fileNameDisplay.textContent = file.name;
-            fileActions.style.display = "flex";
-            uploadUI.style.display = "none";
+    //         //  Passed validation → show UI
+    //         fileNameDisplay.textContent = file.name;
+    //         fileActions.style.display = "flex";
+    //         uploadUI.style.display = "none";
 
-            // Temporary blob link for preview
-            const objectUrl = URL.createObjectURL(file);
-            viewLink.href = objectUrl;
-        }
-    }
+    //         // Temporary blob link for preview
+    //         const objectUrl = URL.createObjectURL(file);
+    //         viewLink.href = objectUrl;
+    //     }
+    // }
 
-    function clearFile() {
-        const fileInput = document.getElementById("fileInput");
-        const fileActions = document.getElementById("fileActions");
-        const uploadUI = document.getElementById("uploadUI");
-        const fileNameDisplay = document.getElementById("fileNameDisplay");
+    // function clearFile() {
+    //     const fileInput = document.getElementById("fileInput");
+    //     const fileActions = document.getElementById("fileActions");
+    //     const uploadUI = document.getElementById("uploadUI");
+    //     const fileNameDisplay = document.getElementById("fileNameDisplay");
 
-        fileInput.value = "";
-        delete fileInput.dataset.existingMediaId; // remove reference to existing file
-        fileActions.style.display = "none";
-        uploadUI.style.display = "flex";
-        fileNameDisplay.textContent = "";
-    }
+    //     fileInput.value = "";
+    //     delete fileInput.dataset.existingMediaId; // remove reference to existing file
+    //     fileActions.style.display = "none";
+    //     uploadUI.style.display = "flex";
+    //     fileNameDisplay.textContent = "";
+    // }
 </script>
 <!-- handleFileChange -->
 
@@ -676,7 +734,7 @@
 
         document.getElementById('form-model-tital').textContent = 'Add New Supplier';
         document.getElementById('saveSupplierBtn').textContent = 'Add Supplier';
-        clearFile();
+        // clearFile();
         openModal('AddSupplier');
     };
 
@@ -718,6 +776,11 @@
             setFieldValue('technicalSupportEmail', s.technical_support_email);
             setFieldValue('technicalSupportPhone', s.technical_support_phone);
 
+            
+            setFieldValue('BillingName', s.billing_contact_name);
+            setFieldValue('BillingEmail', s.billing_contact_email);
+            setFieldValue('BillingPhone', s.billing_contact_phone);
+
 
             // === Set SELECT dropdown values ===
             setSelectValue('supplierStatus', s.status);
@@ -732,7 +795,7 @@
             setSupplierTags(s.tag_objects);
 
             // Set existing media (company logo)
-            setExistingCompanyLogo(s.media);
+            // setExistingCompanyLogo(s.media);
 
 
             openModal('AddSupplier');
@@ -760,28 +823,28 @@
 
     // set Existing Company Logo
 
-    function setExistingCompanyLogo(media) {
-        const fileNameDisplay = document.getElementById("fileNameDisplay");
-        const fileActions = document.getElementById("fileActions");
-        const viewLink = document.getElementById("viewFileLink");
-        const uploadUI = document.getElementById("uploadUI");
-        const fileInput = document.getElementById("fileInput");
+    // function setExistingCompanyLogo(media) {
+    //     const fileNameDisplay = document.getElementById("fileNameDisplay");
+    //     const fileActions = document.getElementById("fileActions");
+    //     const viewLink = document.getElementById("viewFileLink");
+    //     const uploadUI = document.getElementById("uploadUI");
+    //     const fileInput = document.getElementById("fileInput");
 
-        if (!media || !media.url) {
-            // No existing file
-            clearFile();
-            return;
-        }
+    //     if (!media || !media.url) {
+    //         // No existing file
+    //         clearFile();
+    //         return;
+    //     }
 
-        // Display the existing file
-        fileNameDisplay.textContent = media.original_file_name || "Company Logo";
-        viewLink.href = media.url;
-        fileActions.style.display = "flex";
-        uploadUI.style.display = "none";
+    //     // Display the existing file
+    //     fileNameDisplay.textContent = media.original_file_name || "Company Logo";
+    //     viewLink.href = media.url;
+    //     fileActions.style.display = "flex";
+    //     uploadUI.style.display = "none";
 
-        // Optional: if you want to track the existing media id for backend
-        fileInput.dataset.existingMediaId = media.id;
-    }
+    //     // Optional: if you want to track the existing media id for backend
+    //     fileInput.dataset.existingMediaId = media.id;
+    // }
 
     function setSupplierFormAction(mode, supplierId = null) {
         const form = document.getElementById('supplierForm');
@@ -818,7 +881,7 @@
             'supplierCompany', 'email', 'supplierPhone', 'supplierWebsite',
             'supplierAddress', 'supplierCity', 'supplierZip', 'supplierTax',
             'primaryContactName', 'primaryContactEmail', 'primaryContactPhone',
-            'insideSalesName', 'insideSalesEmail', 'insideSalesPhone', 'technicalSupportName', 'technicalSupportEmail', 'technicalSupportPhone'
+            'insideSalesName', 'insideSalesEmail', 'insideSalesPhone', 'technicalSupportName', 'BillingName','BillingEmail','BillingPhone','technicalSupportEmail', 'technicalSupportPhone'
         ];
         fields.forEach(id => {
             const el = document.getElementById(id);

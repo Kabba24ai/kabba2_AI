@@ -10,6 +10,8 @@ class StoreRequest extends FormRequest
     {
         return [
             'name' => 'required|unique:tags,name',
+            'unique_id' => 'nullable'
+
         ];
     }
 

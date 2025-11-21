@@ -7,6 +7,8 @@
 
 @section('content')
 
+<input type="hidden" id="selectedCustomerId" value="{{ $customer->unique_id }}">
+
 <div class="bg-gray-50 px-4 py-4 border-b border-gray-200">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Left Section -->
@@ -200,6 +202,41 @@
 </div>
 
 
+
+<!-- tag module   -->
+<div id="TagModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-sm flex flex-col max-h-full overflow-hidden border border-gray-200">
+
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-lg font-semibold text-gray-900">Add Tag</h2>
+                </div>
+                <button type="button" onclick="closeTagModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+            <!-- Scrollable Content -->
+            <div class="px-6 overflow-y-auto max-h-[70vh] mt-5 mb-5">
+                <div class="mb-4">
+                    <label for="newTagInput" class="block text-sm font-medium text-gray-700 mb-1 required"> New Tag</label>
+
+                    <input class="w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm border-gray-300 " type="text" name="newTagInput" id="newTagInput">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
+                <button type="button" onclick="closeTagModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+                <button type="button" id="addTagBtn" class="flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-all"> <svg id="addTagSpinner" xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 hidden animate-spin"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                            stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span id="addTagText">Add</span> </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection
 
@@ -533,17 +570,8 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const availableCredit = {
-            {
-                \
-                App\ Helpers\ CustomHelper::getAvailableCredit($customer)
-            }
-        };
-        const creditLimit = {
-            {
-                $customer - > credit_limit ?? 0
-            }
-        };
+        const availableCredit = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer)}};
+        const creditLimit = {{ $customer->credit_limit ?? 0 }};
         const usedCredit = creditLimit - availableCredit;
 
         const percentUsed = creditLimit > 0 ? Math.min((usedCredit / creditLimit) * 100, 100) : 0;
@@ -1078,6 +1106,171 @@
         cancelEdit(); // reset state if in edit mode
     }
 </script>
+
+
+
+<!-- ==== tag module =========== -->
+
+
+<script>
+    function openTagModal() {
+        document.getElementById('TagModal').classList.remove('hidden');
+
+    }
+
+    function closeTagModal() {
+        document.getElementById('TagModal').classList.add('hidden');
+    }
+</script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const addTagBtn = document.getElementById('addTagBtn');
+        const addTagText = document.getElementById('addTagText');
+        const addTagSpinner = document.getElementById('addTagSpinner');
+        const newTagInput = document.getElementById('newTagInput');
+
+        // This hidden input (optional) can contain preselected tags for edit mode
+        const existingTagsInput = document.getElementById('existing_tags_json');
+
+        window.tags = [];
+        const tagSelect = document.getElementById('ContactTags');
+
+       const selectedCustomerId = document.getElementById('selectedCustomerId').value;
+
+
+        console.log('selectedCustomerId');
+        console.log(selectedCustomerId);
+
+        if (!tagSelect) return;
+
+        // Initialize Choices once
+        if (tagSelect && !window.tagChoices) {
+            window.tagChoices = new Choices(tagSelect, {
+                removeItemButton: true,
+                duplicateItemsAllowed: false,
+                shouldSort: false,
+                placeholderValue: 'Select or type tags',
+                addItems: true,
+                addItemText: value => `Press Enter to add #${value}`,
+                itemSelectText: '',
+            });
+        }
+
+        // Update the full list of tags (Add form)
+        function updateTagSelect() {
+            if (!window.tagChoices) return;
+
+            // Build choices array
+            const choicesArray = window.tags.map(tag => ({
+                value: String(tag.id),
+                label: `#${tag.name}`,
+                selected: false
+            }));
+
+            // Update choices without clearing the instance
+            window.tagChoices.setChoices(choicesArray, 'value', 'label', true);
+        }
+
+        // --- Select tags for edit mode ---
+        function setCustomerTags(tagObjects) {
+            if (!window.tagChoices || !Array.isArray(tagObjects)) return;
+
+            const idsToSelect = tagObjects.map(t => String(t.id));
+
+            idsToSelect.forEach(id => {
+                window.tagChoices.setChoiceByValue(id);
+            });
+        }
+
+        function fetchTags() {
+            fetch(`{{ route('admin.crm.tags.fetch') }}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        tags = data.tags.map(tag => ({
+                            name: tag.name,
+                            id: tag.id
+                        }));
+
+                        updateTagSelect();
+
+                        // If in edit mode existing tags
+                        if (existingTagsInput?.value) {
+                            try {
+                                const existing = JSON.parse(existingTagsInput.value);
+                                setCustomerTags(existing);
+                            } catch (e) {
+                                console.warn("Invalid existing_tags_json format", e);
+                            }
+                        }
+
+                    }
+                })
+                .catch((e) => {
+                    console.error("❌ Error in fetchTags:", e);
+                    notyf.error("Error in fetchTags!");
+                });
+        }
+
+
+        // Add new tag
+        addTagBtn.addEventListener('click', () => {
+            const name = newTagInput.value.trim();
+            if (!name) {
+                notyf.error("Tag cannot be empty!");
+                return;
+            }
+
+            //  Start loading animation
+            addTagBtn.disabled = true;
+            addTagSpinner.classList.remove('hidden');
+            addTagText.textContent = 'Saving...';
+
+            fetch(`{{ route('admin.crm.tags.store') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        name,
+                        unique_id: selectedCustomerId || null
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        notyf.success(data.message || 'Tag added!');
+                        newTagInput.value = '';
+
+                           //  Refresh page after a short delay
+            setTimeout(() => {
+                location.reload();
+            }, 400);
+
+                        fetchTags(); // refresh tag list
+                    } else {
+                        notyf.error(data.message || 'Failed to add tag');
+                    }
+                })
+                .catch(() => notyf.error("Failed to add tag"))
+                .finally(() => {
+                    //  Stop loading animation
+                    addTagBtn.disabled = false;
+                    addTagSpinner.classList.add('hidden');
+                    addTagText.textContent = 'Add';
+                });
+        });
+        // Initial render
+        fetchTags();
+
+
+    });
+</script>
+
 
 
 @endpush

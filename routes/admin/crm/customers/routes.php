@@ -19,6 +19,8 @@ use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentUploadController;
 use App\Http\Controllers\Admin\Crm\Customers\BulkDeleteController;
 use App\Http\Controllers\Admin\Crm\Customers\Login\ImpersonateController;
 use App\Http\Controllers\Admin\Crm\Customers\PasswordResetController;
+use App\Http\Controllers\Admin\Crm\Customers\FetchCustomerTags;
+
 
 //
 
@@ -66,6 +68,12 @@ Route::prefix('customers')
 
     // Delete
     Route::post('/bulk-delete', BulkDeleteController::class)->name('bulk-delete');
+
+
+    Route::get('/{id}/tags/fetch', FetchCustomerTags::class)->name('tags.fetch');
+
+
+
 
     // customer_account
     require base_path('routes/admin/crm/customers/customer_account/routes.php');

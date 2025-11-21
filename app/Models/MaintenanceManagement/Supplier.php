@@ -40,6 +40,11 @@ class Supplier extends Model
         'technical_support_email',
         'technical_support_phone',
 
+        'billing_contact_name',
+        'billing_contact_email',
+        'billing_contact_phone',
+        
+
         'company_logo_media_id',
     ];
 

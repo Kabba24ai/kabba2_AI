@@ -1149,10 +1149,9 @@
         const tagSelect = document.getElementById('ContactTags');
 
        const selectedCustomerId = document.getElementById('selectedCustomerId').value;
+  const customerId = "{{ $customer->id }}";
 
-
-        console.log('selectedCustomerId');
-        console.log(selectedCustomerId);
+    
 
         if (!tagSelect) return;
 
@@ -1195,6 +1194,77 @@
             });
         }
 
+        function renderCustomerTags(tags) {
+    const wrapperMain = document.getElementById("customerTagsWrapper");
+    const wrapperAccount = document.getElementById("customerTagsWrapperacount");
+
+    // Empty message
+    const emptyHtml = `
+        <span class="text-gray-500 text-sm italic">
+            No tags assigned yet.
+        </span>
+    `;
+
+    /* ------------------------------
+         Update main wrapper
+    ------------------------------ */
+    if (wrapperMain) {
+        wrapperMain.innerHTML = "";
+
+        if (!tags || tags.length === 0) {
+            wrapperMain.innerHTML = emptyHtml;
+        } else {
+            tags.forEach(tag => {
+                wrapperMain.insertAdjacentHTML("beforeend", tagBadgeHtml(tag));
+            });
+        }
+    }
+
+    /* ------------------------------
+        Update account wrapper (with label)
+    ------------------------------ */
+    if (wrapperAccount) {
+        wrapperAccount.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+                <label class="block text-sm font-medium text-gray-700">Tags</label>
+            </div>
+            <div id="accountTagList" class="flex flex-wrap gap-2"></div>
+        `;
+
+        const list = wrapperAccount.querySelector("#accountTagList");
+
+        if (!tags || tags.length === 0) {
+            list.innerHTML = emptyHtml;
+        } else {
+            tags.forEach(tag => {
+                list.insertAdjacentHTML("beforeend", tagBadgeHtml(tag));
+            });
+        }
+    }
+}
+
+/* ------------------------------------------
+   Helper function: generate tag badge HTML
+--------------------------------------------- */
+function tagBadgeHtml(tag) {
+    return `
+        <span class="mb-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                <path d="M7 7h.01"></path>
+            </svg>
+            #${tag.name}
+        </span>
+    `;
+}
+
+
+
+
+
         function fetchTags() {
             fetch(`{{ route('admin.crm.tags.fetch') }}`)
                 .then(res => res.json())
@@ -1206,6 +1276,11 @@
                         }));
 
                         updateTagSelect();
+
+                         fetchCustomerTags(customerId).then(customerTags => {
+    setCustomerTags(customerTags);
+});
+
 
                         // If in edit mode existing tags
                         if (existingTagsInput?.value) {
@@ -1224,6 +1299,39 @@
                     notyf.error("Error in fetchTags!");
                 });
         }
+
+const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $customer->id]) }}";
+
+  window.fetchCustomerTags = function() {
+    const wrappers = [
+        document.getElementById("customerTagsWrapper"),
+        document.getElementById("customerTagsWrapperacount")
+    ];
+
+    wrappers.forEach(w => {
+        if (w) {
+            w.innerHTML = `<span class="text-gray-500 text-sm italic">Loading tags...</span>`;
+        }
+    });
+
+    return fetch(customerTagsRoute)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                renderCustomerTags(data.tags);
+                return data.tags; 
+            }
+            return [];
+        })
+        .catch(e => {
+            console.error("Error fetching customer tags:", e);
+            notyf.error("Error loading customer tags!");
+            return [];
+        });
+}
+
+
+
 
 
         // Add new tag
@@ -1256,10 +1364,7 @@
                         notyf.success(data.message || 'Tag added!');
                         newTagInput.value = '';
 
-                           //  Refresh page after a short delay
-            setTimeout(() => {
-                location.reload();
-            }, 400);
+                           closeTagModal();
 
                         fetchTags(); // refresh tag list
                     } else {
@@ -1285,6 +1390,7 @@
 
 <script>
 const existingTags = @json($existingTagNames);
+    const customerTagNames = @json($customerTagNames);
 
 const tagInput      = document.getElementById("newTagInput");
 const tagWarning    = document.getElementById("tagDuplicateWarning");
@@ -1334,30 +1440,39 @@ tagInput.addEventListener("input", function () {
         t.toLowerCase().includes(value)
     );
 
-    // Show dropdown
     renderDropdown(filteredTags, value);
 
-    // Duplicate detection
-    const exists = existingTags.some(t => t.toLowerCase() === value);
+    const existsInSystem = existingTags.some(t => t.toLowerCase() === value);
+    const existsForCustomer = customerTagNames.some(t => t.toLowerCase() === value);
+
+    tagWarning.classList.add("hidden");
+    addBtn.disabled = false;
+    addBtn.classList.remove("opacity-50", "cursor-not-allowed");
 
     if (!value) {
-        tagWarning.classList.add("hidden");
         dropdown.classList.add("hidden");
-        addBtn.disabled = false;
-        addBtn.classList.remove("opacity-50", "cursor-not-allowed");
         return;
     }
 
-    if (exists) {
+    //  Customer already has this tag
+    if (existsForCustomer) {
+        tagWarning.textContent = "This tag is already added to this customer!";
         tagWarning.classList.remove("hidden");
         addBtn.disabled = true;
         addBtn.classList.add("opacity-50", "cursor-not-allowed");
-    } else {
-        tagWarning.classList.add("hidden");
-        addBtn.disabled = false;
-        addBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        return;
+    }
+
+    //  Tag exists in DB but not for customer
+    if (existsInSystem) {
+        tagWarning.textContent = "This tag already exists!";
+        tagWarning.classList.remove("hidden");
+        addBtn.disabled = true;
+        addBtn.classList.add("opacity-50", "cursor-not-allowed");
+        return;
     }
 });
+
 
 // Show all tags when input is focused
 tagInput.addEventListener("focus", () => {
@@ -1371,6 +1486,8 @@ document.addEventListener("click", function (e) {
     }
 });
 </script>
+
+
 
 
 

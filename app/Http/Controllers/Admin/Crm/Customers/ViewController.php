@@ -10,6 +10,7 @@ use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
 use Illuminate\View\View;
+use App\Models\Customers\Tag;   
 
 class ViewController extends Controller
 {
@@ -73,8 +74,14 @@ class ViewController extends Controller
 
         $allTags = $customer->tag_objects ?? [];
 
-        // Convert array of tag objects to array of names
-        $existingTagNames = collect($allTags)->pluck('name')->toArray();
+       // Convert customer tag objects into list of names
+$customerTagNames = collect($allTags)->pluck('name')->toArray();
+
+// ALL tags from DB EXCEPT customer's current tags
+$existingTagNames = Tag::whereNotIn('name', $customerTagNames)
+                        ->orderBy('name')
+                        ->pluck('name')
+                        ->toArray();
 
         return view('admin.crm.customers.view', [
             'customer' => $customer,
@@ -89,6 +96,8 @@ class ViewController extends Controller
             'employees' => $employees,
             'allTags' => $allTags,
             'existingTagNames' => $existingTagNames,
+            'customerTagNames' => $customerTagNames,
+
         ]);
 
     }

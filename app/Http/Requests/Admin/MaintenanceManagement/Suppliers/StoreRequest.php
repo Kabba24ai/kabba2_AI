@@ -53,12 +53,20 @@ class StoreRequest extends FormRequest
                 'nullable'
             ],
 
-            // Secondary Contact
+            // technical Contact
             'technicalSupportName'  => 'nullable',
             'technicalSupportEmail' => 'nullable|email',
             'technicalSupportPhone' => [
                 'nullable'
             ],
+
+            // Billing Contact
+            'BillingName'  => 'nullable',
+            'BillingEmail' => 'nullable|email',
+            'BillingPhone' => [
+                'nullable'
+            ],
+
         ];
     }
 

@@ -71,17 +71,35 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Name / Email</label>
             <div class="relative">
                 <input type="text" name="search_name_email" value="{{ request('search_name_email') }}"
-                    placeholder="Search by name or email..."
+                    placeholder="Search by contact person or email..."
                     class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
         </div>
 
         {{-- Company --}}
         <div class="w-full sm:w-48">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Company Search</label>
             <div class="relative">
                 <input type="text" name="company_search" value="{{ request('company_search') }}"
-                    placeholder="Search by company..."
+                    placeholder="Search by company name..."
+                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+            </div>
+        </div>
+
+        {{-- Category Dropdown --}}
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <select id="supplierCategory" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+
+        {{-- Search by Part --}}
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Search by Part</label>
+            <div class="relative">
+                <input type="text" name="part_search" value="{{ request('part_search') }}"
+                    placeholder="Search by part name..."
                     class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
         </div>
@@ -91,28 +109,14 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
             <div class="relative">
                 <input type="text" name="tags_search" value="{{ request('tags_search') }}"
-                    placeholder="Search tags..."
+                    placeholder="Search by tags..."
                     class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
         </div>
 
-        {{-- Search by Part --}}
-        <div class="w-full sm:w-48">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Search by Part</label>
-            <div class="relative">
-                <input type="text" name="part_search" value="{{ request('part_search') }}"
-                    placeholder="Search by part..."
-                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
-            </div>
-        </div>
+        
 
-        {{-- Category Dropdown --}}
-        <div class="w-full sm:w-48">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Parts Category</label>
-            <select id="supplierCategory" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-                <option value="">All Categories</option>
-            </select>
-        </div>
+        
 
         {{-- Status Dropdown --}}
         <div class="w-full sm:w-48">

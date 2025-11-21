@@ -139,20 +139,10 @@
                                     Add
                                 </button>
         </div>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap " id="customerTagsWrapper">
+    <!-- show customer tags here (from JS, not from blade) -->
+</div>
 
-            @foreach ($customer->tag_objects as $tag)
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
-                    <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
-                    <path d="M7 7h.01"></path>
-                </svg>
-                #{{ $tag->name }}
-            </span>
-            @endforeach
-
-
-        </div>
     </div>
 
     <!-- Notes Section -->
@@ -440,9 +430,12 @@
 <!-- notes  -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+
         const notesModal2 = document.getElementById('notesModal2');
         const noteText = document.getElementById('note_text2');
         const userSelect = document.getElementById('user_id');
+        const noteList = document.querySelector('#noteListContainer ul');
+
       
         const addNoteBtn2 = document.getElementById('addNoteBtn2');
         const saveNoteBtn2 = document.getElementById('saveNoteBtn2');
@@ -460,9 +453,71 @@
         });
 
         //  Close modal
-        window.closeNotesModal = function() {
+        window.closeNotesModal2 = function() {
             notesModal2.classList.add('hidden');
         };
+
+         // Fetch all notes (from backend API)
+       window.fetchNotes2 = function() {
+        return fetch(`{{ route('admin.crm.customers.notes.fetch', $customer->id ?? 0) }}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        notes = data.notes || [];
+                        renderNotes();
+                       fetchNotes();
+
+                    } else {
+                        notyf.error("Failed to fetch notes");
+                    }
+                })
+                .catch(() => notyf.error("Error fetching notes"));
+        }
+
+        
+       // Render Notes List
+function renderNotes() {
+    if (notes.length === 0) {
+        noteList.innerHTML = `<li class="text-gray-400 text-sm">No notes available.</li>`;
+        return;
+    }
+
+    noteList.innerHTML = notes
+        .map(note => {
+            const isUpdated = note.updated_at && note.updated_at !== note.created_at;
+
+            return `
+                <li class="list-disc border-b border-gray-200 pb-3" data-id="${note.id}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-3">
+                            <p class="text-sm text-gray-800 leading-relaxed font-semibold">${note.text}</p>
+                            <div class="mt-1 text-xs text-gray-500 space-y-1">
+
+                                ${!isUpdated
+                                    ? `
+                                        <div>
+                                             ${note.created_at}
+                                            by <span class="font-semibold">${note.user_name}</span>
+                                        </div>
+                                      `
+                                    : `
+                                        <div>
+                                            ${note.updated_at}
+                                            by <span class="font-semibold">${note.user_name}</span>
+                                        </div>
+                                      `
+                                }
+
+                            </div>
+                        </div>
+                        
+                    </div>
+                </li>
+            `;
+        })
+        .join('');
+}
+
 
         //  Save note (create or update)
         saveNoteBtn2.addEventListener('click', () => {
@@ -492,11 +547,9 @@
                         if (data.success) {
                             notyf.success('Note added successfully');
                           
-                            closeNotesModal();
+                            closeNotesModal2();
 
-                              setTimeout(() => {
-                location.reload();
-            }, 400);
+             fetchNotes2();                
                         } else {
                             notyf.error(data.message || 'Failed to add note');
                         }
@@ -504,7 +557,7 @@
                     .catch(() => notyf.error('Error adding note'));
             
         });
-
+fetchNotes2();
 
     });
 </script>

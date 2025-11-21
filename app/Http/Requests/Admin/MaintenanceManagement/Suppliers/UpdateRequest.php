@@ -58,6 +58,14 @@ class UpdateRequest extends FormRequest
             'technicalSupportPhone' => [
                 'nullable'
             ],
+
+             // Billing Contact
+            'BillingName'  => 'nullable',
+            'BillingEmail' => 'nullable|email',
+            'BillingPhone' => [
+                'nullable'
+            ],
+            
         ];
     }
 

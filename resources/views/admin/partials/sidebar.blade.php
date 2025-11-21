@@ -136,7 +136,7 @@
                                     </a>
                                 </li>
 
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('admin.order-management.inventory-equipment.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.order-management.inventory-equipment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
@@ -150,9 +150,9 @@
                                             <path d="M14 7h7" />
                                             <rect x="8.5" y="14" width="7" height="7" rx="1" />
                                             <path d="M8.5 18h7" />
-                                        </svg> Inventory Equipment 
+                                        </svg> Inventory Equipment
                                     </a>
-                                </li>
+                                </li> --}}
 
                             </ul>
                         </div>

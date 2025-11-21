@@ -159,6 +159,15 @@
     <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
         <div class="flex items-center justify-between mb-2">
             <label class="block text-sm font-medium text-gray-700">Notes</label>
+
+             <button type="button" id="addNoteBtn2"
+                        class=" text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 " fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add
+                    </button>
         </div>
 
         <!-- Notes List -->
@@ -184,140 +193,6 @@
     </div>
 </div>
 
-<!-- <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6">
-    <div class="text-left">
-        <h2 class="text-2xl font-bold text-gray-900">{{ $customer->full_name }}</h2>
-        <p class="text-sm text-gray-600">Account: {{ $customer->unique_id }}</p>
-    </div>
-
-    <div class="text-left md:text-center w-full md:w-auto">
-        <p class="text-xs tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
-        <div class="inline-flex items-center gap-2">
-            <span class="text-xs font-medium rounded-full bg-green-100 text-green-800">
-                <span class="leading-[1.2] inline-flex items-center gap-2 px-2 py-1">
-                    @if ($customer->tax_status === 'Exempt')
-                    <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
-                    @else
-                    <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
-                    @endif
-                    {{ $customer->tax_status }}
-                </span>
-
-
-
-            </span>
-        </div>
-        <p class="text-xs text-gray-500 mt-1">Valid until {{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }} </p>
-    </div>
-
-    @php
-    $approved = $customer->is_credit_account == 1;
-    $hasCreditLimit = !empty($customer->credit_limit);
-    @endphp
-
-    <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
-
-        @if ($approved && $hasCreditLimit)
-        <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 w-auto">
-            Good Standing
-        </span>
-
-        @elseif ($approved && !$hasCreditLimit)
-
-        <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 w-auto">
-            Pending
-        </span>
-
-        @else
-
-        @endif
-
-
-    </div>
-</div> -->
-
-<!-- <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-
-    <div class="bg-white rounded-md shadow-sm p-5">
-        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-1 mb-4">
-            <x-heroicon-o-user class="w-5 h-5 text-gray-900" />
-            Contact Information
-        </h3>
-        <div class="space-y-4 text-sm text-gray-700">
-            <div class="flex items-center gap-1 ">
-                <x-heroicon-o-envelope class="w-4 h-4 text-gray-900" />
-                <div>
-                    <p class="text-sm text-gray-900"> {{ $customer->email ?? 'N/A' }}</p>
-                    <p class="text-xs text-gray-500 font-medium">Email Address</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-1">
-                <x-heroicon-o-phone class="w-4 h-4 text-gray-900" />
-                <div>
-                    <p class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}</p>
-                    <p class="text-xs text-gray-500 font-medium">Personal Phone</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-1">
-                <x-heroicon-o-device-phone-mobile class="w-4 h-4 text-gray-900" />
-                <div>
-                    <p class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}</p>
-                    <p class="text-xs text-gray-500 font-medium">Company Phone</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="bg-white rounded-md shadow-sm p-5 h-[250px] overflow-y-scroll overflow-x-hidden">
-        <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
-            <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
-            Address Information
-        </h3>
-
-        <div class="text-sm text-gray-700 space-y-4">
-            @php
-            $billingAddress = $customer->addresses->firstWhere('type', 'billing');
-            $deliveryAddress = $customer->addresses->firstWhere('type', 'delivery');
-            @endphp
-
-
-
-            @foreach ($customer->addresses->where('is_primary', 1) as $addresse)
-            <div>
-                <p class="text-xs font-medium text-gray-500 mb-1">
-                    {{ ucfirst($addresse->type) }} Address
-                    <span class="ml-2 inline-block bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
-                        Default Address
-                    </span>
-                </p>
-                @php
-
-                $mainParts = array_filter([
-                $addresse->address,
-                $addresse->city,
-                $addresse->state?->name,
-                $addresse->zip_code,
-                ]);
-
-
-                $parts = $mainParts;
-                if (!empty($mainParts) && !empty($addresse->country)) {
-                $parts[] = $addresse->country;
-                }
-                @endphp
-
-                <p>{{ implode(', ', $parts) ?: 'No address provided.' }}</p>
-
-            </div>
-            <hr class="border-gray-200">
-            @endforeach
-
-        </div>
-    </div>
-</div> -->
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4  mx-auto mt-6">
     <!-- Current Balance -->
@@ -491,3 +366,134 @@
         </table>
     </div>
 </div>
+
+
+
+<!-- Notes Modal -->
+<div id="notesModal2" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-sm flex flex-col max-h-full overflow-hidden border border-gray-200">
+
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900" id="noteModalTitle2">Add Note</h2>
+                <button type="button" onclick="closeNotesModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+
+            <div class="px-6 overflow-y-auto max-h-[70vh] mt-5 mb-5">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">User</label>
+
+                    {!! html()->select(
+                    'user_id',
+                    $employees->pluck('full_name', 'id')->toArray()
+                    )->id('user_id')->class([
+                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                    ]) !!}
+
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Note</label>
+                    <textarea id="note_text2" rows="5"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500"
+                        placeholder="Enter note..."></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
+                <button type="button" onclick="closeNotesModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+                <button type="button" id="saveNoteBtn2" class="px-4 py-2 text-sm rounded border border-grey-300 bg-blue-600 text-white">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('js')
+
+<!-- this is for appear tags her form choice js  -->
+
+<script>
+    function openNotesModal() {
+        document.getElementById('notesModal2').classList.remove('hidden');
+
+    }
+
+    function closeNotesModal() {
+        document.getElementById('notesModal2').classList.add('hidden');
+    }
+</script>
+
+<!-- notes  -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const notesModal2 = document.getElementById('notesModal2');
+        const noteText = document.getElementById('note_text2');
+        const userSelect = document.getElementById('user_id');
+      
+        const addNoteBtn2 = document.getElementById('addNoteBtn2');
+        const saveNoteBtn2 = document.getElementById('saveNoteBtn2');
+        const modalTitle = document.getElementById('noteModalTitle2');
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        //  Open Add Note modal
+        addNoteBtn2.addEventListener('click', () => {
+            modalTitle.textContent = "Add Note";
+            noteText.value = "";
+            userSelect.selectedIndex = 0;
+            editNoteId = null;
+            notesModal2.classList.remove('hidden');
+        });
+
+        //  Close modal
+        window.closeNotesModal = function() {
+            notesModal2.classList.add('hidden');
+        };
+
+        //  Save note (create or update)
+        saveNoteBtn2.addEventListener('click', () => {
+            const text = noteText.value.trim();
+            const userId = userSelect.value;
+
+            if (!text || !userId) {
+                notyf.error('Please fill all fields.');
+                return;
+            }
+
+            const payload = {
+                text,
+                user_id: userId
+            };
+            
+                fetch(`{{ route('admin.crm.customers.notes.store', $customer->id ?? 0) }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            notyf.success('Note added successfully');
+                          
+                            closeNotesModal();
+
+                              setTimeout(() => {
+                location.reload();
+            }, 400);
+                        } else {
+                            notyf.error(data.message || 'Failed to add note');
+                        }
+                    })
+                    .catch(() => notyf.error('Error adding note'));
+            
+        });
+
+
+    });
+</script>
+
+    
+@endpush

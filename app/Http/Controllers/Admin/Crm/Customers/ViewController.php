@@ -2,35 +2,29 @@
 
 namespace App\Http\Controllers\Admin\Crm\Customers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
-// Models
-use App\Models\Locations\State;
-use App\Models\Customers\Customer;
-use App\Models\Iam\Personnel\User ;
 use App\Helpers\ConfigurationHelper;
 use App\Helpers\CustomHelper;
-
+// Models
+use App\Http\Controllers\Controller;
+use App\Models\Customers\Customer;
+use App\Models\Iam\Personnel\User;
+use App\Models\Locations\State;
+use Illuminate\View\View;
 
 class ViewController extends Controller
 {
-
-     /**
+    /**
      * Show the form for view the specified product option.
-     *
-     * @param string $unique_id
-     * @return View
      */
     public function __invoke(string $unique_id): View
     {
         $employees = User::orderBy('first_name')->get();
 
-        $customer = Customer::with('orders.products','orders.payments',
+        $customer = Customer::with('orders.products', 'orders.payments',
             'notes.user',
-            'invoices.items', 'accountApprovedBy', 'taxStatusApprovedBy' , 'addresses.state', 'billingAddress', 'shippingAddress','accounts.responsibleUser','media')
-        ->where('unique_id', $unique_id)
-        ->firstOrFail();
+            'invoices.items', 'accountApprovedBy', 'taxStatusApprovedBy', 'addresses.state', 'billingAddress', 'shippingAddress', 'accounts.responsibleUser', 'media')
+            ->where('unique_id', $unique_id)
+            ->firstOrFail();
 
         CustomHelper::markOverdueInvoices($customer->id);
 
@@ -47,27 +41,27 @@ class ViewController extends Controller
         $domain = '';
         $extension = '';
 
-        if (!empty($customer->company_website)) {
+        if (! empty($customer->company_website)) {
             $parsedUrl = parse_url($customer->company_website);
 
             // Extract protocol
-            $protocol = isset($parsedUrl['scheme']) ? $parsedUrl['scheme'] . '://' : '';
+            $protocol = isset($parsedUrl['scheme']) ? $parsedUrl['scheme'].'://' : '';
 
             // Extract host (domain + extension)
-            if (!empty($parsedUrl['host'])) {
+            if (! empty($parsedUrl['host'])) {
                 $hostParts = explode('.', $parsedUrl['host']);
 
                 if (count($hostParts) >= 2) {
-                    $extension = '.' . array_pop($hostParts); // e.g. .com
+                    $extension = '.'.array_pop($hostParts); // e.g. .com
                     $domain = implode('.', $hostParts);       // e.g. example
                 }
             }
         }
 
-        $users = User::where('status','Active')->get();
+        $users = User::where('status', 'Active')->get();
         // biling sumary
 
-        $query = Customer::with('orders.payments','addresses','accounts')->whereIn('status', ['Active', 'Inactive']);
+        $query = Customer::with('orders.payments', 'addresses', 'accounts')->whereIn('status', ['Active', 'Inactive']);
 
         $customers = $query->latest('id')->paginate(10)->withQueryString();
 
@@ -77,19 +71,25 @@ class ViewController extends Controller
         // Load tag objects
         $customer->tag_objects = $customer->tag_objects ?? [];
 
-        // dd($customer->invoices);
+        $allTags = $customer->tag_objects ?? [];
+
+        // Convert array of tag objects to array of names
+        $existingTagNames = collect($allTags)->pluck('name')->toArray();
 
         return view('admin.crm.customers.view', [
             'customer' => $customer,
             'states' => $states,
-            'website_protocol'=> $protocol,
-            'company_website'=> $domain,
-            'website_extension'=> $extension,
-            'users'=>$users,
-            'lastpaymentdate'=> $lastpaymentdate,
-            'customers'=>$customers,
-            'paymentSetting' => $paymentSetting ,
-            'employees' => $employees ,
+            'website_protocol' => $protocol,
+            'company_website' => $domain,
+            'website_extension' => $extension,
+            'users' => $users,
+            'lastpaymentdate' => $lastpaymentdate,
+            'customers' => $customers,
+            'paymentSetting' => $paymentSetting,
+            'employees' => $employees,
+            'allTags' => $allTags,
+            'existingTagNames' => $existingTagNames,
         ]);
+
     }
 }

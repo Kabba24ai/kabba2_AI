@@ -179,10 +179,24 @@
                     <div class="flex justify-between items-start">
                         <div class="flex-1 pr-3">
                             <p class="text-sm text-gray-800 leading-relaxed font-semibold">{{ $note->description }} </p>
-                            <div class="mt-1 text-xs text-gray-500 space-y-1">
-                                <div>Created {{ \App\Helpers\CustomHelper::formatDateTime($customer->created_at ?? null) }}  by <span class="font-semibold">{{ $note->user->full_name }}</span></div>
-                                <div>Updated {{ \App\Helpers\CustomHelper::formatDateTime($note->updated_at) }} </div>
-                            </div>
+                             <div class="mt-1 text-xs text-gray-500 space-y-1">
+
+                {{-- Show ONLY "Created" if not updated --}}
+                @if ($note->created_at->eq($note->updated_at))
+                    <div>
+                         {{ \App\Helpers\CustomHelper::formatDateTime($note->created_at) }}
+                        by <span class="font-semibold">{{ $note->user->full_name }}</span>
+                    </div>
+
+                {{-- Show ONLY "Updated" if updated later --}}
+                @else
+                    <div>
+                        {{ \App\Helpers\CustomHelper::formatDateTime($note->updated_at) }}
+                        by <span class="font-semibold">{{ $note->user->full_name }}</span>
+                    </div>
+                @endif
+
+            </div>
                         </div>
                     </div>
                 </li>
@@ -376,7 +390,7 @@
 
             <div class="flex items-center justify-between p-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-900" id="noteModalTitle2">Add Note</h2>
-                <button type="button" onclick="closeNotesModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+                <button type="button" onclick="closeNotesModal2()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
 
             <div class="px-6 overflow-y-auto max-h-[70vh] mt-5 mb-5">
@@ -401,7 +415,7 @@
             </div>
 
             <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
-                <button type="button" onclick="closeNotesModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
+                <button type="button" onclick="closeNotesModal2()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
                 <button type="button" id="saveNoteBtn2" class="px-4 py-2 text-sm rounded border border-grey-300 bg-blue-600 text-white">Save</button>
             </div>
         </div>
@@ -418,7 +432,7 @@
 
     }
 
-    function closeNotesModal() {
+    function closeNotesModal2() {
         document.getElementById('notesModal2').classList.add('hidden');
     }
 </script>

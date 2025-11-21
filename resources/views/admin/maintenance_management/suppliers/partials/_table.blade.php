@@ -1,6 +1,7 @@
   {{-- Suppliers Table --}}
 
 
+
   <div id="supplier-table-wrapper" class="overflow-x-auto rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
           <thead class="bg-gray-100 text-gray-600">
@@ -58,7 +59,6 @@
 
                   <td class="px-6 py-4 whitespace-nowrap">
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          <!-- {{ $supplier->category->name ?? 'N/A' }} -->
                           Accessories
                       </span>
                   </td>

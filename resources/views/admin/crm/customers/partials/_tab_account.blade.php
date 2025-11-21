@@ -473,15 +473,16 @@ $defaultAddresses = [
                     <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
                     <button type="button" onclick="openTagModal()"
                         class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg"
+                        <!-- <svg xmlns="http://www.w3.org/2000/svg"
                             class="h-4 w-4"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
                             stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add
+                        </svg> -->
+
+                        + Add
                     </button>
                 </div>
                 <select id="ContactTags" name="tags[]" multiple
@@ -519,11 +520,11 @@ $defaultAddresses = [
                     <label class="block text-sm font-medium text-gray-700">Notes</label>
                     <button type="button" id="addNoteBtn"
                         class="edit-view text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 " fill="none"
+                        <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 " fill="none"
                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add
+                        </svg> -->
+                        + Add
                     </button>
                 </div>
 
@@ -1559,23 +1560,39 @@ $defaultAddresses = [
             }
         });
 
-        //  Render Notes List
-        function renderNotes() {
-            if (notes.length === 0) {
-                noteList.innerHTML = `<li class="text-gray-400 text-sm">No notes available.</li>`;
+       // Render Notes List
+function renderNotes() {
+    if (notes.length === 0) {
+        noteList.innerHTML = `<li class="text-gray-400 text-sm">No notes available.</li>`;
+        return;
+    }
 
-                return;
-            }
+    noteList.innerHTML = notes
+        .map(note => {
+            const isUpdated = note.updated_at && note.updated_at !== note.created_at;
 
-            noteList.innerHTML = notes
-                .map(note => `
+            return `
                 <li class="list-disc border-b border-gray-200 pb-3" data-id="${note.id}">
                     <div class="flex justify-between items-start">
                         <div class="flex-1 pr-3">
                             <p class="text-sm text-gray-800 leading-relaxed font-semibold">${note.text}</p>
                             <div class="mt-1 text-xs text-gray-500 space-y-1">
-                                <div>Created ${note.created_at} by <span class="font-semibold">${note.user_name}</span></div>
-                                ${note.updated_at ? `<div>Updated ${note.updated_at}</div>` : ""}
+
+                                ${!isUpdated
+                                    ? `
+                                        <div>
+                                             ${note.created_at}
+                                            by <span class="font-semibold">${note.user_name}</span>
+                                        </div>
+                                      `
+                                    : `
+                                        <div>
+                                            ${note.updated_at}
+                                            by <span class="font-semibold">${note.user_name}</span>
+                                        </div>
+                                      `
+                                }
+
                             </div>
                         </div>
                         <div class="flex gap-2 mt-1">
@@ -1588,11 +1605,11 @@ $defaultAddresses = [
                         </div>
                     </div>
                 </li>
-            `)
-                .join('');
+            `;
+        })
+        .join('');
+}
 
-
-        }
 
         //  Handle Edit / Delete
         noteList.addEventListener('click', (e) => {

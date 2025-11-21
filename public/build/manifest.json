@@ -48,12 +48,12 @@
     "isEntry": true
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-BtLRtMT_.css",
+    "file": "assets/app-DzRsRjcz.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-LE0B1SZI.js",
+    "file": "assets/app-DIIgS-kY.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
@@ -71,12 +71,12 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-BGVns9YF.css",
+    "file": "assets/app-CTccPIhV.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-Cu6O9TnP.css",
+    "file": "assets/app-DcEOF-nU.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
@@ -99,7 +99,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DrBeKiNS.js",
+    "file": "assets/app-UyAj6-py.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

@@ -586,28 +586,39 @@
                         break;
 
                           case 'rented':
-        statusText = 'Rented';
-        statusColor = 'text-gray-600';
-        isAvailable = false;
+                            statusText = 'Rented';
+                            statusColor = 'text-gray-600';
+                            isAvailable = false;
 
-        // SweetAlert message for rented items
-        window.showError(
-            "This item is currently Rented, so it cannot be assigned to this Order.",
-            "Rented "
-        );
-
-        break;
+                            // SweetAlert message for rented items
+                            window.showError(
+                                "This item is currently Rented, so it cannot be assigned to this Order.",
+                                "Rented "
+                            );
+                            equipmentSelect.selectedIndex = 0;
+                            return;
+                            break;
 
 
                     case 'damaged':
                         statusText = 'Not Available';
                         statusColor = 'text-red-600';
                         isAvailable = false;
+                        // SweetAlert message for rented items
+                            window.showError(
+                                "This item is currently marked as Damaged, do you want to automatically change the status to Available and assign to this order?",
+                                "Damaged "
+                            );
                         break;
                     case 'maintenance':
                         statusText = 'Maint. Hold';
                         statusColor = 'text-yellow-600';
                         isAvailable = false;
+                        // SweetAlert message for rented items
+                            window.showError(
+                                "This item is currently marked as Maint. Hold, do you want to automatically change the status to Available and assign to this order?",
+                                "Maint. Hold "
+                            );
                         break;
                     default:
                         statusText = status || '';
@@ -740,7 +751,7 @@ function loadAllEquipments() {
         list.forEach(equipment => {
             const opt = document.createElement('option');
             opt.value = equipment.unique_id;
-            opt.textContent = equipment.equipment_name;
+            opt.textContent = equipment.equipment_name+" || "+equipment.equipment_id;
             opt.setAttribute('data-current-status', equipment.current_status || '');
             opt.setAttribute('data-link', equipment.link || '');
             opt.setAttribute('data-link-title', equipment.link_title || '');

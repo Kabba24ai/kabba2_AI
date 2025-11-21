@@ -28,6 +28,7 @@ class FetchWithCatController extends Controller
                             'current_status' => $equipment->current_status,
                             'link' => $linkWithTitle['link'],
                             'link_title' => $linkWithTitle['title'],
+                            'equipment_id' => $equipment->equipment_id,
                         ];
                     }),
                 ];

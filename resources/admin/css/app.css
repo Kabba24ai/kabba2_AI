@@ -248,7 +248,7 @@ button:disabled,
     /* NEW Custom Tooltip */
   .custom-tooltip {
     @apply absolute z-[9999]
-           hidden group-hover:block w-[244px] sm:w-[244px] 
+           hidden group-hover:block 
            bg-white dark:bg-gray-900
            border border-gray-200 dark:border-gray-700
            rounded-md shadow-xl p-3

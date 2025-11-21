@@ -36,15 +36,31 @@
         </div>
 
     @elseif ($count > 1)
-        <label class="whitespace-nowrap block text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">
-            <span class="relative group">
+    <div id="tooltip-global"
+        class="hidden fixed z-[999999] 
+            bg-white border border-gray-300 
+            rounded-md shadow-xl p-3 text-xs text-gray-700">
+        </div>
+        <span class="tooltip-trigger block text-blue-600 cursor-pointer text-xs "
+            data-tooltip="
+        <strong>Categories:</strong><br><br>
+        @foreach($categories as $cat)
+                    • {{ $cat->title }} <br>
+                @endforeach
+        ">
+            Categories ({{ $count }})
+        </span>
 
-                <!-- Trigger -->
+    
+        <!-- <label class="whitespace-nowrap block text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">
+            <span class="group relative overflow-visible">
+
+                
                 <span class="text-blue-400 hover:text-blue-500 text-xs flex items-center gap-1 cursor-pointer">
                     Categories ({{ $count }})
                 </span>
 
-                <!-- NEW Custom Tooltip -->
+                
                 <div class="custom-tooltip">
                     <strong>Categories:</strong>
                     <br><br>
@@ -55,7 +71,7 @@
                 </div>
 
             </span>
-        </label>
+        </label> -->
     @endif
 </td>
 
@@ -220,3 +236,25 @@
 <div class="mt-6">
     {{ $orderProducts->links('vendor.pagination.tailwind') }}
 </div>
+
+
+<script>
+document.querySelectorAll(".tooltip-trigger").forEach(el => {
+    const tooltip = document.getElementById("tooltip-global");
+
+    el.addEventListener("mouseenter", () => {
+        tooltip.innerHTML = el.dataset.tooltip;
+        tooltip.classList.remove("hidden");
+
+        const rect = el.getBoundingClientRect();
+        const tRect = tooltip.getBoundingClientRect();
+
+        tooltip.style.left = (rect.left + rect.width / 2 - tRect.width / 2) + "px";
+        tooltip.style.top = (rect.top - tRect.height - 8) + "px";
+    });
+
+    el.addEventListener("mouseleave", () => {
+        tooltip.classList.add("hidden");
+    });
+});
+</script>

@@ -22,8 +22,8 @@
             <svg id="reloadIcon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0
-                     3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
-                     13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                         3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
+                         13.803-3.7l3.181 3.182m0-4.991v4.99" />
             </svg>
             Reload
         </a>
@@ -35,7 +35,8 @@
 
             {{-- Search Input --}}
             <div class="relative w-full sm:w-48">
-                <input type="text" name="search" placeholder="Search equipment, ID, or customer" value="{{ request('search') }}"
+                <input type="text" name="search" placeholder="Search equipment, ID, or customer"
+                    value="{{ request('search') }}"
                     class="w-full h-10 rounded-md border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 shadow-sm " />
                 <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -74,7 +75,8 @@
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <div class="flex flex-wrap items-center gap-6">
                 <!-- Equipment Status -->
-                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
+                <div
+                    class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
                     <svg class=" w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -82,18 +84,21 @@
                     <span class="font-medium">Equipment Status</span>
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" value="Available" name="equipment_status[]"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Available', (array)request('equipment_status')) ? 'checked' : '' }}>
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
+                            {{ request('equipment_status') === null || in_array('Available', (array) request('equipment_status')) ? 'checked' : '' }}>
                         Available
                     </label>
                     <label class="flex items-center gap-1">
                         <input type="checkbox" value="Rented" name="equipment_status[]"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Rented', (array)request('equipment_status')) ? 'checked' : '' }}>
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
+                            {{ request('equipment_status') === null || in_array('Rented', (array) request('equipment_status')) ? 'checked' : '' }}>
                         Rented
                     </label>
                 </div>
 
                 <!-- Issues & Maintenance -->
-                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
+                <div
+                    class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="lucide lucide-wrench w-5 h-5 text-orange-500">
@@ -104,12 +109,14 @@
                     <span class="font-medium">Issues & Maintenance </span>
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" name="equipment_status[]" value="Maintenance"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Maintenance', (array)request('equipment_status')) ? 'checked' : '' }}>
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
+                            {{ request('equipment_status') === null || in_array('Maintenance', (array) request('equipment_status')) ? 'checked' : '' }}>
                         Maint. Hold
                     </label>
                     <label class="flex items-center gap-1">
                         <input type="checkbox" name="equipment_status[]" value="Damaged"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" {{ request('equipment_status') === null || in_array('Damaged', (array)request('equipment_status')) ? 'checked' : '' }}>
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
+                            {{ request('equipment_status') === null || in_array('Damaged', (array) request('equipment_status')) ? 'checked' : '' }}>
                         Damaged
                     </label>
                 </div>
@@ -118,15 +125,42 @@
     </div>
 
 
-    <div class="mx-auto">
-        <div id="equipment-table-wrapper">
-            @include('admin.order_management.equipment_inventory.partials._table')
-        </div>
+    <div id="equipment-table-wrapper" class="bg-white shadow-sm rounded-lg overflow-x-auto h-70 overflow-y-auto mb-5">
+        @include('admin.order_management.equipment_inventory.partials._table')
     </div>
+
+    <div id="schedule-table-wrapper" class="h-70 overflow-y-auto mb-5 ">
+        @include('admin.order_management.equipment_inventory.partials._table2', [
+            'orderProducts' => $orderProducts,
+        ])
+    </div>
+
+    <!-- Equipment Assign Modal -->
+
 
 @endsection
 
 @push('js')
+    <script>
+        document.querySelectorAll(".tooltip-trigger").forEach(el => {
+            const tooltip = document.getElementById("tooltip-global");
+
+            el.addEventListener("mouseenter", () => {
+                tooltip.innerHTML = el.dataset.tooltip;
+                tooltip.classList.remove("hidden");
+
+                const rect = el.getBoundingClientRect();
+                const tRect = tooltip.getBoundingClientRect();
+
+                tooltip.style.left = (rect.left + rect.width / 2 - tRect.width / 2) + "px";
+                tooltip.style.top = (rect.top - tRect.height - 8) + "px";
+            });
+
+            el.addEventListener("mouseleave", () => {
+                tooltip.classList.add("hidden");
+            });
+        });
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');
@@ -136,7 +170,8 @@
             let wrapper = document.querySelector('#equipment-table-wrapper');
             let equipmentStatusCheckboxes = document.querySelectorAll('input[name="equipment_status[]"]');
             let timeout = null;
-            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+                .get('per_page') || null;
 
             function fetchEquipment() {
                 const params = new URLSearchParams();

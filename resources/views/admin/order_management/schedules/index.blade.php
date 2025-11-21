@@ -214,12 +214,12 @@
                 </div>
 
                 <div>
-    <label class="text-sm font-medium text-gray-700 required">Category</label>
-    <select id="category_select"
-        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-700">
-        <option value="">Select Category</option>
-    </select>
-</div>
+                    <label class="text-sm font-medium text-gray-700 required">Category</label>
+                    <select id="category_select"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-700">
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
 
 
                 <div>
@@ -270,7 +270,8 @@
             let loadingIndicator = document.querySelector('#schedule-loading');
             let wrapper = document.querySelector('#schedule-table-wrapper');
             let timeout = null;
-            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+                .get('per_page') || null;
 
             function fetchSchedules() {
                 const params = new URLSearchParams();
@@ -422,7 +423,7 @@
 
                 document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
                 equipmentAssignModalTitle.textContent = (orderNumber || '') + ' ' + (orderProductName ||
-                '');
+                    '');
                 modal.classList.remove('hidden');
 
                 // Refresh status on open in case select kept previous state
@@ -463,92 +464,91 @@
                 if (assignBtn) assignBtn.disabled = true;
             }
 
-           categorySelect.addEventListener('change', function () {
+            categorySelect.addEventListener('change', function() {
 
-    const selectedCatId = Number(this.value);
-    equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
+                const selectedCatId = Number(this.value);
+                equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
 
-    let equipments = [];
+                let equipments = [];
 
-    // If no category selected -> load ALL equipments
-    if (!selectedCatId) {
-        fullData.forEach(cat => {
-            if (Array.isArray(cat.equipments)) {
-                equipments = equipments.concat(cat.equipments);
-            }
-        });
-    } 
-    else {
-        // Only selected category
-        const category = fullData.find(c => c.id === selectedCatId);
-        if (!category) return;
-        equipments = category.equipments || [];
-    }
+                // If no category selected -> load ALL equipments
+                if (!selectedCatId) {
+                    fullData.forEach(cat => {
+                        if (Array.isArray(cat.equipments)) {
+                            equipments = equipments.concat(cat.equipments);
+                        }
+                    });
+                } else {
+                    // Only selected category
+                    const category = fullData.find(c => c.id === selectedCatId);
+                    if (!category) return;
+                    equipments = category.equipments || [];
+                }
 
-      //  If category has NO equipment
-    if (equipments.length === 0) {
-        const opt = document.createElement('option');
-        opt.textContent = 'No equipments';
-        opt.disabled = true;
-        opt.selected = true;
-        equipmentSelect.appendChild(opt);
+                //  If category has NO equipment
+                if (equipments.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.textContent = 'No equipments';
+                    opt.disabled = true;
+                    opt.selected = true;
+                    equipmentSelect.appendChild(opt);
 
-        updateEquipmentStatus();
-        return;
-    }
+                    updateEquipmentStatus();
+                    return;
+                }
 
-    // Group by status
-    const groups = {
-         maintenance: [],
-          rented: [],
-       
-       
-        damaged: [],
-        available: [],
-        other: []
-    };
-
-    equipments.forEach(equipment => {
-        const status = (equipment.current_status || '').toLowerCase();
-
-        if (status === 'available') groups.available.push(equipment);
-        else if (status === 'rented') groups.rented.push(equipment);
-        else if (status === 'damaged') groups.damaged.push(equipment);
-        else if (status === 'maintenance') groups.maintenance.push(equipment);
-        else groups.other.push(equipment);
-    });
-
-    // Helper to create optgroup
-    function appendGroup(label, list) {
-        if (list.length === 0) return;
-
-        const group = document.createElement('optgroup');
-        group.label = label;
-
-        list.forEach(equipment => {
-            const opt = document.createElement('option');
-            opt.value = equipment.unique_id;
-            opt.textContent = equipment.equipment_name;
-            opt.setAttribute('data-current-status', equipment.current_status || '');
-            opt.setAttribute('data-link', equipment.link || '');
-            opt.setAttribute('data-link-title', equipment.link_title || '');
-            group.appendChild(opt);
-        });
-
-        equipmentSelect.appendChild(group);
-    }
-
-    // Append groups
-    appendGroup('Available', groups.available);
-    appendGroup('Maint. Hold', groups.maintenance);    
-    appendGroup('Damaged', groups.damaged);
-
-    appendGroup('Rented', groups.rented);
-    appendGroup('Other', groups.other);
+                // Group by status
+                const groups = {
+                    maintenance: [],
+                    rented: [],
 
 
-    updateEquipmentStatus();
-});
+                    damaged: [],
+                    available: [],
+                    other: []
+                };
+
+                equipments.forEach(equipment => {
+                    const status = (equipment.current_status || '').toLowerCase();
+
+                    if (status === 'available') groups.available.push(equipment);
+                    else if (status === 'rented') groups.rented.push(equipment);
+                    else if (status === 'damaged') groups.damaged.push(equipment);
+                    else if (status === 'maintenance') groups.maintenance.push(equipment);
+                    else groups.other.push(equipment);
+                });
+
+                // Helper to create optgroup
+                function appendGroup(label, list) {
+                    if (list.length === 0) return;
+
+                    const group = document.createElement('optgroup');
+                    group.label = label;
+
+                    list.forEach(equipment => {
+                        const opt = document.createElement('option');
+                        opt.value = equipment.unique_id;
+                        opt.textContent = equipment.equipment_name;
+                        opt.setAttribute('data-current-status', equipment.current_status || '');
+                        opt.setAttribute('data-link', equipment.link || '');
+                        opt.setAttribute('data-link-title', equipment.link_title || '');
+                        group.appendChild(opt);
+                    });
+
+                    equipmentSelect.appendChild(group);
+                }
+
+                // Append groups
+                appendGroup('Available', groups.available);
+                appendGroup('Maint. Hold', groups.maintenance);
+                appendGroup('Damaged', groups.damaged);
+
+                appendGroup('Rented', groups.rented);
+                appendGroup('Other', groups.other);
+
+
+                updateEquipmentStatus();
+            });
 
 
 
@@ -585,19 +585,19 @@
                         isAvailable = true;
                         break;
 
-                          case 'rented':
-                            statusText = 'Rented';
-                            statusColor = 'text-gray-600';
-                            isAvailable = false;
+                    case 'rented':
+                        statusText = 'Rented';
+                        statusColor = 'text-gray-600';
+                        isAvailable = false;
 
-                            // SweetAlert message for rented items
-                            window.showError(
-                                "This item is currently Rented, so it cannot be assigned to this Order.",
-                                "Rented "
-                            );
-                            equipmentSelect.selectedIndex = 0;
-                            return;
-                            break;
+                        // SweetAlert message for rented items
+                        window.showError(
+                            "This item is currently Rented, so it cannot be assigned to this Order.",
+                            "Rented "
+                        );
+                        equipmentSelect.selectedIndex = 0;
+                        return;
+                        break;
 
 
                     case 'damaged':
@@ -605,20 +605,20 @@
                         statusColor = 'text-red-600';
                         isAvailable = false;
                         // SweetAlert message for rented items
-                            window.showError(
-                                "This item is currently marked as Damaged, do you want to automatically change the status to Available and assign to this order?",
-                                "Damaged "
-                            );
+                        window.showError(
+                            "This item is currently marked as Damaged, do you want to automatically change the status to Available and assign to this order?",
+                            "Damaged "
+                        );
                         break;
                     case 'maintenance':
                         statusText = 'Maint. Hold';
                         statusColor = 'text-yellow-600';
                         isAvailable = false;
                         // SweetAlert message for rented items
-                            window.showError(
-                                "This item is currently marked as Maint. Hold, do you want to automatically change the status to Available and assign to this order?",
-                                "Maint. Hold "
-                            );
+                        window.showError(
+                            "This item is currently marked as Maint. Hold, do you want to automatically change the status to Available and assign to this order?",
+                            "Maint. Hold "
+                        );
                         break;
                     default:
                         statusText = status || '';
@@ -688,88 +688,88 @@
 
             fetchEquipment();
 
-//  Fetch equipment options with cat
-           function fetchEquipment() {
-    apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categorys') }}')
-        .then(data => {
-            if (data?.success) {
+            //  Fetch equipment options with cat
+            function fetchEquipment() {
+                apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categorys') }}')
+                    .then(data => {
+                        if (data?.success) {
 
-                fullData = data.categories; // store full categories
+                            fullData = data.categories; // store full categories
 
-                categorySelect.innerHTML = '<option value="">Select Category</option>';
+                            categorySelect.innerHTML = '<option value="">Select Category</option>';
 
-                data.categories.forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat.id;
-                    option.textContent = cat.title;
-                    categorySelect.appendChild(option);
+                            data.categories.forEach(cat => {
+                                const option = document.createElement('option');
+                                option.value = cat.id;
+                                option.textContent = cat.title;
+                                categorySelect.appendChild(option);
+                            });
+
+                            //  Load all equipment immediately after data arrives
+                            loadAllEquipments();
+                        }
+                    });
+            }
+
+
+            function loadAllEquipments() {
+                equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
+
+                let equipments = [];
+
+                fullData.forEach(cat => {
+                    if (Array.isArray(cat.equipments)) {
+                        equipments = equipments.concat(cat.equipments);
+                    }
                 });
 
-                //  Load all equipment immediately after data arrives
-                loadAllEquipments();
+                // Group by status
+                const groups = {
+                    available: [],
+                    rented: [],
+                    damaged: [],
+                    maintenance: [],
+                    other: []
+                };
+
+                equipments.forEach(equipment => {
+                    const status = (equipment.current_status || '').toLowerCase();
+
+                    if (status === 'available') groups.available.push(equipment);
+                    else if (status === 'rented') groups.rented.push(equipment);
+                    else if (status === 'damaged') groups.damaged.push(equipment);
+                    else if (status === 'maintenance') groups.maintenance.push(equipment);
+                    else groups.other.push(equipment);
+                });
+
+                function appendGroup(label, list) {
+                    if (list.length === 0) return;
+
+                    const group = document.createElement('optgroup');
+                    group.label = label;
+
+                    list.forEach(equipment => {
+                        const opt = document.createElement('option');
+                        opt.value = equipment.unique_id;
+                        opt.textContent = equipment.equipment_name + " || " + equipment.equipment_id;
+                        opt.setAttribute('data-current-status', equipment.current_status || '');
+                        opt.setAttribute('data-link', equipment.link || '');
+                        opt.setAttribute('data-link-title', equipment.link_title || '');
+                        group.appendChild(opt);
+                    });
+
+                    equipmentSelect.appendChild(group);
+                }
+
+                appendGroup('Available', groups.available);
+                appendGroup('Maint. Hold', groups.maintenance);
+                appendGroup('Damaged', groups.damaged);
+                appendGroup('Rented', groups.rented);
+                appendGroup('Other', groups.other);
+
+
+                updateEquipmentStatus();
             }
-        });
-}
-
-
-function loadAllEquipments() {
-    equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
-
-    let equipments = [];
-
-    fullData.forEach(cat => {
-        if (Array.isArray(cat.equipments)) {
-            equipments = equipments.concat(cat.equipments);
-        }
-    });
-
-    // Group by status
-    const groups = {
-        available: [],
-        rented: [],
-        damaged: [],
-        maintenance: [],
-        other: []
-    };
-
-    equipments.forEach(equipment => {
-        const status = (equipment.current_status || '').toLowerCase();
-
-        if (status === 'available') groups.available.push(equipment);
-        else if (status === 'rented') groups.rented.push(equipment);
-        else if (status === 'damaged') groups.damaged.push(equipment);
-        else if (status === 'maintenance') groups.maintenance.push(equipment);
-        else groups.other.push(equipment);
-    });
-
-    function appendGroup(label, list) {
-        if (list.length === 0) return;
-
-        const group = document.createElement('optgroup');
-        group.label = label;
-
-        list.forEach(equipment => {
-            const opt = document.createElement('option');
-            opt.value = equipment.unique_id;
-            opt.textContent = equipment.equipment_name+" || "+equipment.equipment_id;
-            opt.setAttribute('data-current-status', equipment.current_status || '');
-            opt.setAttribute('data-link', equipment.link || '');
-            opt.setAttribute('data-link-title', equipment.link_title || '');
-            group.appendChild(opt);
-        });
-
-        equipmentSelect.appendChild(group);
-    }
-
-    appendGroup('Available', groups.available);
-    appendGroup('Maint. Hold', groups.maintenance);
-appendGroup('Damaged', groups.damaged);
-appendGroup('Rented', groups.rented);
-appendGroup('Other', groups.other);
-
-
-    updateEquipmentStatus();
-}
 
 
 

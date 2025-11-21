@@ -11,6 +11,7 @@ use App\Models\Orders\Order;
 use App\Models\Stores\Store;
 use App\Models\ProductManagement\ProductCategory;
 use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Models\Orders\OrderProduct;
 
 class IndexController extends Controller
 {
@@ -48,7 +49,7 @@ class IndexController extends Controller
             ->orderBy('equipment_id', 'asc');
         $perPage = $request->input('per_page', 10);
         $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
-        $equipment = $query->paginate($perPageVal)->withQueryString();
+        $equipment = $query->paginate(max(1, $query->count()))->withQueryString();
 
         $categories = ProductCategory::getHierarchy();
 
@@ -57,14 +58,31 @@ class IndexController extends Controller
         // Pass enum values to the view
         $statuses = EquipmentCurrentStatus::cases(); // returns all enum cases
 
+        $startDate = now();
+        $endDate = $startDate->copy()->addDays(13); // 14 days total (2 weeks)
+        $dates = [];
+
+        for($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
+            $dates[] = $date->copy();
+        }
+
         if ($request->ajax()) {
-            $html = view('admin.order_management.equipment_inventory.partials._table', compact('equipment'))->render();
+            $html = view('admin.order_management.equipment_inventory.partials._table', compact('equipment', 'dates'))->render();
             return response()->json([
                 'html' => $html,
                 'total' => $equipment->count(),
             ]);
         }
+        $query2 = OrderProduct::query()->with('equipment', 'equipment.productcategory','order', 'order.customer' ,'product.categories', 'order.shippingAddress', 'order.lastPayment')->where('product_data->product_type', 'Rental')->whereNotNull('delivery_date')->where(function ($q) {
+            $q->where(function ($subQ) {
+                $subQ->where('delivery_status', '!=', 'Completed')->orWhere('pickup_status', '!=', 'Completed');
+            })->whereNot(function ($subQ) {
+                $subQ->where('delivery_status', 'Completed')->where('pickup_status', 'Completed');
+            });
+        });
 
-        return view('admin.order_management.equipment_inventory.index', compact('equipment', 'categories', 'stores', 'statuses'));
+        $orderProducts = $query2->orderBy('delivery_date', 'asc')->paginate(max(1, $query2->count()))->withQueryString();
+
+        return view('admin.order_management.equipment_inventory.index', compact('equipment', 'categories', 'stores', 'statuses', 'dates', 'orderProducts'));
     }
 }

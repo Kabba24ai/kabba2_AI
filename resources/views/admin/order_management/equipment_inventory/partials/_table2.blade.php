@@ -1,27 +1,27 @@
-<div class="bg-white shadow-sm rounded-lg overflow-x-auto">
-    <table class="min-w-full text-sm text-left whitespace-nowrap">
-        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
-            <tr>
-                <th class="px-4 py-3 text-left">Product</th>
-                <th class="px-4 py-3 text-center">Order</th>
-                <th class="px-4 py-3 text-left">Customer</th>
-                <th class="px-4 py-3 text-left">Delivery Address</th>
-                <th class="px-4 py-3 text-left">Phone</th>
-                <th class="px-4 py-3 text-center">Equipment</th>
-                <th class="px-4 py-3 text-center">Equipment Id</th>
-
-                <th class="px-4 py-3 text-center">Location</th>
-                <th class="px-4 py-3 text-center">Delivery Date</th>
-                <th class="px-4 py-3 text-center">Return Date</th>
-                <th class="px-4 py-3 text-center">Payment</th>
-                <th class="px-4 py-3 text-center">Actions</th>
-            </tr>
-        </thead>
-        <div id="schedule-loading" class="hidden"></div>
-        <tbody class="divide-y">
+<div class="bg-white shadow-sm rounded-lg  w-full mb-6">
+    <h2 class="text-lg font-semibold p-5">Unassigned Orders ({{ $orderProducts->total() }})</h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full border-collapse text-sm">
+            <thead class="font-semibold bg-gray-100 text-gray-600">
+                <tr>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Product</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Order</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Customer</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Delivery Address</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Phone</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equipment</th>
+                    <th class="px-4 py-3 text-center font-semibold whitespace-nowrap">Equipment ID</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Location</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Delivery Date</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Return Date</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Payment</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
             @forelse ($orderProducts as $orderProduct)
                 <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-left min-w-3xs max-w-3xs">
+                    <td class="whitespace-nowrap px-4 py-3 text-left min-w-4xs max-w-4xs">
                         {{ $orderProduct->product_name }}
 
                         @php
@@ -44,36 +44,13 @@
                             @foreach ($categories as $cat) • {{ $cat->title }} <br> @endforeach ">
                                 Categories ({{ $count }})
                             </span>
-
-
-                            <!-- <label class="whitespace-nowrap block text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">
-            <span class="group relative overflow-visible">
-
-
-                <span class="text-blue-400 hover:text-blue-500 text-xs flex items-center gap-1 cursor-pointer">
-                    Categories ({{ $count }})
-                </span>
-
-
-                <div class="custom-tooltip">
-                    <strong>Categories:</strong>
-                    <br><br>
-
-                    @foreach ($categories as $cat)
-• {{ $cat->title }} <br>
-@endforeach
-                </div>
-
-            </span>
-        </label> -->
                         @endif
                     </td>
 
-
-                    <td class="px-4 py-3 text-center">
+                    <td class="whitespace-nowrap px-4 py-3 text-center">
                         {!! $orderProduct->order->view_link !!}
                     </td>
-                    <td class="px-4 py-3 text-left">
+                    <td class="whitespace-nowrap px-4 py-3 text-left">
 
                         <div class="font-medium">
                             {{ $orderProduct->order->customer_name }}
@@ -103,12 +80,10 @@
 
                     </td>
 
-
-
-                    <td class="px-4 py-3 truncate min-w-xs max-w-xs">
+                    <td class="whitespace-nowrap px-4 py-3 truncate min-w-xs max-w-xs">
                         {{ $orderProduct->order->shippingAddress->full_address }}</td>
-                    <td class="px-4 py-3 text-left ">{{ $orderProduct->order->shippingAddress->phone }}</td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="whitespace-nowrap px-4 py-3 text-left ">{{ $orderProduct->order->shippingAddress->phone }}</td>
+                    <td class="whitespace-nowrap px-4 py-3 text-center">
                         <button type="button" class="text-blue-600 underline equipment-assign-btn"
                             data-order-product-unique-id="{{ $orderProduct->unique_id }}"
                             data-order-product-name="{{ $orderProduct->product_name }}"
@@ -116,7 +91,7 @@
                             {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
                         </button>
                     </td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="whitespace-nowrap px-4 py-3 text-center">
                         @if (!empty($orderProduct->equipment_details['equipment_id']))
                             <span
                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
@@ -127,7 +102,7 @@
                         @endif
                     </td>
 
-                    <td class="px-4 py-3 text-center">
+                    <td class="whitespace-nowrap px-4 py-3 text-center">
                         <div class="inline-flex items-center gap-1">
                             @if ($orderProduct?->equipment?->status_label == 'Rented' && $orderProduct?->checklistQuestions->isNotEmpty())
                                 <a href="{{ route('admin.crm.customers.view', $orderProduct?->equipment?->order->customer->unique_id) }}"
@@ -143,7 +118,7 @@
                             @endif
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="whitespace-nowrap px-4 py-3 text-center">
                         @php
                             $iconColor =
                                 $orderProduct->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
@@ -166,7 +141,7 @@
                             </span>
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="whitespace-nowrap px-4 py-3 text-center">
                         @php
                             $iconColor =
                                 $orderProduct->pickup_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
@@ -190,10 +165,10 @@
                         </div>
                     </td>
 
-                    <td class="px-4 py-3 text-center">
+                    <td class="whitespace-nowrap px-4 py-3 text-center">
                         {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order->last_payment_status) !!}
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="whitespace-nowrap px-4 py-3">
                         <div class="flex gap-2 items-center justify-center">
                             <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
                                 class="text-sky-600 hover:text-sky-800" title="View" target="_blank">
@@ -205,37 +180,11 @@
             @empty
                 <tr>
                     <td colspan="10" class="text-center text-sm text-gray-500 px-4 py-6">
-                        No Schedules found.
+                        No order found.
                     </td>
                 </tr>
             @endforelse
         </tbody>
-    </table>
+        </table>
+    </div>
 </div>
-
-{{-- Pagination --}}
-<div class="mt-6">
-    {{ $orderProducts->links('vendor.pagination.tailwind') }}
-</div>
-
-
-<script>
-    document.querySelectorAll(".tooltip-trigger").forEach(el => {
-        const tooltip = document.getElementById("tooltip-global");
-
-        el.addEventListener("mouseenter", () => {
-            tooltip.innerHTML = el.dataset.tooltip;
-            tooltip.classList.remove("hidden");
-
-            const rect = el.getBoundingClientRect();
-            const tRect = tooltip.getBoundingClientRect();
-
-            tooltip.style.left = (rect.left + rect.width / 2 - tRect.width / 2) + "px";
-            tooltip.style.top = (rect.top - tRect.height - 8) + "px";
-        });
-
-        el.addEventListener("mouseleave", () => {
-            tooltip.classList.add("hidden");
-        });
-    });
-</script>

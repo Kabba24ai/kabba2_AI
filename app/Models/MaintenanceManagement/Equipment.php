@@ -199,9 +199,11 @@ class Equipment extends Model
         $inspectionDateTime = $this->current_status_changed_at
             ? \App\Helpers\CustomHelper::formatDateTime($this->current_status_changed_at)
             : '-';
-        
+
         $updatedBy = $this->statusUpdatedByUser?->full_name ?? '-';
         return trim("{$updatedBy} - {$inspectionDateTime}");
         //return trim("  {$inspectionDateTime}");
     }
+
+
 }

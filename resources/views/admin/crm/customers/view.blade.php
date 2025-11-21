@@ -220,6 +220,16 @@
                     <label for="newTagInput" class="block text-sm font-medium text-gray-700 mb-1 required"> New Tag</label>
 
                     <input class="w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm border-gray-300 " type="text" name="newTagInput" id="newTagInput">
+
+                    <!-- Tag suggestions dropdown -->
+<div id="tagDropdown" class="mt-2 border border-gray-300 rounded-md bg-white shadow hidden max-h-40 overflow-y-auto">
+</div>
+
+
+                    <p id="tagDuplicateWarning" class="text-red-600 text-sm mt-1 hidden">
+    This tag already exists!
+</p>
+
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
@@ -1270,6 +1280,98 @@
 
     });
 </script>
+
+
+
+<script>
+const existingTags = @json($existingTagNames);
+
+const tagInput      = document.getElementById("newTagInput");
+const tagWarning    = document.getElementById("tagDuplicateWarning");
+const addBtn        = document.getElementById("addTagBtn");
+const dropdown      = document.getElementById("tagDropdown");
+
+// Show dropdown items
+function renderDropdown(list, inputValue) {
+    dropdown.innerHTML = "";
+
+    if (list.length === 0) {
+        // No matching tag → show "Add new tag"
+        dropdown.innerHTML =
+        `<div class="px-3 py-2 text-sm text-blue-600 cursor-pointer hover:bg-blue-50"
+              onclick="selectTag('${inputValue}')">
+                Add new tag: "${inputValue}"
+         </div>`;
+
+        dropdown.classList.remove("hidden");
+        return;
+    }
+
+    list.forEach(tag => {
+        let div = document.createElement("div");
+        div.className = "px-3 py-2 text-sm cursor-pointer hover:bg-gray-100";
+        div.innerText = tag;
+        div.onclick = () => selectTag(tag);
+        dropdown.appendChild(div);
+    });
+
+    dropdown.classList.remove("hidden");
+}
+
+// User selects a tag from dropdown
+function selectTag(tag) {
+    tagInput.value = tag;
+    dropdown.classList.add("hidden");
+    tagInput.dispatchEvent(new Event("input"));
+}
+
+// Input typing logic
+tagInput.addEventListener("input", function () {
+    const value = tagInput.value.trim().toLowerCase();
+
+    // Filter matching tags
+    const filteredTags = existingTags.filter(t =>
+        t.toLowerCase().includes(value)
+    );
+
+    // Show dropdown
+    renderDropdown(filteredTags, value);
+
+    // Duplicate detection
+    const exists = existingTags.some(t => t.toLowerCase() === value);
+
+    if (!value) {
+        tagWarning.classList.add("hidden");
+        dropdown.classList.add("hidden");
+        addBtn.disabled = false;
+        addBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        return;
+    }
+
+    if (exists) {
+        tagWarning.classList.remove("hidden");
+        addBtn.disabled = true;
+        addBtn.classList.add("opacity-50", "cursor-not-allowed");
+    } else {
+        tagWarning.classList.add("hidden");
+        addBtn.disabled = false;
+        addBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    }
+});
+
+// Show all tags when input is focused
+tagInput.addEventListener("focus", () => {
+    renderDropdown(existingTags, "");
+});
+
+// Hide dropdown when clicking outside
+document.addEventListener("click", function (e) {
+    if (!dropdown.contains(e.target) && e.target !== tagInput) {
+        dropdown.classList.add("hidden");
+    }
+});
+</script>
+
 
 
 

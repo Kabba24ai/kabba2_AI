@@ -492,21 +492,23 @@
                 <div class="flex flex-wrap justify-center gap-4 max-w-5xl">
                     <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 min-w-[168px] text-center">
                         <div class="text-xs text-gray-600 font-medium mb-1">Total Sales</div>
-                        <div class="text-lg font-semibold text-blue-800 whitespace-nowrap">$616,900</div>
+                        <div class="text-lg font-semibold text-blue-800 whitespace-nowrap" x-text="formatCurrency(currentMetrics.totalSales)"></div>
                     </div>
                     <div class="bg-green-50 p-4 rounded-lg border border-green-200 min-w-[168px] text-center">
                         <div class="text-xs text-gray-600 font-medium mb-1">Previous Period</div>
-                        <div class="text-lg font-semibold text-green-800 whitespace-nowrap">$537,600</div>
+                        <div class="text-lg font-semibold text-green-800 whitespace-nowrap" x-text="formatCurrency(currentMetrics.previousTotalSales)"></div>
                     </div>
                     <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200 min-w-[168px] text-center">
                         <div class="text-xs text-gray-600 font-medium mb-1 text-center">Growth Rate</div>
-                        <div class="text-lg font-semibold text-emerald-800 flex items-center justify-center whitespace-nowrap">
-                            <i class="fas fa-arrow-trend-up mr-1"></i> 14.8%
+                        <div class="text-lg font-semibold flex items-center justify-center whitespace-nowrap"
+                             :class="currentMetrics.growthRate >= 0 ? 'text-emerald-800' : 'text-red-800'">
+                            <i :class="currentMetrics.growthRate >= 0 ? 'fas fa-arrow-trend-up' : 'fas fa-arrow-trend-down'" class="mr-1"></i>
+                            <span x-text="Math.abs(currentMetrics.growthRate).toFixed(1) + '%'"></span>
                         </div>
                     </div>
                     <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 min-w-[168px] text-center">
                         <div class="text-xs text-gray-600 font-medium mb-1">Daily Average</div>
-                        <div class="text-lg font-semibold text-purple-800 whitespace-nowrap">$20,563</div>
+                        <div class="text-lg font-semibold text-purple-800 whitespace-nowrap" x-text="formatCurrency(currentMetrics.dailyAverage)"></div>
                     </div>
                 </div>
             </div>
@@ -617,9 +619,41 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
+// Pass PHP data to JavaScript
+const salesDataFromServer = @json($salesData);
+
 function dashboardData() {
     return {
         salesPeriod: 'rolling30',
+        
+        // Computed property for current metrics based on selected period
+        get currentMetrics() {
+            const data = salesDataFromServer[this.salesPeriod];
+            const totalSales = data.totalSales || 0;
+            const previousTotalSales = data.previousTotalSales || 0;
+            const growthRate = previousTotalSales > 0 
+                ? ((totalSales - previousTotalSales) / previousTotalSales * 100) 
+                : 0;
+            const dailyAverage = this.salesPeriod === 'rolling30' 
+                ? totalSales / 30 
+                : totalSales / data.current.length;
+            
+            return {
+                totalSales,
+                previousTotalSales,
+                growthRate,
+                dailyAverage
+            };
+        },
+        
+        // Helper function to format currency
+        formatCurrency(value) {
+            return '$' + value.toLocaleString('en-US', { 
+                minimumFractionDigits: 0, 
+                maximumFractionDigits: 0 
+            });
+        },
+        
         fuelAlerts: [
             { id: 1, customerName: 'ABC Events LLC', orderId: 'ORD-2024-001', amountOwed: 'Pending', date: '2024-01-27', type: 'fuel', notes: '' },
             { id: 2, customerName: 'Wedding Bliss Co', orderId: 'ORD-2024-002', amountOwed: '$45.00', date: '2024-01-26', type: 'fuel', notes: 'Customer disputed charge initially' },
@@ -726,24 +760,8 @@ function dashboardData() {
         },
 
         getSalesData() {
-            const data = {
-                rolling30: {
-                    categories: ['6/1', '6/2', '6/3', '6/4', '6/5', '6/6', '6/7', '6/8', '6/9', '6/10', '6/11', '6/12', '6/13', '6/14', '6/15', '6/16', '6/17', '6/18', '6/19', '6/20', '6/21', '6/22', '6/23', '6/24', '6/25', '6/26', '6/27', '6/28', '6/29', '6/30'],
-                    current: [8500, 12500, 15200, 9800, 18500, 22000, 25500, 19200, 13500, 16800, 14200, 19500, 28000, 31500, 29200, 17500, 12800, 15200, 18500, 22800, 26500, 24200, 16800, 13500, 17200, 20500, 35000, 38500, 32500, 21500],
-                    previous: [7200, 9800, 11200, 8500, 14200, 18500, 21000, 16800, 12100, 14500, 13200, 17200, 24500, 27800, 25200, 15800, 11500, 13800, 16200, 19500, 23200, 21800, 14500, 12200, 15500, 18200, 31500, 34200, 28800, 19200]
-                },
-                currentMonth: {
-                    categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                    current: [45000, 52000, 48000, 55000],
-                    previous: [42000, 48000, 51000, 47000]
-                },
-                lastMonth: {
-                    categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                    current: [42000, 48000, 51000, 47000],
-                    previous: [38000, 44000, 46000, 43000]
-                }
-            };
-            return data[this.salesPeriod];
+            // Use data from server instead of hardcoded values
+            return salesDataFromServer[this.salesPeriod];
         },
 
         initSalesChart() {

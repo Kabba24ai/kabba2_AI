@@ -54,7 +54,7 @@ class IndexController extends Controller
         $endDate = $now->copy();
         $startDate = $now->copy()->subDays(29); // Last 30 days including today
         
-        // Get current period data - only orders with Paid status
+        // Get current period data - only orders with Paid/Account status
         $currentPeriodData = Order::whereBetween('orders.order_date', [
             $startDate->format('Y-m-d'),
             $endDate->format('Y-m-d')
@@ -62,6 +62,7 @@ class IndexController extends Controller
         ->join('order_payments', 'orders.id', '=', 'order_payments.order_id')
         ->whereIn('order_payments.status', [
             OrderPaymentStatus::Paid->value,
+            OrderPaymentStatus::Account->value,
             OrderPaymentStatus::InvoiceCard->value,
             OrderPaymentStatus::InvoiceCash->value,
             OrderPaymentStatus::InvoiceOnline->value,
@@ -88,6 +89,7 @@ class IndexController extends Controller
         ->join('order_payments', 'orders.id', '=', 'order_payments.order_id')
         ->whereIn('order_payments.status', [
             OrderPaymentStatus::Paid->value,
+            OrderPaymentStatus::Account->value,
             OrderPaymentStatus::InvoiceCard->value,
             OrderPaymentStatus::InvoiceCash->value,
             OrderPaymentStatus::InvoiceOnline->value,
@@ -191,6 +193,7 @@ class IndexController extends Controller
         ->join('order_payments', 'orders.id', '=', 'order_payments.order_id')
         ->whereIn('order_payments.status', [
             OrderPaymentStatus::Paid->value,
+            OrderPaymentStatus::Account->value,
             OrderPaymentStatus::InvoiceCard->value,
             OrderPaymentStatus::InvoiceCash->value,
             OrderPaymentStatus::InvoiceOnline->value,

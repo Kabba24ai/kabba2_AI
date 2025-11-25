@@ -6,7 +6,7 @@
 <div class="min-h-screen bg-gray-50">
     <div>
         {{-- Header --}}
-        <div class="bg-white rounded-md p-6 shadow-sm border border-gray-100 mb-6">
+        <div class="mb-6">
             <div class="flex items-center space-x-3 ">
                 <a href="{{ route('admin.maintenance-management.parts.index') }}" class="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,7 +23,7 @@
 
         {{-- Form --}}
          <form action="{{ route('admin.maintenance-management.parts.create') }}" method="POST">
-            <div class="bg-white rounded-md p-6 shadow-sm border border-gray-100">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
             
                 @csrf
                 @include('admin.maintenance_management.parts.templates.partials._form')            
@@ -134,13 +134,13 @@
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative flex-1 min-w-[220px]">
                 <input type="text" placeholder="Search parts..."
-                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/>
                 </svg>
                 </div>
-                <select class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                <select class="rounded-lg border border-gray-300 px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                     <option>All Categories</option>
                     <option>Excavators</option>
                     <option>Generators</option>

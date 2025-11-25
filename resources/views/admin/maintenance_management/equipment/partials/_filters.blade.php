@@ -9,7 +9,7 @@
                 </svg>
                 <input type="text" name="search" placeholder="Search by Equipment Name..."
                     value="{{ request('search') }}"
-                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                    class="w-full pl-10 text-sm pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
             </div>
         </div>
         <div class="w-full sm:w-48">

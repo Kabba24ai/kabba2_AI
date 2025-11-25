@@ -12,7 +12,7 @@
     </a>
 
     <!-- Main Card -->
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
         <!-- Header -->
         <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-7 w-7 text-white"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
@@ -51,7 +51,7 @@
                 <h3 class="text-gray-800 font-semibold mb-3 text-lg">Supplier Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <!-- Card 1 -->
-                    <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-4">
+                    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Part Number</label>
                             <p class="text-sm font-medium text-gray-900">HF-2024-001</p>
@@ -96,7 +96,7 @@
                     </div>
 
                     <!-- Card 2 -->
-                    <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-4">
+                    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Alt 1 Part Number</label>
                             <p class="text-sm font-medium text-gray-900">HF-ALT-2024-001</p>
@@ -141,7 +141,7 @@
                     </div>
 
                     <!-- Card 3 -->
-                    <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-4">
+                    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Alt 2 Part Number</label>
                             <p class="text-sm font-medium text-gray-900">HF-ALT2-2024-001</p>
@@ -190,11 +190,11 @@
             <div>
                 <h3 class="text-gray-800 font-semibold mb-3 text-lg">Part Assignment</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                    <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="border border-gray-200 rounded-xl p-4">
                         <label class="block text-sm font-medium text-gray-500 mb-2">Category</label>
                         <p class="text-base font-medium text-gray-900">Excavators</p>
                     </div>
-                    <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="border border-gray-200 rounded-xl p-4">
                         <label class="block text-sm font-medium text-gray-500 mb-2">Parts List</label>
                         <p class="text-base font-medium text-gray-900">Excavator Standard Maintenance</p>
                     </div>
@@ -203,26 +203,26 @@
 
             <div>
                 <h3 class="text-gray-800 font-semibold mb-3">Equipment Assignment</h3>
-                <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                <div class="overflow-x-auto  border border-gray-200 rounded-xl">  
                     <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-100 text-gray-600 text-left">
+                        <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 text-left">
                             <tr>
-                                <th class="px-4 py-2">Equipment Name</th>
-                                <th class="px-4 py-2">Equipment ID</th>
+                                <th class="py-4 px-6">Equipment Name</th>
+                                <th class="py-4 px-6">Equipment ID</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             <tr>
-                                <td class="px-4 py-2">CAT 320D Excavator</td>
-                                <td class="px-4 py-2"><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">EXC-001</span></td>
+                                <td class="py-4 px-6">CAT 320D Excavator</td>
+                                <td class="py-4 px-6"><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">EXC-001</span></td>
                             </tr>
                             <tr>
-                                <td class="px-4 py-2">CAT 330F</td>
-                                <td class="px-4 py-2"><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">EXC-003</span></td>
+                                <td class="py-4 px-6">CAT 330F</td>
+                                <td class="py-4 px-6"><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">EXC-003</span></td>
                             </tr>
                             <tr>
-                                <td class="px-4 py-2">Komatsu PC200</td>
-                                <td class="px-4 py-2"><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">EXC-004</span></td>
+                                <td class="py-4 px-6">Komatsu PC200</td>
+                                <td class="py-4 px-6"><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">EXC-004</span></td>
                             </tr>
                         </tbody>
                     </table>

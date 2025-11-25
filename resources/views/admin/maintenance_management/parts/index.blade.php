@@ -6,14 +6,14 @@
 
 <div class="min-h-screen bg-gray-50" x-data="{selected: 'parts'}">
     {{-- Header --}}
-    <div class="bg-white rounded-md p-6 shadow-sm border border-gray-100 mb-6">
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
         <div class="flex items-center space-x-4 ">
             <h2 class="text-xl font-bold text-gray-900">Equipment Management System </h2>
 
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <button @click="selected = 'parts'"
                     :class="selected === 'parts' ? ' bg-blue-600 text-white ' : 'bg-gray-100 text-gray-700s'"
-                    class="w-full sm:w-auto px-4 py-2 rounded text-sm flex items-center gap-2"
+                    class="w-full sm:w-auto px-6 py-3 rounded text-md flex items-center gap-2"
                     type="button">
                     <svg class="h-4 w-4 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -21,7 +21,7 @@
                 </button>
                 <button @click="selected = 'template'"
                     :class="selected === 'template' ? ' bg-blue-600 text-white ' : 'bg-gray-100 text-gray-700'"
-                    class="w-full sm:w-auto px-4 py-2 rounded text-sm flex items-center gap-2 "
+                    class="w-full sm:w-auto px-6 py-3 rounded text-md flex items-center gap-2 "
                     type="button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 " fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
@@ -38,7 +38,7 @@
 
         {{-- parts --}}
         <div x-show="selected === 'parts'">
-            <div class="bg-white rounded-md p-5 shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class=" mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
                 <!-- Left Section -->
                 <div>
@@ -55,7 +55,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <!-- Manage Category -->
                     <a href="javascript:void(0)" onclick="openModal('CategoryModalWrapper')"
-                        class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+                        class="flex items-center text-md justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-sm rounded-lg transition-colors w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path
@@ -70,7 +70,7 @@
 
             {{-- Stats Cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-5 xl:grid-cols-5 gap-4 mb-6">
-                <div class="bg-white rounded-md p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total</p>
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-md p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">In Stock</p>
@@ -94,7 +94,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-md p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Buy Now</p>
@@ -106,7 +106,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-md p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Out of Stock</p>
@@ -118,7 +118,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-md p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">DNI</p>
@@ -132,7 +132,7 @@
             </div>
 
             {{-- Filter Controls --}}
-            <div class="bg-white rounded-md p-5 shadow-sm border border-gray-100 mb-6">
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-6">
                 <form class="flex flex-wrap gap-4 items-end">
 
                     {{-- Search --}}
@@ -141,14 +141,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search parts, equipment, suppliers..."
-                            class="pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full text-sm">
+                            class="pl-9 pr-4 py-3 border border-gray-300 rounded-lg w-full text-sm">
                     </div>
 
                     {{-- Category Filter --}}
                     <div class="w-full sm:w-48">
 
                         <!-- Category Filter -->
-                        <select id="partCategorys" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900">
+                        <select id="partCategorys" name="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-900">
                             <option value="">All Categories</option>
                         </select>
                     </div>
@@ -156,7 +156,7 @@
                     {{-- Category Filter --}}
                     <div class="w-full sm:w-48">
 
-                        <select id="supplierCategory" name="category" class="w-full px-3 py-2  border border-gray-300 rounded-md text-sm text-gray-900">
+                        <select id="supplierCategory" name="category" class="w-full px-4 py-3  border border-gray-300 rounded-lg text-sm text-gray-900">
                             <option value="">All Equipment</option>
                             <option value="2">Equipment all</option>
                             <option value="6">Financing == Default</option>
@@ -167,7 +167,7 @@
 
                     <div class="flex gap-2">
 
-                        <a href="#" class="text-sm bg-blue-100 text-blue-700 px-3 py-2 flex gap-2 items-center rounded-md ">
+                        <a href="#" class="text-sm bg-blue-100 text-blue-700 px-4 py-3 flex gap-2 items-center rounded-lg ">
                             Quick: Supplies
                         </a>
 
@@ -175,7 +175,7 @@
 
 
                     <div class="flex gap-2">
-                        <a href="#" class="text-sm text-gray-600 bg-white px-3 py-2 flex gap-2 items-center rounded-md border border-gray-300">
+                        <a href="#" class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-lg border border-gray-300">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12" />
@@ -185,7 +185,7 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <a href="javascript:void(0)" onclick="openSupplierModal()" class="text-sm text-gray-600 bg-white px-3 py-2 flex gap-2 items-center rounded-md border border-gray-300">
+                        <a href="javascript:void(0)" onclick="openSupplierModal()" class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-lg border border-gray-300">
                             <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
@@ -193,8 +193,8 @@
                         </a>
                     </div>
 
-                    <div class="flex gap-2">
-                        <a href="{{ route('admin.maintenance-management.parts.create') }}" class="text-sm text-white bg-blue-600 px-3 py-2 flex gap-2 items-center rounded-md border border-gray-300">
+                    <div class="flex gap-2 w-full sm:w-auto sm:ml-auto">
+                        <a href="{{ route('admin.maintenance-management.parts.create') }}" class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -206,7 +206,7 @@
 
             <!-- table  -->
 
-            <div id="parts-table-wrapper" class="overflow-x-auto max-w-full rounded-lg shadow border border-gray-200 bg-white">
+            <div id="parts-table-wrapper" class="overflow-x-auto max-w-full rounded-2xl shadow border border-gray-200 bg-white">
 
                 @include('admin.maintenance_management.parts.partials._table', ['parts' => $parts])
 
@@ -216,7 +216,7 @@
         {{-- template --}}
         <div x-show="selected === 'template'">
 
-            <div class="bg-white rounded-md p-5 shadow-sm border border-gray-100 mb-6">
+            <div class="mb-6">
                 <div class="flex items-center space-x-3 mb-2">
 
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 " fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -234,7 +234,7 @@
 
 
             {{-- Filter Controls --}}
-            <div class="bg-white rounded-md p-5 shadow-sm border border-gray-100 mb-6">
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-6">
                 <form class="flex flex-wrap items-end justify-between gap-4">
 
                     {{-- Left Side: Filters --}}
@@ -247,13 +247,13 @@
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search template..."
-                                class="w-full pl-10 text-sm pr-4 py-2 border border-gray-300 rounded-md">
+                                class="w-full pl-10 text-sm px-3 py-3 border border-gray-300 rounded-md">
                         </div>
 
                         {{-- Category Filter --}}
                         <div class="w-full sm:w-48">
                             <select id="supplierCategory" name="category"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900">
+                                class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900">
                                 <option value="">All Category</option>
                                 <option value="2">Equipment all</option>
                                 <option value="6">Financing == Default</option>
@@ -266,7 +266,7 @@
                     {{-- Right Side: Action Buttons --}}
                     <div class="flex gap-2 justify-end w-full sm:w-auto">
                         <a href="{{ route('admin.maintenance-management.parts.templates.create') }}"
-                            class="text-sm text-white bg-blue-600 px-3 py-2 flex gap-2 items-center rounded-md hover:bg-blue-700 transition border border-gray-300">
+                            class="text-md text-white bg-blue-600  px-6 py-3 flex gap-2 items-center rounded-md hover:bg-blue-700 transition border border-gray-300">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -284,14 +284,14 @@
 
             <div id="supplier-table-wrapper" class="overflow-x-auto max-w-full rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
-                    <thead class="bg-gray-100 text-gray-600">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-4 py-3 text-left font-semibold">Template Name</th>
-                            <th class="px-4 py-3 text-left font-semibold">Category</th>
-                            <th class="px-4 py-3 text-left font-semibold">Description</th>
-                            <th class="px-4 py-3 text-left font-semibold ">Parts Count</th>
-                            <th class="px-4 py-3 text-left font-semibold">Created By</th>
-                            <th class="px-4 py-3 text-left font-semibold">Actions</th>
+                            <th class="py-4 px-6 text-left font-semibold">Template Name</th>
+                            <th class="py-4 px-6 text-left font-semibold">Category</th>
+                            <th class="py-4 px-6 text-left font-semibold">Description</th>
+                            <th class="py-4 px-6 text-left font-semibold ">Parts Count</th>
+                            <th class="py-4 px-6 text-left font-semibold">Created By</th>
+                            <th class="py-4 px-6 text-left font-semibold">Actions</th>
                         </tr>
                     </thead>
 
@@ -299,7 +299,7 @@
 
                         <tr class="hover:bg-gray-50 transition-colors">
 
-                            <td class="py-2 px-4 whitespace-nowrap">
+                            <td class="py-4 px-6 whitespace-nowrap">
                                 <span class="inline-flex items-center py-0.5 rounded-full text-sm font-medium  text-gray-800">
                                     Excavator Standard Maintenance
                                 </span>
@@ -307,26 +307,26 @@
                             </td>
 
 
-                            <td class="py-2 px-4 whitespace-nowrap">
+                            <td class="py-4 px-6 whitespace-nowrap">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs  font-medium text-purple-800 bg-purple-200">
                                     Bulldozers
                                 </span>
                             </td>
 
-                            <td class="py-2 px-4 whitespace-nowrap">
+                            <td class="py-4 px-6 whitespace-nowrap">
                                 <span class="inline-flex items-center rounded-full text-sm font-medium text-gray-800">
                                     John Deere 650K Dozer
                                 </span>
                             </td>
 
-                            <td class="py-2 px-4 whitespace-nowrap w-full">
+                            <td class="py-4 px-6 whitespace-nowrap w-full">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-gray-800 bg-gray-200">
                                     22 Parts
                                 </span>
                             </td>
 
 
-                            <td class="py-2 px-4 whitespace-nowrap">
+                            <td class="py-4 px-6 whitespace-nowrap">
                                 <span class="inline-flex items-center rounded-full text-sm font-medium text-gray-800">
                                     Raja Hindustan
                                 </span>
@@ -334,7 +334,7 @@
 
 
 
-                            <td class="py-2 px-4 whitespace-nowrap text-sm font-medium">
+                            <td class="py-4 px-6 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center space-x-2">
                                     <a href="{{ route('admin.maintenance-management.parts.templates.view') }}" class="text-blue-600 rounded transition-colors" title="View Details">
                                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -356,7 +356,7 @@
 
                         <tr class="hover:bg-gray-50 transition-colors">
 
-                            <td class="py-2 px-4 whitespace-nowrap">
+                            <td class="py-4 px-6 whitespace-nowrap">
                                 <span class="inline-flex items-center py-0.5 rounded-full text-sm font-medium  text-gray-800">
                                     Generator Basic Service Kit
                                 </span>
@@ -365,26 +365,26 @@
                             </td>
 
 
-                            <td class="py-2 px-4 whitespace-nowrap">
+                            <td class="py-4 px-6 whitespace-nowrap">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-purple-800 bg-purple-200">
                                     Generators
                                 </span>
                             </td>
 
-                            <td class="py-2 px-4 whitespace-nowrap">
+                            <td class="py-4 px-6 whitespace-nowrap">
                                 <span class="inline-flex items-center rounded-full text-sm font-medium text-gray-800">
                                     Essential service parts for generator maintenance
                                 </span>
                             </td>
 
-                            <td class="py-2 px-4 whitespace-nowrap w-full">
+                            <td class="py-4 px-6 whitespace-nowrap w-full">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-gray-800 bg-gray-200">
                                     22 parts
                                 </span>
                             </td>
 
 
-                            <td class="py-2 px-4 whitespace-nowrap">
+                            <td class="py-4 px-6 whitespace-nowrap">
                                 <span class="inline-flex items-center rounded-full text-sm font-medium text-gray-800">
                                     Raja sing
                                 </span>
@@ -392,7 +392,7 @@
 
 
 
-                            <td class="py-2 px-4 whitespace-nowrap text-sm font-medium">
+                            <td class="py-4 px-6 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center space-x-2">
                                     <button class="text-blue-600 rounded transition-colors" title="View Details">
                                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -606,7 +606,7 @@
                 <div class="p-4 border-b border-gray-200">
                     <div class="relative">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-                        <input id="supplierSearch" type="text" placeholder="Search suppliers..." class="w-full text-sm pl-10 pr-4 py-2 border border-gray-300 rounded-lg" value="">
+                        <input id="supplierSearch" type="text" placeholder="Search suppliers..." class="w-full text-sm pl-10 px-3 py-3 border border-gray-300 rounded-lg" value="">
                     </div>
                 </div>
                 <ul id="supplierList" class="divide-y divide-gray-100 max-h-[40vh] overflow-y-auto"></ul>

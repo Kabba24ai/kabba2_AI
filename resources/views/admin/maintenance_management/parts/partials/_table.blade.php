@@ -1,15 +1,15 @@
 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
-    <thead class="bg-gray-100 text-gray-600 ">
+    <thead class="bg-gray-50 border-b border-gray-200">
         <tr>
-            <th class="px-4 py-3 text-left font-semibold">Part Name</th>
-            <th class="px-4 py-3 text-left font-semibold">Category</th>
-            <th class="px-4 py-3 text-left font-semibold">Equipment Name</th>
-            <th class="px-4 py-3 text-left font-semibold">Equipment Id</th>
-            <th class="px-4 py-3 text-left font-semibold">Part Number</th>
-            <th class="px-4 py-3 text-left font-semibold">Supplier</th>
-            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Unit Cost</th>
-            <th class="px-4 py-3 text-left font-semibold">Stock</th>
-            <th class="px-4 py-3 text-left font-semibold">Actions</th>
+            <th class="py-4 px-6 text-left font-semibold">Part Name</th>
+            <th class="py-4 px-6 text-left font-semibold">Category</th>
+            <th class="py-4 px-6 text-left font-semibold">Equipment Name</th>
+            <th class="py-4 px-6 text-left font-semibold">Equipment Id</th>
+            <th class="py-4 px-6 text-left font-semibold">Part Number</th>
+            <th class="py-4 px-6 text-left font-semibold">Supplier</th>
+            <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Unit Cost</th>
+            <th class="py-4 px-6 text-left font-semibold">Stock</th>
+            <th class="py-4 px-6 text-left font-semibold">Actions</th>
         </tr>
     </thead>
 
@@ -18,50 +18,50 @@
 
         <tr class="hover:bg-gray-50 transition-colors">
 
-            <td class="py-2 px-4 whitespace-nowrap">
+            <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm font-medium text-gray-900">
                     {{ $part->part_name }}
                 </span>
             </td>
 
-            <td class="py-2 px-4 whitespace-nowrap">
+            <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
                     Bulldozers
                 </span>
             </td>
 
-            <td class="py-2 px-4 whitespace-nowrap">
+            <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
                     John Deere 650K Dozer
                 </span>
             </td>
 
-            <td class="py-2 px-4 whitespace-nowrap">
+            <td class="py-4 px-6 whitespace-nowrap">
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                     BUL-058
                 </span>
             </td>
 
-            <td class="py-2 px-4 whitespace-nowrap">
+            <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
                     {{ $part->primary_part_number ?? '—' }}
                 </span>
             </td>
 
-            <td class="py-2 px-4 whitespace-nowrap">
+            <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
                     {{ optional($part->supplier)->name ?? '—' }}
                 </span>
             </td>
 
-            <td class="py-2 px-4 whitespace-nowrap">
+            <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm font-medium text-green-600">
                     ${{ number_format($part->primary_part_cost, 2) }}
 
                 </span>
             </td>
 
-            <td class="py-2 px-4 text-sm text-gray-900">
+            <td class="py-4 px-6 text-sm text-gray-900">
                 <div class="flex flex-wrap gap-1">
                     @php
                     $status = $part->stock_status;
@@ -78,7 +78,7 @@
                 </div>
             </td>
 
-            <td class="py-2 px-4 whitespace-nowrap text-sm font-medium">
+            <td class="py-4 px-6 whitespace-nowrap text-sm font-medium">
                 <div class="flex items-center space-x-2">
 
                     <a href="{{ route('admin.maintenance-management.parts.view') }}" class="text-blue-600 rounded transition-colors" title="View Details">

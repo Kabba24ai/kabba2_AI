@@ -12,6 +12,10 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Parts\DeleteController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Parts\ViewController;
 
 use App\Http\Controllers\Admin\MaintenanceManagement\Parts\FetchSupplierController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Parts\FetchPartController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Parts\AssignPartController;
+
+
 
 Route::prefix('parts')
     ->name('parts.')
@@ -30,6 +34,12 @@ Route::prefix('parts')
 
     // Get Supplier Details
     Route::get('/get-supplier-details/{unique_id}', FetchSupplierController::class)->name('get-supplier-details');
+
+    Route::get('/get-part-details/{id}', FetchPartController::class)->name('get-part-details');
+
+    Route::post('/assign-part-to-supplier', AssignPartController::class)->name('assign-to-supplier');
+
+
 
     // templates
     require base_path('routes/admin/maintenance_management/parts/templates/routes.php');

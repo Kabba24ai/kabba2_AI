@@ -17,7 +17,7 @@
 
             {!! html()->text('part_name', old('part_name', $part->part_name ?? ''))
             ->class([
-            'w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900',
+            'w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900',
             'border-red-500' => $errors->has('part_name'),
             'border-gray-300' => !$errors->has('part_name'),
             ])
@@ -38,7 +38,7 @@
                 Assign to List
             </label>
             <select id="equipment_id" name="equipment_id"
-                class="w-full px-3 py-2  border border-gray-300 rounded-md text-sm text-gray-900 @error('equipment_id') border-red-500 @enderror">
+                class="w-full px-3 py-3  border border-gray-300 rounded-md text-sm text-gray-900 @error('equipment_id') border-red-500 @enderror">
                 <option value="">None (Optional)</option>
                 <option value="1">Excavator Standard Maintenance</option>
                 <option value="2">Generator Maintenance Parts</option>
@@ -63,7 +63,7 @@
 
             {!! html()->number('current_stock', old('current_stock', $part->stock_level ?? ''))
             ->class([
-            'w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900',
+            'w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900',
             'border-red-500' => $errors->has('current_stock'),
             'border-gray-300' => !$errors->has('current_stock'),
             ])
@@ -88,7 +88,7 @@
 
             {!! html()->number('min_stock', old('min_stock', $part->min_stock ?? ''))
             ->class([
-            'w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900',
+            'w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900',
             'border-red-500' => $errors->has('min_stock'),
             'border-gray-300' => !$errors->has('min_stock'),
             ])
@@ -134,13 +134,14 @@
 
             {!! html()->text('part_description', old('part_description', $part->description ?? ''))
             ->class([
-            'w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors',
+            'w-full px-3 py-3 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors',
             'border-red-500' => $errors->has('part_description'),
             'border-gray-300' => !$errors->has('part_description'),
             ])
             ->attributes([
             'id' => 'part_description',
             'placeholder' => 'Enter part Description',
+            'required' => true,
             ]) !!}
 
             <!-- <input type="text" id="part_description" name="part_description"
@@ -173,7 +174,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
 
         {{-- Primary Supplier --}}
-        <div class="border border-gray-200 rounded-md p-6 shadow-sm col-span-12 lg:col-span-4 bg-gray-50">
+        <div class="border border-gray-200 rounded-xl p-6 shadow-sm col-span-12 lg:col-span-4 ">
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div class="md:col-span-2">
@@ -188,7 +189,7 @@
 
                     {!! html()->text('part_number', old('part_number', $part->primary_part_number ?? ''))
                     ->class([
-                    'w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white',
+                    'w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white',
                     'border-red-500' => $errors->has('part_number'),
                     'border-gray-300' => !$errors->has('part_number'),
                     ])
@@ -208,7 +209,7 @@
                         Cost
                     </label>
                     <div class="relative">
-                        <span class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                        <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
                         <!-- <input type="number" id="unit_cost" name="unit_cost" step="0.01" min="0" data-digit-input="true"
                             value="{{ old('unit_cost', $part->unit_cost ?? '') }}"
@@ -217,7 +218,7 @@
 
                         {!! html()->number('unit_cost', old('unit_cost', $part->primary_part_cost ?? ''))
                         ->class([
-                        'w-full pl-8 pr-3 py-2 border border-gray-300 text-sm rounded-md bg-white',
+                        'w-full pl-8 pr-3 py-3 border border-gray-300 text-sm rounded-md bg-white',
                         'border-red-500' => $errors->has('unit_cost'),
                         'border-gray-300' => !$errors->has('unit_cost'),
                         ])
@@ -247,7 +248,7 @@
                 old('supplier', $part->primary_part_supplier_id ?? '')
                 )
                 ->class([
-                'w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white',
+                'w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white',
                 'border-red-500' => $errors->has('supplier'),
                 'border-gray-300' => !$errors->has('supplier'),
                 ])
@@ -269,7 +270,7 @@
         </div>
 
         {{-- Alternative Supplier 1 --}}
-        <div class="bg-gray-50 border border-gray-200 rounded-md p-6 shadow-sm col-span-12 lg:col-span-4">
+        <div class=" border border-gray-200 rounded-xl p-6 shadow-sm col-span-12 lg:col-span-4">
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div class="md:col-span-2">
@@ -278,7 +279,7 @@
                     </label>
 
                     {!! html()->text('part_number_alt_1', old('part_number_alt_1', $part->alt_1_part_number ?? ''))
-                    ->class('w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white')
+                    ->class('w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white')
                     ->attributes([
                     'id' => 'part_number_alt_1',
                     'placeholder' => 'Alternative part number',
@@ -297,7 +298,7 @@
                             placeholder="0.00"> -->
 
                         {!! html()->number('cost_alt_1', old('cost_alt_1', $part->alt_1_part_cost ?? ''))
-                        ->class('w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md transition-colors bg-white')
+                        ->class('w-full pl-8 pr-3 py-3 text-sm border border-gray-300 rounded-md transition-colors bg-white')
                         ->attributes([
                         'id' => 'cost_alt_1',
                         'step' => '0.01',
@@ -327,7 +328,7 @@
                 collect($suppliers)->pluck('name', 'unique_id')->prepend('Select alt supplier', ''),
                 old('supplier_alt_1', $part->alt_1_part_supplier_id ?? '')
                 )
-                ->class('w-full px-3 py-2 border border-gray-300 text-sm rounded-md bg-white')
+                ->class('w-full px-3 py-3 border border-gray-300 text-sm rounded-md bg-white')
                 ->attributes(['id' => 'supplier_alt_1']) !!}
 
             </div>
@@ -339,7 +340,7 @@
         </div>
 
         {{-- Alternative Supplier 2 --}}
-        <div class="bg-gray-50 border border-gray-200 rounded-md p-6 shadow-sm col-span-12 lg:col-span-4">
+        <div class=" border border-gray-200 rounded-xl p-6 shadow-sm col-span-12 lg:col-span-4">
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div class="md:col-span-2">
@@ -353,7 +354,7 @@
 
 
                     {!! html()->text('part_number_alt_2', old('part_number_alt_2', $part->alt_2_part_number ?? ''))
-                    ->class('w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white')
+                    ->class('w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white')
                     ->attributes([
                     'id' => 'part_number_alt_2',
                     'placeholder' => 'Alternative part number',
@@ -372,7 +373,7 @@
                             placeholder="0.00"> -->
 
                         {!! html()->number('cost_alt_2', old('cost_alt_2', $part->alt_2_part_cost ?? ''))
-                        ->class('w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm bg-white')
+                        ->class('w-full pl-8 pr-3 py-3 border border-gray-300 rounded-md text-sm bg-white')
                         ->attributes([
                         'id' => 'cost_alt_2',
                         'step' => '0.01',
@@ -402,7 +403,7 @@
                 collect($suppliers)->pluck('name', 'unique_id')->prepend('Select alt supplier', ''),
                 old('supplier_alt_2', $part->alt_2_part_supplier_id ?? '')
                 )
-                ->class('w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white')
+                ->class('w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white')
                 ->attributes(['id' => 'supplier_alt_2']) !!}
 
             </div>
@@ -515,7 +516,7 @@
                         }
 
                         display.innerHTML = `
-                     <div class="w-full px-2 py-2 bg-blue-50 border border-blue-200 rounded text-x">
+                     <div class="w-full px-2 py-3 bg-blue-50 border border-blue-200 rounded text-x">
                         <div class="font-medium text-blue-900 mb-1">${data.name ?? 'N/A'}</div>
                         <div class="space-y-0.5 text-blue-800">
                             <div class="truncate">${data.address ?? data.full_address ?? '—'}</div>

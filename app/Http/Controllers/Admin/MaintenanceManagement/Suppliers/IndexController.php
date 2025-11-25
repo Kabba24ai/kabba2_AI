@@ -8,6 +8,7 @@ use App\Models\Locations\State;
 
 use App\Models\MaintenanceManagement\Supplier;
 use App\Models\MaintenanceManagement\SupplierTag;
+use App\Models\MaintenanceManagement\Part;
 
 
 
@@ -15,6 +16,10 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
+
+        $parts = Part::orderBy('part_name')->get();
+
+
         // Example supplier data
         $query = Supplier::with(['state', 'category', 'media']);
 
@@ -83,6 +88,7 @@ class IndexController extends Controller
 
         $states = State::get();
 
+        // dd($parts);
 
 
         if ($request->ajax()) {
@@ -93,6 +99,6 @@ class IndexController extends Controller
             ]);
         }
 
-        return view('admin.maintenance_management.suppliers.index', compact('suppliers', 'states'));
+        return view('admin.maintenance_management.suppliers.index', compact('suppliers', 'states','parts'));
     }
 }

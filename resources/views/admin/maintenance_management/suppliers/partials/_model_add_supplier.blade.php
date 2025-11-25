@@ -47,7 +47,7 @@
                      'enctype' => 'multipart/form-data'
                 ])->open() }}
 
-                <div class="bg-blue-50 p-4">
+                <div class="bg-blue-50 p-4 rounded-xl">
 
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <div class="bg-blue-600 p-2 rounded-lg mr-2">
@@ -71,7 +71,7 @@
 
                             {!! html()->text('supplierCompany', old('supplierCompany'))
                             ->class([
-                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('supplierCompany'),
                             'border-gray-300' => !$errors->has('supplierCompany'),
                             ])
@@ -89,7 +89,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
 
                             {!! html()->email('supplierEmail', old('supplierEmail'))->class([
-                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
@@ -109,7 +109,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
 
                             {!! html()->text('supplierPhone', old('supplierPhone'))->class([
-                            'masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'masked-phone w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('supplierPhone'),
                             'border-gray-300' => !$errors->has('supplierPhone'),
                             ])->attributes([
@@ -129,7 +129,7 @@
                             {!! html()->text('supplierWebsite', old('supplierWebsite'))
                             ->type('url')
                             ->class([
-                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('supplierWebsite'),
                             'border-gray-300' => !$errors->has('supplierWebsite'),
                             ])
@@ -146,7 +146,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
 
                             {!! html()->text('supplierAddress', old('supplierAddress'))
-                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->class('w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
                             ->attributes(['placeholder' => '123 Main Street', 'id' => 'supplierAddress']) !!}
                         </div>
 
@@ -155,7 +155,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
 
                             {!! html()->text('supplierCity', old('supplierCity'))
-                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->class('w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
                             ->attributes(['placeholder' => 'City name', 'id' => 'supplierCity']) !!}
                         </div>
 
@@ -163,7 +163,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
 
-                            {!! html()
+                            <!-- {!! html()
                             ->select('supplierState',
                             $states->mapWithKeys(fn ($state) => [$state->id => $state->name])->toArray(),
                             old('supplierState')
@@ -173,7 +173,21 @@
                             'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('supplierState'),
                             ])->required()
-                            !!}
+                            !!} -->
+
+                             {!! html()
+                    ->select(
+                    'supplierState',
+                    ['' => '-- Select State --'] + $states->pluck('name', 'id')->toArray(),
+                    old('supplierState')
+                    )
+                    ->id('supplierState')
+                    ->class([
+                    'w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                    'border-red-500' => $errors->has('supplierState'),
+                    ])
+
+                    !!}
 
                         </div>
 
@@ -183,7 +197,7 @@
 
                             {!! html()->text('supplierZip', old('supplierZip'))
                             ->class([
-                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('supplierZip'),
                             'border-gray-300' => !$errors->has('supplierZip'),
                             ])
@@ -206,7 +220,7 @@
                             'UK' => 'UK',
                             'India' => 'India',
                             ], old('supplierCountry'))
-                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->class('w-full px-3 py-3 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
                             ->id('supplierCountry') !!}
 
                         </div>
@@ -216,7 +230,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tax ID</label>
 
                             {!! html()->text('supplierTax', old('supplierTax'))
-                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->class('w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
                             ->attributes(['placeholder' => 'US123456789', 'id' => 'supplierTax']) !!}
 
 
@@ -233,9 +247,9 @@
                                     Add
                                 </button>
                             </div>
-                            <select id="supplierCategorysform" name="supplierCategory" class="w-full px-3 py-2  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" >
+                            <select id="supplierCategorysform" name="supplierCategory" class="w-full px-3 py-3  bg-white  border rounded-md text-sm focus:ring-green-500 focus:border-green-500" >
                                 <option value="">Select category</option>
-                               
+
                             </select>
                         </div>
 
@@ -269,7 +283,7 @@
                             'Net 60' => 'Net 60',
                             'Net 75' => 'Net 75',
                             ], old('supplierPaymentTerms'))
-                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->class('w-full px-3 py-3 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
                             ->id('supplierPaymentTerms') !!}
 
                         </div>
@@ -286,7 +300,7 @@
                             'Inactive' => 'Inactive',
                             'Pending' => 'Pending',
                             ], old('supplierStatus'))
-                            ->class('w-full px-3 py-2 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->class('w-full px-3 py-3 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
                             ->id('supplierStatus')->required() !!}
 
                         </div>
@@ -301,32 +315,32 @@
                                 <div class=" p-6 overflow-y-auto">
                                     <div class="max-w-md mx-auto">
 
-                                        
+
                                         <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
                                             <div id="uploadUI" class="flex flex-col items-center justify-center">
-                                               
+
                                                 <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
                                                 </svg>
-                                             
+
                                                 <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
                                                 <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
 
-                                              
+
                                                 <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
                                                     <input type="file" id="fileInput" name="upload_company_logo" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
                                                     <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
                                                 </label>
                                             </div>
 
-                                           
+
                                             <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-                                              
+
                                                 <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
 
-                                               
+
                                                 <div class="flex justify-center sm:justify-start gap-2">
                                                     <a id="viewFileLink" href="#" target="_blank"
                                                         class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
@@ -345,7 +359,7 @@
                 </div>
 
                 <!-- Primary Contact -->
-                <div class="bg-green-50 p-4 rounded-md mt-5">
+                <div class="bg-green-50 p-4 rounded-xl mt-5">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <div class="bg-green-600 p-2 rounded-lg mr-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
@@ -362,7 +376,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
 
                             {!! html()->text('primaryContactName', old('primaryContactName'))
-                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
+                            ->class('w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500')
                             ->attributes(['placeholder' => 'John Doe', 'id' => 'primaryContactName']) !!}
 
                         </div>
@@ -372,7 +386,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
 
                             {!! html()->email('primaryContactEmail', old('primaryContactEmail'))->class([
-                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
@@ -392,7 +406,7 @@
                             <label class=" block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
 
                             {!! html()->text('primaryContactPhone', old('primaryContactPhone'))->class([
-                            'masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'masked-phone w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('primaryContactPhone'),
                             'border-gray-300' => !$errors->has('primaryContactPhone'),
                             ])->attributes([
@@ -410,7 +424,7 @@
                 </div>
 
                 <!-- Technical Contact -->
-                <div class="bg-blue-50 p-4 rounded-md mt-5">
+                <div class="bg-blue-50 p-4 rounded-xl mt-5">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <div class="bg-blue-600 p-2 rounded-lg mr-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
@@ -427,28 +441,28 @@
                         <!-- Contact Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" type="text" name="technicalSupportName" id="technicalSupportName" placeholder="Jane Smith">
+                            <input class="w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" type="text" name="technicalSupportName" id="technicalSupportName" placeholder="Jane Smith">
                         </div>
 
                         <!-- Contact Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
 
-                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="email" name="technicalSupportEmail" id="technicalSupportEmail" placeholder="jane@company.com" autocomplete="off" data-parsley-type="email" data-parsley-trigger="change">
+                            <input class="w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="email" name="technicalSupportEmail" id="technicalSupportEmail" placeholder="jane@company.com" autocomplete="off" data-parsley-type="email" data-parsley-trigger="change">
                         </div>
 
                         <!-- Contact Phone -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
 
-                            <input class="masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="text" name="technicalSupportPhone" id="technicalSupportPhone" maxlength="14" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$" data-parsley-error-message="Please enter phone number in format (xxx) xxx-xxxx" placeholder="(xxx) xxx-xxxx" autocomplete="tel">
+                            <input class="masked-phone w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="text" name="technicalSupportPhone" id="technicalSupportPhone" maxlength="14" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$" data-parsley-error-message="Please enter phone number in format (xxx) xxx-xxxx" placeholder="(xxx) xxx-xxxx" autocomplete="tel">
 
                         </div>
                     </div>
                 </div>
 
                 <!-- insideSales (Optional) -->
-                <div class="bg-orange-50 p-4 rounded-md mt-5">
+                <div class="bg-orange-50 p-4 rounded-xl mt-5">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <div class="bg-orange-600 p-2 rounded-lg mr-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-white">
@@ -468,7 +482,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
 
                             {!! html()->text('insideSalesName', old('insideSalesName'))
-                            ->class('w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500')
+                            ->class('w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500')
                             ->attributes(['placeholder' => 'Mike Johnson', 'id' => 'insideSalesName']) !!}
                         </div>
 
@@ -477,7 +491,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
 
                             {!! html()->email('insideSalesEmail', old('insideSalesEmail'))->class([
-                            'w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('email'),
                             'border-gray-300' => !$errors->has('email'),
                             ])->attributes([
@@ -495,7 +509,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
 
                             {!! html()->text('insideSalesPhone', old('insideSalesPhone'))->class([
-                            'masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
+                            'masked-phone w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500',
                             'border-red-500' => $errors->has('insideSalesPhone'),
                             'border-gray-300' => !$errors->has('insideSalesPhone'),
                             ])->attributes([
@@ -510,8 +524,8 @@
                         </div>
                     </div>
                 </div>
-              
-                <div class="bg-purple-50 p-4 rounded-md mt-5">
+
+                <div class="bg-purple-50 p-4 rounded-xl mt-5">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <div class="bg-purple-600 p-2 rounded-lg mr-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -530,21 +544,21 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
 
-                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" type="text" name="BillingName" id="BillingName" placeholder="Sarah Wilson">
+                            <input class="w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-orange-500 focus:border-orange-500" type="text" name="BillingName" id="BillingName" placeholder="Sarah Wilson">
                         </div>
 
                         <!-- Contact Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
 
-                            <input class="w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="email" name="BillingEmail" id="BillingEmail" placeholder="sarah@company.com" autocomplete="off" data-parsley-type="email" data-parsley-trigger="change">
+                            <input class="w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="email" name="BillingEmail" id="BillingEmail" placeholder="sarah@company.com" autocomplete="off" data-parsley-type="email" data-parsley-trigger="change">
                         </div>
 
                         <!-- Contact Phone -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
 
-                            <input class="masked-phone w-full px-3 py-2 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="text" name="BillingPhone" id="BillingPhone" maxlength="14" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$" data-parsley-error-message="Please enter phone number in format (xxx) xxx-xxxx" placeholder="(xxx) xxx-xxxx" autocomplete="tel">
+                            <input class="masked-phone w-full px-3 py-3 bg-white border rounded-md text-sm focus:ring-green-500 focus:border-green-500 border-gray-300" type="text" name="BillingPhone" id="BillingPhone" maxlength="14" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$" data-parsley-error-message="Please enter phone number in format (xxx) xxx-xxxx" placeholder="(xxx) xxx-xxxx" autocomplete="tel">
 
                         </div>
                     </div>
@@ -556,11 +570,11 @@
             <!-- Footer -->
             <div class="flex justify-end gap-2 px-6 py-3 border-t bg-gray-50">
                 <button type="button" onclick="closeModal('AddSupplier')"
-                    class="px-4 py-2 text-sm rounded border border-gray-300 bg-white hover:bg-gray-100">
+                    class="px-6 py-3 text-md rounded border border-gray-300 bg-white hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="saveSupplierBtn"
-                    class="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">
+                    class="px-6 py-3 text-md rounded bg-blue-600 text-white hover:bg-blue-700">
                     Add Supplier
                 </button>
             </div>
@@ -586,7 +600,7 @@
                 <div class="mb-4">
                     <label for="newTagInput2" class="block text-sm font-medium text-gray-700 mb-1 required"> New Tag</label>
 
-                    <input class="w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm border-gray-300 " type="text" name="newTagInput2" id="newTagInput2">
+                    <input class="w-full rounded-md border focus:outline-none px-3 py-3 text-sm shadow-sm border-gray-300 " type="text" name="newTagInput2" id="newTagInput2">
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
@@ -623,7 +637,7 @@
                 <div class="mb-4">
                     <label for="newCategoryInput2" class="block text-sm font-medium text-gray-700 mb-1 required"> New Category</label>
 
-                    <input class="w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm border-gray-300 " type="text" name="newCategoryInput2" id="newCategoryInput2">
+                    <input class="w-full rounded-md border focus:outline-none px-3 py-3 text-sm shadow-sm border-gray-300 " type="text" name="newCategoryInput2" id="newCategoryInput2">
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
@@ -776,7 +790,7 @@
             setFieldValue('technicalSupportEmail', s.technical_support_email);
             setFieldValue('technicalSupportPhone', s.technical_support_phone);
 
-            
+
             setFieldValue('BillingName', s.billing_contact_name);
             setFieldValue('BillingEmail', s.billing_contact_email);
             setFieldValue('BillingPhone', s.billing_contact_phone);

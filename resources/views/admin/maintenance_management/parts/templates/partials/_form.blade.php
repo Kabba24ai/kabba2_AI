@@ -10,7 +10,7 @@
                 Template Name
             </label>
             <input type="text" id="part_name" name="part_name"
-                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md @error('part_name') border-red-500 @enderror"
+                class="w-full px-3 py-3 text-sm border border-gray-300 rounded-md @error('part_name') border-red-500 @enderror"
                 placeholder="Enter Template Name " required
                 value="{{ old('part_name', $part->part_name ?? '') }}">
             @error('part_name')
@@ -24,7 +24,7 @@
                 Category <span class="text-blue-600"> (Auto-assigned from Equipment) </span>
             </label>
             <input type="text" id="category_name" name="category_name"
-                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md @error('part_name') border-red-500 @enderror"
+                class="w-full px-3 py-3 text-sm border border-gray-300 rounded-md @error('part_name') border-red-500 @enderror"
                 readonly value="Not Assigned">
         </div>
     </div>
@@ -33,7 +33,7 @@
         {{-- Description --}}
         <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
         <textarea id="description" name="description" rows="4"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm"
             placeholder="Enter part description">{{ old('description', $part->description ?? '') }}</textarea>
     </div>
 
@@ -61,7 +61,7 @@
                 All Category
             </label>
             <select id="categories_selected" name="categories"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white">
+                class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
                 <option value="{{ $category->id }}">{{ $category->title }}</option>

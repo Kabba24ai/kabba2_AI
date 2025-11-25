@@ -5,7 +5,7 @@
 @section('content')
 
 {{-- Header --}}
-<div class=" border-b border-gray-200">
+<div class="">
     <div class="py-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
@@ -37,7 +37,7 @@
 
                 <!-- Manage Tags -->
                 <a href="javascript:void(0)" onclick="openModal('TagModalWrapper')"
-                    class="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+                    class="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 text-md rounded-lg transition-colors w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path
@@ -49,7 +49,7 @@
 
                 <!-- Add Supplier -->
                 <a href="javascript:void(0)" onclick="openAddSupplierModal()"
-                    class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full sm:w-auto">
+                    class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-md rounded-lg transition-colors w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14"></path>
@@ -63,7 +63,7 @@
 </div>
 
 {{-- Search --}}
-<div class=" py-4 border-b border-gray-200 mb-6">
+<div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 mb-6">  
     <form method="GET" action="{{ route('admin.maintenance-management.suppliers.index') }}" class="flex flex-wrap gap-4 items-end">
 
         {{-- Name / Email --}}
@@ -72,7 +72,7 @@
             <div class="relative">
                 <input type="text" name="search_name_email" value="{{ request('search_name_email') }}"
                     placeholder="Search by contact person or email..."
-                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                    class="w-full pl-3 px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
         </div>
 
@@ -82,14 +82,14 @@
             <div class="relative">
                 <input type="text" name="company_search" value="{{ request('company_search') }}"
                     placeholder="Search by company name..."
-                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                    class="w-full pl-3 px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
         </div>
 
         {{-- Category Dropdown --}}
         <div class="w-full sm:w-48">
             <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select id="supplierCategory" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+            <select id="supplierCategory" name="category" class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                 <option value="">All Categories</option>
             </select>
         </div>
@@ -100,7 +100,7 @@
             <div class="relative">
                 <input type="text" name="part_search" value="{{ request('part_search') }}"
                     placeholder="Search by part name..."
-                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                    class="w-full pl-3 pr-4 px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
         </div>
 
@@ -110,7 +110,7 @@
             <div class="relative">
                 <input type="text" name="tags_search" value="{{ request('tags_search') }}"
                     placeholder="Search by tags..."
-                    class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                    class="w-full pl-3 pr-4 px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
         </div>
 
@@ -121,7 +121,7 @@
         {{-- Status Dropdown --}}
         <div class="w-full sm:w-48">
             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+            <select name="status" class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                 <option value="">All</option>
                 <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -133,7 +133,7 @@
         {{-- Buttons --}}
         <div class="flex gap-2">
 
-            <a href="{{ route('admin.maintenance-management.suppliers.index') }}" class="text-sm text-gray-600 bg-white px-3 py-2 rounded-md border border-gray-300">
+            <a href="{{ route('admin.maintenance-management.suppliers.index') }}" class="text-sm text-gray-600 bg-white px-3 py-3 rounded-md border border-gray-300">
                 Clear All Filters
             </a>
 
@@ -153,6 +153,10 @@
 @include('admin.maintenance_management.suppliers.partials._model_tag')
 @include('admin.maintenance_management.suppliers.partials._model_add_supplier')
 @include('admin.maintenance_management.suppliers.partials._model_view_supplier')
+
+@include('admin.maintenance_management.suppliers.partials._model_assign_part')
+
+
 
 @endsection
 

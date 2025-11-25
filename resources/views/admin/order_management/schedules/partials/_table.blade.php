@@ -109,34 +109,46 @@
                         {{ $orderProduct->order->shippingAddress->full_address }}</td>
                     <td class="px-4 py-3 text-left ">{{ $orderProduct->order->shippingAddress->phone }}</td>
                     <td class="px-4 py-3 text-center">
-                        <button type="button" class="text-blue-600 underline equipment-assign-btn"
-                            data-order-product-unique-id="{{ $orderProduct->unique_id }}"
-                            data-order-product-name="{{ $orderProduct->product_name }}"
-                            data-order="{{ $orderProduct?->order?->order_number }}">
-                            {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
-                        </button>
+                        @if ($orderProduct?->checklistQuestions->isNotEmpty())
+                            <button type="button" class="text-blue-600 underline equipment-assign-btn"
+                                data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                data-order-product-name="{{ $orderProduct->product_name }}"
+                                data-order="{{ $orderProduct?->order?->order_number }}">
+                                {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
+                            </button>
+                        @else
+                            <button type="button" class="text-blue-600 underline equipment-assign-btn"
+                                data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                data-order-product-name="{{ $orderProduct->product_name }}"
+                                data-order="{{ $orderProduct?->order?->order_number }}">
+                                {{ $orderProduct->softAssignment?->equipment->equipment_name ?: 'Assign' }}
+                            </button>
+                        @endif
                     </td>
                     <td class="px-4 py-3 text-center">
-                        @if (!empty($orderProduct->equipment_details['equipment_id']))
+                        @if ($orderProduct?->checklistQuestions->isNotEmpty())
                             <span
                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                                 {{ $orderProduct->equipment_details['equipment_id'] }}
                             </span>
                         @else
-                            -
+                            <span
+                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                                {{ $orderProduct->softAssignment?->equipment->equipment_id ?? '-' }}
+                            </span>
                         @endif
                     </td>
 
                     <td class="px-4 py-3 text-center">
                         <div class="inline-flex items-center gap-1">
-                            @if ($orderProduct?->equipment?->status_label == 'Rented' && $orderProduct?->checklistQuestions->isNotEmpty())
-                                <a href="{{ route('admin.crm.customers.view', $orderProduct?->equipment?->order->customer->unique_id) }}"
+                            @if ($orderProduct?->checklistQuestions->isNotEmpty())
+                                <a href="{{ route('admin.crm.customers.view', $orderProduct?->order?->customer->unique_id) }}"
                                     target="_blank" class="text-blue-600 hover:underline">
-                                    {{ $orderProduct?->equipment?->order->customer_name ?? '-' }}
+                                    {{ $orderProduct?->order->customer_name ?? '-' }}
                                 </a>
                             @else
-                                @if ($orderProduct?->equipment?->store?->store_name)
-                                    {{ $orderProduct?->equipment?->store->store_name }}
+                                @if ($orderProduct?->softAssignment?->equipment?->store?->store_name)
+                                    {{ $orderProduct?->softAssignment?->equipment?->store->store_name }}
                                 @else
                                     -
                                 @endif

@@ -22,8 +22,8 @@
             <svg id="reloadIcon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0
-                         3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
-                         13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                         3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
+                                         13.803-3.7l3.181 3.182m0-4.991v4.99" />
             </svg>
             Reload
         </a>
@@ -129,15 +129,79 @@
         @include('admin.order_management.equipment_inventory.partials._table')
     </div>
 
-    <div id="schedule-table-wrapper" class="h-70 overflow-y-auto mb-5 ">
-        @include('admin.order_management.equipment_inventory.partials._table2', [
-            'orderProducts' => $orderProducts,
-        ])
+    <div class="bg-white shadow-sm rounded-lg mb-5">
+        <h2 class="text-lg font-semibold p-5">Unassigned Orders ({{ $orderProducts->total() }})</h2>
+        <div id="schedule-table-wrapper" class="overflow-x-auto h-70 overflow-y-auto">
+            @include('admin.order_management.equipment_inventory.partials._table2', [
+                'orderProducts' => $orderProducts,
+            ])
+        </div>
     </div>
 
     <!-- Equipment Assign Modal -->
+    <div id="equipmentAssignModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="addressModalTitle" class="text-lg font-semibold">Assign Equipment : <span
+                        id="equipmentAssignModalTitle"></span></h2>
+                <button type="button"
+                    class="close-equipment-assign-modal text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <!-- Body -->
+            {{ html()->form()->attributes([
+                    'data-parsley-validate' => true,
+                    'class' => 'flex-1',
+                    'id' => 'equipmentAssignForm',
+                ])->open() }}
+
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required" for="user_unique_id">User</label>
+                    {!! html()->select('user_unique_id', $employees)->id('user_unique_id')->class([
+                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                        ])->required() !!}
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required">Category</label>
+                    <select id="category_select"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-700">
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
 
 
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required" for="equipment_unique_id">Equipment</label>
+                    <select name="equipment_unique_id" id="equipment_unique_id"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
+                        <option value="" data-current-status="">Select Equipment</option>
+                    </select>
+                    <div class="flex items-center justify-between gap-3 mt-2">
+                        <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
+                        <a href="#" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"
+                            id="equipment-page-link"></a>
+                    </div>
+                </div>
+                <input type="hidden" id="order-product-unique-id" name="order_product_unique_id" value="">
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button"
+                    class="close-equipment-assign-modal px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="submit" id="equipment-assign-submit"
+                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    Assign
+                </button>
+            </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('js')
@@ -160,20 +224,19 @@
                 tooltip.classList.add("hidden");
             });
         });
-    </script>
-    <script>
+
         document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');
             let categorySelect = document.querySelector('select[name="category"]');
             // let statusSelect = document.querySelector('select[name="status"]');
             let storeSelect = document.querySelector('select[name="store"]');
-            let wrapper = document.querySelector('#equipment-table-wrapper');
+            let equipmentTableWrapper = document.querySelector('#equipment-table-wrapper');
             let equipmentStatusCheckboxes = document.querySelectorAll('input[name="equipment_status[]"]');
             let timeout = null;
             const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
                 .get('per_page') || null;
 
-            function fetchEquipment() {
+            function fetchEquipments() {
                 const params = new URLSearchParams();
                 if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput
                     .value);
@@ -188,7 +251,7 @@
                 });
 
                 // loader.classList.remove('hidden');
-                wrapper.classList.add('opacity-50', 'pointer-events-none');
+                equipmentTableWrapper.classList.add('opacity-50', 'pointer-events-none');
 
                 fetch("{{ route('admin.order-management.equipment-inventory.index') }}?" + params.toString(), {
                         headers: {
@@ -197,35 +260,412 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        wrapper.innerHTML = data.html;
+                        equipmentTableWrapper.innerHTML = data.html;
                     })
                     .catch(err => {
-                        wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading equipment.</div>';
+                        equipmentTableWrapper.innerHTML = '<div class="text-red-500 p-4">Error loading equipment.</div>';
                         console.error(err);
                     })
                     .finally(() => {
                         // loader.classList.add('hidden');
-                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                        equipmentTableWrapper.classList.remove('opacity-50', 'pointer-events-none');
                     });
             }
 
             // Delayed search
             searchInput.addEventListener('input', function() {
                 clearTimeout(timeout);
-                timeout = setTimeout(fetchEquipment, 400);
+                timeout = setTimeout(fetchEquipments, 400);
             });
 
             // Immediate filters
-            // [categorySelect, statusSelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipment));
-            [categorySelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipment));
+            // [categorySelect, statusSelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipments));
+            [categorySelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipments));
 
             // Immediate filter for checkboxes
-            equipmentStatusCheckboxes.forEach(cb => cb.addEventListener('change', fetchEquipment));
+            equipmentStatusCheckboxes.forEach(cb => cb.addEventListener('change', fetchEquipments));
 
+
+            let loadingIndicator = document.querySelector('#schedule-loading');
+            let wrapper = document.querySelector('#schedule-table-wrapper');
+            function fetchSchedules() {
+
+                // Show loader
+                loadingIndicator.classList.remove('hidden');
+                wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+                apiFetch("{{ route('admin.order-management.schedules.index') }}", {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        wrapper.innerHTML = response.html;
+                    })
+                    .finally(() => {
+                        loadingIndicator.classList.add('hidden');
+                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                    });
+            }
+
+
+            const modal = document.getElementById('equipmentAssignModal');
+            const equipmentAssignModalTitle = document.getElementById('equipmentAssignModalTitle');
+            const equipmentAssignForm = document.getElementById('equipmentAssignForm');
+            const equipmentCategorySelect = document.getElementById('category_select');
+            const equipmentSelect = document.getElementById('equipment_unique_id');
+            const assignBtn = document.getElementById('equipment-assign-submit');
+            const statusDisplayId = 'equipment-status-display';
+            const equipmentPageLinkId = 'equipment-page-link';
+
+            let fullData = {}; // store categories + equipment
+
+
+            // --- Event delegation for OPEN buttons (works after table refresh) ---
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.equipment-assign-btn');
+                if (!btn) return;
+
+                const orderProductUniqueId = btn.getAttribute('data-order-product-unique-id');
+                const orderProductName = btn.getAttribute('data-order-product-name');
+                const orderNumber = btn.getAttribute('data-order');
+
+                document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
+                equipmentAssignModalTitle.textContent = (orderNumber || '') + ' ' + (orderProductName ||
+                    '');
+                modal.classList.remove('hidden');
+
+                // Refresh status on open in case select kept previous state
+                updateEquipmentStatus();
+            });
+
+            // --- Event delegation for CLOSE buttons (works after table refresh) ---
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.close-equipment-assign-modal');
+                if (!btn) return;
+                clearModalFields();
+                modal.classList.add('hidden');
+            });
+
+            function clearModalFields() {
+                const userSel = document.getElementById('user_unique_id');
+                const equipSel = document.getElementById('equipment_unique_id');
+                const orderInput = document.getElementById('order-product-unique-id');
+                const statusDiv = document.getElementById('equipment-status-display');
+                const pageLink = document.getElementById('equipment-page-link');
+
+                if (userSel) userSel.selectedIndex = 0;
+                if (equipSel) equipSel.selectedIndex = 0;
+                if (orderInput) orderInput.value = '';
+                if (statusDiv) {
+                    statusDiv.textContent = '';
+                    statusDiv.className = 'mt-2 text-sm font-semibold text-gray-600';
+                }
+                if (pageLink) {
+                    pageLink.href = '';
+                    pageLink.textContent = '';
+                }
+                if (equipmentAssignForm) {
+                    equipmentAssignForm.reset();
+                }
+
+                // Disable assign button until a valid available option is chosen
+                if (assignBtn) assignBtn.disabled = true;
+            }
+
+            equipmentCategorySelect.addEventListener('change', function() {
+
+                const selectedCatId = Number(this.value);
+                equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
+
+                let equipments = [];
+
+                // If no category selected -> load ALL equipments
+                if (!selectedCatId) {
+                    fullData.forEach(cat => {
+                        if (Array.isArray(cat.equipments)) {
+                            equipments = equipments.concat(cat.equipments);
+                        }
+                    });
+                } else {
+                    // Only selected category
+                    const category = fullData.find(c => c.id === selectedCatId);
+                    if (!category) return;
+                    equipments = category.equipments || [];
+                }
+
+                //  If category has NO equipment
+                if (equipments.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.textContent = 'No equipments';
+                    opt.disabled = true;
+                    opt.selected = true;
+                    equipmentSelect.appendChild(opt);
+
+                    updateEquipmentStatus();
+                    return;
+                }
+
+                // Group by status
+                const groups = {
+                    maintenance: [],
+                    rented: [],
+
+
+                    damaged: [],
+                    available: [],
+                    other: []
+                };
+
+                equipments.forEach(equipment => {
+                    const status = (equipment.current_status || '').toLowerCase();
+
+                    if (status === 'available') groups.available.push(equipment);
+                    else if (status === 'rented') groups.rented.push(equipment);
+                    else if (status === 'damaged') groups.damaged.push(equipment);
+                    else if (status === 'maintenance') groups.maintenance.push(equipment);
+                    else groups.other.push(equipment);
+                });
+
+
+
+                // Append groups
+                appendGroup('Available', groups.available);
+                appendGroup('Maint. Hold', groups.maintenance);
+                appendGroup('Damaged', groups.damaged);
+
+                appendGroup('Rented', groups.rented);
+                appendGroup('Other', groups.other);
+
+
+                updateEquipmentStatus();
+            });
+
+            // Update status and button
+            function updateEquipmentStatus() {
+                const statusDiv = document.getElementById(statusDisplayId);
+                const pageLink = document.getElementById(equipmentPageLinkId);
+
+                if (!equipmentSelect || !statusDiv || !assignBtn || !pageLink) return;
+
+                const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex] || {};
+                const status = selectedOption.getAttribute?.('data-current-status');
+                const link = selectedOption.getAttribute?.('data-link') || '';
+                const title = selectedOption.getAttribute?.('data-link-title') || '';
+
+                if (!status) {
+                    statusDiv.textContent = '';
+                    statusDiv.className = 'mt-2 text-sm font-semibold text-gray-600';
+                    assignBtn.disabled = true;
+                    pageLink.href = '';
+                    pageLink.textContent = '';
+                    return;
+                }
+
+                let statusText = '';
+                let statusColor = 'text-gray-600';
+                let isAvailable = true;
+
+                switch (status) {
+                    case 'available':
+                        statusText = 'Available';
+                        statusColor = 'text-green-600';
+                        isAvailable = true;
+                        break;
+
+                    case 'rented':
+                        statusText = 'Rented';
+                        statusColor = 'text-gray-600';
+                        isAvailable = true;
+
+                        // SweetAlert message for rented items
+                        // window.showError(
+                        //     "This item is currently Rented, so it cannot be assigned to this Order.",
+                        //     "Rented "
+                        // );
+                        // equipmentSelect.selectedIndex = 0;
+                        //return;
+                        break;
+
+
+                    case 'damaged':
+                        statusText = 'Not Available';
+                        statusColor = 'text-red-600';
+                        isAvailable = true;
+                        // SweetAlert message for rented items
+                        // window.showError(
+                        //     "This item is currently marked as Damaged, do you want to automatically change the status to Available and assign to this order?",
+                        //     "Damaged "
+                        // );
+                        break;
+                    case 'maintenance':
+                        statusText = 'Maint. Hold';
+                        statusColor = 'text-yellow-600';
+                        isAvailable = true;
+                        // SweetAlert message for rented items
+                        // window.showError(
+                        //     "This item is currently marked as Maint. Hold, do you want to automatically change the status to Available and assign to this order?",
+                        //     "Maint. Hold "
+                        // );
+                        break;
+                    default:
+                        statusText = status || '';
+                        statusColor = 'text-gray-600';
+                        isAvailable = true;
+                }
+
+                statusDiv.textContent = `Status: ${statusText}`;
+                statusDiv.className = `mt-2 text-sm font-semibold ${statusColor}`;
+                assignBtn.disabled = !isAvailable;
+                pageLink.href = link;
+                pageLink.textContent = title;
+            }
+
+            // Static elements inside the modal can use normal listeners
+            if (equipmentSelect) {
+                equipmentSelect.addEventListener('change', updateEquipmentStatus);
+                // Initial status update
+                updateEquipmentStatus();
+            }
+
+            // Form submit
+            equipmentAssignForm?.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (window.$ && $(equipmentAssignForm).parsley && !$(equipmentAssignForm).parsley()
+                    .isValid()) {
+                    $(equipmentAssignForm).parsley().validate();
+                    return;
+                }
+
+                const submitBtn = document.getElementById('equipment-assign-submit');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Assigning...';
+                }
+
+                const formData = new FormData(equipmentAssignForm);
+
+                apiFetch('{{ route('admin.order-management.schedules.assign-equipment') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(data => {
+                        if (data?.success) {
+                            modal.classList.add('hidden');
+                            if (window.notyf) notyf.success(data.message);
+                            clearModalFields();
+                            fetchEquipment();
+                            fetchSchedules();
+                            fetchEquipments();
+                        } else {
+                            if (window.notyf) notyf.error(data?.message || 'Something went wrong.');
+                        }
+                    })
+                    .finally(() => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Assign';
+                        }
+                    });
+            });
+
+            fetchEquipment(false); // initial fetch without loading all equipments
+
+            //  Fetch equipment options with cat
+            function fetchEquipment(loadAll = true) {
+                apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categories') }}')
+                    .then(data => {
+                        if (data?.success) {
+
+                            fullData = data.categories; // store full categories
+
+                            equipmentCategorySelect.innerHTML = '<option value="">Select Category</option>';
+
+                            data.categories.forEach(cat => {
+                                const option = document.createElement('option');
+                                option.value = cat.id;
+                                option.textContent = cat.title;
+                                equipmentCategorySelect.appendChild(option);
+                            });
+
+                            //  Load all equipment immediately after data arrives
+                            if (loadAll) {
+                                loadAllEquipments();
+                            }
+                        }
+                    });
+            }
+
+
+            function loadAllEquipments() {
+                equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
+
+                let equipments = [];
+
+                fullData.forEach(cat => {
+                    if (Array.isArray(cat.equipments)) {
+                        equipments = equipments.concat(cat.equipments);
+                    }
+                });
+
+                // Group by status
+                const groups = {
+                    available: [],
+                    rented: [],
+                    damaged: [],
+                    maintenance: [],
+                    other: []
+                };
+
+                equipments.forEach(equipment => {
+                    const status = (equipment.current_status || '').toLowerCase();
+
+                    if (status === 'available') groups.available.push(equipment);
+                    else if (status === 'rented') groups.rented.push(equipment);
+                    else if (status === 'damaged') groups.damaged.push(equipment);
+                    else if (status === 'maintenance') groups.maintenance.push(equipment);
+                    else groups.other.push(equipment);
+                });
+
+
+                appendGroup('Available', groups.available);
+                appendGroup('Maint. Hold', groups.maintenance);
+                appendGroup('Damaged', groups.damaged);
+                appendGroup('Rented', groups.rented);
+                appendGroup('Other', groups.other);
+
+
+                updateEquipmentStatus();
+            }
+
+            function appendGroup(label, list) {
+                if (list.length === 0) return;
+
+                const group = document.createElement('optgroup');
+                group.label = label;
+
+                list.forEach(equipment => {
+                    const opt = document.createElement('option');
+                    opt.value = equipment.unique_id;
+                    opt.textContent = equipment.equipment_name + " || " + equipment.equipment_id;
+                    opt.setAttribute('data-current-status', equipment.current_status || '');
+                    opt.setAttribute('data-link', equipment.link || '');
+                    opt.setAttribute('data-link-title', equipment.link_title || '');
+                    group.appendChild(opt);
+                });
+
+                equipmentSelect.appendChild(group);
+            }
         });
-    </script>
 
-    <script>
+
+
         document.getElementById('reloadBtn').addEventListener('click', function(e) {
             const icon = document.getElementById('reloadIcon');
             icon.classList.add('animate-spin'); // Tailwind's spin animation

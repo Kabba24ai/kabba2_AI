@@ -518,26 +518,6 @@
                     else groups.other.push(equipment);
                 });
 
-                // Helper to create optgroup
-                function appendGroup(label, list) {
-                    if (list.length === 0) return;
-
-                    const group = document.createElement('optgroup');
-                    group.label = label;
-
-                    list.forEach(equipment => {
-                        const opt = document.createElement('option');
-                        opt.value = equipment.unique_id;
-                        opt.textContent = equipment.equipment_name;
-                        opt.setAttribute('data-current-status', equipment.current_status || '');
-                        opt.setAttribute('data-link', equipment.link || '');
-                        opt.setAttribute('data-link-title', equipment.link_title || '');
-                        group.appendChild(opt);
-                    });
-
-                    equipmentSelect.appendChild(group);
-                }
-
                 // Append groups
                 appendGroup('Available', groups.available);
                 appendGroup('Maint. Hold', groups.maintenance);
@@ -588,14 +568,14 @@
                     case 'rented':
                         statusText = 'Rented';
                         statusColor = 'text-gray-600';
-                        isAvailable = false;
+                        isAvailable = true;
 
                         // SweetAlert message for rented items
-                        window.showError(
-                            "This item is currently Rented, so it cannot be assigned to this Order.",
-                            "Rented "
-                        );
-                        equipmentSelect.selectedIndex = 0;
+                        // window.showError(
+                        //     "This item is currently Rented, so it cannot be assigned to this Order.",
+                        //     "Rented "
+                        // );
+                        // equipmentSelect.selectedIndex = 0;
                         return;
                         break;
 
@@ -603,22 +583,22 @@
                     case 'damaged':
                         statusText = 'Not Available';
                         statusColor = 'text-red-600';
-                        isAvailable = false;
+                        isAvailable = true;
                         // SweetAlert message for rented items
-                        window.showError(
-                            "This item is currently marked as Damaged, do you want to automatically change the status to Available and assign to this order?",
-                            "Damaged "
-                        );
+                        // window.showError(
+                        //     "This item is currently marked as Damaged, do you want to automatically change the status to Available and assign to this order?",
+                        //     "Damaged "
+                        // );
                         break;
                     case 'maintenance':
                         statusText = 'Maint. Hold';
                         statusColor = 'text-yellow-600';
-                        isAvailable = false;
+                        isAvailable = true;
                         // SweetAlert message for rented items
-                        window.showError(
-                            "This item is currently marked as Maint. Hold, do you want to automatically change the status to Available and assign to this order?",
-                            "Maint. Hold "
-                        );
+                        // window.showError(
+                        //     "This item is currently marked as Maint. Hold, do you want to automatically change the status to Available and assign to this order?",
+                        //     "Maint. Hold "
+                        // );
                         break;
                     default:
                         statusText = status || '';
@@ -686,11 +666,11 @@
                     });
             });
 
-            fetchEquipment();
+            fetchEquipment(false);
 
             //  Fetch equipment options with cat
-            function fetchEquipment() {
-                apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categorys') }}')
+            function fetchEquipment(loadAll = true) {
+                apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categories') }}')
                     .then(data => {
                         if (data?.success) {
 
@@ -706,7 +686,9 @@
                             });
 
                             //  Load all equipment immediately after data arrives
-                            loadAllEquipments();
+                            if (loadAll) {
+                                loadAllEquipments();
+                            }
                         }
                     });
             }
@@ -742,24 +724,7 @@
                     else groups.other.push(equipment);
                 });
 
-                function appendGroup(label, list) {
-                    if (list.length === 0) return;
 
-                    const group = document.createElement('optgroup');
-                    group.label = label;
-
-                    list.forEach(equipment => {
-                        const opt = document.createElement('option');
-                        opt.value = equipment.unique_id;
-                        opt.textContent = equipment.equipment_name + " || " + equipment.equipment_id;
-                        opt.setAttribute('data-current-status', equipment.current_status || '');
-                        opt.setAttribute('data-link', equipment.link || '');
-                        opt.setAttribute('data-link-title', equipment.link_title || '');
-                        group.appendChild(opt);
-                    });
-
-                    equipmentSelect.appendChild(group);
-                }
 
                 appendGroup('Available', groups.available);
                 appendGroup('Maint. Hold', groups.maintenance);
@@ -772,7 +737,24 @@
             }
 
 
+            function appendGroup(label, list) {
+                if (list.length === 0) return;
 
+                const group = document.createElement('optgroup');
+                group.label = label;
+
+                list.forEach(equipment => {
+                    const opt = document.createElement('option');
+                    opt.value = equipment.unique_id;
+                    opt.textContent = equipment.equipment_name + " || " + equipment.equipment_id;
+                    opt.setAttribute('data-current-status', equipment.current_status || '');
+                    opt.setAttribute('data-link', equipment.link || '');
+                    opt.setAttribute('data-link-title', equipment.link_title || '');
+                    group.appendChild(opt);
+                });
+
+                equipmentSelect.appendChild(group);
+            }
         });
     </script>
 @endpush

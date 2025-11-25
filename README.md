@@ -379,3 +379,14 @@ This enum defines custom static labels for product rental options:
 > When rendering HTML content using the editor on the front end, add the `rich-content` class to ensure proper styling and formatting.
 
 **Tip:** For more details, see the official [Laravel documentation](https://laravel.com/docs).
+
+**Rules:**
+Equipment through web only be soft assignment
+**Equipment Assignment Rules:**
+
+- **Web Orders:** Equipment is soft-assigned only.
+- **Mobile Orders:** Equipment is hard-assigned only.
+- **Hard Assignment Criteria:**
+    - If `current_order_product_id` is not null, the equipment is considered hard-assigned.
+    - If checklist questions are not answered, the equipment is also considered hard-assigned.
+

@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\MaintenanceManagement\Equipment;
 
 // Models
-use App\Models\Orders\Order;
 use App\Models\Stores\Store;
 use App\Models\ProductManagement\ProductCategory;
 use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
 
 class IndexController extends Controller
@@ -83,6 +83,15 @@ class IndexController extends Controller
 
         $orderProducts = $query2->orderBy('delivery_date', 'asc')->paginate(max(1, $query2->count()))->withQueryString();
 
-        return view('admin.order_management.equipment_inventory.index', compact('equipment', 'categories', 'stores', 'statuses', 'dates', 'orderProducts'));
+        $users = User::orderBy('first_name', 'asc')->get()->map(function ($user) {
+            return [
+                'unique_id' => $user->unique_id,
+                'full_name' => $user->full_name,
+            ];
+        });
+
+        $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
+
+        return view('admin.order_management.equipment_inventory.index', compact('equipment', 'categories', 'stores', 'statuses', 'dates', 'orderProducts', 'employees'));
     }
 }

@@ -5,7 +5,6 @@ namespace App\Models\MaintenanceManagement;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Helpers\CustomHelper;
 
 // Helpers
 use App\Helpers\ModelHelper;
@@ -203,6 +202,17 @@ class Equipment extends Model
         $updatedBy = $this->statusUpdatedByUser?->full_name ?? '-';
         return trim("{$updatedBy} - {$inspectionDateTime}");
         //return trim("  {$inspectionDateTime}");
+    }
+
+
+    public function softAssignments()
+    {
+        return $this->hasMany(EquipmentSoftAssign::class, 'equipment_id', 'id');
+    }
+
+    public function isHardAssigned()
+    {
+        return $this->current_order_product_id !== null;
     }
 
 

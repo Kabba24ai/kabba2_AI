@@ -14,7 +14,7 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\Product;
 use App\Models\Stores\Store;
 use App\Models\Iam\Personnel\User;
-
+use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 
 class OrderProduct extends Model
 {
@@ -190,5 +190,10 @@ class OrderProduct extends Model
     public function pickupStore()
     {
         return $this->belongsTo(Store::class, 'pickup_store_id');
+    }
+
+    public function softAssignment()
+    {
+        return $this->hasOne(EquipmentSoftAssign::class, 'order_product_id', 'id')->with('equipment');
     }
 }

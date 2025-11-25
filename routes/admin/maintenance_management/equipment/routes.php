@@ -34,7 +34,7 @@ Route::prefix('equipment')
         Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 
         Route::get('/fetch-equipment', FetchController::class)->name('fetch');
-        Route::get('/fetch-categorys-equipments', FetchWithCatController::class)->name('fetch-with-categorys');
+        Route::get('/fetch-categories-equipments', FetchWithCatController::class)->name('fetch-with-categories');
 
 
         Route::post('/checklist-master-assign', AssignChecklistMasterController::class)->name('checklist-master-assign');

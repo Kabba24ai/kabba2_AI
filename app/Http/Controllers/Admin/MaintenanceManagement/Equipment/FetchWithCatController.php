@@ -9,10 +9,12 @@ use App\Models\ProductManagement\ProductCategory;
 class FetchWithCatController extends Controller
 {
     public function __invoke()
-        {
-            $categories = ProductCategory::with(['equipments' => function ($q) {
-                $q->orderBy('equipment_name');
-            }])
+    {
+        $categories = ProductCategory::with([
+            'equipments' => function ($q) {
+                $q->orderBy('equipment_name')->orderBy('equipment_id');
+            },
+        ])
             ->orderBy('title')
             ->get()
             ->map(function ($cat) {
@@ -34,10 +36,9 @@ class FetchWithCatController extends Controller
                 ];
             });
 
-            return response()->json([
-                'success' => true,
-                'categories' => $categories
-            ]);
-        }
-
+        return response()->json([
+            'success' => true,
+            'categories' => $categories,
+        ]);
+    }
 }

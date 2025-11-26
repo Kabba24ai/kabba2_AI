@@ -288,13 +288,17 @@
 
             let loadingIndicator = document.querySelector('#schedule-loading');
             let wrapper = document.querySelector('#schedule-table-wrapper');
+
             function fetchSchedules() {
+                const params = new URLSearchParams();
+                params.append('unassigned_equipment', 1);
+                params.append('per_page', 'all');
 
                 // Show loader
                 loadingIndicator.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
-                apiFetch("{{ route('admin.order-management.schedules.index') }}", {
+                apiFetch("{{ route('admin.order-management.schedules.index') }}?" + params.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }

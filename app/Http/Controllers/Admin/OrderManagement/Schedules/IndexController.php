@@ -31,6 +31,10 @@ class IndexController extends Controller
             });
         });
 
+        if ($request->filled('unassigned_equipment')) {
+            $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
+        }
+
         if ($request->filled('customer_name')) {
             $query->whereHas('order.shippingAddress', function ($q) use ($request) {
                 $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->customer_name}%"]);

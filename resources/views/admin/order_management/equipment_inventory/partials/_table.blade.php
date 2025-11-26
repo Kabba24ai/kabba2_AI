@@ -104,22 +104,46 @@
                         @php
                             $isBooked = $eq
                                 ->lastOrderProduct()
-                                ->whereDate('delivery_date', $date->format('Y-m-d'))
+                                ->where(function($query) use ($date) {
+                                    $query->whereDate('delivery_date', '<=', $date->format('Y-m-d'))
+                                          ->whereDate('pickup_date', '>=', $date->format('Y-m-d'));
+                                })
                                 ->exists();
+
+                            $isSoftAssigned = $eq
+                                ->softAssignments()
+                                ->whereHas('orderProduct', function ($query) use ($date) {
+                                    $query->whereDate('delivery_date', '<=', $date->format('Y-m-d'))
+                                          ->whereDate('pickup_date', '>=', $date->format('Y-m-d'));
+                                })
+                                ->exists();
+
                             $color = match ($eq->status_label) {
                                 'Available' => 'green',
                                 'Maint. Hold' => 'yellow',
                                 'Damaged' => 'red',
                                 default => 'blue',
                             };
-                            if ($isBooked) {
+
+                            if ($isBooked || $isSoftAssigned) {
                                 $flag = true;
                             }
                         @endphp
-                        @if ($isBooked)
-                            <div
-                                class="w-auto h-4 bg-blue-100 rounded text-xs flex items-center justify-center text-gray-500">
-                                {{ $eq?->order?->order_number ?? '' }}
+                        @if ($isBooked || $isSoftAssigned)
+                            <div class="w-auto bg-blue-100 rounded text-xs flex flex-col items-center justify-center text-gray-500">
+                                @if ($isBooked)
+                                    <div>{{ $eq?->order?->order_number ?? '' }}</div>
+                                @endif
+                                @if($isSoftAssigned)
+                                    @foreach($eq->softAssignments()->whereHas('orderProduct', function ($query) use ($date) {
+                                        $query->whereDate('delivery_date', '<=', $date->format('Y-m-d'))
+                                              ->whereDate('pickup_date', '>=', $date->format('Y-m-d'));
+                                    })->with('order')->get() as $assignment)
+                                        <div class="text-xs text-gray-400">
+                                            {{ $assignment->order->order_number }}
+                                        </div>
+                                    @endforeach
+                                @endif
                             </div>
                         @else
                             <div

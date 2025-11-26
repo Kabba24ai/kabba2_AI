@@ -79,7 +79,7 @@ class IndexController extends Controller
             })->whereNot(function ($subQ) {
                 $subQ->where('delivery_status', 'Completed')->where('pickup_status', 'Completed');
             });
-        });
+        })->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
 
         $orderProducts = $query2->orderBy('delivery_date', 'asc')->paginate(max(1, $query2->count()))->withQueryString();
 

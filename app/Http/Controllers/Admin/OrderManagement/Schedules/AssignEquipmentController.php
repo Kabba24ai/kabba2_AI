@@ -81,15 +81,25 @@ class AssignEquipmentController extends Controller
         // $equipment->current_order_product_id = $orderProduct->id;
         $equipment->save();
 
-        $equipment->softAssignments()->updateOrCreate(
+        $orderProduct->softAssignment()->updateOrCreate(
+            [], // no where condition here -> uses order_product_id automatically
             [
-                'order_id'         => $orderProduct->order_id,
-                'order_product_id' => $orderProduct->id,
-            ],
-            [
-                'assigned_by' => $user->id,
+                'equipment_id' => $equipment->id,
+                'order_id'     => $orderProduct->order_id,
+                'assigned_by'  => $user->id,
             ]
         );
+
+
+        // $equipment->softAssignments()->updateOrCreate(
+        //     [
+        //         'order_id'         => $orderProduct->order_id,
+        //         'order_product_id' => $orderProduct->id,
+        //     ],
+        //     [
+        //         'assigned_by' => $user->id,
+        //     ]
+        // );
 
         return response()->json([
             'success' => true,

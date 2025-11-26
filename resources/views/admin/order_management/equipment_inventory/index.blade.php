@@ -579,7 +579,7 @@
                     });
             });
 
-            fetchEquipment(false); // initial fetch without loading all equipments
+            fetchEquipment(); // initial fetch without loading all equipments
 
             //  Fetch equipment options with cat
             function fetchEquipment(loadAll = true) {
@@ -599,9 +599,7 @@
                             });
 
                             //  Load all equipment immediately after data arrives
-                            if (loadAll) {
-                                loadAllEquipments();
-                            }
+                            loadAllEquipments();
                         }
                     });
             }

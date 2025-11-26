@@ -176,7 +176,6 @@ class Equipment extends Model
         return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')->latestOfMany('id');
     }
 
-
     public function latestRentalReadyTemplate()
     {
         return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
@@ -189,10 +188,12 @@ class Equipment extends Model
         return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
             ->latest('id');
     }
+
     public function statusUpdatedByUser()
     {
         return $this->belongsTo(\App\Models\Iam\Personnel\User::class, 'current_status_updated_by', 'id');
     }
+
     public function getLastInspectionAttribute(): string
     {
         $inspectionDateTime = $this->current_status_changed_at
@@ -203,7 +204,6 @@ class Equipment extends Model
         return trim("{$updatedBy} - {$inspectionDateTime}");
         //return trim("  {$inspectionDateTime}");
     }
-
 
     public function softAssignments()
     {

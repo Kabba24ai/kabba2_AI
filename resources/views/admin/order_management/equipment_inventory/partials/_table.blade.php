@@ -96,27 +96,27 @@
                         @endif
                     </div>
                 </td>
-                @php
-                    $flag = false;
-                @endphp
                 @foreach ($dates as $date)
                     <td class="px-4 py-4 text-center">
                         @php
-                            $isBooked = $eq
-                                ->lastOrderProduct()
-                                ->where(function($query) use ($date) {
-                                    $query->whereDate('delivery_date', '<=', $date->format('Y-m-d'))
-                                          ->whereDate('pickup_date', '>=', $date->format('Y-m-d'));
-                                })
-                                ->exists();
+                            $day = $date->format('Y-m-d');
 
-                            $isSoftAssigned = $eq
+                            // Common date filter as a closure so we don't repeat it
+                            $dateFilter = function ($query) use ($day) {
+                                $query->whereDate('delivery_date', '<=', $day)->whereDate('pickup_date', '>', $day);
+                            };
+
+                            // Is booked for that day?
+                            $isBooked = $eq->lastOrderProduct()->where($dateFilter)->exists();
+
+                            // Get soft assignments for that day (single query + reuse result)
+                            $softAssignments = $eq
                                 ->softAssignments()
-                                ->whereHas('orderProduct', function ($query) use ($date) {
-                                    $query->whereDate('delivery_date', '<=', $date->format('Y-m-d'))
-                                          ->whereDate('pickup_date', '>=', $date->format('Y-m-d'));
-                                })
-                                ->exists();
+                                ->whereHas('orderProduct', $dateFilter)
+                                ->with('order')
+                                ->get();
+
+                            $isSoftAssigned = $softAssignments->isNotEmpty();
 
                             $color = match ($eq->status_label) {
                                 'Available' => 'green',
@@ -125,31 +125,40 @@
                                 default => 'blue',
                             };
 
-                            if ($isBooked || $isSoftAssigned) {
-                                $flag = true;
-                            }
+                            $hasAny = $isBooked || $isSoftAssigned;
+
+                            $textColor = $isBooked && $isSoftAssigned || ($softAssignments->count() > 1) ? 'text-white' : 'text-gray-500';
+                            $activeColor = $isBooked && $isSoftAssigned || ($softAssignments->count() > 1) ? 'red-500' : 'blue-100';
                         @endphp
-                        @if ($isBooked || $isSoftAssigned)
-                            <div class="w-auto bg-blue-100 rounded text-xs flex flex-col items-center justify-center text-gray-500">
+
+                        @if ($hasAny)
+                            <div count="{{ count($softAssignments) }}"  flag="{{ $isBooked && $isSoftAssigned }}"
+                                class="w-auto bg-{{ $activeColor }} {{ $textColor }} rounded text-xs flex flex-col items-center justify-center">
+
                                 @if ($isBooked)
-                                    <div>{{ $eq?->order?->order_number ?? '' }}</div>
+                                    <div class="font-bold cursor-not-allowed group relative" title="Hard assigned - cannot be changed">
+                                        {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
+                                        <span class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                                            Hard assigned - cannot be changed
+                                        </span>
+                                    </div>
                                 @endif
-                                @if($isSoftAssigned)
-                                    @foreach($eq->softAssignments()->whereHas('orderProduct', function ($query) use ($date) {
-                                        $query->whereDate('delivery_date', '<=', $date->format('Y-m-d'))
-                                              ->whereDate('pickup_date', '>=', $date->format('Y-m-d'));
-                                    })->with('order')->get() as $assignment)
-                                        <div class="text-xs text-gray-400">
-                                            {{ $assignment->order->order_number }}
-                                        </div>
-                                    @endforeach
-                                @endif
+
+                                @foreach ($softAssignments as $assignment)
+                                    <button type="button" class="text-xs {{ $textColor }} underline equipment-assign-btn"
+                                        data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
+                                        data-order-product-name="{{ $assignment->orderProduct->product_name }}"
+                                        data-order="{{ $assignment->orderProduct?->order?->order_number }}">
+                                        {{ $assignment->order->order_number }}
+                                    </button>
+                                @endforeach
                             </div>
                         @else
                             <div
-                                class="w-auto h-4 bg-{{ $flag ? 'blue' : $color }}-100 rounded text-xs flex items-center justify-center text-gray-500">
+                                class="w-auto h-4 bg-{{ $color }}-100 rounded text-xs flex items-center justify-center text-gray-500">
                             </div>
                         @endif
+
                     </td>
                 @endforeach
 

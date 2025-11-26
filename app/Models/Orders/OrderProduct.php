@@ -196,4 +196,17 @@ class OrderProduct extends Model
     {
         return $this->hasOne(EquipmentSoftAssign::class, 'order_product_id', 'id')->with('equipment');
     }
+
+    public function softEquipment()
+    {
+        return $this->hasOneThrough(
+            Equipment::class,             // final model
+            EquipmentSoftAssign::class,   // intermediate model
+            'order_product_id',           // FK on soft_assign (intermediate) referencing order_products.id
+            'id',                         // FK on equipment (final model)
+            'id',                         // local key on order_products
+            'equipment_id'                // final key on soft_assign
+        );
+    }
+
 }

@@ -1,12 +1,17 @@
+  <div id="parts-table-wrapper" class="overflow-x-auto max-w-full rounded-2xl shadow border border-gray-200 bg-white">
 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
     <thead class="bg-gray-50 border-b border-gray-200">
         <tr>
-            <th class="py-4 px-6 text-left font-semibold">Part Name</th>
             <th class="py-4 px-6 text-left font-semibold">Category</th>
+
+
             <th class="py-4 px-6 text-left font-semibold">Equipment Name</th>
-            <th class="py-4 px-6 text-left font-semibold">Equipment Id</th>
-            <th class="py-4 px-6 text-left font-semibold">Part Number</th>
-            <th class="py-4 px-6 text-left font-semibold">Supplier</th>
+              <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Part Name</th>
+            <!-- <th class="py-4 px-6 text-left font-semibold">Equipment Id</th> -->
+            <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Part Number</th>
+            <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Parts List</th>
+
+            <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Primary Supplier</th>
             <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Unit Cost</th>
             <th class="py-4 px-6 text-left font-semibold">Stock</th>
             <th class="py-4 px-6 text-left font-semibold">Actions</th>
@@ -18,17 +23,13 @@
 
         <tr class="hover:bg-gray-50 transition-colors">
 
-            <td class="py-4 px-6 whitespace-nowrap">
-                <span class="text-sm font-medium text-gray-900">
-                    {{ $part->part_name }}
-                </span>
-            </td>
-
-            <td class="py-4 px-6 whitespace-nowrap">
+         <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
                     Bulldozers
                 </span>
             </td>
+
+
 
             <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
@@ -36,17 +37,34 @@
                 </span>
             </td>
 
+
             <td class="py-4 px-6 whitespace-nowrap">
+                <span class="text-sm font-medium text-gray-900">
+                    {{ $part->part_name }}
+                </span>
+            </td>
+
+
+
+
+            <!-- <td class="py-4 px-6 whitespace-nowrap">
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                     BUL-058
                 </span>
-            </td>
+            </td> -->
 
             <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
                     {{ $part->primary_part_number ?? '—' }}
                 </span>
             </td>
+
+              <td class="py-4 px-6 whitespace-nowrap">
+                <span class="text-sm text-gray-900">
+                    Part List
+                </span>
+            </td>
+
 
             <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
@@ -111,3 +129,9 @@
     </tbody>
 
 </table>
+</div>
+
+{{-- Pagination --}}
+<div class="mt-6">
+    {{ $parts->links() }}
+</div>

@@ -15,7 +15,7 @@
                         Equipment Name
                     </label>
                     {!! html()->text('equipment_name')->class([
-                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('equipment_name'),
                             'border-red-500' => $errors->has('equipment_name'),
                         ])->attributes([
@@ -57,7 +57,7 @@
                     </div>
 
                     {!! html()->text('equipment_hours')->class([
-                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('equipment_hours'),
                             'border-red-500' => $errors->has('equipment_hours'),
                         ])->attributes([
@@ -89,7 +89,7 @@
                         </div>
                     </div>
                     {!! html()->text('overage_rate')->class([
-                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('overage_rate'),
                             'border-red-500' => $errors->has('overage_rate'),
                         ])->attributes([
@@ -110,7 +110,7 @@
                         Equipment ID <span class="text-red-500">*</span>
                     </label>
                     {!! html()->text('equipment_id')->class([
-                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('equipment_id'),
                             'border-red-500' => $errors->has('equipment_id'),
                         ])->attributes([
@@ -156,7 +156,7 @@
                         Brand
                     </label>
                     {!! html()->text('brand')->class([
-                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('brand'),
                             'border-red-500' => $errors->has('brand'),
                         ])->attributes([
@@ -173,7 +173,7 @@
                 <div>
                     <label for="model" class="block text-sm font-medium text-gray-700 mb-1">Model</label>
                     {!! html()->text('model')->class([
-                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('model'),
                             'border-red-500' => $errors->has('model'),
                         ])->attributes([
@@ -190,7 +190,7 @@
                 <div>
                     <label for="model_year" class="block text-sm font-medium text-gray-700 mb-1">Model Year</label>
                     {!! html()->number('model_year')->class([
-                            'w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('model_year'),
                             'border-red-500' => $errors->has('model_year'),
                         ])->attributes([
@@ -215,7 +215,7 @@
                                     : '')
                                 : '',
                         )->class([
-                            'datepicker w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'datepicker w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('date_acquired'),
                             'border-red-500' => $errors->has('date_acquired'),
                         ])->attributes([
@@ -249,7 +249,7 @@
                         <x-heroicon-o-currency-dollar
                             class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
                         {!! html()->text('purchase_cost')->class([
-                                'w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'w-full pl-9 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                                 'border-gray-300' => !$errors->has('purchase_cost'),
                                 'border-red-500' => $errors->has('purchase_cost'),
                             ])->attributes([
@@ -273,7 +273,7 @@
                             'financed' => 'Financed',
                             'leased' => 'Leased',
                         ])->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                             'border-red-500' => $errors->has('ownership_type'),
                         ]) !!}
                     @error('ownership_type')
@@ -285,7 +285,7 @@
                     <label for="finance_company" class="block text-sm font-medium text-gray-700 mb-1">Finance
                         Company</label>
                     {!! html()->text('finance_company')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('finance_company'),
                         ])->attributes([
                             'placeholder' => 'Bank/Lender',
@@ -299,7 +299,7 @@
                     <label for="term_in_months" class="block text-sm font-medium text-gray-700 mb-1">Term
                         (Months)</label>
                     {!! html()->number('term_in_months')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('term_in_months'),
                         ])->attributes([
                             'min' => 1,
@@ -316,7 +316,7 @@
                         Interest Rate (%)
                     </label>
                     {!! html()->number('interest_rate')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('interest_rate'),
                         ])->attributes([
                             'min' => 0,
@@ -336,7 +336,7 @@
                         <x-heroicon-o-currency-dollar
                             class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         {!! html()->text('monthly_payment')->class([
-                                'w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'w-full pl-9 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                                 'border-gray-300' => !$errors->has('monthly_payment'),
                                 'border-red-500' => $errors->has('monthly_payment'),
                             ])->attributes([
@@ -366,7 +366,7 @@
                     <label for="vehicle_identification_number"
                         class="block text-sm font-medium text-gray-700 mb-1">VIN</label>
                     {!! html()->text('vehicle_identification_number')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('vehicle_identification_number'),
                         ])->attributes([
                             'placeholder' => 'Vehicle Identification Number',
@@ -381,7 +381,7 @@
                         Serial Number
                     </label>
                     {!! html()->text('serial_number')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('serial_number'),
                         ])->attributes([
                             'placeholder' => 'Serial Number',
@@ -396,7 +396,7 @@
                         License Plate
                     </label>
                     {!! html()->text('license_plate')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('license_plate'),
                         ])->attributes([
                             'placeholder' => 'ABC-1234',
@@ -412,7 +412,7 @@
                         <x-heroicon-o-map-pin
                             class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         {!! html()->text('imei')->class([
-                                'w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono',
+                                'w-full pl-8 pr-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono',
                                 'border-red-500' => $errors->has('imei'),
                             ])->attributes([
                                 'placeholder' => 'GPS Tracker IMEI',
@@ -450,7 +450,7 @@
                             'gas' => 'Gas',
                             'batteries' => 'Batteries',
                         ])->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                             'border-red-500' => $errors->has('power_source_type'),
                         ]) !!}
                     @error('power_source_type')
@@ -473,7 +473,7 @@
                         Diesel Tank Capacity (Gallons)
                     </label>
                     {!! html()->text('diesel_tank_capacity')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('diesel_tank_capacity'),
                         ])->attributes([
                             'min' => 0,
@@ -490,7 +490,7 @@
                         DEF Tank Capacity (Gallons)
                     </label>
                     {!! html()->text('def_tank_capacity')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('def_tank_capacity'),
                         ])->attributes([
                             'min' => 0,
@@ -507,7 +507,7 @@
                         Gas Tank Capacity (Gallons)
                     </label>
                     {!! html()->text('gas_tank_capacity')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('gas_tank_capacity'),
                         ])->attributes([
                             'min' => 0,
@@ -524,7 +524,7 @@
                         Standard Battery Count
                     </label>
                     {!! html()->text('standard_battery_count')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('standard_battery_count'),
                         ])->attributes([
                             'min' => 0,
@@ -541,7 +541,7 @@
                         Expanded Battery Count
                     </label>
                     {!! html()->text('expanded_battery_count')->class([
-                            'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('expanded_battery_count'),
                         ])->attributes([
                             'min' => 0,
@@ -568,7 +568,7 @@
                     Checklist Master
                 </label>
                 {!! html()->select('checklist_master_id', $checklistMasters)->class([
-                        'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                        'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                         'border-red-500' => $errors->has('checklist_master_id'),
                     ]) !!}
                 <p class="mt-2 text-xs text-gray-500">
@@ -591,7 +591,7 @@
                 <label for="equipment_service_id" class="block text-sm font-medium text-gray-700 mb-1">Service
                     Schedule</label>
                 {!! html()->select('equipment_service_id', ['' => 'Select Equipment Service'])->class([
-                        'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                        'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                         'border-red-500' => $errors->has('equipment_service_id'),
                     ]) !!}
                 <p class="mt-2 text-xs text-gray-500">
@@ -613,7 +613,7 @@
             <div>
                 <label for="part_id" class="block text-sm font-medium text-gray-700 mb-1">Parts List Template</label>
                 {!! html()->select('part_id', ['' => 'Select Parts List Template'])->class([
-                        'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                        'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                         'border-red-500' => $errors->has('part_id'),
                     ]) !!}
                 <p class="mt-2 text-xs text-gray-500">

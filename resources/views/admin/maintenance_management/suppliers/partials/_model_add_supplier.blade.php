@@ -570,11 +570,11 @@
             <!-- Footer -->
             <div class="flex justify-end gap-2 px-6 py-3 border-t bg-gray-50">
                 <button type="button" onclick="closeModal('AddSupplier')"
-                    class="px-6 py-3 text-md rounded border border-gray-300 bg-white hover:bg-gray-100">
+                    class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="saveSupplierBtn"
-                    class="px-6 py-3 text-md rounded bg-blue-600 text-white hover:bg-blue-700">
+                    class="px-6 py-3 text-md rounded-lg bg-blue-600 text-white hover:bg-blue-700">
                     Add Supplier
                 </button>
             </div>

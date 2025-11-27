@@ -196,7 +196,7 @@
                         ])->attributes([
                             'min' => 1900,
                             'max' => date('Y') + 1,
-                            'placeholder' => '2023',
+                            'placeholder' => date('Y'),
                         ]) !!}
                     @error('model_year')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -219,7 +219,6 @@
                             'border-gray-300' => !$errors->has('date_acquired'),
                             'border-red-500' => $errors->has('date_acquired'),
                         ])->attributes([
-                            'data-min-date' => now()->format(config('app.date.db_date_format')),
                             'data-format' => config('app.date.js_date_format'),
                             'placeholder' => 'mm/dd/yyyy',
                         ]) !!}

@@ -29,7 +29,7 @@
                 @include('admin.maintenance_management.parts.templates.partials._form')            
             </div>
 
-            <div class="rounded-md border border-gray-200 bg-white p-6 shadow-sm mt-6">
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mt-6">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
                     <h3 class="text-lg font-semibold text-gray-900">Template Parts</h3>
@@ -39,7 +39,7 @@
                     </div>
 
                     <button onclick="openPartsModal()"
-                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700 transition">
+                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-md font-medium text-white shadow hover:bg-blue-700 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
@@ -55,7 +55,7 @@
                         <p class="text-gray-700 font-medium">No parts added yet</p>
                         <p class="text-gray-500 text-sm">Add parts to this template.</p>
                         <button onclick="openPartsModal()"
-                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700 transition">
+                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-md font-medium text-white shadow hover:bg-blue-700 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                             </svg>
@@ -96,14 +96,14 @@
            {{-- Form Actions --}}
             <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
                 <a href="{{ route('admin.maintenance-management.parts.index') }}"
-                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                    class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                     Cancel
                 </a>
                 <button type="submit"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save h-4 w-4"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                     Save Template
                 </button>
@@ -134,13 +134,13 @@
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative flex-1 min-w-[220px]">
                 <input type="text" placeholder="Search parts..."
-                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/>
                 </svg>
                 </div>
-                <select class="rounded-lg border border-gray-300 px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                <select class="rounded-md border border-gray-300 px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                     <option>All Categories</option>
                     <option>Excavators</option>
                     <option>Generators</option>
@@ -153,7 +153,7 @@
             <!-- Parts list (example items) -->
             <div class="space-y-3">
                 <!-- Part row -->
-                <label class="flex items-center gap-3 rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer">
+                <label class="flex items-center gap-3 rounded-md border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer">
                     <input type="checkbox" class="part-checkbox h-5 w-5 accent-blue-600"
                             data-id="p1"
                             data-name="Hydraulic Filter"

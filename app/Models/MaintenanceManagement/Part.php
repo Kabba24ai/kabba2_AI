@@ -63,12 +63,30 @@ class Part extends Model
         });
     }
 
-    public function templates()
-    {
-        return $this->belongsToMany(Template::class, 'template_parts')
-                    ->withPivot('sort_order')
-                    ->orderBy('pivot_sort_order');
-    }
+public function templates()
+{
+    return $this->belongsToMany(
+            Template::class,
+            'lists_parts',
+            'part_id',        
+            'parts_list_id'   
+        )
+        ->withPivot('sort_order')
+        ->orderBy('lists_parts.sort_order');
+}
+
+public function partsLists()
+{
+    return $this->belongsToMany(
+        PartsList::class,
+        'lists_parts',
+        'part_id',
+        'parts_list_id'
+    )
+    ->withPivot('sort_order')
+    ->orderBy('lists_parts.sort_order');
+}
+
 
     public function getStockStatusAttribute()
     {
@@ -81,6 +99,30 @@ class Part extends Model
     public function category()
     {
         return $this->belongsTo(PartCategory::class, 'part_category_id');
+    }
+
+    public function primarySupplier()
+    {
+        return $this->belongsTo(Supplier::class, 'primary_part_supplier_id', 'unique_id');
+    }
+
+    public function alt1Supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'alt_1_part_supplier_id', 'unique_id');
+    }
+
+    public function alt2Supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'alt_2_part_supplier_id', 'unique_id');
+    }
+
+    public function getAllSupplierNamesAttribute()
+    {
+        return collect([
+            optional($this->primarySupplier)->name,
+            optional($this->alt1Supplier)->name,
+            optional($this->alt2Supplier)->name,
+        ])->filter()->unique()->values()->implode(', ');
     }
 
 }

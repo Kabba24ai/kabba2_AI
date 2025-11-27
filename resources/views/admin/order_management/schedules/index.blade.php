@@ -676,6 +676,8 @@
 
                             fullData = data.categories; // store full categories
 
+                            console.log(fullData);
+
                             categorySelect.innerHTML = '<option value="">Select Category</option>';
 
                             data.categories.forEach(cat => {

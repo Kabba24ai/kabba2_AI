@@ -41,7 +41,7 @@
         <!-- First column: Search -->
         <div class="col-span-4">
             <label for="description" class="block text-sm font-medium text-gray-700 mb-1 required">
-                Assigned Equipment IDS 
+                Assigned Equipment IDS
             </label>
             <div class="relative w-full">
                 <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"
@@ -51,7 +51,7 @@
                 </svg>
                 <input type="text" name="search" value=""
                     placeholder="Search parts, equipment, suppliers..."
-                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm">
+                    class="w-full pl-10 pr-4 py-3 px-3 border border-gray-300 rounded-md text-sm">
             </div>
         </div>
 
@@ -72,7 +72,7 @@
 
 
     <!--  Scrollable Product List -->
-    <div id="productList" class="mt-4 mb-3 border border-gray-200 rounded-lg h-64 overflow-y-auto p-3 bg-gray-50">
+    <div id="productList" class="mt-4 mb-3 border border-gray-200 rounded-md h-64 overflow-y-auto p-3 bg-gray-50">
         @foreach($categories as $category)
         <div class="mb-3" data-category-id="{{ $category->id }}">
             <!-- Category title -->
@@ -108,7 +108,7 @@
 
 
 @push('js')
- 
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

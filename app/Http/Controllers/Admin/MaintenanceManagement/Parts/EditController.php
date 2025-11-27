@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Parts;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Part;
+use App\Models\MaintenanceManagement\PartsList;
+
 use App\Models\MaintenanceManagement\Supplier;
 
 class EditController extends Controller
@@ -22,9 +24,9 @@ class EditController extends Controller
 
         $suppliers = Supplier::orderBy('name')->get(['unique_id', 'name']);
 
-
+   $list = PartsList::get();
         // dd($part);
 
-        return view('admin.maintenance_management.parts.edit', compact('part', 'categories', 'equipmentOptions', 'suppliers'));
+        return view('admin.maintenance_management.parts.edit', compact('part', 'categories', 'equipmentOptions', 'suppliers','list'));
     }
 }

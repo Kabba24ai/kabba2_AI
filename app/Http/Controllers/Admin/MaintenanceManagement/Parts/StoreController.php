@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Parts;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MaintenanceManagement\Parts\StoreRequest;
 use App\Models\MaintenanceManagement\Part;
+use App\Models\MaintenanceManagement\PartsList;
+
+
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -29,9 +32,9 @@ class StoreController extends Controller
 
                 // Primary part details
 
-                'primary_part_cost'        => $validated['unit_cost'],
-                'primary_part_supplier_id'         => $validated['supplier'],
-                'primary_part_number'     => $validated['part_number'],
+                'primary_part_cost'        => $validated['unit_cost'] ?? 0,
+                'primary_part_supplier_id'         => $validated['supplier'] ?? null,
+                'primary_part_number'     => $validated['part_number'] ?? null,
 
                 // Alt 1
                 'alt_1_part_number' => $validated['part_number_alt_1'] ?? null,
@@ -46,6 +49,18 @@ class StoreController extends Controller
 
             // Save to DB
             $part = Part::create($partData);
+
+              //  Attach part to list_id if provided
+            if (!empty($validated['list_id'])) {
+                $list = PartsList::find($validated['list_id']);
+
+                if ($list) {
+                    // find next sort order for this template
+                    $nextSort = $list->parts()->count() + 1;
+
+                    $list->parts()->attach($part->id, ['sort_order' => $nextSort]);
+                }
+            }
 
             DB::commit();
 

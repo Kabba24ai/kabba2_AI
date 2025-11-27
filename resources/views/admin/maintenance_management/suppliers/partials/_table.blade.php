@@ -2,7 +2,7 @@
 
 
 
-  <div id="supplier-table-wrapper" class="overflow-x-auto rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
+  <div id="supplier-table-wrapper" class="overflow-x-auto rounded-2xl  shadow border border-gray-200 bg-white dark:bg-gray-900">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
           <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -95,7 +95,7 @@
 
                           </button> -->
 
-                        <button class="text-blue-600 rounded transition-colors" 
+                        <!-- <button class="text-blue-600 rounded transition-colors" 
                                     title="Assign"
                                     onclick="openAssignModal({{ $supplier->id }}, '{{ $supplier->unique_id }}')">
 
@@ -104,7 +104,7 @@
                             <rect x="0" y="0" width="36" height="36" fill-opacity="0"/>
                             </svg>
 
-                        </button>
+                        </button> -->
 
                       
 

@@ -15,7 +15,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Parts\FetchSupplierControll
 use App\Http\Controllers\Admin\MaintenanceManagement\Parts\FetchPartController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Parts\AssignPartController;
 
-
+use App\Http\Controllers\Admin\MaintenanceManagement\Parts\GetSuppliersController;
 
 Route::prefix('parts')
     ->name('parts.')
@@ -40,9 +40,12 @@ Route::prefix('parts')
     Route::post('/assign-part-to-supplier', AssignPartController::class)->name('assign-to-supplier');
 
 
+    Route::get('/get-all-supplier', GetSuppliersController::class)
+        ->name('get-all-supplier');
 
-    // templates
-    require base_path('routes/admin/maintenance_management/parts/templates/routes.php');
+
+    // parts_list
+    require base_path('routes/admin/maintenance_management/parts/parts_list/routes.php');
 
     require base_path('routes/admin/maintenance_management/parts/category/routes.php');
 });

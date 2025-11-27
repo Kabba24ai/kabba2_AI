@@ -546,7 +546,7 @@
             <!-- Footer -->
             <div class="flex justify-end gap-2 px-6 py-3 border-t bg-gray-50">
                 <button type="button" onclick="closeModal('ViewSupplier')"
-                    class="px-6 py-3 text-md rounded border border-gray-300 bg-white hover:bg-gray-100">
+                    class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white hover:bg-gray-100">
                     Close
                 </button>
             </div>

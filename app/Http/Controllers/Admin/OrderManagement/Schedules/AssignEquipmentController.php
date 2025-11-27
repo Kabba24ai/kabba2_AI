@@ -82,8 +82,7 @@ class AssignEquipmentController extends Controller
         // $equipment->save();
 
         $orderProduct->softAssignment()->delete();
-        $orderProduct->softAssignment()->create(
-            [], // no where condition here -> uses order_product_id automatically
+        $orderProduct->softAssignment()->create(            
             [
                 'equipment_id' => $equipment->id,
                 'order_id'     => $orderProduct->order_id,

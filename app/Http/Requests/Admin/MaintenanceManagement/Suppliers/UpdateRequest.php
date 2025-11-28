@@ -20,7 +20,7 @@ class UpdateRequest extends FormRequest
             'supplierPhone'   => [
                 'nullable'
             ],
-            'supplierWebsite' => 'nullable|url',
+            'supplierWebsite' => 'nullable',
             'supplierAddress' => 'nullable|string',
             'supplierCity'    => 'nullable|string',
             'supplierState'   => 'nullable|string',
@@ -65,7 +65,7 @@ class UpdateRequest extends FormRequest
             'BillingPhone' => [
                 'nullable'
             ],
-            
+
         ];
     }
 

@@ -1,6 +1,6 @@
    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
     <div class="space-y-6">
-            <h3 class="text-lg font-semibold text-gray-800">Template Information</h3>
+            <h3 class="text-lg font-semibold text-gray-800">Parts List Information</h3>
 
           <input type="hidden" id="category_id" name="category_id" value="">
 
@@ -10,11 +10,11 @@
                 {{-- Part Name --}}
                 <div>
                     <label for="part_name" class="block text-sm font-medium text-gray-700 mb-1 required">
-                        Template Name
+                        Parts List Name
                     </label>
                     <input type="text" id="part_name" name="part_name"
                         class="w-full px-3 py-3 text-sm border border-gray-300 rounded-md @error('part_name') border-red-500 @enderror"
-                        placeholder="Enter Template Name " required
+                        placeholder="Enter Parts List Name " required
                         value="{{ old('part_name', $list->name ?? '') }}">
                     @error('part_name')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -110,7 +110,7 @@
  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mt-6">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                    <h3 class="text-lg font-semibold text-gray-900">Template Parts</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">List Parts</h3>
                     <p class="text-sm text-gray-500">
                         Parts included in this template (<span id="templatePartsCount">0</span> parts)
                     </p>
@@ -158,7 +158,7 @@
                                 <th class="w-10 px-4 py-3"></th>
                                 <th class="px-4 py-3 text-sm font-semibold">Part Name</th>
                                 <th class="px-4 py-3 text-sm font-semibold">Part Number</th>
-                                <th class="px-4 py-3 text-sm font-semibold">Category</th>
+                                <!-- <th class="px-4 py-3 text-sm font-semibold">Category</th> -->
                                 <th class="px-4 py-3 text-sm font-semibold">Unit Cost</th>
                                 <th class="px-4 py-3 text-sm font-semibold text-right">Actions</th>
                             </tr>
@@ -183,7 +183,7 @@
         <div class="relative mx-auto w-[95%] max-w-3xl rounded-2xl bg-white shadow-xl">
             <!-- Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-900">Add Parts to Template</h2>
+                <h2 class="text-lg font-semibold text-gray-900">Add Parts to List</h2>
                 <button  type="button" onclick="closePartsModal()" class="text-gray-400 hover:text-gray-600">
                     ✕
                 </button>
@@ -201,12 +201,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/>
                 </svg>
                 </div>
-                <select class="rounded-md border border-gray-300 px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                <!-- <select class="rounded-md border border-gray-300 px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                     <option>All Categories</option>
                     <option>Excavators</option>
                     <option>Generators</option>
                     <option>Compressors</option>
-                </select>
+                </select> -->
             </div>
 
             <p id="selectedCountLabel" class="text-sm text-gray-500">0 parts selected</p>
@@ -215,23 +215,33 @@
             <div class="space-y-3">
                       @foreach ($parts as $part)
                 <!-- Part row -->
-                <label class="flex items-center gap-3 rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer">
+               <label class="flex items-center gap-3 rounded-xl border border-gray-200 p-4 cursor-pointer
+        {{ $part->assigned_other ? 'opacity-50 cursor-not-allowed bg-gray-100 border-gray-300' : 'hover:border-blue-300 hover:bg-blue-50/50' }}">
+
                     <input type="checkbox" class="part-checkbox h-5 w-5 accent-blue-600"
                               data-id="{{ $part->id }}"
                               data-name="{{ $part->part_name }}"
-                              data-sku="{{ $part->unique_id }}"
+                              data-sku="{{ $part->primary_part_number }}"
                               data-brand="{{ $part->brand ?? '' }}"
                               data-category="{{ $part->category->name ?? '' }}"
-                              data-price="{{ $part->primary_part_cost }}">
+                              data-price="{{ $part->primary_part_cost }}"
+                              data-assigned="{{ $part->assigned }}"
+            {{ $part->assigned_other ? 'disabled' : '' }}>
                     <div class="flex-1">
                         <div class="flex items-center justify-between">
                             <div>
                                       <h3 class="text-sm font-medium text-gray-900">{{ $part->part_name }}</h3>
-                                      <p class="text-xs text-gray-500">{{ $part->unique_id }} </p>
+                                      <p class="text-xs text-gray-500">{{ $part->primary_part_number }} </p>
                             </div>
                             <div class="text-right">
-                                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ $part->category->name ?? '' }}</span>
+                                      <!-- <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ $part->category->name ?? '' }}</span> -->
                                       <p class="text-sm font-medium text-green-600 mt-1">${{ $part->primary_part_cost }}</p>
+                                      @if($part->assigned_other)
+                                        <span class="ml-2 inline-flex px-2 py-1 rounded-full text-xs font-medium bg-red-200 text-red-700">
+                                            Already in List
+                                        </span>
+                                    @endif
+
                             </div>
                         </div>
                     </div>
@@ -250,7 +260,7 @@
                         onclick="addSelectedPartsToTemplate()"
                         class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                         disabled>
-                    Add 0 Parts to Template
+                    Add 0 Parts to List
                 </button>
             </div>
         </div>
@@ -274,7 +284,7 @@
               const preItem = {
                   id: '{{ $part->id }}',
                   name: @json($part->part_name),
-                  sku: @json($part->unique_id),
+                  sku: @json($part->primary_part_number),
                   brand: @json($part->brand ?? ''),
                   category: @json($part->category->name ?? ''),
                   price: '{{ $part->primary_part_cost }}'
@@ -457,7 +467,7 @@
     const btn = document.getElementById('addSelectedBtn');
     if (label) label.textContent = `${n} part${n !== 1 ? 's' : ''} selected`;
     if (btn) {
-      btn.textContent = `Add ${n} Part${n !== 1 ? 's' : ''} to Template`;
+      btn.textContent = `Add ${n} Part${n !== 1 ? 's' : ''} to List`;
       btn.disabled = n === 0;
     }
   }
@@ -472,6 +482,10 @@
   // -------- Helpers for rendering table/mobile rows --------
   const fmt = v => `$${Number(v).toFixed(2)}`;
 
+  // <td class="px-4 py-3">
+        //   <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">${item.category}</span>
+        // </td>
+
   // NOTE: drag handle added in first <td>, row made draggable by setupRowDragging()
   function renderTableRow(item) {
     return `
@@ -481,9 +495,7 @@
         </td>
         <td class="px-4 py-3 text-sm font-medium text-gray-900">${item.name}</td>
         <td class="px-4 py-3 text-sm text-gray-900">${item.sku}</td>
-        <td class="px-4 py-3">
-          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">${item.category}</span>
-        </td>
+
         <td class="px-4 py-3 text-sm font-medium text-green-600">${fmt(item.price)}</td>
         <td class="px-4 py-3 text-right">
           <button type="button" class="text-red-600 hover:text-red-700" onclick="removeTemplateRow('${item.id}')" title="Remove">

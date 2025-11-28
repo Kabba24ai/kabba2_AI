@@ -18,9 +18,13 @@ class IndexController extends Controller
 
             $equipments = Equipment::get();
 
+            $allpartlists = PartsList::get();
+
                  $categories = ProductCategory::with('products', 'equipments')->get();
 
          $query = Part::query()->with('category', 'templates',  'templates.category',
+          'partsLists',
+        'partsLists.category',
             'primarySupplier',
             'alt1Supplier',
             'alt2Supplier')->orderBy('part_name');
@@ -35,11 +39,27 @@ class IndexController extends Controller
         }
 
           // Category filter
-        if ($request->filled('category')) {
-            // $query->where('part_category_id', $request->category);
-        }
+        // Category filter (PartsList Category)
+if ($request->filled('category')) {
+    $categoryId = $request->category;
 
-          // Stock status filter 
+    $query->whereHas('partsLists', function ($q) use ($categoryId) {
+        $q->where('category_id', $categoryId);
+    });
+}
+
+if ($request->filled('partlist')) {
+    $partlistId = $request->partlist;
+
+    $query->whereHas('partsLists', function ($q) use ($partlistId) {
+        $q->where('parts_lists.id', $partlistId); // <-- Prefix table name
+    });
+}
+
+
+
+
+          // Stock status filter
         if ($request->filled('stock_status')) {
             $status = $request->stock_status;
             switch ($status) {
@@ -58,24 +78,24 @@ class IndexController extends Controller
             }
         }
 
-        //  Equipment filter
-        if ($request->filled('equipment_id')) {
+      // Equipment filter
+if ($request->filled('equipment_id')) {
     $equipmentId = $request->equipment_id;
 
     $query->whereHas('partsLists', function ($q) use ($equipmentId) {
-        $q->where(function ($subQuery) use ($equipmentId) {
-            $subQuery->whereJsonContains('parts_lists.selected_products', (int)$equipmentId)
-                     ->orWhereJsonContains('parts_lists.selected_products', strval($equipmentId));
-        });
+        // Check both string and integer versions
+        $q->whereJsonContains('selected_products', (int)$equipmentId)
+          ->orWhereJsonContains('selected_products', (string)$equipmentId);
     });
 }
 
-       
+
+
       // Paginate parts
         $parts = $query->paginate(10)->withQueryString();
 
 
-        // Part List 
+        // Part List
 
         $partlistQuery = PartsList::with(['creator', 'category', 'parts'])->latest();
 
@@ -99,7 +119,7 @@ class IndexController extends Controller
             'dni'          => Part::where('dni', true)->count(),
         ];
 
-        // Part list 
+        // Part list
 
         // AJAX partial update
         if ($request->ajax()) {
@@ -117,7 +137,7 @@ class IndexController extends Controller
             ]);
         }
 
-       return view('admin.maintenance_management.parts.index', compact('parts', 'partlists', 'categories', 'stockCounts', 'equipments'));
+       return view('admin.maintenance_management.parts.index', compact('parts', 'partlists', 'categories', 'stockCounts', 'equipments','allpartlists'));
 
 
     }

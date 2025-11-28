@@ -160,11 +160,24 @@
                     {{-- Category Filter --}}
                     <div class="w-full sm:w-48">
 
+                        <!-- partlist Filter -->
+                        <select id="partlist-filter" name="partlist" class="w-full px-4 py-3 border border-gray-300 rounded-md text-sm text-gray-900">
+                            <option value="">All Parts List</option>
+ @foreach($allpartlists as $list)
+                                <option value="{{ $list->id }}">{{ $list->name }}</option>
+                                @endforeach
+
+                        </select>
+                    </div>
+
+                    {{-- Category Filter --}}
+                    <div class="w-full sm:w-48">
+
                         <select id="equipment_id" name="equipment_id" class="w-full px-3 py-3  border border-gray-300 rounded-md text-sm text-gray-900">
                             <option value="">All Equipment</option>
 
                             @foreach($equipments as $equipment)
-                            <option value="{{ $equipment->unique_id }}">{{ $equipment->equipment_name }}</option>
+                            <option value="{{ $equipment->id }}">{{ $equipment->equipment_name }}</option>
                             @endforeach
 
                         </select>
@@ -230,7 +243,7 @@
                         <path d="M16 17H8"></path>
                     </svg>
 
-                    <h1 class="text-2xl font-semibold text-gray-900">Parts List Templates </h1>
+                    <h1 class="text-2xl font-semibold text-gray-900">Parts List </h1>
                 </div>
                 <p class="text-gray-600">Create and manage reusable parts lists for different equipment categories</p>
             </div>
@@ -249,7 +262,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
-                            <input type="text" name="tsearch" value="{{ request('tsearch') }}" placeholder="Search template..."
+                            <input type="text" name="tsearch" value="{{ request('tsearch') }}" placeholder="Search Parts List..."
                                 class="w-full pl-10 text-sm px-3 py-3 border border-gray-300 rounded-md">
                         </div>
 
@@ -273,7 +286,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
-                            Create Template
+                            Create Parts List
                         </a>
 
 
@@ -560,6 +573,10 @@
     document.addEventListener("DOMContentLoaded", function() {
         let searchInput = document.querySelector('input[name="search"]');
         let categorySelect = document.querySelector('select[name="category"]');
+        let partlistSelect = document.querySelector('select[name="partlist"]');
+
+
+
         let equipmentSelect = document.querySelector('select[name="equipment_id"]');
         let wrapper = document.querySelector('#parts-table-wrapper');
         let loader = document.querySelector('#parts-loader');
@@ -572,6 +589,7 @@
             const hasFilters =
                 (searchInput?.value.trim() !== '') ||
                 (categorySelect && categorySelect.value) ||
+                (partlistSelect && partlistSelect.value) ||
                 (equipmentSelect && equipmentSelect.value) ||
                 (selectedStatus !== '');
             if (hasFilters) clearBtn?.classList.remove('hidden');
@@ -586,6 +604,9 @@
 
             if (categorySelect && categorySelect.value)
                 params.append('category', categorySelect.value);
+             if (partlistSelect && partlistSelect.value)
+                params.append('partlist', partlistSelect.value);
+
 
             if (equipmentSelect && equipmentSelect.value)
                 params.append('equipment_id', equipmentSelect.value);
@@ -632,6 +653,8 @@
 
         // Immediate filter changes
         categorySelect?.addEventListener('change', fetchParts);
+        partlistSelect?.addEventListener('change', fetchParts);
+
         equipmentSelect?.addEventListener('change', fetchParts);
 
         //  Status card click handler
@@ -679,6 +702,7 @@
         clearBtn?.addEventListener('click', function() {
             searchInput.value = '';
             if (categorySelect) categorySelect.value = '';
+            if (partlistSelect) partlistSelect.value = '';
             if (equipmentSelect) equipmentSelect.value = '';
             selectedStatus = '';
 

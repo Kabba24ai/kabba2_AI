@@ -20,7 +20,7 @@ class StoreRequest extends FormRequest
             'supplierPhone'   => [
                 'nullable'
             ],
-            'supplierWebsite' => 'nullable|url',
+            'supplierWebsite' => 'nullable',
             'supplierAddress' => 'nullable|string',
             'supplierCity'    => 'nullable|string',
             'supplierState'   => 'nullable|string',

@@ -89,4 +89,6 @@ class PartsList extends Model
             ->withPivot('sort_order')
             ->orderBy('sort_order');
     }
+
+    
 }

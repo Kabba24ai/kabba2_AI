@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Parts\FetchPartController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Parts\AssignPartController;
 
 use App\Http\Controllers\Admin\MaintenanceManagement\Parts\GetSuppliersController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Parts\UpdateCostController;
+
 
 Route::prefix('parts')
     ->name('parts.')
@@ -24,11 +26,16 @@ Route::prefix('parts')
         Route::get('/', IndexController::class)->name('index');
         // Create
         Route::get('/create', CreateController::class)->name('create');
-         Route::get('/view', ViewController::class)->name('view');
+         Route::get('/{unique_id}/view', ViewController::class)->name('view');
         Route::post('/create', StoreController::class);
         // Edit
         Route::get('/{unique_id}/edit', EditController::class)->name('edit');
         Route::put('/{unique_id}/edit', UpdateController::class);
+
+            // update-cost
+            Route::post('/update-cost', UpdateCostController::class)->name('update-cost');
+
+
         // Delete
         Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 

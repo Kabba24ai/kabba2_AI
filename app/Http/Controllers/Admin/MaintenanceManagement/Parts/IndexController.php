@@ -24,6 +24,7 @@ class IndexController extends Controller
 
          $query = Part::query()->with('category', 'templates',  'templates.category',
           'partsLists',
+          'partsLists.parts',
         'partsLists.category',
             'primarySupplier',
             'alt1Supplier',
@@ -137,8 +138,9 @@ if ($request->filled('equipment_id')) {
             ]);
         }
 
-       return view('admin.maintenance_management.parts.index', compact('parts', 'partlists', 'categories', 'stockCounts', 'equipments','allpartlists'));
+        // dd($parts->first());
 
+       return view('admin.maintenance_management.parts.index', compact('parts', 'partlists', 'categories', 'stockCounts', 'equipments','allpartlists'));
 
     }
 

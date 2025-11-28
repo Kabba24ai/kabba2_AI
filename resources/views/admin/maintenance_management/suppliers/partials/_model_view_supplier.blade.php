@@ -147,32 +147,7 @@
                                     </div> -->
                                 </div>
 
-                                <!-- <div> -->
-                                    <!-- <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label> -->
-                                    <!-- <div class="flex flex-wrap gap-1" id="viewSupplierTags">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
-                                                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
-                                                <path d="M7 7h.01"></path>
-                                            </svg>
-                                            #Design
-                                        </span>
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
-                                                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
-                                                <path d="M7 7h.01"></path>
-                                            </svg>
-                                            #Client
-                                        </span>
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1">
-                                                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
-                                                <path d="M7 7h.01"></path>
-                                            </svg>
-                                            #Maintenance
-                                        </span>
-                                    </div> -->
-                                <!-- </div> -->
+
                             </div>
                         </div>
                     </div>
@@ -319,135 +294,6 @@
                     </div>
                 </div>
 
-                <!-- Right Side: Contacts -->
-                    <!-- <div class="flex flex-col gap-6"> -->
-                        <!-- Primary Contact -->
-                        <!-- <div class="bg-green-50 p-4 rounded-md border border-green-100 ">
-                            <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                                <div class="p-2 border rounded-md bg-green-600 text-white">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
-                                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="12" cy="7" r="4"></circle>
-                                    </svg>
-                                </div>
-
-                                Primary Contact
-                            </h1>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                                    <div class="text-sm text-gray-900" id="PrimaryContactName">john Week</div>
-
-                                </div>
-                                <div class="">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                    <div>
-                                        <p class="text-blue-600 flex items-center gap-1 text-sm" id="PrimaryContactEmail">
-                                            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
-                                            </svg>johneweek@test.com
-                                        </p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                                    <div>
-                                        <p class="text-blue-600 text-sm flex items-center gap-1" id="PrimaryContactPhone">
-                                            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
-                                            </svg> (256) 544-5654
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> -->
-
-                        <!-- Secondary Contact -->
-                        <!-- <div class="bg-orange-50 p-4 rounded-md border border-orange-100 ">
-                            <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                                <div class="bg-orange-600 p-2 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
-                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="9" cy="7" r="4"></circle>
-                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                    </svg>
-                                </div>
-                                Inside Sales
-                            </h1>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                                    <div class="text-sm text-gray-900" id="SecondaryContactName">john Week</div>
-                                </div>
-                                <div class="">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                    <div>
-                                        <p class="text-blue-600 flex items-center gap-1 text-sm" id="SecondaryContactEmail">
-                                            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
-                                            </svg>johneweek@test.com
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="mb-5">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                                    <div>
-                                        <p class="text-blue-600 flex items-center gap-1 text-sm" id="SecondaryContactPhone">
-                                            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
-                                            </svg> (256) 544-5654
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> -->
-
-                        <!-- Secondary Contact -->
-                        <!-- <div class="bg-blue-50 p-4 rounded-md border border-orange-100 ">
-                            <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                                <div class="bg-blue-600 p-2 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
-                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="9" cy="7" r="4"></circle>
-                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                    </svg>
-                                </div>
-                                Technical Support
-                            </h1>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                                    <div class="text-sm text-gray-900" id="technicalSupportName"></div>
-                                </div>
-                                <div class="">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                    <div>
-                                        <p class="text-blue-600 flex items-center gap-1 text-sm" id="technicalSupportEmail">
-                                            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
-                                            </svg>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="mb-5">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                                    <div>
-                                        <p class="text-blue-600 flex items-center gap-1 text-sm" id="technicalSupportPhone">
-                                            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
-                                            </svg>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> -->
-
-                    <!-- </div> -->
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
                     <div class="bg-purple-50 p-6 rounded-xl">
@@ -465,33 +311,7 @@
                         </div>
                     </div>
 
-                    <!-- Left Side: Company Info -->
-                    <!-- <div class="bg-purple-50 p-4 rounded-md">
-                        <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-5">
-                            <div class="bg-purple-600 p-2 rounded-lg mr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white">
-                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                                    <line x1="16" x2="16" y1="2" y2="6"></line>
-                                    <line x1="8" x2="8" y1="2" y2="6"></line>
-                                    <line x1="3" x2="21" y1="10" y2="10"></line>
-                                </svg>
-                            </div>
-                            Business Details
-                        </h1>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
-                                <div class="text-sm text-gray-900" style="display: block;">May 15 , 2023</div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Order</label>
-                                <div class="text-sm text-gray-900" style="display: block;">June 15 , 2023</div>
-                            </div>
-
-                        </div>
-
-                    </div> -->
 
                     <!-- Right Side: Contacts -->
                     <div class="flex flex-col gap-6">
@@ -509,33 +329,15 @@
                                         <path d="M10 18h4"></path>
                                     </svg>
                                 </div>
-                                Parts Supplied (4)
+                                Parts Supplied (<span id="totalSuppliedParts">0</span>)
                             </h1>
 
-                            <div>
-                                <ul class="space-y-2 max-h-[150px] overflow-y-auto pr-2">
-                                    <li class="flex items-center justify-between px-4 py-2 rounded-md border bg-white text-gray-700">
-                                        <div class="flex gap-2 items-center"><span class="text-gray-900">Equipment Dealer</span></span></div>
-                                    </li>
-                                    <li class="flex items-center justify-between px-4 py-2 rounded-md border bg-white text-gray-700">
-                                        <div class="flex gap-2 items-center"><span class="text-gray-900">Equipment Dealer</span></span></div>
-                                    </li>
-                                    <li class="flex items-center justify-between px-4 py-2 rounded-md border bg-white text-gray-700">
-                                        <div class="flex gap-2 items-center"><span class="text-gray-900">Equipment Dealer</span></span></div>
-                                    </li>
+  <div>
+        <ul id="supplierPartsList" class="space-y-2 max-h-[150px] overflow-y-auto pr-2">
+            <!-- JS will insert <li> items here -->
+        </ul>
+    </div>
 
-                                    <li class="flex items-center justify-between px-4 py-2 rounded-md border bg-white text-gray-700">
-                                        <div class="flex gap-2 items-center"><span class="text-gray-900">Equipment Dealer</span></span></div>
-                                    </li>
-                                    <li class="flex items-center justify-between px-4 py-2 rounded-md border bg-white text-gray-700">
-                                        <div class="flex gap-2 items-center"><span class="text-gray-900">Equipment Dealer</span></span></div>
-
-                                    </li>
-                                    <li class="flex items-center justify-between px-4 py-2 rounded-md border bg-white text-gray-700">
-                                        <div class="flex gap-2 items-center"><span class="text-gray-900">Equipment Dealer</span></span></div>
-                                    </li>
-                                </ul>
-                            </div>
                         </div>
 
                     </div>
@@ -572,7 +374,7 @@
             if (result.status) {
                 const s = result.data;
 
- console.log(s);
+
 
                 // Fill header info
                 document.getElementById('viewSupplierName').textContent = s.name || 'N/A';
@@ -754,6 +556,33 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
                                             </svg> ${s.billing_contact_phone || 'N/A'}
             `;
+
+
+            const partsContainer = document.getElementById('supplierPartsList');
+const totalPartsEl = document.getElementById('totalSuppliedParts');
+
+partsContainer.innerHTML = ''; // clear old parts
+
+if (s.all_supplied_parts?.length > 0) {
+    totalPartsEl.textContent = s.all_supplied_parts.length;
+
+    s.all_supplied_parts.forEach(part => {
+        const li = `
+            <li class="flex items-center justify-between px-4 py-2 rounded-md border bg-white text-gray-700">
+                <div class="flex gap-2 items-center">
+                    <span class="text-gray-900">${part.part_name}</span>
+                </div>
+            </li>
+        `;
+        partsContainer.insertAdjacentHTML('beforeend', li);
+    });
+} else {
+    totalPartsEl.textContent = "0";
+    partsContainer.innerHTML = `
+        <li class="text-gray-500 text-sm">No parts assigned.</li>
+    `;
+}
+
 
                 openModal('ViewSupplier');
             } else {

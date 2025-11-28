@@ -188,6 +188,7 @@ class SaveDeliveryController extends BaseController
         }
 
         $orderProduct->update($orderProductData);
+        $orderProduct->softAssignment()->delete();
 
         // fire event
         $user = auth('api_user')->user();

@@ -65,17 +65,19 @@
 
               <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
-
-                 @if($part->partsLists->isNotEmpty())
-        @foreach($part->partsLists as $list)
-
-                {{ $list->name }}
-
-        @endforeach
-    @else
+@if($part->partsLists->isNotEmpty())
+    <a href="javascript:void(0)"
+       class="text-blue-600 hover:underline font-medium"
+       data-lists='@json($part->partsLists->flatMap(fn($list) => $list->parts->pluck("part_name")))'
+       onclick="openPartListModal(this)">
+        {{ $part->partsLists->pluck('name')->join(', ') }}
+    </a>
+@else
     -
-        <!-- <span class="text-xs text-gray-400">Unassigned</span> -->
-    @endif
+@endif
+
+
+
 
                     <!-- Part List -->
                 </span>

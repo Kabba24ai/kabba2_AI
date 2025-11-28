@@ -5,7 +5,8 @@
 @section('content')
 
 @include('flash::message')
-@include('admin.partials.formErrors')
+<!-- @include('admin.partials.formErrors') -->
+@include('admin.partials.notify')
 
 <div class="min-h-screen bg-gray-50">
     <div>

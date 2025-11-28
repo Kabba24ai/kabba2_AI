@@ -9,6 +9,7 @@ use App\Models\Locations\State;
 use App\Models\MaintenanceManagement\Supplier;
 use App\Models\MaintenanceManagement\SupplierTag;
 use App\Models\MaintenanceManagement\Part;
+use App\Models\ProductManagement\ProductCategory;
 
 
 
@@ -21,7 +22,9 @@ class IndexController extends Controller
 
 
         // Example supplier data
-        $query = Supplier::with(['state', 'category', 'media']);
+        $query = Supplier::with([    'primaryParts.partsLists.category',
+    'alt1Parts.partsLists.category',
+    'alt2Parts.partsLists.category', 'state', 'category', 'media']);
 
 
         // Search by name/email
@@ -57,14 +60,40 @@ class IndexController extends Controller
 
 
         // Search by part
-        if ($request->filled('part_search')) {
+        // Search by part name (primary / alt1 / alt2 supplier parts)
+if ($request->filled('part_search')) {
+    $searchTerm = $request->part_search;
 
-        }
+    $query->where(function ($q) use ($searchTerm) {
+        $q->whereHas('primaryParts', function ($sub) use ($searchTerm) {
+            $sub->where('part_name', 'like', "%{$searchTerm}%");
+        })
+        ->orWhereHas('alt1Parts', function ($sub) use ($searchTerm) {
+            $sub->where('part_name', 'like', "%{$searchTerm}%");
+        })
+        ->orWhereHas('alt2Parts', function ($sub) use ($searchTerm) {
+            $sub->where('part_name', 'like', "%{$searchTerm}%");
+        });
+    });
+}
 
         // Category filter
-        if ($request->filled('category')) {
-            $query->where('supplier_category_id', $request->category);
-        }
+        // Filter by PartsList Category of any supplied Part
+if ($request->filled('category')) {
+    $category = $request->category;
+
+    $query->where(function ($q) use ($category) {
+        $q->whereHas('primaryParts.partsLists', function ($sub) use ($category) {
+            $sub->where('category_id', $category);
+        })
+        ->orWhereHas('alt1Parts.partsLists', function ($sub) use ($category) {
+            $sub->where('category_id', $category);
+        })
+        ->orWhereHas('alt2Parts.partsLists', function ($sub) use ($category) {
+            $sub->where('category_id', $category);
+        });
+    });
+}
 
         // Status filter
         if ($request->filled('status')) {
@@ -89,6 +118,7 @@ class IndexController extends Controller
         $states = State::get();
 
         // dd($parts);
+                 $categories = ProductCategory::with('products', 'equipments')->get();
 
 
         if ($request->ajax()) {
@@ -99,6 +129,8 @@ class IndexController extends Controller
             ]);
         }
 
-        return view('admin.maintenance_management.suppliers.index', compact('suppliers', 'states','parts'));
+        // dd( $suppliers->first()->all_supplied_parts);
+
+        return view('admin.maintenance_management.suppliers.index', compact('suppliers', 'states','parts','categories'));
     }
 }

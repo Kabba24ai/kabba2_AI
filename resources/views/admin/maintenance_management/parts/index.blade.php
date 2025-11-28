@@ -336,6 +336,24 @@
     </div>
 </div>
 
+<div id="partListModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-md flex flex-col max-h-full border border-gray-200">
+
+            <div class="flex items-center justify-between px-6 pt-4">
+                <h2 class="text-lg font-semibold text-gray-900">Assigned Parts Lists</h2>
+                <button onclick="closePartListModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto max-h-[70vh]" id="partListModalContent">
+                <!-- Content injected via JS -->
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
 
 @include('admin.maintenance_management.parts.partials._model_category')
 
@@ -352,6 +370,42 @@
     function closeSupplierModal() {
         document.getElementById('supplierModal').classList.add('hidden');
     }
+
+
+
+        function openPartListModal(element) {
+    const modal = document.getElementById('partListModal');
+    const container = document.getElementById('partListModalContent');
+
+    let lists = JSON.parse(element.getAttribute('data-lists'));
+
+ 
+
+    if (!lists.length) {
+        container.innerHTML = `<p class='text-center text-gray-500'>No lists assigned.</p>`;
+    } else {
+        let html = "<ul class='space-y-2'>";
+        lists.forEach(name => {
+            html += `
+                <li class="p-3 bg-gray-100 rounded-lg text-gray-800 font-medium">
+                    ${name}
+                </li>
+            `;
+        });
+        html += "</ul>";
+        container.innerHTML = html;
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closePartListModal() {
+    document.getElementById('partListModal').classList.add('hidden');
+}
+
+
+
+
 </script>
 
 
@@ -795,6 +849,7 @@
                 }
             });
         };
+
 
     });
 </script>

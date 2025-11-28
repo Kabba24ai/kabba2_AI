@@ -320,6 +320,7 @@
 
                     $maintenanceActive = Route::is([
                     'admin.maintenance-management.equipment.*',
+                    'admin.maintenance-management.service-master.*',
                     'admin.maintenance-management.parts.*',
                     'admin.maintenance-management.suppliers.*',
                     ]);
@@ -374,6 +375,14 @@
                                         {{ Route::is('admin.maintenance-management.equipment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.maintenance-management.service-master.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.service-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+
+                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Service Master
                                     </a>
                                 </li>
                                 <li>

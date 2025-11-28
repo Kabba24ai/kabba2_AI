@@ -16,7 +16,7 @@ class StoreRequest extends FormRequest
     {
         return [
             'part_name' => 'required|string|max:255',
-            'part_description' => 'required',
+            'part_description' => 'nullable',
 
             'current_stock' => 'nullable|integer|min:0',
             'min_stock' => 'nullable|integer|min:0',
@@ -26,9 +26,9 @@ class StoreRequest extends FormRequest
 
             'description' => 'nullable|string',
             // Primary part details
-            'part_number' => 'required|string|max:100',
-            'unit_cost' => 'required|numeric|min:0',
-            'supplier' => 'required|string|max:255',
+            'part_number' => 'nullable|string|max:100',
+            'unit_cost' => 'nullable|numeric|min:0',
+            'supplier' => 'nullable|string|max:255',
 
             // Alternative 1
             'part_number_alt_1' => 'nullable|string|max:100',
@@ -39,7 +39,7 @@ class StoreRequest extends FormRequest
             'part_number_alt_2' => 'nullable|string|max:100',
             'cost_alt_2' => 'nullable|numeric|min:0',
             'supplier_alt_2' => 'nullable|string|max:255',
-
+    'list_id' => 'nullable',
         ];
     }
 

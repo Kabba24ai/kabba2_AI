@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Parts\FetchSupplierControll
 use App\Http\Controllers\Admin\MaintenanceManagement\Parts\FetchPartController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Parts\AssignPartController;
 
+use App\Http\Controllers\Admin\MaintenanceManagement\Parts\GetSuppliersController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Parts\UpdateCostController;
 
 
 Route::prefix('parts')
@@ -24,11 +26,16 @@ Route::prefix('parts')
         Route::get('/', IndexController::class)->name('index');
         // Create
         Route::get('/create', CreateController::class)->name('create');
-         Route::get('/view', ViewController::class)->name('view');
+         Route::get('/{unique_id}/view', ViewController::class)->name('view');
         Route::post('/create', StoreController::class);
         // Edit
         Route::get('/{unique_id}/edit', EditController::class)->name('edit');
         Route::put('/{unique_id}/edit', UpdateController::class);
+
+            // update-cost
+            Route::post('/update-cost', UpdateCostController::class)->name('update-cost');
+
+
         // Delete
         Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 
@@ -40,9 +47,12 @@ Route::prefix('parts')
     Route::post('/assign-part-to-supplier', AssignPartController::class)->name('assign-to-supplier');
 
 
+    Route::get('/get-all-supplier', GetSuppliersController::class)
+        ->name('get-all-supplier');
 
-    // templates
-    require base_path('routes/admin/maintenance_management/parts/templates/routes.php');
+
+    // parts_list
+    require base_path('routes/admin/maintenance_management/parts/parts_list/routes.php');
 
     require base_path('routes/admin/maintenance_management/parts/category/routes.php');
 });

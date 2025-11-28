@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="min-h-screen bg-gray-50" x-data="{selected: 'parts'}">
+<div class="min-h-screen bg-gray-50" x-data="{ selected: '{{ session('active_tab', 'parts') }}' }">
     {{-- Header --}}
     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
         <div class="flex items-center space-x-4 ">
@@ -13,7 +13,7 @@
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <button @click="selected = 'parts'"
                     :class="selected === 'parts' ? ' bg-blue-600 text-white ' : 'bg-gray-100 text-gray-700s'"
-                    class="w-full sm:w-auto px-6 py-3 rounded text-md flex items-center gap-2"
+                    class="w-full sm:w-auto px-6 py-3 rounded-lg text-md flex items-center gap-2"
                     type="button">
                     <svg class="h-4 w-4 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -21,7 +21,7 @@
                 </button>
                 <button @click="selected = 'template'"
                     :class="selected === 'template' ? ' bg-blue-600 text-white ' : 'bg-gray-100 text-gray-700'"
-                    class="w-full sm:w-auto px-6 py-3 rounded text-md flex items-center gap-2 "
+                    class="w-full sm:w-auto px-6 py-3 rounded-lg text-md flex items-center gap-2 "
                     type="button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 " fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
@@ -29,7 +29,7 @@
                         <path d="M10 9H8"></path>
                         <path d="M16 13H8"></path>
                         <path d="M16 17H8"></path>
-                    </svg> Template Management
+                    </svg> Parts List
                 </button>
             </div>
         </div>
@@ -55,7 +55,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <!-- Manage Category -->
                     <a href="javascript:void(0)" onclick="openModal('CategoryModalWrapper')"
-                        class="flex items-center text-md justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-sm rounded-lg transition-colors w-full sm:w-auto">
+                        class="flex items-center text-md justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-md rounded-lg transition-colors w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path
@@ -70,11 +70,11 @@
 
             {{-- Stats Cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-5 xl:grid-cols-5 gap-4 mb-6">
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-status="">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total</p>
-                            <p class="text-2xl font-bold text-gray-700 mt-1">{{ $parts->count() }}</p>
+                            <p class="text-2xl font-bold text-gray-700 mt-1">{{ $stockCounts['total'] }} </p>
                         </div>
                         <svg class="h-6 w-6 text-gray-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -82,11 +82,11 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                    <div class="flex items-center justify-between">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-status="in-stock">
+                    <div class="flex items-center justify-between" >
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">In Stock</p>
-                            <p class="text-2xl font-bold text-green-600 mt-1">{{ $parts->where('stock_status', 'in-stock')->count() }}</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">{{ $stockCounts['in_stock'] }}</p>
                         </div>
                         <svg class="h-6 w-6 text-green-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -94,11 +94,11 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-status="buy-now">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Buy Now</p>
-                            <p class="text-2xl font-bold text-yellow-600 mt-1">{{ $parts->where('stock_status', 'buy-now')->count() }}</p>
+                            <p class="text-2xl font-bold text-yellow-600 mt-1">{{ $stockCounts['buy_now'] }}</p>
                         </div>
                         <svg class="h-6 w-6 text-yellow-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -106,11 +106,11 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-status="out-of-stock">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Out of Stock</p>
-                            <p class="text-2xl font-bold text-red-600 mt-1">{{ $parts->where('stock_status', 'out-of-stock')->count() }}</p>
+                            <p class="text-2xl font-bold text-red-600 mt-1">{{ $stockCounts['out_of_stock'] }}</p>
                         </div>
                         <svg class="h-6 w-6 text-red-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -118,11 +118,11 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-status="dni">
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">DNI</p>
-                            <p class="text-2xl font-bold text-gray-700 mt-1">{{ $parts->where('stock_status', 'dni')->count() }}</p>
+                            <p class="text-2xl font-bold text-gray-700 mt-1">{{ $stockCounts['dni'] }}</p>
                         </div>
                         <svg class="h-6 w-6 text-gray-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -141,33 +141,51 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search parts, equipment, suppliers..."
-                            class="pl-9 pr-4 py-3 border border-gray-300 rounded-lg w-full text-sm">
+                            class="pl-9 pr-4 py-3 border border-gray-300 rounded-md w-full text-sm">
                     </div>
 
                     {{-- Category Filter --}}
                     <div class="w-full sm:w-48">
 
                         <!-- Category Filter -->
-                        <select id="partCategorys" name="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-900">
+                        <select id="partCategorys-filter" name="category" class="w-full px-4 py-3 border border-gray-300 rounded-md text-sm text-gray-900">
                             <option value="">All Categories</option>
+ @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->title }}</option>
+                                @endforeach
+
                         </select>
                     </div>
 
                     {{-- Category Filter --}}
                     <div class="w-full sm:w-48">
 
-                        <select id="supplierCategory" name="category" class="w-full px-4 py-3  border border-gray-300 rounded-lg text-sm text-gray-900">
+                        <!-- partlist Filter -->
+                        <select id="partlist-filter" name="partlist" class="w-full px-4 py-3 border border-gray-300 rounded-md text-sm text-gray-900">
+                            <option value="">All Parts List</option>
+ @foreach($allpartlists as $list)
+                                <option value="{{ $list->id }}">{{ $list->name }}</option>
+                                @endforeach
+
+                        </select>
+                    </div>
+
+                    {{-- Category Filter --}}
+                    <div class="w-full sm:w-48">
+
+                        <select id="equipment_id" name="equipment_id" class="w-full px-3 py-3  border border-gray-300 rounded-md text-sm text-gray-900">
                             <option value="">All Equipment</option>
-                            <option value="2">Equipment all</option>
-                            <option value="6">Financing == Default</option>
-                            <option value="3">Supplies</option>
-                            <option value="4">tegories</option>
+
+                            @foreach($equipments as $equipment)
+                            <option value="{{ $equipment->id }}">{{ $equipment->equipment_name }}</option>
+                            @endforeach
+
                         </select>
                     </div>
 
                     <div class="flex gap-2">
 
-                        <a href="#" class="text-sm bg-blue-100 text-blue-700 px-4 py-3 flex gap-2 items-center rounded-lg ">
+                        <a href="#" class="text-sm bg-blue-100 text-blue-700 px-4 py-3 flex gap-2 items-center rounded-md ">
                             Quick: Supplies
                         </a>
 
@@ -175,17 +193,18 @@
 
 
                     <div class="flex gap-2">
-                        <a href="#" class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-lg border border-gray-300">
+                        <button type="button" id="clear-filters"
+                        class="hidden text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             Clear
-                        </a>
+                        </button>
                     </div>
 
                     <div class="flex gap-2">
-                        <a href="javascript:void(0)" onclick="openSupplierModal()" class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-lg border border-gray-300">
+                        <a href="javascript:void(0)" onclick="openSupplierModal()" class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
                             <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
@@ -205,12 +224,9 @@
             </div>
 
             <!-- table  -->
-
-            <div id="parts-table-wrapper" class="overflow-x-auto max-w-full rounded-2xl shadow border border-gray-200 bg-white">
-
+ <div id="parts-table-wrapper">
                 @include('admin.maintenance_management.parts.partials._table', ['parts' => $parts])
-
-            </div>
+ </div>
         </div>
 
         {{-- template --}}
@@ -227,7 +243,7 @@
                         <path d="M16 17H8"></path>
                     </svg>
 
-                    <h1 class="text-2xl font-semibold text-gray-900">Parts List Templates </h1>
+                    <h1 class="text-2xl font-semibold text-gray-900">Parts List </h1>
                 </div>
                 <p class="text-gray-600">Create and manage reusable parts lists for different equipment categories</p>
             </div>
@@ -246,32 +262,31 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search template..."
+                            <input type="text" name="tsearch" value="{{ request('tsearch') }}" placeholder="Search Parts List..."
                                 class="w-full pl-10 text-sm px-3 py-3 border border-gray-300 rounded-md">
                         </div>
 
                         {{-- Category Filter --}}
                         <div class="w-full sm:w-48">
-                            <select id="supplierCategory" name="category"
+                            <select id="tcategory" name="tcategory"
                                 class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900">
                                 <option value="">All Category</option>
-                                <option value="2">Equipment all</option>
-                                <option value="6">Financing == Default</option>
-                                <option value="3">Supplies</option>
-                                <option value="4">tegories</option>
+                                  @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->title }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
 
                     {{-- Right Side: Action Buttons --}}
                     <div class="flex gap-2 justify-end w-full sm:w-auto">
-                        <a href="{{ route('admin.maintenance-management.parts.templates.create') }}"
-                            class="text-md text-white bg-blue-600  px-6 py-3 flex gap-2 items-center rounded-md hover:bg-blue-700 transition border border-gray-300">
+                        <a href="{{ route('admin.maintenance-management.parts.parts-list.create') }}"
+                            class="text-md text-white bg-blue-600  px-6 py-3 flex gap-2 items-center rounded-lg hover:bg-blue-700 transition border border-gray-300">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
-                            Create Template
+                            Create Parts List
                         </a>
 
 
@@ -282,141 +297,9 @@
 
             <!-- table -->
 
-            <div id="supplier-table-wrapper" class="overflow-x-auto max-w-full rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="py-4 px-6 text-left font-semibold">Template Name</th>
-                            <th class="py-4 px-6 text-left font-semibold">Category</th>
-                            <th class="py-4 px-6 text-left font-semibold">Description</th>
-                            <th class="py-4 px-6 text-left font-semibold ">Parts Count</th>
-                            <th class="py-4 px-6 text-left font-semibold">Created By</th>
-                            <th class="py-4 px-6 text-left font-semibold">Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody class="bg-white divide-y divide-gray-200">
-
-                        <tr class="hover:bg-gray-50 transition-colors">
-
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="inline-flex items-center py-0.5 rounded-full text-sm font-medium  text-gray-800">
-                                    Excavator Standard Maintenance
-                                </span>
-                                <div class="text-gray-500 text-sm">Modified: 2024-02-10</div>
-                            </td>
-
-
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs  font-medium text-purple-800 bg-purple-200">
-                                    Bulldozers
-                                </span>
-                            </td>
-
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="inline-flex items-center rounded-full text-sm font-medium text-gray-800">
-                                    John Deere 650K Dozer
-                                </span>
-                            </td>
-
-                            <td class="py-4 px-6 whitespace-nowrap w-full">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-gray-800 bg-gray-200">
-                                    22 Parts
-                                </span>
-                            </td>
-
-
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="inline-flex items-center rounded-full text-sm font-medium text-gray-800">
-                                    Raja Hindustan
-                                </span>
-                            </td>
-
-
-
-                            <td class="py-4 px-6 whitespace-nowrap text-sm font-medium">
-                                <div class="flex items-center space-x-2">
-                                    <a href="{{ route('admin.maintenance-management.parts.templates.view') }}" class="text-blue-600 rounded transition-colors" title="View Details">
-                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-                                        </svg> </a>
-                                    <button class="text-green-600 rounded transition-colors" title="Edit">
-                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"></path>
-                                        </svg> </button>
-                                    <button class="text-red-600 rounded transition-colors" title="Delete">
-                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"></path>
-                                        </svg> </button>
-                                </div>
-                            </td>
-                        </tr>
-
-
-                        <tr class="hover:bg-gray-50 transition-colors">
-
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="inline-flex items-center py-0.5 rounded-full text-sm font-medium  text-gray-800">
-                                    Generator Basic Service Kit
-                                </span>
-                                <div class="text-gray-500 text-sm">Modified: 2024-02-05</div>
-
-                            </td>
-
-
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-purple-800 bg-purple-200">
-                                    Generators
-                                </span>
-                            </td>
-
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="inline-flex items-center rounded-full text-sm font-medium text-gray-800">
-                                    Essential service parts for generator maintenance
-                                </span>
-                            </td>
-
-                            <td class="py-4 px-6 whitespace-nowrap w-full">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-gray-800 bg-gray-200">
-                                    22 parts
-                                </span>
-                            </td>
-
-
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="inline-flex items-center rounded-full text-sm font-medium text-gray-800">
-                                    Raja sing
-                                </span>
-                            </td>
-
-
-
-                            <td class="py-4 px-6 whitespace-nowrap text-sm font-medium">
-                                <div class="flex items-center space-x-2">
-                                    <button class="text-blue-600 rounded transition-colors" title="View Details">
-                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-                                        </svg> </button>
-                                    <button class="text-green-600 rounded transition-colors" title="Edit">
-                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"></path>
-                                        </svg> </button>
-                                    <button class="text-red-600 rounded transition-colors" title="Delete">
-                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"></path>
-                                        </svg> </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
+             <div id="templates-table-wrapper">
+                @include('admin.maintenance_management.parts.parts_list.partials._table', ['partlists' => $partlists])
             </div>
-
 
 
         </div>
@@ -453,6 +336,24 @@
     </div>
 </div>
 
+<div id="partListModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-md flex flex-col max-h-full border border-gray-200">
+
+            <div class="flex items-center justify-between px-6 pt-4">
+                <h2 class="text-lg font-semibold text-gray-900">Assigned Parts Lists</h2>
+                <button onclick="closePartListModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto max-h-[70vh]" id="partListModalContent">
+                <!-- Content injected via JS -->
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
 
 @include('admin.maintenance_management.parts.partials._model_category')
 
@@ -469,6 +370,42 @@
     function closeSupplierModal() {
         document.getElementById('supplierModal').classList.add('hidden');
     }
+
+
+
+        function openPartListModal(element) {
+    const modal = document.getElementById('partListModal');
+    const container = document.getElementById('partListModalContent');
+
+    let lists = JSON.parse(element.getAttribute('data-lists'));
+
+ 
+
+    if (!lists.length) {
+        container.innerHTML = `<p class='text-center text-gray-500'>No lists assigned.</p>`;
+    } else {
+        let html = "<ul class='space-y-2'>";
+        lists.forEach(name => {
+            html += `
+                <li class="p-3 bg-gray-100 rounded-lg text-gray-800 font-medium">
+                    ${name}
+                </li>
+            `;
+        });
+        html += "</ul>";
+        container.innerHTML = html;
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closePartListModal() {
+    document.getElementById('partListModal').classList.add('hidden');
+}
+
+
+
+
 </script>
 
 
@@ -502,69 +439,34 @@
 
 
 <script>
-    const SUPPLIERS_DATA = [{
-            name: "Atlas Copco",
-            contact: "Emma Davis",
-            phone: "(803) 817-7000",
-            email: "emma.davis@atlascopco.com",
-            address: "2200 Dagen Blvd, Rock Hill, SC 29730",
-            parts: [{
-                    name: "Air Filter Element",
-                    category: "Compressors",
-                    price: 67.25,
-                    status: "In Stock",
-                    part: "AF-2024-012",
-                    id: "CMP-078"
-                },
-                {
-                    name: "Custom Wiring Harness",
-                    category: "Compressors",
-                    price: 45.00,
-                    status: "DNI",
-                    part: "CW-2024-904",
-                    id: "CMP-079"
-                }
-            ]
-        },
-        {
-            name: "Caterpillar Inc.",
-            contact: "Mike Johnson",
-            phone: "(309) 675-1000",
-            email: "mike.johnson@cat.com",
-            address: "100 N.E. Adams St, Peoria, IL 61629",
-            parts: [{
-                name: "Hydraulic Filter",
-                category: "Excavators",
-                price: 45.99,
-                status: "In Stock",
-                part: "HF-2024-001",
-                id: "EXC-045"
-            }]
-        },
-        {
-            name: "Industrial Supply Co.",
-            contact: "Lisa Anderson",
-            phone: "(313) 555-0123",
-            email: "lisa.anderson@indsupplyco.com",
-            address: "455 Industrial Blvd, Detroit, MI 48226",
-            parts: []
-        },
-        {
-            name: "John Deere",
-            contact: "Robert Chen",
-            phone: "(309) 765-8000",
-            email: "robert.chen@deere.com",
-            address: "One John Deere Pl, Moline, IL 61265",
-            parts: [{
-                name: "Oil Pressure Sensor",
-                category: "Engines",
-                price: 32.99,
-                status: "In Stock",
-                part: "OP-2024-018",
-                id: "ENG-022"
-            }]
-        }
-    ];
+    // Define global variable (like your static example)
+    let SUPPLIERS_DATA = [];
+
+    // Call your Laravel API route
+    fetch("{{ route('admin.maintenance-management.parts.get-all-supplier') }}", {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Suppliers data:');
+            console.log(data);
+            console.log('Suppliers data:');
+
+            // Assign response to global variable
+            SUPPLIERS_DATA = data;
+
+            // Example check: log first supplier
+            if (SUPPLIERS_DATA.length > 0) {
+                console.log("First supplier:", SUPPLIERS_DATA[0]);
+            }
+
+            // Now you can use SUPPLIERS_DATA in your modal, dropdown, etc.
+        })
+        .catch(err => {
+            console.error("Error fetching suppliers:", err);
+        });
 
     // Keep a flag so we only mount HTML once
     let supplierModalMounted = false;
@@ -725,10 +627,28 @@
     document.addEventListener("DOMContentLoaded", function() {
         let searchInput = document.querySelector('input[name="search"]');
         let categorySelect = document.querySelector('select[name="category"]');
+        let partlistSelect = document.querySelector('select[name="partlist"]');
+
+
+
         let equipmentSelect = document.querySelector('select[name="equipment_id"]');
         let wrapper = document.querySelector('#parts-table-wrapper');
         let loader = document.querySelector('#parts-loader');
+        let clearBtn = document.querySelector('#clear-filters');
+
         let timeout = null;
+        let selectedStatus = '';
+
+        function updateClearButton() {
+            const hasFilters =
+                (searchInput?.value.trim() !== '') ||
+                (categorySelect && categorySelect.value) ||
+                (partlistSelect && partlistSelect.value) ||
+                (equipmentSelect && equipmentSelect.value) ||
+                (selectedStatus !== '');
+            if (hasFilters) clearBtn?.classList.remove('hidden');
+            else clearBtn?.classList.add('hidden');
+        }
 
         function fetchParts() {
             const params = new URLSearchParams();
@@ -738,9 +658,17 @@
 
             if (categorySelect && categorySelect.value)
                 params.append('category', categorySelect.value);
+             if (partlistSelect && partlistSelect.value)
+                params.append('partlist', partlistSelect.value);
+
 
             if (equipmentSelect && equipmentSelect.value)
                 params.append('equipment_id', equipmentSelect.value);
+
+            if (selectedStatus)
+                params.append('stock_status', selectedStatus);
+
+            updateClearButton();
 
             loader?.classList.remove('hidden');
             wrapper?.classList.add('opacity-50', 'pointer-events-none');
@@ -779,12 +707,152 @@
 
         // Immediate filter changes
         categorySelect?.addEventListener('change', fetchParts);
+        partlistSelect?.addEventListener('change', fetchParts);
+
         equipmentSelect?.addEventListener('change', fetchParts);
+
+        //  Status card click handler
+        const statusCards = document.querySelectorAll('[data-status]');
+        statusCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const newStatus = this.dataset.status;
+
+                // toggle off if same card clicked again
+                if (selectedStatus === newStatus) {
+                    selectedStatus = '';
+                } else {
+                    selectedStatus = newStatus;
+                }
+
+                // remove highlight from all
+                statusCards.forEach(c => c.classList.remove(
+                    'ring-2', 'ring-green-500', 'ring-yellow-500', 'ring-red-500', 'ring-gray-400'
+                ));
+
+                // add highlight to selected one
+                if (selectedStatus) {
+                    switch (selectedStatus) {
+                        case 'in-stock':
+                            this.classList.add('ring-2', 'ring-green-500');
+                            break;
+                        case 'buy-now':
+                            this.classList.add('ring-2', 'ring-yellow-500');
+                            break;
+                        case 'out-of-stock':
+                            this.classList.add('ring-2', 'ring-red-500');
+                            break;
+                        case 'dni':
+                            this.classList.add('ring-2', 'ring-gray-400');
+                            break;
+                    }
+                }
+
+                fetchParts();
+            });
+        });
+
+
+        //  Clear button logic
+        clearBtn?.addEventListener('click', function() {
+            searchInput.value = '';
+            if (categorySelect) categorySelect.value = '';
+            if (partlistSelect) partlistSelect.value = '';
+            if (equipmentSelect) equipmentSelect.value = '';
+            selectedStatus = '';
+
+            // Remove card highlights
+            statusCards.forEach(c => c.classList.remove(
+                'ring-2', 'ring-green-500', 'ring-yellow-500', 'ring-red-500', 'ring-gray-400'
+            ));
+
+            fetchParts();
+        });
+
+        // <!-- delete  -->
+
+        // Fetch templates
+
+
+        let tsearchInput = document.querySelector('input[name="tsearch"]');
+        let tcategorySelect = document.querySelector('select[name="tcategory"]');
+
+        let twrapper = document.querySelector('#templates-table-wrapper');
+
+        function fetchTemplates() {
+            const params = new URLSearchParams();
+
+            if (tsearchInput && (tsearchInput.value.length >= 2 || tsearchInput.value.length === 0))
+                params.append('tsearch', tsearchInput.value);
+
+            if (tcategorySelect && tcategorySelect.value)
+                params.append('tcategory', tcategorySelect.value);
+
+            loader?.classList.remove('hidden');
+            twrapper?.classList.add('opacity-50', 'pointer-events-none');
+
+            fetch("{{ route('admin.maintenance-management.parts.index') }}?" + params.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    twrapper.innerHTML = data.html; // Partial HTML view returned from controller
+                })
+                .catch(err => {
+                    console.error(err);
+                    twrapper.innerHTML = '<div class="text-red-500 p-4">Error loading templates.</div>';
+                })
+                .finally(() => {
+                    loader?.classList.add('hidden');
+                    twrapper?.classList.remove('opacity-50', 'pointer-events-none');
+                });
+        }
+
+        // Search debounce
+        tsearchInput?.addEventListener('input', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(fetchTemplates, 400);
+        });
+
+        // Filter change
+        tcategorySelect?.addEventListener('change', fetchTemplates);
+
+
+        // --- Global delete Template function ---
+        window.deleteTemplate = function(id, name) {
+            window.showConfirm(
+                `Are you sure you want to delete "${name}"?`,
+                'Delete Template'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    let deleteUrl = `{{ route('admin.maintenance-management.parts.parts-list.delete', ['list' => ':id']) }}`;
+                    deleteUrl = deleteUrl.replace(':id', id);
+
+                    fetch(deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                notyf.success(data.message);
+                                fetchTemplates(); // Refresh table after deletion
+                            } else {
+                                notyf.error(data.message || "Failed to delete template!");
+                            }
+                        })
+                        .catch(() => notyf.error("Error deleting template!"));
+                }
+            });
+        };
+
+
     });
 </script>
-
-
-
 
 
 

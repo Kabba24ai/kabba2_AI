@@ -5,7 +5,7 @@
 @section('content')
 
 <div class="min-h-screen">
-    <div class="bg-white border border-gray-200 rounded-md shadow-sm p-6 space-y-4">
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
         <!-- Header Row -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <!-- Title + Description -->
@@ -25,7 +25,7 @@
             </div>
 
             <!-- Edit Button -->
-            <button class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition">
+            <button class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-md font-medium px-6 py-3 rounded-lg shadow-sm transition">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card h-4 w-4"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
                 Edit Template
             </button>
@@ -60,7 +60,7 @@
             
             <!-- Left Card: Assigned Equipment -->
              <div class="lg:col-span-1">
-                <div class="bg-white border border-gray-200 rounded-md shadow-sm p-4 flex flex-col justify-between">
+                <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center gap-2 mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2 h-5 w-5 text-gray-700"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
@@ -93,7 +93,7 @@
 
             <!-- Right Card: Template Parts -->
              <div class="lg:col-span-2">
-                <div class="bg-white border border-gray-200 rounded-md shadow-sm p-4">
+                <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
                     <!-- Header -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">

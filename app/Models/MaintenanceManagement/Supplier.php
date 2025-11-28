@@ -43,7 +43,7 @@ class Supplier extends Model
         'billing_contact_name',
         'billing_contact_email',
         'billing_contact_phone',
-        
+
 
         'company_logo_media_id',
     ];
@@ -134,4 +134,31 @@ class Supplier extends Model
     {
         return $query->where('status', 'Active');
     }
+
+
+    public function primaryParts()
+{
+    return $this->hasMany(Part::class, 'primary_part_supplier_id', 'unique_id');
+}
+
+public function alt1Parts()
+{
+    return $this->hasMany(Part::class, 'alt_1_part_supplier_id', 'unique_id');
+}
+
+public function alt2Parts()
+{
+    return $this->hasMany(Part::class, 'alt_2_part_supplier_id', 'unique_id');
+}
+
+
+public function getAllSuppliedPartsAttribute()
+{
+    return $this->primaryParts
+        ->merge($this->alt1Parts)
+        ->merge($this->alt2Parts)
+        ->unique('id');
+}
+
+
 }

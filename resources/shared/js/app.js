@@ -69,6 +69,45 @@ window.withLoader = function(containerSelector, loaderSelector, asyncFn) {
     });
 };
 
+// filter-freezer.js
+
+// window.FilterFreezer = {
+//     loadFilters(screenKey, fieldMap) {
+//         let saved = JSON.parse(localStorage.getItem(screenKey) || '{}');
+
+//         if (!saved.freeze) return;
+
+//         // Auto-fill filter fields
+//         Object.keys(fieldMap).forEach(key => {
+//             if (saved[key] !== undefined) {
+//                 document.querySelector(fieldMap[key]).value = saved[key];
+//             }
+//         });
+
+//         // Mark freeze checkbox
+//         document.querySelector(fieldMap['freeze']).checked = true;
+//     },
+
+//     saveFilters(screenKey, fieldMap) {
+//         const freezeCheckbox = document.querySelector(fieldMap['freeze']);
+
+//         // If user unchecked freeze → remove saved filters
+//         if (!freezeCheckbox.checked) {
+//             localStorage.removeItem(screenKey);
+//             return;
+//         }
+
+//         // Build object of saved filters
+//         let data = { freeze: true };
+
+//         Object.keys(fieldMap).forEach(key => {
+//             data[key] = document.querySelector(fieldMap[key]).value;
+//         });
+
+//         localStorage.setItem(screenKey, JSON.stringify(data));
+//     }
+// };
+
 
 // Initialize scripts on DOM ready
 document.addEventListener('DOMContentLoaded', () => {

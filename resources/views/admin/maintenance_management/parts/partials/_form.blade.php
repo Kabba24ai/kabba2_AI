@@ -7,13 +7,7 @@
             <label for="part_name" class="block text-sm font-medium text-gray-700 mb-1 required">
                 Part Name
             </label>
-            <!-- <input type="text" id="part_name" name="part_name"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900  @error('part_name') border-red-500 @enderror"
-                placeholder="Enter part name" required
-                value="{{ old('part_name', $part->part_name ?? '') }}">
-            @error('part_name')
-            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-            @enderror -->
+
 
             {!! html()->text('part_name', old('part_name', $part->part_name ?? ''))
             ->class([
@@ -34,32 +28,33 @@
 
         {{-- Assign to List --}}
         <div>
-            <label for="equipment_id" class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="list_id" class="block text-sm font-medium text-gray-700 mb-1">
                 Assign to List
             </label>
-            <select id="equipment_id" name="equipment_id"
+            <select id="list_id" name="list_id"
                 class="w-full px-3 py-3  border border-gray-300 rounded-md text-sm text-gray-900 @error('equipment_id') border-red-500 @enderror">
                 <option value="">None (Optional)</option>
-                <option value="1">Excavator Standard Maintenance</option>
-                <option value="2">Generator Maintenance Parts</option>
-                <option value="3">Compressor Service Kit</option>
-                <option value="4">Loader Basic Parts</option>
-                <option value="5">Dozer Maintenance Template</option>
-                <option value="6">General Supplies</option>
+
+@foreach($list as $l)
+    <option value="{{ $l->id }}"
+        {{ isset($part) && $part->partsLists->contains('id', $l->id) ? 'selected' : '' }}>
+        {{ $l->name }}
+    </option>
+@endforeach
+
+
+
             </select>
 
         </div>
 
         {{-- Current Stock --}}
         <div>
-            <label for="current_stock" class="block text-sm font-medium text-gray-700 mb-1 required ">
+            <label for="current_stock" class="block text-sm font-medium text-gray-700 mb-1  ">
                 Current Stock
             </label>
 
-            <!-- <input type="number" id="current_stock" name="current_stock" min="0"
-                value="{{ old('current_stock', $part->stock_level ?? '') }}"
-                class="w-full px-3 py-2  border border-gray-300 rounded-md text-sm text-gray-900  @error('current_stock') border-red-500 @enderror"
-                placeholder="0"> -->
+
 
             {!! html()->number('current_stock', old('current_stock', $part->stock_level ?? ''))
             ->class([
@@ -77,14 +72,10 @@
 
         {{-- Min Stock --}}
         <div>
-            <label for="min_stock" class="block text-sm font-medium text-gray-700 mb-1 required">
+            <label for="min_stock" class="block text-sm font-medium text-gray-700 mb-1 ">
                 Min Stock
             </label>
 
-            <!-- <input type="number" id="min_stock" name="min_stock" min="0"
-                value="{{ old('min_stock', $part->min_stock ?? '') }}"
-                class="w-full px-3 py-2  border border-gray-300 rounded-md text-sm text-gray-900  @error('min_stock') border-red-500 @enderror"
-                placeholder="0"> -->
 
             {!! html()->number('min_stock', old('min_stock', $part->min_stock ?? ''))
             ->class([
@@ -108,9 +99,6 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 <span class="flex items-center">
 
-                    <!-- <input type="checkbox" id="dni" name="dni" value="1"
-                        {{ old('dni', $part->dni ?? false) ? 'checked' : '' }}
-                        class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2"> -->
 
                     {!! html()->checkbox('dni', old('dni', $part->dni ?? false), 1)
                     ->class('h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2')
@@ -128,7 +116,7 @@
 
         {{-- Part Name --}}
         <div>
-            <label for="part_description" class="block text-sm font-medium text-gray-700 mb-1 required">
+            <label for="part_description" class="block text-sm font-medium text-gray-700 mb-1 ">
                 Description </label>
 
 
@@ -141,12 +129,10 @@
             ->attributes([
             'id' => 'part_description',
             'placeholder' => 'Enter part Description',
-            'required' => true,
+
             ]) !!}
 
-            <!-- <input type="text" id="part_description" name="part_description"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors @error('part_description') border-red-500 @enderror"
-                placeholder="Enter part Description"> -->
+
         </div>
 
         {{-- General Supplier Item --}}
@@ -154,9 +140,6 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 <span class="flex items-center">
 
-                    <!-- <input type="checkbox" id="gsi" name="gsi" value="1"
-
-                        class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2"> -->
 
                     {!! html()->checkbox('gsi', old('gsi', $part->general_supply_item ?? false), 1)
                     ->class('h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2')
@@ -178,14 +161,10 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div class="md:col-span-2">
-                    <label for="part_number" class="block text-sm font-medium text-gray-700 mb-1 required">
+                    <label for="part_number" class="block text-sm font-medium text-gray-700 mb-1 ">
                         Part Number
                     </label>
 
-                    <!-- <input type="text" id="part_number" name="part_number"
-                        value="{{ old('part_number', $part->part_number ?? '') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white @error('part_number') border-red-500 @enderror"
-                        placeholder="Primary part number" required> -->
 
                     {!! html()->text('part_number', old('part_number', $part->primary_part_number ?? ''))
                     ->class([
@@ -196,7 +175,7 @@
                     ->attributes([
                     'id' => 'part_number',
                     'placeholder' => 'Primary part number',
-                    'required' => true,
+
                     ]) !!}
 
                     @error('part_number')
@@ -205,16 +184,13 @@
                 </div>
 
                 <div>
-                    <label for="unit_cost" class="block text-sm font-medium text-gray-700 mb-1 required">
+                    <label for="unit_cost" class="block text-sm font-medium text-gray-700 mb-1 ">
                         Cost
                     </label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
-                        <!-- <input type="number" id="unit_cost" name="unit_cost" step="0.01" min="0" data-digit-input="true"
-                            value="{{ old('unit_cost', $part->unit_cost ?? '') }}"
-                            class="w-full pl-8 pr-3 py-2 border border-gray-300 text-sm rounded-md bg-white @error('unit_cost') border-red-500 @enderror"
-                            placeholder="0.00" required> -->
+
 
                         {!! html()->number('unit_cost', old('unit_cost', $part->primary_part_cost ?? ''))
                         ->class([
@@ -228,7 +204,7 @@
                         'min' => 0,
                         'data-digit-input' => 'true',
                         'placeholder' => '0.00',
-                        'required' => true,
+
                         ]) !!}
 
                     </div>
@@ -239,7 +215,7 @@
             </div>
 
             <div class="mt-4">
-                <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1 required">
+                <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1 ">
                     Supplier
                 </label>
 
@@ -254,7 +230,7 @@
                 ])
                 ->attributes([
                 'id' => 'primary-supplier',
-                'required' => true,
+               
                 ]) !!}
 
                 @error('supplier')

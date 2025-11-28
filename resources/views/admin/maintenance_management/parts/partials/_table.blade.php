@@ -1,12 +1,17 @@
+  <div id="parts-table-wrapper" class="overflow-x-auto max-w-full rounded-2xl shadow border border-gray-200 bg-white">
 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
     <thead class="bg-gray-50 border-b border-gray-200">
         <tr>
-            <th class="py-4 px-6 text-left font-semibold">Part Name</th>
             <th class="py-4 px-6 text-left font-semibold">Category</th>
+
+
             <th class="py-4 px-6 text-left font-semibold">Equipment Name</th>
-            <th class="py-4 px-6 text-left font-semibold">Equipment Id</th>
-            <th class="py-4 px-6 text-left font-semibold">Part Number</th>
-            <th class="py-4 px-6 text-left font-semibold">Supplier</th>
+              <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Part Name</th>
+            <!-- <th class="py-4 px-6 text-left font-semibold">Equipment Id</th> -->
+            <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Part Number</th>
+            <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Parts List</th>
+
+            <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Primary Supplier</th>
             <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Unit Cost</th>
             <th class="py-4 px-6 text-left font-semibold">Stock</th>
             <th class="py-4 px-6 text-left font-semibold">Actions</th>
@@ -18,29 +23,39 @@
 
         <tr class="hover:bg-gray-50 transition-colors">
 
+         <td class="py-4 px-6 whitespace-nowrap">
+                <span class="text-sm text-gray-900">
+                  @if($part->partsLists->isNotEmpty())
+        @foreach($part->partsLists as $list)
+                {{ $list->category->title ?? '—' }}
+
+        @endforeach
+    @else
+        -
+    @endif
+                </span>
+            </td>
+
+
+
+            <td class="py-4 px-6 whitespace-nowrap">
+    <span class="text-sm text-gray-900">
+        @if($part->assigned_equipment_names->isNotEmpty())
+            {{ $part->assigned_equipment_names->implode(', ') }}
+        @else
+            -
+        @endif
+    </span>
+</td>
+
+
+
             <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm font-medium text-gray-900">
                     {{ $part->part_name }}
                 </span>
             </td>
 
-            <td class="py-4 px-6 whitespace-nowrap">
-                <span class="text-sm text-gray-900">
-                    Bulldozers
-                </span>
-            </td>
-
-            <td class="py-4 px-6 whitespace-nowrap">
-                <span class="text-sm text-gray-900">
-                    John Deere 650K Dozer
-                </span>
-            </td>
-
-            <td class="py-4 px-6 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
-                    BUL-058
-                </span>
-            </td>
 
             <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
@@ -48,9 +63,30 @@
                 </span>
             </td>
 
+              <td class="py-4 px-6 whitespace-nowrap">
+                <span class="text-sm text-gray-900">
+@if($part->partsLists->isNotEmpty())
+    <a href="javascript:void(0)"
+       class="text-blue-600 hover:underline font-medium"
+       data-lists='@json($part->partsLists->flatMap(fn($list) => $list->parts->pluck("part_name")))'
+       onclick="openPartListModal(this)">
+        {{ $part->partsLists->pluck('name')->join(', ') }}
+    </a>
+@else
+    -
+@endif
+
+
+
+
+                    <!-- Part List -->
+                </span>
+            </td>
+
+
             <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
-                    {{ optional($part->supplier)->name ?? '—' }}
+                    {{ optional($part->primarySupplier)->name ?? '—' }}
                 </span>
             </td>
 
@@ -81,7 +117,7 @@
             <td class="py-4 px-6 whitespace-nowrap text-sm font-medium">
                 <div class="flex items-center space-x-2">
 
-                    <a href="{{ route('admin.maintenance-management.parts.view') }}" class="text-blue-600 rounded transition-colors" title="View Details">
+                    <a href="{{ route('admin.maintenance-management.parts.view', $part->unique_id) }}" class="text-blue-600 rounded transition-colors" title="View Details">
                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
@@ -111,3 +147,9 @@
     </tbody>
 
 </table>
+</div>
+
+{{-- Pagination --}}
+<div class="mt-6">
+    {{ $parts->links() }}
+</div>

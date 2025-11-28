@@ -74,15 +74,15 @@ class AssignEquipmentController extends Controller
         // $orderProduct->assigned_at = now();
         // $orderProduct->save();
 
-        $equipment->current_status = EquipmentCurrentStatus::Rented->value;
+        // $equipment->current_status = EquipmentCurrentStatus::Rented->value;
         // $equipment->current_status_updated_by = $user->id;
         // $equipment->current_status_changed_at = now();
         // $equipment->current_order_id = $orderProduct->order_id;
         // $equipment->current_order_product_id = $orderProduct->id;
-        $equipment->save();
+        // $equipment->save();
 
-        $orderProduct->softAssignment()->updateOrCreate(
-            [], // no where condition here -> uses order_product_id automatically
+        $orderProduct->softAssignment()->delete();
+        $orderProduct->softAssignment()->create(            
             [
                 'equipment_id' => $equipment->id,
                 'order_id'     => $orderProduct->order_id,

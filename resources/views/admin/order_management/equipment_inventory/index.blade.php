@@ -31,7 +31,7 @@
 
     <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mb-6">
 
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center mb-6">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 
             {{-- Search Input --}}
             <div class="relative w-full sm:w-48">
@@ -71,10 +71,8 @@
                 </select>
             </div>
 
-        </div>
-        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div class="flex flex-wrap items-center gap-6">
-                <!-- Equipment Status -->
+            <!-- Equipment Status -->
+            <div class=" whitespace-nowrap">
                 <div
                     class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
                     <svg class=" w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,7 +93,9 @@
                         Rented
                     </label>
                 </div>
+            </div>
 
+            <div class=" whitespace-nowrap">
                 <!-- Issues & Maintenance -->
                 <div
                     class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
@@ -121,21 +121,32 @@
                     </label>
                 </div>
             </div>
+
         </div>
     </div>
 
-
-    <div id="equipment-table-wrapper" class="bg-white shadow-sm rounded-lg overflow-x-auto h-70 overflow-y-auto mb-5">
-        @include('admin.order_management.equipment_inventory.partials._table')
-    </div>
-
-    <div class="bg-white shadow-sm rounded-lg mb-5">
-        <h2 class="text-lg font-semibold p-5">Unassigned Orders ({{ $orderProducts->total() }})</h2>
-        <div id="schedule-table-wrapper" class="overflow-x-auto h-70 overflow-y-auto">
-            @include('admin.order_management.equipment_inventory.partials._table2', [
-                'orderProducts' => $orderProducts,
-            ])
+    <div class="flex flex-col gap-5 h-[calc(90vh-180px)] min-h-0"> {{-- adjust 180px as needed --}}
+        {{-- Equipment table --}}
+        <div id="equipment-table-wrapper"
+            class="bg-white shadow-sm rounded-lg overflow-x-auto overflow-y-auto flex-1 min-h-0">
+            @include('admin.order_management.equipment_inventory.partials._table')
         </div>
+
+        {{-- Schedule table (only if there are unassigned orders) --}}
+        @if ($orderProducts->total() > 0)
+            <div class="bg-white shadow-sm rounded-lg {{ ($orderProducts->total() > 4) ? 'flex-1' : '' }} flex flex-col min-h-0">
+                <h2 class="text-lg font-semibold p-5">
+                    Unassigned Orders ({{ $orderProducts->total() }})
+                </h2>
+
+                <div id="schedule-table-wrapper"
+                    class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                    @include('admin.order_management.equipment_inventory.partials._table2', [
+                        'orderProducts' => $orderProducts,
+                    ])
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- Equipment Assign Modal -->
@@ -206,6 +217,22 @@
 
 @push('js')
     <script>
+        // const screenKey = "equipment_filters";
+
+        // const fieldMap = {
+        //     category: "#cat",
+        //     location: "#loc",
+        //     freeze: "#freeze"
+        // };
+
+        // // Load saved filters on page load
+        // FilterFreezer.loadFilters(screenKey, fieldMap);
+
+        // // Save filters when form submits
+        // document.getElementById("filterForm").addEventListener("submit", function () {
+        //     FilterFreezer.saveFilters(screenKey, fieldMap);
+        // });
+
         document.querySelectorAll(".tooltip-trigger").forEach(el => {
             const tooltip = document.getElementById("tooltip-global");
 

@@ -1,5 +1,5 @@
 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm ">
-    <thead class="bg-gray-100 text-gray-600 ">
+    <thead class="bg-gray-100 text-gray-600 sticky top-0 z-10">
         <tr>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Category</th>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equipment Name</th>

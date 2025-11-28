@@ -1,5 +1,5 @@
 <table class="min-w-full border-collapse text-sm ">
-    <thead class="font-semibold bg-gray-100 text-gray-600">
+    <thead class="font-semibold bg-gray-100 text-gray-600 sticky top-0 z-10">
         <tr>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Product</th>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Order</th>
@@ -41,8 +41,8 @@
                             data-tooltip="
                     <strong>Categories:</strong><br><br>
                     @foreach ($categories as $cat)
-• {{ $cat->title }} <br>
-@endforeach ">
+                        • {{ $cat->title }} <br>
+                        @endforeach ">
                             Categories ({{ $count }})
                         </span>
                     @endif

@@ -17,7 +17,20 @@ class CreateController extends Controller
 
         $parts = Part::with('category')->get();
 
-        // dd($parts);
+   
+         // Add specific assignment status
+   foreach ($parts as $part) {
+  
+    // Assigned globally?
+    $assignedGlobal = $part->isAssigned();
+
+ 
+    // New variable for blade:
+    $part->assigned_other = $assignedGlobal;
+}
+
+
+
 
         return view('admin.maintenance_management.parts.parts_list.create')->with('parts', $parts)->with('categories', $categories);
     }

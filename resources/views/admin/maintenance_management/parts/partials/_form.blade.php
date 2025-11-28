@@ -7,7 +7,7 @@
             <label for="part_name" class="block text-sm font-medium text-gray-700 mb-1 required">
                 Part Name
             </label>
-          
+
 
             {!! html()->text('part_name', old('part_name', $part->part_name ?? ''))
             ->class([
@@ -34,14 +34,15 @@
             <select id="list_id" name="list_id"
                 class="w-full px-3 py-3  border border-gray-300 rounded-md text-sm text-gray-900 @error('equipment_id') border-red-500 @enderror">
                 <option value="">None (Optional)</option>
-              
 
-                  @foreach($list as $l)
-                    <option value="{{ $l->id }}">
-                        {{ $l->name }}
-                    </option>
-                    @endforeach
-                
+@foreach($list as $l)
+    <option value="{{ $l->id }}"
+        {{ isset($part) && $part->partsLists->contains('id', $l->id) ? 'selected' : '' }}>
+        {{ $l->name }}
+    </option>
+@endforeach
+
+
 
             </select>
 
@@ -53,9 +54,9 @@
                 Current Stock
             </label>
 
-       
 
-            {!! html()->number('current_stock', old('current_stock', $part->stock_level ?? '0'))
+
+            {!! html()->number('current_stock', old('current_stock', $part->stock_level ?? ''))
             ->class([
             'w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900',
             'border-red-500' => $errors->has('current_stock'),
@@ -75,8 +76,8 @@
                 Min Stock
             </label>
 
-         
-            {!! html()->number('min_stock', old('min_stock', $part->min_stock ?? '0'))
+
+            {!! html()->number('min_stock', old('min_stock', $part->min_stock ?? ''))
             ->class([
             'w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900',
             'border-red-500' => $errors->has('min_stock'),
@@ -98,7 +99,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 <span class="flex items-center">
 
-                
+
                     {!! html()->checkbox('dni', old('dni', $part->dni ?? false), 1)
                     ->class('h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2')
                     ->attributes(['id' => 'dni']) !!}
@@ -128,10 +129,10 @@
             ->attributes([
             'id' => 'part_description',
             'placeholder' => 'Enter part Description',
-         
+
             ]) !!}
 
-     
+
         </div>
 
         {{-- General Supplier Item --}}
@@ -139,7 +140,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 <span class="flex items-center">
 
-                 
+
                     {!! html()->checkbox('gsi', old('gsi', $part->general_supply_item ?? false), 1)
                     ->class('h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2')
                     ->attributes(['id' => 'gsi']) !!}
@@ -160,14 +161,10 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div class="md:col-span-2">
-                    <label for="part_number" class="block text-sm font-medium text-gray-700 mb-1 required">
+                    <label for="part_number" class="block text-sm font-medium text-gray-700 mb-1 ">
                         Part Number
                     </label>
 
-                    <!-- <input type="text" id="part_number" name="part_number"
-                        value="{{ old('part_number', $part->part_number ?? '') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white @error('part_number') border-red-500 @enderror"
-                        placeholder="Primary part number" required> -->
 
                     {!! html()->text('part_number', old('part_number', $part->primary_part_number ?? ''))
                     ->class([
@@ -178,7 +175,7 @@
                     ->attributes([
                     'id' => 'part_number',
                     'placeholder' => 'Primary part number',
-                    'required' => true,
+
                     ]) !!}
 
                     @error('part_number')
@@ -187,16 +184,13 @@
                 </div>
 
                 <div>
-                    <label for="unit_cost" class="block text-sm font-medium text-gray-700 mb-1 required">
+                    <label for="unit_cost" class="block text-sm font-medium text-gray-700 mb-1 ">
                         Cost
                     </label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
 
-                        <!-- <input type="number" id="unit_cost" name="unit_cost" step="0.01" min="0" data-digit-input="true"
-                            value="{{ old('unit_cost', $part->unit_cost ?? '') }}"
-                            class="w-full pl-8 pr-3 py-2 border border-gray-300 text-sm rounded-md bg-white @error('unit_cost') border-red-500 @enderror"
-                            placeholder="0.00" required> -->
+
 
                         {!! html()->number('unit_cost', old('unit_cost', $part->primary_part_cost ?? ''))
                         ->class([
@@ -210,7 +204,7 @@
                         'min' => 0,
                         'data-digit-input' => 'true',
                         'placeholder' => '0.00',
-                        'required' => true,
+
                         ]) !!}
 
                     </div>
@@ -221,7 +215,7 @@
             </div>
 
             <div class="mt-4">
-                <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1 required">
+                <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1 ">
                     Supplier
                 </label>
 
@@ -236,7 +230,7 @@
                 ])
                 ->attributes([
                 'id' => 'primary-supplier',
-                'required' => true,
+               
                 ]) !!}
 
                 @error('supplier')

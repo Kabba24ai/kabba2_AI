@@ -22,6 +22,24 @@ class EditController extends Controller
 
         $parts = Part::with('category')->get();
 
+         // Add specific assignment status
+   foreach ($parts as $part) {
+    // Assigned to this current list?
+    $assignedToThis = $part->isAssigned($list->id);
+
+    // Assigned globally?
+    $assignedGlobal = $part->isAssigned();
+
+    // Override assigned field meaning for edit mode:
+    // assigned == assigned to THIS list
+    $part->assigned = $assignedToThis;
+
+    // New variable for blade:
+    $part->assigned_other = $assignedGlobal && !$assignedToThis;
+}
+
+
+
         $selectedPartIds = $list->parts->pluck('id')->toArray();
 
         return view('admin.maintenance_management.parts.parts_list.edit', compact('list', 'categories', 'parts', 'selectedPartIds'));

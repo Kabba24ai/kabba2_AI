@@ -137,6 +137,11 @@
                             'placeholder' => 'https://www.company.com',
                             'id' => 'supplierWebsite',
                             'autocomplete' => 'off',
+                             'data-parsley-type' => 'url',
+      'data-parsley-trigger' => 'change focusout',
+
+            'data-parsley-pattern' => '^(https?:\/\/)?([a-zA-Z0-9.-]+)\.[a-zA-Z]{2,}$',
+'data-parsley-error-message' => 'Enter a valid website URL (company.com or https://company.com)',
                             ]) !!}
 
                         </div>

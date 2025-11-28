@@ -38,7 +38,7 @@ Route::prefix('parts-list')
     Route::post('/create', StoreController::class)->name('store');
 
 
-    Route::get('/view', ViewController::class)->name('view');
+    Route::get('/{unique_id}//view', ViewController::class)->name('view');
 
        Route::get('/{unique_id}/edit', EditController::class)->name('edit');
     Route::put('/{unique_id}/update', UpdateController::class)->name('update');

@@ -14,7 +14,7 @@ class UpdateController extends Controller
     {
 
         $part = Part::where('unique_id',$unique_id)->firstOrFail();
-       
+
         $validated = $request->validated();
 
         DB::beginTransaction();
@@ -30,9 +30,9 @@ class UpdateController extends Controller
                 'is_active'             => true,
 
                 // Primary
-                'primary_part_number'   => $validated['part_number'],
-                'primary_part_cost'     => $validated['unit_cost'],
-                'primary_part_supplier_id' => $validated['supplier'],
+                'primary_part_number'   => $validated['part_number'] ?? null,
+                'primary_part_cost'     => $validated['unit_cost'] ?? 0,
+                'primary_part_supplier_id' => $validated['supplier'] ?? null,
 
                 // Alt 1
                 'alt_1_part_number'     => $validated['part_number_alt_1'] ?? null,
@@ -46,6 +46,13 @@ class UpdateController extends Controller
             ];
 
             $part->update($partData);
+
+
+             // Handle assignment to list
+    if (isset($validated['list_id']) && $validated['list_id']) {
+        // Sync part to selected list (removes old assignments)
+        $part->partsLists()->sync([$validated['list_id']]);
+    }
 
             DB::commit();
 

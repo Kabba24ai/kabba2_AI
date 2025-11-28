@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Tests\IndexController;
 Route::prefix('test')->name('test.')
 ->group(function(){
 
+    Route::get('/send-firebase-notification', [IndexController::class, 'sendFirebaseNotification'])->name('send_firebase_notification');
     Route::get('/list-timezones', [IndexController::class, 'listTimezonesAndCurrentTimes'])->name('list_timezones');
     Route::get('/send-cod-sms', [IndexController::class, 'testSendCodSms'])->name('send_cod_sms');
     Route::get('/update-users-email', [IndexController::class, 'updateUsersEmail'])->name('update_users_email');

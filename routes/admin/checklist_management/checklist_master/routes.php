@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\EditControlle
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\UpdateController;
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\DeleteController;
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\FetchController;
+use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\CopyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,10 @@ Route::prefix('checklist-master')
 
     Route::get('/edit/{unique_id}', EditController::class)->name('edit');
     Route::put('/update/{unique_id}', UpdateController::class)->name('update');
+
+    Route::post('/{id}/copy', CopyController::class)->name('copy');
+
+
 
     Route::delete('/delete/{unique_id}', DeleteController::class)->name('delete');
 

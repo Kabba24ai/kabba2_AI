@@ -85,6 +85,9 @@ function serviceMaster() {
         editCategoryDescription: '',
         editCategoryColor: '',
 
+        // Prevent rapid clicks
+        pendingIntervalUpdates: new Map(),
+
         // Initialize
         init() {
             // sort all data alphabetically for UI
@@ -724,35 +727,59 @@ function serviceMaster() {
         },
 
         async toggleTemplateTaskInterval(templateTask, interval) {
-            const newIntervals = templateTask.intervals.includes(interval)
-                ? templateTask.intervals.filter(i => i !== interval)
-                : [...templateTask.intervals, interval].sort((a, b) => a - b);
+            // Optimistically update UI immediately
+            const currentIntervals = templateTask.intervals || [];
+            const newIntervals = currentIntervals.includes(interval)
+                ? currentIntervals.filter(i => i !== interval)
+                : [...currentIntervals, interval].sort((a, b) => a - b);
 
-            try {
-                if (newIntervals.length === 0) {
-                    await this.removeTemplateTask(templateTask.id);
-                } else {
-                    const response = await fetch(`/maintenance-management/service-master/template-tasks/${templateTask.id}/intervals`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            intervals: newIntervals,
-                        }),
-                    });
+            // Update UI immediately for better UX
+            templateTask.intervals = newIntervals;
 
-                    const data = await response.json();
-                    if (data.success) {
-                        await this.loadTemplateTasks(this.selectedTemplate.id);
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating intervals:', error);
-                alert('Error updating intervals');
+            // Create a unique key for this template task
+            const updateKey = `${templateTask.id}`;
+            
+            // Cancel any pending update for this template task
+            if (this.pendingIntervalUpdates.has(updateKey)) {
+                clearTimeout(this.pendingIntervalUpdates.get(updateKey));
             }
+
+            // Debounce the API call
+            const timeoutId = setTimeout(async () => {
+                try {
+                    if (newIntervals.length === 0) {
+                        await this.removeTemplateTask(templateTask.id);
+                    } else {
+                        const response = await fetch(`/maintenance-management/service-master/template-tasks/${templateTask.id}/intervals`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                intervals: newIntervals,
+                            }),
+                        });
+
+                        const data = await response.json();
+                        if (!data.success) {
+                            // Revert on failure
+                            await this.loadTemplateTasks(this.selectedTemplate.id);
+                            alert('Error updating intervals');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating intervals:', error);
+                    // Revert on error
+                    await this.loadTemplateTasks(this.selectedTemplate.id);
+                    alert('Error updating intervals');
+                } finally {
+                    this.pendingIntervalUpdates.delete(updateKey);
+                }
+            }, 300); // Wait 300ms after last click
+
+            this.pendingIntervalUpdates.set(updateKey, timeoutId);
         },
 
         async removeTemplateTask(templateTaskId) {

@@ -8,7 +8,7 @@
 @section('content')
     {{-- Page header --}}
     <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Default Funnels</h3>
+        <h3 class="text-2xl font-bold text-gray-900">Default Funnels</h3>
     </div>
 
     {{-- Flash  --}}

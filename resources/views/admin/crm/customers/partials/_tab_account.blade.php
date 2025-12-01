@@ -14,7 +14,7 @@
     value='{{ $customer->tag_objects }}'>
 
 
-<div class="bg-white p-6 rounded shadow mt-6 mb-0">
+<div class="bg-white p-6 rounded-xl shadow mt-6 mb-0">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Title and Description -->
         <div>
@@ -27,14 +27,14 @@
             <span class="text-sm text-gray-700 mr-2 sm:mr-0 sm:mb-1 mb-1">Admin Actions:</span>
             <div class="flex flex-wrap items-center gap-2">
                 @if($customer->status!='Archived')
-                <button onclick="confirmAndSuspend({{ $customer->id }})" type="button" class="bg-red-600 text-white px-4 py-2 rounded text-sm static-view">Suspend Account</button>
+                <button onclick="confirmAndSuspend({{ $customer->id }})" type="button" class="bg-red-600 text-white px-6 py-3 rounded-lg text-md static-view">Suspend Account</button>
                 @elseif($customer->status!='Active')
-                <button onclick="confirmAndActive({{ $customer->id }})" type="button" class="bg-green-600 text-white px-4 py-2 rounded text-sm static-view">Activate Account</button>
+                <button onclick="confirmAndActive({{ $customer->id }})" type="button" class="bg-green-600 text-white px-6 py-3 rounded-lg text-md static-view">Activate Account</button>
                 @endif
-                <button type="button" id="openResetPasswordModal" class="bg-yellow-500 text-white px-4 py-2 rounded text-sm static-view">Reset Password</button>
-                <button id="editBtn" type="button" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"> Edit Information</button>
-                <button type="submit" id="saveBtn" style="display:none;" class="saveBtn bg-green-600 text-white px-4 py-2 rounded text-sm">Save Changes</button>
-                <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Cancel</button>
+                <button type="button" id="openResetPasswordModal" class="bg-yellow-500 text-white px-6 py-3 rounded-lg text-md static-view">Reset Password</button>
+                <button id="editBtn" type="button" class="bg-blue-600 inline-flex items-center px-6 py-3 text-white text-md font-medium rounded-lg hover:bg-green-700 transition"> Edit Information</button>
+                <button type="submit" id="saveBtn" style="display:none;" class="saveBtn bg-green-600 text-white px-6 py-3 rounded-lg text-md">Save Changes</button>
+                <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-6 py-3 rounded-lg text-md">Cancel</button>
             </div>
         </div>
     </div>
@@ -42,7 +42,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
     <!-- Personal Information -->
-    <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
         <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
             <x-heroicon-o-user class="w-5 h-5 text-gray-900" /> Personal Information
         </h3>
@@ -51,11 +51,11 @@
             <div class="min-w-0">
                 <label class="text-xs text-gray-500 font-medium ">First Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->first_name ?? '' }}</div>
-                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full bor der border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
+                <!-- <input class="edit-view pl-2 pr-2 px-3 py-3 w-full bor der border-gray-300 rounded-md text-sm" value="{{ $customer->first_name ?? '' }}" /> -->
 
                 {!! html()->text('first_name', old('first_name', $customer->first_name ?? ''))
                 ->class([
-                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                 'border-red-500' => $errors->has('first_name'),
                 ])
                 ->attributes([
@@ -70,11 +70,11 @@
             <div class="min-w-0">
                 <label class="text-xs text-gray-500 font-medium ">Last Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->last_name ?? '' }}</div>
-                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
+                <!-- <input class="edit-view pl-2 pr-2 px-3 py-3 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->last_name ?? '' }}" /> -->
 
                 {!! html()->text('last_name', old('last_name', $customer->last_name ?? ''))
                 ->class([
-                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                 'border-red-500' => $errors->has('last_name'),
                 ])
                 ->attributes([
@@ -95,11 +95,11 @@
                     </p>
                 </div>
                 <!-- Edit View -->
-                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" type="email" value="{{ $customer->email ?? '' }}" /> -->
+                <!-- <input class="edit-view pl-2 pr-2 px-3 py-3 w-full border border-gray-300 rounded-md text-sm" type="email" value="{{ $customer->email ?? '' }}" /> -->
 
                 {!! html()->email('email', old('email', $customer->email ?? ''))
                 ->class([
-                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                 'border-red-500' => $errors->has('email'),
                 ])
                 ->attributes([
@@ -127,11 +127,11 @@
                     </p>
                 </div>
                 <!-- Edit View -->
-                <!-- <input class="masked-phone edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->phone ?? '' }}" /> -->
+                <!-- <input class="masked-phone edit-view pl-2 pr-2 px-3 py-3 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->phone ?? '' }}" /> -->
 
                 {!! html()->text('phone', old('phone', $customer->phone ?? ''))
                 ->class([
-                'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'masked-phone edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                 'border-red-500' => $errors->has('phone'),
                 ])
                 ->attributes([
@@ -151,7 +151,7 @@
     </div>
 
     <!-- Company Information -->
-    <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
         <h3 class="text-md font-semibold mb-4 flex items-center gap-1">
             <x-heroicon-o-building-office class="w-5 h-5 text-gray-900" /> Company Information
         </h3>
@@ -159,11 +159,11 @@
             <div>
                 <label class="text-xs text-gray-500 font-medium ">Company Name </label>
                 <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
-                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
+                <!-- <input class="edit-view pl-2 pr-2 px-3 py-3 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
 
                 {!! html()->text('company_name', old('company_name', $customer->company_name ?? ''))
                 ->class([
-                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                 'border-red-500' => $errors->has('company_name'),
                 ])
                 ->attributes([
@@ -184,12 +184,12 @@
                     </p>
                 </div>
                 <!-- Edit View -->
-                <!-- <input class="masked-phone edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_phone ?? '' }}" /> -->
+                <!-- <input class="masked-phone edit-view pl-2 pr-2 px-3 py-3 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_phone ?? '' }}" /> -->
 
 
                 {!! html()->text('company_phone', old('company_phone', $customer->company_phone ?? ''))
                 ->class([
-                'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'masked-phone edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                 'border-red-500' => $errors->has('company_phone'),
                 ])
                 ->attributes([
@@ -222,7 +222,7 @@
                     'http://' => 'http://',
                     ], old('website_protocol', $website_protocol ?? null))
                     ->class([
-                    'edit-view w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                    'edit-view w-2/6 border rounded-md lg:px-1 px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                     'border-red-500' => $errors->has('website_protocol'),
                     'border-gray-300' => !$errors->has('website_protocol'),
                     ])
@@ -232,7 +232,7 @@
                     {{-- Website Name --}}
                     {!! html()->text('company_website', old('company_website',$company_website ?? null))
                     ->class([
-                    'edit-view w-4/6 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                    'edit-view w-4/6 border rounded-md px-3 px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                     'border-red-500' => $errors->has('company_website'),
                     'border-gray-300' => !$errors->has('company_website'),
                     ])
@@ -249,7 +249,7 @@
                     '.gov' => '.gov',
                     ], old('website_extension', $website_extension ?? null))
                     ->class([
-                    'edit-view w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
+                    'edit-view w-2/6 border rounded-md lg:px-1 px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
                     'border-red-500' => $errors->has('website_extension'),
                     'border-gray-300' => !$errors->has('website_extension'),
                     ])
@@ -275,7 +275,7 @@ $defaultAddresses = [
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
     @foreach ($defaultAddresses as $index => $addressItem)
     @php $addresse = $addressItem['data']; @endphp
-    <div class="address-block bg-white rounded-lg shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
+    <div class="address-block bg-white rounded-xl shadow-sm p-5 border border-gray-200" data-index="{{ $index }}">
         <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id ?? '' }}" class="address_id">
         <input type="hidden" name="addresses[{{ $index }}][type]" value="{{ $addressItem['label'] }}" class="type">
         <input type="hidden" name="addresses[{{ $index }}][is_primary]" value="{{ $addresse?->is_primary ? 1 : 0 }}" class="is_primary_input">
@@ -313,7 +313,7 @@ $defaultAddresses = [
                     <label class="text-xs text-gray-500 font-medium ">First Name </label>
                     {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
                     ->class([
-                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has("addresses.$index.first_name"),
                     ])
                     ->attributes([
@@ -325,7 +325,7 @@ $defaultAddresses = [
                     <label class="text-xs text-gray-500 font-medium ">Last Name </label>
                     {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
                     ->class([
-                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has("addresses.$index.last_name"),
                     ])
                     ->attributes([
@@ -362,7 +362,7 @@ $defaultAddresses = [
                 </div>
                 {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))
                 ->class([
-                'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                 'border-red-500' => $errors->has("addresses.$index.address"),
                 ])
                 ->attributes([
@@ -376,7 +376,7 @@ $defaultAddresses = [
                     <label class="text-xs text-gray-500 font-medium ">City </label>
                     {!! html()->text("addresses[$index][city]", old("addresses.$index.city", $addresse->city ?? ''))
                     ->class([
-                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has("addresses.$index.city"),
                     ])
                     ->attributes([
@@ -388,7 +388,7 @@ $defaultAddresses = [
                     <label class="text-xs text-gray-500 font-medium ">Zip Code </label>
                     {!! html()->text("addresses[$index][zip_code]", old("addresses.$index.zip_code", $addresse->zip_code ?? ''))
                     ->class([
-                    'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has("addresses.$index.zip_code"),
                     ])
                     ->attributes([
@@ -409,7 +409,7 @@ $defaultAddresses = [
                     old("addresses.$index.state_id", $addresse->state_id ?? '')
                     )
                     ->class([
-                    'pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm state_id',
+                    'pl-2 pr-2 px-3 py-3 w-full border border-gray-300 rounded-md text-sm state_id',
                     'border-red-500' => $errors->has("addresses.$index.state_id"),
                     ]) !!}
                 </div>
@@ -424,7 +424,7 @@ $defaultAddresses = [
                     'India' => 'India',
                     ], old("addresses.$index.Country", $addresse->country ?? 'USA')
                     ) // default to USA if old or user value is not set
-                    ->class('pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm Country')
+                    ->class('pl-2 pr-2 px-3 py-3 w-full border border-gray-300 rounded-md text-sm Country')
                     ->attributes([
                     'autocomplete' => 'off',
                     ])
@@ -439,7 +439,7 @@ $defaultAddresses = [
 
                     {!! html()->text("addresses[$index][phone]", old("addresses.$index.phone", $addresse->phone ?? ''))
                     ->class([
-                    'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'masked-phone edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has('phone'),
                     ])
                     ->attributes([
@@ -468,7 +468,7 @@ $defaultAddresses = [
         <!-- Tags and Notes -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
             <!-- Tags -->
-            <div class="edit-view bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
+            <div class="edit-view bg-white rounded-xl shadow border border-gray-200 p-6 flex flex-col">
                 <div class="flex items-center justify-between mb-2">
                     <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
                     <button type="button" onclick="openTagModal()"
@@ -489,7 +489,7 @@ $defaultAddresses = [
 
 
             <!-- Notes Section -->
-            <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
+            <div class="bg-white rounded-xl shadow border border-gray-200 p-6 flex flex-col">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">Notes</label>
                     <button type="button" id="addNoteBtn"
@@ -510,7 +510,7 @@ $defaultAddresses = [
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-4 flex flex-col h-full">
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-4 flex flex-col h-full">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
             <!-- Assign to Funnels -->
@@ -528,7 +528,7 @@ $defaultAddresses = [
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
     <!-- Account Status -->
-    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
         <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
             <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -578,7 +578,7 @@ $defaultAddresses = [
                 ], old('is_credit_account', $customer->is_credit_account ?? ''))
                 ->id('is_credit_account')
                 ->class([
-                'edit-view border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 ',
+                'edit-view border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 ',
                 ])
                 !!}
 
@@ -596,7 +596,7 @@ $defaultAddresses = [
     </div>
 
     <!-- Credit Information -->
-    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
         <div class="flex gap-2 items-start mb-4">
             <h3 class="text-base font-semibold flex items-center gap-1">
                 <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
@@ -631,7 +631,7 @@ $defaultAddresses = [
                 ->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
                 ->id('credit_limit')
                 ->class([
-                'border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 edit-view',
+                'border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 edit-view',
                 ])->placeholder('Select Credit Limit')
                 !!}
 
@@ -685,7 +685,7 @@ $defaultAddresses = [
 
 </div>
 
-<div class="bg-white p-4 rounded-lg shadow border border-gray-200 mt-6 mb-0">
+<div class="bg-white p-4 rounded-xl shadow border border-gray-200 mt-6 mb-0">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
 
     </div>
@@ -724,7 +724,7 @@ $defaultAddresses = [
                 ], old('tax_status', $customer->tax_status ?? ''))
                 ->id('tax_status')
                 ->class([
-                'edit-view border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300',
+                'edit-view border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300',
                 ])
                 !!}
 
@@ -739,7 +739,7 @@ $defaultAddresses = [
 
                 <div class="edit-view">
                     <input
-                        class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                        class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
                         value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) }}"
                         type="text"
                         name="tax_document_valid_until"
@@ -759,7 +759,7 @@ $defaultAddresses = [
                 </div>
                 <div class="edit-view">
                     <input
-                        class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
+                        class="w-full sm:w-32 md:w-32 border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300"
                         type="text"
                         value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) }}"
                         name="tax_document_upload_date"
@@ -774,7 +774,7 @@ $defaultAddresses = [
         <div class="flex flex-col items-start md:items-end gap-2 text-left w-auto">
             <div class="md:text-right mb-4">
                 <a href="javascript:void(0)" id="opentaxdocModal"
-                    class="edit-view px-4 mt-3 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                    class="edit-view px-4 mt-3 px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
                     Manage Tax Documents
                 </a>
             </div>
@@ -865,14 +865,14 @@ $defaultAddresses = [
                         'Resale Certificate' => 'Resale Certificate',
                         'Non-Profit Exemption' => 'Non-Profit Exemption'
                         ])
-                        ->class('w-full border border-gray-300 rounded px-3 py-2 text-sm')->required()
+                        ->class('w-full border border-gray-300 rounded px-3 py-3  text-sm')->required()
                         !!}
                     </div>
 
                     <!-- Buttons -->
                     <div class="mt-5 flex justify-end gap-2">
-                        <button type="button" id="cancelBtntaxdoc" class="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
-                        <button type="submit" class="saveBtntax px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
+                        <button type="button" id="cancelBtntaxdoc" class="px-6 py-3 border border-gray-300 rounded-lg text-md">Cancel</button>
+                        <button type="submit" class="saveBtntax px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-teal-700">Upload Document</button>
                     </div>
 
                     {!! html()->form()->close() !!}
@@ -925,7 +925,7 @@ $defaultAddresses = [
                     <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
                     <div class="relative">
                         {{ html()->password('password')->attributes([
-                    'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                    'class' => 'pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                     'required' => true,
                     'id' => 'password',
                     'data-parsley-minlength' => '6',
@@ -952,7 +952,7 @@ $defaultAddresses = [
                     <label class="block text-sm font-medium text-gray-700 mb-1">Password Confirmation</label>
                     <div class="relative">
                         {{ html()->password('password_confirmation')->attributes([
-                'class' => 'pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                'class' => 'pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
                 'required' => true,
                 'id' => 'password_confirmation',
                 'data-parsley-equalto' => '#password',
@@ -970,10 +970,10 @@ $defaultAddresses = [
                 </div>
 
                 <div class="flex justify-end gap-2 pb-4">
-                    <button type="button" id="cancelResetPasswordBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                    <button type="button" id="cancelResetPasswordBtn" class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                    <button type="submit" class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
                         Update Password
                     </button>
                 </div>
@@ -1027,7 +1027,7 @@ $defaultAddresses = [
                     'userSelect',
                     $employees->pluck('full_name', 'id')->toArray()
                     )->id('userSelect')->class([
-                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                    'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
                     ]) !!}
 
                 </div>
@@ -1035,14 +1035,14 @@ $defaultAddresses = [
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1 required">Note</label>
                     <textarea id="note_text" rows="5"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500"
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500"
                         placeholder="Enter note..."></textarea>
                 </div>
             </div>
 
             <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
-                <button type="button" onclick="closeNotesModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
-                <button type="button" id="saveNoteBtn" class="px-4 py-2 text-sm rounded border border-grey-300 bg-blue-600 text-white">Save</button>
+                <button type="button" onclick="closeNotesModal()" class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white">Close</button>
+                <button type="button" id="saveNoteBtn" class="px-6 py-3 text-md rounded-lg border border-grey-300 bg-blue-600 text-white">Save</button>
             </div>
         </div>
     </div>

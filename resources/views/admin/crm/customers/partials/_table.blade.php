@@ -1,16 +1,16 @@
-<div class="overflow-x-auto rounded-lg shadow border border-gray-200 bg-white dark:bg-gray-900">
+<div class="overflow-x-auto rounded-xl shadow border border-gray-200 bg-white dark:bg-gray-900">
 
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-        <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+        <thead class="bg-gray-50 text-gray-600 border-b border-gray-200">  
             <tr>
-                <th class="px-4 py-3 text-left cus-width-3"><input type="checkbox" id="select-all-checkbox" /></th>
-                <th class="cus-width-20 px-4 py-3 text-left font-semibold">Customer</th>
-                <th class="cus-width-20 px-4 py-3 text-left font-semibold">Company</th>
-                <th class="cus-width-15 px-4 py-3 text-left font-semibold">Phone</th>
-                <th class="cus-width-15 px-4 py-3 text-left font-semibold">Status</th>
-                <th class="cus-width-10 px-4 py-3 text-left font-semibold">Orders</th>
-                <th class="cus-width-10 px-4 py-3 text-left font-semibold">Total Spent</th>
-                <th class="cus-width-10 px-4 py-3 text-left font-semibold">Actions</th>
+                <th class="py-4 px-6 text-left cus-width-3"><input type="checkbox" id="select-all-checkbox" /></th>
+                <th class="cus-width-20 py-4 px-6 text-left font-semibold">Customer</th>
+                <th class="cus-width-20 py-4 px-6 text-left font-semibold">Company</th>
+                <th class="cus-width-15 py-4 px-6 text-left font-semibold">Phone</th>
+                <th class="cus-width-15 py-4 px-6 text-left font-semibold">Status</th>
+                <th class="cus-width-10 py-4 px-6 text-left font-semibold">Orders</th>
+                <th class="cus-width-10 py-4 px-6 text-left font-semibold whitespace-nowrap">Total Spent</th>
+                <th class="cus-width-10 py-4 px-6 text-left font-semibold">Actions</th>
             </tr>
         </thead>
 
@@ -20,14 +20,14 @@
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-900 dark:text-gray-100">
             @forelse($customers as $customer)
             <tr id="customer-row-{{ $customer->unique_id }}">
-                <td class="px-4 py-3">
+                <td class="py-4 px-6">
                     <input type="checkbox" class="customer-checkbox" value="{{ $customer->unique_id }}" />
                 </td>
-                <td class="px-4 py-3">
+                <td class="py-4 px-6">
                     <div class="font-medium">{{ $customer->full_name }}</div>
                     <!-- <div class="text-gray-500 text-xs">{{ $customer->unique_id }}</div> -->
                 </td>
-                <td class="px-4 py-3">
+                <td class="py-4 px-6">
                     {{ $customer->company_name }}
 
                     <a
@@ -45,7 +45,7 @@
 
                     </a>
                 </td>
-                <td class="px-4 py-3  whitespace-nowrap">
+                <td class="py-4 px-6 whitespace-nowrap">
                     <div class="flex items-center gap-1">
                         <x-heroicon-o-phone class="h-4 w-4 text-gray-400" />
                         <span> {{ \App\Helpers\CustomHelper::formatPhone($customer->phone ?? '') ?: 'N/A' }}
@@ -89,7 +89,7 @@
                 @endphp
 
 
-                <td class="px-4 py-3 inline-flex whitespace-nowrap">
+                <td class="py-4 px-6 inline-flex whitespace-nowrap">
                     <span
                         class="items-center gap-2 px-2 py-1 text-xs font-medium rounded-full {{ $style['bg'] }} {{ $style['text'] }} px-2 py-0.5 text-xs font-medium">
                         {{ $style['label'] }}
@@ -105,15 +105,15 @@
 
                 </td>
 
-                <td class="px-4 py-3 whitespace-nowrap">
+                <td class="py-4 px-6 whitespace-nowrap">
                     <span
                         class="inline-block rounded-full bg-blue-100 text-blue-600 px-2 py-0.5 text-xs font-medium">
                         {{ $customer->orders->count() }} orders</span>
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap">
+                <td class="py-4 px-6 whitespace-nowrap">
                     {{ \App\Helpers\CustomHelper::formatCurrency($customer->total_order_amount) }}
                 </td>
-                <td class="px-4 py-3 space-x-2 whitespace-nowrap">
+                <td class="py-4 px-6 space-x-2 whitespace-nowrap">
                     <a href="{{ route('admin.crm.customers.view', $customer->unique_id) }}">
 
                         <button class="text-blue-600 hover:text-blue-800" title="View">

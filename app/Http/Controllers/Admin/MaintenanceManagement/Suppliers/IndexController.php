@@ -44,18 +44,24 @@ class IndexController extends Controller
 
 
         // Search by tags
-        if ($request->filled('tags_search')) {
-            $tagNames = array_map('trim', explode(',', $request->tags_search));
-            $tagIds = \App\Models\MaintenanceManagement\SupplierTag::whereIn('name', $tagNames)->pluck('id')->toArray();
+        // if ($request->filled('tags_search')) {
+        //     $tagNames = array_map('trim', explode(',', $request->tags_search));
+        //     $tagIds = \App\Models\MaintenanceManagement\SupplierTag::whereIn('name', $tagNames)->pluck('id')->toArray();
 
-            if (!empty($tagIds)) {
-                $query->where(function ($q) use ($tagIds) {
-                    foreach ($tagIds as $tagId) {
-                        $q->orWhereRaw('FIND_IN_SET(?, tags)', [$tagId]);
-                    }
-                });
-            }
-        }
+        //     if (!empty($tagIds)) {
+        //         $query->where(function ($q) use ($tagIds) {
+        //             foreach ($tagIds as $tagId) {
+        //                 $q->orWhereRaw('FIND_IN_SET(?, tags)', [$tagId]);
+        //             }
+        //         });
+        //     }
+        // }
+
+        // Filter by Tag ID
+if ($request->filled('tag')) {
+    $tagId = $request->tag;
+    $query->whereRaw('FIND_IN_SET(?, tags)', [$tagId]);
+}
 
 
 

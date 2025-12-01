@@ -1,4 +1,4 @@
- <div class="bg-white p-6 rounded shadow-sm space-y-6 mt-6">
+ <div class="bg-white p-6 rounded-xl shadow-sm space-y-6 mt-6">
      <!-- Header -->
      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
          <div>
@@ -7,7 +7,7 @@
          </div>
 
          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md font-medium">
+             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
                  + Create Invoice
              </a>
              <div class="text-left sm:text-right">
@@ -22,7 +22,7 @@
  <!-- Invoice Status Cards -->
  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
      <!-- Paid -->
-     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm">
+     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
          <div>
              <p class="text-sm text-gray-500">Paid Invoices</p>
              <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_paid_invoices) }} </p>
@@ -40,7 +40,7 @@
      </div>
 
      <!-- Pending -->
-     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm">
+     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
          <div>
              <p class="text-sm text-gray-500">Pending Invoices</p>
              <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_pending_invoices) }} </p>
@@ -53,7 +53,7 @@
      </div>
 
      <!-- Overdue -->
-     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm ">
+     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm ">
          <div>
              <p class="text-sm text-gray-500">Overdue Invoices</p>
              <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_overdue_invoices) }}</p>
@@ -72,13 +72,13 @@
      </div>
  </div>
 
- <div class="bg-white rounded-md shadow-sm mt-6 mb-6">
+ <div class="bg-white rounded-2xl shadow-sm mt-6 mb-6">
      <!-- Header with Filter -->
      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200 p-4">
          <h2 class="text-base font-semibold text-gray-800">Invoices</h2>
          <div>
              <label for="invoiceFilter" class="text-sm font-medium text-gray-700 mr-2">Filter by Status:</label>
-             <select id="invoiceFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+             <select id="invoiceFilter" class="border border-gray-300 rounded-md px-3 py-3 text-sm">
                  <option value="all">All Orders</option>
                  <option value="paid">paid</option>
                  <option value="overdue">overdue</option>
@@ -101,41 +101,41 @@
 
          <!-- Table -->
          <table id="invoiceMainTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
-             <thead class="border-b bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+             <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
                  <tr>
-                     <th class="px-4 py-3">Invoice</th>
-                     <th class="px-4 py-3">Customer</th>
-                     <th class="px-4 w-32 py-3">Created</th>
-                     <th class="px-4 w-32 py-3">Due Date</th>
-                     <th class="px-4 w-32 py-3 text-right">Amount</th>
-                     <th class="px-4 w-32 py-3 text-right">Payment Status</th>
-                     <th class="px-4 w-32 py-3 text-right">Mail Status</th>
+                     <th class="py-4 px-6">Invoice</th>
+                     <th class="py-4 px-6">Customer</th>
+                     <th class="py-4 px-6 w-32">Created</th>
+                     <th class="py-4 px-6 w-32">Due Date</th>
+                     <th class="py-4 px-6 w-32 text-right">Amount</th>
+                     <th class="py-4 px-6 w-32 text-right">Payment Status</th>
+                     <th class="py-4 px-6 w-32 text-right">Mail Status</th>
 
-                     <th class="px-4 py-3 w-24 text-right">Action</th>
+                     <th class="py-4 px-6 w-24 text-right">Action</th>
                  </tr>
              </thead>
 
              <tbody id="invoiceTable" class="divide-y divide-gray-200">
                  @forelse($customer->invoices as $invoice)
                  <tr class="invoice-row" data-status="{{ $invoice->invoice_status }}">
-                     <td class="px-4 py-3 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
-                     <td class="px-4 py-3 whitespace-nowrap  truncate min-w-3xs max-w-3xs">
+                     <td class="py-4 px-6 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
+                     <td class="py-4 px-6 whitespace-nowrap  truncate min-w-3xs max-w-3xs">
                          <div class="text-sm">
                              <div class="font-medium text-gray-900">{{ $customer->company_name }}</div>
                              <div class="text-gray-500">{{ $customer->full_name }}</div>
                          </div>
                      </td>
-                     <td class="px-4 py-3">
+                     <td class="py-4 px-6">
 
                          {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}
 
                      </td>
-                     <td class="px-4 py-3">
+                     <td class="py-4 px-6">
                          {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
                      </td>
-                     <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
+                     <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
-                     <td class="px-4 py-3 text-right">
+                     <td class="py-4 px-6 text-right">
                          @php
                          $statusColors = [
                          'paid' => 'green',
@@ -152,7 +152,7 @@
                     
 
 
-                     <td class="px-4 py-3 text-right">
+                     <td class="py-4 px-6 text-right">
                          @php
                          $mailstatusColors = [
                          'send' => ['color' => 'green', 'label' => 'Sent'],
@@ -177,7 +177,7 @@
                      </td>
 
 
-                     <td class="px-4 py-3 whitespace-nowrap">
+                     <td class="py-4 px-6 whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
                              <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}" target="_blank" class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
@@ -196,7 +196,7 @@
                  </tr>
                  @empty
                  <tr>
-                     <td colspan="7" class="text-center px-4 py-3">No invoices found</td>
+                     <td colspan="7" class="text-center py-4 px-6">No invoices found</td>
                  </tr>
                  @endforelse
              </tbody>

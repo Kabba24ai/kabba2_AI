@@ -56,23 +56,23 @@
             <!-- Field 2: Status -->
             <div class="w-40 min-w-[150px]">
                 <select id="status" name="status" required
-                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full border border-gray-300 rounded-md px-6 py-3 text-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                     <option value="Archived">Archived</option>
                 </select>
             </div>
-            <button type="submit" name="action" value="save" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-sm font-semibold shadow transition"> Save
+            <button type="submit" name="action" value="save" class="inline-flex items-center px-6 py-3 rounded-md text-white bg-teal-600 hover:bg-teal-700 text-md font-semibold shadow transition"> Save
                 <x-heroicon-o-check class="w-4 h-4 ml-2" />
             </button>
 
             <!-- Save & New Button -->
-            <button type="submit" name="action" value="save_new" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-semibold shadow transition"> Save & New
+            <button type="submit" name="action" value="save_new" class="inline-flex items-center px-6 py-3 rounded-md text-white bg-green-600 hover:bg-green-700 text-md font-semibold shadow transition"> Save & New
                 <x-heroicon-o-plus class="w-4 h-4 ml-2" />
             </button>
 
             <!-- Save & Exit Button -->
-            <button type="submit" name="action" value="save_exit" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold shadow transition"> Save & Exit
+            <button type="submit" name="action" value="save_exit" class="inline-flex items-center px-6 py-3 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-md font-semibold shadow transition"> Save & Exit
                 <x-heroicon-o-arrow-right-on-rectangle class="w-4 h-4 ml-2" />
             </button>
         </div>

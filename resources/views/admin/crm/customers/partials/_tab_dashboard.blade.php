@@ -1,6 +1,6 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
     <!-- Left Card -->
-    <div class="bg-white rounded-md border border-gray-200 shadow-sm p-6">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
             <!-- Left: Customer Info -->
@@ -40,7 +40,7 @@
 
 <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
     <!-- Contact Information -->
-    <div class="bg-white rounded-md shadow-sm p-5">
+    <div class="bg-white rounded-xl shadow-sm p-5">
         <h3 class="text-base font-semibold text-gray-900 flex items-center gap-1 mb-4">
             <svg class="w-5 h-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"></path>
@@ -78,7 +78,7 @@
         </div>
     </div>
     <!-- Address Information -->
-    <div class="bg-white rounded-md shadow-sm p-5  overflow-y-scroll overflow-x-hidden">
+    <div class="bg-white rounded-xl shadow-sm p-5  overflow-y-scroll overflow-x-hidden">
         <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
             <svg class="w-5 h-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
@@ -200,7 +200,7 @@
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4  mx-auto mt-6">
     <!-- Current Balance -->
-    <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+    <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
         <div class="bg-blue-100 text-blue-600 rounded-md p-2">
             <!-- Dollar Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6">
@@ -222,7 +222,7 @@
     </div>
 
     <!-- Available Credit -->
-    <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+    <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
         <div class="bg-green-100 text-green-600 rounded-md p-2">
             <!-- Trending Up Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6">
@@ -244,7 +244,7 @@
     </div>
 
     <!-- Open Invoices -->
-    <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+    <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
         <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
             <!-- Document Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-6 h-6">
@@ -262,7 +262,7 @@
     </div>
 
     <!-- Last Payment -->
-    <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+    <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
         <div class="bg-green-100 text-green-600 rounded-md p-2">
             <!-- Calendar Icon -->
             <x-heroicon-o-calendar class="w-6 h-6 text-green-500" />
@@ -274,7 +274,7 @@
     </div>
 </div>
 
-<div class=" mx-auto  bg-white rounded-md shadow-sm mt-6">
+<div class=" mx-auto  bg-white rounded-2xl shadow-sm mt-6">
     <div class="flex items-center p-4 justify-between border-b border-gray-200">
         <h2 class="text-base font-semibold text-gray-900">Recent Orders</h2>
         <a href="#" class="text-sm text-blue-600" id="viewAllOrdersLink">View All</a>
@@ -282,15 +282,15 @@
 
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
-            <thead class="border-b bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+            <thead class="border-b bg-gray-50 font-semibold text-gray-700 border-gray-200"> 
                 <tr>
-                    <th class="px-4 py-3">Order ID</th>
-                    <th class="px-4 py-3">Product Name</th>
-                    <th class="px-4 w-32 py-3">Amount</th>
-                    <th class="px-4 w-32 py-3 text-right">Payment Methods</th>
-                    <th class="px-4 w-32 py-3 text-right">Status</th>
-                    <th class="px-4 w-32 py-3 text-right">Created</th>
-                    <th class="px-4 w-24 py-3 text-end">Action</th>
+                    <th class="py-4 px-6">Order ID</th>
+                    <th class="py-4 px-6">Product Name</th>
+                    <th class="py-4 px-6 w-32 ">Amount</th>
+                    <th class="py-4 px-6 w-32  text-right">Payment Methods</th>
+                    <th class="py-4 px-6 w-32 text-right">Status</th>
+                    <th class="py-4 px-6 w-32 text-right">Created</th>
+                    <th class="py-4 px-6 w-24 text-end">Action</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -307,17 +307,17 @@
 
                 <tr class="hover:bg-gray-50" data-status="{{ strtolower($order->status) }}">
                     {{-- Order Number --}}
-                    <td class="px-4 py-3 font-medium text-gray-900">
+                    <td class="py-4 px-6 font-medium text-gray-900">
                         {{ $order->order_number }}
                     </td>
 
                     {{-- Product Name --}}
-                    <td class="px-4 py-3 truncate min-w-3xs max-w-3xs ">
+                    <td class="py-4 px-6 truncate min-w-3xs max-w-3xs ">
                         {{ $product->product_name ?? 'N/A' }}
                     </td>
 
                     {{-- Total (for this product) --}}
-                    <td class="px-4 py-3">
+                    <td class="py-4 px-6">
                         <!-- {{ config('app.currency.code') }}{{ number_format($product->total, 2) }} -->
 
                         {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}
@@ -326,12 +326,12 @@
                     </td>
 
                     {{-- Payment Type --}}
-                    <td class="px-4 py-3 text-right">
+                    <td class="py-4 px-6 text-right">
                         {{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}
                     </td>
 
                     {{-- Status Badge --}}
-                    <td class="px-4 py-3 text-right">
+                    <td class="py-4 px-6 text-right">
 
 
                         {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
@@ -340,12 +340,12 @@
                     </td>
 
                     {{-- Order Date --}}
-                    <td class="px-4 py-3 text-right">
+                    <td class="py-4 px-6 text-right">
                         {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }}
                     </td>
 
                     {{-- Actions --}}
-                    <td class="px-4 py-3 ">
+                    <td class="py-4 px-6 ">
                         <div class="flex gap-2 items-center justify-end">
                             <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank" title="View">
                                 <x-heroicon-o-eye class="w-5 h-5 text-blue-600" />
@@ -391,7 +391,7 @@
                     'user_id',
                     $employees->pluck('full_name', 'id')->toArray()
                     )->id('user_id')->class([
-                    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                    'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
                     ]) !!}
 
                 </div>
@@ -399,14 +399,14 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1 required">Note</label>
                     <textarea id="note_text2" rows="5"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500"
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500"
                         placeholder="Enter note..."></textarea>
                 </div>
             </div>
 
             <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
-                <button type="button" onclick="closeNotesModal2()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Close</button>
-                <button type="button" id="saveNoteBtn2" class="px-4 py-2 text-sm rounded border border-grey-300 bg-blue-600 text-white">Save</button>
+                <button type="button" onclick="closeNotesModal2()" class="px-6 py-3  text-md rounded border border-gray-300 bg-white">Close</button>
+                <button type="button" id="saveNoteBtn2" class="px-6 py-3  text-md rounded border border-grey-300 bg-blue-600 text-white">Save</button>
             </div>
         </div>
     </div>

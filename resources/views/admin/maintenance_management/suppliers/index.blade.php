@@ -99,14 +99,27 @@
         </div>
 
         {{-- Tags --}}
-        <div class="w-full sm:w-48">
+        <!-- <div class="w-full sm:w-48">
             <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
             <div class="relative">
                 <input type="text" name="tags_search" value="{{ request('tags_search') }}"
                     placeholder="Search by tags..."
                     class="w-full pl-3 pr-4 px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
             </div>
-        </div>
+        </div> -->
+
+        {{-- Tags Filter --}}
+{{-- Tags Filter --}}
+<div class="w-full sm:w-48">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+
+    <select name="tag"
+        id="tags_select"
+        class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+        <option value="">Select Tag</option>
+    </select>
+</div>
+
 
 
 
@@ -189,10 +202,10 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const inputs = document.querySelectorAll(
-            'input[name="search_name_email"], input[name="company_search"], input[name="tags_search"], input[name="part_search"]'
+            'input[name="search_name_email"], input[name="company_search"], input[name="part_search"]'
         );
         const selects = document.querySelectorAll(
-            'select[name="category"], select[name="status"]'
+            'select[name="category"], select[name="status"] , select[name="tag"] '
         );
         const wrapper = document.querySelector('#supplier-table-wrapper');
 

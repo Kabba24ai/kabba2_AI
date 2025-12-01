@@ -93,7 +93,7 @@
 
     <!-- Total count -->
 
-    <div class="w-full sm:w-auto h-10 px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
+    <div class="w-full sm:w-auto px-4 py-3 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
         Total: <span id="customer-total-count"></span>
     </div>
 
@@ -183,6 +183,10 @@
                 .then(data => {
                     document.querySelector('#customer-table-wrapper').innerHTML = data.html;
                     document.querySelector('#customer-total-count').textContent = data.total;
+
+                       // FIX: reinitialize events
+    initOrderCheckboxes();
+    initSingleDeleteButtons();
                 })
 
                 .catch(err => {

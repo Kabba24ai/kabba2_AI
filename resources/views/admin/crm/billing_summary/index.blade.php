@@ -243,6 +243,8 @@
                 const phone = phoneInput.value;
                 const company = company_name.value;
                 // const tax_status = statusSelect.value;
+                    let sortValue = document.getElementById('balanceSortSelect').value;
+
                 const alert_status = alertStatusSelect.value;
                 // Get selected credit types
                 const params = new URLSearchParams();
@@ -259,6 +261,9 @@
 
                 params.append('sort', sortValue);
 
+
+    // Always update sort value
+    params.append('sort', sortValue);
 
                 // Show loader
                 loader.classList.remove('hidden');

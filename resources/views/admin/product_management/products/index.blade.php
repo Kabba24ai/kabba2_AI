@@ -70,7 +70,7 @@
 
 
     <div id="product-table-wrapper">
-        @include('admin.product_management.products.partials._table', ['products' => $products])
+        @include('admin.product_management.products.partials._table', ['products' => []])
     </div>
 
 @endsection
@@ -87,6 +87,18 @@
             let timeout = null;
             const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
+            const screenKey = 'product_filters';
+
+            const fieldMap = {
+                'search': searchInput,
+                'category': categorySelect,
+                'price': priceSelect,
+                'type': typeSelect,
+            };
+
+            // Load saved filters on page load
+            FilterFreezer.loadFilters(screenKey, fieldMap);
+            fetchProducts(); // initial fetch after loading saved filters
             function fetchProducts() {
                 const search = searchInput.value;
                 const category = categorySelect.value;
@@ -101,6 +113,10 @@
 
                 // Show loader
                 loader.classList.remove('hidden');
+
+                // Save current filters
+                FilterFreezer.saveFilters(screenKey, fieldMap);
+
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
                 fetch("{{ route('admin.product-management.products.index') }}?" + params.toString(), {

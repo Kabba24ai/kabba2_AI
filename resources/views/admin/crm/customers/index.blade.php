@@ -93,7 +93,7 @@
 
     <!-- Total count -->
     <div class="w-full sm:w-auto h-10 px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
-        Total: <span id="customer-total-count">{{ $customers->total() }}</span>
+        Total: <span id="customer-total-count"></span>
     </div>
 
     <div class="w-full sm:w-auto">
@@ -111,7 +111,7 @@
 
 <div id="customer-table-wrapper">
 
-    @include('admin.crm.customers.partials._table', ['customers' => $customers])
+    @include('admin.crm.customers.partials._table', ['customers' => []])
 
 </div>
 
@@ -132,6 +132,19 @@
         let loader = document.querySelector('#customer-loader');
         let timeout = null;
 
+        const screenKey = "customers_filters";
+
+        const fieldMap = {
+            'search_name': nameInput,
+            'search_phone': phoneInput,
+            'search_company_name': company_name,
+            'tax_status': statusSelect,
+        };
+
+        // Load saved filters on page load
+        FilterFreezer.loadFilters(screenKey, fieldMap);
+
+        fetchCustomers(); // initial fetch
         function fetchCustomers() {
             const name = nameInput.value;
             const phone = phoneInput.value;
@@ -144,10 +157,11 @@
             if (company.length >= 3 || company.length === 0) params.append('search_company_name', company);
             if (tax_status !== 'All') params.append('tax_status', tax_status);
 
-            // Show loader
-
 
             loader.classList.remove('hidden');
+
+            // Save current filters
+            FilterFreezer.saveFilters(screenKey, fieldMap);
             wrapper.classList.add('opacity-50', 'pointer-events-none');
 
 

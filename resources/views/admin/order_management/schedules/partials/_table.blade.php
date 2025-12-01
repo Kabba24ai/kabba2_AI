@@ -216,8 +216,12 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" class="text-center text-sm text-gray-500 px-4 py-6">
-                        No Schedules found.
+                    <td colspan="12" class="text-center text-sm text-gray-500 px-4 py-6">
+                        @if ($orderProducts)
+                            No schedules found.
+                        @else
+                            <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                        @endif
                     </td>
                 </tr>
             @endforelse
@@ -226,9 +230,11 @@
 </div>
 
 {{-- Pagination --}}
-<div class="mt-6">
-    {{ $orderProducts->links('vendor.pagination.tailwind') }}
-</div>
+@if ($orderProducts)
+    <div class="mt-6">
+        {{ $orderProducts->links('vendor.pagination.tailwind') }}
+    </div>
+@endif
 
 
 <script>

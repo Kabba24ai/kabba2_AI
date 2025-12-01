@@ -76,8 +76,12 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
-                        No orders found.
+                    <td colspan="12" class="text-center text-sm text-gray-500 px-4 py-6">
+                        @if ($orders)
+                            No orders found.
+                        @else
+                            <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                        @endif
                     </td>
                 </tr>
             @endforelse
@@ -85,6 +89,8 @@
     </table>
 </div>
 {{-- Pagination --}}
+@if ($orders)
 <div class="mt-6">
     {{ $orders->links('vendor.pagination.tailwind') }}
 </div>
+@endif

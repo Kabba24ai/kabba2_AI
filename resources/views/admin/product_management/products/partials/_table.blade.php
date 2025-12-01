@@ -83,7 +83,11 @@
             @empty
                 <tr>
                     <td colspan="9" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
-                        No products found.
+                        @if ($products)
+                            No products found.
+                        @else
+                            <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                        @endif
                     </td>
                 </tr>
             @endforelse
@@ -92,6 +96,8 @@
 </div>
 
 {{-- Pagination --}}
+@if ($products)
 <div class="mt-6">
     {{ $products->links() }}
 </div>
+@endif

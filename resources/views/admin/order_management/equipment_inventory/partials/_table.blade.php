@@ -166,7 +166,11 @@
             @empty
                 <tr>
                     <td colspan="{{ 7 + count($dates) }}" class="px-4 py-4 text-center text-gray-500">
-                        No equipment found.
+                        @if ($equipment)
+                            No equipment found.
+                        @else
+                            <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                        @endif
                     </td>
                 </tr>
             @endforelse
@@ -174,6 +178,8 @@
     </table>
 
     {{-- Pagination --}}
-    <div class="mt-6">
-        {{ $equipment->links('vendor.pagination.tailwind') }}
-    </div>
+    @if ($equipment)
+        <div class="mt-6">
+            {{ $equipment->links('vendor.pagination.tailwind') }}
+        </div>
+    @endif

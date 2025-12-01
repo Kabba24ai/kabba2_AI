@@ -142,8 +142,12 @@
             </tr>
             @empty
             <tr>
-                <td colspan="7" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
-                    No customers found.
+                <td colspan="8" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+                    @if ($customers)
+                        No customers found.
+                    @else
+                        <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                    @endif
                 </td>
             </tr>
             @endforelse
@@ -155,9 +159,11 @@
 
 
 {{-- Pagination --}}
+@if ($customers)
 <div class="mt-6">
     {{ $customers->links() }}
 </div>
+@endif
 
 
 @push('js')

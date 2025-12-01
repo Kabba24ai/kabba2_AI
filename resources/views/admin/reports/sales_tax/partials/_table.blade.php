@@ -19,64 +19,69 @@
         <div id="order-loading" class="hidden"></div>
         <tbody class="divide-y">
             @forelse ($orders as $order)
+                <tr id="order-row-{{ $order->unique_id }}" class="hover:bg-gray-50">
 
-            <tr id="order-row-{{ $order->unique_id }}" class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-left">
+                        {!! $order->link !!}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        {{ \App\Helpers\CustomHelper::formatDate($order->date) }}
 
-                <td class="px-4 py-3 text-left">
-                    {!! $order->link !!}
-                </td>
-                <td class="px-4 py-3 text-center">
-                    {{ \App\Helpers\CustomHelper::formatDate($order->date) }}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="font-medium">
 
-                </td>
-                <td class="px-4 py-3">
-                    <div class="font-medium">
+                            {{ $order->customer_name }}
+                        </div>
 
-                        {{ $order->customer_name }}
-                    </div>
+                    </td>
 
-                </td>
+                    <td class="px-4 py-3 truncate  text-left">
 
-                <td class="px-4 py-3 truncate  text-left">
+                        {{ $order->products }}
 
-                    {{ $order->products }}
+                    </td>
+                    <td class="px-4 py-3 text-center">
 
-                </td>
-                <td class="px-4 py-3 text-center">
+                        {{ $order->payment_type }}
 
-                    {{ $order->payment_type }}
+                    </td>
 
-                </td>
+                    <td class="px-4 py-3 font-semibold text-right">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}
+                    </td>
 
-                <td class="px-4 py-3 font-semibold text-right">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}
-                </td>
+                    <td class="px-4 py-3 font-semibold text-right">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($order->tax_amount) }}
+                    </td>
 
-                <td class="px-4 py-3 font-semibold text-right">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($order->tax_amount) }}
-                </td>
+                    <td class="px-4 py-3 font-semibold text-right">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($order->discount_amount) }}
+                    </td>
 
-                <td class="px-4 py-3 font-semibold text-right">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($order->discount_amount) }}
-                </td>
+                    <td class="px-4 py-3 font-semibold text-right">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
+                    </td>
 
-                <td class="px-4 py-3 font-semibold text-right">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
-                </td>
-
-            </tr>
+                </tr>
 
             @empty
-            <tr>
-                <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
-                    No orders found.
-                </td>
-            </tr>
+                <tr>
+                    <td colspan="9" class="text-center text-sm text-gray-500 px-4 py-6">
+                        @if ($orders)
+                            No orders found.
+                        @else
+                            <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                        @endif
+                    </td>
+                </tr>
             @endforelse
         </tbody>
     </table>
 </div>
 {{-- Pagination --}}
-<div class="mt-6">
-    {{ $orders->links('vendor.pagination.tailwind') }}
-</div>
+@if ($orders)
+    <div class="mt-6">
+        {{ $orders->links('vendor.pagination.tailwind') }}
+    </div>
+@endif

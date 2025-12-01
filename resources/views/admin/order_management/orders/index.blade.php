@@ -110,7 +110,7 @@
 
 
 <div id="order-table-wrapper" aria-live="polite">
-    @include('admin.order_management.orders.partials._table', ['orders' => $orders])
+    @include('admin.order_management.orders.partials._table', ['orders' => []])
 </div>
 
 
@@ -266,10 +266,25 @@
         let paymentStatusInput = document.querySelector('select[name="payment_status"]');
         let productInput = document.querySelector('select[name="product"]');
 
-
         let wrapper = document.querySelector('#order-table-wrapper');
         let timeout = null;
 
+
+        const screenKey = "order_filters";
+
+        const fieldMap = {
+            'customer_name': customerNameInput,
+            'customer_company_name': customerCompanyNameInput,
+            'customer_phone': customerPhoneInput,
+            'category': categoryInput,
+            'payment_method': paymentMethodInput,
+            'payment_status': paymentStatusInput,
+            'product': productInput,
+        };
+
+        // Load saved filters on page load
+        FilterFreezer.loadFilters(screenKey, fieldMap);
+        fetchOrders(); // initial fetch after loading saved filters
         function fetchOrders() {
             const customerName = customerNameInput.value;
             const customerCompany = customerCompanyNameInput.value;
@@ -295,9 +310,8 @@
             if (product) params.append('product', product);
             if (perPage) params.append('per_page', perPage);
 
-
-            // Show loader
-
+            // Save current filters
+            FilterFreezer.saveFilters(screenKey, fieldMap);
             wrapper.classList.add('opacity-50', 'pointer-events-none');
 
             apiFetch("{{ route('admin.order-management.orders.index') }}?" + params.toString(), {

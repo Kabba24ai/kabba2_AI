@@ -84,10 +84,11 @@ class ListResource extends JsonResource
             'equipment' => new EquipmentListResource($this->whenLoaded('equipment')),
 
             'equipment_id' => $this->equipment_id ?? 0,
-            'equipment_details' => $this->equipment_details ?? '',
+
+            'equipment_details' => $this->equipment_details ?? new EquipmentListResource($this->whenLoaded('softEquipment')) ?? '',
+
             'assigned_by' => $this->equipment_assigned_by ?? '',
 
-            'soft_equipment' => new EquipmentListResource($this->whenLoaded('softEquipment')),
             'assigned_at' => CustomHelper::formatDateTime($this->equipment_assigned_at) ?? '',
 
             'delivery_store' => new StoresListResource($this->whenLoaded('deliveryStore')),

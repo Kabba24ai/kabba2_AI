@@ -129,7 +129,9 @@
         {{-- Equipment table --}}
         <div id="equipment-table-wrapper"
             class="bg-white shadow-sm rounded-lg overflow-x-auto overflow-y-auto flex-1 min-h-0">
-            @include('admin.order_management.equipment_inventory.partials._table')
+            @include('admin.order_management.equipment_inventory.partials._table', [
+                'equipment' => [],
+            ])
         </div>
 
         {{-- Schedule table (only if there are unassigned orders) --}}
@@ -217,22 +219,6 @@
 
 @push('js')
     <script>
-        // const screenKey = "equipment_filters";
-
-        // const fieldMap = {
-        //     category: "#cat",
-        //     location: "#loc",
-        //     freeze: "#freeze"
-        // };
-
-        // // Load saved filters on page load
-        // FilterFreezer.loadFilters(screenKey, fieldMap);
-
-        // // Save filters when form submits
-        // document.getElementById("filterForm").addEventListener("submit", function () {
-        //     FilterFreezer.saveFilters(screenKey, fieldMap);
-        // });
-
         document.querySelectorAll(".tooltip-trigger").forEach(el => {
             const tooltip = document.getElementById("tooltip-global");
 
@@ -263,6 +249,22 @@
             const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
                 .get('per_page') || null;
 
+
+            const screenKey = "equipment_filters";
+
+            const fieldMap = {
+                'search': searchInput,
+                'category': categorySelect,
+                // 'status': statusSelect,
+                'store': storeSelect,
+                'equipment_status': equipmentStatusCheckboxes,
+                'per_page': perPage
+            };
+
+            // Load saved filters on page load
+            FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            fetchEquipments(); // initial fetch after loading saved filters
             function fetchEquipments() {
                 const params = new URLSearchParams();
                 if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput
@@ -276,6 +278,9 @@
                 equipmentStatusCheckboxes.forEach(cb => {
                     if (cb.checked) params.append('equipment_status[]', cb.value);
                 });
+
+                // Save current filters
+                FilterFreezer.saveFilters(screenKey, fieldMap);
 
                 // loader.classList.remove('hidden');
                 equipmentTableWrapper.classList.add('opacity-50', 'pointer-events-none');

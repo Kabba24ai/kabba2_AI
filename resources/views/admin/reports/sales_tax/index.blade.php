@@ -117,7 +117,6 @@
                 <div>
                     <p class="text-sm text-gray-500">Total Revenue</p>
                     <p class="text-xl font-semibold text-gray-900" id="totalRevenue">
-                        {{ $totalRevenue }}
                     </p>
                 </div>
             </div>
@@ -133,8 +132,6 @@
                 <div>
                     <p class="text-sm  text-gray-500">Tax Free Revenue</p>
                     <p class="text-xl font-semibold text-gray-900" id="taxFreeRevenue">
-
-                        {{ $taxFreeRevenue }}
                     </p>
                 </div>
             </div>
@@ -149,7 +146,7 @@
                 </div>
                 <div>
                     <p class="text-sm  text-gray-500">Taxable Revenue</p>
-                    <p class="text-xl font-semibold text-gray-900" id="taxableRevenue">{{ $taxableRevenue }}</p>
+                    <p class="text-xl font-semibold text-gray-900" id="taxableRevenue"></p>
                 </div>
             </div>
 
@@ -165,7 +162,7 @@
                 </div>
                 <div>
                     <p class="text-sm  text-gray-500">Sales Tax Collected</p>
-                    <p class="text-xl font-semibold text-gray-900" id="salesTaxCollected">{{ $salesTaxCollected }} </p>
+                    <p class="text-xl font-semibold text-gray-900" id="salesTaxCollected">  </p>
                 </div>
             </div>
         </div>
@@ -173,7 +170,7 @@
 </div>
 
 <div id="order-table-wrapper" aria-live="polite">
-    @include('admin.reports.sales_tax.partials._table', ['orders' => $orders])
+    @include('admin.reports.sales_tax.partials._table', ['orders' => []])
 </div>
 
 @endsection
@@ -196,6 +193,20 @@
 
         const reloadIcon = document.getElementById('reloadIcon');
 
+        const screenKey = 'sales_tax_report_filters';
+
+        const fieldMap = {
+            'payment_method': paymentMethodInput,
+            'month_range': monthRangeInput,
+            'start_date': startDateInput,
+            'end_date': endDateInput,
+            'store': storeInput,
+        };
+
+        // Load saved filters on page load
+        FilterFreezer.loadFilters(screenKey, fieldMap);
+
+        fetchOrders(); // Initial fetch on page load
         function fetchOrders() {
             const params = new URLSearchParams();
             params.set('page', 1);
@@ -211,6 +222,9 @@
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
             if (store) params.append('store', store);
+
+            // save current filters
+            FilterFreezer.saveFilters(screenKey, fieldMap);
 
             wrapper.classList.add('opacity-50', 'pointer-events-none');
 

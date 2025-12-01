@@ -71,8 +71,6 @@ class CreateOrderListener
             $description = "Payment initiated via {$methodLabel}";
         }
 
-
-
         $order->history()->create([
             'customer_id' => $customer->id,
             'user_id' => ($employee) ? $employee->id : null,

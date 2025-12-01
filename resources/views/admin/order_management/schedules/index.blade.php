@@ -182,7 +182,7 @@
     <div class="mx-auto py-6">
         <div id="schedule-table-wrapper">
             @include('admin.order_management.schedules.partials._table', [
-                'orderProducts' => $orderProducts,
+                'orderProducts' => [],
             ])
         </div>
     </div>
@@ -273,6 +273,25 @@
             const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
                 .get('per_page') || null;
 
+            const screenKey = "schedules_filters";
+
+            const fieldMap = {
+                'customer_name': customerNameInput,
+                'customer_company_name': customerCompanyNameInput,
+                'customer_phone': customerPhoneInput,
+                'category': categoryInput,
+                'payment_status': paymentStatusInput,
+                'payment_method': paymentMethodInput,
+                'date_filter': dateFilterInput,
+                'store_location[]': storeLocationInputs,
+                'rescheduled_only': rescheduledOnlyInput,
+                'schedule_type[]': scheduleTypeInputs,
+                'transport_mode[]': transportModeInputs,
+            };
+
+            // Load saved filters on page load
+            FilterFreezer.loadFilters(screenKey, fieldMap);
+            fetchSchedules(); // initial fetch after loading saved filters
             function fetchSchedules() {
                 const params = new URLSearchParams();
                 params.set('page', 1);
@@ -338,6 +357,9 @@
 
                 // Show loader
                 loadingIndicator.classList.remove('hidden');
+
+                // Save current filters
+                FilterFreezer.saveFilters(screenKey, fieldMap);
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
                 apiFetch("{{ route('admin.order-management.schedules.index') }}?" + params.toString(), {
@@ -675,9 +697,7 @@
                         if (data?.success) {
 
                             fullData = data.categories; // store full categories
-
-                            console.log(fullData);
-
+                            // console.log(fullData);
                             categorySelect.innerHTML = '<option value="">Select Category</option>';
 
                             data.categories.forEach(cat => {

@@ -51,7 +51,8 @@
             <div>
                 <p class="text-sm  text-gray-500">Total Outstanding</p>
                 <p class="text-xl font-semibold text-gray-900" id="total-outstanding">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($totalOutstanding) }} </p>
+                    {{-- {{ \App\Helpers\CustomHelper::formatCurrency($totalOutstanding) }} --}}
+                </p>
             </div>
         </div>
 
@@ -63,7 +64,8 @@
             <div>
                 <p class="text-sm  text-gray-500">Overdue Amount</p>
                 <p class="text-xl font-semibold text-gray-900" id="total-overdue-amount">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($totalOverdueAmount) }} </p>
+                    {{-- {{ \App\Helpers\CustomHelper::formatCurrency($totalOverdueAmount) }}  --}}
+                </p>
             </div>
         </div>
 
@@ -80,7 +82,9 @@
             </div>
             <div>
                 <p class="text-sm text-gray-500">Overdue Accounts</p>
-                <p class="text-xl font-semibold text-gray-900" id="overdue-customer-count"> {{ $overdueCustomerCount }} </p>
+                <p class="text-xl font-semibold text-gray-900" id="overdue-customer-count">
+                    {{-- {{ $overdueCustomerCount }}  --}}
+                </p>
             </div>
         </div>
 
@@ -91,7 +95,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-500">Total Customers</p>
-                <p class="text-xl font-semibold text-gray-900" id="totalcustomers">{{ $customers->total() }} </p>
+                <p class="text-xl font-semibold text-gray-900" id="totalcustomers"></p>
             </div>
         </div>
     </div>
@@ -151,7 +155,7 @@
                 <label class="text-sm text-gray-500 mb-1">Alerts</label>
                 <select name="alert_status" class="px-3 py-3 border border-gray-300 rounded-md w-full ">
                     <!-- <option value="" selected>All Accounts</option>
-                                <option value="warning">Accounts With Alerts </option> -->
+                                    <option value="warning">Accounts With Alerts </option> -->
 
                     <option value="" selected>All Accounts</option>
                     <option value="warning">Accounts With Alerts</option>
@@ -194,7 +198,7 @@
 
 
     <div id="customer-table-wrapper">
-        @include('admin.crm.billing_summary.partials._table', ['customers' => $customers])
+        @include('admin.crm.billing_summary.partials._table', ['customers' => []])
     </div>
 
 @endsection
@@ -217,6 +221,23 @@
             const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
                 .get('per_page') || null;
 
+
+            const screenKey = 'billing_summary_filters';
+
+            const fieldMap = {
+                'b_customers_name': nameInput,
+                'b_search_phone': phoneInput,
+                'b_company_name': company_name,
+                // 'tax_status': 'select',
+                'alert_status': alertStatusSelect,
+                'credit_types[]': creditCheckboxes,
+                'balanceSortSelect': document.getElementById('balanceSortSelect'),
+            };
+
+            // Load saved filters on page load
+            FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            fetchCustomers(); // initial fetch after loading saved filters
             function fetchCustomers() {
                 const name = nameInput.value;
                 const phone = phoneInput.value;
@@ -241,6 +262,9 @@
 
                 // Show loader
                 loader.classList.remove('hidden');
+
+                // save filters
+                FilterFreezer.saveFilters(screenKey, fieldMap);
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
                 fetch("{{ route('admin.crm.billing-summary.index') }}?" + params.toString(), {

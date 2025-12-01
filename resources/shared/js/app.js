@@ -71,42 +71,124 @@ window.withLoader = function(containerSelector, loaderSelector, asyncFn) {
 
 // filter-freezer.js
 
-// window.FilterFreezer = {
-//     loadFilters(screenKey, fieldMap) {
-//         let saved = JSON.parse(localStorage.getItem(screenKey) || '{}');
+window.FilterFreezer = {
+    _isNodeList(ref) {
+        return NodeList.prototype.isPrototypeOf(ref) || Array.isArray(ref);
+    },
 
-//         if (!saved.freeze) return;
+    loadFilters(screenKey, fieldMap) {
+        const saved = JSON.parse(localStorage.getItem(screenKey) || '{}');
+        if (!saved.freeze) return;
 
-//         // Auto-fill filter fields
-//         Object.keys(fieldMap).forEach(key => {
-//             if (saved[key] !== undefined) {
-//                 document.querySelector(fieldMap[key]).value = saved[key];
-//             }
-//         });
+        // Restore all fields
+        Object.entries(fieldMap).forEach(([key, ref]) => {
+            if (key === 'freeze') return; // handled below
 
-//         // Mark freeze checkbox
-//         document.querySelector(fieldMap['freeze']).checked = true;
-//     },
+            const value = saved[key];
+            if (value === undefined || value === null) return;
 
-//     saveFilters(screenKey, fieldMap) {
-//         const freezeCheckbox = document.querySelector(fieldMap['freeze']);
+            // Checkbox group (e.g. equipment_status[])
+            if (this._isNodeList(ref)) {
+                Array.from(ref).forEach(el => {
+                    if (Array.isArray(value)) {
+                        el.checked = value.includes(el.value);
+                    } else {
+                        el.checked = value == el.value;
+                    }
+                });
+                return;
+            }
 
-//         // If user unchecked freeze → remove saved filters
-//         if (!freezeCheckbox.checked) {
-//             localStorage.removeItem(screenKey);
-//             return;
-//         }
+            if (!ref) return;
 
-//         // Build object of saved filters
-//         let data = { freeze: true };
+            // Single checkbox
+            if (ref.type === 'checkbox') {
+                ref.checked = !!value;
+                return;
+            }
 
-//         Object.keys(fieldMap).forEach(key => {
-//             data[key] = document.querySelector(fieldMap[key]).value;
-//         });
+            // Select / Select2
+            if (ref.tagName === 'SELECT') {
+                if (ref.multiple && Array.isArray(value)) {
+                    Array.from(ref.options).forEach(opt => {
+                        opt.selected = value.includes(opt.value);
+                    });
+                } else {
+                    ref.value = value;
+                }
 
-//         localStorage.setItem(screenKey, JSON.stringify(data));
-//     }
-// };
+                // If Select2 attached, trigger change so UI updates
+                if (window.jQuery && jQuery(ref).data('select2')) {
+                    jQuery(ref).trigger('change');
+                }
+                return;
+            }
+
+            // Regular input / text
+            if ('value' in ref) {
+                ref.value = value;
+            }
+        });
+
+        // Restore freeze checkbox itself
+        if (fieldMap.freeze) {
+            fieldMap.freeze.checked = !!saved.freeze;
+        }
+    },
+
+    saveFilters(screenKey, fieldMap) {
+        const freezeCheckbox = fieldMap.freeze || null;
+
+        // If we have a freeze checkbox and it's unchecked → clear storage
+        if (freezeCheckbox && !freezeCheckbox.checked) {
+            localStorage.removeItem(screenKey);
+            return;
+        }
+
+        const data = {
+            // if no freeze checkbox present, assume always frozen
+            freeze: freezeCheckbox ? !!freezeCheckbox.checked : true
+        };
+
+        Object.entries(fieldMap).forEach(([key, ref]) => {
+            if (key === 'freeze') return;
+
+            // Checkbox group
+            if (this._isNodeList(ref)) {
+                data[key] = Array.from(ref)
+                    .filter(el => el.checked)
+                    .map(el => el.value);
+                return;
+            }
+
+            if (!ref) return;
+
+            // Single checkbox
+            if (ref.type === 'checkbox') {
+                data[key] = !!ref.checked;
+                return;
+            }
+
+            // Select / Select2
+            if (ref.tagName === 'SELECT') {
+                if (ref.multiple) {
+                    data[key] = Array.from(ref.selectedOptions).map(o => o.value);
+                } else {
+                    data[key] = ref.value;
+                }
+                return;
+            }
+
+            // Input / text
+            if ('value' in ref) {
+                data[key] = ref.value;
+            }
+        });
+
+        localStorage.setItem(screenKey, JSON.stringify(data));
+    }
+};
+
 
 
 // Initialize scripts on DOM ready

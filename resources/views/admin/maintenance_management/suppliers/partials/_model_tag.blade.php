@@ -124,7 +124,41 @@
 
             // Update choices without clearing the instance
             window.tagChoices.setChoices(choicesArray, 'value', 'label', true);
+
+
+            // ==
         }
+
+        // Initialize Choices for filter dropdown only once
+const filterSelect = document.getElementById('tags_select');
+
+if (filterSelect && !window.filterTagChoices) {
+    window.filterTagChoices = new Choices(filterSelect, {
+        searchEnabled: true,
+        shouldSort: false,
+        placeholderValue: 'Select Tag',
+        itemSelectText: '',
+    });
+}
+
+window.updatefilterTagSelect = function () {
+    console.log('%c[Tag Filter] updatefilterTagSelect() triggered', 'color: #4CAF50; font-weight: bold;');
+
+    if (!window.tags) return;
+    if (!window.filterTagChoices) return;
+
+    const selected = "{{ request('tag') }}";
+
+    const choicesList = window.tags.map(tag => ({
+        value: String(tag.id),
+        label: tag.name,
+        selected: (selected == tag.id)
+    }));
+
+    window.filterTagChoices.setChoices(choicesList, 'value', 'label', true);
+
+    console.log('%c[Tag Filter] Choices updated successfully! 🎯', 'color: #03A9F4; font-weight: bold;');
+};
 
 
         //  Define globally
@@ -142,6 +176,7 @@
                         // Optional: call other global helpers if defined
                         if (typeof renderTags === 'function') renderTags();
                         if (typeof updateTagSelect === 'function') updateTagSelect();
+                        if (typeof updatefilterTagSelect === 'function') updatefilterTagSelect();
                     }
                 })
                 .catch((e) => {
@@ -149,6 +184,8 @@
                     notyf.error("Error in fetchTags!");
                 });
         };
+
+
 
 
         function renderTags(filter = '') {

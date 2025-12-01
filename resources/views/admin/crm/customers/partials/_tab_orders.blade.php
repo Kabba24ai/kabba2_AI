@@ -1,4 +1,4 @@
- <div class="bg-white rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6">
+ <div class="bg-white rounded-xl shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6">
      <!-- Left: Name and Account -->
      <div class="text-left">
          <h2 class="text-2xl font-bold text-gray-900">{{ $customer->full_name }}</h2>
@@ -33,7 +33,7 @@
 
          <!-- Visit Website Button -->
          <a target="_blank" href="{{ route('admin.crm.customers.login', ['unique_id' => $customer->unique_id]) }}"
-             class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 w-auto">
+             class="inline-flex items-center gap-2  px-6 py-3 text-md font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 w-auto">
              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                  <path stroke-linecap="round" stroke-linejoin="round"
                      d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
@@ -45,7 +45,7 @@
 
  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto mt-6">
      <!-- Paid Sales -->
-     <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+     <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
          <div class="bg-green-100 text-green-600 rounded-md p-2">
              <!-- Dollar Icon -->
              <svg xmlns="http://www.w3.org/2000/svg"
@@ -70,7 +70,7 @@
      </div>
 
      <!-- Pending Sales -->
-     <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+     <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
          <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
              <svg xmlns="http://www.w3.org/2000/svg"
                  width="20" height="20" viewBox="0 0 24 24"
@@ -95,7 +95,7 @@
      </div>
 
      <!-- Account Balance -->
-     <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+     <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
          <div class="bg-blue-100 text-blue-600 rounded-md p-2">
              <x-heroicon-o-calendar class="w-6 h-6 " />
          </div>
@@ -115,7 +115,7 @@
      </div>
 
      <!-- Open Invoices -->
-     <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+     <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
          <div class="bg-red-100 text-red-600 rounded-md p-2">
              <svg xmlns="http://www.w3.org/2000/svg"
                  width="20" height="20" viewBox="0 0 24 24"
@@ -134,13 +134,13 @@
      </div>
  </div>
 
- <div class="bg-white rounded-md shadow-sm  mt-6">
+ <div class="bg-white rounded-2xl shadow-sm  mt-6">
      <!-- Header with Filter -->
      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200 p-4">
          <h2 class="text-base font-semibold text-gray-800">All Customer Orders</h2>
          <div>
              <label for="statusFilter" class="text-sm font-medium text-gray-700 mr-2">Filter by Status:</label>
-             <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+             <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-3 text-sm">
                  <option value="all">All Orders</option>
                  <option value="pending">Pending</option>
                  <option value="paid">Paid</option>
@@ -155,15 +155,15 @@
      <!-- Table -->
      <div class="overflow-x-auto">
          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
-             <thead class="border-b bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+             <thead class="border-b bg-gray-50 border-gray-200 font-semibold text-gray-700"> 
                  <tr>
-                     <th class="px-4 py-3">Order ID</th>
-                     <th class="px-4 py-3">Product Name</th>
-                     <th class="px-4 w-32 py-3">Amount</th>
-                     <th class="px-4 w-32 py-3 text-right">Payment Methods</th>
-                     <th class="px-4 w-32 py-3 text-right">Status</th>
-                     <th class="px-4 w-32 py-3 text-right">Created</th>
-                     <th class="px-4 w-24 py-3 text-right">Action</th>
+                     <th class="py-4 px-6 ">Order ID</th>
+                     <th class="py-4 px-6">Product Name</th>
+                     <th class="py-4 px-6 w-32">Amount</th>
+                     <th class="py-4 px-6 w-32 text-right">Payment Methods</th>
+                     <th class="py-4 px-6 w-32 text-right">Status</th>
+                     <th class="py-4 px-6 w-32 text-right">Created</th>
+                     <th class="py-4 px-6 w-24 text-right">Action</th>
                  </tr>
              </thead>
              <tbody id="ordersTable" class="divide-y divide-gray-200">
@@ -171,17 +171,17 @@
                  @foreach ($order->products as $product)
                  <tr class="order-row" data-status="{{ strtolower(str_replace(' ', '-', $order->payments->first()->status->value ?? 'n/a')) }}">
                      {{-- Order Number --}}
-                     <td class="px-4 py-3 font-medium text-gray-900">
+                     <td class="py-4 px-6 font-medium text-gray-900">
                          {{ $order->order_number }}
                      </td>
 
                      {{-- Product Name --}}
-                     <td class="px-4 py-3 truncate min-w-3xs max-w-3xs">
+                     <td class="py-4 px-6 truncate min-w-3xs max-w-3xs">
                          {{ $product->product_name ?? 'N/A' }}
                      </td>
 
                      {{-- Product Total --}}
-                     <td class="px-4 py-3">
+                     <td class="py-4 px-6">
 
                          {{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}
 
@@ -190,12 +190,12 @@
                      </td>
 
                      {{-- Payment Method --}}
-                     <td class="px-4 py-3 text-right">
+                     <td class="py-4 px-6 text-right">
                          {{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}
                      </td>
 
                      {{-- Order Status --}}
-                     <td class="px-4 py-3 text-right">
+                     <td class="py-4 px-6 text-right">
                          {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
 
                      </td>
@@ -206,7 +206,7 @@
                      </td>
 
                      {{-- Actions --}}
-                     <td class="px-4 py-3">
+                     <td class="py-4 px-6">
                          <div class="flex gap-2 items-center justify-end">
                              <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank" title="View">
                                  <x-heroicon-o-eye class="w-5 h-5 text-blue-600" />

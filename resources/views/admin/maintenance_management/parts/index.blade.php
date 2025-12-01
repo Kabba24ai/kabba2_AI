@@ -183,13 +183,13 @@
                         </select>
                     </div>
 
-                    <div class="flex gap-2">
+                    <!-- <div class="flex gap-2">
 
                         <a href="#" class="text-sm bg-blue-100 text-blue-700 px-4 py-3 flex gap-2 items-center rounded-md ">
                             Quick: Supplies
                         </a>
 
-                    </div>
+                    </div> -->
 
 
                     <div class="flex gap-2">

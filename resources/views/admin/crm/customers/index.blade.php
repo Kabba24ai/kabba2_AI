@@ -13,19 +13,19 @@
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3 sm:gap-4">
 
     {{-- Left side: Title --}}
-    <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">
+    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white/90">
         Customers
     </h3>
 
     {{-- Right side: Action buttons --}}
     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
         <a href="{{ route('admin.crm.customers.create') }}"
-            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 w-full sm:w-auto text-center">
+            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-6 py-3 text-md font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 w-full sm:w-auto text-center">
             + Add Customer
         </a>
 
         <a href="javascript:void(0)" onclick="openModal('TagModalWrapper')"
-            class="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium shadow transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 w-full sm:w-auto text-center">
+            class="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-md font-medium shadow transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 w-full sm:w-auto text-center">
             Manage Tags
         </a>
     </div>
@@ -33,12 +33,12 @@
 
 
 
-<div class="flex flex-wrap items-end gap-4 w-full mb-6">
+<div class="flex flex-wrap items-end gap-4 w-full mb-6 bg-white rounded-xl p-5 shadow-sm border border-gray-100">
 
     <!-- Search by name -->
     <div class="relative w-full sm:w-48">
         <input type="text" name="search_name" placeholder="Customer name" value="{{ request('search_name') }}"
-            class="w-full h-10 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
+            class="w-full px-4 py-3 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
         <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -51,7 +51,7 @@
     <!-- Search by company -->
     <div class="relative w-full sm:w-48">
         <input type="text" name="search_company_name" placeholder="Customer company" value="{{ request('search_company_name') }}"
-            class="w-full h-10 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
+            class="w-full px-4 py-3 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
         <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -64,7 +64,7 @@
     <!-- Search by phone -->
     <div class="relative w-full sm:w-48">
         <input type="text" name="search_phone" placeholder="(xxx) xxx-xxxx" value="{{ request('search_phone') }}"
-            class="masked-phone w-full h-10 rounded-md border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
+            class="masked-phone w-full rounded-md border border-gray-300 bg-white pl-3 pr-10 px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
         <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -79,7 +79,7 @@
     <div class="w-full sm:w-48">
 
         <select
-            class="w-full h-10 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300"
+            class="w-full  border rounded-md px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300"
             name="tax_status"
             id="tax_status">
             <option value="All" {{ request('status') === 'All' ? 'selected' : '' }}>All</option>
@@ -92,18 +92,26 @@
 
 
     <!-- Total count -->
-    <div class="w-full sm:w-auto h-10 px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
+    <div class="w-full sm:w-auto px-4 py-3 rounded-md border border-gray-300 text-sm text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600 text-center sm:text-left">
         Total: <span id="customer-total-count">{{ $customers->total() }}</span>
     </div>
 
     <div class="w-full sm:w-auto">
         <button type="button" id="delete-selected-btn"
-            class="flex items-center h-10 gap-2 bg-gray-300 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium transition w-full sm:w-auto"
+            class="flex items-center px-4 py-3 gap-2 bg-gray-300 text-gray-500 cursor-not-allowed rounded-md text-sm font-medium transition w-full sm:w-auto"
             disabled>
             <x-heroicon-o-trash class="w-4 h-4" />
             Delete Selected (<span id="delete-selected-count">0</span>)
         </button>
     </div>
+
+    <div class="flex gap-2">
+
+            <a href="{{ route('admin.crm.customers.index') }}" class="text-sm text-gray-600 bg-white px-3 py-3 rounded-md border border-gray-300">
+                Clear
+            </a>
+
+        </div>
 </div>
 
 

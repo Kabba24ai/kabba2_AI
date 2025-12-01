@@ -13,14 +13,14 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <!-- Left: Title & Description -->
             <div class="text-2xl font-semibold flex items-center gap-2">
-                <x-heroicon-o-credit-card class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-credit-card class="w-8 h-8 text-blue-600" />
                 <h2 class="text-2xl font-semibold text-gray-900">Account Billing Summary</h2>
                 <!-- <p class="text-sm text-gray-600">Consolidated view of all customer accounts and payment status</p> -->
             </div>
 
             <!-- Right: Action Buttons -->
             <div class="flex items-center gap-3">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
+                <button class="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 text-md font-medium">
                     <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-white" />
                     Export
                 </button>
@@ -28,7 +28,7 @@
 
 
                 <a href="{{ route('admin.crm.billing-summary.index') }}" id="refreshBtn"
-                    class="bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium">
+                    class="bg-gray-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 text-md font-medium">
                     <x-heroicon-o-arrow-path id="refreshIcon" class="w-5 h-5 text-white" />
                     Refresh
                 </a>
@@ -39,7 +39,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto  mt-6">
         <!-- Total Outstanding -->
-        <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
             <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -56,7 +56,7 @@
         </div>
 
         <!-- Overdue Amount -->
-        <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
             <div class="bg-red-100 text-red-600 rounded-md p-2">
                 <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500" />
             </div>
@@ -68,7 +68,7 @@
         </div>
 
         <!-- Overdue Accounts -->
-        <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
             <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -85,7 +85,7 @@
         </div>
 
         <!-- Last Payment -->
-        <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
             <div class="bg-green-100 text-green-600 rounded-md p-2">
                 <x-heroicon-o-user class="w-6 h-6" />
             </div>
@@ -96,7 +96,7 @@
         </div>
     </div>
 
-    <div class="bg-white border border-gray-200 shadow-sm rounded-md p-4 mt-6 w-full">
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-4 mt-6 w-full">
         <div class="flex flex-wrap items-start gap-4 text-sm">
 
             <!-- Customer Name -->
@@ -104,7 +104,7 @@
                 <label class="text-sm text-gray-500 mb-1">Customer Name</label>
                 <div class="relative">
                     <input type="text" name="b_customers_name" value="{{ request('customers_name') }}"
-                        placeholder="Customer name" class="pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full " />
+                        placeholder="Customer name" class="pl-9 pr-3 px-3 py-3 border border-gray-300 rounded-md w-full " />
                     <svg class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -119,7 +119,7 @@
                 <label class="text-sm text-gray-500 mb-1">Company Name</label>
                 <div class="relative">
                     <input name="b_company_name" value="{{ request('b_company_name') }}" type="text"
-                        placeholder="Customer company" class="pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full " />
+                        placeholder="Customer company" class="pl-9 pr-3 px-3 py-3 border border-gray-300 rounded-md w-full " />
                     <svg class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -135,7 +135,7 @@
                 <div class="relative">
                     <input type="text" name="b_search_phone" placeholder="(xxx) xxx-xxxx"
                         value="{{ request('b_search_phone') }}"
-                        class="masked-phone pl-9 pr-3 py-2 border border-gray-300 rounded-md w-full " />
+                        class="masked-phone pl-9 pr-3 px-3 py-3 border border-gray-300 rounded-md w-full " />
                     <svg class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -149,7 +149,7 @@
             <!-- Alerts -->
             <div class="flex flex-col billing-summary-w-13">
                 <label class="text-sm text-gray-500 mb-1">Alerts</label>
-                <select name="alert_status" class="py-2 px-3 border border-gray-300 rounded-md w-full ">
+                <select name="alert_status" class="px-3 py-3 border border-gray-300 rounded-md w-full ">
                     <!-- <option value="" selected>All Accounts</option>
                                 <option value="warning">Accounts With Alerts </option> -->
 
@@ -181,7 +181,7 @@
 
             <div class="flex flex-col billing-summary-w-16">
                 <label class="text-sm text-gray-500 mb-1">Sort</label>
-                <select id="balanceSortSelect" class="py-2 px-3 border border-gray-300 rounded-md w-full">
+                <select id="balanceSortSelect" class="px-3 py-3 border border-gray-300 rounded-md w-full">
                     <option value="balance" selected>Balance: Highest to Lowest</option>
                     <option value="days">Days Aging: Oldest to Newest</option>
                     <option value="bad_debt">Bad Debt: Higest to Lowest</option>

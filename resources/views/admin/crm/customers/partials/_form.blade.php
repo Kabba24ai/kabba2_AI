@@ -1,6 +1,6 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 mt-6">
     <!-- Personal Information -->
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-6">
         <h2 class="text-lg font-semibold mb-4">Personal Information</h2>
 
         {!! html()->text('alladdresslist', $addressListJson ?? '')->class('hidden')->attributes([
@@ -26,7 +26,7 @@
                 <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1 ">First Name </label>
 
                 {!! html()->text('first_name', old('first_name', $customer->first_name ?? ''))->class([
-                'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2',
+                'w-full rounded-md border focus:outline-none px-3 py-3 text-sm shadow-sm focus:ring-2',
                 'border-red-500' => $errors->has('first_name'),
                 'border-gray-300' => !$errors->has('first_name'),
                 ])->attributes([
@@ -47,7 +47,7 @@
                 <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1 ">Last Name </label>
 
                 {!! html()->text('last_name', old('last_name', $customer->last_name ?? ''))->class([
-                'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2',
+                'w-full rounded-md border focus:outline-none px-3 py-3 text-sm shadow-sm focus:ring-2',
                 'border-red-500' => $errors->has('last_name'),
                 'border-gray-300' => !$errors->has('last_name'),
                 ])->attributes([
@@ -69,7 +69,7 @@
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1 required">Email Address </label>
 
                 {!! html()->email('email', old('email', $customer->email ?? ''))->class([
-                'w-full rounded-md border focus:outline-none px-3 py-2 text-sm shadow-sm focus:ring-2',
+                'w-full rounded-md border focus:outline-none px-3 py-3 text-sm shadow-sm focus:ring-2',
                 'border-red-500' => $errors->has('email'),
                 'border-gray-300' => !$errors->has('email'),
                 ])->attributes([
@@ -98,7 +98,7 @@
             <div class="mb-4">
                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-1 required">Phone Number </label>
                 {!! html()->text('phone', old('phone', $customer->phone ?? ''))->class([
-                'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2',
+                'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
                 'border-red-500' => $errors->has('phone'),
                 'border-gray-300' => !$errors->has('phone'),
                 ])->attributes([
@@ -119,7 +119,7 @@
     </div>
 
     <!-- Company Information -->
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-6">
         <h2 class="text-lg font-semibold mb-4">Company Information</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,7 +128,7 @@
                 <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1 ">Company Name </label>
 
                 {!! html()->text('company_name', old('company_name', $customer->company_name ?? ''))->class([
-                'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2',
+                'w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
                 'border-red-500' => $errors->has('company_name'),
                 'border-gray-300' => !$errors->has('company_name'),
                 ])->attributes([
@@ -148,7 +148,7 @@
             <div class="mb-4">
                 <label for="company_phone" class="block text-sm font-medium text-gray-700 mb-1">Company Phone</label>
                 {!! html()->text('company_phone', old('company_phone', $customer->company_phone ?? ''))->class([
-                'masked-phone w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2',
+                'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
                 'border-red-500' => $errors->has('company_phone'),
                 'border-gray-300' => !$errors->has('company_phone'),
                 ])->attributes([
@@ -185,7 +185,7 @@
                 {{-- Website Name --}}
                 {!! html()->text('company_website', old('company_website',$company_website))
                 ->class([
-                'w-4/6 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2',
+                'w-4/6 border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
                 'border-red-500' => $errors->has('company_website'),
                 'border-gray-300' => !$errors->has('company_website'),
                 ])
@@ -219,7 +219,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
     <!-- Addresses -->
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-6">
         <div class="mb-6">
             <h2 class="text-lg font-semibold">Billing Address</h2>
         </div>
@@ -230,27 +230,28 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">First Name </label>
-                <input type="text" id="billing_first_name" name="addresses[0][first_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="First Name">
+                <input type="text" id="billing_first_name" name="addresses[0][first_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="First Name">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">Last Name </label>
-                <input type="text" id="billing_last_name" name="addresses[0][last_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Last Name">
+                <input type="text" id="billing_last_name" name="addresses[0][last_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Last Name">
             </div>
 
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">Address </label>
-                <input type="text" id="billing_address" name="addresses[0][address]" class="w-full border border-gray-300 shadow-sm  rounded-md px-3 py-2 text-sm" placeholder="Street Address">
+                <input type="text" id="billing_address" name="addresses[0][address]" class="w-full border border-gray-300 shadow-sm  rounded-md px-3 py-3 text-sm" placeholder="Street Address">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">City </label>
-                <input type="text" id="billing_city" name="addresses[0][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter City">
+                <input type="text" id="billing_city" name="addresses[0][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Enter City">
             </div>
- <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
-                    <input id="billing_zip" type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter Zip Code" maxlength="8">
-                </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
+                <input id="billing_zip" type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Enter Zip Code" maxlength="8">
+            </div>
 
           
 
@@ -261,7 +262,7 @@
 
                  <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">State </label>
-                <select id="billing_state" name="addresses[0][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm">
+                <select id="billing_state" name="addresses[0][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm">
                     <option value="">-- Select State --</option>
                     @foreach ($states as $state)
                     <option value="{{ $state->id }}">{{ $state->name }}</option>
@@ -291,12 +292,12 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">Phone Number </label>
-                <input type="text" id="billing_phone" name="addresses[0][phone]" class=" masked-phone w-full border shadow-sm rounded-md px-3 py-2 text-sm" placeholder="(xxx) xxx-xxxx" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
+                <input type="text" id="billing_phone" name="addresses[0][phone]" class=" masked-phone w-full border shadow-sm rounded-md px-3 py-3 text-sm" placeholder="(xxx) xxx-xxxx" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
                     data-parsley-error-message="Please enter phone number in <br> format (xxx) xxx-xxxx">
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-6">
         <div class="mb-6">
             <div class="flex items-center justify-between flex-wrap gap-2">
                 <h2 class="text-lg font-semibold">Delivery Address</h2>
@@ -316,34 +317,34 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">First Name </label>
-                <input type="text" id="delivery_first_name" name="addresses[1][first_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="First Name">
+                <input type="text" id="delivery_first_name" name="addresses[1][first_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="First Name">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">Last Name </label>
-                <input type="text" id="delivery_last_name" name="addresses[1][last_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Last Name">
+                <input type="text" id="delivery_last_name" name="addresses[1][last_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Last Name">
             </div>
 
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">Address </label>
-                <input type="text" id="delivery_address" name="addresses[1][address]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Street Address">
+                <input type="text" id="delivery_address" name="addresses[1][address]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Street Address">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">City </label>
-                <input type="text" id="delivery_city" name="addresses[1][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter City">
+                <input type="text" id="delivery_city" name="addresses[1][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Enter City">
             </div>
-<div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
-                    <input id="delivery_zip" type="text" name="addresses[1][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm" placeholder="Enter Zip Code" maxlength="8">
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
+                <input id="delivery_zip" type="text" name="addresses[1][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Enter Zip Code" maxlength="8">
+            </div>
           
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
 
                   <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">State </label>
-                <select id="delivery_state" name="addresses[1][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-2 text-sm">
+                <select id="delivery_state" name="addresses[1][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm">
                     <option value="">-- Select State --</option>
                     @foreach ($states as $state)
                     <option value="{{ $state->id }}">{{ $state->name }}</option>
@@ -380,7 +381,7 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">Phone Number </label>
-                <input type="text" id="delivery_phone" name="addresses[1][phone]" class=" masked-phone w-full border shadow-sm rounded-md px-3 py-2 text-sm" placeholder="(xxx) xxx-xxxx"
+                <input type="text" id="delivery_phone" name="addresses[1][phone]" class=" masked-phone w-full border shadow-sm rounded-md px-3 py-3 text-sm" placeholder="(xxx) xxx-xxxx"
                     data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
                     data-parsley-error-message="Please enter phone number in <br> format (xxx) xxx-xxxx">
             </div>
@@ -394,7 +395,7 @@
         <!-- Tags and Notes -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
             <!-- Tags -->
-            <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
+            <div class="bg-white rounded-xl shadow border border-gray-200 p-6 flex flex-col">
                 <div class="flex items-center justify-between mb-2">
                     <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
                     <button type="button" onclick="openTagModal()"
@@ -415,7 +416,7 @@
             </div>
 
             <!-- Notes Section -->
-            <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
+            <div class="bg-white rounded-xl shadow border border-gray-200 p-6 flex flex-col">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">Notes</label>
                     <button type="button" id="addNoteBtn"
@@ -439,7 +440,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-4 flex flex-col h-full">
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-4 flex flex-col h-full">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
             <!-- Assign to Funnels -->
@@ -457,7 +458,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-gray-50 mt-6">
     <!-- Customer Account (smaller box) -->
-    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm col-span-12 lg:col-span-4">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm col-span-12 lg:col-span-4">
         <h2 class="text-lg font-semibold text-gray-900 mb-6">Customer Account</h2>
         <div class=" text-sm text-gray-600">
             <!-- Row 1: Account Approved & Approved By -->
@@ -471,7 +472,7 @@
                     ], old('is_credit_account', $customer->is_credit_account ?? ''))
                     ->id('is_credit_account')
                     ->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm text-gray-700 bg-white',
+                    'w-full border rounded-md px-3 py-3 text-sm shadow-sm text-gray-700 bg-white',
                     'border-red-500' => $errors->has('is_credit_account'),
                     'border-gray-300' => !$errors->has('is_credit_account'),
                     ])
@@ -491,7 +492,7 @@
                     )
                     ->id('account_approved_by')
                     ->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm text-gray-700 bg-white',
+                    'w-full border rounded-md px-3 py-3 text-sm shadow-sm text-gray-700 bg-white',
                     'border-red-500' => $errors->has('account_approved_by'),
                     'border-gray-300' => !$errors->has('account_approved_by'),
                     ])
@@ -521,7 +522,7 @@
                     ->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))
                     ->id('credit_limit')
                     ->class([
-                    'w-full border rounded-md px-3 py-2 text-sm shadow-sm text-gray-700 bg-white',
+                    'w-full border rounded-md px-3 py-3 text-sm shadow-sm text-gray-700 bg-white',
                     'border-red-500' => $errors->has('credit_limit'),
                     'border-gray-300' => !$errors->has('credit_limit'),
                     ])->placeholder('Select Credit Limit')
@@ -536,7 +537,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Completed On</label>
 
                     {!! html()->text('account_application_completed', old('account_application_completed', \App\Helpers\CustomHelper::formatDate($customer->account_application_completed ?? null) ?? null))->class([
-                    'w-full border rounded-md datepicker unded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 bg-white text-gray-700',
+                    'w-full border rounded-md datepicker unded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 bg-white text-gray-700',
                     'border-red-500' => $errors->has('account_application_completed'),
                     'border-gray-300' => !$errors->has('account_application_completed'),
                     ])->attributes([
@@ -566,7 +567,7 @@
     </div>
 
     <!-- Combined Tax Exempt + Upload (wider box) -->
-    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm col-span-12 lg:col-span-8">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm col-span-12 lg:col-span-8">
         <div class="flex flex-col md:flex-row">
             <!-- Tax Exempt Left Panel -->
             <div class="md:w-1/2 pr-0 md:pr-6 border-b md:border-b-0 md:border-r border-gray-300 mb-6 md:mb-0">
@@ -582,7 +583,7 @@
                         ], old('tax_status', $customer->tax_status ?? ''))
                         ->id('tax_status')
                         ->class([
-                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm text-gray-700 bg-white',
+                        'w-full border rounded-md px-3 py-3 text-sm shadow-sm text-gray-700 bg-white',
                         'border-red-500' => $errors->has('tax_status'),
                         'border-gray-300' => !$errors->has('tax_status'),
                         ])
@@ -605,7 +606,7 @@
                         )
                         ->id('tax_status_approved_by')
                         ->class([
-                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm text-gray-700 bg-white',
+                        'w-full border rounded-md px-3 py-3 text-sm shadow-sm text-gray-700 bg-white',
                         'border-red-500' => $errors->has('tax_status_approved_by'),
                         'border-gray-300' => !$errors->has('tax_status_approved_by'),
                         ])
@@ -624,7 +625,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Upload Date</label>
 
                         {!! html()->text('tax_document_upload_date', old('tax_document_upload_date', \App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date ?? null) ?? null))->class([
-                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 text-gray-700 bg-white datepicker',
+                        'w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 text-gray-700 bg-white datepicker',
                         'border-red-500' => $errors->has('tax_document_upload_date'),
                         'border-gray-300' => !$errors->has('tax_document_upload_date'),
                         ])->attributes([
@@ -642,7 +643,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
 
                         {!! html()->text('tax_document_valid_until', old('tax_document_valid_until', \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) ?? null))->class([
-                        'w-full border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 text-gray-700 bg-white datepicker',
+                        'w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 text-gray-700 bg-white datepicker',
                         'border-red-500' => $errors->has('tax_document_valid_until'),
                         'border-gray-300' => !$errors->has('tax_document_valid_until'),
                         ])->attributes([
@@ -696,14 +697,14 @@
                 <!-- BROWSE SECTION (initially visible) -->
                 <div id="browseBox">
                     <label for="taxDocumentInput" class="cursor-pointer border rounded-l-md flex items-center shadow-sm">
-                        <span class="bg-gray-300 px-2 py-2 rounded-md">Browse...</span>
-                        <span id="file-name" class="truncate w-full text-nowrap px-3 py-2 text-sm text-gray-600 rounded-md">No file chosen</span>
+                        <span class="bg-gray-300 px-3 py-3 rounded-md">Browse...</span>
+                        <span id="file-name" class="truncate w-full text-nowrap px-3 py-3 text-sm text-gray-600 rounded-md">No file chosen</span>
                     </label>
                     <input
                         type="file"
                         id="taxDocumentInput"
                         name="tax_document"
-                        class="hidden w-full border rounded-r-md px-3 py-2 text-sm shadow-sm"
+                        class="hidden w-full border rounded-r-md px-3 py-3 text-sm shadow-sm"
                         accept="image/*,.pdf,.doc,.docx" />
                 </div>
 

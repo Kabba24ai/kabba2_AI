@@ -1,4 +1,4 @@
-   <div class="bg-white rounded-md shadow-sm p-6 md:flex-row md:items-center md:justify-between gap-4  mt-6">
+   <div class="bg-white rounded-xl shadow-sm p-6 md:flex-row md:items-center md:justify-between gap-4  mt-6">
        <!-- Left: Name and Account -->
        <div class="text-left">
            <h2 class="text-2xl font-bold text-gray-900">Customer Credit Account Management</h2>
@@ -8,7 +8,7 @@
 
    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto  mt-6">
        <!-- Current Balance -->
-       <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+       <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
            <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                <!-- Dollar Icon -->
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6">
@@ -27,7 +27,7 @@
        </div>
 
        <!-- Available Credit -->
-       <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+       <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
            <div class="bg-green-100 text-green-600 rounded-md p-2">
                <!-- Trending Up Icon -->
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up w-6 h-6">
@@ -46,7 +46,7 @@
        </div>
 
        <!-- Credit Limit -->
-       <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+       <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
            <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
                <svg xmlns="http://www.w3.org/2000/svg"
                    width="20" height="20" viewBox="0 0 24 24"
@@ -70,7 +70,7 @@
        </div>
 
        <!-- Last Payment -->
-       <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+       <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
            <div class="bg-purple-100 text-purple-600 rounded-md p-2">
                <!-- Calendar Icon -->
                <x-heroicon-o-calendar class="w-6 h-6" />
@@ -82,7 +82,7 @@
        </div>
    </div>
 
-   <div class="p-6 bg-white rounded-md shadow-sm mt-6">
+   <div class="p-6 bg-white rounded-xl shadow-sm mt-6">
        <div class="flex justify-between items-center mb-2">
            <h2 class="text-base font-semibold text-gray-800">Credit Utilization</h2>
        </div>
@@ -108,7 +108,7 @@
        </p>
    </div>
 
-   <div class=" mx-auto bg-white shadow rounded-md mt-6 mb-6">
+   <div class=" mx-auto bg-white shadow rounded-2xl mt-6 mb-6">
        <!-- Header and Filter -->
        <div class="border-b border-gray-200 p-4 ">
            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -121,7 +121,7 @@
                    <!-- Action Buttons -->
                    <div class="flex flex-wrap gap-2">
                        <a href="javascript:void(0)" id="openTemplatesModal"
-                           class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                           class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-md flex items-center">
                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -133,7 +133,7 @@
                        </a>
 
                        <a href="javascript:void(0)" id="openRefundModal"
-                           class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-md flex items-center">
                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -144,7 +144,7 @@
                            Refund
                        </a>
 
-                       <a href="javascript:void(0)" id="openDiscountModal" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                       <a href="javascript:void(0)" id="openDiscountModal" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg text-md flex items-center">
                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -155,7 +155,7 @@
                            Discount
                        </a>
 
-                       <a href="javascript:void(0)" id="openChargeModal" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                       <a href="javascript:void(0)" id="openChargeModal" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-md flex items-center">
                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -173,7 +173,7 @@
                    <!-- Filter -->
                    <div class="flex items-center space-x-2">
                        <label for="typeFilters" class="text-sm text-gray-600">Filter by Type:</label>
-                       <select id="typeFilters" class="border border-gray-300 rounded px-3 py-1 text-sm">
+                       <select id="typeFilters" class="border border-gray-300 rounded px-3 py-3 text-sm">
                            <option value="all">All Transactions</option>
                            <option value="order">Order</option>
 
@@ -193,17 +193,17 @@
        <!-- Table -->
        <div class="overflow-x-auto">
            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
-               <thead class="border-b bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+               <thead class="border-b bg-gray-50 border-gray-200 font-semibold text-gray-700">
                    <tr>
-                       <th class="px-4 py-3">Date</th>
-                       <th class="px-4 py-3">Type</th>
-                       <th class="px-4 py-3  truncate min-w-3xs max-w-3xs">Description</th>
-                       <th class="px-4 py-3 w-40 text-right">Note</th>
-                       <th class="px-4 py-3 w-40 text-right">Amount</th>
-                       <th class="px-4 py-3 w-40 text-right">Sales Tax</th>
-                       <th class="px-4 py-3 w-40 text-right">Balance Change</th>
-                       <th class="px-4 py-3 w-40 text-right">Running Balance</th>
-                       <th class="px-4 py-3 w-32 text-right">Actions</th>
+                       <th class="py-4 px-6">Date</th>
+                       <th class="py-4 px-6">Type</th>
+                       <th class="py-4 px-6  truncate min-w-3xs max-w-3xs">Description</th>
+                       <th class="py-4 px-6 w-40 text-right">Note</th>
+                       <th class="py-4 px-6 w-40 text-right">Amount</th>
+                       <th class="py-4 px-6 w-40 text-right">Sales Tax</th>
+                       <th class="py-4 px-6 w-40 text-right">Balance Change</th>
+                       <th class="py-4 px-6 w-40 text-right">Running Balance</th>
+                       <th class="py-4 px-6 w-32 text-right">Actions</th>
                    </tr>
                </thead>
                <tbody id=" ">
@@ -268,8 +268,8 @@
                    @endphp
 
                    <tr data-status="{{ $transaction->type }}" class="border-b status-row">
-                       <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
-                       <td class="px-4 py-3 text-red-600 ">
+                       <td class="py-4 px-6"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
+                       <td class="py-4 px-6 text-red-600 ">
 
 
                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $style['bg'] }} {{ $style['text'] }}">
@@ -329,7 +329,7 @@
 
                            </div>
                        </td>
-                       <td class="px-4 py-3 text-sm text-gray-900">
+                       <td class="py-4 px-6 text-sm text-gray-900">
                            <div class="max-w-xs truncate text-gray-700">
 
                                @if ($transaction->type === 'payment')
@@ -348,10 +348,10 @@
                        </td>
                        <!-- Amount Without Tax -->
 
-                       <td class="px-4 py-3 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}"> {{ $transaction->notes ?? 'N/A' }} </td>
+                       <td class="py-4 px-6 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}"> {{ $transaction->notes ?? 'N/A' }} </td>
 
 
-                       <td class="px-4 py-3 text-right">
+                       <td class="py-4 px-6 text-right">
 
                            @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
                            {{-- Tax is included in the amount (payment or reverse charge) --}}
@@ -363,7 +363,7 @@
 
                        </td>
                        {{-- Sales Tax Column --}}
-                       <td class="px-4 py-3 text-right">
+                       <td class="py-4 px-6 text-right">
                            @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
                            {{-- Tax is included in the amount (payment or reverse charge) --}}
                            @php
@@ -379,7 +379,7 @@
                        </td>
 
                        {{-- Total Amount with Tax if Applicable --}}
-                       <td class="px-4 py-3 text-right whitespace-nowrap {{ $style['amount'] }}">
+                       <td class="py-4 px-6 text-right whitespace-nowrap {{ $style['amount'] }}">
                            @php
                            $totalWithTax = $transaction->amount;
 
@@ -393,8 +393,8 @@
                            {{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }}
                        </td>
 
-                       <td class="px-4 py-3 text-right whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance ?? 0) }} </td>
-                       <td class="px-4 py-3 text-blue-600">
+                       <td class="py-4 px-6 text-right whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance ?? 0) }} </td>
+                       <td class="py-4 px-6 text-blue-600">
                            <div class="flex gap-2 items-center justify-end">
 
 
@@ -526,11 +526,11 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Payment Amount </label>
                        <div class="relative">
-                           <span class="absolute inset-y-0 left-0 h-[35px] pl-3 flex items-center text-gray-500">$</span>
+                           <span class="absolute inset-y-0 left-0 h-[36px] pl-3 flex items-center text-gray-500">$</span>
 
 
                            <!-- <input type="number" placeholder="0.00"
-                                class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
+                                class="pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm"/> -->
 
                            {!! html()->text('amount', old('amount'))->attributes([
                            'placeholder' => '0',
@@ -541,7 +541,7 @@
                            'data-parsley-maxlength' => 8,
                            'maxlength' => 8,
 
-                           ])->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                           ])->class('pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm')
                            ->placeholder('0.00')->required()
                            !!}
 
@@ -558,7 +558,7 @@
 
                        )
                        ->id('payment_type')
-                       ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                       ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')
                        ->required() !!}
 
 
@@ -573,7 +573,7 @@
                            type="text"
                            id="cheque_number"
                            name="cheque_number"
-                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
+                           class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700"
                            placeholder="Enter Check number" />
                    </div>
 
@@ -582,7 +582,7 @@
                    <div id="creditCardOptions" class="mb-4 hidden">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Card Options </label>
                        <select id="cardOption" name="card_option"
-                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                           class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700">
                            <option value="NewCard" selected>New Card</option>
 
                            @if ($customer->cards && $customer->cards->count() > 0)
@@ -625,7 +625,7 @@
                    <div id="cardOnFileDropdown" class="mb-4 hidden">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Select Existing Card </label>
                        <select name="existing_card_id"
-                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                           class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700">
                            <option value="">-- Select a saved card --</option>
                            @foreach ($customer->cards as $card)
                            <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
@@ -647,7 +647,7 @@
                        )
                        ->id('responsible_person')
                        ->class([
-                       'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                       'w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700',
                        'border-red-500' => $errors->has('responsible_person'),
                        ])
                        ->required()
@@ -660,10 +660,10 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
                        <!-- <textarea rows="3" placeholder="Enter any additional notes..."
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></textarea> -->
+                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700"></textarea> -->
 
                        {!! html()->textarea('notes', old('notes'))
-                       ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                       ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')
                        ->rows(3)
                        ->placeholder('Enter any additional notes...') !!}
 
@@ -671,10 +671,10 @@
                    </div>
 
                    <div class="flex justify-end gap-2 pb-4">
-                       <button type="button" id="canceltempBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                       <button type="button" id="canceltempBtn" class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700">
                            Cancel
                        </button>
-                       <button type="submit" id="submitTemplatesBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white flex items-center justify-center gap-2 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                       <button type="submit" id="submitTemplatesBtn" class="relative px-6 py-3 text-md rounded-lg bg-teal-600 text-white flex items-center justify-center gap-2 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
                            <span id="btnText">Record Payment</span>
                            <svg id="btnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -724,8 +724,8 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Refund Amount </label>
                        <div class="relative">
-                           <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                           <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
+                           <span class="absolute h-[36px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                           <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm"/> -->
 
                            {!! html()->text('amount', old('amount'))->attributes([
                            'placeholder' => '0',
@@ -736,7 +736,7 @@
                            'min' => '0.01',
                            'maxlength' => 8,
                            ])
-                           ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                           ->class('pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm')
                            ->placeholder('0.00')->required() !!}
 
                        </div>
@@ -755,7 +755,7 @@
                        'Duplicate Charge' => 'Duplicate Charge',
                        'Other' => 'Other',
                        ], old('reason'))
-                       ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
+                       ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->required() !!}
 
                    </div>
                    <!-- Person Responsible -->
@@ -770,7 +770,7 @@
                        )
                        ->id('responsible_person')
                        ->class([
-                       'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                       'w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700',
                        'border-red-500' => $errors->has('responsible_person'),
                        ])
                        ->required()
@@ -781,19 +781,19 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
                        <!-- <textarea rows="3" placeholder="Describe the reason for this refund..."
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></textarea> -->
+                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700"></textarea> -->
 
                        {!! html()->textarea('notes', old('notes'))
-                       ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                       ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')
                        ->rows(3)
                        ->placeholder('Describe the reason for this refund...') !!}
                    </div>
 
                    <div class="flex justify-end gap-2 pb-4">
-                       <button type="button" id="cancelRefundBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                       <button type="button" id="cancelRefundBtn" class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700">
                            Cancel
                        </button>
-                       <button type="submit" id="submitRefundBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                       <button type="submit" id="submitRefundBtn" class="relative px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
                            <span id="refundBtnText">Process Refund</span>
                            <svg id="refundBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -848,11 +848,11 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Discount Amount </label>
                        <div class="relative">
-                           <span class="absolute inset-y-0 h-[35px] left-0 pl-3 flex items-center text-gray-500">$</span>
-                           <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
+                           <span class="absolute inset-y-0 h-[36px] left-0 pl-3 flex items-center text-gray-500">$</span>
+                           <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm"/> -->
 
                            <!-- {!! html()->number('amount', old('amount'))
-                                ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                                ->class('pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm')
                                 ->placeholder('0.00')->required() !!} -->
 
                            {!! html()->text('amount' , old('amount') )->attributes([
@@ -864,7 +864,7 @@
                            'data-parsley-maxlength' => 8,
                            'maxlength' => 8,
 
-                           ])->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                           ])->class('pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm')
                            ->placeholder('0.00')->required()
                            !!}
 
@@ -885,7 +885,7 @@
                        'Misc. Management Discount' => 'Misc. Management Discount',
                        'Other' => 'Other',
                        ], old('reason'))
-                       ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
+                       ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->required() !!}
 
 
                    </div>
@@ -900,7 +900,7 @@
                        )
                        ->id('responsible_person')
                        ->class([
-                       'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                       'w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700',
                        'border-red-500' => $errors->has('responsible_person'),
                        ])
                        ->required()
@@ -912,11 +912,11 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
                        <!-- <textarea rows="3" placeholder="Enter any additional notes about this discount..."
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></textarea> -->
+                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700"></textarea> -->
 
 
                        {!! html()->textarea('notes', old('notes'))
-                       ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                       ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')
                        ->rows(3)
                        ->placeholder('Enter any additional notes about this discount...') !!}
 
@@ -924,10 +924,10 @@
                    </div>
 
                    <div class="flex justify-end gap-2 pb-4">
-                       <button type="button" id="cancelDiscountBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                       <button type="button" id="cancelDiscountBtn" class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700">
                            Cancel
                        </button>
-                       <button type="submit" id="submitDiscountBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                       <button type="submit" id="submitDiscountBtn" class="relative px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
                            <span id="discountBtnText">Apply Discount</span>
                            <svg id="discountBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -986,8 +986,8 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Charge Amount </label>
                        <div class="relative">
-                           <span class="absolute h-[35px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                           <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm"/> -->
+                           <span class="absolute h-[36px] inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                           <!-- <input type="number" placeholder="0.00" class="pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm"/> -->
 
                            {!! html()->text('amount', old('amount'))->attributes([
                            'placeholder' => '0',
@@ -999,7 +999,7 @@
                            'maxlength' => 8,
 
                            ])
-                           ->class('pl-7 pr-3 py-2 w-full border border-gray-300 rounded-md text-sm')
+                           ->class('pl-7 pr-3 py-3 w-full border border-gray-300 rounded-md text-sm')
                            ->placeholder('0.00')->required() !!}
 
 
@@ -1042,7 +1042,7 @@
                        'Missing Items' => 'Missing Items',
                        'Product Purchase' => 'Product Purchase',
                        ], old('reason'))
-                       ->class('w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500')
+                       ->class('w-full border border-gray-300 rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500')
                        ->required() !!}
 
                    </div>
@@ -1058,7 +1058,7 @@
                        )
                        ->id('responsible_person')
                        ->class([
-                       'w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700',
+                       'w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700',
                        'border-red-500' => $errors->has('responsible_person'),
                        ])
                        ->required()
@@ -1071,7 +1071,7 @@
                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
 
                        {!! html()->textarea('notes', old('notes'))
-                       ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                       ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')
                        ->rows(3)
                        ->placeholder('Enter any additional notes about this charge...') !!}
 
@@ -1079,10 +1079,10 @@
                    </div>
 
                    <div class="flex justify-end gap-2 pb-4">
-                       <button type="button" id="cancelChargeBtn" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                       <button type="button" id="cancelChargeBtn" class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700">
                            Cancel
                        </button>
-                       <button type="submit" id="submitChargeBtn" class="relative px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
+                       <button type="submit" id="submitChargeBtn" class="relative px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 flex items-center justify-center gap-2">
                            <span id="chargeBtnText">Add Charge</span>
                            <svg id="chargeBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1142,8 +1142,8 @@
 
                    <!-- Footer -->
                    <div id="actionButtons" class="flex justify-end gap-2 py-4 border-t">
-                       <button onclick="closeModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Close</button>
-                       <button onclick="enableEdit()" class="px-4 py-2 text-sm rounded bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">Edit Note</button>
+                       <button onclick="closeModal()" class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Close</button>
+                       <button onclick="enableEdit()" class="px-6 py-3 text-md rounded-lg bg-brand-500 font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">Edit Note</button>
                    </div>
 
                </div>

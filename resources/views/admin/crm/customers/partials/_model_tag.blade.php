@@ -56,7 +56,7 @@
                                 data-parsley-trigger="keyup"
                                 data-parsley-required-message="Please enter a tag name."
                                 data-parsley-errors-container="#tagNameError"
-                                class="w-full px-3 py-2 text-sm border rounded-md focus:ring-green-500 focus:border-green-500"
+                                class="w-full px-3 py-3 text-sm border rounded-md focus:ring-green-500 focus:border-green-500"
                                 placeholder="Enter Tag name">
                             <!-- Parsley error container -->
                             <div id="tagNameError" class="text-red-500 text-xs mt-1"></div>
@@ -64,7 +64,7 @@
                         <button
                             id="addTagBtn"
                             type="submit"
-                            class="h-full px-3 py-2 bg-green-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center text-sm">
+                            class="h-full px-3 py-3 bg-green-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center text-sm">
                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -84,7 +84,7 @@
                     <div class="relative">
 
                         <input type="text" id="searchTagInput"
-                            class="w-full px-3 py-2 border rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
+                            class="w-full px-3 py-3 border rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
                             placeholder="Search existing tags...">
 
                     </div>

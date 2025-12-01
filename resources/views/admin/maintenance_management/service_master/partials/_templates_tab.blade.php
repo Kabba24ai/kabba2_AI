@@ -80,21 +80,33 @@
 
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <template x-for="preset in presets" :key="preset.id">
-                    <button
-                        @click="templateForm.preset_id = preset.id"
-                        :class="templateForm.preset_id === preset.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'"
-                        class="p-4 border-2 rounded-lg text-left transition-colors"
-                    >
-                        <div class="font-semibold text-gray-900 mb-1" x-text="preset.name"></div>
-                        <div x-show="preset.description" class="text-sm text-gray-500 mb-3" x-text="preset.description"></div>
-                        <div class="flex flex-wrap gap-2">
-                            <template x-for="interval in preset.intervals" :key="interval">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                                    <span x-text="interval"></span>h
-                                </span>
-                            </template>
-                        </div>
-                    </button>
+                    <div class="relative">
+                        <button
+                            type="button"
+                            @click.stop="deletePreset(preset.id)"
+                            class="absolute -top-2 -right-2 z-10 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+                        >
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                        <button
+                            type="button"
+                            @click="templateForm.preset_id = preset.id"
+                            :class="templateForm.preset_id === preset.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'"
+                            class="w-full p-4 border-2 rounded-lg text-left transition-colors"
+                        >
+                            <div class="font-semibold text-gray-900 mb-1" x-text="preset.name"></div>
+                            <div x-show="preset.description" class="text-sm text-gray-500 mb-3" x-text="preset.description"></div>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="interval in preset.intervals" :key="interval">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                                        <span x-text="interval"></span>h
+                                    </span>
+                                </template>
+                            </div>
+                        </button>
+                    </div>
                 </template>
             </div>
 

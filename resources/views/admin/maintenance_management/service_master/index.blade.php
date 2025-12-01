@@ -7,10 +7,134 @@
     [x-cloak] {
         display: none !important;
     }
+    
+    /* Toast Notification Styles */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
+    
+    .toast {
+        min-width: 300px;
+        max-width: 500px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        pointer-events: auto;
+        animation: slideIn 0.3s ease-out;
+        background: white;
+    }
+    
+    .toast.success {
+        border-left: 4px solid #10b981;
+    }
+    
+    .toast.error {
+        border-left: 4px solid #ef4444;
+    }
+    
+    .toast.warning {
+        border-left: 4px solid #f59e0b;
+    }
+    
+    .toast.info {
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .toast-icon {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .toast-icon.success {
+        color: #10b981;
+    }
+    
+    .toast-icon.error {
+        color: #ef4444;
+    }
+    
+    .toast-icon.warning {
+        color: #f59e0b;
+    }
+    
+    .toast-icon.info {
+        color: #3b82f6;
+    }
+    
+    .toast-content {
+        flex: 1;
+    }
+    
+    .toast-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: #1f2937;
+    }
+    
+    .toast-message {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.5;
+        white-space: pre-line;
+    }
+    
+    .toast-close {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        color: #9ca3af;
+        transition: color 0.2s;
+    }
+    
+    .toast-close:hover {
+        color: #4b5563;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .toast.fade-out {
+        animation: slideOut 0.3s ease-in forwards;
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
 </style>
 @endpush
 
 @section('content')
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
+
 <script>
 function serviceMaster() {
     return {
@@ -135,6 +259,56 @@ function serviceMaster() {
             });
         },
 
+        // Toast Notification
+        showToast(message, type = 'info', title = '') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />',
+                error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />',
+                warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />',
+                info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+            };
+            
+            const titles = {
+                success: title || 'Success',
+                error: title || 'Error',
+                warning: title || 'Warning',
+                info: title || 'Info'
+            };
+            
+            toast.innerHTML = `
+                <svg class="toast-icon ${type}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    ${icons[type]}
+                </svg>
+                <div class="toast-content">
+                    <div class="toast-title">${titles[type]}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <svg class="toast-close" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Close button
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            });
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('fade-out');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        },
+
         // Computed Properties
         get filteredTasks() {
             if (this.selectedCategory === 'all') {
@@ -167,6 +341,7 @@ function serviceMaster() {
                 });
                 const data = await response.json();
                 this.tasks = data.tasks || [];
+                this.sortTasks();
             } catch (error) {
                 console.error('Error loading tasks:', error);
             }
@@ -198,6 +373,7 @@ function serviceMaster() {
                 });
                 const data = await response.json();
                 this.templates = data.templates || [];
+                this.sortTemplates();
             } catch (error) {
                 console.error('Error loading templates:', error);
             }
@@ -213,6 +389,7 @@ function serviceMaster() {
                 });
                 const data = await response.json();
                 this.presets = data.presets || [];
+                this.sortPresets();
             } catch (error) {
                 console.error('Error loading presets:', error);
             }
@@ -229,6 +406,7 @@ function serviceMaster() {
                 const data = await response.json();
                 if (data.success) {
                     this.templateTasks = data.template.template_tasks || data.template.templateTasks || [];
+                    this.sortTemplateTasks();
                 }
             } catch (error) {
                 console.error('Error loading template tasks:', error);
@@ -292,7 +470,7 @@ function serviceMaster() {
                 }
             } catch (error) {
                 console.error('Error saving task:', error);
-                alert('Error saving task');
+                this.showToast('Error saving task', 'error');
             }
         },
 
@@ -311,10 +489,11 @@ function serviceMaster() {
                 const data = await response.json();
                 if (data.success) {
                     await this.loadTasks();
+                    this.showToast('Task deleted successfully', 'success');
                 }
             } catch (error) {
                 console.error('Error deleting task:', error);
-                alert('Error deleting task');
+                this.showToast('Error deleting task', 'error');
             }
         },
 
@@ -323,11 +502,11 @@ function serviceMaster() {
             try {
                 // Validate before sending
                 if (!this.categoryForm.name.trim()) {
-                    alert('Category name is required');
+                    this.showToast('Category name is required', 'error');
                     return;
                 }
                 if (!this.categoryForm.color) {
-                    alert('Category color is required');
+                    this.showToast('Category color is required', 'error');
                     return;
                 }
 
@@ -346,7 +525,7 @@ function serviceMaster() {
                 
                 if (!response.ok) {
                     console.error('HTTP Error:', response.status, data);
-                    alert(data.message || 'Failed to save category');
+                    this.showToast(data.message || 'Failed to save category', 'error');
                     return;
                 }
 
@@ -358,14 +537,13 @@ function serviceMaster() {
                         color: '#64748b',
                     };
                     await this.loadCategories();
-                    // Show success message
-                    alert('Category saved successfully!');
+                    this.showToast('Category saved successfully!', 'success');
                 } else {
-                    alert(data.message || 'Failed to save category');
+                    this.showToast(data.message || 'Failed to save category', 'error');
                 }
             } catch (error) {
                 console.error('Error saving category:', error);
-                alert('Error saving category: ' + error.message);
+                this.showToast('Error saving category: ' + error.message, 'error');
             }
         },
 
@@ -405,10 +583,11 @@ function serviceMaster() {
                 if (data.success) {
                     this.cancelEditCategory();
                     await this.loadCategories();
+                    this.showToast('Category updated successfully', 'success');
                 }
             } catch (error) {
                 console.error('Error updating category:', error);
-                alert('Error updating category');
+                this.showToast('Error updating category', 'error');
             }
         },
 
@@ -435,10 +614,11 @@ function serviceMaster() {
                     this.newCategoryDescription = '';
                     this.newCategoryColor = '#3B82F6';
                     await this.loadCategories();
+                    this.showToast('Category added successfully', 'success');
                 }
             } catch (error) {
                 console.error('Error adding category:', error);
-                alert('Error adding category');
+                this.showToast('Error adding category', 'error');
             }
         },
 
@@ -460,13 +640,13 @@ function serviceMaster() {
                 const data = await response.json();
                 if (data.success) {
                     await this.loadCategories();
-                    alert('Category deleted successfully!');
+                    this.showToast('Category deleted successfully!', 'success');
                 } else {
-                    alert(data.message || 'Failed to delete category');
+                    this.showToast(data.message || 'Failed to delete category', 'error');
                 }
             } catch (error) {
                 console.error('Error deleting category:', error);
-                alert('Error deleting category: ' + error.message);
+                this.showToast('Error deleting category: ' + error.message, 'error');
             }
         },
 
@@ -632,10 +812,11 @@ function serviceMaster() {
                 if (data.success) {
                     this.cancelTemplateCreation();
                     await this.loadTemplates();
+                    this.showToast('Template created successfully', 'success');
                 }
             } catch (error) {
                 console.error('Error saving template:', error);
-                alert('Error saving template');
+                this.showToast('Error saving template', 'error');
             }
         },
 
@@ -657,10 +838,11 @@ function serviceMaster() {
                         this.selectedTemplate = null;
                     }
                     await this.loadTemplates();
+                    this.showToast('Template deleted successfully', 'success');
                 }
             } catch (error) {
                 console.error('Error deleting template:', error);
-                alert('Error deleting template');
+                this.showToast('Error deleting template', 'error');
             }
         },
 
@@ -719,10 +901,11 @@ function serviceMaster() {
                 const data = await response.json();
                 if (data.success) {
                     await this.loadTemplateTasks(this.selectedTemplate.id);
+                    this.showToast('Task added to template', 'success');
                 }
             } catch (error) {
                 console.error('Error adding task to template:', error);
-                alert('Error adding task to template');
+                this.showToast('Error adding task to template', 'error');
             }
         },
 
@@ -766,14 +949,14 @@ function serviceMaster() {
                         if (!data.success) {
                             // Revert on failure
                             await this.loadTemplateTasks(this.selectedTemplate.id);
-                            alert('Error updating intervals');
+                            this.showToast('Error updating intervals', 'error');
                         }
                     }
                 } catch (error) {
                     console.error('Error updating intervals:', error);
                     // Revert on error
                     await this.loadTemplateTasks(this.selectedTemplate.id);
-                    alert('Error updating intervals');
+                    this.showToast('Error updating intervals', 'error');
                 } finally {
                     this.pendingIntervalUpdates.delete(updateKey);
                 }
@@ -795,10 +978,11 @@ function serviceMaster() {
                 const data = await response.json();
                 if (data.success) {
                     await this.loadTemplateTasks(this.selectedTemplate.id);
+                    this.showToast('Task removed from template', 'success');
                 }
             } catch (error) {
                 console.error('Error removing task:', error);
-                alert('Error removing task');
+                this.showToast('Error removing task', 'error');
             }
         },
 
@@ -847,10 +1031,52 @@ function serviceMaster() {
                     this.templateForm.preset_id = data.preset.id;
                     this.isCreatingIntervalPreset = false;
                     this.resetPresetForm();
+                    this.showToast('Interval template created successfully', 'success');
                 }
             } catch (error) {
                 console.error('Error saving preset:', error);
-                alert('Error saving preset');
+                this.showToast('Error saving preset', 'error');
+            }
+        },
+
+        async deletePreset(presetId) {
+            // Check if any templates are using this preset
+            const templatesUsingPreset = this.templates.filter(t => t.preset_id == presetId);
+            
+            if (templatesUsingPreset.length > 0) {
+                const templateNames = templatesUsingPreset.map(t => t.name).join(', ');
+                this.showToast(
+                    `This interval template is currently being used by the following template(s):\n${templateNames}\n\nPlease remove or reassign these templates first.`,
+                    'error',
+                    'Cannot Delete'
+                );
+                return;
+            }
+
+            if (!confirm('Are you sure you want to delete this interval template?')) return;
+
+            try {
+                const response = await fetch(`/maintenance-management/service-master/presets/${presetId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    await this.loadPresets();
+                    if (this.templateForm.preset_id == presetId) {
+                        this.templateForm.preset_id = '';
+                    }
+                    this.showToast('Interval template deleted successfully', 'success');
+                } else if (data.message) {
+                    this.showToast(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting preset:', error);
+                this.showToast('Failed to delete interval template', 'error');
             }
         },
 
@@ -871,11 +1097,11 @@ function serviceMaster() {
 
                 const data = await response.json();
                 if (data.success) {
-                    alert('Settings saved successfully');
+                    this.showToast('Settings saved successfully', 'success');
                 }
             } catch (error) {
                 console.error('Error saving settings:', error);
-                alert('Error saving settings');
+                this.showToast('Error saving settings', 'error');
             } finally {
                 this.isSaving = false;
             }

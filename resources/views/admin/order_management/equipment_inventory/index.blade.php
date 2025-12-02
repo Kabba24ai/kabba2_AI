@@ -246,8 +246,9 @@
             let equipmentTableWrapper = document.querySelector('#equipment-table-wrapper');
             let equipmentStatusCheckboxes = document.querySelectorAll('input[name="equipment_status[]"]');
             let timeout = null;
-            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
                 .get('per_page') || null;
+            const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
 
             const screenKey = "equipment_filters";
@@ -264,8 +265,8 @@
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
 
-            fetchEquipments(); // initial fetch after loading saved filters
-            function fetchEquipments() {
+            fetchEquipments(pageParam, perPageParam); // initial fetch after loading saved filters
+            function fetchEquipments(page=1, perPage = 10) {
                 const params = new URLSearchParams();
                 if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput
                     .value);
@@ -273,7 +274,7 @@
                 // if (statusSelect.value) params.append('status', statusSelect.value);
                 if (storeSelect.value) params.append('store', storeSelect.value);
                 if (perPage) params.append('per_page', perPage);
-
+                params.append('page', page);
                 // Add all checked equipment_status checkboxes
                 equipmentStatusCheckboxes.forEach(cb => {
                     if (cb.checked) params.append('equipment_status[]', cb.value);
@@ -303,6 +304,12 @@
                         equipmentTableWrapper.classList.remove('opacity-50', 'pointer-events-none');
                     });
             }
+
+            // Register pagination
+            Paginator.init({
+                wrapper: equipmentTableWrapper,
+                fetchCallback: fetchEquipments
+            });
 
             // Delayed search
             searchInput.addEventListener('input', function() {

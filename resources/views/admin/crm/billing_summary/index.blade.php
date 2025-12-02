@@ -218,9 +218,9 @@
             let loader = document.querySelector('#customer-loader');
             let wrapper = document.querySelector('#customer-table-wrapper');
             let timeout = null;
-            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
                 .get('per_page') || null;
-
+            const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
             const screenKey = 'billing_summary_filters';
 
@@ -237,8 +237,8 @@
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
 
-            fetchCustomers(); // initial fetch after loading saved filters
-            function fetchCustomers() {
+            fetchCustomers(pageParam, perPageParam); // initial fetch after loading saved filters
+            function fetchCustomers(page=1, perPage = 10) {
                 const name = nameInput.value;
                 const phone = phoneInput.value;
                 const company = company_name.value;
@@ -258,12 +258,9 @@
                     }
                 });
                 if (perPage) params.append('per_page', perPage);
-
+                params.append('page', page);
+                // Always update sort value
                 params.append('sort', sortValue);
-
-
-    // Always update sort value
-    params.append('sort', sortValue);
 
                 // Show loader
                 loader.classList.remove('hidden');
@@ -305,6 +302,12 @@
                     });
 
             }
+
+            // Register pagination
+            Paginator.init({
+                wrapper: wrapper,
+                fetchCallback: fetchCustomers
+            });
 
             // Delayed filters
             nameInput.addEventListener('input', function() {

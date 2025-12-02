@@ -190,7 +190,6 @@ window.FilterFreezer = {
 };
 
 
-
 // Initialize scripts on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
 

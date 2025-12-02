@@ -52,7 +52,13 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-4 py-4 text-center text-gray-500">No stores found.</td>
+                    <td colspan="7" class="px-4 py-4 text-center text-gray-500">
+                        @if ($stores)
+                            No stores found.
+                        @else
+                            <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                        @endif
+                    </td>
                 </tr>
             @endforelse
         </tbody>
@@ -60,6 +66,8 @@
 </div>
 
 {{-- Pagination --}}
+@if ($stores)
 <div class="mt-6">
     {{ $stores->links() }}
 </div>
+@endif

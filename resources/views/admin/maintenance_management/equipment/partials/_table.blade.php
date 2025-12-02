@@ -58,7 +58,7 @@
                         <td class="py-4 px-6">
                             @if ($item->status_label == 'Rented' && $item?->orderProduct?->checklistQuestions->isNotEmpty())
                                 {{ $item->order->customer_name ?? '-' }}
-                                        {{-- <a href="{{ route('admin.crm.customers.view', $item->order->customer->unique_id) }}"
+                                {{-- <a href="{{ route('admin.crm.customers.view', $item->order->customer->unique_id) }}"
                                 target="_blank" class="text-black hover:underline">
                                 </a> --}}
                             @else
@@ -118,7 +118,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center py-12">
+                        <td colspan="11" class="text-center py-12">
                             <svg class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -143,10 +143,10 @@
 </div>
 
 
-    {{-- Pagination --}}
-    @if ($equipment)
 {{-- Pagination --}}
-<div class="py-4 border-t border-gray-200">
-    {{ $equipment->appends(request()->query())->links() }}
-</div>
-    @endif
+@if ($equipment)
+    {{-- Pagination --}}
+    <div class="py-4 border-t border-gray-200">
+        {{ $equipment->appends(request()->query())->links() }}
+    </div>
+@endif

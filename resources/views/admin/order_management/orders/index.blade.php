@@ -268,6 +268,9 @@
 
         let wrapper = document.querySelector('#order-table-wrapper');
         let timeout = null;
+        const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+                .get('per_page') || null;
+        const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
 
         const screenKey = "order_filters";
@@ -284,8 +287,8 @@
 
         // Load saved filters on page load
         FilterFreezer.loadFilters(screenKey, fieldMap);
-        fetchOrders(); // initial fetch after loading saved filters
-        function fetchOrders() {
+        fetchOrders(pageParam, perPageParam); // initial fetch after loading saved filters
+        function fetchOrders(page=1, perPage = 10) {
             const customerName = customerNameInput.value;
             const customerCompany = customerCompanyNameInput.value;
             const customerPhone = customerPhoneInput.value;
@@ -309,6 +312,7 @@
             if (paymentStatus) params.append('payment_status', paymentStatus);
             if (product) params.append('product', product);
             if (perPage) params.append('per_page', perPage);
+            params.set('page', page); // Set the current page
 
             // Save current filters
             FilterFreezer.saveFilters(screenKey, fieldMap);
@@ -328,6 +332,12 @@
                     initSingleDeleteButtons();
                 })
         }
+
+        // Register pagination
+        Paginator.init({
+            wrapper: wrapper,
+            fetchCallback: fetchOrders
+        });
 
         // Debounce search input
         customerNameInput.addEventListener('input', function() {

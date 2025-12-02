@@ -2,7 +2,7 @@
     @php
         // read per_page from query (fallback 10)
         $perPage = request('per_page', 10);
-        $perPageOptions = [10, 30, 50, 100, 500, 'all'];
+        $perPageOptions = [5, 10, 30, 50, 100, 500, 'all'];
     @endphp
     <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="flex items-center justify-between">
         <div class="flex justify-between flex-1 sm:hidden">
@@ -46,7 +46,7 @@
                 @endforeach
 
                 {{-- Dropdown --}}
-                <select id="per_page_sm" name="per_page" onchange="this.form.submit()"
+                <select data-per-page id="per_page_sm" name="per_page" onchange="this.form.submit()"
                     class="block border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition text-center">
                     @foreach ($perPageOptions as $opt)
                         @php $label = $opt === 'all' ? 'All' : $opt; @endphp

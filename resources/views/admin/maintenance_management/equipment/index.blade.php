@@ -127,10 +127,10 @@
         // let equipService = document.querySelector('select[name="equipService"]');
         let wrapper = document.querySelector('#equipment-table-wrapper');
         let timeout = null;
-        const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+        const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+        const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
 
-        
         /* --------------------------
             FREEZE FILTER (LOCAL STORAGE)
         -------------------------- */
@@ -147,9 +147,9 @@
         FilterFreezer.loadFilters(screenKey, fieldMap);
 
 
-        fetchEquipments(); // initial fetch
+        fetchEquipments(pageParam, perPageParam); // initial fetch
 
-        function fetchEquipments() {
+        function fetchEquipments(page = 1, perPage = 10) {
             const search = searchInput.value;
             const category = categorySelect.value;
             const checklistMasterValue = checklistMasterSelect.value;
@@ -167,8 +167,8 @@
             if (locationStoreValue) params.append('location_store', locationStoreValue);
 
             if (perPage) params.append('per_page', perPage);
+            params.append('page', page);
 
-            
             // Save filters
             FilterFreezer.saveFilters(screenKey, fieldMap);
 
@@ -187,6 +187,13 @@
                     wrapper.innerHTML = response.html;
                 })
         }
+
+        // Register pagination
+        Paginator.init({
+            wrapper: wrapper,
+            fetchCallback: fetchEquipments
+        });
+
 
 
         // Debounce search input

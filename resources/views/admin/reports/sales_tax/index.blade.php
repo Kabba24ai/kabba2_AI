@@ -189,7 +189,9 @@
         const startDateInput = document.querySelector('input[name="start_date"]');
         const endDateInput = document.querySelector('input[name="end_date"]');
         const storeInput = document.querySelector('select[name="store"]');
-
+        const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+                .get('per_page') || null;
+        const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
         const reloadIcon = document.getElementById('reloadIcon');
 
@@ -206,10 +208,9 @@
         // Load saved filters on page load
         FilterFreezer.loadFilters(screenKey, fieldMap);
 
-        fetchOrders(); // Initial fetch on page load
-        function fetchOrders() {
+        fetchOrders(pageParam, perPageParam); // Initial fetch on page load
+        function fetchOrders(page=1, perPage = 10) {
             const params = new URLSearchParams();
-            params.set('page', 1);
 
             const paymentMethod = paymentMethodInput?.value || '';
             const monthRange = monthRangeInput?.value || '';
@@ -222,6 +223,8 @@
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
             if (store) params.append('store', store);
+            if (perPage) params.append('per_page', perPage);
+            params.set('page', page);
 
             // save current filters
             FilterFreezer.saveFilters(screenKey, fieldMap);
@@ -282,6 +285,12 @@
                     reloadIcon.classList.remove('animate-spin');
                 });
         }
+
+        // Register pagination
+        Paginator.init({
+            wrapper: wrapper,
+            fetchCallback: fetchOrders
+        });
 
         // Event bindings
         monthRangeInput?.addEventListener('change', fetchOrders);

@@ -20,29 +20,31 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
+        if($request->ajax()){
+            $perPage = $request->input('per_page', 10);
+            $perPageVal = $perPage === 'all' ? max(1, Terms::count()) : (int) $perPage;
 
-        $perPage = $request->input('per_page', 10);
-        $perPageVal = $perPage === 'all' ? max(1, Terms::count()) : (int) $perPage;
+            $terms = Terms::query();
+            if ($request->filled('search')) {
+                $searchTerm = $request->input('search');
+                $terms->where(function ($query) use ($searchTerm) {
+                    $query->where('title', 'like', '%' . $searchTerm . '%');
+                });
+            }
 
-        $terms = Terms::query();
+            if ($request->filled('is_global')) {
+                $isGlobal = $request->input('is_global');
+                $terms->where('is_global', $isGlobal);
+            }
 
-        if ($request->filled('search')) {
-            $searchTerm = $request->input('search');
-            $terms->where(function ($query) use ($searchTerm) {
-                $query->where('title', 'like', '%' . $searchTerm . '%');
-            });
+            $terms = $terms->orderBy('is_global','ASC')->paginate($perPageVal)->withQueryString();
+            $html = view('admin.terms_and_conditions.partials._table', compact('terms'))->render();
+            return response()->json([
+                'success' => true,
+                'html' => $html,
+            ]);
         }
 
-        if ($request->filled('is_global')) {
-            $isGlobal = $request->input('is_global');
-            $terms->where('is_global', $isGlobal);
-        }
-
-
-        $terms = $terms->orderBy('is_global','ASC')->paginate($perPageVal)->withQueryString();
-
-        return view('admin.terms_and_conditions.index', [
-            'terms' => $terms,
-        ]);
+        return view('admin.terms_and_conditions.index');
     }
 }

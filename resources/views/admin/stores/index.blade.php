@@ -47,7 +47,7 @@
 
     {{-- Stores Table --}}
     <div id="stores-table-wrapper" aria-live="polite">
-        @include('admin.stores.partials._table', ['stores' => $stores])
+        @include('admin.stores.partials._table', ['stores' => []])
     </div>
 
 @endsection
@@ -61,9 +61,23 @@
             let loader = document.querySelector('#stores-loading');
             let wrapper = document.querySelector('#stores-table-wrapper');
             let timeout = null;
-            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+                .get('per_page') || null;
+            const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
-            function fetchStores() {
+            const screenKey = 'store_filters';
+
+            const fieldMap = {
+                'status': statusInput,
+                'search': searchInput,
+            };
+
+
+            // Load saved filters on page load
+            FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            fetchStores(pageParam, perPageParam); // initial fetch after loading saved filters
+            function fetchStores(page=1, perPage = 10) {
                 const search = searchInput.value;
                 const status = statusInput.value;
 
@@ -72,10 +86,14 @@
                 if (search.length >= 3 || search.length === 0) params.append('search', search);
                 if (status) params.append('status', status);
                 if (perPage) params.append('per_page', perPage);
+                params.append('page', page);
 
                 // Show loader
                 loader.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+                // save current filters
+                FilterFreezer.saveFilters(screenKey, fieldMap);
 
                 apiFetch("{{ route('admin.stores.index') }}?" + params.toString(), {
                         headers: {
@@ -84,7 +102,6 @@
                     })
                     .then(response => {
                         wrapper.innerHTML = response.html;
-                        initOrderCheckboxes(); // Reinitialize checkboxes after new content
                     })
                     .finally(() => {
                         loader.classList.add('hidden');
@@ -92,6 +109,12 @@
                     });
 
             }
+
+            // Register pagination
+            Paginator.init({
+                wrapper: wrapper,
+                fetchCallback: fetchStores
+            });
 
             searchInput.addEventListener('input', function() {
                 clearTimeout(timeout);

@@ -85,7 +85,9 @@
             let loader = document.querySelector('#product-loading');
             let wrapper = document.querySelector('#product-table-wrapper');
             let timeout = null;
-            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+                .get('per_page') || null;
+            const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
             const screenKey = 'product_filters';
 
@@ -96,10 +98,12 @@
                 'type': typeSelect,
             };
 
+
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
-            fetchProducts(); // initial fetch after loading saved filters
-            function fetchProducts() {
+
+            fetchProducts(pageParam, perPageParam); // initial fetch after loading saved filters
+            function fetchProducts(page=1, perPage = 10) {
                 const search = searchInput.value;
                 const category = categorySelect.value;
                 const type = typeSelect.value;
@@ -110,6 +114,7 @@
                 if (priceSelect.value) params.append('price', priceSelect.value);
                 if (type) params.append('type', type);
                 if (perPage) params.append('per_page', perPage);
+                params.append('page', page);
 
                 // Show loader
                 loader.classList.remove('hidden');
@@ -139,6 +144,12 @@
                     });
             }
 
+            // Register pagination
+            Paginator.init({
+                wrapper: wrapper,
+                fetchCallback: fetchProducts
+            });
+
             // Debounce search input
             searchInput.addEventListener('input', function() {
                 clearTimeout(timeout);
@@ -150,5 +161,6 @@
             priceSelect.addEventListener('change', fetchProducts);
             typeSelect.addEventListener('change', fetchProducts);
         });
+
     </script>
 @endpush

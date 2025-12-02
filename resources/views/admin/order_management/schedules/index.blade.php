@@ -270,8 +270,9 @@
             let loadingIndicator = document.querySelector('#schedule-loading');
             let wrapper = document.querySelector('#schedule-table-wrapper');
             let timeout = null;
-            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
                 .get('per_page') || null;
+            const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
             const screenKey = "schedules_filters";
 
@@ -291,10 +292,10 @@
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
-            fetchSchedules(); // initial fetch after loading saved filters
-            function fetchSchedules() {
+            fetchSchedules(pageParam, perPageParam); // initial fetch after loading saved filters
+            function fetchSchedules(page=1, perPage = 10) {
                 const params = new URLSearchParams();
-                params.set('page', 1);
+
                 if (customerNameInput && (customerNameInput.value.length >= 3 || customerNameInput.value.length ===
                         0)) params.append('customer_name', customerNameInput.value);
                 if (customerCompanyNameInput && (customerCompanyNameInput.value.length >= 3 ||
@@ -311,6 +312,7 @@
                 if (rescheduledOnlyInput && rescheduledOnlyInput.checked) params.append('rescheduled_only',
                     rescheduledOnlyInput.value);
                 if (perPage) params.append('per_page', perPage);
+                params.set('page', page); // Set the current page
 
                 // --- START: Handle schedule_type[] checkboxes ---
                 let anyScheduleTypeChecked = false;
@@ -375,6 +377,12 @@
                         wrapper.classList.remove('opacity-50', 'pointer-events-none');
                     });
             }
+
+            // Register pagination
+            Paginator.init({
+                wrapper: wrapper,
+                fetchCallback: fetchSchedules
+            });
 
             if (customerNameInput) customerNameInput.addEventListener('input', function() {
                 clearTimeout(timeout);

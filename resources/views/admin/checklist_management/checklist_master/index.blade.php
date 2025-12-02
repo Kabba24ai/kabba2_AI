@@ -225,46 +225,69 @@
 <!-- delete- -->
 
 
-
-
 <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* ------------------------------------
+        FREEZE FILTER (LOCAL STORAGE)
+    ------------------------------------ */
+    const screenKey = "checklist_master_filters";
+
     const categoryFilter = document.getElementById('categoryFilter');
     const searchInput = document.querySelector('input[placeholder="Search checklist systems..."]');
     const rows = document.querySelectorAll('tbody tr');
     const wrapper = document.querySelector('.bg-white.border.border-gray-200.rounded-md.overflow-x-auto.mt-6');
 
+    const fieldMap = {
+        'categoryFilter': categoryFilter,
+        'search': searchInput,
+    };
+
+    // Load previously saved filters
+    FilterFreezer.loadFilters(screenKey, fieldMap);
+
+
+
+    /* ------------------------------------
+        FILTER FUNCTION
+    ------------------------------------ */
     function filterRows() {
-        // Add loading effect
+
+        // Save filters on each change
+        FilterFreezer.saveFilters(screenKey, fieldMap);
+
         wrapper.classList.add('opacity-50', 'pointer-events-none');
 
-        const selectedCategory = String(categoryFilter.value);
-        const searchQuery = searchInput.value.toLowerCase();
-
-
-
-
+        const selectedCategory = String(categoryFilter.value || "");
+        const searchQuery = (searchInput.value || "").toLowerCase();
 
         rows.forEach(row => {
-            const category = String(row.getAttribute('data-status') || '');
+            const category = String(row.getAttribute('data-status') || "");
             const systemName = row.querySelector('td')?.textContent.toLowerCase() || '';
 
-            const matchesCategory = !selectedCategory || selectedCategory === category;
-            const matchesSearch = !searchQuery || systemName.includes(searchQuery);
+            const matchCategory = (!selectedCategory || selectedCategory === category);
+            const matchSearch = (!searchQuery || systemName.includes(searchQuery));
 
-            if (matchesCategory && matchesSearch) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = (matchCategory && matchSearch) ? '' : 'none';
         });
 
-        // Remove loading effect after short delay
         setTimeout(() => {
             wrapper.classList.remove('opacity-50', 'pointer-events-none');
         }, 200);
     }
 
+
+
+    /* ------------------------------------
+        BIND EVENTS
+    ------------------------------------ */
     categoryFilter.addEventListener('change', filterRows);
     searchInput.addEventListener('input', filterRows);
+
+    // Run once on initial load
+    filterRows();
+
+});
 </script>
+
 @endpush

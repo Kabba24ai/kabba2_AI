@@ -12,32 +12,6 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        // Service due filter
-        // $query->when($request->serviceDue, function ($q, $serviceDue) {
-        //     if ($serviceDue === 'due-soon') {
-        //         $q->whereRaw('(current_hours % service_interval) / service_interval >= 0.8 AND (current_hours % service_interval) / service_interval < 1');
-        //     } elseif ($serviceDue === 'overdue') {
-        //         $q->whereRaw('(current_hours % service_interval) / service_interval >= 1');
-        //     }
-        // });
-
-        // // Rental Ready filter
-        // $query->when($request->rentalReady, function ($q, $rentalReady) {
-        //     if ($rentalReady === 'assigned') {
-        //         $q->whereNotNull('rental_ready_checklist');
-        //     } elseif ($rentalReady === 'not-assigned') {
-        //         $q->whereNull('rental_ready_checklist');
-        //     }
-        // });
-
-        // // Equipment Service filter
-        // $query->when($request->equipService, function ($q, $equipService) {
-        //     if ($equipService === 'assigned') {
-        //         $q->whereNotNull('equipment_service_list');
-        //     } elseif ($equipService === 'not-assigned') {
-        //         $q->whereNull('equipment_service_list');
-        //     }
-        // });
 
         $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'checklistMaster', 'store', 'order.customer','activeEquipmentRentalReadyTemplate');
 
@@ -105,6 +79,6 @@ class IndexController extends Controller
             ]);
         }
 
-        return view('admin.maintenance_management.equipment.index', compact('equipment', 'stats', 'categories', 'stores'));
+        return view('admin.maintenance_management.equipment.index', compact( 'stats', 'categories', 'stores'));
     }
 }

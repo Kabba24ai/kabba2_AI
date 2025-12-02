@@ -149,7 +149,10 @@
 </table>
 </div>
 
+    @if ($parts)
+
 {{-- Pagination --}}
 <div class="mt-6">
     {{ $parts->links() }}
 </div>
+    @endif

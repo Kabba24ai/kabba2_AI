@@ -140,7 +140,7 @@ if ($request->filled('equipment_id')) {
 
         // dd($parts->first());
 
-       return view('admin.maintenance_management.parts.index', compact('parts', 'partlists', 'categories', 'stockCounts', 'equipments','allpartlists'));
+       return view('admin.maintenance_management.parts.index', compact( 'partlists', 'categories', 'stockCounts', 'equipments','allpartlists'));
 
     }
 

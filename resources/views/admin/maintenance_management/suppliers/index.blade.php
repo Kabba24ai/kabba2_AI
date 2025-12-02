@@ -99,14 +99,7 @@
         </div>
 
         {{-- Tags --}}
-        <!-- <div class="w-full sm:w-48">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
-            <div class="relative">
-                <input type="text" name="tags_search" value="{{ request('tags_search') }}"
-                    placeholder="Search by tags..."
-                    class="w-full pl-3 pr-4 px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
-            </div>
-        </div> -->
+    
 
         {{-- Tags Filter --}}
 {{-- Tags Filter --}}
@@ -116,13 +109,9 @@
     <select name="tag"
         id="tags_select"
         class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-        <option value="">Select Tag</option>
+       <option value="__none__">All Tags</option>
     </select>
 </div>
-
-
-
-
 
 
         {{-- Status Dropdown --}}
@@ -138,13 +127,13 @@
         </div>
 
         {{-- Buttons --}}
-        <div class="flex gap-2">
+        <!-- <div class="flex gap-2">
 
             <a href="{{ route('admin.maintenance-management.suppliers.index') }}" class="text-sm text-gray-600 bg-white px-3 py-3 rounded-md border border-gray-300">
                 Clear All Filters
             </a>
 
-        </div>
+        </div> -->
     </form>
 </div>
 
@@ -154,9 +143,9 @@
 
 
 
-
-@include('admin.maintenance_management.suppliers.partials._table')
-
+<div id="supplier-table-wrapper">
+@include('admin.maintenance_management.suppliers.partials._table', ['suppliers' => []])
+</div>
 
 @include('admin.maintenance_management.suppliers.partials._model_category')
 @include('admin.maintenance_management.suppliers.partials._model_tag')
@@ -201,6 +190,28 @@
 </script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+
+
+        
+    /* ---------------------------------------------------------
+        FREEZE FILTER SETUP
+    --------------------------------------------------------- */
+    const screenKey = "supplier_filters";
+
+    const fieldMap = {
+        search_name_email: document.querySelector('input[name="search_name_email"]'),
+        company_search: document.querySelector('input[name="company_search"]'),
+        part_search: document.querySelector('input[name="part_search"]'),
+        category: document.querySelector('select[name="category"]'),
+        status: document.querySelector('select[name="status"]'),
+        tag: document.querySelector('select[name="tag"]'), // Choices.js dropdown
+    };
+
+    // Load stored filters into fields
+    FilterFreezer.loadFilters(screenKey, fieldMap);
+
+
+
         const inputs = document.querySelectorAll(
             'input[name="search_name_email"], input[name="company_search"], input[name="part_search"]'
         );
@@ -225,11 +236,10 @@
             });
 
             // Append select values
-            selects.forEach(select => {
-                if (select.value) {
-                    params.append(select.name, select.value);
-                }
-            });
+          selects.forEach(select => {
+    params.append(select.name, select.value || "");
+});
+
 
             // Add loader effect
             wrapper.classList.add('opacity-50', 'pointer-events-none');
@@ -241,6 +251,11 @@
                 })
                 .then(res => res.json())
                 .then(data => {
+
+                     
+            // Save filters
+            FilterFreezer.saveFilters(screenKey, fieldMap);
+
                     wrapper.innerHTML = data.html;
                 })
                 .catch(err => {
@@ -297,6 +312,8 @@
                 }
             });
         };
+
+        fetchSuppliers() ;
     });
 </script>
 

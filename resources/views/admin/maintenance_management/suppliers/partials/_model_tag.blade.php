@@ -133,16 +133,26 @@
 const filterSelect = document.getElementById('tags_select');
 
 if (filterSelect && !window.filterTagChoices) {
+    
     window.filterTagChoices = new Choices(filterSelect, {
-        searchEnabled: true,
-        shouldSort: false,
-        placeholderValue: 'Select Tag',
-        itemSelectText: '',
-    });
+    searchEnabled: true,
+    shouldSort: false,
+    placeholderValue: 'Select Tag',
+    itemSelectText: '',
+    removeItemButton: true,
+});
+
+// Force syncing of Choices.js selected value to native select
+filterSelect.addEventListener('change', function (event) {
+    const value = event.target.value ?? "";
+    filterSelect.value = value;
+});
+
+
+
 }
 
 window.updatefilterTagSelect = function () {
-    console.log('%c[Tag Filter] updatefilterTagSelect() triggered', 'color: #4CAF50; font-weight: bold;');
 
     if (!window.tags) return;
     if (!window.filterTagChoices) return;
@@ -156,8 +166,6 @@ window.updatefilterTagSelect = function () {
     }));
 
     window.filterTagChoices.setChoices(choicesList, 'value', 'label', true);
-
-    console.log('%c[Tag Filter] Choices updated successfully! 🎯', 'color: #03A9F4; font-weight: bold;');
 };
 
 

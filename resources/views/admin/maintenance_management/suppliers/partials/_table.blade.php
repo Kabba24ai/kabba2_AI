@@ -1,6 +1,6 @@
 
 
-  <div id="supplier-table-wrapper" class="overflow-x-auto rounded-2xl  shadow border border-gray-200 bg-white dark:bg-gray-900">
+  <div  class="overflow-x-auto rounded-2xl  shadow border border-gray-200 bg-white dark:bg-gray-900">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm" id="suppliers-table-wrapper">
           <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -33,7 +33,7 @@
 
                           <div class="">
                               <div class="text-sm font-medium text-gray-900">{{ $supplier->name }}</div>
-<div class="text-sm text-gray-500 flex items-center mt-1">
+                        <div class="text-sm text-gray-500 flex items-center mt-1">
 
                           {{ $supplier->primary_contact_name ?? 'N/A'}}
                       </div>
@@ -125,3 +125,10 @@ $categories = $supplier->all_supplied_parts
       </table>
 
   </div>
+
+  @if ($suppliers)
+    <div class="py-4 border-t border-gray-200">
+        {{ $suppliers->links() }}
+    </div>
+  @endif
+

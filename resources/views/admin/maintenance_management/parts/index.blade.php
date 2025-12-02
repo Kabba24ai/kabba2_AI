@@ -225,7 +225,7 @@
 
             <!-- table  -->
  <div id="parts-table-wrapper">
-                @include('admin.maintenance_management.parts.partials._table', ['parts' => $parts])
+                @include('admin.maintenance_management.parts.partials._table', ['parts' =>  []])
  </div>
         </div>
 
@@ -379,7 +379,7 @@
 
     let lists = JSON.parse(element.getAttribute('data-lists'));
 
- 
+
 
     if (!lists.length) {
         container.innerHTML = `<p class='text-center text-gray-500'>No lists assigned.</p>`;
@@ -450,16 +450,16 @@ function closePartListModal() {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Suppliers data:');
-            console.log(data);
-            console.log('Suppliers data:');
+            // console.log('Suppliers data:');
+            // console.log(data);
+            // console.log('Suppliers data:');
 
             // Assign response to global variable
             SUPPLIERS_DATA = data;
 
             // Example check: log first supplier
             if (SUPPLIERS_DATA.length > 0) {
-                console.log("First supplier:", SUPPLIERS_DATA[0]);
+                // console.log("First supplier:", SUPPLIERS_DATA[0]);
             }
 
             // Now you can use SUPPLIERS_DATA in your modal, dropdown, etc.
@@ -639,6 +639,23 @@ function closePartListModal() {
         let timeout = null;
         let selectedStatus = '';
 
+
+
+    /* -----------------------------
+        FREEZE FILTER SETUP
+    ------------------------------*/
+    const screenKey = "parts_filters";
+
+    const fieldMap = {
+        'search': searchInput,
+        'category': categorySelect,
+        'partlist': partlistSelect,
+        'equipment_id': equipmentSelect,
+    };
+
+    // Load saved filter values into inputs
+    FilterFreezer.loadFilters(screenKey, fieldMap);
+
         function updateClearButton() {
             const hasFilters =
                 (searchInput?.value.trim() !== '') ||
@@ -670,6 +687,10 @@ function closePartListModal() {
 
             updateClearButton();
 
+
+        // Save freeze values
+        FilterFreezer.saveFilters(screenKey, fieldMap);
+
             loader?.classList.remove('hidden');
             wrapper?.classList.add('opacity-50', 'pointer-events-none');
 
@@ -681,9 +702,9 @@ function closePartListModal() {
                 .then(response => response.json())
                 .then(data => {
 
-                    console.log('data:- ');
-                    console.log(data);
-                    console.log('data:- ');
+                    // console.log('data:- ');
+                    // console.log(data);
+                    // console.log('data:- ');
 
 
                     wrapper.innerHTML = data.html;
@@ -765,8 +786,17 @@ function closePartListModal() {
                 'ring-2', 'ring-green-500', 'ring-yellow-500', 'ring-red-500', 'ring-gray-400'
             ));
 
+           localStorage.removeItem(screenKey);
+
             fetchParts();
         });
+
+
+           /* -----------------------------
+        INITIAL LOAD (AFTER FREEZE)
+    ------------------------------*/
+    fetchParts();
+
 
         // <!-- delete  -->
 

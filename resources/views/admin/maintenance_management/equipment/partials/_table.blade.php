@@ -32,7 +32,7 @@
                         </td>
                         <td class="py-3 px-3">
                             <span
-                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium @if($item->imei) bg-purple-200 @else bg-gray-100 @endif  text-gray-800 border ">
                                 {{ $item->equipment_id }}
                             </span>
                         </td>

@@ -143,7 +143,7 @@ class IndexController extends Controller
         $reportRows = $reportRows->filter(fn($row) => $row->tax_amount > 0)->values();
 
         // Pagination
-        $perPage = 10;
+        $perPage = $request->get('per_page', 10);
         $page = $request->get('page', 1);
         $total = $reportRows->count();
         $items = $reportRows->slice(($page - 1) * $perPage, $perPage)->values();

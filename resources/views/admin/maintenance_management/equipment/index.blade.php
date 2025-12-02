@@ -21,7 +21,8 @@
         @include('admin.maintenance_management.equipment.partials._stats')
         @include('admin.maintenance_management.equipment.partials._filters')
         <div id="equipment-table-wrapper" aria-live="polite">
-            @include('admin.maintenance_management.equipment.partials._table')
+               @include('admin.maintenance_management.equipment.partials._table', ['equipment' => []])
+
         </div>
     </div>
     <!-- Checklist Master Assign Modal -->
@@ -128,6 +129,26 @@
         let timeout = null;
         const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
+
+        
+        /* --------------------------
+            FREEZE FILTER (LOCAL STORAGE)
+        -------------------------- */
+        const screenKey = "equipment_filters";
+
+        const fieldMap = {
+            'search': searchInput,
+            'category': categorySelect,
+            'checklist_master': checklistMasterSelect,
+            'location_store': locationStore,
+        };
+
+        // Load saved filters
+        FilterFreezer.loadFilters(screenKey, fieldMap);
+
+
+        fetchEquipments(); // initial fetch
+
         function fetchEquipments() {
             const search = searchInput.value;
             const category = categorySelect.value;
@@ -146,6 +167,10 @@
             if (locationStoreValue) params.append('location_store', locationStoreValue);
 
             if (perPage) params.append('per_page', perPage);
+
+            
+            // Save filters
+            FilterFreezer.saveFilters(screenKey, fieldMap);
 
             // Show loader
             wrapper.classList.add('opacity-50', 'pointer-events-none');
@@ -259,6 +284,7 @@
         });
 
         fetchChecklistMasters();
+
         // Fetch checklist master options
         function fetchChecklistMasters() {
             apiFetch('{{ route('admin.checklist-management.checklist-master.fetch') }}')

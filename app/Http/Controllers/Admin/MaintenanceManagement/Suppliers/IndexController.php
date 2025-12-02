@@ -26,7 +26,6 @@ class IndexController extends Controller
     'alt1Parts.partsLists.category',
     'alt2Parts.partsLists.category', 'state', 'category', 'media']);
 
-
         // Search by name/email
         if ($request->filled('search_name_email')) {
             $query->where(function ($q) use ($request) {
@@ -43,22 +42,9 @@ class IndexController extends Controller
         }
 
 
-        // Search by tags
-        // if ($request->filled('tags_search')) {
-        //     $tagNames = array_map('trim', explode(',', $request->tags_search));
-        //     $tagIds = \App\Models\MaintenanceManagement\SupplierTag::whereIn('name', $tagNames)->pluck('id')->toArray();
-
-        //     if (!empty($tagIds)) {
-        //         $query->where(function ($q) use ($tagIds) {
-        //             foreach ($tagIds as $tagId) {
-        //                 $q->orWhereRaw('FIND_IN_SET(?, tags)', [$tagId]);
-        //             }
-        //         });
-        //     }
-        // }
 
         // Filter by Tag ID
-if ($request->filled('tag')) {
+if ($request->filled('tag') && $request->tag !== '__none__') {
     $tagId = $request->tag;
     $query->whereRaw('FIND_IN_SET(?, tags)', [$tagId]);
 }
@@ -84,27 +70,27 @@ if ($request->filled('part_search')) {
 }
 
         // Category filter
-        // Filter by PartsList Category of any supplied Part
-if ($request->filled('category')) {
+    // Search by category
+if ($request->category !== null && $request->category !== "") {
     $category = $request->category;
 
     $query->where(function ($q) use ($category) {
-        $q->whereHas('primaryParts.partsLists', function ($sub) use ($category) {
-            $sub->where('category_id', $category);
-        })
-        ->orWhereHas('alt1Parts.partsLists', function ($sub) use ($category) {
-            $sub->where('category_id', $category);
-        })
-        ->orWhereHas('alt2Parts.partsLists', function ($sub) use ($category) {
-            $sub->where('category_id', $category);
-        });
+        $q->whereHas('primaryParts.partsLists', fn($sub) => 
+            $sub->where('category_id', $category)
+        )
+        ->orWhereHas('alt1Parts.partsLists', fn($sub) => 
+            $sub->where('category_id', $category)
+        )
+        ->orWhereHas('alt2Parts.partsLists', fn($sub) => 
+            $sub->where('category_id', $category)
+        );
     });
 }
 
         // Status filter
-        if ($request->filled('status')) {
-            $query->where('status', ucfirst($request->status));
-        }
+      if ($request->status !== null && $request->status !== "") {
+    $query->where('status', ucfirst($request->status));
+}
 
         // Always sort alphabetically by supplier name
         $query->orderBy('name', 'ASC');
@@ -137,6 +123,6 @@ if ($request->filled('category')) {
 
         // dd( $suppliers->first()->all_supplied_parts);
 
-        return view('admin.maintenance_management.suppliers.index', compact('suppliers', 'states','parts','categories'));
+        return view('admin.maintenance_management.suppliers.index', compact( 'states','parts','categories'));
     }
 }

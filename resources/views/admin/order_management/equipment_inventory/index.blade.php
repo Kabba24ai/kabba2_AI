@@ -259,7 +259,6 @@
                 // 'status': statusSelect,
                 'store': storeSelect,
                 'equipment_status': equipmentStatusCheckboxes,
-                'per_page': perPage
             };
 
             // Load saved filters on page load

@@ -77,7 +77,7 @@
             FilterFreezer.loadFilters(screenKey, fieldMap);
 
             fetchStores(pageParam, perPageParam); // initial fetch after loading saved filters
-            function fetchStores(page=1, perPage = 10) {
+            function fetchStores(page = 1, perPage = 10) {
                 const search = searchInput.value;
                 const status = statusInput.value;
 

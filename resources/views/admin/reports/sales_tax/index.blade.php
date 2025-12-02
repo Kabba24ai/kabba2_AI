@@ -209,7 +209,7 @@
         FilterFreezer.loadFilters(screenKey, fieldMap);
 
         fetchOrders(pageParam, perPageParam); // Initial fetch on page load
-        function fetchOrders(page=1, perPage = 10) {
+        function fetchOrders(page = 1, perPage = 10) {
             const params = new URLSearchParams();
 
             const paymentMethod = paymentMethodInput?.value || '';

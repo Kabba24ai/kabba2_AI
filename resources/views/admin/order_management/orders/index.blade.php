@@ -288,7 +288,7 @@
         // Load saved filters on page load
         FilterFreezer.loadFilters(screenKey, fieldMap);
         fetchOrders(pageParam, perPageParam); // initial fetch after loading saved filters
-        function fetchOrders(page=1, perPage = 10) {
+        function fetchOrders(page = 1, perPage = 10) {
             const customerName = customerNameInput.value;
             const customerCompany = customerCompanyNameInput.value;
             const customerPhone = customerPhoneInput.value;
@@ -296,7 +296,6 @@
             const paymentMethod = paymentMethodInput.value;
             const paymentStatus = paymentStatusInput.value;
             const product = productInput.value;
-            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
             const params = new URLSearchParams();
             params.set('page', 1); // Always reset to first page on filter

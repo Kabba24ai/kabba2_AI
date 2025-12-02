@@ -293,7 +293,7 @@
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
             fetchSchedules(pageParam, perPageParam); // initial fetch after loading saved filters
-            function fetchSchedules(page=1, perPage = 10) {
+            function fetchSchedules(page = 1, perPage = 10) {
                 const params = new URLSearchParams();
 
                 if (customerNameInput && (customerNameInput.value.length >= 3 || customerNameInput.value.length ===

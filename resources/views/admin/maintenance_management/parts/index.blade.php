@@ -641,55 +641,55 @@
         }
       </div>
     `;
-        }
+    }
 
-        // Your open/close remain the same, just ensure open calls renderOptions()
-        function openSupplierModal() {
-            document.getElementById('supplierModal').classList.remove('hidden');
-            renderOptions(); // mount + render content
-        }
+    // Your open/close remain the same, just ensure open calls renderOptions()
+    function openSupplierModal() {
+        document.getElementById('supplierModal').classList.remove('hidden');
+        renderOptions(); // mount + render content
+    }
 
-        function closeSupplierModal() {
-            document.getElementById('supplierModal').classList.add('hidden');
-        }
-    </script>
+    function closeSupplierModal() {
+        document.getElementById('supplierModal').classList.add('hidden');
+    }
+</script>
 
-    <!-- search filter  -->
+<!-- search filter  -->
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');
             let categorySelect = document.querySelector('select[name="category"]');
             let partlistSelect = document.querySelector('select[name="partlist"]');
 
 
 
-            let equipmentSelect = document.querySelector('select[name="equipment_id"]');
-            let wrapper = document.querySelector('#parts-table-wrapper');
-            let loader = document.querySelector('#parts-loader');
-            let clearBtn = document.querySelector('#clear-filters');
+        let equipmentSelect = document.querySelector('select[name="equipment_id"]');
+        let wrapper = document.querySelector('#parts-table-wrapper');
+        let loader = document.querySelector('#parts-loader');
+        let clearBtn = document.querySelector('#clear-filters');
 
-            let timeout = null;
-            let selectedStatus = '';
+        let timeout = null;
+        let selectedStatus = '';
 
 
 
-            /* -----------------------------
-                FREEZE FILTER SETUP
-            ------------------------------*/
-            const screenKey = "parts_filters";
+    /* -----------------------------
+        FREEZE FILTER SETUP
+    ------------------------------*/
+    const screenKey = "parts_filters";
 
-            const fieldMap = {
-                'search': searchInput,
-                'category': categorySelect,
-                'partlist': partlistSelect,
-                'equipment_id': equipmentSelect,
-            };
+    const fieldMap = {
+        'search': searchInput,
+        'category': categorySelect,
+        'partlist': partlistSelect,
+        'equipment_id': equipmentSelect,
+    };
 
-            // Load saved filter values into inputs
-            FilterFreezer.loadFilters(screenKey, fieldMap);
+    // Load saved filter values into inputs
+    FilterFreezer.loadFilters(screenKey, fieldMap);
 
-            function updateClearButton() {
+        function updateClearButton() {
                 const hasFilters =
                     (searchInput?.value.trim() !== '') ||
                     (categorySelect && categorySelect.value) ||
@@ -826,11 +826,11 @@
             });
 
 
+
             /* -----------------------------
             INITIAL LOAD (AFTER FREEZE)
         ------------------------------*/
             fetchParts();
-
 
             // <!-- delete  -->
 

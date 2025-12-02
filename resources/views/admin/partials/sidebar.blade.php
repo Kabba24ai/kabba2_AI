@@ -531,6 +531,26 @@
                         </div>
                     </li>
 
+                 
+<!-- Message Management -->
+<li>
+    <a href="{{ route('admin.message-management.index') }}"
+        class="menu-item group flex items-center gap-3 
+            {{ Route::is('admin.message-management.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
+        
+        <span
+            class="w-6 h-6 flex items-center justify-center 
+                {{ Route::is('admin.message-management.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
+            <x-heroicon-o-chat-bubble-left-right class="w-7 h-7" />
+        </span>
+
+        <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+            Message Management
+        </span>
+    </a>
+</li>
+
+
                     @php
 
                     // New logic for Website Management active state
@@ -602,6 +622,7 @@
                         </div>
                     </li>
 
+                    
 
                     <!-- Settings -->
                     <li x-data="{ open: {{ $settingsActive ? 'true' : 'false' }} }">

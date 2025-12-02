@@ -17,7 +17,7 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-
+       
         $parts = Part::orderBy('part_name')->get();
 
 
@@ -38,58 +38,60 @@ class IndexController extends Controller
 
         // Search by company
         if ($request->filled('company_search')) {
+            
             $query->where('name', 'like', "%{$request->company_search}%");
         }
 
 
 
         // Filter by Tag ID
-if ($request->filled('tag') && $request->tag !== '__none__') {
-    $tagId = $request->tag;
-    $query->whereRaw('FIND_IN_SET(?, tags)', [$tagId]);
-}
+        //if ($request->filled('tag') && $request->tag !== '__none__') {
+        // if ($request->filled('tag')) {
+        //     $tagId = $request->tag;
+        //     $query->whereRaw('FIND_IN_SET(?, tags)', [$tagId]);
+        // }
 
 
 
         // Search by part
         // Search by part name (primary / alt1 / alt2 supplier parts)
-if ($request->filled('part_search')) {
-    $searchTerm = $request->part_search;
+        if ($request->filled('part_search')) {
+            $searchTerm = $request->part_search;
 
-    $query->where(function ($q) use ($searchTerm) {
-        $q->whereHas('primaryParts', function ($sub) use ($searchTerm) {
-            $sub->where('part_name', 'like', "%{$searchTerm}%");
-        })
-        ->orWhereHas('alt1Parts', function ($sub) use ($searchTerm) {
-            $sub->where('part_name', 'like', "%{$searchTerm}%");
-        })
-        ->orWhereHas('alt2Parts', function ($sub) use ($searchTerm) {
-            $sub->where('part_name', 'like', "%{$searchTerm}%");
-        });
-    });
-}
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('primaryParts', function ($sub) use ($searchTerm) {
+                    $sub->where('part_name', 'like', "%{$searchTerm}%");
+                })
+                ->orWhereHas('alt1Parts', function ($sub) use ($searchTerm) {
+                    $sub->where('part_name', 'like', "%{$searchTerm}%");
+                })
+                ->orWhereHas('alt2Parts', function ($sub) use ($searchTerm) {
+                    $sub->where('part_name', 'like', "%{$searchTerm}%");
+                });
+            });
+        }
 
         // Category filter
-    // Search by category
-if ($request->category !== null && $request->category !== "") {
-    $category = $request->category;
+        // Search by category
+        if ($request->category !== null && $request->category !== "") {
+            $category = $request->category;
 
-    $query->where(function ($q) use ($category) {
-        $q->whereHas('primaryParts.partsLists', fn($sub) => 
-            $sub->where('category_id', $category)
-        )
-        ->orWhereHas('alt1Parts.partsLists', fn($sub) => 
-            $sub->where('category_id', $category)
-        )
-        ->orWhereHas('alt2Parts.partsLists', fn($sub) => 
-            $sub->where('category_id', $category)
-        );
-    });
-}
+            $query->where(function ($q) use ($category) {
+                $q->whereHas('primaryParts.partsLists', fn($sub) => 
+                    $sub->where('category_id', $category)
+                )
+                ->orWhereHas('alt1Parts.partsLists', fn($sub) => 
+                    $sub->where('category_id', $category)
+                )
+                ->orWhereHas('alt2Parts.partsLists', fn($sub) => 
+                    $sub->where('category_id', $category)
+                );
+            });
+        }
 
         // Status filter
       if ($request->status !== null && $request->status !== "") {
-    $query->where('status', ucfirst($request->status));
+        $query->where('status', ucfirst($request->status));
 }
 
         // Always sort alphabetically by supplier name
@@ -111,7 +113,7 @@ if ($request->category !== null && $request->category !== "") {
 
         // dd($parts);
                  $categories = ProductCategory::with('products', 'equipments')->get();
-
+   
 
         if ($request->ajax()) {
             $tableView = view('admin.maintenance_management.suppliers.partials._table', compact('suppliers'))->render();

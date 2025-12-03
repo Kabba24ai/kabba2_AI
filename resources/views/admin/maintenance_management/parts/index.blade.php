@@ -700,7 +700,13 @@
                 else clearBtn?.classList.add('hidden');
             }
 
-            function fetchParts() {
+            const perPageParam = document.getElementById('per_page_sm')?.value 
+    || new URLSearchParams(location.search).get('per_page') 
+    || 10;
+
+const pageParam = new URLSearchParams(location.search).get('page') || 1;
+
+function fetchParts(page = 1, perPage = 10) {
                 const params = new URLSearchParams();
 
                 if (searchInput.value.length >= 2 || searchInput.value.length === 0)
@@ -718,6 +724,9 @@
                 if (selectedStatus)
                     params.append('stock_status', selectedStatus);
 
+                   params.append('per_page', perPage);
+    params.append('page', page);
+
                 updateClearButton();
 
 
@@ -734,10 +743,6 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-
-                        // console.log('data:- ');
-                        // console.log(data);
-                        // console.log('data:- ');
 
 
                         wrapper.innerHTML = data.html;
@@ -825,12 +830,18 @@
                 fetchParts();
             });
 
+            Paginator.init({
+    wrapper: wrapper,
+    fetchCallback: fetchParts
+});
+
 
 
             /* -----------------------------
             INITIAL LOAD (AFTER FREEZE)
         ------------------------------*/
-            fetchParts();
+fetchParts(pageParam, perPageParam); // initial load
+
 
             // <!-- delete  -->
 

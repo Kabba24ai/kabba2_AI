@@ -93,7 +93,12 @@ if ($request->filled('equipment_id')) {
 
 
       // Paginate parts
-        $parts = $query->paginate(10)->withQueryString();
+      $perPage = $request->input('per_page', 10);
+$perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
+
+$parts = $query->paginate($perPageVal)->withQueryString();
+
+        // $parts = $query->paginate(10)->withQueryString();
 
 
         // Part List
@@ -132,10 +137,11 @@ if ($request->filled('equipment_id')) {
                 ]);
             }
 
-            return response()->json([
-                'html' => view('admin.maintenance_management.parts.partials._table', compact('parts'))->render(),
-                'total' => $parts->count(),
-            ]);
+          return response()->json([
+            'html' => view('admin.maintenance_management.parts.partials._table', compact('parts'))->render(),
+            'total' => $parts->total(),
+          ]);
+
         }
 
         // dd($parts->first());

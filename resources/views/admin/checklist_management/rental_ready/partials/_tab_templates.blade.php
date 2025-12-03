@@ -92,6 +92,18 @@
 
                               @endphp
 
+                              
+                                <form
+                                    action="{{ route('admin.checklist-management.rental-ready.templates.copy', $template->unique_id) }}"
+                                    method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-green-600 hover:text-green-800"
+                                        title="Copy this Checklist Master">
+                                        <x-heroicon-o-clipboard-document class="w-4 h-4" />
+                                    </button>
+                                </form>
+
+
                               <button
                                 class="edit-template-btn text-green-600 hover:text-green-800"
                                 title="Edit"
@@ -393,6 +405,9 @@ document.addEventListener('DOMContentLoaded', function () {
           @endforeach
       ];
 
+      // Sort alphabetically by question name
+data.sort((a, b) => a.text.localeCompare(b.text));
+
     window.templateData = [];
 
    const openModal = () => {
@@ -691,6 +706,26 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <!-- delete- -->
+
+
+<!-- copy  -->
+
+@if(session('open_edit_template'))
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const newId = "{{ session('open_edit_template') }}";
+
+    // Find corresponding edit button
+    const btn = document.querySelector(
+        `.edit-template-btn[data-route*="${newId}"]`
+    );
+
+    if (btn) {
+        btn.click(); // automatically open modal
+    }
+});
+</script>
+@endif
 
 
 

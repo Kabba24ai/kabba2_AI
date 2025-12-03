@@ -108,8 +108,8 @@
 
     <select name="tag"
         id="tags_select"
-        class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-       <option value="__none__">All Tags</option>
+        class=" w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+       <option value="">All Tags</option>
     </select>
 </div>
 

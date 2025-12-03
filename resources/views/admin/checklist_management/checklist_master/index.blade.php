@@ -136,7 +136,7 @@
                         <td class="px-4 py-3 ">
                             <div class="flex gap-2">
 
-                                <form
+                                <!-- <form
                                     action="{{ route('admin.checklist-management.checklist-master.copy', $Master->unique_id) }}"
                                     method="POST" class="inline">
                                     @csrf
@@ -144,7 +144,7 @@
                                         title="Copy this Checklist Master">
                                         <x-heroicon-o-clipboard-document class="w-4 h-4" />
                                     </button>
-                                </form>
+                                </form> -->
 
 
 

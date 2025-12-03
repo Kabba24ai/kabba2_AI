@@ -31,6 +31,7 @@ class IndexController extends Controller
     // $equipmentCategories = ProductCategory::pluck('title','id')->toArray();
         $equipmentCategories = ProductCategory::getHierarchy();
 
+        // dd($checklisttemplate);
 
         // Return the view with the settings data
         return view('admin.checklist_management.rental_ready.index',compact('rentalreadycategory','totalQuestions','equipmentCategories','checklisttemplate'));

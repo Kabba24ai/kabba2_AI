@@ -209,6 +209,7 @@
         FilterFreezer.loadFilters(screenKey, fieldMap);
 
         fetchOrders(pageParam, perPageParam); // Initial fetch on page load
+
         function fetchOrders(page = 1, perPage = 10) {
             const params = new URLSearchParams();
 
@@ -293,11 +294,17 @@
         });
 
         // Event bindings
-        monthRangeInput?.addEventListener('change', fetchOrders);
-        storeInput?.addEventListener('change', fetchOrders);
-        startDateInput?.addEventListener('change', fetchOrders);
-        endDateInput?.addEventListener('change', fetchOrders);
-        paymentMethodInput?.addEventListener('change', fetchOrders);
+        // monthRangeInput?.addEventListener('change', fetchOrders);
+        // storeInput?.addEventListener('change', fetchOrders);
+        // startDateInput?.addEventListener('change', fetchOrders);
+        // endDateInput?.addEventListener('change', fetchOrders);
+        // paymentMethodInput?.addEventListener('change', fetchOrders);
+
+        monthRangeInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
+storeInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
+startDateInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
+endDateInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
+paymentMethodInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
 
 
         if (clearFiltersBtn) {
@@ -314,7 +321,8 @@
                 storeInput.value = '';
 
                 // Fetch orders and stop spin when done
-                fetchOrders();
+               fetchOrders(1, perPageParam);
+
             });
         }
 

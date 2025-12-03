@@ -97,8 +97,8 @@
         window.tags = [];
         const tagSelect = document.getElementById('supplierTags');
 
-        if (!tagSelect) return;
-
+        // if (!tagSelect) return;
+if (tagSelect) {
         // Initialize Choices once
         if (tagSelect && !window.tagChoices) {
             window.tagChoices = new Choices(tagSelect, {
@@ -128,12 +128,12 @@
 
             // ==
         }
+}
 
         // Initialize Choices for filter dropdown only once
 const filterSelect = document.getElementById('tags_select');
 
 if (filterSelect && !window.filterTagChoices) {
-    
     window.filterTagChoices = new Choices(filterSelect, {
     searchEnabled: true,
     shouldSort: false,
@@ -154,19 +154,31 @@ filterSelect.addEventListener('change', function (event) {
 
 window.updatefilterTagSelect = function () {
 
-    if (!window.tags) return;
+    if (!window.tags || !window.tags.length) return;
     if (!window.filterTagChoices) return;
 
-    const selected = "{{ request('tag') }}";
+    // Load stored tag from LocalStorage
+    const stored = JSON.parse(localStorage.getItem("supplier_filters") || "{}");
 
-    const choicesList = window.tags.map(tag => ({
-        value: String(tag.id),
-        label: tag.name,
-        selected: (selected == tag.id)
-    }));
+    // if no tag stored → default to "__none__"
+    const selected = stored.tag && stored.tag !== "" ? stored.tag : "__none__";
 
+    // Build list of tags (plus "All Tags" option)
+    const choicesList = [
+        { value: "", label: "All Tags", selected: selected === "" },
+        ...window.tags.map(tag => ({
+            value: String(tag.id),
+            label: tag.name,
+            selected: String(selected) === String(tag.id)
+        }))
+    ];
+
+    // Apply to Choices dropdown
     window.filterTagChoices.setChoices(choicesList, 'value', 'label', true);
+
+    fetchSuppliers();
 };
+
 
 
         //  Define globally

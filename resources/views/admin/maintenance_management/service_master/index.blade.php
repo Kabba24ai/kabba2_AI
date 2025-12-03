@@ -135,6 +135,7 @@
 <!-- Toast Container -->
 <div id="toastContainer" class="toast-container"></div>
 
+@push('js')
 <script>
 function serviceMaster() {
     return {
@@ -1109,6 +1110,8 @@ function serviceMaster() {
     };
 }
 </script>
+@endpush
+
 <div class="h-screen bg-gray-50 flex flex-col overflow-hidden" x-data="serviceMaster()" x-init="init()">
     <div class="flex-1 overflow-auto p-6">
         {{-- Header --}}

@@ -81,15 +81,38 @@
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <template x-for="preset in presets" :key="preset.id">
                     <div class="relative">
-                        <button
-                            type="button"
-                            @click.stop="deletePreset(preset.id)"
-                            class="absolute -top-2 -right-2 z-10 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
-                        >
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
+                        <div class="absolute -top-2 -right-2 z-10 flex gap-1">
+                            <button
+                                type="button"
+                                @click.stop="editPreset(preset)"
+                                class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg"
+                                title="Edit"
+                            >
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                @click.stop="clonePreset(preset)"
+                                class="p-2 bg-green-600 text-white rounded-full hover:bg-green-700 shadow-lg"
+                                title="Clone"
+                            >
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                @click.stop="deletePreset(preset.id)"
+                                class="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+                                title="Delete"
+                            >
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
                         <button
                             type="button"
                             @click="templateForm.preset_id = preset.id"
@@ -141,7 +164,7 @@
                 </button>
             </div>
 
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Create New Interval Template</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4" x-text="isEditingPreset ? 'Edit Interval Template' : 'Create New Interval Template'"></h3>
 
             <form @submit.prevent="savePreset">
                 <div class="space-y-4 mb-6">
@@ -204,8 +227,8 @@
                     type="submit"
                     :disabled="!presetForm.name || presetForm.intervals.length === 0"
                     class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+                    x-text="isEditingPreset ? 'Update Interval Template' : 'Create Interval Template'"
                 >
-                    Create Interval Template
                 </button>
             </form>
         </div>
@@ -403,7 +426,7 @@
                 </button>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-2 pr-5">
                 <template x-for="template in templates" :key="template.id">
                     <button
                         @click="selectTemplate(template)"
@@ -438,20 +461,34 @@
         <div class="col-span-3">
             <div x-show="selectedTemplate">
                 <div class="mb-6 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-900" x-text="selectedTemplate?.name"></h2>
-                        <p class="text-gray-600 mt-1" x-text="selectedTemplate?.description || 'Service template'"></p>
+                    <div class="flex-1">
+                        <template x-if="!isEditingTemplate">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900" x-text="selectedTemplate?.name"></h2>
+                                <p class="text-gray-600 mt-1" x-text="selectedTemplate?.description || 'Service template'"></p>
+                            </div>
+                        </template>
+                        <template x-if="isEditingTemplate">
+                            <div class="space-y-2 pr-3">
+                                <input
+                                    type="text"
+                                    x-model="selectedTemplate.name"
+                                    @change="updateTemplateInfo()"
+                                    placeholder="Template name"
+                                    class="w-full text-2xl font-bold px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <input
+                                    type="text"
+                                    x-model="selectedTemplate.description"
+                                    @change="updateTemplateInfo()"
+                                    placeholder="Template description"
+                                    class="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                            </div>
+                        </template>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button
-                            @click="deleteTemplate(selectedTemplate.id)"
-                            class="flex items-center gap-2 px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50"
-                        >
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            <span>Delete Template</span>
-                        </button>
+                    <div class="flex items-center gap-3 ml-4">
+                        
                         <button
                             @click="isEditingTemplate = !isEditingTemplate; if (!isEditingTemplate) selectedCategoryIds = []"
                             :class="isEditingTemplate ? 'bg-gray-600 hover:bg-gray-700' : 'bg-blue-600 hover:bg-blue-700'"
@@ -464,6 +501,25 @@
                             </template>
                             <span x-text="isEditingTemplate ? 'Done Editing' : 'Edit Template'"></span>
                         </button>
+                        <button
+                            @click="cloneTemplate(selectedTemplate.id)"
+                            class="flex items-center gap-2 px-4 py-2 text-green-600 border border-green-600 rounded-lg hover:bg-green-50"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <span>Clone</span>
+                        </button>
+                        <button
+                            @click="deleteTemplate(selectedTemplate.id)"
+                            class="flex items-center gap-2 px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>Delete Template</span>
+                        </button>
+                        
                     </div>
                 </div>
 
@@ -550,6 +606,135 @@
                                 </template>
                             </tbody>
                         </table>
+                    </div>
+
+                    {{-- Edit Interval Template Section --}}
+                    <div x-show="isEditingTemplate && selectedTemplate?.preset" class="mt-6 border-t pt-6" x-data="{ isEditingIntervals: false, tempIntervalInput: '', tempIntervals: [] }">
+                        <h4 class="font-medium text-gray-900 mb-3">Edit Service Intervals</h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="mb-3">
+                                <p class="text-sm text-gray-600 mb-2">
+                                    Interval Template: <span class="font-semibold" x-text="selectedTemplate.preset.name"></span>
+                                </p>
+                                <div x-show="!isEditingIntervals" class="flex flex-wrap gap-2 mb-3">
+                                    <template x-for="interval in selectedTemplate.preset.intervals" :key="interval">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                                            <span x-text="interval"></span>h
+                                        </span>
+                                    </template>
+                                </div>
+                                
+                                <div x-show="isEditingIntervals" class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Service Intervals (hours)</label>
+                                        <div class="flex gap-2">
+                                            <input
+                                                type="text"
+                                                x-model="tempIntervalInput"
+                                                @keyup.enter="
+                                                    if (tempIntervalInput.trim()) {
+                                                        const intervals = tempIntervalInput.split(',').map(i => parseInt(i.trim())).filter(i => !isNaN(i) && i > 0);
+                                                        tempIntervals.push(...intervals);
+                                                        tempIntervals = [...new Set(tempIntervals)].sort((a, b) => a - b);
+                                                        tempIntervalInput = '';
+                                                    }
+                                                "
+                                                placeholder="Enter hours (comma separated, e.g., 50, 100, 250)"
+                                                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                            />
+                                            <button
+                                                type="button"
+                                                @click="
+                                                    if (tempIntervalInput.trim()) {
+                                                        const intervals = tempIntervalInput.split(',').map(i => parseInt(i.trim())).filter(i => !isNaN(i) && i > 0);
+                                                        tempIntervals.push(...intervals);
+                                                        tempIntervals = [...new Set(tempIntervals)].sort((a, b) => a - b);
+                                                        tempIntervalInput = '';
+                                                    }
+                                                "
+                                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
+                                        <div x-show="tempIntervals.length > 0" class="flex flex-wrap gap-2 mt-3">
+                                            <template x-for="(interval, index) in tempIntervals" :key="index">
+                                                <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                                                    <span x-text="interval"></span>h
+                                                    <button
+                                                        type="button"
+                                                        @click="tempIntervals.splice(index, 1)"
+                                                        class="hover:text-blue-900"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button
+                                            type="button"
+                                            @click="isEditingIntervals = false; tempIntervals = []; tempIntervalInput = ''"
+                                            class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="async () => {
+                                                if (tempIntervals.length === 0) {
+                                                    showToast('Please add at least one interval', 'error');
+                                                    return;
+                                                }
+                                                try {
+                                                    const response = await fetch(`/maintenance-management/service-master/presets/${selectedTemplate.preset.id}`, {
+                                                        method: 'PUT',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                            'Accept': 'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                            name: selectedTemplate.preset.name,
+                                                            description: selectedTemplate.preset.description,
+                                                            intervals: tempIntervals
+                                                        })
+                                                    });
+                                                    const data = await response.json();
+                                                    if (data.success) {
+                                                        selectedTemplate.preset.intervals = tempIntervals;
+                                                        await loadPresets();
+                                                        await loadTemplates();
+                                                        isEditingIntervals = false;
+                                                        tempIntervals = [];
+                                                        tempIntervalInput = '';
+                                                        showToast('Intervals updated successfully', 'success');
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Error:', error);
+                                                    showToast('Failed to update intervals', 'error');
+                                                }
+                                            }"
+                                            :disabled="tempIntervals.length === 0"
+                                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 text-sm"
+                                        >
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                x-show="!isEditingIntervals"
+                                @click="isEditingIntervals = true; tempIntervals = [...selectedTemplate.preset.intervals]"
+                                class="flex items-center gap-2 px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 text-sm"
+                            >
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                Edit Interval Hours
+                            </button>
+                        </div>
                     </div>
 
                     {{-- Add Tasks Section --}}

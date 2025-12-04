@@ -185,6 +185,8 @@ function serviceMaster() {
 
         // Interval Presets
         isCreatingIntervalPreset: false,
+        isEditingPreset: false,
+        editingPresetId: null,
         presetForm: {
             name: '',
             description: '',
@@ -821,6 +823,37 @@ function serviceMaster() {
             }
         },
 
+        async updateTemplateInfo() {
+            if (!this.selectedTemplate) return;
+
+            try {
+                const response = await fetch(`/maintenance-management/service-master/templates/${this.selectedTemplate.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: this.selectedTemplate.name,
+                        description: this.selectedTemplate.description,
+                        preset_id: this.selectedTemplate.preset_id,
+                    }),
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    await this.loadTemplates();
+                    this.showToast('Template updated successfully', 'success');
+                } else {
+                    this.showToast('Failed to update template', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating template:', error);
+                this.showToast('Error updating template', 'error');
+            }
+        },
+
         async deleteTemplate(templateId) {
             if (!confirm('Are you sure you want to delete this template?')) return;
 
@@ -844,6 +877,60 @@ function serviceMaster() {
             } catch (error) {
                 console.error('Error deleting template:', error);
                 this.showToast('Error deleting template', 'error');
+            }
+        },
+
+        async cloneTemplate(templateId) {
+            try {
+                // Get the template details
+                const response = await fetch(`/maintenance-management/service-master/templates/${templateId}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    this.showToast('Failed to load template', 'error');
+                    return;
+                }
+
+                const template = data.template;
+                
+                // Create the tasks data from template tasks
+                const tasksData = (template.template_tasks || template.templateTasks || []).map(tt => ({
+                    task_id: tt.task_id,
+                    intervals: tt.intervals || [],
+                }));
+
+                // Create the cloned template
+                const cloneResponse = await fetch('{{ route("admin.maintenance-management.service-master.templates.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: template.name + ' (Copy)',
+                        description: template.description,
+                        preset_id: template.preset_id,
+                        tasks: tasksData,
+                    }),
+                });
+
+                const cloneData = await cloneResponse.json();
+                if (cloneData.success) {
+                    await this.loadTemplates();
+                    this.selectTemplate(cloneData.template);
+                    this.showToast('Template cloned successfully', 'success');
+                } else {
+                    this.showToast('Failed to clone template', 'error');
+                }
+            } catch (error) {
+                console.error('Error cloning template:', error);
+                this.showToast('Error cloning template', 'error');
             }
         },
 
@@ -995,6 +1082,8 @@ function serviceMaster() {
                 intervals: [],
             };
             this.intervalInput = '';
+            this.isEditingPreset = false;
+            this.editingPresetId = null;
         },
 
         addIntervals() {
@@ -1014,10 +1103,55 @@ function serviceMaster() {
             this.presetForm.intervals.splice(index, 1);
         },
 
-        async savePreset() {
+        editPreset(preset) {
+            this.isEditingPreset = true;
+            this.editingPresetId = preset.id;
+            this.presetForm = {
+                name: preset.name,
+                description: preset.description || '',
+                intervals: [...preset.intervals],
+            };
+            this.isCreatingIntervalPreset = true;
+        },
+
+        async clonePreset(preset) {
             try {
                 const response = await fetch('{{ route("admin.maintenance-management.service-master.presets.store") }}', {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: preset.name + ' (Copy)',
+                        description: preset.description || '',
+                        intervals: [...preset.intervals]
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to clone preset');
+                
+                const data = await response.json();
+                this.presets.push(data.preset);
+                this.presets.sort((a, b) => a.name.localeCompare(b.name));
+                this.showToast('Interval template cloned successfully', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                this.showToast('Failed to clone interval template', 'error');
+            }
+        },
+
+        async savePreset() {
+            try {
+                const url = this.isEditingPreset 
+                    ? `/maintenance-management/service-master/presets/${this.editingPresetId}`
+                    : '{{ route("admin.maintenance-management.service-master.presets.store") }}';
+                
+                const method = this.isEditingPreset ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -1029,10 +1163,15 @@ function serviceMaster() {
                 const data = await response.json();
                 if (data.success) {
                     await this.loadPresets();
-                    this.templateForm.preset_id = data.preset.id;
+                    if (!this.isEditingPreset) {
+                        this.templateForm.preset_id = data.preset.id;
+                    }
                     this.isCreatingIntervalPreset = false;
                     this.resetPresetForm();
-                    this.showToast('Interval template created successfully', 'success');
+                    this.showToast(
+                        this.isEditingPreset ? 'Interval template updated successfully' : 'Interval template created successfully', 
+                        'success'
+                    );
                 }
             } catch (error) {
                 console.error('Error saving preset:', error);

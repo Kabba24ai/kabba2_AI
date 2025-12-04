@@ -176,7 +176,12 @@ window.updatefilterTagSelect = function () {
     // Apply to Choices dropdown
     window.filterTagChoices.setChoices(choicesList, 'value', 'label', true);
 
-    fetchSuppliers();
+    // fetchSuppliers();
+            const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+
+    const currentPage = new URLSearchParams(location.search).get('page') || 1;
+fetchSuppliers(currentPage, perPage);
+
 };
 
 

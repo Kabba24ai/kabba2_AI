@@ -39,7 +39,7 @@ class IndexController extends Controller
             });
         }
 
-          // Category filter
+
         // Category filter (PartsList Category)
 if ($request->filled('category')) {
     $categoryId = $request->category;
@@ -113,7 +113,13 @@ $parts = $query->paginate($perPageVal)->withQueryString();
             $partlistQuery->where('category_id', $request->tcategory);
         }
 
-        $partlists = $partlistQuery->paginate(10)->withQueryString();
+// Part list pagination
+$tplPerPage = $request->input('tpl_per_page', 10);
+$tplPerPageVal = $tplPerPage === 'all' ? max(1, $partlistQuery->count()) : (int)$tplPerPage;
+$tplPage = $request->input('tpl_page', 1);
+
+$partlists = $partlistQuery->paginate($tplPerPageVal, ['*'], 'tpl_page', $tplPage);
+
 
 
         // ----- STOCK COUNTS -----
@@ -130,10 +136,11 @@ $parts = $query->paginate($perPageVal)->withQueryString();
         // AJAX partial update
         if ($request->ajax()) {
            // Detect which section the request is for
-            if ($request->has('tsearch') || $request->has('tcategory')) {
+if ($request->has('tsearch') || $request->has('tcategory') || $request->has('tpl_per_page') || $request->has('tpl_page')) {
                 return response()->json([
                     'html' => view('admin.maintenance_management.parts.parts_list.partials._table', compact('partlists'))->render(),
-                    'total' => $partlists->count(),
+                    'total' => $partlists->total(),
+
                 ]);
             }
 

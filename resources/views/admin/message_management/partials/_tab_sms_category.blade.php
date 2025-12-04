@@ -4,7 +4,7 @@
 
                 <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-card mb-4" >
                     <!-- Header -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="flex items-center justify-between gap-3 flex-nowrap">
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="text-base font-semibold text-gray-900"> Appointment Reminders</h3>
@@ -36,7 +36,7 @@
 
                   <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-card mb-4" >
                     <!-- Header -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="flex items-center justify-between gap-3 flex-nowrap">
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="text-base font-semibold text-gray-900"> Promotional Offers</h3>
@@ -68,7 +68,7 @@
 
                   <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-card mb-4" >
                     <!-- Header -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="flex items-center justify-between gap-3 flex-nowrap">
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="text-base font-semibold text-gray-900">Customer Support</h3>

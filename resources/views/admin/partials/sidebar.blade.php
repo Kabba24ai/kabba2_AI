@@ -258,7 +258,7 @@
                                     <a href="{{ route('admin.crm.funnels.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.crm.funnels.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-chart-bar class="w-5 h-5 mr-1" /> Default Sales Funnel
+                                        <x-heroicon-o-chart-bar class="w-5 h-5 mr-1" /> Default Funnel
                                     </a>
                                 </li>
                             </ul>
@@ -531,15 +531,15 @@
                         </div>
                     </li>
 
-                 
+
 <!-- Message Management -->
 <li>
     <a href="{{ route('admin.message-management.index') }}"
-        class="menu-item group flex items-center gap-3 
+        class="menu-item group flex items-center gap-3
             {{ Route::is('admin.message-management.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
-        
+
         <span
-            class="w-6 h-6 flex items-center justify-center 
+            class="w-6 h-6 flex items-center justify-center
                 {{ Route::is('admin.message-management.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
             <x-heroicon-o-chat-bubble-left-right class="w-7 h-7" />
         </span>
@@ -622,7 +622,7 @@
                         </div>
                     </li>
 
-                    
+
 
                     <!-- Settings -->
                     <li x-data="{ open: {{ $settingsActive ? 'true' : 'false' }} }">

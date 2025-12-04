@@ -22,13 +22,28 @@ class SendCodSmsListener
         $customer = $event->customer;
 
         $smsSetting = ConfigurationHelper::getSettings('Default Sales Funnel Settings');
-        if (!$smsSetting || !$smsSetting['cod_message_enabled'] || empty($order->billingAddress->phone)) {
+        if (!$smsSetting || empty($order->billingAddress->phone)) {
             return;
         }
 
         if ($order->lastPayment->payment_method === OrderPaymentMethod::COD) {
             $to = $order->billingAddress->phone; // Customer's phone number
-            $message = $smsSetting['cod_order_message'];
+
+
+            if($firstProduct = $order->orderProducts->first()){
+                if ($firstProduct->product_data['product_type'] === 'Rental' && $firstProduct->delivery_transport_mode == "Store" && !empty($smsSetting['store_delivery_cod_order_message']) && $smsSetting['store_delivery_cod_message_enabled'] == true) {
+                    $message = $smsSetting['store_delivery_cod_order_message'];
+                } elseif ($firstProduct->product_data['product_type'] !== 'Rental' && $firstProduct->delivery_transport_mode == "Truck" && !empty($smsSetting['truck_delivery_cod_order_message']) && $smsSetting['truck_delivery_cod_message_enabled'] == true) {
+                    $message = $smsSetting['truck_delivery_cod_order_message'];
+                } else {
+                    Log::error('SendCodSms error: COD message template is empty', [
+                        'order_unique_id' => $order->unique_id,
+                    ]);
+                    return;
+                }
+            }else{
+                return;
+            }
 
             try {
                 $twilio = new TwilioService();

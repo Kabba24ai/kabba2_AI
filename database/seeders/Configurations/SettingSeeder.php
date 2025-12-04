@@ -42,29 +42,43 @@ class SettingSeeder extends Seeder
         $this->settings['Default Sales Funnel Settings'] = [
             [
                 'value_type' => 'text',
-                'setting_name' => 'cod_order_message',
-                'setting_title' => 'COD Order Message',
+                'setting_name' => 'truck_delivery_cod_order_message',
+                'setting_title' => 'Truck Delivery COD Order Message',
                 'default_value' => "Your COD order has been placed but COD Orders are not reserved / locked in until paid. To lock in your reservation, call (615) 815-6734 to make payment. Always call the day of your COD reservation to confirm inventory availability before arriving",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'checkbox',
-                'setting_name' => 'cod_message_enabled',
-                'setting_title' => 'Enable COD Message',
+                'setting_name' => 'truck_delivery_cod_message_enabled',
+                'setting_title' => 'Enable Truck Delivery COD Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
-                'setting_name' => 'rental_day_before_truck_message',
+                'setting_name' => 'store_delivery_cod_order_message',
+                'setting_title' => 'Store Delivery COD Order Message',
+                'default_value' => "Your COD order has been placed but COD Orders are not reserved / locked in until paid. To lock in your reservation, call (615) 815-6734 to make payment. Always call the day of your COD reservation to confirm inventory availability before arriving",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'store_delivery_cod_message_enabled',
+                'setting_title' => 'Enable Store Delivery COD Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_delivery_day_before_truck_message',
                 'setting_title' => 'Rental Day Before Truck Message',
                 'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return. Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
-                'setting_name' => 'rental_day_before_store_message',
-                'setting_title' => 'Rental Day Before Store Message',
+                'setting_name' => 'rental_delivery_day_before_store_message',
+                'setting_title' => 'Rental Delivery Day Before Store Message',
                 'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
 
 Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
@@ -72,8 +86,8 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can�
             ],
             [
                 'value_type' => 'text',
-                'setting_name' => 'rental_same_day_truck_message',
-                'setting_title' => 'Rental Same Day Truck Message',
+                'setting_name' => 'rental_delivery_same_day_truck_message',
+                'setting_title' => 'Rental Delivery Same Day Truck Message',
                 'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
 
 Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
@@ -81,8 +95,8 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can�
             ],
             [
                 'value_type' => 'text',
-                'setting_name' => 'rental_same_day_store_message',
-                'setting_title' => 'Rental Same Day Store Message',
+                'setting_name' => 'rental_delivery_same_day_store_message',
+                'setting_title' => 'Rental Delivery Same Day Store Message',
                 'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
 
 Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
@@ -90,29 +104,92 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can�
             ],
             [
                 'value_type' => 'checkbox',
-                'setting_name' => 'rental_day_before_truck_message_enabled',
-                'setting_title' => 'Enable Rental Day Before Truck Message',
+                'setting_name' => 'rental_delivery_day_before_truck_message_enabled',
+                'setting_title' => 'Enable Rental Delivery Day Before Truck Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'checkbox',
-                'setting_name' => 'rental_day_before_store_message_enabled',
-                'setting_title' => 'Enable Rental Day Before Store Message',
+                'setting_name' => 'rental_delivery_day_before_store_message_enabled',
+                'setting_title' => 'Enable Rental Delivery Day Before Store Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'checkbox',
-                'setting_name' => 'rental_same_day_truck_message_enabled',
-                'setting_title' => 'Enable Rental Same Day Truck Message',
+                'setting_name' => 'rental_delivery_same_day_truck_message_enabled',
+                'setting_title' => 'Enable Rental Delivery Same Day Truck Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'checkbox',
-                'setting_name' => 'rental_same_day_store_message_enabled',
-                'setting_title' => 'Enable Rental Same Day Store Message',
+                'setting_name' => 'rental_delivery_same_day_store_message_enabled',
+                'setting_title' => 'Enable Rental Delivery Same Day Store Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_return_day_before_truck_message',
+                'setting_title' => 'Rental Return Day Before Truck Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return. Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_return_day_before_store_message',
+                'setting_title' => 'Rental Return Day Before Store Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_return_same_day_truck_message',
+                'setting_title' => 'Rental Return Same Day Truck Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'rental_return_same_day_store_message',
+                'setting_title' => 'Rental Return Same Day Store Message',
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with key included and ready for return.
+
+Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can’t auto-renew—contact us early to lock in availability and avoid return delays.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'rental_return_day_before_truck_message_enabled',
+                'setting_title' => 'Enable Rental Return Day Before Truck Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'rental_return_day_before_store_message_enabled',
+                'setting_title' => 'Enable Rental Return Day Before Store Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'rental_return_same_day_truck_message_enabled',
+                'setting_title' => 'Enable Rental Return Same Day Truck Message',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'rental_return_same_day_store_message_enabled',
+                'setting_title' => 'Enable Rental Return Same Day Store Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
@@ -1190,7 +1267,7 @@ Need more time? Call or text (615) 815-6734 to extend your rental. Rentals can�
         ];
     }
 
-    /** 
+    /**
      * Run the database seeds.
      *
      * @return void

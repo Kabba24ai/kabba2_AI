@@ -844,7 +844,6 @@ params.append('per_page', perPage);
 fetchParts(pageParam, perPageParam); // initial load
 
 
-
             // <!-- delete  -->
 
             // Fetch templates
@@ -869,8 +868,8 @@ const tplFieldMap = {
 // Load before any fetch
 FilterFreezer.loadFilters(tplScreenKey, tplFieldMap);
 
-let currentTplPage = 1;     // start with page 1
-let tplPerPageParam = 10;   // default per-page
+let currentTplPage = 1;     
+let tplPerPageParam = 10;  
 
 
 fetchTemplates(currentTplPage, tplPerPageParam);
@@ -881,9 +880,7 @@ function fetchTemplates(page = currentTplPage, perPage = tplPerPageParam) {
     // update current page
     currentTplPage = page;
 
-    console.log("Fetching templates, page:", page, "perPage:", perPage);
                 const params = new URLSearchParams();
-console.log("Params being sent:", params.toString());
 
                 if (tsearchInput && (tsearchInput.value.length >= 2 || tsearchInput.value.length === 0))
                     params.append('tsearch', tsearchInput.value);
@@ -930,16 +927,20 @@ console.log("Params being sent:", params.toString());
 tcategorySelect?.addEventListener('change', () => fetchTemplates(1, tplPerPageParam));
 
 
-Paginator.init({
-    wrapper: twrapper,
-    fetchCallback: (page) => {
-        console.log("Paginator clicked page:", page);
-        fetchTemplates(page, tplPerPageParam);
-    },
-    namespace: "tpl"
+twrapper.addEventListener('click', function(e){
+    const link = e.target.closest('a'); // catch any <a> clicks
+    
+    if (!link) return;
+
+    const url = new URL(link.href);
+
+    if (url.searchParams.has('tpl_page')) {
+        e.preventDefault(); // stop normal page reload
+
+        const page = parseInt(url.searchParams.get('tpl_page')) || 1;
+        fetchTemplates(page, tplPerPageParam); 
+    }
 });
-
-
 
 
             // --- Global delete Template function ---

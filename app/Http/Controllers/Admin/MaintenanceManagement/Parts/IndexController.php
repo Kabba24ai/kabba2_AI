@@ -10,6 +10,7 @@ use App\Models\MaintenanceManagement\PartsList;
 use App\Models\MaintenanceManagement\Equipment;
 
 use App\Models\ProductManagement\ProductCategory;
+use Illuminate\Support\Facades\Log;
 
 class IndexController extends Controller
 {
@@ -98,8 +99,6 @@ $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
 
 $parts = $query->paginate($perPageVal)->withQueryString();
 
-        // $parts = $query->paginate(10)->withQueryString();
-
 
         // Part List
 
@@ -112,6 +111,7 @@ $parts = $query->paginate($perPageVal)->withQueryString();
         if ($request->filled('tcategory')) {
             $partlistQuery->where('category_id', $request->tcategory);
         }
+
 
 // Part list pagination
 $tplPerPage = $request->input('tpl_per_page', 10);

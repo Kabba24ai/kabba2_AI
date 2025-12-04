@@ -258,7 +258,7 @@
                                     <a href="{{ route('admin.crm.funnels.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.crm.funnels.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-chart-bar class="w-5 h-5 mr-1" /> Default Funnel
+                                        <x-heroicon-o-chart-bar class="w-5 h-5 mr-1" /> Default Funnels
                                     </a>
                                 </li>
                             </ul>

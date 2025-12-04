@@ -8,17 +8,33 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Schedule your job
-// Schedule::job(new \App\Jobs\SendDayBeforeRentalReminderJob())
-//     ->dailyAt('15:00')
-//     ->timezone('America/Chicago')
-//     ->withoutOverlapping()
-//     ->onOneServer()
-//     ->name('send-day-before-rental-reminder-job');
+Schedule::job(new \App\Jobs\SendDeliveryDayBeforeRentalReminderJob())
+    ->dailyAt('15:00')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('send-delivery-day-before-rental-reminder-job');
 
-// Schedule::job(new \App\Jobs\SendSameDayRentalReminderJob())
-//     ->dailyAt('07:00')
-//     ->timezone('America/Chicago')
-//     ->withoutOverlapping()
-//     ->onOneServer()
-//     ->name('send-same-day-rental-reminder-job');
+Schedule::job(new \App\Jobs\SendDeliverySameDayRentalReminderJob())
+    ->dailyAt('07:00')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('send-delivery-same-day-rental-reminder-job');
+
+Schedule::job(new \App\Jobs\SendReturnDayBeforeRentalReminderJob())
+    ->dailyAt('15:00')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('send-return-day-before-rental-reminder-job');
+
+Schedule::job(new \App\Jobs\SendReturnSameDayRentalReminderJob())
+    ->dailyAt('07:00')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('send-return-same-day-rental-reminder-job');
+
+
 

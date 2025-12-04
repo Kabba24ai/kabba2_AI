@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Helpers\ConfigurationHelper;
+use App\Models\Orders\OrderProduct;
+use App\Services\TwilioService;
+use Carbon\Carbon;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Queue\Queueable;
+
+class SendDeliveryDayBeforeRentalReminderJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct()
+    {
+        //
+    }
+
+    public function handle(): void
+    {
+        \Log::channel('jobs')->info(now()->format('Y-m-d H:i:s') . ' Delivery Day-before rental reminder start.');
+
+        $messages = ConfigurationHelper::getSettings('Default Sales Funnel Settings') ?? [];
+
+        // Normalize config
+        $storeMessage    = trim($messages['rental_delivery_day_before_store_message'] ?? '');
+        $truckMessage    = trim($messages['rental_delivery_day_before_truck_message'] ?? '');
+
+        $storeEnabledRaw = $messages['rental_delivery_day_before_store_message_enabled'] ?? null;
+        $truckEnabledRaw = $messages['rental_delivery_day_before_truck_message_enabled'] ?? null;
+        $storeEnabled = filter_var($storeEnabledRaw, FILTER_VALIDATE_BOOLEAN);
+        $truckEnabled = filter_var($truckEnabledRaw, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$storeEnabled && !$truckEnabled) {
+            \Log::channel('jobs')->info('No day-before rental messages enabled.');
+            return;
+        }
+
+        // If at least one is enabled, but both messages are empty, bail
+        if (($storeEnabled || $truckEnabled) && $storeMessage === '' && $truckMessage === '') {
+            \Log::channel('jobs')->info('No day-before rental delivery messages configured.');
+            return;
+        }
+
+        // Tomorrow's date in America/Chicago timezone
+        $today = Carbon::now('America/Chicago')->addDay()->toDateString();
+
+        $twilio = new TwilioService();
+
+        $records = OrderProduct::with([
+                'order.shippingAddress',
+                'product',
+            ])
+            ->whereHas('product', function ($query) {
+                $query->where('is_default_funnel', true);
+            })
+            ->where('product_data->product_type', 'Rental')
+            ->whereDate('delivery_date', $today)
+            ->where('delivery_status', 'Pending')
+            ->get();
+
+        $count     = $records->count();
+        $sentCount = 0;
+
+        \Log::channel('jobs')->info("Preparing to send {$count} Delivery day-before rental reminder message(s).");
+
+        foreach ($records as $record) {
+            $phoneNumber = data_get($record, 'order.shippingAddress.phone');
+
+            if (!$phoneNumber) {
+                \Log::channel('jobs')->warning('No phone number for order product', [
+                    'order_product_id' => $record->id,
+                ]);
+                continue;
+            }
+
+            if ($record->delivery_transport_mode === 'Store') {
+                if (!$storeEnabled || $storeMessage === '') {
+                    continue;
+                }
+                $message = $storeMessage;
+            } else {
+                if (!$truckEnabled || $truckMessage === '') {
+                    continue;
+                }
+                $message = $truckMessage;
+            }
+
+            $response = $twilio->sendSms($phoneNumber, $message);
+
+            if (($response['success'] ?? false) === true) {
+                $sentCount++;
+            } else {
+                \Log::channel('jobs')->warning('Failed to send rental delivery reminder SMS', [
+                    'order_product_id' => $record->id,
+                    'phone'            => $phoneNumber,
+                    'error'            => $response['error'] ?? null,
+                ]);
+            }
+        }
+
+        \Log::channel('jobs')->info("Finished sending {$sentCount} Delivery day-before rental reminder message(s) out of {$count} records.");
+        \Log::channel('jobs')->info(now()->format('Y-m-d H:i:s') . ' Delivery Day-before rental reminder end.');
+    }
+}

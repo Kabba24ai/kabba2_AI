@@ -163,7 +163,7 @@
                 <div class="flex gap-2" style="align-items: center;">
                     <span class="w-3 h-3 rounded-full bg-gray-700"></span>
                     <div>
-                        <div class="font-medium">All Tasks</div>
+                        <div class="font-medium">All</div>
                     </div>
                 </div>
             </button>
@@ -181,8 +181,8 @@
                     <div class="flex gap-2" style="align-items: center;">
                         <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: category.color }"></span>
                         <div class="text-left">
-                            <div class="font-medium" x-text="category.name"></div>
-                            <div x-show="category.description" class="text-xs opacity-75" x-text="category.description"></div>
+                            <div class="font-medium" x-text="category.name.length > 25 ? category.name.substring(0, 25) + '...' : category.name" :title="category.name"></div>
+                            <div x-show="category.description" class="text-xs opacity-75" x-text="category.description && category.description.length > 25 ? category.description.substring(0, 25) + '...' : category.description" :title="category.description"></div>
                         </div>
                     </div>
                 </button>

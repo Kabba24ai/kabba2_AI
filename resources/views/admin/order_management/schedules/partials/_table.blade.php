@@ -1,27 +1,27 @@
-<div class="bg-white shadow-sm rounded-lg overflow-x-auto">
+<div class="bg-white  overflow-x-auto">
     <table class="min-w-full text-sm text-left whitespace-nowrap">
-        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b">
+        <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
             <tr>
-                <th class="px-4 py-3 text-left">Product</th>
-                <th class="px-4 py-3 text-center">Order</th>
-                <th class="px-4 py-3 text-left">Customer</th>
-                <th class="px-4 py-3 text-left">Delivery Address</th>
-                <th class="px-4 py-3 text-left">Phone</th>
-                <th class="px-4 py-3 text-center">Equipment</th>
-                <th class="px-4 py-3 text-center">Equipment Id</th>
+                <th class="py-4 px-6 text-left">Product</th>
+                <th class="py-4 px-6 text-center">Order</th>
+                <th class="py-4 px-6 text-left">Customer</th>
+                <th class="py-4 px-6 text-left">Delivery Address</th>
+                <th class="py-4 px-6 text-left">Phone</th>
+                <th class="py-4 px-6 text-center">Equipment</th>
+                <th class="py-4 px-6 text-center">Equipment Id</th>
 
-                <th class="px-4 py-3 text-center">Location</th>
-                <th class="px-4 py-3 text-center">Delivery Date</th>
-                <th class="px-4 py-3 text-center">Return Date</th>
-                <th class="px-4 py-3 text-center">Payment</th>
-                <th class="px-4 py-3 text-center">Actions</th>
+                <th class="py-4 px-6 text-center">Location</th>
+                <th class="py-4 px-6 text-center">Delivery Date</th>
+                <th class="py-4 px-6 text-center">Return Date</th>
+                <th class="py-4 px-6 text-center">Payment</th>
+                <th class="py-4 px-6 text-center">Actions</th>
             </tr>
         </thead>
         <div id="schedule-loading" class="hidden"></div>
         <tbody class="divide-y">
             @forelse ($orderProducts as $orderProduct)
                 <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-left min-w-3xs max-w-3xs">
+                    <td class="py-4 px-6 text-left min-w-3xs max-w-3xs">
                         {{ $orderProduct->product_name }}
 
                         @php
@@ -70,10 +70,10 @@
                     </td>
 
 
-                    <td class="px-4 py-3 text-center">
+                    <td class="py-4 px-6 text-center">
                         {!! $orderProduct->order->view_link !!}
                     </td>
-                    <td class="px-4 py-3 text-left">
+                    <td class="py-4 px-6 text-left">
 
                         <div class="font-medium">
                             {{ $orderProduct->order->customer_name }}
@@ -105,10 +105,10 @@
 
 
 
-                    <td class="px-4 py-3 truncate min-w-xs max-w-xs">
+                    <td class="py-4 px-6 truncate min-w-xs max-w-xs">
                         {{ $orderProduct->order->shippingAddress->full_address }}</td>
-                    <td class="px-4 py-3 text-left ">{{ $orderProduct->order->shippingAddress->phone }}</td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="py-4 px-6 text-left ">{{ $orderProduct->order->shippingAddress->phone }}</td>
+                    <td class="py-4 px-6 text-center">
                         @if ($orderProduct?->checklistQuestions->isNotEmpty())
                             <button type="button" class="text-blue-600 underline equipment-assign-btn"
                                 data-order-product-unique-id="{{ $orderProduct->unique_id }}"
@@ -125,7 +125,7 @@
                             </button>
                         @endif
                     </td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="py-4 px-6 text-center">
                         @if ($orderProduct?->checklistQuestions->isNotEmpty())
                             <span
                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
@@ -139,7 +139,7 @@
                         @endif
                     </td>
 
-                    <td class="px-4 py-3 text-center">
+                    <td class="py-4 px-6 text-center">
                         <div class="inline-flex items-center gap-1">
                             @if ($orderProduct?->checklistQuestions->isNotEmpty())
                                 <a href="{{ route('admin.crm.customers.view', $orderProduct?->order?->customer->unique_id) }}"
@@ -155,7 +155,7 @@
                             @endif
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="py-4 px-6 text-center">
                         @php
                             $iconColor =
                                 $orderProduct->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
@@ -178,7 +178,7 @@
                             </span>
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-center">
+                    <td class="py-4 px-6 text-center">
                         @php
                             $iconColor =
                                 $orderProduct->pickup_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
@@ -202,10 +202,10 @@
                         </div>
                     </td>
 
-                    <td class="px-4 py-3 text-center">
+                    <td class="py-4 px-6 text-center">
                         {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order->last_payment_status) !!}
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="py-4 px-6">
                         <div class="flex gap-2 items-center justify-center">
                             <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
                                 class="text-sky-600 hover:text-sky-800" title="View" target="_blank">

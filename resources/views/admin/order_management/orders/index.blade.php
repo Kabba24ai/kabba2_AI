@@ -16,20 +16,20 @@
         Order Management
     </h1>
     <a href="{{ route('admin.order-management.orders.index') }}"
-        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
+        class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
         <x-heroicon-o-arrow-path class="w-5 h-5" />
         Reload
     </a>
 </div>
 
 {{-- Filters Row --}}
-<div class="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0 mb-6">
+<div class="bg-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0 mb-6">
     <div class="flex flex-wrap items-end gap-4 w-full">
         <div class="w-full sm:w-48">
             <div class="relative bg-white">
                 <input type="text" id="customer_name" placeholder="Customer name" name="customer_name"
                     value="{{ request('customer_name') }}"
-                    class="pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                    class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
                 <x-heroicon-o-magnifying-glass
                     class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
             </div>
@@ -38,7 +38,7 @@
             <div class="relative bg-white">
                 <input type="text" id="customer_company_name" placeholder="Customer company"
                     name="customer_company_name" value="{{ request('customer_company_name') }}"
-                    class="pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                    class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
                 <x-heroicon-o-magnifying-glass
                     class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
             </div>
@@ -47,13 +47,13 @@
             <div class="relative bg-white">
                 <input type="text" id="customer_phone" placeholder="(xxx) xxx-xxxx" name="customer_phone"
                     value="{{ request('customer_phone') }}"
-                    class="masked-phone pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                    class="masked-phone pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
                 <x-heroicon-o-phone class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
             </div>
         </div>
         <div class="w-full sm:w-48">
             <select name="category"
-                class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                class="choices-select w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                 <option value="">Select Category</option>
                 @foreach ($categories as $id => $title)
                 <option value="{{ $id }}" @selected(request('category')==$id)>
@@ -64,7 +64,7 @@
         </div>
         <div class="w-full sm:w-48">
             <select name="product"
-                class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                class="choices-select w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                 <option value="">Select Products</option>
                 @foreach ($products as $id => $title)
                 <option value="{{ $id }}" @selected(request('product')==$id)>
@@ -75,7 +75,7 @@
         </div>
         <div class="w-full sm:w-38">
             <select id="payment_method" name="payment_method"
-                class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
+                class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
                 <option value="">All Payment Types</option>
                 @foreach(\App\Enums\Orders\OrderPaymentMethod::cases() as $method)
                 <option value="{{ $method->value }}" @selected(request('payment_method')===$method->value)>
@@ -87,7 +87,7 @@
 
         <div class="w-full sm:w-36">
             <select id="payment_status" name="payment_status"
-                class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
+                class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
                 <option value="">All Payments</option>
                 @foreach(\App\Enums\Orders\OrderPaymentStatus::cases() as $status)
                 <option value="{{ $status->value }}" @selected(request('payment_status')===$status->value)>
@@ -99,7 +99,7 @@
 
         <div class="w-full sm:w-auto">
             <button type="button" id="delete-selected-btn"
-                class="h-11 flex items-center gap-2 bg-gray-300 text-gray-500 cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium transition w-full sm:w-auto"
+                class=" flex items-center gap-2 bg-gray-300 text-gray-500 cursor-not-allowed py-3 px-3 rounded-md text-sm font-medium transition w-full sm:w-auto"
                 disabled>
                 <x-heroicon-o-trash class="w-4 h-4" />
                 Delete Selected (<span id="delete-selected-count">0</span>)

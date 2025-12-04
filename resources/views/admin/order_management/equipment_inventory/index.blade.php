@@ -18,7 +18,7 @@
             <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Equipment Inventory </h3>
         </div>
         <a href="{{ route('admin.order-management.equipment-inventory.index') }}" id="reloadBtn"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
             <svg id="reloadIcon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0
@@ -29,7 +29,7 @@
         </a>
     </div>
 
-    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mb-6">
+    <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-6">
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 
@@ -37,7 +37,7 @@
             <div class="relative w-full sm:w-48">
                 <input type="text" name="search" placeholder="Search equipment, ID, or customer"
                     value="{{ request('search') }}"
-                    class="w-full h-10 rounded-md border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 shadow-sm " />
+                    class="w-full px-3 py-3 rounded-md border border-gray-300 bg-white pr-10 text-sm text-gray-900 shadow-sm " />
                 <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -50,7 +50,7 @@
             {{-- Select Category --}}
             <div class="w-full sm:w-48">
                 <select name="category"
-                    class=" w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
+                    class=" w-full px-3 py-3 rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm">
                     <option value="">All Product Categories</option>
                     @foreach ($categories as $id => $title)
                         <option value="{{ $id }}" @selected(request('category') == $id)>
@@ -63,7 +63,7 @@
             {{-- Type Dropdown --}}
             <div class="w-full sm:w-48">
                 <select name="store"
-                    class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
+                    class="w-full px-3 py-3 rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm">
                     <option value="">All Stores</option>
                     @foreach ($stores as $store)
                         <option value="{{ $store->id }}" @selected(request('store') == $store->id)>{{ $store->store_name }}</option>
@@ -74,7 +74,7 @@
             <!-- Equipment Status -->
             <div class=" whitespace-nowrap">
                 <div
-                    class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
+                    class="flex items-center gap-2 bg-white rounded-md px-3 py-3 border shadow-sm flex-wrap md:flex-nowrap">
                     <svg class=" w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -98,7 +98,7 @@
             <div class=" whitespace-nowrap">
                 <!-- Issues & Maintenance -->
                 <div
-                    class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
+                    class="flex items-center gap-2 bg-white rounded-md px-3 py-3 border shadow-sm flex-wrap md:flex-nowrap">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="lucide lucide-wrench w-5 h-5 text-orange-500">
@@ -128,7 +128,7 @@
     <div class="flex flex-col gap-5 h-[calc(90vh-180px)] min-h-0"> {{-- adjust 180px as needed --}}
         {{-- Equipment table --}}
         <div id="equipment-table-wrapper"
-            class="bg-white shadow-sm rounded-lg overflow-x-auto overflow-y-auto flex-1 min-h-0">
+            class="bg-white shadow-sm rounded-2xl overflow-x-auto overflow-y-auto flex-1 min-h-0">
             @include('admin.order_management.equipment_inventory.partials._table', [
                 'equipment' => [],
             ])
@@ -136,13 +136,13 @@
 
         {{-- Schedule table (only if there are unassigned orders) --}}
         @if ($orderProducts->total() > 0)
-            <div class="bg-white shadow-sm rounded-lg {{ ($orderProducts->total() > 4) ? 'flex-1' : '' }} flex flex-col min-h-0">
+            <div class="bg-white shadow-sm rounded-2xl {{ ($orderProducts->total() > 4) ? 'flex-1' : '' }} flex flex-col min-h-0">
                 <h2 class="text-lg font-semibold p-5">
                     Unassigned Orders ({{ $orderProducts->total() }})
                 </h2>
 
                 <div id="schedule-table-wrapper"
-                    class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                    class="overflow-x-auto overflow-y-auto flex-1 min-h-0 shadow-sm rounded-2xl ">
                     @include('admin.order_management.equipment_inventory.partials._table2', [
                         'orderProducts' => $orderProducts,
                     ])
@@ -173,14 +173,14 @@
                 <div>
                     <label class="text-sm font-medium text-gray-700 required" for="user_unique_id">User</label>
                     {!! html()->select('user_unique_id', $employees)->id('user_unique_id')->class([
-                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                            'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
                         ])->required() !!}
                 </div>
 
                 <div>
                     <label class="text-sm font-medium text-gray-700 required">Category</label>
                     <select id="category_select"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-700">
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-700">
                         <option value="">Select Category</option>
                     </select>
                 </div>
@@ -189,7 +189,7 @@
                 <div>
                     <label class="text-sm font-medium text-gray-700 required" for="equipment_unique_id">Equipment</label>
                     <select name="equipment_unique_id" id="equipment_unique_id"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
                         <option value="" data-current-status="">Select Equipment</option>
                     </select>
                     <div class="flex items-center justify-between gap-3 mt-2">
@@ -204,11 +204,11 @@
             <!-- Footer -->
             <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
                 <button type="button"
-                    class="close-equipment-assign-modal px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    class="close-equipment-assign-modal px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                     Cancel
                 </button>
                 <button type="submit" id="equipment-assign-submit"
-                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    class="px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
                     Assign
                 </button>
             </div>

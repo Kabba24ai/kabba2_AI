@@ -10,7 +10,7 @@
     @include('flash::message')
 
     {{-- Order Header Section --}}
-    <div class="bg-white px-4 py-4 rounded-md shadow-sm mb-6">
+    <div class="bg-white px-4 py-4 rounded-xl shadow-sm mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
 
             {{-- Order Info + Customer --}}
@@ -78,7 +78,7 @@
             <div class="flex flex-wrap gap-2">
                 <div class="relative group inline-block">
                     <button id="reorderBtn" type="button"
-                        class="inline-flex items-center px-3 py-1.5 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 focus:outline-none">
+                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white rounded hover:bg-orange-600 focus:outline-none">
                         <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
                     </button>
                     <!-- Reorder Modal -->
@@ -97,7 +97,7 @@
                                     <div>
                                         <label class="text-sm font-medium text-gray-700 required">Order Type</label>
                                         <select id="orderTypeSelect" name="order_type"
-                                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
+                                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
                                             required>
                                             <option value="new">New Independent Order</option>
                                             <option value="duplicate">Related to Existing Order</option>
@@ -115,7 +115,7 @@
                                                             data-format="{{ config('app.date.js_date_format') }}"
                                                             placeholder="Select date"
                                                             data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                            class="reorder-datepicker border rounded px-2 py-2 text-xs" />
+                                                            class="reorder-datepicker border rounded px-3 py-3 text-xs" />
                                                     </div>
                                                 @endif
                                             @endforeach
@@ -125,11 +125,11 @@
                                 <!-- Footer -->
                                 <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
                                     <button type="button"
-                                        class="close-reorder-modal-btn px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                                        class="close-reorder-modal-btn px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                                         Cancel
                                     </button>
                                     <button type="submit"
-                                        class="px-6 py-2 rounded-md bg-orange-600 text-white font-medium hover:bg-orange-700 shadow-sm transition">
+                                        class="px-6 py-3 rounded-lg font-medium text-md bg-orange-600 text-white hover:bg-orange-700 shadow-sm transition">
                                         Continue
                                     </button>
                                 </div>
@@ -145,7 +145,7 @@
              <!-- Blade Links with Tailwind loader -->
 <div class="flex flex-col">
     <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
-       class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
+       class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
         <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
         <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -164,7 +164,7 @@
 
 <div class="flex flex-col">
     <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
-   class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 receipt-action">
+   class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white rounded hover:bg-blue-700 receipt-action">
    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
    <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -211,7 +211,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
         {{-- Billing Info --}}
-        <div class="bg-white rounded-lg border border-gray-200">
+        <div class="bg-white rounded-xl border border-gray-200">
             <div class="px-4 py-4 rounded-t-lg border-b border-gray-200">
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-semibold text-gray-800">Billing Information</h3>
@@ -280,7 +280,7 @@
         </div>
 
         {{-- Shipping Info --}}
-        <div class="bg-white rounded-lg border border-gray-200">
+        <div class="bg-white rounded-xl border border-gray-200">
             <div class="px-4 py-4 rounded-t-lg border-b border-gray-200">
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-semibold text-gray-800">Delivery Information</h3>
@@ -352,7 +352,7 @@
         </div>
 
         {{-- History --}}
-        <div class="bg-white rounded-lg border border-gray-200">
+        <div class="bg-white rounded-xl border border-gray-200">
             <div class="px-4 py-4 rounded-t-lg border-b border-gray-200">
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-semibold text-gray-800">History</h3>
@@ -379,7 +379,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-md shadow-sm p-6 mb-6 space-y-6">
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6 space-y-6">
         <h3 class="text-base font-semibold text-gray-800">Equipment Orders & Delivery Schedule</h3>
 
         {{-- Equipment Info --}}
@@ -422,7 +422,7 @@
                         </div>
                     </div>
 
-                    <div class="border rounded p-4 text-sm text-gray-700 space-y-2 bg-gray-50">
+                    <div class="border rounded-xl p-4 text-sm text-gray-700 space-y-2 bg-gray-50">
                         <div class="flex justify-between">
                             <span>Product Cost(x{{ $orderProduct->quantity ?? 1 }})</span>
                             <span>{{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->price) }}</span>
@@ -536,7 +536,7 @@
             {{-- Schedule Panels --}}
             <div class="space-y-6">
                 @foreach ($order->products as $orderProduct)
-                    <div class="bg-white rounded-lg border border-gray-200">
+                    <div class="bg-white rounded-xl border border-gray-200">
                         <div class="px-2 py-2 rounded-t-lg border-b border-gray-200">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-lg font-semibold text-gray-800 under">{{ $orderProduct->product_name }}
@@ -565,7 +565,7 @@
                                                     value="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date) : '' }}"
                                                     placeholder="Select date"
                                                     data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                    class="datepicker delivery_date border rounded px-1.5 py-1 text-xs w-full" />
+                                                    class="datepicker delivery_date border rounded px-3 py-3 text-xs w-full" />
                                             </div>
                                             <!-- Time -->
                                             <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
@@ -574,7 +574,7 @@
                                                 <input type="text" placeholder="Select time"
                                                     id="delivery_time_{{ $orderProduct->unique_id }}"
                                                     value="{{ $orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->delivery_time) : '' }}"
-                                                    class="delivery_time border rounded px-1.5 py-1 text-xs w-full" />
+                                                    class="delivery_time border rounded px-3 py-3 text-xs w-full" />
                                             </div>
                                             <!-- Type (fixed width, non-stretch) -->
                                             <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
@@ -585,7 +585,7 @@
                                                     <button
                                                         id="delivery_transport_mode-btn-{{ $orderProduct->unique_id }}"
                                                         type="button" @click="open = !open"
-                                                        class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_transport_mode">
+                                                        class="border rounded px-px-3 py-3 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront class="w-4 h-4"
                                                                 x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' :
@@ -603,7 +603,7 @@
                                                             <li>
                                                                 <button type="button"
                                                                     @click="selected = 'Store'; open = false;  $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
-                                                                    class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
+                                                                    class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-building-storefront class="w-4 h-4"
                                                                         x-bind:class="deliveryStatus === 'Completed' ?
                                                                             'text-green-600' : 'text-yellow-600'" />
@@ -612,7 +612,7 @@
                                                             <li>
                                                                 <button type="button"
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
-                                                                    class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
+                                                                    class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-truck class="w-4 h-4"
                                                                         x-bind:class="deliveryStatus === 'Completed' ?
                                                                             'text-green-600' : 'text-yellow-600'" />
@@ -630,7 +630,7 @@
                                                     for="delivery_status_{{ $orderProduct->unique_id }}">Status</label>
                                                 <select id="delivery_status_{{ $orderProduct->unique_id }}"
                                                     x-model="deliveryStatus"
-                                                    class="delivery_status border rounded px-1.5 py-1 text-xs w-full">
+                                                    class="delivery_status border rounded px-3 py-3 text-xs w-full">
                                                     <option value="Pending"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
                                                         Pending</option>
@@ -647,7 +647,7 @@
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="delivery_store_id_{{ $orderProduct->unique_id }}">Location</label>
                                                 <select id="delivery_store_id_{{ $orderProduct->unique_id }}"
-                                                    class="delivery_store_id border rounded px-1.5 py-1 text-xs w-full">
+                                                    class="delivery_store_id border rounded px-3 py-3 text-xs w-full">
                                                     <option value="">Select Location</option>
                                                     @foreach ($stores as $storeItem)
                                                         <option value="{{ $storeItem->id }}"
@@ -662,7 +662,7 @@
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="delivery_by_{{ $orderProduct->unique_id }}">Technician</label>
                                                 <select id="delivery_by_{{ $orderProduct->unique_id }}"
-                                                    class="delivery_by border rounded px-1.5 py-1 text-xs w-full">
+                                                    class="delivery_by border rounded px-3 py-3 text-xs w-full">
                                                     <option value="">Select Technician</option>
                                                     @foreach ($employees as $employee)
                                                         <option value="{{ $employee->id }}"
@@ -692,7 +692,7 @@
                                                     placeholder="Select date"
                                                     value="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date) : '' }}"
                                                     data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                    class="datepicker pickup_date border rounded px-1.5 py-1 text-xs w-full" />
+                                                    class="datepicker pickup_date border rounded px-3 py-3 text-xs w-full" />
                                             </div>
                                             <!-- Time -->
                                             <div class="flex flex-col items-start min-w-[80px] max-w-[100px] flex-[0.8]">
@@ -701,7 +701,7 @@
                                                 <input type="text" id="pickup_time_{{ $orderProduct->unique_id }}"
                                                     placeholder="Select time"
                                                     value="{{ $orderProduct->pickup_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->pickup_time) : '' }}"
-                                                    class="pickup_time border rounded px-1.5 py-1 text-xs w-full" />
+                                                    class="pickup_time border rounded px-3 py-3 text-xs w-full" />
                                             </div>
                                             <!-- Type (fixed width, non-stretch) -->
                                             <div class="flex flex-col items-start flex-shrink-0 w-[44px]">
@@ -711,7 +711,7 @@
                                                     x-data="{ selected: '{{ $orderProduct->pickup_transport_mode ?? 'Store' }}', open: false }" class="relative w-full">
                                                     <button id="pickup_transport_mode-btn-{{ $orderProduct->unique_id }}"
                                                         type="button" @click="open = !open"
-                                                        class="border rounded px-1.5 py-1 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_transport_mode">
+                                                        class="border rounded px-3 py-3 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront class="w-4 h-4"
                                                                 x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' :
@@ -729,7 +729,7 @@
                                                             <li>
                                                                 <button type="button"
                                                                     @click="selected = 'Store'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
-                                                                    class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
+                                                                    class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-building-storefront class="w-4 h-4"
                                                                         x-bind:class="pickupStatus === 'Completed' ?
                                                                             'text-green-600' : 'text-yellow-600'" />
@@ -738,7 +738,7 @@
                                                             <li>
                                                                 <button type="button"
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
-                                                                    class="w-full flex items-center justify-center px-2 py-1 hover:bg-yellow-100">
+                                                                    class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-truck class="w-4 h-4"
                                                                         x-bind:class="pickupStatus === 'Completed' ?
                                                                             'text-green-600' : 'text-yellow-600'" />
@@ -756,7 +756,7 @@
                                                     for="pickup_status_{{ $orderProduct->unique_id }}">Status</label>
                                                 <select id="pickup_status_{{ $orderProduct->unique_id }}"
                                                     x-model="pickupStatus"
-                                                    class="pickup_status border rounded px-1.5 py-1 text-xs w-full">
+                                                    class="pickup_status border rounded px-3 py-3 text-xs w-full">
                                                     <option value="Pending"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}>
                                                         Pending</option>
@@ -773,7 +773,7 @@
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="pickup_store_id_{{ $orderProduct->unique_id }}">Location</label>
                                                 <select id="pickup_store_id_{{ $orderProduct->unique_id }}"
-                                                    class="pickup_store_id border rounded px-1.5 py-1 text-xs w-full">
+                                                    class="pickup_store_id border rounded px-3 py-3 text-xs w-full">
                                                     <option value="">Select Location</option>
                                                     @foreach ($stores as $storeItem)
                                                         <option value="{{ $storeItem->id }}"
@@ -788,7 +788,7 @@
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="pickup_by_{{ $orderProduct->unique_id }}">Technician</label>
                                                 <select id="pickup_by_{{ $orderProduct->unique_id }}"
-                                                    class="pickup_by border rounded px-1.5 py-1 text-xs w-full">
+                                                    class="pickup_by border rounded px-3 py-3 text-xs w-full">
                                                     <option value="">Select Technician</option>
                                                     @foreach ($employees as $employee)
                                                         <option value="{{ $employee->id }}"
@@ -1020,7 +1020,7 @@
         {{-- Summary & Notes --}}
         <div class="grid md:grid-cols-2 gap-4">
             <div
-                class="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col text-sm text-gray-700 pt-4">
+                class="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col text-sm text-gray-700 pt-4">
                 <div class="flex justify-between">
                     <span>Sub-Total:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}</span>
@@ -1034,14 +1034,14 @@
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</span>
                 </div>
             </div>
-            <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col relative">
+            <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col relative">
                 <!-- Title -->
                 <h2 class="text-black font-semibold text-lg mb-2">
                     Order / Delivery Instructions
                 </h2>
                 <!-- Add Note Button -->
                 <button
-                    class="absolute top-4 right-4 flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    class="absolute top-4 right-4 flex items-center gap-1 px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700"
                     id="addNoteBtn">
                     <x-heroicon-o-plus class="w-4 h-4" /> Add Note
                 </button>
@@ -1075,22 +1075,22 @@
                 <div>
                     <label class="text-sm font-medium text-gray-700 required" for="user_id">User</label>
                     {!! html()->select('user_id', $employees->pluck('full_name', 'id')->toArray())->id('user_id')->class([
-                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                            'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
                         ])->required() !!}
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700 required" for="note_text">Note</label>
-                    {!! html()->textarea('note')->id('note_text')->class(['w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500'])->attribute('rows', 5)->placeholder('Enter note...')->required() !!}
+                    {!! html()->textarea('note')->id('note_text')->class(['w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500'])->attribute('rows', 5)->placeholder('Enter note...')->required() !!}
                 </div>
             </div>
             <!-- Footer -->
             <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
                 <button type="button" onclick="closeNoteModal()"
-                    class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    class="px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                     Cancel
                 </button>
                 <button type="submit"
-                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    class="px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
                     Save
                 </button>
             </div>
@@ -1122,7 +1122,7 @@
                     <div>
                         <label class="text-sm font-medium text-gray-700" for="first_name">First name</label>
                         {!! html()->text('first_name', old('first_name'))->class([
-                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500',
                                 'border-red-500' => $errors->has('first_name'),
                             ])->attributes([
                                 'placeholder' => 'Enter first name',
@@ -1134,7 +1134,7 @@
                     <div>
                         <label class="text-sm font-medium text-gray-700" for="last_name">Last name</label>
                         {!! html()->text('last_name', old('last_name'))->class([
-                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500',
                                 'border-red-500' => $errors->has('last_name'),
                             ])->attributes([
                                 'placeholder' => 'Enter last name',
@@ -1149,7 +1149,7 @@
                     <div>
                         <label class="text-sm font-medium text-gray-700" for="email">Email</label>
                         {!! html()->email('email', old('email'))->class([
-                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500',
                                 'border-red-500' => $errors->has('email'),
                             ])->attributes([
                                 'placeholder' => 'Enter email',
@@ -1163,7 +1163,7 @@
                     <div>
                         <label class="text-sm font-medium text-gray-700" for="phone">Phone</label>
                         {!! html()->text('phone', old('phone'))->class([
-                                'masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'masked-phone w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500',
                                 'border-red-500' => $errors->has('phone'),
                             ])->attributes([
                                 'placeholder' => '(xxx) xxx-xxxx',
@@ -1179,7 +1179,7 @@
                 <div>
                     <label class="text-sm font-medium text-gray-700" for="address">Address</label>
                     {!! html()->text('address', old('address'))->class([
-                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                            'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500',
                             'border-red-500' => $errors->has('address'),
                         ])->attributes([
                             'placeholder' => 'Enter address',
@@ -1197,7 +1197,7 @@
                                 $states->mapWithKeys(fn($state) => [$state->id => $state->name])->toArray(),
                                 old('state', $customer->state_id ?? ''),
                             )->id('state')->class([
-                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                                'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
                                 'border-red-500' => $errors->has('state'),
                             ])->required() !!}
                     </div>
@@ -1205,7 +1205,7 @@
                     <div>
                         <label class="text-sm font-medium text-gray-700" for="city">City</label>
                         {!! html()->text('city', old('city'))->class([
-                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500',
                                 'border-red-500' => $errors->has('city'),
                             ])->attributes([
                                 'placeholder' => 'Enter city',
@@ -1217,7 +1217,7 @@
                     <div>
                         <label class="text-sm font-medium text-gray-700" for="zip_code">Zip code</label>
                         {!! html()->number('zip_code', old('zip_code'))->class([
-                                'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500',
+                                'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500',
                                 'border-red-500' => $errors->has('zip_code'),
                             ])->attributes([
                                 'placeholder' => 'Enter zip code',
@@ -1232,11 +1232,11 @@
             <!-- Footer -->
             <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
                 <button type="button" onclick="closeModal()"
-                    class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    class="px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                     Cancel
                 </button>
                 <button type="submit"
-                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    class="px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
                     Save
                 </button>
             </div>

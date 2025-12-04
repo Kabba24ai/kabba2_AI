@@ -16,20 +16,20 @@
             Schedule Management
         </h1>
         <a href="{{ route('admin.order-management.schedules.index') }}"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
             <x-heroicon-o-arrow-path class="w-5 h-5" />
             Reload
         </a>
     </div>
 
-    <div class="bg-white p-4 rounded-md shadow-sm space-y-4">
+    <div class="bg-white p-4 rounded-xl shadow-sm space-y-4">
         <!-- Row 1: Inputs & Selects -->
         <div class="flex flex-wrap gap-4 items-center">
             <div class="w-full sm:w-48">
                 <div class="relative bg-white">
                     <input type="text" id="customer_name" placeholder="Customer name" name="customer_name"
                         value="{{ request('customer_name') }}"
-                        class="pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                        class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
                     <x-heroicon-o-magnifying-glass
                         class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
@@ -39,7 +39,7 @@
                 <div class="relative bg-white">
                     <input type="text" id="customer_company_name" placeholder="Customer company"
                         name="customer_company_name" value="{{ request('customer_company_name') }}"
-                        class="pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                        class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
                     <x-heroicon-o-magnifying-glass
                         class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
@@ -51,7 +51,7 @@
                 <div class="relative bg-white">
                     <input type="text" id="customer_phone" placeholder="(xxx) xxx-xxxx" name="customer_phone"
                         value="{{ request('customer_phone') }}"
-                        class="masked-phone pl-3 pr-10 py-2 h-11 border border-gray-300 rounded-md text-sm w-38 focus:ring-blue-500 focus:border-blue-500" />
+                        class="masked-phone pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-38 focus:ring-blue-500 focus:border-blue-500" />
                     <x-heroicon-o-phone class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
             </div>
@@ -60,7 +60,7 @@
             <div class="w-full sm:w-48">
                 {{-- <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label> --}}
                 <select name="category"
-                    class="choices-select w-full  rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                    class="choices-select py-3 px-3 w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                     <option value="">Select Category</option>
                     @foreach ($categories as $id => $category)
                         <option value="{{ $id }}" @selected(request('category') == $id)>
@@ -74,7 +74,7 @@
             <div>
                 {{-- <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label> --}}
                 <select id="payment_method" name="payment_method"
-                    class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-38 focus:ring-blue-500 focus:border-blue-500">
+                    class= " border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-38 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Payment Types</option>
                     <option value="Card" @selected(request('payment_method') == 'Card')>Card</option>
                     <option value="COD" @selected(request('payment_method') == 'COD')>COD</option>
@@ -86,7 +86,7 @@
             <div>
                 {{-- <label for="payment_status" class="block text-sm font-medium text-gray-700 mb-1">Payment</label> --}}
                 <select id="payment_status" name="payment_status"
-                    class="h-11 border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-34 focus:ring-blue-500 focus:border-blue-500">
+                    class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-34 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Payments</option>
                     <option value="Paid" @selected(request('payment_status') == 'Paid')>Paid</option>
                     <option value="Pending" @selected(request('payment_status') == 'Pending')>Pending</option>
@@ -101,7 +101,7 @@
             <div>
                 {{-- <label for="date_filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label> --}}
                 <select name="date_filter" id="date_filter"
-                    class="h-11 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                    class=" border border-gray-300 rounded-md py-3 px-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                     <option value="">All Dates</option>
                     <option value="today" @selected(request('date_filter') == 'today')>Today</option>
                     <option value="week" @selected(request('date_filter') == 'week')>This Week</option>
@@ -117,10 +117,10 @@
         @endphp
 
         <!-- Row 2: Checkboxes & Date Filter -->
-        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
             <div class="flex flex-wrap items-center gap-6">
                 <!-- Schedule Type -->
-                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border">
+                <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-calendar class="w-5 h-5 text-blue-500" />
                     <span class="font-medium">Schedule Type</span>
                     <label class="flex items-center gap-1 ml-2">
@@ -136,7 +136,7 @@
                 </div>
 
                 <!-- Transport Mode -->
-                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border">
+                <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-truck class="w-5 h-5 text-green-500" />
                     <span class="font-medium">Transport Mode</span>
 
@@ -152,7 +152,7 @@
                     </label>
                 </div>
                 <!-- Store Locations -->
-                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border">
+                <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-map-pin class="w-5 h-5 text-purple-500" />
                     <span class="font-medium">Store Locations</span>
                     @foreach ($stores as $store)
@@ -166,9 +166,9 @@
                     @endforeach
                 </div>
                 <!-- Special Filters -->
-                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border">
+                <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-funnel class="w-5 h-5 text-orange-500" />
-                    <span class="font-medium text-gray-700">Special Filters</span>
+                    <span class="font-medium">Special Filters</span>
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" name="rescheduled_only" value="Reschedule" id="rescheduled_only"
                             class="text-red-600 focus:ring-red-500 rounded border-gray-300" @checked(request('rescheduled_only') == 'Reschedule')>
@@ -209,14 +209,14 @@
                 <div>
                     <label class="text-sm font-medium text-gray-700 required" for="user_unique_id">User</label>
                     {!! html()->select('user_unique_id', $employees)->id('user_unique_id')->class([
-                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
+                            'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
                         ])->required() !!}
                 </div>
 
                 <div>
                     <label class="text-sm font-medium text-gray-700 required">Category</label>
                     <select id="category_select"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-700">
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-700">
                         <option value="">Select Category</option>
                     </select>
                 </div>
@@ -225,7 +225,7 @@
                 <div>
                     <label class="text-sm font-medium text-gray-700 required" for="equipment_unique_id">Equipment</label>
                     <select name="equipment_unique_id" id="equipment_unique_id"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
                         <option value="" data-current-status="">Select Equipment</option>
                     </select>
                     <div class="flex items-center justify-between gap-3 mt-2">
@@ -240,11 +240,11 @@
             <!-- Footer -->
             <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
                 <button type="button"
-                    class="close-equipment-assign-modal px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    class="close-equipment-assign-modal px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                     Cancel
                 </button>
                 <button type="submit" id="equipment-assign-submit"
-                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    class="px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
                     Assign
                 </button>
             </div>

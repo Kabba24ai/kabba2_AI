@@ -82,7 +82,8 @@
                 </table>
 
             </div>
-@if ($partlists)
+
+            @if ($partlists)
     <div class="mt-6">
        {{ $partlists->links() }}
     </div>

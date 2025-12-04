@@ -1,34 +1,34 @@
-<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm ">
-    <thead class="bg-gray-100 text-gray-600 sticky top-0 z-10">
+<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+    <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
         <tr>
-            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Category</th>
-            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equipment Name</th>
-            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equip. ID</th>
-            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Status</th>
-            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Location</th>
+            <th class="py-4 px-6 text-left whitespace-nowrap">Category</th>
+            <th class="py-4 px-6 text-left whitespace-nowrap">Equipment Name</th>
+            <th class="py-4 px-6 text-left whitespace-nowrap">Equip. ID</th>
+            <th class="py-4 px-6 text-left whitespace-nowrap">Status</th>
+            <th class="py-4 px-6 text-left whitespace-nowrap">Location</th>
 
             <!-- Calendar headers -->
             @foreach ($dates as $date)
-                <th class="px-4 py-3 text-left font-semibold">{{ $date->format('Md') }}</th>
+                <th class="py-4 px-6 text-left font-semibold">{{ $date->format('Md') }}</th>
             @endforeach
         </tr>
     </thead>
     <tbody class="divide-y divide-gray-100 text-gray-900 whitespace-nowrap">
         @forelse($equipment as $eq)
             <tr class="hover:bg-gray-50">
-                <td class="px-4 py-4 font-semibold  text-gray-700">
+                <td class="py-4 px-6 font-semibold  text-gray-700">
                     @if ($eq->category_name)
                         {{ $eq->category_name }}
                     @else
                         <span class="text-gray-400 italic">None</span>
                     @endif
                 </td>
-                <td class="px-4 py-4 break-words">{{ $eq->equipment_name }}</td>
-                <td class="px-4 py-4">
+                <td class="py-4 px-6 break-words">{{ $eq->equipment_name }}</td>
+                <td class="py-4 px-6">
                     <a href="{{ route('admin.maintenance-management.equipment.edit', $eq->unique_id) }}"
                         class="text-blue-600 uppercase">{{ $eq->equipment_id }}</a>
                 </td>
-                <td class="px-4 py-4">
+                <td class="py-4 px-6">
                     <div class="inline-flex items-center gap-1.5 whitespace-nowrap">
                         @switch($eq->status_label)
                             @case('Damaged')
@@ -80,7 +80,7 @@
                         @endswitch
                     </div>
                 </td>
-                <td class="px-4 py-4">
+                <td class="py-4 px-6">
                     <div class="inline-flex items-center gap-1">
                         @if ($eq->status_label == 'Rented' && $eq?->orderProduct?->checklistQuestions->isNotEmpty())
                             <a href="{{ route('admin.crm.customers.view', $eq->order->customer->unique_id) }}"
@@ -97,7 +97,7 @@
                     </div>
                 </td>
                 @foreach ($dates as $date)
-                    <td class="px-4 py-4 text-center">
+                    <td class="py-4 px-6 text-center">
                         @php
                             $day = $date->format('Y-m-d');
 

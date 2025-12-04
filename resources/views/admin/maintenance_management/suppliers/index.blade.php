@@ -99,7 +99,7 @@
         </div>
 
         {{-- Tags --}}
-    
+
 
         {{-- Tags Filter --}}
 {{-- Tags Filter --}}
@@ -192,7 +192,7 @@
     document.addEventListener("DOMContentLoaded", function() {
 
 
-        
+
     /* ---------------------------------------------------------
         FREEZE FILTER SETUP
     --------------------------------------------------------- */
@@ -224,9 +224,13 @@
         const perPage = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
 
         // --- Global function to fetch suppliers ---
-        window.fetchSuppliers = function() {
+        window.fetchSuppliers = function(page = 1, perPage = null) {
+
             const params = new URLSearchParams();
+
             if (perPage) params.append('per_page', perPage);
+
+              params.append('page', page);
 
             // Append input values
             inputs.forEach(input => {
@@ -252,11 +256,14 @@
                 .then(res => res.json())
                 .then(data => {
 
-                     
+
             // Save filters
             FilterFreezer.saveFilters(screenKey, fieldMap);
 
                     wrapper.innerHTML = data.html;
+
+                      attachPaginationEvents();
+
                 })
                 .catch(err => {
                     wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading suppliers.</div>';
@@ -313,7 +320,22 @@
             });
         };
 
-        fetchSuppliers() ;
+
+        function attachPaginationEvents() {
+    wrapper.querySelectorAll('.pagination a').forEach(a => {
+        a.addEventListener('click', function (e) {
+            e.preventDefault();
+            const url = new URL(this.href);
+            const page = url.searchParams.get('page') || 1;
+            const perPage = url.searchParams.get('per_page') || perPageVal;
+            fetchSuppliers(page, perPage);
+        });
+    });
+}
+
+const currentPage = new URLSearchParams(location.search).get('page') || 1;
+fetchSuppliers(currentPage, perPage);
+
     });
 </script>
 

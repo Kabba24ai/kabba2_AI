@@ -82,9 +82,9 @@
                 </table>
 
             </div>
+@if ($partlists)
+    <div class="mt-6">
+       {{ $partlists->links() }}
+    </div>
+@endif
 
-
-{{-- Pagination --}}
-<div class="mt-6">
-    {{ $partlists->links() }}
-</div>

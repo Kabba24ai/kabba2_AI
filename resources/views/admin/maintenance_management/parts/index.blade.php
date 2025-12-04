@@ -324,7 +324,7 @@
 
                 <div id="templates-table-wrapper">
                     @include('admin.maintenance_management.parts.parts_list.partials._table', [
-                        'partlists' => $partlists,
+                        'partlists' => [],
                     ])
                 </div>
 
@@ -700,8 +700,8 @@
                 else clearBtn?.classList.add('hidden');
             }
 
-            const perPageParam = document.getElementById('per_page_sm')?.value 
-    || new URLSearchParams(location.search).get('per_page') 
+            const perPageParam = document.getElementById('per_page_sm')?.value
+    || new URLSearchParams(location.search).get('per_page')
     || 10;
 
 const pageParam = new URLSearchParams(location.search).get('page') || 1;
@@ -724,8 +724,9 @@ function fetchParts(page = 1, perPage = 10) {
                 if (selectedStatus)
                     params.append('stock_status', selectedStatus);
 
-                   params.append('per_page', perPage);
-    params.append('page', page);
+                   params.append('page', page);
+params.append('per_page', perPage);
+
 
                 updateClearButton();
 
@@ -843,6 +844,7 @@ function fetchParts(page = 1, perPage = 10) {
 fetchParts(pageParam, perPageParam); // initial load
 
 
+
             // <!-- delete  -->
 
             // Fetch templates
@@ -853,14 +855,47 @@ fetchParts(pageParam, perPageParam); // initial load
 
             let twrapper = document.querySelector('#templates-table-wrapper');
 
-            function fetchTemplates() {
+
+/* -----------------------------
+    PART LIST FILTER FREEZE SETUP
+------------------------------*/
+const tplScreenKey = "partlist_filters";
+
+const tplFieldMap = {
+    'tsearch': tsearchInput,
+    'tcategory': tcategorySelect,
+};
+
+// Load before any fetch
+FilterFreezer.loadFilters(tplScreenKey, tplFieldMap);
+
+let currentTplPage = 1;     // start with page 1
+let tplPerPageParam = 10;   // default per-page
+
+
+fetchTemplates(currentTplPage, tplPerPageParam);
+
+function fetchTemplates(page = currentTplPage, perPage = tplPerPageParam) {
+
+
+    // update current page
+    currentTplPage = page;
+
+    console.log("Fetching templates, page:", page, "perPage:", perPage);
                 const params = new URLSearchParams();
+console.log("Params being sent:", params.toString());
 
                 if (tsearchInput && (tsearchInput.value.length >= 2 || tsearchInput.value.length === 0))
                     params.append('tsearch', tsearchInput.value);
 
                 if (tcategorySelect && tcategorySelect.value)
                     params.append('tcategory', tcategorySelect.value);
+
+
+    params.append('tpl_page', page);
+    params.append('tpl_per_page', perPage);
+
+    FilterFreezer.saveFilters(tplScreenKey, tplFieldMap);
 
                 loader?.classList.remove('hidden');
                 twrapper?.classList.add('opacity-50', 'pointer-events-none');
@@ -872,6 +907,8 @@ fetchParts(pageParam, perPageParam); // initial load
                     })
                     .then(response => response.json())
                     .then(data => {
+                                console.log("AJAX response received");
+
                         twrapper.innerHTML = data.html; // Partial HTML view returned from controller
                     })
                     .catch(err => {
@@ -886,12 +923,23 @@ fetchParts(pageParam, perPageParam); // initial load
 
             // Search debounce
             tsearchInput?.addEventListener('input', function() {
-                clearTimeout(timeout);
-                timeout = setTimeout(fetchTemplates, 400);
-            });
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fetchTemplates(1, tplPerPageParam), 400);
+});
 
-            // Filter change
-            tcategorySelect?.addEventListener('change', fetchTemplates);
+tcategorySelect?.addEventListener('change', () => fetchTemplates(1, tplPerPageParam));
+
+
+Paginator.init({
+    wrapper: twrapper,
+    fetchCallback: (page) => {
+        console.log("Paginator clicked page:", page);
+        fetchTemplates(page, tplPerPageParam);
+    },
+    namespace: "tpl"
+});
+
+
 
 
             // --- Global delete Template function ---
@@ -917,7 +965,9 @@ fetchParts(pageParam, perPageParam); // initial load
                             .then(data => {
                                 if (data.success) {
                                     notyf.success(data.message);
-                                    fetchTemplates(); // Refresh table after deletion
+
+                    fetchTemplates(currentTplPage, tplPerPageParam); // refresh current page
+
                                 } else {
                                     notyf.error(data.message || "Failed to delete template!");
                                 }

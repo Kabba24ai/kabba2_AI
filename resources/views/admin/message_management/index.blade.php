@@ -62,10 +62,10 @@
        
         <!-- Inner Tabs + Action Buttons -->
         <div class="w-full bg-white border rounded-xl shadow-sm mb-6 ">
-            <div class="flex items-center justify-between gap-6 border-b p-4 " data-tab-group="inner-msg">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 border-b p-4" data-tab-group="inner-msg">
 
                 <!-- Left: Tabs -->
-                <div class="flex gap-6">
+                <div class="flex flex-wrap gap-3">
                     <button onclick="showTab('smsbroadcast', this)"
                         class="inner-tab inline-flex items-center px-3 pt-3 pb-2
                         text-sm font-medium text-blue-600 border-b-2 border-blue-600">
@@ -103,7 +103,7 @@
                         <!-- Send New SMS Broadcast (Orange) -->
                         <a href="javascript:void(0)" onclick="openModal('send-new-sms-broadcast')"
                         class="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600
-                                text-white text-sm font-medium px-6 py-3 text-md rounded-lg transition">
+                                text-white font-medium px-6 py-3 text-md rounded-lg transition">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
                                 fill="none" stroke="currentColor" stroke-width="2" 
                                 stroke-linecap="round" stroke-linejoin="round" 
@@ -117,7 +117,7 @@
                         <!-- Create Messenger (Green) -->
                         <a href="javascript:void(0)"  onclick="openModal('new-smsbroadcast')"
                         class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
-                                text-white text-sm font-medium px-6 py-3 text-md rounded-lg transition">
+                                text-white font-medium px-6 py-3 text-md rounded-lg transition">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
                                 class="w-4 h-4">
@@ -136,20 +136,21 @@
                        <!-- Send New SMS Broadcast (green) -->
                         <a href="javascript:void(0)" onclick="openModal('send-new-sms-funnel')"
                         class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600
-                                text-white text-sm font-medium px-6 py-3 text-md rounded-lg transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
-                                class="w-4 h-4 transform rotate-45">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3.75 12l16.5-9-4.5 9 4.5 9-16.5-9z" />
-                            </svg>
+                                text-white font-medium px-6 py-3 text-md rounded-lg transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
+                                fill="none" stroke="currentColor" stroke-width="2" 
+                                stroke-linecap="round" stroke-linejoin="round" 
+                                class="w-4 h-4">
+                                <path d="M22 2L11 13" />
+                                <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                            </svg> 
                             Send New SMS Broadcast
                         </a>
 
                         <!-- Create Messenger (Green) -->
                         <a href="javascript:void(0)" onclick="openModal('new-sms-funnel')"
                         class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
-                                text-white text-sm font-medium px-6 py-3 text-md rounded-lg transition">
+                                text-white font-medium px-6 py-3 text-md rounded-lg transition">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
                                 class="w-4 h-4">
@@ -168,20 +169,21 @@
                         <!-- Send New Email Broadcast (Dark Blue) -->
                       <a href="javascript:void(0)"
                         class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600
-                                text-white text-sm font-medium px-6 py-3 text-md rounded-lg transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
-                                class="w-4 h-4 transform rotate-45">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3.75 12l16.5-9-4.5 9 4.5 9-16.5-9z" />
-                            </svg>
+                                text-white font-medium px-6 py-3 text-md rounded-lg transition">
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
+                                fill="none" stroke="currentColor" stroke-width="2" 
+                                stroke-linecap="round" stroke-linejoin="round" 
+                                class="w-4 h-4">
+                                <path d="M22 2L11 13" />
+                                <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                            </svg> 
                             Send New SMS Broadcast
                         </a>
 
                         <!-- Create New Email Template (Green) -->
                         <a href="javascript:void(0)"
                         class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
-                                text-white text-sm font-medium px-6 py-3 text-md rounded-lg transition">
+                                text-white font-medium px-6 py-3 text-md rounded-lg transition">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
                                 class="w-4 h-4">
@@ -200,20 +202,21 @@
                          <!-- Send New Email Broadcast (Dark Blue) -->
                      <a href="javascript:void(0)"
                         class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-600
-                                text-white text-sm font-medium px-6 py-3 text-md rounded-lg transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
-                                class="w-4 h-4 transform rotate-45">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3.75 12l16.5-9-4.5 9 4.5 9-16.5-9z" />
-                            </svg>
+                                text-white font-medium px-6 py-3 text-md rounded-lg transition">
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
+                                fill="none" stroke="currentColor" stroke-width="2" 
+                                stroke-linecap="round" stroke-linejoin="round" 
+                                class="w-4 h-4">
+                                <path d="M22 2L11 13" />
+                                <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                            </svg> 
                             Send New SMS Broadcast
                         </a>
 
                         <!-- Create New Email Template (Green) -->
                         <a href="javascript:void(0)"
                         class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
-                                text-white text-sm font-medium px-6 py-3 text-md rounded-lg transition">
+                                text-white font-medium px-6 py-3 text-md rounded-lg transition">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
                                 class="w-4 h-4">
@@ -281,7 +284,7 @@
     <div id="questionssub" class="tab-content" data-tab-group="inner">
         <div class="space-y-6 p-4" id="questionWrapper">
             <!-- Header -->
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-900">Category</h2>
                     <p class="text-gray-600">Manage your SMS & Email categories.</p>
@@ -289,20 +292,20 @@
 
                <button  id="btn-smscat"
                 class="cat-action  gap-2 bg-green-600 hover:bg-green-700
-                        text-white text-sm font-medium px-4 py-2 rounded-lg transition"  onclick="openCategoryForm('sms')">
-        <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 4.5v15m7.5-7.5h-15"/>
-                </svg>
-                New SMS Category
-</div>
+                        text-white font-medium px-6 py-3 text-md rounded-lg transition"  onclick="openCategoryForm('sms')">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                    New SMS Category
+                </div>
             </button>
 
              <button  id="btn-emailcat"
                 class="cat-action hidden  gap-2 bg-green-600 hover:bg-green-700
-                        text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                        text-white font-medium px-6 py-3 text-md rounded-lg transition">
                          <div class="flex items-center  gap-2" onclick="openCategoryForm('email')">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -321,14 +324,14 @@
 
             <button onclick="showTab('smscat', this)"
                 class="inner-tab bg-blue-600 text-white border border-blue-600
-                rounded-lg px-4 py-2 text-sm font-medium transition w-full sm:w-auto"
+                font-medium px-6 py-3 text-md rounded-lg transition w-full sm:w-auto"
             >
                 SMS Categories
             </button>
 
             <button onclick="showTab('emailcat', this)"
                 class="inner-tab bg-white text-gray-700 border border-gray-300
-                rounded-lg px-4 py-2 text-sm font-medium transition w-full sm:w-auto"
+                font-medium px-6 py-3 text-md rounded-lg transition w-full sm:w-auto"
             >
                 Email Categories
             </button>
@@ -371,12 +374,12 @@
         <div class="flex justify-end gap-2">
             <button type="button"
                     onclick="closeCategoryForm()"
-                    class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-200">
+                    class="px-6 py-3 text-md rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-200">
                 Cancel
             </button>
 
             <button type="submit"
-                    class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                    class="px-6 py-3 text-md rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700">
                 Create
             </button>
         </div>

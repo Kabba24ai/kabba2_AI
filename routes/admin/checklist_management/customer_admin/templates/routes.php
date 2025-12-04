@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Templates\Index
 use App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Templates\StoreController;
 use App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Templates\UpdateController;
 use App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Templates\DeleteController;
+use App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Templates\CopyController;
 
 
 
@@ -21,6 +22,8 @@ Route::prefix('templates')
     Route::put('/{unique_id}/update', UpdateController::class)->name('update');
 
     Route::delete('/{unique_id}/delete', DeleteController::class)->name('delete');
+
+    Route::post('/{unique_id}/copy', CopyController::class)->name('copy');
 
     
 });

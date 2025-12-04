@@ -110,9 +110,18 @@
 
                     <!-- CATEGORY -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="ContactTags" class="block text-sm font-medium text-gray-700">Content Category <span class="text-red-500">*</span></label>
+                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Category
+                            </button>
+                        </div>
+                        <!-- <label class="block text-sm font-medium text-gray-700 mb-1">
                           Content Category <span class="text-red-500">*</span>
-                        </label>
+                        </label> -->
                         <select class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700">
                             <option value="">Select Category</option>
                             <option>SMS Broadcast</option>
@@ -218,9 +227,18 @@
 
                     <!-- CATEGORY -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="ContactTags" class="block text-sm font-medium text-gray-700"> Category <span class="text-red-500">*</span></label>
+                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Category
+                            </button>
+                        </div>
+                        <!-- <label class="block text-sm font-medium text-gray-700 mb-1">
                             Category <span class="text-red-500">*</span>
-                        </label>
+                        </label> -->
                         <select class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700">
                             <option value="">Select Category</option>
                             <option>SMS Broadcast</option>
@@ -276,11 +294,11 @@
             <!-- FOOTER -->
             <div class="flex justify-end gap-2 px-6 pb-4">
                 <button onclick="closeModal('new-smsbroadcast')"
-                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700">
+                        class="px-6 py-3 text-md rounded-lg font-medium  border border-gray-300 bg-white text-gray-700">
                     Cancel
                 </button>
 
-                <button class="px-6 py-3 text-md rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                <button class="px-6 py-3 text-md rounded-lg font-medium  bg-blue-600 text-white hover:bg-blue-700">
                     Create Message
                 </button>
             </div>

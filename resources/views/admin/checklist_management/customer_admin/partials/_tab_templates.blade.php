@@ -93,7 +93,15 @@ $templateQuestions = $template->questions->map(function($q) {
     ];
 });
 @endphp
-
+<form
+                                    action="{{ route('admin.checklist-management.customer-admin.templates.copy', $template->unique_id) }}"
+                                    method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-green-600 hover:text-green-800"
+                                        title="Copy this Checklist Master">
+                                        <x-heroicon-o-clipboard-document class="w-4 h-4" />
+                                    </button>
+                                </form>
 
                               <button
                                 class="edit-template-btn text-green-600 hover:text-green-800"
@@ -793,6 +801,24 @@ document.addEventListener("DOMContentLoaded", function () {
     searchInput.addEventListener("input", filterCards);
 });
 </script>
+
+
+@if(session('open_edit_template'))
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const newId = "{{ session('open_edit_template') }}";
+
+    // Find corresponding edit button
+    const btn = document.querySelector(
+        `.edit-template-btn[data-route*="${newId}"]`
+    );
+
+    if (btn) {
+        btn.click(); // automatically open modal
+    }
+});
+</script>
+@endif
 
 
 

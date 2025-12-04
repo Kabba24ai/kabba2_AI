@@ -73,14 +73,14 @@
 
                 <!-- SEND BUTTON -->
                 <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium 
-                            py-2.5 rounded-lg text-sm transition">
+                            px-6 py-3 rounded-lg text-md transition">
                     Send SMS Broadcast
                 </button>
 
                 <!-- CANCEL -->
                 <button onclick="closeModal('send-new-sms-funnel')"
                     class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium
-                        py-2.5 rounded-lg text-sm transition">
+                        px-6 py-3 rounded-lg text-md transition">
                     Cancel
                 </button>
 
@@ -170,14 +170,14 @@
 
                 <!-- SEND BUTTON -->
                 <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium 
-                            py-2.5 rounded-lg text-sm transition">
+                            px-6 py-3 rounded-lg text-md transition">
                     Create Message
                 </button>
 
                 <!-- CANCEL -->
                 <button onclick="closeModal('copy-msg-funnel')"
                     class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium
-                        py-2.5 rounded-lg text-sm transition">
+                        px-6 py-3 rounded-lg text-md transition">
                     Cancel
                 </button>
 
@@ -276,11 +276,11 @@
             <!-- FOOTER -->
             <div class="flex justify-end gap-2 px-6 pb-4">
                 <button onclick="closeModal('new-sms-funnel')"
-                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700">
+                        class="px-6 py-3 text-md rounded-lg font-medium border border-gray-300 bg-white text-gray-700">
                     Cancel
                 </button>
 
-                <button class="px-6 py-3 text-md rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                <button class="px-6 py-3 text-md rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700">
                     Create Message
                 </button>
             </div>

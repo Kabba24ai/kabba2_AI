@@ -239,7 +239,7 @@
         <!-- INNER CONTENT SECTIONS -->
         <div id="smsbroadcast" class="tab-content" data-tab-group="inner-msg">
           
-    @include('admin.message_management.partials._tab_sms_broadcast')
+    @include('admin.crm.message_management.partials._tab_sms_broadcast')
 
 
             <!-- Add your SMS Broadcast CRUD here -->
@@ -248,7 +248,7 @@
         <div id="smsfunnel" class="tab-content hidden" data-tab-group="inner-msg">
             <!-- <h3 class="text-lg font-semibold text-gray-900 mb-4">SMS Funnel Content</h3> -->
             <!-- Add your SMS Funnel CRUD here -->
-               @include('admin.message_management.partials._tab_sms_funnel_content')
+               @include('admin.crm.message_management.partials._tab_sms_funnel_content')
 
 
         </div>
@@ -256,7 +256,7 @@
         <div id="emailbroadcast" class="tab-content hidden" data-tab-group="inner-msg">
             <!-- <h3 class="text-lg font-semibold text-gray-900 mb-4">Email Broadcast</h3> -->
 
-            @include('admin.message_management.partials._tab_email_broadcast')
+            @include('admin.crm.message_management.partials._tab_email_broadcast')
 
 
 
@@ -265,7 +265,7 @@
 
         <div id="emailfunnel" class="tab-content hidden" data-tab-group="inner-msg">
             <!-- <h3 class="text-lg font-semibold text-gray-900 mb-4">Email Funnel Content</h3> -->
-                 @include('admin.message_management.partials._tab_email_funnel_content')
+                 @include('admin.crm.message_management.partials._tab_email_funnel_content')
 
             <!-- Add your Email Funnel CRUD here -->
         </div>
@@ -292,7 +292,7 @@
 
                <button  id="btn-smscat"
                 class="cat-action  gap-2 bg-green-600 hover:bg-green-700
-                        text-white font-medium px-6 py-3 text-md rounded-lg transition"  onclick="openCategoryForm('sms')">
+                        text-white font-medium px-6 py-3 text-md rounded-lg transition"  onclick="openModal('btn-smscat-modal')">
                 <div class="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -306,7 +306,7 @@
              <button  id="btn-emailcat"
                 class="cat-action hidden  gap-2 bg-green-600 hover:bg-green-700
                         text-white font-medium px-6 py-3 text-md rounded-lg transition">
-                         <div class="flex items-center  gap-2" onclick="openCategoryForm('email')">
+                         <div class="flex items-center  gap-2" >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     stroke-width="2" stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -391,13 +391,13 @@
 
         <div id="smscat" class="tab-content" data-tab-group="inner-cat">
             <!-- <h3 class="text-lg font-semibold text-gray-900 mb-4">SMS Categories</h3> -->
-                 @include('admin.message_management.partials._tab_sms_category')
+                 @include('admin.crm.message_management.partials._tab_sms_category')
 
         </div>
 
         <div id="emailcat" class="tab-content hidden" data-tab-group="inner-cat">
             <!-- <h3 class="text-lg font-semibold text-gray-900 mb-4">Email Categories</h3> -->
-                 @include('admin.message_management.partials._tab_email_category')
+                 @include('admin.crm.message_management.partials._tab_email_category')
 
         </div>
 

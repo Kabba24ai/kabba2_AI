@@ -161,7 +161,7 @@
                 class="px-4 py-3 rounded-lg border-2 transition-colors"
             >
                 <div class="flex gap-2" style="align-items: center;">
-                    <span class="w-3 h-3 rounded-full bg-gray-700"></span>
+                    <span class="w-3 h-3 rounded-full" :class="selectedCategory === 'all' ? 'bg-white' : 'bg-gray-700'"></span>
                     <div>
                         <div class="font-medium">All</div>
                     </div>

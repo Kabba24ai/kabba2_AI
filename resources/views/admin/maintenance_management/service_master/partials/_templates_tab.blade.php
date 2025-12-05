@@ -740,18 +740,56 @@
                     {{-- Add Tasks Section --}}
                     <div x-show="isEditingTemplate && getTasksNotInTemplate().length > 0" class="mt-6">
                         <h4 class="font-medium text-gray-900 mb-3">Add Tasks</h4>
-                        <div class="space-y-1">
-                            <template x-for="task in getTasksNotInTemplate()" :key="task.id">
-                                <button
-                                    @click="addTaskToTemplate(task.id)"
-                                    class="w-full text-left px-4 py-2 bg-gray-50 text-gray-700 text-sm rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                                >
-                                    <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    <span x-text="task.name"></span>
-                                </button>
-                            </template>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left px-4 py-3 text-sm font-medium text-gray-700">Task Name</th>
+                                        <th class="text-left px-4 py-3 text-sm font-medium text-gray-700">Category</th>
+                                        <th class="text-left px-4 py-3 text-sm font-medium text-gray-700">Description</th>
+                                        <th class="text-center px-4 py-3 text-sm font-medium text-gray-700 w-24">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="task in getTasksNotInTemplate()" :key="task.id">
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-sm">
+                                                <span class="font-medium text-gray-900" x-text="task.name"></span>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm">
+                                                <template x-if="task.category">
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs"
+                                                        :style="{
+                                                            backgroundColor: task.category.color + '20',
+                                                            color: task.category.color
+                                                        }">
+                                                        <span class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: task.category.color }"></span>
+                                                        <span x-text="task.category.name"></span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="!task.category">
+                                                    <span class="text-gray-400 text-xs">-</span>
+                                                </template>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm">
+                                                <span x-show="task.description" class="text-gray-600" x-text="task.description"></span>
+                                                <span x-show="!task.description" class="text-gray-400">-</span>
+                                            </td>
+                                            <td class="px-4 py-3 text-center">
+                                                <button
+                                                    @click="addTaskToTemplate(task.id)"
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700"
+                                                >
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                    Add
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 
-use App\Http\Controllers\Admin\MessageManagement\IndexController;
+use App\Http\Controllers\Admin\Crm\MessageManagement\IndexController;
 
 
 /*
@@ -22,6 +22,10 @@ Route::prefix('message-management')
 ->group(function ($router) {
     
         Route::get('/', IndexController::class)->name('index');
+
+
+        require base_path('routes/admin/crm/message_management/email_category/routes.php');
+        require base_path('routes/admin/crm/message_management/sms_category/routes.php');
 
 
 });

@@ -1154,27 +1154,27 @@
 
    @push('js')
 
-   <!-- delete transaction script -->
-   <script>
-       document.addEventListener('DOMContentLoaded', function() {
-           document.querySelectorAll('.delete-transaction-form').forEach(function(form) {
-               form.addEventListener('submit', function(e) {
-                   e.preventDefault(); // stop auto submit
+    <!-- delete transaction script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.delete-transaction-form').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault(); // stop auto submit
 
-                   const transactionType = form.getAttribute('data-transaction-type') || 'this transaction';
+                    const transactionType = form.getAttribute('data-transaction-type') || 'this transaction';
 
-                   window.showConfirm(
-                       `Delete "${transactionType}"? This action cannot be undone!`,
-                       'Delete transaction'
-                   ).then((result) => {
-                       if (result.isConfirmed) {
-                           form.submit();
-                       }
-                   });
-               });
-           });
-       });
-   </script>
+                    window.showConfirm(
+                        `Delete "${transactionType}"? This action cannot be undone!`,
+                        'Delete transaction'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 
 
    <script>

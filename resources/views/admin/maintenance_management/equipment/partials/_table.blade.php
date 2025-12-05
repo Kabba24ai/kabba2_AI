@@ -85,7 +85,7 @@
                             @endif
                         </td>
                         <td class="py-4 px-3">
-                            -
+                            {{ $item->serviceTemplate?->name ?? '-' }}
                         </td>
                         <td class="px-3 py-3 whitespace-nowrap text-center">
                             -

@@ -423,8 +423,8 @@
                 </div>
 
                 <div class="sm:col-span-2">
-                    
-                    <p class="text-xs text-gray-500 @if($equipment->imei) text-purple-600 @endif">GPS tracker ID for location tracking</p>
+
+                    <p class="text-xs text-gray-500 @if(isset($equipment) && $equipment?->imei) text-purple-600 @endif">GPS tracker ID for location tracking</p>
                 </div>
             </div>
         </div>

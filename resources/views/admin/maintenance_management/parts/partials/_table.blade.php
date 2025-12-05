@@ -7,7 +7,7 @@
 
             <th class="py-4 px-6 text-left font-semibold">Equipment Name</th>
               <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Part Name</th>
-            <!-- <th class="py-4 px-6 text-left font-semibold">Equipment Id</th> -->
+            <th class="py-4 px-6 text-left font-semibold">Brand</th>
             <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Part Number</th>
             <th class="py-4 px-6 text-left font-semibold whitespace-nowrap">Parts List</th>
 
@@ -56,6 +56,14 @@
                 </span>
             </td>
 
+               <td class="py-4 px-6 whitespace-nowrap">
+    <span class="text-sm text-gray-900">
+        {{ $part->primaryBrand->name ?? '—' }}
+    </span>
+</td>
+
+
+
 
             <td class="py-4 px-6 whitespace-nowrap">
                 <span class="text-sm text-gray-900">
@@ -68,7 +76,13 @@
 @if($part->partsLists->isNotEmpty())
     <a href="javascript:void(0)"
        class="text-blue-600 hover:underline font-medium"
-       data-lists='@json($part->partsLists->flatMap(fn($list) => $list->parts->pluck("part_name")))'
+      data-lists='@json(
+    $part->partsLists->map(fn($list) => [
+        "list_name" => $list->name,
+        "products"  => $list->parts->pluck("part_name")->values()
+    ])
+)'
+
        onclick="openPartListModal(this)">
         {{ $part->partsLists->pluck('name')->join(', ') }}
     </a>

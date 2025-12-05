@@ -409,35 +409,50 @@
 
 
 
-        function openPartListModal(element) {
-            const modal = document.getElementById('partListModal');
-            const container = document.getElementById('partListModalContent');
+       function openPartListModal(element) {
+    const modal = document.getElementById('partListModal');
+    const container = document.getElementById('partListModalContent');
 
-            let lists = JSON.parse(element.getAttribute('data-lists'));
+    let lists = JSON.parse(element.getAttribute('data-lists'));
 
+    if (!lists.length) {
+        container.innerHTML = `<p class='text-center text-gray-500'>No lists assigned.</p>`;
+    } else {
+        let html = "";
 
-
-            if (!lists.length) {
-                container.innerHTML = `<p class='text-center text-gray-500'>No lists assigned.</p>`;
-            } else {
-                let html = "<ul class='space-y-2'>";
-                lists.forEach(name => {
-                    html += `
-                <li class="p-3 bg-gray-100 rounded-lg text-gray-800 font-medium">
-                    ${name}
-                </li>
+        lists.forEach(list => {
+            html += `
+                <div class="mb-4">
+                    <h3 class="text-md font-bold text-gray-800 mb-2 border-b pb-1">
+                        ${list.list_name}
+                    </h3>
+                    <ul class="space-y-1">
             `;
-                });
-                html += "</ul>";
-                container.innerHTML = html;
-            }
 
-            modal.classList.remove('hidden');
-        }
+            list.products.forEach(product => {
+                html += `
+                    <li class="p-2 bg-gray-100 rounded-md text-gray-700">
+                        ${product}
+                    </ li>
+                `;
+            });
 
-        function closePartListModal() {
-            document.getElementById('partListModal').classList.add('hidden');
-        }
+            html += `
+                    </ul>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closePartListModal() {
+    document.getElementById('partListModal').classList.add('hidden');
+}
+
     </script>
 
 

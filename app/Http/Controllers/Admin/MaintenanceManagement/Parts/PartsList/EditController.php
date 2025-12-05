@@ -18,25 +18,32 @@ class EditController extends Controller
             ->where('unique_id', $unique_id)
             ->first();
 
-        $categories = ProductCategory::with('products', 'equipments')->get();
+        // $categories = ProductCategory::with('products', 'equipments')->get();
+        // Load categories with sorted relationships
+        $categories = ProductCategory::with([
+            'products',
+            'equipments' => function ($q) {
+                $q->orderBy('equipment_name', 'asc'); // SORT HERE
+            }
+        ])->get();
 
         $parts = Part::with('category')->get();
 
-         // Add specific assignment status
-   foreach ($parts as $part) {
-    // Assigned to this current list?
-    $assignedToThis = $part->isAssigned($list->id);
+//          // Add specific assignment status
+//    foreach ($parts as $part) {
+//     // Assigned to this current list?
+//     $assignedToThis = $part->isAssigned($list->id);
 
-    // Assigned globally?
-    $assignedGlobal = $part->isAssigned();
+//     // Assigned globally?
+//     $assignedGlobal = $part->isAssigned();
 
-    // Override assigned field meaning for edit mode:
-    // assigned == assigned to THIS list
-    $part->assigned = $assignedToThis;
+//     // Override assigned field meaning for edit mode:
+//     // assigned == assigned to THIS list
+//     $part->assigned = $assignedToThis;
 
-    // New variable for blade:
-    $part->assigned_other = $assignedGlobal && !$assignedToThis;
-}
+//     // New variable for blade:
+//     $part->assigned_other = $assignedGlobal && !$assignedToThis;
+// }
 
 
 

@@ -215,6 +215,33 @@
             </div>
 
             <div class="mt-4">
+   <!-- Label + Add Button -->
+    <div class="flex items-center justify-between mb-1">
+        <label for="brand_alt_1" class="block text-sm font-medium text-gray-700">Brand</label>
+
+      <button type="button"
+    onclick="openBrandAddModal()"
+            class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1">
+
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="h-4 w-4"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+
+            Add
+        </button>
+    </div>
+    <select id="brand" name="primary_brand_id" class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white brand-select">
+        <option value="">Select brand</option>
+    </select>
+</div>
+
+
+            <div class="mt-4">
                 <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1 ">
                     Supplier
                 </label>
@@ -286,6 +313,16 @@
                     </div>
                 </div>
             </div>
+
+            <div class="mt-4">
+    <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+
+   <select id="brand_alt_1" name="alt_1_brand_id" class="brand-select w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white">
+    <option value="">Select brand</option>
+</select>
+
+</div>
+
 
             <div class="mt-4">
                 <label for="supplier_alt_1" class="block text-sm font-medium text-gray-700 mb-1">Select Supplier</label>
@@ -362,18 +399,19 @@
                     </div>
                 </div>
             </div>
+            <div class="mt-4">
+    <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+
+  <select id="brand_alt_2" name="alt_2_brand_id" class="brand-select w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white">
+    <option value="">Select brand</option>
+</select>
+
+</div>
+
 
             <div class="mt-4">
                 <label for="supplier_alt_2" class="block text-sm font-medium text-gray-700 mb-1">Select Supplier</label>
-                <!-- <select id="supplier_alt_2" name="supplier_alt_2"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white">
-                    <option value="">Select alt supplier</option>
-                    @foreach($suppliers as $supplier)
-                    <option value="{{ $supplier->unique_id }}">
-                        {{ $supplier->name }}
-                    </option>
-                    @endforeach
-                </select> -->
+               
 
                 {!! html()->select('supplier_alt_2',
                 collect($suppliers)->pluck('name', 'unique_id')->prepend('Select alt supplier', ''),

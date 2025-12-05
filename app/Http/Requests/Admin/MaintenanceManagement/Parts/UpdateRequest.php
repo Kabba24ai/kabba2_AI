@@ -33,6 +33,13 @@ class UpdateRequest extends FormRequest
             'cost_alt_1' => 'nullable|numeric|min:0',
             'supplier_alt_1' => 'nullable|string|max:255',
 
+
+            
+            'primary_brand_id' => 'nullable',
+'alt_1_brand_id'   => 'nullable',
+'alt_2_brand_id'   => 'nullable',
+
+
             // Alternative 2
             'part_number_alt_2' => 'nullable|string|max:100',
             'cost_alt_2' => 'nullable|numeric|min:0',

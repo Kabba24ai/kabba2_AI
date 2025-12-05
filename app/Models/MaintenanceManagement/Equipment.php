@@ -57,6 +57,9 @@ class Equipment extends Model
         'standard_battery_count',
         'expanded_battery_count',
         'checklist_master_id',
+        'equipment_service_id',
+        'bring_service_flag',
+        'bring_service_hour',
         'equipment_notes',
         'current_status', // available, rented, maintenance, damaged
         'current_status_changed_at',
@@ -132,6 +135,11 @@ class Equipment extends Model
     public function checklistMaster()
     {
         return $this->belongsTo(ChecklistMaster::class, 'checklist_master_id');
+    }
+
+    public function serviceTemplate()
+    {
+        return $this->belongsTo(\App\Models\MaintenanceManagement\ServiceMaster\ServiceTemplate::class, 'equipment_service_id');
     }
 
     public function customerAdminTemplates()

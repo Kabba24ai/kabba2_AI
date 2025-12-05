@@ -386,7 +386,7 @@
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.maintenance-management.equipment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
-                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment
+                                        <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment Mgt.
                                     </a>
                                 </li>
                                 <li>
@@ -394,7 +394,7 @@
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.maintenance-management.service-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
-                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Service Master
+                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Service Master Admin
                                     </a>
                                 </li>
                                 <li>
@@ -446,7 +446,7 @@
                                 <li>
                                     <a href="{{ route('admin.checklist-management.equipment-management.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.checklist-management.equipment-management.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-wrench-screwdriver class="w-5 h-5" /> Equipment Mgt.
+                                        <x-heroicon-o-wrench-screwdriver class="w-5 h-5" /> Rental Ready Mgt.
                                     </a>
                                 </li>
                                 <li>

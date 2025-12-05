@@ -89,7 +89,9 @@ class UpdateRequest extends FormRequest
             'expanded_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
 
             'checklist_master_id' => 'nullable|exists:checklist_masters,id',
-            'equipment_service_id' => 'nullable|exists:equipment_services,id',
+            'equipment_service_id' => 'nullable|exists:service_templates,id',
+            'bring_service_flag' => 'nullable|boolean',
+            'bring_service_hour' => 'nullable|numeric|min:0',
             'part_id' => 'nullable|exists:parts,id',
 
             'equipment_notes' => 'nullable|string',

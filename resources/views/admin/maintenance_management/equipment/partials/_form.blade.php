@@ -590,10 +590,39 @@
             <div>
                 <label for="equipment_service_id" class="block text-sm font-medium text-gray-700 mb-1">Service
                     Schedule</label>
-                {!! html()->select('equipment_service_id', ['' => 'Select Equipment Service'])->class([
-                        'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
-                        'border-red-500' => $errors->has('equipment_service_id'),
-                    ]) !!}
+                
+                <div id="service_display_container">
+                    @if(isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
+                        {{-- Show assigned service template with edit icon --}}
+                        <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <x-heroicon-o-check-circle class="h-5 w-5 text-blue-600" />
+                                <span class="text-sm font-medium text-gray-900">{{ $equipment->serviceTemplate->name }}</span>
+                            </div>
+                            <button
+                                type="button"
+                                onclick="openServiceAssignModal()"
+                                class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                                title="Edit Service Template"
+                            >
+                                <x-heroicon-o-pencil class="h-4 w-4" />
+                            </button>
+                        </div>
+                        <input type="hidden" name="equipment_service_id" value="{{ $equipment->equipment_service_id }}" id="equipment_service_id_input" />
+                    @else
+                        {{-- Show assign button --}}
+                        <button
+                            type="button"
+                            onclick="openServiceAssignModal()"
+                            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-blue-600 border-2 border-dashed border-blue-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-colors"
+                        >
+                            <x-heroicon-o-plus-circle class="h-5 w-5" />
+                            <span class="font-medium">Assign Service Template</span>
+                        </button>
+                        <input type="hidden" name="equipment_service_id" value="" id="equipment_service_id_input" />
+                    @endif
+                </div>
+
                 <p class="mt-2 text-xs text-gray-500">
                     Maintenance schedule and service history tracking
                 </p>
@@ -647,13 +676,157 @@
     </div>
 </div>
 
+{{-- Service Template Assignment Modal --}}
+<div id="serviceAssignModal" class="hidden fixed inset-0 z-50 flex items-center bg-gray-500/75 transition-opacity justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full">
+        <div class="flex items-center justify-between p-5 border-b border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900">Assign Service Template</h3>
+            <button
+                type="button"
+                onclick="closeServiceAssignModal()"
+                class="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="p-5">
+            <label for="service_template_select" class="block text-sm font-medium text-gray-700 mb-2">
+                Select Service Template
+            </label>
+            <select
+                id="service_template_select"
+                class="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+            >
+                <option value="">Select a template...</option>
+                @foreach($serviceTemplates as $id => $name)
+                    <option value="{{ $id }}" {{ (isset($equipment) && $equipment->equipment_service_id == $id) ? 'selected' : '' }}>
+                        {{ $name }}
+                    </option>
+                @endforeach
+            </select>
+
+            <div class="mt-4 flex items-center gap-3">
+                <div class="flex items-center">
+                    <input
+                        type="checkbox"
+                        id="bring_service_current"
+                        {{ (isset($equipment) && $equipment->bring_service_flag) ? 'checked' : '' }}
+                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <label for="bring_service_current" class="ml-2 text-sm font-medium">
+                        Bring Service Current To:
+                    </label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input
+                        type="text"
+                        id="service_current_hours"
+                        value="{{ old('bring_service_hour', isset($equipment) ? $equipment->bring_service_hour : '') }}"
+                        placeholder="0"
+                        class="w-24 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    />
+                    <span class="text-sm font-medium text-gray-700">Hrs</span>
+                </div>
+            </div>
+            
+            {{-- Hidden inputs for form submission --}}
+            <input type="hidden" name="bring_service_flag" id="bring_service_flag_input" value="{{ old('bring_service_flag', isset($equipment) ? ($equipment->bring_service_flag ? '1' : '0') : '0') }}" />
+            <input type="hidden" name="bring_service_hour" id="bring_service_hour_input" value="{{ old('bring_service_hour', isset($equipment) ? $equipment->bring_service_hour : '') }}" />
+        </div>
+        <div class="flex items-center justify-end gap-3 p-5 border-t border-gray-200">
+            <button
+                type="button"
+                onclick="closeServiceAssignModal()"
+                class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+                Cancel
+            </button>
+            <button
+                type="button"
+                onclick="assignServiceTemplate()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+                Assign Template
+            </button>
+        </div>
+    </div>
+</div>
 
 
 @push('js')
     <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
     @vite('resources/admin/js/tinymce.js')
     <script>
+        // Service Template Modal Functions
+        function openServiceAssignModal() {
+            document.getElementById('serviceAssignModal').classList.remove('hidden');
+        }
+
+        function closeServiceAssignModal() {
+            document.getElementById('serviceAssignModal').classList.add('hidden');
+        }
+
+        function assignServiceTemplate() {
+            const select = document.getElementById('service_template_select');
+            const selectedValue = select.value;
+            const selectedText = select.options[select.selectedIndex].text;
+            
+            if (!selectedValue) {
+                alert('Please select a service template');
+                return;
+            }
+
+            // Update the hidden input
+            document.getElementById('equipment_service_id_input').value = selectedValue;
+            
+            // Update the UI to show the selected template
+            const container = document.getElementById('service_display_container');
+            container.innerHTML = `
+                <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-sm font-medium text-gray-900">${selectedText}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onclick="openServiceAssignModal()"
+                        class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                        title="Edit Service Template"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                    </button>
+                </div>
+                <input type="hidden" name="equipment_service_id" value="${selectedValue}" id="equipment_service_id_input" />
+            `;
+            
+            closeServiceAssignModal();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Sync bring service current checkbox and hours with hidden inputs
+            const bringServiceCheckbox = document.getElementById('bring_service_current');
+            const serviceCurrentHours = document.getElementById('service_current_hours');
+            const bringServiceFlagInput = document.getElementById('bring_service_flag_input');
+            const bringServiceHourInput = document.getElementById('bring_service_hour_input');
+
+            if (bringServiceCheckbox && serviceCurrentHours) {
+                // Update hidden inputs when checkbox changes
+                bringServiceCheckbox.addEventListener('change', function() {
+                    bringServiceFlagInput.value = this.checked ? '1' : '0';
+                });
+
+                // Update hidden input when hours change
+                serviceCurrentHours.addEventListener('input', function() {
+                    bringServiceHourInput.value = this.value;
+                });
+            }
+
             const powerTypeSelect = document.querySelector('select[name="power_source_type"]');
             const hasDefCheckbox = document.getElementById('has_def');
             const dieselCapacityField = document.querySelector('input[name="diesel_tank_capacity"]').closest('div');

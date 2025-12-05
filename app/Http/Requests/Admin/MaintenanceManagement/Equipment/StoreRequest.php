@@ -92,7 +92,9 @@ class StoreRequest extends FormRequest
             'checklist_master_id' => 'nullable|exists:checklist_masters,id',
 
             // add rules for selects present in form (adjust table names if different)
-            'equipment_service_id' => 'nullable|exists:equipment_services,id',
+            'equipment_service_id' => 'nullable|exists:service_templates,id',
+            'bring_service_flag' => 'nullable|boolean',
+            'bring_service_hour' => 'nullable|numeric|min:0',
             'part_id' => 'nullable|exists:parts,id',
 
             'equipment_notes' => 'nullable|string',

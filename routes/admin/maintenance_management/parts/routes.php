@@ -55,4 +55,7 @@ Route::prefix('parts')
     require base_path('routes/admin/maintenance_management/parts/parts_list/routes.php');
 
     require base_path('routes/admin/maintenance_management/parts/category/routes.php');
+
+    require base_path('routes/admin/maintenance_management/parts/brand/routes.php');
+
 });

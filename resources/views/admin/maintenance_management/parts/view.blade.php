@@ -62,13 +62,32 @@
                 <h3 class="text-gray-800 font-semibold mb-3 text-lg">Supplier Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-                    @php
-            $suppliers = [
-                ['label' => 'Part Number', 'supplier' => $part->primarySupplier, 'part_number' => $part->primary_part_number, 'cost' => $part->primary_part_cost],
-                ['label' => 'Alt 1 Part Number', 'supplier' => $part->alt1Supplier, 'part_number' => $part->alt_1_part_number, 'cost' => $part->alt_1_part_cost],
-                ['label' => 'Alt 2 Part Number', 'supplier' => $part->alt2Supplier, 'part_number' => $part->alt_2_part_number, 'cost' => $part->alt_2_part_cost],
-            ];
-        @endphp
+                  @php
+    $suppliers = [
+        [
+            'label' => 'Part Number',
+            'supplier' => $part->primarySupplier,
+            'brand' => $part->primaryBrand,
+            'part_number' => $part->primary_part_number,
+            'cost' => $part->primary_part_cost
+        ],
+        [
+            'label' => 'Alt 1 Part Number',
+            'supplier' => $part->alt1Supplier,
+            'brand' => $part->alt1Brand,
+            'part_number' => $part->alt_1_part_number,
+            'cost' => $part->alt_1_part_cost
+        ],
+        [
+            'label' => 'Alt 2 Part Number',
+            'supplier' => $part->alt2Supplier,
+            'brand' => $part->alt2Brand,
+            'part_number' => $part->alt_2_part_number,
+            'cost' => $part->alt_2_part_cost
+        ],
+    ];
+@endphp
+
 
                       @foreach($suppliers as $item)
             <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
@@ -104,10 +123,21 @@
                     </div>
                 </div>
 
+
+                <div>
+    <label class="block text-sm font-medium text-gray-500 mb-1">Brand</label>
+    <p class="text-sm font-medium text-gray-900">
+        {{ $item['brand']->name ?? '—' }}
+    </p>
+</div>
+
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Supplier</label>
                     <p class="text-sm font-medium text-gray-900">{{ $item['supplier']->name ?? '-' }}</p>
                 </div>
+
+
 
                 @if($item['supplier'])
                     <div class="pt-3 border-t border-gray-200">

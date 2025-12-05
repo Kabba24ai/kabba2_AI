@@ -13,22 +13,30 @@ class CreateController extends Controller
     public function __invoke()
     {
 
-        $categories = ProductCategory::with('products')->get();
+       // Load categories with sorted relationships
+        $categories = ProductCategory::with([
+            'products',
+            'equipments' => function ($q) {
+                $q->orderBy('equipment_name', 'asc'); // SORT HERE
+            }
+        ])->get();
+
 
         $parts = Part::with('category')->get();
 
    
          // Add specific assignment status
-   foreach ($parts as $part) {
+//    foreach ($parts as $part) {
   
-    // Assigned globally?
-    $assignedGlobal = $part->isAssigned();
+//     // Assigned globally?
+//     $assignedGlobal = $part->isAssigned();
 
  
-    // New variable for blade:
-    $part->assigned_other = $assignedGlobal;
-}
+//     // New variable for blade:
+//     $part->assigned_other = $assignedGlobal;
+// }
 
+// dd($categories);
 
 
 

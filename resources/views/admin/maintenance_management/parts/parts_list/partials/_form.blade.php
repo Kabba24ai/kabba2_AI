@@ -201,12 +201,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/>
                 </svg>
                 </div>
-                <!-- <select class="rounded-md border border-gray-300 px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
-                    <option>All Categories</option>
-                    <option>Excavators</option>
-                    <option>Generators</option>
-                    <option>Compressors</option>
-                </select> -->
+              
             </div>
 
             <p id="selectedCountLabel" class="text-sm text-gray-500">0 parts selected</p>
@@ -225,26 +220,39 @@
                               data-brand="{{ $part->brand ?? '' }}"
                               data-category="{{ $part->category->name ?? '' }}"
                               data-price="{{ $part->primary_part_cost }}"
-                              data-assigned="{{ $part->assigned }}"
-            {{ $part->assigned_other ? 'disabled' : '' }}>
+                              >
                     <div class="flex-1">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                      <h3 class="text-sm font-medium text-gray-900">{{ $part->part_name }}</h3>
-                                      <p class="text-xs text-gray-500">{{ $part->primary_part_number }} </p>
-                            </div>
-                            <div class="text-right">
-                                      <!-- <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ $part->category->name ?? '' }}</span> -->
-                                      <p class="text-sm font-medium text-green-600 mt-1">${{ $part->primary_part_cost }}</p>
-                                      @if($part->assigned_other)
-                                        <span class="ml-2 inline-flex px-2 py-1 rounded-full text-xs font-medium bg-red-200 text-red-700">
-                                            Already in List
-                                        </span>
-                                    @endif
+    <div class="flex items-start">
 
-                            </div>
-                        </div>
-                    </div>
+        <!--  FIRST LEFT DIV -->
+        <div class="mr-2">
+            <h3 class="text-sm font-medium text-gray-900">{{ $part->part_name }}</h3>
+            <p class="text-xs text-gray-500">{{ $part->primary_part_number }}</p>
+        </div>
+
+        <!--  SECOND LEFT DIV -->
+        <div class="mr-2">
+            @if($part->description)
+                <p class="text-xs text-gray-600 mt-1">{{ $part->description }}</p>
+            @endif
+        </div>
+
+        <!--  RIGHT SIDE DIV -->
+        <div class="ml-auto text-right">
+            <p class="text-sm font-medium text-green-600 mt-1">
+                ${{ $part->primary_part_cost }}
+            </p>
+
+            @if($part->assigned_other)
+                <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-red-200 text-red-700">
+                    Already in List
+                </span>
+            @endif
+        </div>
+
+    </div>
+</div>
+
                 </label>
 
                       @endforeach

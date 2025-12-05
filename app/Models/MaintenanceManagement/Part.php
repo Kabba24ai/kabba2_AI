@@ -39,6 +39,14 @@ class Part extends Model
         'alt_2_part_supplier_id',
 'assigned_equipments',
         'part_category_id',
+
+
+
+
+        'primary_brand_id',
+'alt_1_brand_id',
+'alt_2_brand_id',
+
     ];
 
     protected $casts = [
@@ -177,6 +185,28 @@ public function getAssignedEquipmentNamesAttribute()
         ->values();
 }
 
+public function primaryBrand()
+{
+    return $this->belongsTo(PartBrand::class, 'primary_brand_id');
+}
+
+public function alt1Brand()
+{
+    return $this->belongsTo(PartBrand::class, 'alt_1_brand_id');
+}
+
+public function alt2Brand()
+{
+    return $this->belongsTo(PartBrand::class, 'alt_2_brand_id');
+}
+public function getAllBrandNamesAttribute()
+{
+    return collect([
+        optional($this->primaryBrand)->name,
+        optional($this->alt1Brand)->name,
+        optional($this->alt2Brand)->name,
+    ])->filter()->unique()->values()->implode(', ');
+}
 
 
 }

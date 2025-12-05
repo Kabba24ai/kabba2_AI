@@ -29,7 +29,10 @@ class IndexController extends Controller
         'partsLists.category',
             'primarySupplier',
             'alt1Supplier',
-            'alt2Supplier')->orderBy('part_name');
+            'alt2Supplier' ,
+              'primaryBrand',
+        'alt1Brand',
+        'alt2Brand' )->orderBy('part_name');
 
         // Search filter
 

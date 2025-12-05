@@ -19,7 +19,10 @@ class ViewController extends Controller
         'partsLists.category',
             'primarySupplier',
             'alt1Supplier',
-            'alt2Supplier')->where('unique_id', $unique_id)->first(); // Laravel route model binding
+            'alt2Supplier',
+            'primaryBrand',
+        'alt1Brand',
+        'alt2Brand' )->where('unique_id', $unique_id)->first(); // Laravel route model binding
 
 
 

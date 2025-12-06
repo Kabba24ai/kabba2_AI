@@ -205,7 +205,7 @@ class PaymentStoreController extends Controller
                     $employee = null;
 
                     // Fire OrderPlaced event
-                    event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+                    //event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
                 }
             });
 

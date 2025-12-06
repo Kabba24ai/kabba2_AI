@@ -27,7 +27,7 @@ class SendSmsListener
         }
 
         $to = $order->billingAddress->phone; // Customer's phone number
-        $firstProduct = $order->orderProducts->first();
+        $firstProduct = optional($order->products)->first();
         if (!$firstProduct) {
             return;
         }

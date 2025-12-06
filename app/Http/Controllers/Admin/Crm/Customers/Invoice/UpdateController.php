@@ -195,17 +195,17 @@ class UpdateController extends Controller
                     $employee = auth()->user();
 
                     // Fire OrderPlaced event
-                    event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+                    //event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
 
 
                     // Create receipt
 
                     if (
                         $order->invoice &&
-                        $order->invoice->invoice_status === 'paid' &&    
-                        $order->receipt_status === 'pending' 
+                        $order->invoice->invoice_status === 'paid' &&
+                        $order->receipt_status === 'pending'
                     ) {
-                       
+
                         $receipt = Receipt::create([
                             'invoice_id'         => $order->invoice->id,
                             'customer_id'        => $order->customer->id,
@@ -241,7 +241,7 @@ class UpdateController extends Controller
                             'order_id'   => $order->id,
                             'order_num'  => $order->order_number,
                             'receipt_id' => $receipt->id,
-                        ]); 
+                        ]);
                     }
                 }
             });

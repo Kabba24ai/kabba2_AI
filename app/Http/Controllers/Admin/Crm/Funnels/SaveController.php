@@ -24,10 +24,10 @@ class SaveController extends Controller
             'store_delivery_cod_order_message' => 'required|string|max:500',
             'store_delivery_cod_message_enabled' => 'nullable|boolean',
 
-            'truck_delivery_card_order_message' => 'required|string|max:500',
-            'truck_delivery_card_message_enabled' => 'nullable|boolean',
-            'store_delivery_card_order_message' => 'required|string|max:500',
-            'store_delivery_card_message_enabled' => 'nullable|boolean',
+            'truck_delivery_same_day_cod_order_message' => 'required|string|max:500',
+            'truck_delivery_same_day_cod_message_enabled' => 'nullable|boolean',
+            'store_delivery_same_day_cod_order_message' => 'required|string|max:500',
+            'store_delivery_same_day_cod_message_enabled' => 'nullable|boolean',
 
             'rental_delivery_day_before_truck_message' => 'required|string|max:500',
             'rental_delivery_day_before_store_message' => 'required|string|max:500',
@@ -54,10 +54,10 @@ class SaveController extends Controller
             'store_delivery_cod_order_message' => $request->input('store_delivery_cod_order_message'),
             'store_delivery_cod_message_enabled' => $request->input('store_delivery_cod_message_enabled') ? '1' : '0',
 
-            'truck_delivery_card_order_message' => $request->input('truck_delivery_card_order_message'),
-            'truck_delivery_card_message_enabled' => $request->input('truck_delivery_card_message_enabled') ? '1' : '0',
-            'store_delivery_card_order_message' => $request->input('store_delivery_card_order_message'),
-            'store_delivery_card_message_enabled' => $request->input('store_delivery_card_message_enabled') ? '1' : '0',
+            'truck_delivery_same_day_cod_order_message' => $request->input('truck_delivery_same_day_cod_order_message'),
+            'truck_delivery_same_day_cod_message_enabled' => $request->input('truck_delivery_same_day_cod_message_enabled') ? '1' : '0',
+            'store_delivery_same_day_cod_order_message' => $request->input('store_delivery_same_day_cod_order_message'),
+            'store_delivery_same_day_cod_message_enabled' => $request->input('store_delivery_same_day_cod_message_enabled') ? '1' : '0',
 
             'rental_delivery_day_before_truck_message' => $request->input('rental_delivery_day_before_truck_message'),
             'rental_delivery_day_before_store_message' => $request->input('rental_delivery_day_before_store_message'),

@@ -114,7 +114,66 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
             }
         }
 
+
+        $storeCODMessage    = trim($messages['store_delivery_same_day_cod_order_message'] ?? '');
+        $truckCODMessage    = trim($messages['truck_delivery_same_day_cod_order_message'] ?? '');
+
+        $storeCODEnabledRaw = $messages['store_delivery_same_day_cod_message_enabled'] ?? null;
+        $truckCODEnabledRaw = $messages['truck_delivery_same_day_cod_message_enabled'] ?? null;
+        $storeCODEnabled = filter_var($storeCODEnabledRaw, FILTER_VALIDATE_BOOLEAN);
+        $truckCODEnabled = filter_var($truckCODEnabledRaw, FILTER_VALIDATE_BOOLEAN);
+        // If both disabled, no need to proceed
+        if (!$storeCODEnabled && !$truckCODEnabled) {
+            \Log::channel('jobs')->info('No same-day rental delivery COD messages enabled.');
+            return;
+        }
+
+        if (($storeCODEnabled || $truckCODEnabled) && $storeCODMessage === '' && $truckCODMessage === '') {
+            \Log::channel('jobs')->info('No same-day rental delivery COD messages configured.');
+            return;
+        }
+
+        $sentSameDayCODCount = 0;
+
+        foreach ($records as $record) {
+            // Safely get phone number
+            $phoneNumber = data_get($record, 'order.shippingAddress.phone');
+
+            if (!$phoneNumber) {
+                \Log::channel('jobs')->warning('No phone number for order product in same-day rental delivery reminder.', [
+                    'order_product_id' => $record->id,
+                ]);
+                continue;
+            }
+
+            // Decide which template to use
+            if ($record->delivery_transport_mode === 'Store') {
+                if (!$storeCODEnabled || $storeCODMessage === '') {
+                    continue; // Skip if store message is not enabled or empty
+                }
+                $message = $storeCODMessage;
+            } else {
+                if (!$truckCODEnabled || $truckCODMessage === '') {
+                    continue; // Skip if truck message is not enabled or empty
+                }
+                $message = $truckCODMessage;
+            }
+
+            $response = $twilio->sendSms($phoneNumber, $message);
+
+            if (($response['success'] ?? false) === true) {
+                $sentSameDayCODCount++;
+            } else {
+                \Log::channel('jobs')->warning('Failed to send same-day rental delivery SMS.', [
+                    'order_product_id' => $record->id,
+                    'phone'            => $phoneNumber,
+                    'error'            => $response['error'] ?? null,
+                ]);
+            }
+        }
+
         \Log::channel('jobs')->info("Finished sending {$sentCount} same-day rental delivery reminder message(s) out of {$count} records.");
+        \Log::channel('jobs')->info("Finished sending {$sentSameDayCODCount} same-day rental delivery COD message(s) out of {$count} records.");
         \Log::channel('jobs')->info(now()->format('Y-m-d H:i:s') . ' Delivery same-day rental reminder end.');
     }
 }

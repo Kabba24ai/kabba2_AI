@@ -14,7 +14,7 @@ use App\Models\Customers\Receipt;
 
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Facades\Log;
-use App\Events\Front\Checkout\OrderPlacedEvent;
+use App\Events\Admin\Invoices\InvoicePaidEvent;
 
 use App\Http\Requests\Admin\Crm\Customers\Invoice\UpdateRequest;
 
@@ -191,12 +191,15 @@ class UpdateController extends Controller
                         'status' => $payment->status,
                     ]);
 
-                    $orderActionType = 'invoice_payment_from_admin';
+                    // $orderActionType = 'invoice_payment_from_admin';
                     $employee = auth()->user();
 
                     // Fire OrderPlaced event
                     //event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+  
 
+                    event(new InvoicePaidEvent($order, $customer, $payment, $employee));
+ 
 
                     // Create receipt
 

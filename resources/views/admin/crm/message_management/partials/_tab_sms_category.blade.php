@@ -2,7 +2,7 @@
      class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
 
     <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5
                     border border-gray-200 overflow-hidden flex flex-col max-h-full">
 
             <!-- HEADER -->
@@ -47,7 +47,7 @@
                 <!-- FOOTER -->
                 <div class="px-6 py-4 flex items-center justify-between gap-3 border-t border-gray-200">
                     <button type="submit" id="createSmsCatBtn"
-                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium
                         px-6 py-3 rounded-lg text-md transition">
                         Create
                     </button>
@@ -70,7 +70,7 @@
 
 
 
-            
+
 @push('js')
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -92,6 +92,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                   const categories = result.data;
 
+
+  // Populate filter dropdown
+        // refreshSmsCategoryDropdown("sms_bro_filter_category", categories, "All Categories");
+
+        // Populate create/edit form dropdown
+        refreshSmsCategoryDropdown("sms_cat_id",categories, "Select Category");
 
 
                 const wrapper = document.getElementById("sms-cat-cardsWrapper");
@@ -125,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                 <div class="flex items-center gap-4 text-gray-600 text-sm">
 
-                                    <button type="button" 
+                                    <button type="button"
                                             class="edit-smscat-btn text-green-600 hover:text-green-800"
                                             data-id="${cat.unique_id}">
                                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -146,11 +152,29 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                     `;
                 });
+
             })
             .catch(err => console.error("Category refresh failed:", err));
     }
 
     refreshSmsCategoryCards();
+
+function refreshSmsCategoryDropdown(selectId, categories, defaultOptionText = "Select Category") {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    // Clear existing options
+    select.innerHTML = `<option value="">${defaultOptionText}</option>`;
+
+    // Populate new options
+    categories.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        select.appendChild(opt);
+    });
+}
+
 
 
     /*
@@ -190,6 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 $(form).parsley().reset();
 
                 refreshSmsCategoryCards();
+
             }
         })
         .catch(() => notyf.error("Server error. Try again."))
@@ -198,7 +223,6 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.textContent = "Create";
         });
     });
-
 
     /*
     |--------------------------------------------------------------------------

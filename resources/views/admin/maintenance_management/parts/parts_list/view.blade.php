@@ -77,7 +77,7 @@
 
 
         @foreach($list->product_details as $equipment)
-            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+            <div onclick="window.location='{{ route('admin.maintenance-management.equipment.edit', $equipment['unique_id']) }}';" class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
                 <p class="font-medium text-gray-900 text-sm">{{ $equipment['name'] }}</p>
                 <p class="text-xs text-gray-600 font-mono mt-1">{{ $equipment['equipment_id'] }}</p>
                 <p class="text-xs text-gray-500 mt-1">{{ optional($list->category)->title ?? '—' }}</p>
@@ -110,7 +110,7 @@
                 <!-- Part Card -->
                 <div class="space-y-4">
                    @foreach($list->parts as $part)
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all bg-white">
+                    <div onclick="window.location='{{ route('admin.maintenance-management.parts.view', $part->unique_id) }}';" class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all bg-white">
                         <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
                             <h3 class="font-semibold text-gray-900">{{ $part->part_name }}</h3>
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium

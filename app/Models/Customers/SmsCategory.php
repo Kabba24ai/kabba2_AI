@@ -25,4 +25,9 @@ class SmsCategory extends Model
             $model->unique_id = ModelHelper::generateUniqueID($model, 'SMS-CAT');
         });
     }
+
+     public function broadcasts()
+    {
+        return $this->hasMany(SmsBroadcast::class, 'sms_cat_id');
+    }
 }

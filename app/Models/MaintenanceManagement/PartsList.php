@@ -71,11 +71,12 @@ class PartsList extends Model
             }
 
             return \App\Models\MaintenanceManagement\Equipment::whereIn('id', $productIds)
-                ->get(['id', 'equipment_name', 'equipment_id'])
+                ->get(['id', 'equipment_name', 'equipment_id','unique_id'])
                 ->map(function ($product) {
                     return [
                         'name' => $product->equipment_name,
                         'equipment_id' => $product->equipment_id,
+                        'unique_id'=>$product->unique_id,
                     ];
                 })
                 ->toArray();

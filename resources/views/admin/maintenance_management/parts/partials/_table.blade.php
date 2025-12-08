@@ -71,31 +71,21 @@
                 </span>
             </td>
 
-              <td class="py-4 px-6 whitespace-nowrap">
-                <span class="text-sm text-gray-900">
-@if($part->partsLists->isNotEmpty())
-    <a href="javascript:void(0)"
-       class="text-blue-600 hover:underline font-medium"
-      data-lists='@json(
-    $part->partsLists->map(fn($list) => [
-        "list_name" => $list->name,
-        "products"  => $list->parts->pluck("part_name")->values()
-    ])
-)'
+             <td class="py-4 px-6 whitespace-nowrap">
+    <span class="text-sm text-gray-900">
+        @if($part->partsLists->isNotEmpty())
+            @foreach($part->partsLists as $list)
+                <a href="{{ route('admin.maintenance-management.parts.parts-list.view', $list->unique_id) }}"
+                   class="text-blue-600 hover:underline font-medium">
+                    {{ $list->name }}
+                </a>@if(!$loop->last), @endif
+            @endforeach
+        @else
+            -
+        @endif
+    </span>
+</td>
 
-       onclick="openPartListModal(this)">
-        {{ $part->partsLists->pluck('name')->join(', ') }}
-    </a>
-@else
-    -
-@endif
-
-
-
-
-                    <!-- Part List -->
-                </span>
-            </td>
 
 
             <td class="py-4 px-6 whitespace-nowrap">

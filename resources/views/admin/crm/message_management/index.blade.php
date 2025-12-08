@@ -7,8 +7,6 @@
 
 @section('content')
 
-@include('flash::message')
-
 <!-- MAIN CONTAINER -->
 <div class="max-w-7xl mx-auto ">
 
@@ -35,7 +33,7 @@
         <!-- Messages Main Tab -->
 <button onclick="showTab('messages', this)" id="tab-messages"
     class="tab-button inline-flex items-center gap-2 text-blue-600 font-medium text-sm px-3 pb-2 border-b-2 border-blue-600 transition">
-    
+
     <x-heroicon-o-chat-bubble-left-right class="w-5 h-5" />
     <span>Messages</span>
 </button>
@@ -43,7 +41,7 @@
 <!-- Categories Main Tab -->
 <button onclick="showTab('categories', this)" id="tab-categories"
     class="tab-button inline-flex items-center gap-2 text-gray-600 font-medium text-sm px-3 pb-2   hover:text-blue-600 transition">
-    
+
     <x-heroicon-o-rectangle-stack class="w-5 h-5" />
     <span>Categories</span>
 </button>
@@ -59,7 +57,7 @@
     <!--    MESSAGES SECTION          -->
     <!-- ============================ -->
     <div id="messages" class="tab-content" data-tab-group="main">
-       
+
         <!-- Inner Tabs + Action Buttons -->
         <div class="w-full bg-white border rounded-xl shadow-sm mb-6 ">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 border-b p-4" data-tab-group="inner-msg">
@@ -92,7 +90,7 @@
                 </div>
 
                 <!-- Right: Action Buttons -->
-           
+
                 <div class="flex items-center gap-3">
 
                     <!-- ====================== -->
@@ -104,14 +102,14 @@
                         <a href="javascript:void(0)" onclick="openModal('send-new-sms-broadcast')"
                         class="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600
                                 text-white font-medium px-6 py-3 text-md rounded-lg transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
-                                fill="none" stroke="currentColor" stroke-width="2" 
-                                stroke-linecap="round" stroke-linejoin="round" 
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"
                                 class="w-4 h-4">
                                 <path d="M22 2L11 13" />
                                 <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                            </svg> 
-                            Send New SMS Broadcast 
+                            </svg>
+                            Send New SMS Broadcast
                         </a>
 
                         <!-- Create Messenger (Green) -->
@@ -137,13 +135,13 @@
                         <a href="javascript:void(0)" onclick="openModal('send-new-sms-funnel')"
                         class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600
                                 text-white font-medium px-6 py-3 text-md rounded-lg transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
-                                fill="none" stroke="currentColor" stroke-width="2" 
-                                stroke-linecap="round" stroke-linejoin="round" 
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"
                                 class="w-4 h-4">
                                 <path d="M22 2L11 13" />
                                 <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                            </svg> 
+                            </svg>
                             Send New SMS Broadcast
                         </a>
 
@@ -170,13 +168,13 @@
                       <a href="javascript:void(0)"
                         class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600
                                 text-white font-medium px-6 py-3 text-md rounded-lg transition">
-                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
-                                fill="none" stroke="currentColor" stroke-width="2" 
-                                stroke-linecap="round" stroke-linejoin="round" 
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"
                                 class="w-4 h-4">
                                 <path d="M22 2L11 13" />
                                 <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                            </svg> 
+                            </svg>
                             Send New SMS Broadcast
                         </a>
 
@@ -203,13 +201,13 @@
                      <a href="javascript:void(0)"
                         class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-600
                                 text-white font-medium px-6 py-3 text-md rounded-lg transition">
-                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
-                                fill="none" stroke="currentColor" stroke-width="2" 
-                                stroke-linecap="round" stroke-linejoin="round" 
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"
                                 class="w-4 h-4">
                                 <path d="M22 2L11 13" />
                                 <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                            </svg> 
+                            </svg>
                             Send New SMS Broadcast
                         </a>
 
@@ -234,11 +232,11 @@
             </div>
         </div>
 
-        
+
 
         <!-- INNER CONTENT SECTIONS -->
         <div id="smsbroadcast" class="tab-content" data-tab-group="inner-msg">
-          
+
     @include('admin.crm.message_management.partials._tab_sms_broadcast')
 
 
@@ -553,5 +551,22 @@ function closeCategoryForm() {
   });
 
 </script>
+
+<script>
+// Global character counter for any .char-count-input
+document.addEventListener('input', function (e) {
+    if (!e.target.classList.contains('char-count-input')) return;
+
+    const textarea = e.target;
+    const counterId = textarea.getAttribute('data-counter');
+    const counterEl = document.getElementById(counterId);
+
+    if (!counterEl) return;
+
+    counterEl.textContent = textarea.value.length;
+});
+</script>
+
+
 
 @endpush

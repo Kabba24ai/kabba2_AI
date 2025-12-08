@@ -17,14 +17,15 @@ class CreateController extends Controller
 
         $checklisttemplate = RentalReadyChecklistTemplate::with([
             'questions',
-        ])->orderBy('id', 'desc')->where('active_template',1)->get();
+        ])->orderBy('template_name', 'asc')->where('active_template',1)->get();
 
 
         $customeradmintemplate = CustomerAdminTemplate::with([
             'questions',
-        ])->orderBy('id', 'desc')->where('active_template', 1)->get();
+        ])->orderBy('template_name', 'asc')->where('active_template', 1)->get();
 
 
+        // dd($checklisttemplate);
 
 
         // Return the view with the settings data

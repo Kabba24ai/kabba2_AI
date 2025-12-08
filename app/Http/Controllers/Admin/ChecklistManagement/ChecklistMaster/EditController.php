@@ -20,14 +20,14 @@ class EditController extends Controller
 
         $checklisttemplate = RentalReadyChecklistTemplate::with([
             'questions',
-        ])->orderBy('id', 'desc')->where('active_template', 1)->get();
+        ])->orderBy('template_name', 'asc')->where('active_template', 1)->get();
 
         $checklistmaster = ChecklistMaster::with('category', 'rentalReadyTemplate')->where('unique_id', $unique_id)->first();
 
 
         $customeradmintemplate = CustomerAdminTemplate::with([
             'questions',
-        ])->orderBy('id', 'desc')->where('active_template', 1)->get();
+        ])->orderBy('template_name', 'asc')->where('active_template', 1)->get();
 
 
         return view('admin.checklist_management.checklist_master.edit', compact('equipmentCategories', 'checklisttemplate', 'checklistmaster', 'customeradmintemplate'));

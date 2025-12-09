@@ -23,6 +23,7 @@ Route::prefix('message-management')
     
         Route::get('/', IndexController::class)->name('index');
 
+        require base_path('routes/admin/crm/message_management/sms_broadcast/routes.php');
 
         require base_path('routes/admin/crm/message_management/email_category/routes.php');
         require base_path('routes/admin/crm/message_management/sms_category/routes.php');

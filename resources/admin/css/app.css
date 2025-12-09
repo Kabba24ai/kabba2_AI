@@ -951,4 +951,9 @@ svg.checkmark {
         min-height: 500px !important;
     }
 
-
+.h-500 {
+    height: 500px;
+}
+.h-600 {
+    height: 600px;
+}

@@ -14,7 +14,7 @@ use App\Models\Customers\Receipt;
 
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Facades\Log;
-use App\Events\Front\Checkout\OrderPlacedEvent;
+use App\Events\Admin\Invoices\InvoicePaidEvent;
 
 use App\Http\Requests\Admin\Crm\Customers\Invoice\UpdateRequest;
 
@@ -191,21 +191,24 @@ class UpdateController extends Controller
                         'status' => $payment->status,
                     ]);
 
-                    $orderActionType = 'invoice_payment_from_admin';
+                    // $orderActionType = 'invoice_payment_from_admin';
                     $employee = auth()->user();
 
                     // Fire OrderPlaced event
-                    event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+                    //event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+  
 
+                    event(new InvoicePaidEvent($order, $customer, $payment, $employee));
+ 
 
                     // Create receipt
 
                     if (
                         $order->invoice &&
-                        $order->invoice->invoice_status === 'paid' &&    
-                        $order->receipt_status === 'pending' 
+                        $order->invoice->invoice_status === 'paid' &&
+                        $order->receipt_status === 'pending'
                     ) {
-                       
+
                         $receipt = Receipt::create([
                             'invoice_id'         => $order->invoice->id,
                             'customer_id'        => $order->customer->id,
@@ -241,7 +244,7 @@ class UpdateController extends Controller
                             'order_id'   => $order->id,
                             'order_num'  => $order->order_number,
                             'receipt_id' => $receipt->id,
-                        ]); 
+                        ]);
                     }
                 }
             });

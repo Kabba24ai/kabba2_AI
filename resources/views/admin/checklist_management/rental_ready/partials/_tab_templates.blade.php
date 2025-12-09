@@ -200,14 +200,14 @@
 
      <input type="hidden" name="questions" id="questionsInput">
 
-        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-6xl space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-6xl space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
 
             <div class="flex justify-between items-center px-6 pt-4">
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white">New Template</h3>
                 <button type="button" id="closeModalBtn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 overflow-y-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 overflow-y-auto flex-1"> 
                 <!-- Template Info -->
                 <div class="space-y-4 pr-0 md:pr-6 md:border-r">
                     <div>
@@ -264,14 +264,14 @@
                       @endforeach
                     </select>
 
-                    <div id="available" class="bg-white space-y-2 h-[350px] overflow-y-auto bg-gray-50 rounded-md"></div>
+                    <div id="available" class="bg-white space-y-2 h-500 overflow-y-auto bg-gray-50 rounded-md"></div>
                 </div>
 
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">
                         Template Questions (<span id="templateCount">0</span>)
                     </h3>
-                    <div id="template" class="space-y-2 h-[350px] overflow-y-auto bg-white border-2 border-dashed border-gray-300 p-3 rounded-md"></div>
+                    <div id="template" class="space-y-2 h-600 overflow-y-auto bg-white border-2 border-dashed border-gray-300 p-3 rounded-md"></div>
                 </div>
 
 

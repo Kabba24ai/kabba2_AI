@@ -13,6 +13,7 @@ use App\Models\Customers\Invoice;
 use App\Helpers\ConfigurationHelper;
 use App\Services\AuthorizeNetService; //  Make sure you import this service
 use App\Events\Front\Checkout\OrderPlacedEvent;
+use App\Events\Admin\Invoices\InvoicePaidEvent;
 
 class PaymentStoreController extends Controller
 {
@@ -35,7 +36,7 @@ class PaymentStoreController extends Controller
             'invoice_id' => 'required',
         ]);
 
-        Log::debug('PaymentStoreRequest validated data:', $validated);
+    
 
         //  Normalize the amount (remove $ and commas)
         $amount = preg_replace('/[^\d.]/', '', $validated['amount']);
@@ -201,11 +202,16 @@ class PaymentStoreController extends Controller
 
 
 
-                    $orderActionType = 'invoice_card_payment';
+                    // $orderActionType = 'invoice_card_payment';
                     $employee = null;
 
                     // Fire OrderPlaced event
-                    event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+                    //event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+
+                    event(new InvoicePaidEvent($order, $customer, $payment, $employee));
+
+
+
                 }
             });
 

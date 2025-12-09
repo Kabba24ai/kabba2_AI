@@ -351,7 +351,7 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-3">
               Template Questions (<span id="templateCount">0</span>)
             </h3>
-            <div id="template" class="space-y-2 min-h-[300px] bg-white border-2 border-dashed border-gray-300 p-3 rounded-md"></div>
+            <div id="template" class="space-y-2 h-450 bg-white border-2 border-dashed border-gray-300 p-3 rounded-md"></div>
           </div>
         </div>
 

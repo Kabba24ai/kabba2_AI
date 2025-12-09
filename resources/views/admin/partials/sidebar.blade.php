@@ -332,6 +332,7 @@
 
                     $maintenanceActive = Route::is([
                     'admin.maintenance-management.equipment.*',
+                    'admin.maintenance-management.equipment-service.*',
                     'admin.maintenance-management.service-master.*',
                     'admin.maintenance-management.parts.*',
                     'admin.maintenance-management.suppliers.*',
@@ -384,11 +385,21 @@
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.equipment.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.maintenance-management.equipment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        {{ Route::is('admin.maintenance-management.equipment.*') && !Route::is('admin.maintenance-management.equipment-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment Mgt.
                                     </a>
                                 </li>
+                                
+                                <!-- <li>
+                                    <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.equipment-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+
+                                        <x-heroicon-o-wrench class="h-5 w-5" /> Equipment Service
+                                    </a>
+                                </li> -->
+                                
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.service-master.index') }}"
                                         class="menu-dropdown-item group

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\FetchController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\FetchWithCatController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignChecklistMasterController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignStoreController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\ServiceController;
 
 
 
@@ -29,6 +30,9 @@ Route::prefix('equipment')
         // Edit
         Route::get('/{unique_id}/edit', EditController::class)->name('edit');
         Route::put('/{unique_id}/edit', UpdateController::class);
+
+        // Service
+        Route::get('/service/{unique_id}', ServiceController::class)->name('service');
 
         // Delete
         Route::delete('/{unique_id}', DeleteController::class)->name('delete');

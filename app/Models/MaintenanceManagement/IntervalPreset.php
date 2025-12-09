@@ -13,7 +13,8 @@ class IntervalPreset extends Model
     protected $fillable = [
         'name',
         'description',
-        'intervals'
+        'intervals',
+        'interval_type'
     ];
 
     protected $casts = [

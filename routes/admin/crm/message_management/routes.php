@@ -20,10 +20,12 @@ use App\Http\Controllers\Admin\Crm\MessageManagement\IndexController;
 Route::prefix('message-management')
 ->name('message-management.')
 ->group(function ($router) {
-    
+
         Route::get('/', IndexController::class)->name('index');
 
         require base_path('routes/admin/crm/message_management/sms_broadcast/routes.php');
+        require base_path('routes/admin/crm/message_management/sms_funnel/routes.php');
+
 
         require base_path('routes/admin/crm/message_management/email_category/routes.php');
         require base_path('routes/admin/crm/message_management/sms_category/routes.php');

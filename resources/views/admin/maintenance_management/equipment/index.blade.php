@@ -121,6 +121,10 @@
         let searchInput = document.querySelector('input[name="search"]');
         let categorySelect = document.querySelector('select[name="category"]');
         let checklistMasterSelect = document.querySelector('select[name="checklist_master"]');
+
+        let equipmentIdSelect = document.querySelector('select[name="equipment_id"]');
+
+
         let locationStore = document.querySelector('select[name="location_store"]');
         // let serviceDue = document.querySelector('select[name="serviceDue"]');
         // let rentalReady = document.querySelector('select[name="rentalReady"]');
@@ -141,6 +145,8 @@
             'category': categorySelect,
             'checklist_master': checklistMasterSelect,
             'location_store': locationStore,
+            'equipment_id': equipmentIdSelect,
+
         };
 
         // Load saved filters
@@ -154,6 +160,8 @@
             const category = categorySelect.value;
             const checklistMasterValue = checklistMasterSelect.value;
             const locationStoreValue = locationStore.value;
+            const equipmentId = equipmentIdSelect.value;
+
 
             // const serviceDueValue = serviceDue.value;
             // const rentalReadyValue = rentalReady.value;
@@ -163,6 +171,7 @@
             if (search.length >= 3 || search.length === 0) params.append('search', search);
             if (category) params.append('category', category);
             if (checklistMasterValue) params.append('checklist_master', checklistMasterValue);
+if (equipmentId) params.append('equipment_id', equipmentId);
 
             if (locationStoreValue) params.append('location_store', locationStoreValue);
 
@@ -206,6 +215,7 @@
         categorySelect.addEventListener('change', fetchEquipments);
         checklistMasterSelect.addEventListener('change', fetchEquipments);
         locationStore.addEventListener('change', fetchEquipments);
+equipmentIdSelect.addEventListener('change', fetchEquipments);
 
         //status.addEventListener('change', fetchEquipments);
         // serviceDue.addEventListener('change', fetchEquipments);

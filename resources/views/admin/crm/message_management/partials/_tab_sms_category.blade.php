@@ -98,6 +98,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Populate create/edit form dropdown
         refreshSmsCategoryDropdown("sms_cat_id",categories, "Select Category");
+        refreshSmsCategoryDropdown("sms_funnel_cat_id",categories, "Select Category");
+
 
 
                 const wrapper = document.getElementById("sms-cat-cardsWrapper");

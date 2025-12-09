@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\MessageManagement\SmsBroadcast;
+namespace App\Http\Controllers\Admin\Crm\MessageManagement\SmsFunnel;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customers\SmsFunnel;
 use Illuminate\Http\Request;
-use App\Models\Customers\SmsBroadcast;
 
 class IndexController extends Controller
 {
@@ -15,18 +15,18 @@ class IndexController extends Controller
             return view('admin.crm.message_management.sms_broadcast.index');
         }
 
-        $query = SmsBroadcast::with('category')
-         ->whereNotIn('status', ['created'])
+        $query = SmsFunnel::with('category')
+          ->whereNotIn('status', ['created'])
             ->orderBy('name', 'ASC');
 
         // Filter: Category
-        if ($request->filled('sms_bro_filter_category') && $request->sms_bro_filter_category !== 'All Categories') {
-            $query->where('sms_cat_id', $request->sms_bro_filter_category);
+        if ($request->filled('sms_funnel_filter_category') && $request->sms_funnel_filter_category !== 'All Categories') {
+            $query->where('sms_cat_id', $request->sms_funnel_filter_category);
         }
 
         // Filter: Name search
-        if ($request->filled('sms_bro_Search_name')) {
-            $query->where('name', 'LIKE', "%{$request->sms_bro_Search_name}%");
+        if ($request->filled('sms_funnel_Search_name')) {
+            $query->where('name', 'LIKE', "%{$request->sms_funnel_Search_name}%");
         }
 
         // Pagination like Customers
@@ -35,16 +35,16 @@ class IndexController extends Controller
             ? max(1, $query->count())
             : (int) $perPage;
 
-        $broadcasts = $query->paginate($perPageVal)->withQueryString();
+        $smsfunnels = $query->paginate($perPageVal)->withQueryString();
 
         // Return table view fragment for AJAX
-        $html = view('admin.crm.message_management.partials._sms_broadcast_table', [
-            'broadcasts' => $broadcasts
+        $html = view('admin.crm.message_management.partials._sms_funnel_table', [
+            'smsfunnels' => $smsfunnels
         ])->render();
 
         return response()->json([
             'html' => $html,
-            'total' => $broadcasts->total(),
+            'total' => $smsfunnels->total(),
         ]);
     }
 }

@@ -16,6 +16,7 @@ class StoreRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'interval_type' => 'required|in:hour,date',
             'intervals' => 'required|array|min:1',
             'intervals.*' => 'required|integer|min:1',
         ];

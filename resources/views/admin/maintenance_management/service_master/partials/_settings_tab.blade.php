@@ -18,13 +18,13 @@
                     <h4 class="font-semibold text-blue-900 mb-2">How Service Status Works</h4>
                     <ul class="space-y-2 text-sm text-blue-800">
                         <li>
-                            <span class="font-semibold">Not Due (Grey):</span> Service is not yet due (equipment hours are more than "Before" threshold away from service interval)
+                            <span class="font-semibold">Not Due (Grey):</span> Service is not yet due (equipment hours/days are more than "Before" threshold away from service interval)
                         </li>
                         <li>
-                            <span class="font-semibold">Pending (Yellow):</span> Service is due soon or slightly overdue (equipment hours are within the "Before" threshold or up to the "After" threshold past the service interval)
+                            <span class="font-semibold">Pending (Yellow):</span> Service is due soon or slightly overdue (equipment hours/days are within the "Before" threshold or up to the "After" threshold past the service interval)
                         </li>
                         <li>
-                            <span class="font-semibold">Overdue (Red):</span> Service is significantly overdue (equipment hours exceed service interval by more than the "After" threshold)
+                            <span class="font-semibold">Overdue (Red):</span> Service is significantly overdue (equipment hours/days exceed service interval by more than the "After" threshold)
                         </li>
                         <li>
                             <span class="font-semibold">Completed (Green):</span> Service has been completed and recorded
@@ -38,7 +38,7 @@
             <div class="grid grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Pending Before (Yellow) - Hours
+                        Pending Before (Yellow) - <span class="text-blue-600">Hours</span>
                     </label>
                     <input
                         type="number"
@@ -57,7 +57,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Pending After (Yellow) - Hours
+                        Pending After (Yellow) - <span class="text-blue-600">Hours</span>
                     </label>
                     <input
                         type="number"
@@ -70,6 +70,46 @@
                     <div class="mt-3 p-3 bg-gray-50 rounded-lg">
                         <p class="text-sm text-gray-700">
                             <span class="font-semibold">Example:</span> If set to <span x-text="settingsForm.pending_after_hours"></span> hours, equipment at <span x-text="250 + parseInt(settingsForm.pending_after_hours)"></span> hours will show yellow for a 250-hour service (<span x-text="settingsForm.pending_after_hours"></span> hours overdue), but <span x-text="250 + parseInt(settingsForm.pending_after_hours) + 1"></span> hours will show red.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Pending Before (Yellow) - <span class="text-green-600">Days</span>
+                    </label>
+                    <input
+                        type="number"
+                        x-model="settingsForm.pending_before_dates"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p class="text-sm text-gray-500 mt-2">
+                        Days before service is due to show yellow status
+                    </p>
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <p class="text-sm text-gray-700">
+                            <span class="font-semibold">Example:</span> If set to <span x-text="settingsForm.pending_before_dates"></span> days, equipment at <span x-text="360 - parseInt(settingsForm.pending_before_dates)"></span> days will show yellow for a 360-day service (<span x-text="settingsForm.pending_before_dates"></span> days before due).
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Pending After (Yellow) - <span class="text-green-600">Days</span>
+                    </label>
+                    <input
+                        type="number"
+                        x-model="settingsForm.pending_after_dates"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p class="text-sm text-gray-500 mt-2">
+                        Days after service is due to continue showing yellow before turning red
+                    </p>
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <p class="text-sm text-gray-700">
+                            <span class="font-semibold">Example:</span> If set to <span x-text="settingsForm.pending_after_dates"></span> days, equipment at <span x-text="360 + parseInt(settingsForm.pending_after_dates)"></span> days will show yellow for a 360-day service (<span x-text="settingsForm.pending_after_dates"></span> days overdue), but <span x-text="360 + parseInt(settingsForm.pending_after_dates) + 1"></span> days will show red.
                         </p>
                     </div>
                 </div>
@@ -256,7 +296,8 @@
     <div class="bg-white rounded-lg p-6">
         <h3 class="text-xl font-semibold text-gray-900 mb-4">Status Example Based on Current Settings</h3>
 
-        <div class="space-y-4">
+        <h4 class="text-lg font-semibold text-blue-900 mb-3">Hour-Based Services</h4>
+        <div class="space-y-4 mb-8">
             <div class="flex items-center gap-4">
                 <div class="w-24 h-12 bg-gray-500 rounded-lg flex items-center justify-center text-white font-semibold">
                     Grey
@@ -289,6 +330,57 @@
                     <div class="font-semibold text-gray-900">Service Overdue</div>
                     <div class="text-sm text-gray-600">
                         For a 250h service: Equipment has &gt; <span x-text="250 + parseInt(settingsForm.pending_after_hours)"></span> hours (more than <span x-text="settingsForm.pending_after_hours"></span> hours overdue)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="w-24 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white font-semibold">
+                    Green
+                </div>
+                <div>
+                    <div class="font-semibold text-gray-900">Service Completed</div>
+                    <div class="text-sm text-gray-600">
+                        Service has been completed and recorded in the system
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="text-lg font-semibold text-green-900 mb-3">Day-Based Services</h4>
+        <div class="space-y-4">
+            <div class="flex items-center gap-4">
+                <div class="w-24 h-12 bg-gray-500 rounded-lg flex items-center justify-center text-white font-semibold">
+                    Grey
+                </div>
+                <div>
+                    <div class="font-semibold text-gray-900">Service Not Due</div>
+                    <div class="text-sm text-gray-600">
+                        For a 360d service: Equipment has &lt; <span x-text="360 - parseInt(settingsForm.pending_before_dates)"></span> days (more than <span x-text="settingsForm.pending_before_dates"></span> days away)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="w-24 h-12 bg-yellow-500 rounded-lg flex items-center justify-center text-white font-semibold">
+                    Yellow
+                </div>
+                <div>
+                    <div class="font-semibold text-gray-900">Service Pending</div>
+                    <div class="text-sm text-gray-600">
+                        For a 360d service: Equipment has <span x-text="360 - parseInt(settingsForm.pending_before_dates)"></span> - <span x-text="360 + parseInt(settingsForm.pending_after_dates)"></span> days (within <span x-text="settingsForm.pending_before_dates"></span>d before to <span x-text="settingsForm.pending_after_dates"></span>d after)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="w-24 h-12 bg-red-500 rounded-lg flex items-center justify-center text-white font-semibold">
+                    Red
+                </div>
+                <div>
+                    <div class="font-semibold text-gray-900">Service Overdue</div>
+                    <div class="text-sm text-gray-600">
+                        For a 360d service: Equipment has &gt; <span x-text="360 + parseInt(settingsForm.pending_after_dates)"></span> days (more than <span x-text="settingsForm.pending_after_dates"></span> days overdue)
                     </div>
                 </div>
             </div>

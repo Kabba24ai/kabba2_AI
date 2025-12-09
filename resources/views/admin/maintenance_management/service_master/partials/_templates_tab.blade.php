@@ -78,59 +78,138 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <template x-for="preset in presets" :key="preset.id">
-                    <div class="relative">
-                        <div class="absolute -top-2 -right-2 z-10 flex gap-1">
+            {{-- Hour-Based Presets --}}
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h4 class="font-semibold text-gray-900">Horly Service Intervals</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-4" x-show="presets.filter(p => p.interval_type === 'hour').length > 0">
+                    <template x-for="preset in presets.filter(p => p.interval_type === 'hour')" :key="preset.id">
+                        <div class="relative">
+                            <div class="absolute -top-2 -right-2 z-10 flex gap-1">
+                                <button
+                                    type="button"
+                                    @click.stop="editPreset(preset)"
+                                    class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg"
+                                    title="Edit"
+                                >
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click.stop="clonePreset(preset)"
+                                    class="p-2 bg-green-600 text-white rounded-full hover:bg-green-700 shadow-lg"
+                                    title="Clone"
+                                >
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click.stop="deletePreset(preset.id)"
+                                    class="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+                                    title="Delete"
+                                >
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
                             <button
                                 type="button"
-                                @click.stop="editPreset(preset)"
-                                class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg"
-                                title="Edit"
+                                @click="templateForm.preset_id = preset.id"
+                                :class="templateForm.preset_id === preset.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'"
+                                class="w-full p-4 border-2 rounded-lg text-left transition-colors"
                             >
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                            </button>
-                            <button
-                                type="button"
-                                @click.stop="clonePreset(preset)"
-                                class="p-2 bg-green-600 text-white rounded-full hover:bg-green-700 shadow-lg"
-                                title="Clone"
-                            >
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                            </button>
-                            <button
-                                type="button"
-                                @click.stop="deletePreset(preset.id)"
-                                class="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
-                                title="Delete"
-                            >
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                <div class="font-semibold text-gray-900 mb-1" x-text="preset.name"></div>
+                                <div x-show="preset.description" class="text-sm text-gray-500 mb-3" x-text="preset.description"></div>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="interval in preset.intervals" :key="interval">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                                            <span x-text="interval"></span>h
+                                        </span>
+                                    </template>
+                                </div>
                             </button>
                         </div>
-                        <button
-                            type="button"
-                            @click="templateForm.preset_id = preset.id"
-                            :class="templateForm.preset_id === preset.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'"
-                            class="w-full p-4 border-2 rounded-lg text-left transition-colors"
-                        >
-                            <div class="font-semibold text-gray-900 mb-1" x-text="preset.name"></div>
-                            <div x-show="preset.description" class="text-sm text-gray-500 mb-3" x-text="preset.description"></div>
-                            <div class="flex flex-wrap gap-2">
-                                <template x-for="interval in preset.intervals" :key="interval">
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                                        <span x-text="interval"></span>h
-                                    </span>
-                                </template>
+                    </template>
+                </div>
+                <div x-show="presets.filter(p => p.interval_type === 'hour').length === 0" class="text-center py-6 text-gray-500 text-sm">
+                    No hour-based templates available
+                </div>
+            </div>
+
+            {{-- Date-Based Presets --}}
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <h4 class="font-semibold text-gray-900">Daily Service Intervals</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-4" x-show="presets.filter(p => p.interval_type === 'date').length > 0">
+                    <template x-for="preset in presets.filter(p => p.interval_type === 'date')" :key="preset.id">
+                        <div class="relative">
+                            <div class="absolute -top-2 -right-2 z-10 flex gap-1">
+                                <button
+                                    type="button"
+                                    @click.stop="editPreset(preset)"
+                                    class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg"
+                                    title="Edit"
+                                >
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click.stop="clonePreset(preset)"
+                                    class="p-2 bg-green-600 text-white rounded-full hover:bg-green-700 shadow-lg"
+                                    title="Clone"
+                                >
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click.stop="deletePreset(preset.id)"
+                                    class="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+                                    title="Delete"
+                                >
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
                             </div>
-                        </button>
-                    </div>
-                </template>
+                            <button
+                                type="button"
+                                @click="templateForm.preset_id = preset.id"
+                                :class="templateForm.preset_id === preset.id ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'"
+                                class="w-full p-4 border-2 rounded-lg text-left transition-colors"
+                            >
+                                <div class="font-semibold text-gray-900 mb-1" x-text="preset.name"></div>
+                                <div x-show="preset.description" class="text-sm text-gray-500 mb-3" x-text="preset.description"></div>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="interval in preset.intervals" :key="interval">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                                            <span x-text="interval"></span>d
+                                        </span>
+                                    </template>
+                                </div>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="presets.filter(p => p.interval_type === 'date').length === 0" class="text-center py-6 text-gray-500 text-sm">
+                    No date-based templates available
+                </div>
             </div>
 
             <div class="flex gap-3">
@@ -190,12 +269,38 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Service Intervals (hours)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Interval Type</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    x-model="presetForm.interval_type"
+                                    value="hour"
+                                    class="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                />
+                                <span class="text-sm text-gray-700">Hour-Based</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    x-model="presetForm.interval_type"
+                                    value="date"
+                                    class="w-4 h-4 text-green-600 focus:ring-2 focus:ring-green-500"
+                                />
+                                <span class="text-sm text-gray-700">Date-Based</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Service Intervals (<span x-text="presetForm.interval_type === 'date' ? 'days' : 'hours'"></span>)
+                        </label>
                         <div class="flex gap-2">
                             <input
                                 type="text"
                                 x-model="intervalInput"
-                                placeholder="Enter hours (comma separated, e.g., 50, 100, 250)"
+                                :placeholder="presetForm.interval_type === 'date' ? 'Enter days (comma separated, e.g., 30, 60, 90)' : 'Enter hours (comma separated, e.g., 50, 100, 250)'"
                                 class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <button
@@ -208,12 +313,15 @@
                         </div>
                         <div x-show="presetForm.intervals.length > 0" class="flex flex-wrap gap-2 mt-3">
                             <template x-for="(interval, index) in presetForm.intervals" :key="index">
-                                <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                                    <span x-text="interval"></span>h
+                                <span 
+                                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm"
+                                    :class="presetForm.interval_type === 'date' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'"
+                                >
+                                    <span x-text="interval"></span><span x-text="presetForm.interval_type === 'date' ? 'd' : 'h'"></span>
                                     <button
                                         type="button"
                                         @click="removeInterval(index)"
-                                        class="hover:text-blue-900"
+                                        :class="presetForm.interval_type === 'date' ? 'hover:text-green-900' : 'hover:text-blue-900'"
                                     >
                                         ×
                                     </button>
@@ -350,7 +458,7 @@
                             <th class="text-left px-4 py-3 text-sm font-medium text-gray-700">Task</th>
                             <template x-for="interval in getSelectedPresetIntervals()" :key="interval">
                                 <th class="text-center px-4 py-3 text-sm font-medium text-gray-700">
-                                    <span x-text="interval"></span>h
+                                    <span x-text="interval"></span><span x-text="presets.find(p => p.id == templateForm.preset_id)?.interval_type === 'date' ? 'd' : 'h'"></span>
                                 </th>
                             </template>
                         </tr>
@@ -568,7 +676,7 @@
                                     <template x-if="selectedTemplate?.preset">
                                         <template x-for="interval in selectedTemplate.preset.intervals" :key="interval">
                                             <th class="text-center px-4 py-3 text-sm font-medium text-gray-700">
-                                                <span x-text="interval"></span>h
+                                                <span x-text="interval"></span><span x-text="selectedTemplate.preset.interval_type === 'date' ? 'd' : 'h'"></span>
                                             </th>
                                         </template>
                                     </template>
@@ -618,15 +726,20 @@
                                 </p>
                                 <div x-show="!isEditingIntervals" class="flex flex-wrap gap-2 mb-3">
                                     <template x-for="interval in selectedTemplate.preset.intervals" :key="interval">
-                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                                            <span x-text="interval"></span>h
+                                        <span 
+                                            class="px-2 py-1 rounded text-xs"
+                                            :class="selectedTemplate.preset.interval_type === 'date' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'"
+                                        >
+                                            <span x-text="interval"></span><span x-text="selectedTemplate.preset.interval_type === 'date' ? 'd' : 'h'"></span>
                                         </span>
                                     </template>
                                 </div>
                                 
                                 <div x-show="isEditingIntervals" class="space-y-3">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Service Intervals (hours)</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                                            Service Intervals (<span x-text="selectedTemplate.preset.interval_type === 'date' ? 'days' : 'hours'"></span>)
+                                        </label>
                                         <div class="flex gap-2">
                                             <input
                                                 type="text"
@@ -639,7 +752,7 @@
                                                         tempIntervalInput = '';
                                                     }
                                                 "
-                                                placeholder="Enter hours (comma separated, e.g., 50, 100, 250)"
+                                                :placeholder="selectedTemplate.preset.interval_type === 'date' ? 'Enter days (comma separated, e.g., 30, 60, 90)' : 'Enter hours (comma separated, e.g., 50, 100, 250)'"
                                                 class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                             />
                                             <button
@@ -659,12 +772,15 @@
                                         </div>
                                         <div x-show="tempIntervals.length > 0" class="flex flex-wrap gap-2 mt-3">
                                             <template x-for="(interval, index) in tempIntervals" :key="index">
-                                                <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                                                    <span x-text="interval"></span>h
+                                                <span 
+                                                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm"
+                                                    :class="selectedTemplate.preset.interval_type === 'date' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'"
+                                                >
+                                                    <span x-text="interval"></span><span x-text="selectedTemplate.preset.interval_type === 'date' ? 'd' : 'h'"></span>
                                                     <button
                                                         type="button"
                                                         @click="tempIntervals.splice(index, 1)"
-                                                        class="hover:text-blue-900"
+                                                        :class="selectedTemplate.preset.interval_type === 'date' ? 'hover:text-green-900' : 'hover:text-blue-900'"
                                                     >
                                                         ×
                                                     </button>
@@ -698,7 +814,8 @@
                                                         body: JSON.stringify({
                                                             name: selectedTemplate.preset.name,
                                                             description: selectedTemplate.preset.description,
-                                                            intervals: tempIntervals
+                                                            intervals: tempIntervals,
+                                                            interval_type: selectedTemplate.preset.interval_type
                                                         })
                                                     });
                                                     const data = await response.json();
@@ -732,7 +849,7 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
-                                Edit Interval Hours
+                                <span x-text="selectedTemplate.preset.interval_type === 'date' ? 'Edit Interval Days' : 'Edit Interval Hours'"></span>
                             </button>
                         </div>
                     </div>

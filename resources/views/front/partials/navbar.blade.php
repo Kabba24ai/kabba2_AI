@@ -248,7 +248,7 @@
 
         <!--  Off canvas Cart -->
         <div id="cartOffCanvas"
-            class="-translate-x-full offcanvas-cart-body absolute top-17 right-0 overflow-hidden md:top-17 max-w-0 lg:top-20 opacity-0 md:max-w-md w-0 h-screen bg-white/90  shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
+            class="-translate-x-full offcanvas-cart-body absolute top-17 right-0 overflow-hidden md:top-17 max-w-0 lg:top-20 opacity-0 md:max-w-md w-0 h-screen bg-white/100  shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
             <div class="relative w-full h-[calc(100vh-80px)]">
                 <div class="px-9 pt-15 pb-15 overflow-y-scroll h-full w-full">
                     <div id="cartData" data-fetch-cart-url="{{ route('front.cart.index') }}">

@@ -193,6 +193,7 @@
                             'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('model_year'),
                             'border-red-500' => $errors->has('model_year'),
+                            
                         ])->attributes([
                             'min' => 1900,
                             'max' => date('Y') + 1,
@@ -227,6 +228,20 @@
                     @enderror
                 </div>
             </div>
+            <div class="sm:col-span-2 flex items-center space-x-2 mt-4">
+                <input
+                    type="checkbox"
+                    name="not_for_rent"
+                    id="not_for_rent"
+                    value="1"
+                    class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    @checked(old('not_for_rent', $equipment->not_for_rent ?? false))
+                >
+                <label for="not_for_rent" class="text-sm font-medium text-gray-700">
+                    Not for Rent
+                </label>
+            </div>
+
         </div>
     </div>
 

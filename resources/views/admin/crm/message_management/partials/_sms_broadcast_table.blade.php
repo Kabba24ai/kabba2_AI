@@ -55,16 +55,17 @@
                                 <path d="M22 2L15 22L11 13L2 9L22 2Z" />
                             </svg>
                         </button>
-<!-- EDIT BUTTON -->
-<button type="button" class="edit-smsbrod-btn text-grey-600 flex items-center text-xs"
-        title="Edit Broadcast" data-id="{{ $broadcast->id }}">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round" class="lucide w-5 h-5">
-        <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-        <line x1="2" x2="22" y1="10" y2="10"></line>
-    </svg>
-</button>
+                        
+                        <!-- EDIT BUTTON -->
+                        <button type="button" class="edit-smsbrod-btn text-grey-600 flex items-center text-xs"
+                                title="Edit Broadcast" data-id="{{ $broadcast->id }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="lucide w-5 h-5">
+                                <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                                <line x1="2" x2="22" y1="10" y2="10"></line>
+                            </svg>
+                        </button>
 
                         <!-- COPY (Green Button) -->
                         <a href="{{ route('admin.crm.message-management.sms-broadcast.copy', $broadcast->id) }}" class="text-green-600 flex items-center text-xs" title="Copy Message" >

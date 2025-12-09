@@ -66,6 +66,9 @@ class Equipment extends Model
         'current_order_id',
         'current_order_product_id',
         'current_status_updated_by',
+
+        'not_for_rent',
+
         'created_by',
         'updated_by',
     ];

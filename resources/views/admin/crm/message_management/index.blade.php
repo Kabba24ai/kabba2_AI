@@ -568,5 +568,19 @@ document.addEventListener('input', function (e) {
 </script>
 
 
+@if(session('active_sub_tab'))
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabId = "{{ session('active_sub_tab') }}"; // e.g. "smsfunnel"
+
+    const targetBtn = document.querySelector(`[onclick="showTab('${tabId}', this)"]`);
+
+    if (targetBtn) {
+        targetBtn.click(); // Activate the correct tab
+    }
+});
+</script>
+@endif
+
 
 @endpush

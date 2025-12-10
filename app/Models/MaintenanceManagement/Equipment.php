@@ -68,6 +68,8 @@ class Equipment extends Model
         'current_status_updated_by',
 
         'not_for_rent',
+        'volts',
+        'amps',
 
         'created_by',
         'updated_by',
@@ -76,6 +78,8 @@ class Equipment extends Model
     protected $casts = [
         'current_status' => EquipmentCurrentStatus::class,
         'power_source_type' => EquipmentPowerSourceType::class,
+         'volts' => 'array',
+        'amps'  => 'array',
     ];
     protected $appends = ['status_label', 'category_name', 'last_inspection'];
 

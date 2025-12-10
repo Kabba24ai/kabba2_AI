@@ -203,6 +203,18 @@ class CustomHelper
         return Carbon::parse($dateTime)->format($format);
     }
 
+     public static function formatDateTime12Hour($dateTime, $format = null)
+    {
+        if (empty($dateTime)) {
+            return null;
+        }
+
+        // Default format: month/day/year - 12-hour time with am/pm
+        $format = $format ?? 'm/d/Y - h:i A';
+
+        return Carbon::parse($dateTime)->format($format);
+    }
+
     public static function parseDateFromInput($date)
     {
         if (empty($date)) {

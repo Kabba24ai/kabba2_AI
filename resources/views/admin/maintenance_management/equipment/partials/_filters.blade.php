@@ -23,12 +23,12 @@
                 @endforeach
             </select>
         </div>
-        
+
         <div class="w-full sm:w-48">
     <select name="equipment_id"
         class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
 
-        <option value="">Select Equipment ID</option>
+        <option value="">Select Equip. ID</option>
 
         @foreach ($equipmentIds as $id)
             <option value="{{ $id }}" @selected(request('equipment_id') == $id)>

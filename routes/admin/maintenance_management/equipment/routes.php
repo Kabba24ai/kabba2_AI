@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignChecklistMa
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignStoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\ServiceController;
 
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CopyController;
 
 
 Route::prefix('equipment')
@@ -43,5 +44,8 @@ Route::prefix('equipment')
 
         Route::post('/checklist-master-assign', AssignChecklistMasterController::class)->name('checklist-master-assign');
         Route::post('/store-assign', AssignStoreController::class)->name('store-assign');
+
+        Route::get('/{unique_id}/copy', CopyController::class)->name('copy');
+
 
     });

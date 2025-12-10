@@ -49,16 +49,17 @@
                 </td>
 
                 <td class="whitespace-nowrap py-4 px-6 text-center">
-                    {!! $orderProduct->order->view_link !!}
+                        {!! optional($orderProduct->order)->view_link !!}
+
                 </td>
                 <td class="whitespace-nowrap py-4 px-6 text-left">
 
                     <div class="font-medium">
-                        {{ $orderProduct->order->customer_name }}
+                           {{ optional($orderProduct->order)->customer_name }}
                     </div>
 
                     @php
-                        $customer = $orderProduct->order->customer;
+                        $customer = optional($orderProduct->order)->customer;
                     @endphp
 
                     @if ($customer && $customer->company_name)
@@ -82,8 +83,8 @@
                 </td>
 
                 <td class="whitespace-nowrap py-4 px-6 truncate min-w-xs max-w-xs">
-                    {{ $orderProduct->order->shippingAddress->full_address }}</td>
-                <td class="whitespace-nowrap py-4 px-6 text-left ">{{ $orderProduct->order->shippingAddress->phone }}
+                        {{ $orderProduct->order?->shippingAddress?->full_address }}</td>
+                <td class="whitespace-nowrap py-4 px-6 text-left ">{{ $orderProduct->order?->shippingAddress?->phone }}
                 </td>
                 <td class="whitespace-nowrap py-4 px-6 text-center">
                     @if ($orderProduct?->checklistQuestions->isNotEmpty())
@@ -180,7 +181,7 @@
                 </td>
 
                 <td class="whitespace-nowrap py-4 px-6 text-center">
-                    {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order->last_payment_status) !!}
+{!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
                 </td>
                 <td class="whitespace-nowrap py-4 px-6">
                     <div class="flex gap-2 items-center justify-center">

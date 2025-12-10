@@ -190,10 +190,10 @@
                 <div>
                     <label for="model_year" class="block text-sm font-medium text-gray-700 mb-1">Model Year</label>
                     {!! html()->number('model_year')->class([
-                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'italic w-full px-3 py-3 text-sm text-gray-500 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-gray-300' => !$errors->has('model_year'),
                             'border-red-500' => $errors->has('model_year'),
-                            
+
                         ])->attributes([
                             'min' => 1900,
                             'max' => date('Y') + 1,
@@ -464,6 +464,7 @@
                             'diesel' => 'Diesel',
                             'gas' => 'Gas',
                             'batteries' => 'Batteries',
+                            'electric' => 'Electric',
                         ])->class([
                             'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                             'border-red-500' => $errors->has('power_source_type'),
@@ -567,6 +568,60 @@
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <!-- Electric Fields -->
+<div id="electric-fields" class="grid grid-cols-1 gap-3 {{ old('power_source_type', $equipment->power_source_type ?? '') === 'electric' ? '' : 'hidden' }}">
+
+    @php
+        // Handle old input or DB values (JSON arrays)
+        $selectedVolts = old('volts', isset($equipment) ? $equipment->volts ?? [] : []);
+        $selectedAmps  = old('amps', isset($equipment) ? $equipment->amps ?? [] : []);
+    @endphp
+
+    <!-- Volts -->
+    <div>
+        <span class="block text-sm font-medium text-gray-700 mb-1">Volts</span>
+        <div class="flex gap-4">
+            <div>
+                <input type="checkbox" name="volts[]" id="volts_110" value="110V"
+                    class="mr-2" {{ in_array('110V', $selectedVolts) ? 'checked' : '' }}>
+                <label for="volts_110" class="text-sm font-medium text-gray-700">110V</label>
+            </div>
+            <div>
+                <input type="checkbox" name="volts[]" id="volts_220" value="220V"
+                    class="mr-2" {{ in_array('220V', $selectedVolts) ? 'checked' : '' }}>
+                <label for="volts_220" class="text-sm font-medium text-gray-700">220V</label>
+            </div>
+        </div>
+        @error('volts')
+            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <!-- Amps -->
+    <div>
+        <span class="block text-sm font-medium text-gray-700 mb-1">Amps</span>
+        <div class="flex flex-wrap gap-3">
+            @foreach([5,10,15,20,25,30,40,50,60,70] as $amp)
+                <div>
+                    <input type="checkbox" name="amps[]" id="amp_{{ $amp }}" value="{{ $amp }}A"
+                        class="mr-2" {{ in_array($amp.'A', $selectedAmps) ? 'checked' : '' }}>
+                    <label for="amp_{{ $amp }}" class="text-sm font-medium text-gray-700">{{ $amp }}A</label>
+                </div>
+            @endforeach
+        </div>
+        @error('amps')
+            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+
+</div>
+
+
+
+
+
+
             </div>
 
         </div>
@@ -605,7 +660,7 @@
             <div>
                 <label for="equipment_service_id" class="block text-sm font-medium text-gray-700 mb-1">Service
                     Schedule</label>
-                
+
                 <div id="service_display_container">
                     @if(isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
                         {{-- Show assigned service template with edit icon --}}
@@ -745,7 +800,7 @@
                     <span class="text-sm font-medium text-gray-700">Hrs</span>
                 </div>
             </div>
-            
+
             {{-- Hidden inputs for form submission --}}
             <input type="hidden" name="bring_service_flag" id="bring_service_flag_input" value="{{ old('bring_service_flag', isset($equipment) ? ($equipment->bring_service_flag ? '1' : '0') : '0') }}" />
             <input type="hidden" name="bring_service_hour" id="bring_service_hour_input" value="{{ old('bring_service_hour', isset($equipment) ? $equipment->bring_service_hour : '') }}" />
@@ -787,7 +842,7 @@
             const select = document.getElementById('service_template_select');
             const selectedValue = select.value;
             const selectedText = select.options[select.selectedIndex].text;
-            
+
             if (!selectedValue) {
                 alert('Please select a service template');
                 return;
@@ -795,7 +850,7 @@
 
             // Update the hidden input
             document.getElementById('equipment_service_id_input').value = selectedValue;
-            
+
             // Update the UI to show the selected template
             const container = document.getElementById('service_display_container');
             container.innerHTML = `
@@ -819,7 +874,7 @@
                 </div>
                 <input type="hidden" name="equipment_service_id" value="${selectedValue}" id="equipment_service_id_input" />
             `;
-            
+
             closeServiceAssignModal();
         }
 
@@ -851,6 +906,8 @@
                 'div');
             const expandedBatteryCount = document.querySelector('input[name="expanded_battery_count"]').closest(
                 'div');
+                const electricFields = document.getElementById('electric-fields');
+
 
             function toggleFields() {
                 const powerSourceType = powerTypeSelect.value;
@@ -862,6 +919,7 @@
                 gasTankCapacityField.classList.add('hidden');
                 standardBatteryCount.classList.add('hidden');
                 expandedBatteryCount.classList.add('hidden');
+                electricFields.classList.add('hidden');
 
                 // Show only relevant fields based on power source type
                 if (powerSourceType === 'diesel') {
@@ -875,6 +933,8 @@
                 } else if (powerSourceType === 'batteries') {
                     standardBatteryCount.classList.remove('hidden');
                     expandedBatteryCount.classList.remove('hidden');
+                } else if (powerSourceType === 'electric') {
+                    electricFields.classList.remove('hidden');
                 }
             }
 

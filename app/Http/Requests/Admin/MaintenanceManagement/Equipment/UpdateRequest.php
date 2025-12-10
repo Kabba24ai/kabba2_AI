@@ -80,7 +80,7 @@ class UpdateRequest extends FormRequest
             'license_plate' => 'nullable|string|max:255',
             'imei' => 'nullable|string|max:255',
 
-            'power_source_type'     => 'nullable|in:diesel,gas,batteries',
+            'power_source_type'     => 'nullable|in:diesel,gas,batteries,electric',
             'has_def'               => 'nullable|boolean',
 
             'diesel_tank_capacity'  => 'nullable|required_if:power_source_type,diesel|numeric|min:0',
@@ -88,7 +88,7 @@ class UpdateRequest extends FormRequest
             'gas_tank_capacity'     => 'nullable|required_if:power_source_type,gas|numeric|min:0',
 
             'standard_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
-            'expanded_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
+            'expanded_battery_count' => 'nullable|numeric|min:0',
 
             'checklist_master_id' => 'nullable|exists:checklist_masters,id',
             'equipment_service_id' => 'nullable|exists:service_templates,id',
@@ -97,6 +97,10 @@ class UpdateRequest extends FormRequest
             'part_id' => 'nullable|exists:parts,id',
 
             'equipment_notes' => 'nullable|string',
+
+            'volts' => 'nullable',
+            'amps'  => 'nullable',
+
         ];
     }
 

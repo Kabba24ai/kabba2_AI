@@ -12,7 +12,7 @@ class FetchWithCatController extends Controller
     {
         $categories = ProductCategory::with([
             'equipments' => function ($q) {
-                $q->orderBy('equipment_name')->orderBy('equipment_id');
+                $q->where('not_for_rent', 0)->orderBy('equipment_name')->orderBy('equipment_id');
             },
         ])
             ->orderBy('title')
@@ -23,7 +23,6 @@ class FetchWithCatController extends Controller
                     'title' => $cat->title,
                     'equipments' => $cat->equipments->map(function ($equipment) {
                         $linkWithTitle = $equipment->linkWithTitle();
-
                         return [
                             'unique_id' => $equipment->unique_id,
                             'equipment_name' => $equipment->equipment_name,

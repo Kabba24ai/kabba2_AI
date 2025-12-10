@@ -63,6 +63,9 @@
                             <option>Maint. Hold</option>
                             <option>Rented</option>
                             <option>Available</option>
+                            <option disabled>Service Due</option>
+                            <option disabled>Service Overdue</option>
+
                         </select>
                     </div>
                     <div id="equipmentList" class="space-y-3 max-h-[1000px] overflow-y-auto"></div>
@@ -264,6 +267,8 @@
                 </svg>`,
             };
 
+            
+
             const equipment = rawEquipment.map(eq => ({
                 id: eq.id,
                 unique_id: eq.unique_id,
@@ -381,41 +386,69 @@
                     const card = document.createElement("div");
                     card.className =
                         "equipment-card p-4 rounded-md border-1 transition-all cursor-pointer hover:shadow-md border-gray-200 hover:border-gray-300";
+
                     card.innerHTML = `
                         <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="flex flex-wrap items-start gap-2 mb-2">
-                                    <div class="flex items-center gap-2 min-w-0 flex-1">
-                                        <h3 class="font-medium text-sm sm:text-base text-gray-900 truncate">${eq.name}</h3>
-                                        ${eq.icon}
-                                    </div>
+    <div class="flex-1">
+        <div class="flex flex-wrap items-start gap-2 mb-2">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+                <h3 class="font-medium text-sm sm:text-base text-gray-900 truncate">${eq.name}</h3>
+                ${eq.icon}   
+            </div>
 
-                                    <!-- Status pill: full-width on mobile (drops to 2nd line), inline-right on ≥sm -->
-                                    <div class="basis-full sm:basis-auto sm:ml-auto">
-                                        <span class="inline-flex px-3 py-1 rounded-full text-xs font-medium border ${badgeColors(eq.badge)}">
-                                        ${eq.badge}
-                                        </span>
-                                    </div>
-                                </div>
-                            <div class="text-sm text-gray-600 space-y-1">
-                                <div>Model: ${eq.model}</div>
-                                <div>Equipment Id : ${eq.equipment_id}</div>
-                                <div>Category: ${eq.category}</div>
-                                <div>Order Product: ${eq.orderproduct ?? '-'}</div>
-                                <div class="flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                    Hours: ${ (eq.hours ?? 0).toLocaleString() }
-                                </div>
-                               
-                                <div>Last Inspection: ${eq.lastInspection}</div>
-                            </div>
-                            </div>
+            <div class="basis-full sm:basis-auto sm:ml-auto">
+                <span class="inline-flex px-3 py-1 rounded-full text-xs font-medium border ${badgeColors(eq.badge)}">
+                    ${eq.badge}
+                </span>
+            </div>
+        </div>
 
-                        </div>`;
+        <!-- All fields in a 2-column grid -->
+        <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
 
-                        // <div>Last Inspection: ${eq.customername} - ${eq.lastInspection}</div>
+            <div>
+                <div class="font-medium text-gray-700">Model</div>
+                <div>- ${eq.model}</div>
+            </div>
 
-                    // Card click handler
+            <div>
+                <div class="font-medium text-gray-700">Equipment ID</div>
+                <div>- ${eq.equipment_id}</div>
+            </div>
+
+            <div>
+                <div class="font-medium text-gray-700">Category</div>
+                <div>- ${eq.category}</div>
+            </div>
+
+            <div>
+                <div class="font-medium text-gray-700">Order Product</div>
+                <div>- ${eq.orderproduct ?? '-'}</div>
+            </div>
+
+            <div>
+                <div class="font-medium text-gray-700">Hours</div>
+                <div class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    - ${(eq.hours ?? 0).toLocaleString()}
+                </div>
+            </div>
+
+            <div>
+                <div class="font-medium text-gray-700">Last Inspection</div>
+                <div>- ${eq.lastInspection}</div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+                    `;
+
+                    // Click behavior...
                     card.addEventListener("click", () => {
                         document.querySelectorAll(".equipment-card").forEach(c => {
                             c.classList.remove("border-blue-500", "bg-blue-50");
@@ -424,16 +457,15 @@
                         card.classList.add("border-blue-500", "bg-blue-50");
                         openChecklist(eq);
                     });
+
                     equipmentList.appendChild(card);
 
-
-                    //  Auto-select if it matches selectedEquipmentId
                     if (selectedId && eq.unique_id == selectedId) {
                         card.classList.add("border-blue-500", "bg-blue-50");
                         openChecklist(eq);
                     }
-
                 });
+
             }
 
             function badgeColors(b) {

@@ -34,7 +34,6 @@ class StoreRequest extends FormRequest
             }
         }
 
-
     }
 
     public function rules()
@@ -42,15 +41,12 @@ class StoreRequest extends FormRequest
         return [
             'equipment_name' => 'required|string|max:255',
             'product_category_id' => 'required|exists:product_categories,id',
-
             'equipment_id' => 'required|string|max:255|unique:equipment,equipment_id',
             'equipment_hours' => 'nullable|numeric|min:0',
             'store_id' => 'nullable|exists:stores,id',
             'is_tracked' => 'nullable|boolean',
             'not_for_rent' => 'nullable|boolean',
-
             'overage_rate' => 'nullable|numeric|min:0',
-
             'brand' => 'required|string|max:255',
             'model' => 'nullable|string|max:255',
             'model_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),

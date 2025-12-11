@@ -154,6 +154,7 @@ function serviceMaster() {
             estimated_duration: 0,
             category_id: '',
             auto_apply: false,
+            inspection_required: false,
         },
 
         // Task Categories
@@ -427,6 +428,7 @@ function serviceMaster() {
                 estimated_duration: 0,
                 category_id: '',
                 auto_apply: false,
+                inspection_required: false,
             };
         },
 
@@ -438,6 +440,7 @@ function serviceMaster() {
                 estimated_duration: task.estimated_duration,
                 category_id: task.category_id || '',
                 auto_apply: task.auto_apply,
+                inspection_required: task.inspection_required || false,
             };
             this.showNewTaskForm = true;
         },

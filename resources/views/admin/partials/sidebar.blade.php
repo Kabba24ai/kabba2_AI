@@ -391,14 +391,14 @@
                                     </a>
                                 </li>
                                 
-                                <!-- <li>
+                                <li>
                                     <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.maintenance-management.equipment-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-wrench class="h-5 w-5" /> Equipment Service
                                     </a>
-                                </li> -->
+                                </li>
                                 
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.service-master.index') }}"

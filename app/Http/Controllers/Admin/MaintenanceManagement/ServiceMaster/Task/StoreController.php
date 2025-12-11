@@ -14,6 +14,7 @@ class StoreController extends Controller
 
         $validated['category_id'] = $validated['category_id'] ?? null;
         $validated['auto_apply'] = $validated['auto_apply'] ?? false;
+        $validated['inspection_required'] = $validated['inspection_required'] ?? false;
 
         $task = ServiceTask::create($validated);
 

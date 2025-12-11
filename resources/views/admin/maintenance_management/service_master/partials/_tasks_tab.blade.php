@@ -81,6 +81,20 @@
                 </p>
             </div>
 
+            <div class="mb-4">
+                <label class="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        x-model="taskForm.inspection_required"
+                        class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span class="text-sm font-medium text-gray-700">Inspection Required</span>
+                </label>
+                <p class="text-sm text-gray-500 ml-6 mt-1">
+                    When checked, this task will require inspection and initials after completion on work orders
+                </p>
+            </div>
+
             <div class="flex gap-2">
                 <button
                     type="submit"
@@ -227,6 +241,9 @@
                         Auto-Apply
                     </th>
                     <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Inspection
+                    </th>
+                    <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                     </th>
                 </tr>
@@ -255,6 +272,9 @@
                         <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" x-text="task.description || '-'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="task.estimated_duration"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="task.auto_apply ? 'Yes' : 'No'"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span :class="task.inspection_required ? 'text-red-600' : 'text-gray-500'" x-text="task.inspection_required ? 'Required' : 'No'"></span>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <div class="flex items-center gap-2">
                                 <button

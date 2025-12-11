@@ -19,6 +19,7 @@ class UpdateRequest extends FormRequest
             'estimated_duration' => 'nullable|integer|min:0',
             'category_id' => 'nullable|exists:service_categories,id',
             'auto_apply' => 'boolean',
+            'inspection_required' => 'boolean',
         ];
     }
 

@@ -18,11 +18,13 @@ class ServiceTask extends Model
         'estimated_duration',
         'category_id',
         'auto_apply',
+        'inspection_required',
         'instructions',
     ];
 
     protected $casts = [
         'auto_apply' => 'boolean',
+        'inspection_required' => 'boolean',
     ];
 
     public function category()

@@ -2,996 +2,593 @@
 
 @section('title', 'Dashboard')
 
-@push('css')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
-    <style>
-        .dashboard-card {
-            transition: all 0.3s ease;
-        }
-        .dashboard-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        .alert-item {
-            transition: all 0.2s ease;
-        }
-        .alert-item:hover {
-            background-color: #f9fafb;
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-        }
-    </style>
-@endpush
-
 @section('content')
-<div x-data="dashboardData()" x-init="init()" class="p-6">
+<div id="dashboard">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
-            <p class="text-gray-600">Rental & Sales Management System</p>
+        <div class="mb-6">
+            <h1 class="text-2xl font-semibold text-gray-900">Dashboard Overview</h1>
+            <p class="text-sm text-gray-600 mt-1">Rental & Sales Management System</p>
         </div>
 
         <!-- Section 1: Task Badges -->
-        <div class="mb-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Block 1: Schedule -->
-                <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-                    <div class="flex items-center mb-4">
-                        <i class="fas fa-clock w-6 h-6 text-blue-600 mr-3"></i>
-                        <h3 class="text-lg font-semibold text-gray-800">Schedule</h3>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <!-- Deliveries - Truck -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-truck text-white"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Deliveries - Truck</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-gray-400 mb-1">0</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">15</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-center">
-                                    <div class="flex items-center bg-gradient-to-r from-yellow-400 to-amber-500 px-3 py-1.5 rounded-full shadow-sm">
-                                        <i class="fas fa-trophy text-white mr-1.5"></i>
-                                        <span class="text-white font-semibold text-xs tracking-wide">ALL DONE!</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Deliveries - In Store -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-green-500 to-green-600 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-store text-white"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Deliveries - In Store</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">3</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">8</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>73%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-green-500 transition-all duration-500" style="width: 73%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Returns - Truck -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-truck text-white"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Returns - Truck</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">2</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">12</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>86%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-purple-400 to-purple-500 transition-all duration-500" style="width: 86%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Returns - In Store -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-store text-white"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Returns - In Store</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">1</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">6</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>86%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-500 transition-all duration-500" style="width: 86%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Block 2: Operations -->
-                <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-                    <div class="flex items-center mb-4">
-                        <i class="fas fa-wrench w-6 h-6 text-orange-600 mr-3"></i>
-                        <h3 class="text-lg font-semibold text-gray-800">Operations</h3>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <!-- Maintenance Hold -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-wrench text-white"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Maintenance Hold</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">4</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">3</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>43%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all duration-500" style="width: 43%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Damaged Items -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-exclamation-triangle text-white"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Damaged Items</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">1</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">2</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>67%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-500" style="width: 67%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tasks Overdue -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-clock text-white"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Tasks Overdue</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">2</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">0</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>0%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tasks Due Today -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-check-circle text-white"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Tasks Due Today</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">5</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">18</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>78%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 transition-all duration-500" style="width: 78%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="mb-6">
+           @include('admin.dashboard.partials._schedule_section')
         </div>
 
         <!-- Section 2: Customer Alerts -->
-        <div class="mb-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Fuel Charge Alerts -->
-                <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center">
-                            <div class="p-2.5 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 mr-3">
-                                <i class="fas fa-gas-pump text-white"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800">Fuel Charge Alerts</h3>
-                                <p class="text-sm text-gray-600"><span x-text="fuelAlerts.length"></span> pending alert<span x-text="fuelAlerts.length !== 1 ? 's' : ''"></span></p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="px-3 py-1 rounded-full text-sm font-medium" 
-                                  :class="fuelAlerts.length > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
-                                  x-text="fuelAlerts.length > 0 ? fuelAlerts.length + ' Active' : 'All Clear'"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-3 max-h-80 overflow-y-auto" x-show="fuelAlerts.length > 0">
-                        <template x-for="alert in fuelAlerts.slice(0, 5)" :key="alert.id">
-                            <div class="alert-item bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-                                <div class="flex items-center justify-between p-3">
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-sm font-semibold text-gray-800 truncate" x-text="alert.customerName"></h4>
-                                    </div>
-                                    <div class="flex-1 min-w-0 px-2">
-                                        <button @click="handleOrderClick(alert.orderId)" class="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
-                                            <span x-text="alert.orderId"></span>
-                                            <i class="fas fa-external-link-alt ml-1 text-xs"></i>
-                                        </button>
-                                    </div>
-                                    <div class="px-1">
-                                        <button @click="editingAlert = alert; tempAmount = alert.amountOwed === 'Pending' ? '' : alert.amountOwed.replace('$', ''); showAmountModal = true" 
-                                                class="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors" title="Edit Amount">
-                                            <i class="fas fa-dollar-sign"></i>
-                                        </button>
-                                    </div>
-                                    <div class="px-1 relative">
-                                        <button @click="showUpdateDropdown = showUpdateDropdown === alert.id ? null : alert.id" 
-                                                class="p-1.5 text-green-600 hover:text-green-800 hover:bg-green-100 rounded transition-colors" title="Update Status">
-                                            <i class="fas fa-chevron-down"></i>
-                                        </button>
-                                        <div x-show="showUpdateDropdown === alert.id" @click.away="showUpdateDropdown = null" 
-                                             class="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px]">
-                                            <button @click="handleStatusUpdate('fuel', alert.id, 'paid')" 
-                                                    class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">
-                                                Mark as Paid
-                                            </button>
-                                            <button @click="handleStatusUpdate('fuel', alert.id, 'uncollectible')" 
-                                                    class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg">
-                                                Mark as Uncollectible
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="px-1">
-                                        <button @click="editingAlert = alert; tempNotes = alert.notes || ''; showNotesModal = true" 
-                                                class="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors" title="Edit Notes">
-                                            <i class="fas fa-file-alt"></i>
-                                        </button>
-                                    </div>
-                                    <div class="flex-shrink-0 text-right min-w-[80px]">
-                                        <span :class="alert.amountOwed === 'Pending' ? 'text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full' : 'text-sm font-semibold text-green-700'" 
-                                              x-text="alert.amountOwed"></span>
-                                    </div>
-                                </div>
-                                <div x-show="alert.notes" class="px-3 pb-3">
-                                    <div class="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                                        <strong>Notes:</strong> <span x-text="alert.notes"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                        <div x-show="fuelAlerts.length > 5" class="text-center pt-2 border-t border-gray-200">
-                            <span class="text-sm text-gray-500" x-text="'+' + (fuelAlerts.length - 5) + ' more alert' + ((fuelAlerts.length - 5) !== 1 ? 's' : '')"></span>
-                        </div>
-                    </div>
-                    
-                    <div x-show="fuelAlerts.length === 0" class="text-center py-8">
-                        <div class="text-gray-400 mb-2">
-                            <i class="fas fa-check-circle text-5xl"></i>
-                        </div>
-                        <p class="text-gray-500">No pending alerts</p>
-                    </div>
-                </div>
-
-                <!-- New Damage Alerts -->
-                <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center">
-                            <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 mr-3">
-                                <i class="fas fa-exclamation-triangle text-white"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800">New Damage Alerts</h3>
-                                <p class="text-sm text-gray-600"><span x-text="damageAlerts.length"></span> pending alert<span x-text="damageAlerts.length !== 1 ? 's' : ''"></span></p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="px-3 py-1 rounded-full text-sm font-medium" 
-                                  :class="damageAlerts.length > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
-                                  x-text="damageAlerts.length > 0 ? damageAlerts.length + ' Active' : 'All Clear'"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-3 max-h-80 overflow-y-auto" x-show="damageAlerts.length > 0">
-                        <template x-for="alert in damageAlerts.slice(0, 5)" :key="alert.id">
-                            <div class="alert-item bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-                                <div class="flex items-center justify-between p-3">
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-sm font-semibold text-gray-800 truncate" x-text="alert.customerName"></h4>
-                                    </div>
-                                    <div class="flex-1 min-w-0 px-2">
-                                        <button @click="handleOrderClick(alert.orderId)" class="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
-                                            <span x-text="alert.orderId"></span>
-                                            <i class="fas fa-external-link-alt ml-1 text-xs"></i>
-                                        </button>
-                                    </div>
-                                    <div class="px-1">
-                                        <button @click="editingAlert = alert; tempAmount = alert.amountOwed === 'Pending' ? '' : alert.amountOwed.replace('$', ''); showAmountModal = true" 
-                                                class="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors" title="Edit Amount">
-                                            <i class="fas fa-dollar-sign"></i>
-                                        </button>
-                                    </div>
-                                    <div class="px-1 relative">
-                                        <button @click="showUpdateDropdown = showUpdateDropdown === alert.id ? null : alert.id" 
-                                                class="p-1.5 text-green-600 hover:text-green-800 hover:bg-green-100 rounded transition-colors" title="Update Status">
-                                            <i class="fas fa-chevron-down"></i>
-                                        </button>
-                                        <div x-show="showUpdateDropdown === alert.id" @click.away="showUpdateDropdown = null" 
-                                             class="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px]">
-                                            <button @click="handleStatusUpdate('damage', alert.id, 'paid')" 
-                                                    class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">
-                                                Mark as Paid
-                                            </button>
-                                            <button @click="handleStatusUpdate('damage', alert.id, 'uncollectible')" 
-                                                    class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg">
-                                                Mark as Uncollectible
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="px-1">
-                                        <button @click="editingAlert = alert; tempNotes = alert.notes || ''; showNotesModal = true" 
-                                                class="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors" title="Edit Notes">
-                                            <i class="fas fa-file-alt"></i>
-                                        </button>
-                                    </div>
-                                    <div class="flex-shrink-0 text-right min-w-[80px]">
-                                        <span :class="alert.amountOwed === 'Pending' ? 'text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full' : 'text-sm font-semibold text-green-700'" 
-                                              x-text="alert.amountOwed"></span>
-                                    </div>
-                                </div>
-                                <div x-show="alert.notes" class="px-3 pb-3">
-                                    <div class="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                                        <strong>Notes:</strong> <span x-text="alert.notes"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                        <div x-show="damageAlerts.length > 5" class="text-center pt-2 border-t border-gray-200">
-                            <span class="text-sm text-gray-500" x-text="'+' + (damageAlerts.length - 5) + ' more alert' + ((damageAlerts.length - 5) !== 1 ? 's' : '')"></span>
-                        </div>
-                    </div>
-                    
-                    <div x-show="damageAlerts.length === 0" class="text-center py-8">
-                        <div class="text-gray-400 mb-2">
-                            <i class="fas fa-check-circle text-5xl"></i>
-                        </div>
-                        <p class="text-gray-500">No pending alerts</p>
-                    </div>
-                </div>
-            </div>
+        <div class="mb-6">
+              @include('admin.dashboard.partials._alerts_section')
         </div>
 
         <!-- Section 3: Sales Trend Analysis -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-300">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-semibold text-gray-800">Sales Trend Analysis</h2>
-                <div class="flex items-center space-x-2">
-                    <button class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                    <button class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Sales Metrics Cards -->
-            <div class="flex justify-center mb-6">
-                <div class="flex flex-wrap justify-center gap-4 max-w-5xl">
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 min-w-[168px] text-center">
-                        <div class="text-xs text-gray-600 font-medium mb-1">Total Sales</div>
-                        <div class="text-lg font-semibold text-blue-800 whitespace-nowrap" x-text="formatCurrency(currentMetrics.totalSales)"></div>
-                    </div>
-                    <div class="bg-green-50 p-4 rounded-lg border border-green-200 min-w-[168px] text-center">
-                        <div class="text-xs text-gray-600 font-medium mb-1">Previous Period</div>
-                        <div class="text-lg font-semibold text-green-800 whitespace-nowrap" x-text="formatCurrency(currentMetrics.previousTotalSales)"></div>
-                    </div>
-                    <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200 min-w-[168px] text-center">
-                        <div class="text-xs text-gray-600 font-medium mb-1 text-center">Growth Rate</div>
-                        <div class="text-lg font-semibold flex items-center justify-center whitespace-nowrap"
-                             :class="currentMetrics.growthRate >= 0 ? 'text-emerald-800' : 'text-red-800'">
-                            <i :class="currentMetrics.growthRate >= 0 ? 'fas fa-arrow-trend-up' : 'fas fa-arrow-trend-down'" class="mr-1"></i>
-                            <span x-text="Math.abs(currentMetrics.growthRate).toFixed(1) + '%'"></span>
-                        </div>
-                    </div>
-                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 min-w-[168px] text-center">
-                        <div class="text-xs text-gray-600 font-medium mb-1">Daily Average</div>
-                        <div class="text-lg font-semibold text-purple-800 whitespace-nowrap" x-text="formatCurrency(currentMetrics.dailyAverage)"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Period Selector -->
-            <div class="flex space-x-2 mb-6">
-                <button @click="salesPeriod = 'rolling30'" 
-                        :class="salesPeriod === 'rolling30' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" 
-                        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    Rolling 30 Days
-                </button>
-                <button @click="salesPeriod = 'currentMonth'" 
-                        :class="salesPeriod === 'currentMonth' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" 
-                        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    Current Month
-                </button>
-                <button @click="salesPeriod = 'lastMonth'" 
-                        :class="salesPeriod === 'lastMonth' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" 
-                        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    Last Month
-                </button>
-            </div>
-            
-            <div id="salesChart" class="chart-container" style="height: 400px;"></div>
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-300">
+             @include('admin.dashboard.partials._sales_trend_analysis')
         </div>
 
         <!-- Section 4: Maintenance & Damaged Items Tracking -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <!-- Maintenance Hold -->
-            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800">Maintenance Hold - 2 Week Trend</h2>
-                    <i class="fas fa-wrench text-orange-600"></i>
-                </div>
-                <div id="maintenanceChart" class="chart-container" style="height: 300px;"></div>
-            </div>
-
-            <!-- Damaged Items -->
-            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800">Damaged Items - 2 Week Trend</h2>
-                    <i class="fas fa-exclamation-triangle text-red-600"></i>
-                </div>
-                <div id="damagedChart" class="chart-container" style="height: 300px;"></div>
-            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
+            @include('admin.dashboard.partials._maintenance_and_damaged')
         </div>
 
     </div>
 
-    <!-- Amount Modal -->
-    <div x-show="showAmountModal" 
-         x-cloak
-         @keydown.escape.window="showAmountModal = false"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-96 max-w-90vw" @click.away="showAmountModal = false">
-            <h3 class="text-lg font-semibold mb-4">
-                <span x-text="editingAlert?.amountOwed === 'Pending' ? 'Add Amount' : 'Edit Amount'"></span>
-            </h3>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-                <input type="number" step="0.01" x-model="tempAmount" 
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                       placeholder="0.00" autofocus>
-            </div>
-            <div class="flex justify-end space-x-3">
-                <button @click="showAmountModal = false" 
-                        class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
-                    Cancel
-                </button>
-                <button @click="saveAmount()" 
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                    Save
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notes Modal -->
-    <div x-show="showNotesModal" 
-         x-cloak
-         @keydown.escape.window="showNotesModal = false"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-96 max-w-90vw" @click.away="showNotesModal = false">
-            <h3 class="text-lg font-semibold mb-4">
-                <span x-text="editingAlert?.notes ? 'Edit Notes' : 'Add Notes'"></span>
-            </h3>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                <textarea x-model="tempNotes" 
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                          rows="4" placeholder="Add notes about this alert..." autofocus></textarea>
-            </div>
-            <div class="flex justify-end space-x-3">
-                <button @click="showNotesModal = false" 
-                        class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
-                    Cancel
-                </button>
-                <button @click="saveNotes()" 
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                    Save
-                </button>
-            </div>
-        </div>
-        </div>
-    </div>
 @endsection
-
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-// Pass PHP data to JavaScript
 const salesDataFromServer = @json($salesData);
 
-function dashboardData() {
-    return {
-        salesPeriod: 'rolling30',
-        
-        // Computed property for current metrics based on selected period
-        get currentMetrics() {
-            const data = salesDataFromServer[this.salesPeriod];
-            const totalSales = data.totalSales || 0;
-            const previousTotalSales = data.previousTotalSales || 0;
-            const growthRate = previousTotalSales > 0 
-                ? ((totalSales - previousTotalSales) / previousTotalSales * 100) 
-                : 0;
-            const dailyAverage = this.salesPeriod === 'rolling30' 
-                ? totalSales / 30 
-                : totalSales / data.current.length;
-            
-            return {
-                totalSales,
-                previousTotalSales,
-                growthRate,
-                dailyAverage
-            };
-        },
-        
-        // Helper function to format currency
-        formatCurrency(value) {
-            return '$' + value.toLocaleString('en-US', { 
-                minimumFractionDigits: 0, 
-                maximumFractionDigits: 0 
-            });
-        },
-        
-        fuelAlerts: [
+/**
+ * Vanilla JavaScript Dashboard Controller
+ * Replaces Alpine.js completely.
+ */
+class Dashboard {
+    constructor(root) {
+
+        // store reference to the root element
+        this.root = root;
+
+        // state
+        this.salesPeriod = "rolling30";
+        this.fuelAlerts = [...this.defaultFuelAlerts()];
+        this.damageAlerts = [...this.defaultDamageAlerts()];
+        this.showAmountModal = false;
+        this.showNotesModal = false;
+        this.showUpdateDropdown = null;
+        this.editingAlert = null;
+        this.tempAmount = "";
+        this.tempNotes = "";
+
+        // charts
+        this.salesChart = null;
+        this.maintenanceChart = null;
+        this.damagedChart = null;
+
+        // initialize
+        this.init();
+    }
+
+    /** ------------------------
+     *      DEFAULT DATA
+     --------------------------*/
+    defaultFuelAlerts() {
+        return [
             { id: 1, customerName: 'ABC Events LLC', orderId: 'ORD-2024-001', amountOwed: 'Pending', date: '2024-01-27', type: 'fuel', notes: '' },
             { id: 2, customerName: 'Wedding Bliss Co', orderId: 'ORD-2024-002', amountOwed: '$45.00', date: '2024-01-26', type: 'fuel', notes: 'Customer disputed charge initially' },
             { id: 3, customerName: 'Corporate Solutions', orderId: 'ORD-2024-003', amountOwed: 'Pending', date: '2024-01-25', type: 'fuel', notes: '' },
             { id: 4, customerName: 'Party Time Rentals', orderId: 'ORD-2024-004', amountOwed: '$32.50', date: '2024-01-24', type: 'fuel', notes: 'Awaiting payment confirmation' },
             { id: 5, customerName: 'Elite Celebrations', orderId: 'ORD-2024-005', amountOwed: 'Pending', date: '2024-01-23', type: 'fuel', notes: 'Need to calculate mileage' },
-            { id: 6, customerName: 'Dream Weddings Inc', orderId: 'ORD-2024-006', amountOwed: '$28.75', date: '2024-01-22', type: 'fuel', notes: '' }
-        ],
-        damageAlerts: [
+            { id: 6, customerName: 'Dream Weddings Inc', orderId: 'ORD-2024-006', amountOwed: '$28.75', date: '2024-01-22', type: 'fuel', notes: '' },
+        ];
+    }
+
+    updateFuelAlertHeader() {
+        const count = this.fuelAlerts.length;
+
+        document.getElementById("fuel-alert-count").textContent = count;
+
+        document.getElementById("fuel-alert-s").textContent = count === 1 ? "" : "s";
+    }
+
+    updateFuelAlertBadge() {
+            const count = this.fuelAlerts.length;
+
+            const badge = document.getElementById("fuel-alert-badge");
+
+            // Update the text
+            badge.textContent = count > 0 ? `${count} Active` : "All Clear";
+
+            // Update colors
+            if (count > 0) {
+                badge.classList.remove("bg-green-100", "text-green-800");
+                badge.classList.add("bg-red-100", "text-red-800");
+            } else {
+                badge.classList.remove("bg-red-100", "text-red-800");
+                badge.classList.add("bg-green-100", "text-green-800");
+            }
+        }
+
+    renderFuelAlerts() {
+        const wrapper = document.getElementById("fuel-alert-list-wrapper");
+        const template = document.getElementById("fuel-alert-item-template").content;
+
+        wrapper.innerHTML = ""; // clear previous items
+
+        const list = this.fuelAlerts.slice(0, 5);
+
+        if (list.length === 0) {
+            wrapper.innerHTML = `
+
+        <div class="text-center py-8 text-gray-500">
+            <div class="text-gray-400 mb-2">
+                <svg fill="currentColor" class="w-10 h-10 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                    <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/>
+                </svg>
+            </div>
+            <p class="text-gray-500">No pending alerts</p>
+        </div>
+
+            `;
+            return;
+        }
+
+        list.forEach(alert => {
+            const item = document.importNode(template, true);
+
+            item.querySelector("[data-customer]").textContent = alert.customerName;
+            item.querySelector("[data-order-id]").textContent = alert.orderId;
+
+            // Order click
+            item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
+
+            // Edit amount
+            item.querySelector("[data-edit-amount]").onclick = () => {
+                this.editingAlert = alert;
+                this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
+                // this.showAmountModal = true;
+                this.openAmountModal(alert);
+
+            };
+
+            // Status dropdown toggle
+            const dropdown = item.querySelector("[data-status-dropdown]");
+            item.querySelector("[data-status-btn]").onclick = () => {
+                dropdown.classList.toggle("hidden");
+            };
+
+            // Status actions
+            item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
+            item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
+
+            // Edit notes
+            item.querySelector("[data-edit-notes]").onclick = () => {
+                this.editingAlert = alert;
+                this.tempNotes = alert.notes || "";
+                // this.showNotesModal = true;
+                this.openNotesModal(alert);
+
+            };
+
+            // Amount display
+            const amountEl = item.querySelector("[data-amount]");
+            amountEl.textContent = alert.amountOwed;
+
+            if (alert.amountOwed === "Pending") {
+                amountEl.className = "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full";
+            } else {
+                amountEl.className = "text-sm font-semibold text-green-700";
+            }
+
+            // Notes
+            if (alert.notes) {
+                item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
+                item.querySelector("[data-notes]").textContent = alert.notes;
+            }
+
+            wrapper.appendChild(item);
+        });
+    }
+
+    openAmountModal(alert) {
+    this.editingAlert = alert;
+    this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
+
+    document.getElementById("amount-input").value = this.tempAmount;
+    document.getElementById("amount-modal-title").textContent =
+        alert.amountOwed === "Pending" ? "Add Amount" : "Edit Amount";
+
+    document.getElementById("amount-modal").classList.remove("hidden");
+}
+
+closeAmountModal() {
+    document.getElementById("amount-modal").classList.add("hidden");
+}
+
+
+    // DamageAlerts
+
+    defaultDamageAlerts() {
+        return [
             { id: 1, customerName: 'Luxury Events Co', orderId: 'ORD-2024-007', amountOwed: '$150.00', date: '2024-01-27', type: 'damage', notes: 'Tablecloth stain - professional cleaning required' },
             { id: 2, customerName: 'Premier Parties', orderId: 'ORD-2024-008', amountOwed: 'Pending', date: '2024-01-26', type: 'damage', notes: '' },
             { id: 3, customerName: 'Celebration Central', orderId: 'ORD-2024-009', amountOwed: '$89.99', date: '2024-01-25', type: 'damage', notes: 'Chair leg broken during event' },
             { id: 4, customerName: 'Event Masters LLC', orderId: 'ORD-2024-010', amountOwed: 'Pending', date: '2024-01-24', type: 'damage', notes: 'Assessing tent damage from wind' },
             { id: 5, customerName: 'Perfect Day Events', orderId: 'ORD-2024-011', amountOwed: '$225.00', date: '2024-01-23', type: 'damage', notes: 'Multiple items damaged - invoice sent' },
-            { id: 6, customerName: 'Grand Occasions', orderId: 'ORD-2024-012', amountOwed: 'Pending', date: '2024-01-22', type: 'damage', notes: '' }
-        ],
-        showAmountModal: false,
-        showNotesModal: false,
-        showUpdateDropdown: null,
-        editingAlert: null,
-        tempAmount: '',
-        tempNotes: '',
-        salesChart: null,
-        maintenanceChart: null,
-        damagedChart: null,
+            { id: 6, customerName: 'Grand Occasions', orderId: 'ORD-2024-012', amountOwed: 'Pending', date: '2024-01-22', type: 'damage', notes: '' },
+        ];
+    }
 
-        init() {
-            this.$nextTick(() => {
-                // Destroy existing charts if they exist
-                if (this.salesChart) {
-                    this.salesChart.destroy();
-                }
-                if (this.maintenanceChart) {
-                    this.maintenanceChart.destroy();
-                }
-                if (this.damagedChart) {
-                    this.damagedChart.destroy();
-                }
-                
-                this.initSalesChart();
-                this.initMaintenanceChart();
-                this.initDamagedChart();
-            });
+    renderDamageAlerts() {
+        const wrapper = document.getElementById("damage-alert-list-wrapper");
+        const template = document.getElementById("damage-alert-item-template").content;
 
-            this.$watch('salesPeriod', () => {
-                this.updateSalesChart();
-            });
-        },
+        wrapper.innerHTML = ""; // Clear previous
 
-        handleOrderClick(orderId) {
-            console.log('Navigate to order:', orderId);
-            // Add navigation logic here
-        },
+        const list = this.damageAlerts.slice(0, 5);
 
-        handleStatusUpdate(alertType, alertId, status) {
-            console.log(`Mark alert ${alertId} as ${status}`);
-            
-            if (alertType === 'fuel') {
-                this.fuelAlerts = this.fuelAlerts.filter(alert => alert.id !== alertId);
-            } else {
-                this.damageAlerts = this.damageAlerts.filter(alert => alert.id !== alertId);
-            }
-            this.showUpdateDropdown = null;
-        },
-
-        saveAmount() {
-            if (this.editingAlert) {
-                const formattedAmount = this.tempAmount ? `$${parseFloat(this.tempAmount).toFixed(2)}` : 'Pending';
-                
-                if (this.editingAlert.type === 'fuel') {
-                    const index = this.fuelAlerts.findIndex(a => a.id === this.editingAlert.id);
-                    if (index !== -1) {
-                        this.fuelAlerts[index].amountOwed = formattedAmount;
-                    }
-                } else {
-                    const index = this.damageAlerts.findIndex(a => a.id === this.editingAlert.id);
-                    if (index !== -1) {
-                        this.damageAlerts[index].amountOwed = formattedAmount;
-                    }
-                }
-            }
-            this.showAmountModal = false;
-            this.editingAlert = null;
-            this.tempAmount = '';
-        },
-
-        saveNotes() {
-            if (this.editingAlert) {
-                if (this.editingAlert.type === 'fuel') {
-                    const index = this.fuelAlerts.findIndex(a => a.id === this.editingAlert.id);
-                    if (index !== -1) {
-                        this.fuelAlerts[index].notes = this.tempNotes;
-                    }
-                } else {
-                    const index = this.damageAlerts.findIndex(a => a.id === this.editingAlert.id);
-                    if (index !== -1) {
-                        this.damageAlerts[index].notes = this.tempNotes;
-                    }
-                }
-            }
-            this.showNotesModal = false;
-            this.editingAlert = null;
-            this.tempNotes = '';
-        },
-
-        getSalesData() {
-            // Use data from server instead of hardcoded values
-            return salesDataFromServer[this.salesPeriod];
-        },
-
-        initSalesChart() {
-            const chartElement = document.querySelector("#salesChart");
-            if (!chartElement) return;
-            
-            // Clear any existing chart content
-            chartElement.innerHTML = '';
-            
-            const salesData = this.getSalesData();
-            const options = {
-                series: [{
-                    name: 'Current Period',
-                    data: salesData.current
-                }, {
-                    name: 'Previous Period',
-                    data: salesData.previous
-                }],
-                chart: {
-                    height: 400,
-                    type: 'line',
-                    toolbar: {
-                        show: false
-                    },
-                    zoom: {
-                        enabled: false
-                    }
-                },
-                colors: ['#3B82F6', '#10B981'],
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    width: [3, 2],
-                    curve: 'smooth',
-                    dashArray: [0, 5]
-                },
-                grid: {
-                    borderColor: '#f1f5f9',
-                    strokeDashArray: 3
-                },
-                markers: {
-                    size: [4, 3],
-                    strokeWidth: 2,
-                    hover: {
-                        size: 6
-                    }
-                },
-                xaxis: {
-                    categories: salesData.categories,
-                    labels: {
-                        rotate: -45,
-                        style: {
-                            fontSize: '11px',
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                yaxis: {
-                    labels: {
-                        formatter: function(value) {
-                            return '$' + (value / 1000).toFixed(0) + 'k';
-                        },
-                        style: {
-                            fontSize: '12px',
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                tooltip: {
-                    shared: true,
-                    intersect: false,
-                    y: {
-                        formatter: function(value) {
-                            return '$' + value.toLocaleString();
-                        }
-                    }
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'right',
-                    offsetY: 10
-                }
-            };
-
-            this.salesChart = new ApexCharts(chartElement, options);
-            this.salesChart.render();
-        },
-
-        updateSalesChart() {
-            const salesData = this.getSalesData();
-            this.salesChart.updateOptions({
-                xaxis: {
-                    categories: salesData.categories
-                }
-            });
-            this.salesChart.updateSeries([{
-                name: 'Current Period',
-                data: salesData.current
-            }, {
-                name: 'Previous Period',
-                data: salesData.previous
-            }]);
-        },
-
-        initMaintenanceChart() {
-            const chartElement = document.querySelector("#maintenanceChart");
-            if (!chartElement) return;
-            
-            // Clear any existing chart content
-            chartElement.innerHTML = '';
-            
-            const options = {
-                series: [{
-                    name: 'Due',
-                    data: [5, 3, 7, 4, 6, 2, 1, 8, 5, 3, 6, 4, 2, 3]
-                }, {
-                    name: 'Completed',
-                    data: [3, 4, 2, 6, 5, 3, 2, 4, 7, 5, 3, 8, 4, 2]
-                }],
-                chart: {
-                    height: 300,
-                    type: 'line',
-                    toolbar: {
-                        show: false
-                    }
-                },
-                colors: ['#F59E0B', '#10B981'],
-                stroke: {
-                    width: 2,
-                    curve: 'smooth'
-                },
-                grid: {
-                    borderColor: '#f1f5f9',
-                    strokeDashArray: 3
-                },
-                markers: {
-                    size: 3
-                },
-                xaxis: {
-                    categories: ['Mon 1/13', 'Tue 1/14', 'Wed 1/15', 'Thu 1/16', 'Fri 1/17', 'Sat 1/18', 'Sun 1/19', 'Mon 1/20', 'Tue 1/21', 'Wed 1/22', 'Thu 1/23', 'Fri 1/24', 'Sat 1/25', 'Sun 1/26'],
-                    labels: {
-                        rotate: -45,
-                        style: {
-                            fontSize: '10px',
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                yaxis: {
-                    labels: {
-                        style: {
-                            fontSize: '12px',
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                legend: {
-                    position: 'top'
-                }
-            };
-
-            this.maintenanceChart = new ApexCharts(chartElement, options);
-            this.maintenanceChart.render();
-        },
-
-        initDamagedChart() {
-            const chartElement = document.querySelector("#damagedChart");
-            if (!chartElement) return;
-            
-            // Clear any existing chart content
-            chartElement.innerHTML = '';
-            
-            const options = {
-                series: [{
-                    name: 'Due',
-                    data: [2, 1, 4, 3, 2, 1, 0, 5, 3, 2, 4, 1, 2, 1]
-                }, {
-                    name: 'Completed',
-                    data: [1, 3, 2, 4, 3, 2, 1, 2, 4, 3, 1, 5, 3, 2]
-                }],
-                chart: {
-                    height: 300,
-                    type: 'line',
-                    toolbar: {
-                        show: false
-                    }
-                },
-                colors: ['#EF4444', '#10B981'],
-                stroke: {
-                    width: 2,
-                    curve: 'smooth'
-                },
-                grid: {
-                    borderColor: '#f1f5f9',
-                    strokeDashArray: 3
-                },
-                markers: {
-                    size: 3
-                },
-                xaxis: {
-                    categories: ['Mon 1/13', 'Tue 1/14', 'Wed 1/15', 'Thu 1/16', 'Fri 1/17', 'Sat 1/18', 'Sun 1/19', 'Mon 1/20', 'Tue 1/21', 'Wed 1/22', 'Thu 1/23', 'Fri 1/24', 'Sat 1/25', 'Sun 1/26'],
-                    labels: {
-                        rotate: -45,
-                        style: {
-                            fontSize: '10px',
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                yaxis: {
-                    labels: {
-                        style: {
-                            fontSize: '12px',
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                legend: {
-                    position: 'top'
-                }
-            };
-
-            this.damagedChart = new ApexCharts(chartElement, options);
-            this.damagedChart.render();
+        if (list.length === 0) {
+            wrapper.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <div class="text-gray-400 mb-2">
+                        <svg fill="currentColor" class="w-10 h-10 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/>
+                        </svg>
+                    </div>
+                    <p class="text-gray-500">No pending alerts</p>
+                </div>
+            `;
+            return;
         }
-    };
+
+        list.forEach(alert => {
+            const item = document.importNode(template, true);
+
+            // Fill text
+            item.querySelector("[data-customer]").textContent = alert.customerName;
+            item.querySelector("[data-order-id]").textContent = alert.orderId;
+
+            // Buttons
+            item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
+
+            item.querySelector("[data-edit-amount]").onclick = () => {
+                this.editingAlert = alert;
+                this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
+                // this.showAmountModal = true;
+                    this.openAmountModal(alert);
+
+            };
+
+            const dropdown = item.querySelector("[data-status-dropdown]");
+            item.querySelector("[data-status-btn]").onclick = () => dropdown.classList.toggle("hidden");
+
+            item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
+            item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
+
+            item.querySelector("[data-edit-notes]").onclick = () => {
+                this.editingAlert = alert;
+                this.tempNotes = alert.notes || "";
+                // this.showNotesModal = true;
+                    this.openNotesModal(alert);
+
+            };
+
+            // Amount color
+            const amountEl = item.querySelector("[data-amount]");
+            amountEl.textContent = alert.amountOwed;
+            amountEl.className =
+                alert.amountOwed === "Pending"
+                    ? "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full"
+                    : "text-sm font-semibold text-green-700";
+
+            // Notes
+            if (alert.notes) {
+                item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
+                item.querySelector("[data-notes]").textContent = alert.notes;
+            }
+
+            wrapper.appendChild(item);
+        });
+    }
+
+    updateDamageAlertHeader() {
+        const count = this.damageAlerts.length;
+
+        document.getElementById("damage-alert-count").textContent = count;
+        document.getElementById("damage-alert-s").textContent = count === 1 ? "" : "s";
+    }
+
+
+    updateDamageAlertBadge() {
+        const count = this.damageAlerts.length;
+        const badge = document.getElementById("damage-alert-badge");
+
+        badge.textContent = count > 0 ? `${count} Active` : "All Clear";
+
+        if (count > 0) {
+            badge.classList.remove("bg-green-100", "text-green-800");
+            badge.classList.add("bg-red-100", "text-red-800");
+        } else {
+            badge.classList.remove("bg-red-100", "text-red-800");
+            badge.classList.add("bg-green-100", "text-green-800");
+        }
+    }
+
+    openNotesModal(alert) {
+    this.editingAlert = alert;
+    this.tempNotes = alert.notes || "";
+
+    document.getElementById("notes-input").value = this.tempNotes;
+    document.getElementById("notes-modal-title").textContent =
+        alert.notes ? "Edit Notes" : "Add Notes";
+
+    document.getElementById("notes-modal").classList.remove("hidden");
 }
+
+closeNotesModal() {
+    document.getElementById("notes-modal").classList.add("hidden");
+}
+
+
+    /** ------------------------
+     *      COMPUTED METRICS
+     --------------------------*/
+    get currentMetrics() {
+        const data = salesDataFromServer[this.salesPeriod];
+        const totalSales = data.totalSales || 0;
+        const previousTotalSales = data.previousTotalSales || 0;
+        const growthRate =
+            previousTotalSales > 0
+                ? ((totalSales - previousTotalSales) / previousTotalSales) * 100
+                : 0;
+
+        const dailyAverage =
+            this.salesPeriod === "rolling30"
+                ? totalSales / 30
+                : totalSales / data.current.length;
+
+        return { totalSales, previousTotalSales, growthRate, dailyAverage };
+    }
+
+    updatePeriodButtons() {
+    const periods = ["rolling30", "currentMonth", "lastMonth"];
+
+    periods.forEach(period => {
+        const btn = document.getElementById(`btn-${period}`);
+        btn.classList.remove("bg-blue-600", "text-white", "bg-gray-100", "text-gray-700");
+
+        if (this.salesPeriod === period) {
+            btn.classList.add("bg-blue-600", "text-white");
+        } else {
+            btn.classList.add("bg-gray-100", "text-gray-700");
+        }
+    });
+}
+
+
+    /** ------------------------
+     *          INIT
+     --------------------------*/
+    init() {
+        this.initSalesChart();
+        this.initMaintenanceChart();
+        this.initDamagedChart();
+
+
+         // Update all UI pieces
+        this.updateFuelAlertHeader();
+        this.updateFuelAlertBadge();
+        this.renderFuelAlerts();
+
+
+
+        this.updateDamageAlertHeader();
+        this.updateDamageAlertBadge();
+        this.renderDamageAlerts();
+
+        this.updateSalesMetrics();
+this.updatePeriodButtons();
+
+
+    }
+
+
+    changeSalesPeriod(period) {
+    this.salesPeriod = period;
+      this.updatePeriodButtons();
+    this.updateSalesMetrics();
+    this.updateSalesChart();
+}
+
+
+    /** ------------------------
+     *      CURRENCY FORMATTER
+     --------------------------*/
+    formatCurrency(val) {
+        return (
+            "$" +
+            val.toLocaleString("en-US", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            })
+        );
+    }
+
+    /** ------------------------
+     *         ALERTS
+     --------------------------*/
+    handleStatusUpdate(type, id, status) {
+        if (type === "fuel") {
+            this.fuelAlerts = this.fuelAlerts.filter((a) => a.id !== id);
+
+               this.updateFuelAlertHeader();
+        this.updateFuelAlertBadge();
+        this.renderFuelAlerts();
+
+        } else {
+            this.damageAlerts = this.damageAlerts.filter((a) => a.id !== id);
+            this.updateDamageAlertHeader();  // NEW
+            this.updateDamageAlertBadge();   // NEW
+            this.renderDamageAlerts();
+        }
+    }
+
+    saveAmount() {
+        if (!this.editingAlert) return;
+
+        const formatted = this.tempAmount
+            ? `$${parseFloat(this.tempAmount).toFixed(2)}`
+            : "Pending";
+
+        const list =
+            this.editingAlert.type === "fuel"
+                ? this.fuelAlerts
+                : this.damageAlerts;
+
+        const index = list.findIndex((a) => a.id === this.editingAlert.id);
+        if (index !== -1) list[index].amountOwed = formatted;
+
+        this.editingAlert = null;
+        this.tempAmount = "";
+    this.closeAmountModal();
+        this.renderFuelAlerts();
+        this.renderDamageAlerts();
+
+    }
+
+    saveNotes() {
+        if (!this.editingAlert) return;
+
+        const list =
+            this.editingAlert.type === "fuel"
+                ? this.fuelAlerts
+                : this.damageAlerts;
+
+        const index = list.findIndex((a) => a.id === this.editingAlert.id);
+        if (index !== -1) list[index].notes = this.tempNotes;
+
+        this.tempNotes = "";
+        this.editingAlert = null;
+         this.closeNotesModal();
+        this.renderFuelAlerts();
+        this.renderDamageAlerts();
+
+    }
+
+    /** ------------------------
+     *         CHARTS
+     --------------------------*/
+    getSalesData() {
+        return salesDataFromServer[this.salesPeriod];
+    }
+
+    updateSalesMetrics() {
+        const m = this.currentMetrics;
+
+        // total sales
+        document.getElementById("total-sales").textContent =
+            this.formatCurrency(m.totalSales);
+
+        // previous total
+        document.getElementById("previous-total").textContent =
+            this.formatCurrency(m.previousTotalSales);
+
+        // daily average
+        document.getElementById("daily-average").textContent =
+            this.formatCurrency(m.dailyAverage);
+
+        // growth value
+        const growthValue = document.getElementById("growth-rate-value");
+        growthValue.textContent = Math.abs(m.growthRate).toFixed(1) + "%";
+
+        // wrapper color
+        const wrapper = document.getElementById("growth-rate-wrapper");
+        wrapper.classList.remove("text-emerald-800", "text-red-800");
+        wrapper.classList.add(m.growthRate >= 0 ? "text-emerald-800" : "text-red-800");
+
+        // icon
+        const iconEl = document.getElementById("growth-icon");
+
+        if (m.growthRate >= 0) {
+            iconEl.innerHTML = `
+                <svg fill="currentColor" class="w-6 h-6" viewBox="0 0 640 640">
+                    <path d="M416 224C398.3 224 384 209.7 384 192C384 174.3 398.3 160 416 160L576 160C593.7 160 608 174.3 608 192L608 352C608 369.7 593.7 384 576 384C558.3 384 544 369.7 544 352L544 269.3L374.6 438.7C362.1 451.2 341.8 451.2 329.3 438.7L224 333.3L86.6 470.6C74.1 483.1 53.8 483.1 41.3 470.6C28.8 458.1 28.8 437.8 41.3 425.3L201.3 265.3C213.8 252.8 234.1 252.8 246.6 265.3L352 370.7L498.7 224L416 224z"/>
+                </svg>`;
+        } else {
+            iconEl.innerHTML = `
+                <svg fill="currentColor" class="w-6 h-6" viewBox="0 0 640 640">
+                    <path d="M416 416C398.3 416 384 430.3 384 448C384 465.7 398.3 480 416 480L576 480C593.7 480 608 465.7 608 448L608 288C608 270.3 593.7 256 576 256C558.3 256 544 270.3 544 288L544 370.7L374.6 201.3C362.1 188.8 341.8 188.8 329.3 201.3L224 306.7L86.6 169.4C74.1 156.9 53.8 156.9 41.3 169.4C28.8 181.9 28.8 202.2 41.3 214.7L201.3 374.7C213.8 387.2 234.1 387.2 246.6 374.7L352 269.3L498.7 416L416 416z"/>
+                </svg>`;
+        }
+    }
+
+
+    initSalesChart() {
+        const el = document.getElementById("salesChart");
+        if (!el) return;
+
+        const data = this.getSalesData();
+
+        this.salesChart = new ApexCharts(el, {
+            series: [
+                { name: "Current Period", data: data.current },
+                { name: "Previous Period", data: data.previous },
+            ],
+            chart: {
+                height: 400,
+                type: "line",
+                toolbar: { show: false },
+            },
+        });
+
+        this.salesChart.render();
+    }
+
+    updateSalesChart() {
+        if (!this.salesChart) return;
+        const data = this.getSalesData();
+
+        this.salesChart.updateSeries([
+            { name: "Current Period", data: data.current },
+            { name: "Previous Period", data: data.previous },
+        ]);
+    }
+
+    initMaintenanceChart() {
+        const el = document.getElementById("maintenanceChart");
+        if (!el) return;
+
+        this.maintenanceChart = new ApexCharts(el, {
+            series: [
+                { name: "Due", data: [5, 3, 7, 4, 6, 2, 1, 8, 5, 3, 6, 4, 2, 3] },
+                { name: "Completed", data: [3, 4, 2, 6, 5, 3, 2, 4, 7, 5, 3, 8, 4, 2] },
+            ],
+            chart: { height: 300, type: "line", toolbar: { show: false } },
+        });
+
+        this.maintenanceChart.render();
+    }
+
+    initDamagedChart() {
+        const el = document.getElementById("damagedChart");
+        if (!el) return;
+
+        this.damagedChart = new ApexCharts(el, {
+            series: [
+                { name: "Due", data: [2, 1, 4, 3, 2, 1, 0, 5, 3, 2, 4, 1, 2, 1] },
+                { name: "Completed", data: [1, 3, 2, 4, 3, 2, 1, 2, 4, 3, 1, 5, 3, 2] },
+            ],
+            chart: { height: 300, type: "line", toolbar: { show: false } },
+        });
+
+        this.damagedChart.render();
+    }
+}
+
+/** ------------------------
+ *      MOUNT THE DASHBOARD
+ --------------------------*/
+document.addEventListener("DOMContentLoaded", () => {
+    window.dashboard = new Dashboard(document.getElementById("dashboard"));
+});
 </script>
-<style>
-    [x-cloak] { display: none !important; }
-</style>
 @endpush

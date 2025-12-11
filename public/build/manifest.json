@@ -1,14 +1,14 @@
 {
-  "_api-CZtsPAts.js": {
-    "file": "assets/api-CZtsPAts.js",
+  "_api-DVkapAgo.css": {
+    "file": "assets/api-DVkapAgo.css",
+    "src": "_api-DVkapAgo.css"
+  },
+  "_api-DyvHPS4B.js": {
+    "file": "assets/api-DyvHPS4B.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
     ]
-  },
-  "_api-DVkapAgo.css": {
-    "file": "assets/api-DVkapAgo.css",
-    "src": "_api-DVkapAgo.css"
   },
   "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-D1LuMI3I.ttf",
@@ -48,17 +48,17 @@
     "isEntry": true
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-4zGRn7cm.css",
+    "file": "assets/app-CVf2Doj6.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-Bu6PXzly.js",
+    "file": "assets/app-D488kd8c.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-CZtsPAts.js"
+      "_api-DyvHPS4B.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
@@ -71,22 +71,22 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-Bb2jvPw4.css",
+    "file": "assets/app-CT4vGSCb.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-CFo-M3XO.css",
+    "file": "assets/app-8Qx3XwlP.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-CuqU-ztN.js",
+    "file": "assets/app-DLN9lCvQ.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-CZtsPAts.js"
+      "_api-DyvHPS4B.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"
@@ -99,7 +99,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DrBeKiNS.js",
+    "file": "assets/app-UyAj6-py.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

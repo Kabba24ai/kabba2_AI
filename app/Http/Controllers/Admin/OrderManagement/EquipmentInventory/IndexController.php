@@ -35,6 +35,7 @@ class IndexController extends Controller
 
         if ($request->ajax()) {
             $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'orderProduct', 'lastOrderProduct', 'activeEquipmentRentalReadyTemplate')
+            ->where('not_for_rent', 0)
                     ->when($request->filled('search'), function ($q) use ($request) {
                         $q->where(function ($sub) use ($request) {
                             $sub->where('equipment_name', 'like', '%' . $request->search . '%')

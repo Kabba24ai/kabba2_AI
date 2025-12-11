@@ -34,7 +34,6 @@ class StoreRequest extends FormRequest
             }
         }
 
-
     }
 
     public function rules()
@@ -42,13 +41,12 @@ class StoreRequest extends FormRequest
         return [
             'equipment_name' => 'required|string|max:255',
             'product_category_id' => 'required|exists:product_categories,id',
-
             'equipment_id' => 'required|string|max:255|unique:equipment,equipment_id',
             'equipment_hours' => 'nullable|numeric|min:0',
             'store_id' => 'nullable|exists:stores,id',
             'is_tracked' => 'nullable|boolean',
+            'not_for_rent' => 'nullable|boolean',
             'overage_rate' => 'nullable|numeric|min:0',
-
             'brand' => 'required|string|max:255',
             'model' => 'nullable|string|max:255',
             'model_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
@@ -75,7 +73,7 @@ class StoreRequest extends FormRequest
             'imei' => 'nullable|string|max:255',
 
             // fixed rule
-            'power_source_type'     => 'nullable|in:diesel,gas,batteries',
+            'power_source_type'     => 'nullable|in:diesel,gas,batteries,electric',
 
             // only required when power_source_type = diesel
             'has_def'               => 'nullable|boolean',
@@ -88,7 +86,7 @@ class StoreRequest extends FormRequest
 
             // battery counts only apply for "batteries"
             'standard_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
-            'expanded_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
+            'expanded_battery_count' => 'nullable|numeric|min:0',
             'checklist_master_id' => 'nullable|exists:checklist_masters,id',
 
             // add rules for selects present in form (adjust table names if different)
@@ -98,6 +96,10 @@ class StoreRequest extends FormRequest
             'part_id' => 'nullable|exists:parts,id',
 
             'equipment_notes' => 'nullable|string',
+
+            'volts' => 'nullable', // or array if you send as array and implode before saving
+            'amps'  => 'nullable', // same as above
+
         ];
     }
 

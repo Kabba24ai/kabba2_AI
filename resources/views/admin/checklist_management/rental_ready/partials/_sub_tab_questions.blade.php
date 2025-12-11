@@ -101,6 +101,15 @@
                            </button>
                            <!-- Edit -->
 
+                           <form action="{{ route('admin.checklist-management.rental-ready.questions.copy', $question->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-green-600 hover:text-green-800" title="Copy this Checklist Master">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5A3.375 3.375 0 0 0 6.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0 0 15 2.25h-1.5a2.251 2.251 0 0 0-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 0 0-9-9Z"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+
                            @php
                            $options = $question->answers
 
@@ -410,29 +419,42 @@
                    'bg-white border border-gray-300 rounded-md px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4';
                wrapper.setAttribute('data-id', option.id);
 
-               // disable drag handle & delete for the first option
-               const dragHandle = index === 0 ? '' : `
-                <div class="flex items-center mb-2 sm:mb-0">
-                    <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
-                        </svg>
-                    </span>
-                </div>`;
 
-               const deleteButton = index === 0 ? '' : `
-                <div>
-                    <button type="button" onclick="removeOption(${index})"
-                        class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
-                        title="Delete">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </button>
-                </div>`;
+               const isFirst = index === 0;
+                const isSecond = index === 1;
+                const isLast = index === answerOptions.length - 1;
 
-               // Lock first input & select
-               const inputDisabled = index === 0 ? 'readonly' : '';
-               const selectDisabled = index === 0 ? 'disabled' : '';
+                const isLocked = option.lockFull || isFirst || isLast;
+                const lockDrag = isLocked || option.lockDrag;
+                const lockDelete = isLocked || option.lockDelete || isSecond;
+
+                // DRAG HANDLE
+                const dragHandle = lockDrag ? '' : `
+                    <div class="flex items-center mb-2 sm:mb-0">
+                        <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
+                            </svg>
+                        </span>
+                    </div>`;
+
+                // DELETE BUTTON
+                const deleteButton = lockDelete ? '' : `
+                    <div>
+                        <button type="button" onclick="removeOption(${index})"
+                            class="mt-2 sm:mt-0 sm:ml-2 text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800 mx-auto sm:mx-0"
+                            title="Delete">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </button>
+                    </div>
+                `;
+
+                // INPUT LOCK — Only lock full ones + first + last
+                const inputDisabled = (option.lockFull || isFirst || isLast) ? 'readonly' : '';
+
+                // SELECT LOCK — only last and first lock full
+              const selectDisabled = (option.lockFull || isSecond || isLast) ? 'disabled' : '';
 
                wrapper.innerHTML = `
 
@@ -441,7 +463,7 @@
     <div class="flex-1">
         <input type="text" placeholder="Answer description..."
             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value="${option.text}" 
+            value="${option.text}"
             oninput="updateText(${index}, this.value)"  ${inputDisabled} required>
     </div>
 
@@ -475,26 +497,24 @@
                    touchStartThreshold: 5,
                    fallbackOnBody: true,
                    onMove: function(evt) {
-                       // Prevent dragging the first option OR placing any item before it
-                       if (evt.dragged && evt.dragged.getAttribute('data-id') == answerOptions[0].id) {
-                           return false; // Can't drag first
-                       }
-                       if (evt.related && evt.related === container.children[0]) {
-                           return false; // Can't drop anything before first
-                       }
-                   },
-                   onEnd: function(evt) {
-                       // Prevent reordering if first is involved
-                       if (evt.oldIndex === 0 || evt.newIndex === 0) {
-                           renderOptions();
-                           return;
-                       }
+                        const index = evt.dragged.dataset.index;
 
-                       // Normal reorder among the rest
-                       const movedItem = answerOptions.splice(evt.oldIndex, 1)[0];
-                       answerOptions.splice(evt.newIndex, 0, movedItem);
-                       renderOptions();
-                   }
+                        if (index == 0 || index == 1 || index == answerOptions.length - 1) {
+                            return false;
+                        }
+                    },
+                    onEnd: function(evt) {
+                        if (evt.oldIndex == 0 || evt.oldIndex == 1 || evt.oldIndex == answerOptions.length - 1 ||
+                            evt.newIndex == 0 || evt.newIndex == 1 || evt.newIndex == answerOptions.length - 1) {
+                            renderOptions();
+                            return;
+                        }
+
+                        const movedItem = answerOptions.splice(evt.oldIndex, 1)[0];
+                        answerOptions.splice(evt.newIndex, 0, movedItem);
+                        renderOptions();
+                    }
+
                });
            }
 
@@ -502,21 +522,20 @@
        }
 
        function addOption() {
-           answerOptions.push({
-               id: nextId++,
-               text: '',
-               status: 'Rental Ready'
-           });
-           renderOptions();
-       }
+    answerOptions.splice(answerOptions.length - 1, 0, {
+        id: nextId++,
+        text: '',
+        status: 'Rental Ready'
+    });
+    renderOptions();
+}
+
 
        function removeOption(index) {
-           //    if (answerOptions.length > 2) {
+
            answerOptions.splice(index, 1);
            renderOptions();
-           //    } else {
-           //        notyf.error("You must have at least 2 options.");
-           //    }
+
        }
 
 
@@ -565,15 +584,61 @@
                    requiredCheckbox.checked = required;
 
                    // Set answerOptions global variable and render
-                   answerOptions = options.map(opt => ({
-                       id: opt.id,
-                       text: opt.text,
-                       status: opt.status,
-                       index_number: opt.index_number
-                   }));
+                //    answerOptions = options.map(opt => ({
+                //        id: opt.id,
+                //        text: opt.text,
+                //        status: opt.status,
+                //        index_number: opt.index_number
+                //    }));
 
-                   nextId = answerOptions.length + 1;
-                   renderOptions();
+                //    nextId = answerOptions.length + 1;
+                //    renderOptions();
+
+                // Handle Edit
+answerOptions = options.map((opt, i) => ({
+    id: opt.id,
+    text: opt.text,
+    status: opt.status,
+}));
+
+// ---- Ensure FIRST item exists ----
+if (!answerOptions.length || answerOptions[0].text.toLowerCase() !== "inspection required") {
+    answerOptions.unshift({
+        id: 1,
+        text: "Inspection Required",
+        status: "Maint. Hold",
+        lockFull: true
+    });
+}
+
+// ---- Ensure LAST item exists ----
+const last = answerOptions[answerOptions.length - 1];
+if (!last || last.text.toLowerCase() !== "miscellaneous damage") {
+    answerOptions.push({
+        id: 9999,
+        text: "Miscellaneous Damage",
+        status: "Damaged",
+        lockFull: true
+    });
+}
+
+// ---- Apply locks based on final positions ----
+answerOptions = answerOptions.map((opt, index) => {
+    const isFirst = index === 0;
+    const isSecond = index === 1;
+    const isLast = index === answerOptions.length - 1;
+
+    return {
+        ...opt,
+        lockFull: isFirst || isLast ? true : opt.lockFull || false,
+        lockDrag: isSecond ? true : opt.lockDrag || false,
+        lockDelete: isSecond || isFirst || isLast ? true : opt.lockDelete || false
+    };
+});
+
+nextId = answerOptions.length + 1;
+renderOptions();
+
 
                    // Switch form action to update route
                    form.setAttribute("action", updateRoute);
@@ -608,14 +673,31 @@
                requiredCheckbox.checked = true;
 
                // Reset options
-               // answerOptions = [];
-               // nextId = 1;
-               answerOptions = [{
-                   id: 1,
-                   text: 'Inspection Required',
-                   status: 'Maint. Hold'
-               }];
-               nextId = 2;
+
+            answerOptions = [
+                        {
+                            id: 1,
+                            text: "Inspection Required",
+                            status: "Maint. Hold",
+                            lockFull: true     // cannot edit, drag, delete
+                        },
+                        {
+                            id: 2,
+                            text: "",
+                            status: "Rental Ready",
+                            lockDelete: true,  // cannot delete or drag
+                            lockDrag: true
+                        },
+                        {
+                            id: 9999,
+                            text: "Miscellaneous Damage",
+                            status: "Damaged",
+                            lockFull: true     // always last
+                        }
+                    ];
+                    nextId = 3; // User-added options start from ID 3
+
+
                renderOptions();
 
                btnText.textContent = "Save Question";
@@ -656,46 +738,65 @@
 
 
    <!-- filter  -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
 
-   <script>
-       document.addEventListener("DOMContentLoaded", function() {
-           const searchInput = document.querySelector('input[placeholder="Search by question name..."]');
-           const categorySelect = document.querySelector('select');
-           const cards = document.querySelectorAll(".question-card");
-           const wrapper = document.getElementById("cardsWrapper");
+    const searchInput = document.querySelector('input[placeholder="Search by question name..."]');
+    const categorySelect = document.querySelector('select');
+    const cards = document.querySelectorAll(".question-card");
+    const wrapper = document.getElementById("cardsWrapper");
 
-           function filterCards() {
-               // Add loading effect
-               wrapper.classList.add('opacity-50', 'pointer-events-none');
+    const screenKey = "questionFilterScreen"; // <-- unique key for this screen
 
-               const searchText = searchInput.value.toLowerCase();
-               const selectedCategory = categorySelect.value;
+    function filterCards() {
+        // Add loading effect
+        wrapper.classList.add('opacity-50', 'pointer-events-none');
 
-               setTimeout(() => {
-                   cards.forEach(card => {
-                       const title = card.querySelector("h3").textContent.toLowerCase();
-                       const cardCategoryId = card.getAttribute("data-category-id");
+        const searchText = searchInput.value.toLowerCase();
+        const selectedCategory = categorySelect.value;
 
-                       let matchesSearch = !searchText || title.includes(searchText);
-                       let matchesCategory = (selectedCategory === "All Categories" || selectedCategory === "") ||
-                           cardCategoryId === selectedCategory;
+        setTimeout(() => {
+            cards.forEach(card => {
+                const title = card.querySelector("h3").textContent.toLowerCase();
+                const cardCategoryId = card.getAttribute("data-category-id");
 
-                       if (matchesSearch && matchesCategory) {
-                           card.style.display = "block";
-                       } else {
-                           card.style.display = "none";
-                       }
-                   });
+                let matchesSearch = !searchText || title.includes(searchText);
+                let matchesCategory =
+                    (selectedCategory === "All Categories" || selectedCategory === "") ||
+                    cardCategoryId === selectedCategory;
 
-                   // Remove loading effect
-                   wrapper.classList.remove('opacity-50', 'pointer-events-none');
-               }, 150); // simulate small delay for UX
-           }
+                card.style.display = (matchesSearch && matchesCategory) ? "block" : "none";
+            });
 
-           searchInput.addEventListener("input", filterCards);
-           categorySelect.addEventListener("change", filterCards);
-       });
-   </script>
+            wrapper.classList.remove('opacity-50', 'pointer-events-none');
+        }, 150);
+    }
+
+    //  Freeze Support
+    const fieldMap = {
+        search: searchInput,
+        categoryFilter: categorySelect,
+    };
+
+    // Load previous freeze values
+    FilterFreezer.loadFilters(screenKey, fieldMap);
+
+    // Re-apply filter after loading
+    filterCards();
+
+    // Save filter changes + apply filter
+    searchInput.addEventListener("input", function () {
+        FilterFreezer.saveFilters(screenKey, fieldMap);
+        filterCards();
+    });
+
+    categorySelect.addEventListener("change", function () {
+        FilterFreezer.saveFilters(screenKey, fieldMap);
+        filterCards();
+    });
+
+});
+</script>
 
 
    <!-- filter  -->
@@ -716,6 +817,26 @@
            cards.forEach(card => wrapper.appendChild(card));
        });
    </script>
+
+
+@if(session('edit_questions_open'))
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const newId = "{{ session('edit_questions_open') }}";
+
+    // Find the edit button for this newly copied question
+    const btn = document.querySelector(
+        `.edit-question-btn[data-route*="/${newId}"]`
+    );
+
+    if (btn) {
+        btn.click(); // open the edit modal automatically
+    }
+});
+</script>
+@endif
+
 
 
 

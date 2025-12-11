@@ -12,7 +12,7 @@ class IndexController extends Controller
 {
    public function __invoke()
     {
-        $cat = SmsCategory::orderBy('created_at', 'DESC')->get();
+        $cat = SmsCategory::orderBy('name', 'ASC')->get();
 
         return response()->json([
             'status' => 'success',

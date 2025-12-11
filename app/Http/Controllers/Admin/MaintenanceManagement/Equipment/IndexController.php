@@ -14,6 +14,8 @@ class IndexController extends Controller
     {
 
         $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'checklistMaster', 'store', 'order.customer','activeEquipmentRentalReadyTemplate');
+$equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
+    ->pluck('equipment_id');
 
         // Checklist Master filter
         $query->when($request->checklist_master, function ($q, $checklistMaster) {
@@ -43,10 +45,17 @@ class IndexController extends Controller
             $q->where('equipment_name', 'like', '%' . $search . '%');
         });
 
+$query->when($request->equipment_id, function ($q, $equipmentId) {
+    $q->where('equipment_id', $equipmentId);
+});
+
+
         // Category filter
         $query->when($request->category, function ($q, $category) {
             $q->where('product_category_id', $category);
         });
+
+        
 
         $perPage = $request->input('per_page', 10);
         $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
@@ -79,6 +88,6 @@ class IndexController extends Controller
             ]);
         }
 
-        return view('admin.maintenance_management.equipment.index', compact( 'stats', 'categories', 'stores'));
+        return view('admin.maintenance_management.equipment.index', compact( 'stats', 'categories', 'stores','equipmentIds'));
     }
 }

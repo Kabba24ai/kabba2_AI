@@ -115,7 +115,7 @@
 
             <!-- HEADER -->
             <div class="flex justify-between items-center px-6 pt-4">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" >
                     <svg xmlns="http://www.w3.org/2000/svg"
                          class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24"
                          stroke="currentColor" stroke-width="2">
@@ -150,7 +150,7 @@
                     <div>
                         <div class="flex items-center justify-between mb-2">
                             <label for="ContactTags" class="block text-sm font-medium text-gray-700"> Category <span class="text-red-500">*</span></label>
-                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                            <button id="sms-cat-open" type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1" >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                                 </svg>
@@ -235,6 +235,128 @@
         </div>
     </div>
 </div>
+
+<!-- EDIT SMS BROADCAST MODAL -->
+<div id="edit-smsbroadcast"
+     class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5
+                    border border-gray-200 overflow-hidden flex flex-col max-h-full">
+
+            <!-- HEADER -->
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <h2 class="text-lg font-medium text-gray-900">Edit SMS Broadcast</h2>
+                </div>
+
+                <button type="button" class="text-gray-400 hover:text-gray-700 text-xl"
+                        onclick="closeModal('edit-smsbroadcast')">×</button>
+            </div>
+
+            <!-- FORM -->
+            <form id="edit_sms_broadcast_form" class="space-y-8 px-6 overflow-y-auto"
+                  autocomplete="off" data-parsley-validate>
+
+                <input type="hidden" id="edit_sms_broadcast_id" value="">
+
+                <!-- CATEGORY -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Category <span class="text-red-500">*</span>
+                    </label>
+                    <select id="edit_sms_cat_id" name="sms_cat_id"
+                            class="w-full border rounded-md px-3 py-3 text-sm"
+                            required>
+                        <option value="">Select Category</option>
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+
+                <!-- CONTENT NAME -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Content Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="edit_sms_broadcast_name" name="name"
+                           class="w-full border rounded-md px-3 py-3 text-sm"
+                           placeholder="Enter message title..."
+                           required>
+                </div>
+
+                <!-- CONTENT TEXT -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Content <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="edit_sms_broadcast_description" name="description"
+                              rows="4"
+                              class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm"
+                              placeholder="Write your SMS content here..."
+                              required></textarea>
+                    <!-- CHAR COUNTER -->
+                    <p class="text-xs text-gray-500 mt-1">
+                        Characters: <span id="editCharCount">0</span>
+                    </p>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="flex justify-end gap-2 pb-4">
+                    <button type="button" onclick="closeModal('edit-smsbroadcast')"
+                            class="px-6 py-3 text-md rounded-lg font-medium border border-gray-300 bg-white text-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit" id="updateSmsBroadcastBtn"
+                            class="px-6 py-3 text-md rounded-lg font-medium bg-yellow-500 text-white hover:bg-yellow-600">
+                        Update Message
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="bg-white border border-gray-200 rounded-xl p-4 space-y-4 shadow-sm mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Filter -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
+            <select  name="sms_bro_filter_category" id="sms_bro_filter_category" class="w-full text-sm px-3 py-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option>All Categories</option>
+                @foreach ($SmsCategory as $SmsCat)
+                <option value="{{ $SmsCat->id }}">{{ $SmsCat->name }}</option>
+
+                @endforeach
+            </select>
+        </div>
+
+        <!-- Search -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Search by Content Name</label>
+            <input type="text" id="sms_bro_Search_name" name="sms_bro_Search_name" placeholder="Search by content name..." class="w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+
+    </div>
+</div>
+
+<div id="broadcast-table-wrapper">
+    @include('admin.crm.message_management.partials._sms_broadcast_table', [
+        'broadcasts' => []
+    ])
+</div>
+
+
+
 
 <div id="copy-msg"
      class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
@@ -341,130 +463,24 @@
     </div>
 </div>
 
-<!-- EDIT SMS BROADCAST MODAL -->
-<!-- EDIT SMS BROADCAST MODAL -->
-<div id="edit-smsbroadcast"
-     class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-
-    <div class="modal-scrollable w-full mx-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5
-                    border border-gray-200 overflow-hidden flex flex-col max-h-full">
-
-            <!-- HEADER -->
-            <div class="flex justify-between items-center px-6 pt-4">
-                <div class="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24"
-                         stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    <h2 class="text-lg font-medium text-gray-900">Edit SMS Broadcast</h2>
-                </div>
-
-                <button type="button" class="text-gray-400 hover:text-gray-700 text-xl"
-                        onclick="closeModal('edit-smsbroadcast')">×</button>
-            </div>
-
-            <!-- FORM -->
-            <form id="edit_sms_broadcast_form" class="space-y-8 px-6 overflow-y-auto"
-                  autocomplete="off" data-parsley-validate>
-
-                <input type="hidden" id="edit_sms_broadcast_id" value="">
-
-                <!-- CATEGORY -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Category <span class="text-red-500">*</span>
-                    </label>
-                    <select id="edit_sms_cat_id" name="sms_cat_id"
-                            class="w-full border rounded-md px-3 py-3 text-sm"
-                            required>
-                        <option value="">Select Category</option>
-                        <!-- Options populated dynamically -->
-                    </select>
-                </div>
-
-                <!-- CONTENT NAME -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Content Name <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="edit_sms_broadcast_name" name="name"
-                           class="w-full border rounded-md px-3 py-3 text-sm"
-                           placeholder="Enter message title..."
-                           required>
-                </div>
-
-                <!-- CONTENT TEXT -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Content <span class="text-red-500">*</span>
-                    </label>
-                    <textarea id="edit_sms_broadcast_description" name="description"
-                              rows="4"
-                              class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm"
-                              placeholder="Write your SMS content here..."
-                              required></textarea>
-                    <!-- CHAR COUNTER -->
-                    <p class="text-xs text-gray-500 mt-1">
-                        Characters: <span id="editCharCount">0</span>
-                    </p>
-                </div>
-
-                <!-- FOOTER -->
-                <div class="flex justify-end gap-2 pb-4">
-                    <button type="button" onclick="closeModal('edit-smsbroadcast')"
-                            class="px-6 py-3 text-md rounded-lg font-medium border border-gray-300 bg-white text-gray-700">
-                        Cancel
-                    </button>
-                    <button type="submit" id="updateSmsBroadcastBtn"
-                            class="px-6 py-3 text-md rounded-lg font-medium bg-yellow-500 text-white hover:bg-yellow-600">
-                        Update Message
-                    </button>
-                </div>
-
-            </form>
-        </div>
-    </div>
-</div>
-
-
-
-<div class="bg-white border border-gray-200 rounded-xl p-4 space-y-4 shadow-sm mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Filter -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
-            <select  name="sms_bro_filter_category" id="sms_bro_filter_category" class="w-full text-sm px-3 py-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>All Categories</option>
-   @foreach ($SmsCategory as $SmsCat)
-                <option value="{{ $SmsCat->id }}">{{ $SmsCat->name }}</option>
-
-                @endforeach
-            </select>
-        </div>
-
-        <!-- Search -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Search by Content Name</label>
-            <input type="text" id="sms_bro_Search_name" name="sms_bro_Search_name" placeholder="Search by content name..." class="w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-
-    </div>
-</div>
-
-<div id="broadcast-table-wrapper">
-    @include('admin.crm.message_management.partials._sms_broadcast_table', [
-        'broadcasts' => []
-    ])
-</div>
-
 
 @push('js')
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
+document.getElementById('sms-cat-open').addEventListener('click', function () {
+    closeModal('new-smsbroadcast'); // Close current modal
+
+
+    // Activate "Categories" tab from inside the modal
+    const tabBtn = document.getElementById('tab-categories');
+    if (tabBtn) {
+        showTab('categories', tabBtn);
+    }
+
+    openModal('btn-smscat-modal'); // Open category modal
+});
+
 
     // ---------------------------------------
     // 1) FILTER & FETCH BROADCASTS
@@ -750,6 +766,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 @endif
+
 
 
 

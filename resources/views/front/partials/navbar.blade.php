@@ -48,7 +48,6 @@
 
                             @foreach ($frontCategoryTree->chunk(ceil($frontCategoryTree->count() / 4)) as $categoryColumn)
 
-
                             <!-- Column 1 -->
                             <ul class="mega-col space-y-2 text-gray-700">
                                 @foreach ($categoryColumn as $category)
@@ -92,7 +91,6 @@
                                 </li>
                                 @endforeach
                             </ul>
-
                             @endforeach
                         </div>
                     </div>
@@ -228,13 +226,11 @@
                             </ul>
                         </li>
 
-
                         <li
                             class=" py-3 {{ Route::is('front.faqs.index') ? 'active' : '' }} group-[.active]:font-bold group">
                             <a href="{{ route('front.faqs.index') }}"
                                 class="hover:text-yellow-400 px-5text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold ">Faqs</a>
                         </li>
-
                         <li
                             class=" py-3 {{ Route::is('front.contact-us.index') ? 'active' : '' }} group-[.active]:font-bold group">
                             <a href="{{ route('front.contact-us.index') }}"
@@ -248,12 +244,11 @@
 
         <!--  Off canvas Cart -->
         <div id="cartOffCanvas"
-            class="-translate-x-full offcanvas-cart-body absolute top-17 right-0 overflow-hidden md:top-17 max-w-0 lg:top-20 opacity-0 md:max-w-md w-0 h-screen bg-white/90  shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
+            class="-translate-x-full offcanvas-cart-body absolute top-17 right-0 overflow-hidden md:top-17 max-w-0 lg:top-20 opacity-0 md:max-w-md w-0 h-screen bg-white/100  shadow-lg z-[9999] transform translate-x-full transition-all duration-300 ease-in-out">
             <div class="relative w-full h-[calc(100vh-80px)]">
                 <div class="px-9 pt-15 pb-15 overflow-y-scroll h-full w-full">
                     <div id="cartData" data-fetch-cart-url="{{ route('front.cart.index') }}">
                         <p class="text-center py-10 text-gray-600">Your cart is empty.</p>
-
                     </div>
                 </div>
             </div>

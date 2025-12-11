@@ -143,7 +143,7 @@
                         @endif
                     </div>
 
-                    <div class="bg-gray-100 p-4 rounded-lg max-w-max space-y-3">
+                    <div class="bg-gray-100 p-4 rounded-lg w-full md:max-w-max space-y-3">
                         <div>
                             <div class="flex flex-col md:flex-row items-center justify-items-start gap-4">
                                 <!-- Calendar icon button -->
@@ -151,7 +151,7 @@
                                     <div class="flex items-center space-x-2">
                                         <a href="javascript:void(0);" id="openDatePicker" class="flex items-center ">
                                             <img src="{{ asset('storage/front/images/calendar_icon.png') }}"
-                                                alt="Calendar Icon" class="w-6 h-6 md:w-[52px] h-[52px]" />
+                                                alt="Calendar Icon" class="w-6 h-6 md:w-[52px] h-[52px] object-contain" /> 
                                             <span id="selectedDateText" class="text-sm md:text-base text-gray-700">Start
                                                 Date</span>
                                         </a>

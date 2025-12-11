@@ -14,7 +14,7 @@ class IndexController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'data' => EmailCategory::orderBy('id', 'DESC')->get(),
+            'data' => EmailCategory::orderBy('name', 'ASC')->get(),
         ]);
     }
 }

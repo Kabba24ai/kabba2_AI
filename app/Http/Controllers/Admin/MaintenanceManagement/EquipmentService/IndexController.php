@@ -19,7 +19,10 @@ class IndexController extends Controller
             ])
             ->whereNotNull('equipment_service_id')
             ->latest()
-            ->paginate(15);
+            ->get()
+            ->sortBy(function($item) { 
+                return strtolower($item->equipment_name); 
+            });
 
         $users = User::orderBy('first_name')->get();
         

@@ -27,9 +27,24 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Equipment:</label>
                     <select id="equipment-selector" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">Select Equipment</option>
-                        @foreach($equipmentWithService->sortBy(function($item) { return strtolower($item->equipment_name); }) as $item)
-                            <option value="{{ $item->unique_id }}" data-category-id="{{ $item->productCategory?->id }}">
-                                {{ $item->equipment_name }} ({{ $item->equipment_id }}) - {{ $item->equipment_hours ?? 0 }} hrs
+                        @foreach($equipmentWithService as $item)
+                            @php
+                                // Use getRelation() to access the eager-loaded relationship
+                                $serviceTemplate = $item->relationLoaded('serviceTemplate') ? $item->getRelation('serviceTemplate') : null;
+                                $intervalType = $serviceTemplate?->preset?->interval_type ?? 'hour';
+                                $isDateBased = ($intervalType !== 'hour');
+                                
+                                if ($isDateBased && $item->date_acquired) {
+                                    $daysPassed = ceil((time() - strtotime($item->date_acquired)) / (60 * 60 * 24));
+                                    $displayValue = $daysPassed . ' days';
+                                } elseif ($isDateBased) {
+                                    $displayValue = '0 days';
+                                } else {
+                                    $displayValue = ($item->equipment_hours ?? 0) . ' hrs';
+                                }
+                            @endphp
+                            <option value="{{ $item->unique_id }}" data-category-id="{{ $item->productCategory?->id }}" data-interval-type="{{ $intervalType }}">
+                                {{ $item->equipment_name }} ({{ $item->equipment_id }}) - {{ $displayValue }}
                             </option>
                         @endforeach
                     </select>
@@ -163,7 +178,8 @@ document.addEventListener('DOMContentLoaded', function() {
         allEquipmentData.push({
             value: option.value,
             text: option.textContent,
-            categoryId: option.getAttribute('data-category-id')
+            categoryId: option.getAttribute('data-category-id'),
+            intervalType: option.getAttribute('data-interval-type')
         });
     });
     

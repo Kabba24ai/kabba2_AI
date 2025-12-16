@@ -513,7 +513,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
 
                             // include data attributes so we can open the record modal with context
+                            // Prefer a description defined on the template_task (template-level) if available,
+                            // otherwise fall back to the main task's description.
+                            let templateLevelDesc = '';
+                            try {
+                                const tt = (tasks || []).find(tt => tt.task && String(tt.task.id) === String(tid));
+                                templateLevelDesc = tt && (tt.description || tt.task_description) ? (tt.description || tt.task_description) : '';
+                            } catch (e) {
+                                templateLevelDesc = '';
+                            }
                             const safeTaskName = (task.name || '').toString().replace(/"/g, '&quot;');
+                            const safeTaskDesc = (templateLevelDesc || task.description || '').toString().replace(/"/g, '&quot;');
                             const templateId = equipment.service_template?.id || '';
                             // Find the record that matches this specific interval
                             const matchingRecord = records.find(r => r.interval_value == intervalVal);
@@ -521,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             return `
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center">
-                                        <button class="${btnClasses} hover:opacity-80" data-interval="${intervalVal}" data-task-id="${tid}" data-task-name="${safeTaskName}" data-current-hours="${currentValue}" data-equipment-id="${equipmentId}" data-template-id="${templateId}" data-record-id="${recordId}" data-is-completed="${hasCompletedRecord ? '1' : '0'}">` + svgInner + `
+                                        <button class="${btnClasses} hover:opacity-80" data-interval="${intervalVal}" data-task-id="${tid}" data-task-name="${safeTaskName}" data-task-desc="${safeTaskDesc}" data-current-hours="${currentValue}" data-equipment-id="${equipmentId}" data-template-id="${templateId}" data-record-id="${recordId}" data-is-completed="${hasCompletedRecord ? '1' : '0'}">` + svgInner + `
                                         </button>
                                     </div>
                                 </td>
@@ -575,6 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!btn) return;
         const interval = btn.getAttribute('data-interval');
         const taskName = btn.getAttribute('data-task-name') || '';
+        const taskDesc = btn.getAttribute('data-task-desc') || '';
         const currentHours = btn.getAttribute('data-current-hours') || 0;
         const equipmentId = btn.getAttribute('data-equipment-id');
         const templateId = btn.getAttribute('data-template-id');
@@ -585,6 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
         openRecordModal({ 
             interval: Number(interval), 
             taskName, 
+            taskDesc,
             currentHours: Number(currentHours),
             equipmentId,
             templateId,
@@ -595,7 +607,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Modal helpers
-    function openRecordModal({ interval, taskName, currentHours, equipmentId, templateId, taskId, recordId, isCompleted }) {
+    function openRecordModal({ interval, taskName, taskDesc, currentHours, equipmentId, templateId, taskId, recordId, isCompleted }) {
         const modal = document.getElementById('record-service-modal');
         if (!modal) return;
         
@@ -616,8 +628,65 @@ document.addEventListener('DOMContentLoaded', function() {
         const suffix = isDateBased ? 'd' : 'h';
         const label = isDateBased ? 'days' : 'hours';
         
-        modal.querySelector('#record-modal-interval').textContent = "Scheduled Service: " + interval + suffix;
-        modal.querySelector('#record-modal-task').textContent = (taskName ? taskName + ' - ' + interval + suffix : 'Service Task');
+        const recordModalIntervalEl = modal.querySelector('#record-modal-interval');
+        if (recordModalIntervalEl) recordModalIntervalEl.textContent = "Scheduled Service: " + interval + suffix;
+        const recordModalTaskEl = modal.querySelector('#record-modal-task');
+        if (recordModalTaskEl) recordModalTaskEl.textContent = (taskName ? taskName + ' - ' + interval + suffix : 'Service Task');
+        const recordModalTaskDescEl = modal.querySelector('#record-modal-task-desc');
+
+        // Helper: render description and reference links into the container safely
+        function renderTaskDescriptionAndLinks(container, description, equipmentObj, taskIdRef) {
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (description && String(description).trim() !== '') {
+                const descDiv = document.createElement('div');
+                descDiv.textContent = 'Description: ' + description;
+                container.appendChild(descDiv);
+            }
+
+            // Resolve reference links from template_task or task
+            let refLinks = [];
+            try {
+                const templateTasks = equipmentObj?.service_template?.template_tasks || [];
+                const templateTask = templateTasks.find(tt => String(tt.task?.id) === String(taskIdRef)) || null;
+                if (templateTask) {
+                    if (Array.isArray(templateTask.reference_links) && templateTask.reference_links.length) {
+                        refLinks = templateTask.reference_links;
+                    } else if (Array.isArray(templateTask.task?.reference_links) && templateTask.task.reference_links.length) {
+                        refLinks = templateTask.task.reference_links;
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to resolve reference links for task', e);
+            }
+
+            if (refLinks && refLinks.length) {
+                const refWrapper = document.createElement('div');
+                refWrapper.className = 'mt-2';
+                const label = document.createElement('div');
+                label.textContent = 'Reference Links:';
+                label.className = 'font-medium text-sm';
+                refWrapper.appendChild(label);
+
+                const list = document.createElement('div');
+                list.className = 'flex flex-col gap-1 mt-1';
+                refLinks.forEach(link => {
+                    const a = document.createElement('a');
+                    try { a.href = link; } catch (e) { a.href = '#'; }
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.textContent = link;
+                    a.className = 'text-blue-600 underline text-sm';
+                    list.appendChild(a);
+                });
+                refWrapper.appendChild(list);
+                container.appendChild(refWrapper);
+            }
+        }
+
+        // Render initial description + links (button-provided desc preferred)
+        renderTaskDescriptionAndLinks(recordModalTaskDescEl, taskDesc, equipment, taskId);
         
         // Show/hide actual hours field based on interval type
         const actualHoursContainer = document.getElementById('actual-hours-container');
@@ -634,19 +703,86 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show actual hours field for hour-based
             actualHoursContainer.style.display = 'block';
         }
+
+        // Determine if this task requires inspection and toggle checked fields
+        try {
+            const templateTasks = equipment.service_template?.template_tasks || [];
+            const templateTask = templateTasks.find(tt => String(tt.task?.id) === String(taskId)) || null;
+            const inspectionRequired = templateTask ? (templateTask.inspection_required || templateTask.task?.inspection_required || false) : false;
+
+            const checkedFields = modal.querySelectorAll('.checked-field');
+            const checkedByInput = modal.querySelector('#record-input-checked-by');
+            const checkedDateInput = modal.querySelector('#record-input-checked-date');
+
+            if (inspectionRequired) {
+                checkedFields.forEach(el => el.style.display = 'block');
+                if (checkedByInput) checkedByInput.required = true;
+                if (checkedDateInput) checkedDateInput.required = true;
+            } else {
+                checkedFields.forEach(el => el.style.display = 'none');
+                if (checkedByInput) {
+                    checkedByInput.required = false;
+                    checkedByInput.value = '';
+                }
+                if (checkedDateInput) {
+                    checkedDateInput.required = false;
+                    checkedDateInput.value = '';
+                    if (window._fpInstances && window._fpInstances['record-input-checked-date']) {
+                        try { window._fpInstances['record-input-checked-date'].clear(); } catch(e) {}
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to determine inspection requirement for task', e);
+        }
         
         // If completed, load the existing data
-        if (isCompleted && recordId) {
+            if (isCompleted && recordId) {
             const recordKey = equipmentId + '_' + taskId;
             const records = serviceRecordsData[recordKey] || [];
             // Find the record that matches this specific interval
             const record = records.find(r => r.interval_value == interval) || null;
             
-            if (record) {
+                if (record) {
                 document.getElementById('record-input-performed-by').value = record.performed_by || '';
                 document.getElementById('record-input-checked-by').value = record.checked_by || '';
                 document.getElementById('record-input-actual-hours').value = isDateBased ? '0' : (record.actual_hours || '');
                 document.getElementById('record-input-notes').value = record.notes || '';
+                    // Also set description element if present — only overwrite when record provides a description
+                    const recordModalTaskDescEl = modal.querySelector('#record-modal-task-desc');
+                    if (recordModalTaskDescEl) {
+                        if (record.task_description && String(record.task_description).trim() !== '') {
+                            renderTaskDescriptionAndLinks(recordModalTaskDescEl, record.task_description, equipment, taskId);
+                        } else {
+                            renderTaskDescriptionAndLinks(recordModalTaskDescEl, '', equipment, taskId);
+                        }
+
+                        // Append any record-level reference links if present
+                        try {
+                            if (Array.isArray(record.reference_links) && record.reference_links.length) {
+                                const rr = record.reference_links;
+                                const refWrapper = document.createElement('div');
+                                refWrapper.className = 'mt-2';
+                                const label = document.createElement('div');
+                                label.textContent = 'Reference Links:';
+                                label.className = 'font-medium text-sm';
+                                refWrapper.appendChild(label);
+                                const list = document.createElement('div');
+                                list.className = 'flex flex-col gap-1 mt-1';
+                                rr.forEach(link => {
+                                    const a = document.createElement('a');
+                                    try { a.href = link; } catch (e) { a.href = '#'; }
+                                    a.target = '_blank';
+                                    a.rel = 'noopener noreferrer';
+                                    a.textContent = link;
+                                    a.className = 'text-blue-600 underline text-sm';
+                                    list.appendChild(a);
+                                });
+                                refWrapper.appendChild(list);
+                                recordModalTaskDescEl.appendChild(refWrapper);
+                            }
+                        } catch (e) { console.warn('Failed to append record-level reference links', e); }
+                    }
                 
                 // Update modal's record-id with the correct record
                 modal.setAttribute('data-record-id', record.id || '');
@@ -704,6 +840,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
+            // Render description and/or reference links (if button provided a description it will be used)
+            const recordModalTaskDescEl = modal.querySelector('#record-modal-task-desc');
+            if (recordModalTaskDescEl) {
+                renderTaskDescriptionAndLinks(recordModalTaskDescEl, taskDesc, equipment, taskId);
+            }
+
             document.getElementById('record-input-notes').value = '';
             
             // Enable all fields
@@ -1483,11 +1625,11 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="p-6">
             <div class="mb-4 p-4 bg-blue-50 rounded-lg">
-                <div class="flex items-center gap-3">
+                <div class="flex gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock w-5 h-5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     <div class="flex-1">
-                        <div class="font-semibold text-blue-900" id="record-modal-interval">Scheduled Service</div>
                         <div class="text-sm text-blue-700" id="record-modal-current-hours">Current equipment hours: 0</div>
+                        <div class="text-sm text-gray-700 mt-1" id="record-modal-task-desc"></div>
                     </div>
                 </div>
             </div>
@@ -1516,16 +1658,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
 
-                    <div>
+                    <div class="checked-field">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Checked By *</label>
-                        <select id="record-input-checked-by" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+                        <select id="record-input-checked-by" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                             <option value="">Select checker...</option>
                             @foreach($modalUsers as $u)
                                 <option value="{{ $u->id }}">{{ $u->full_name ?? ($u->first_name . ' ' . ($u->last_name ?? '')) }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div>
+                    <div class="checked-field">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Checked Date *</label>
                         <div class="relative date-wrapper">
                             <input id="record-input-checked-date" type="text" class="date-field w-full px-4 py-2 border border-gray-300 rounded-lg" value="" />

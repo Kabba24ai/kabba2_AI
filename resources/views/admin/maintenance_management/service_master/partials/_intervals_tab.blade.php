@@ -230,7 +230,7 @@
                         x-model="intervalInput"
                         @keydown.enter.prevent="addIntervals()"
                         class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        :placeholder="presetForm.interval_type === 'hour' ? 'Enter hours (e.g., 100, 200, 300 or comma separated)' : 'Enter days (e.g., 30, 60, 90 or comma separated)'"
+                        :placeholder="presetForm.interval_type === 'hour' ? 'Enter hours (e.g., 100, 200, 300 comma separated)' : 'Enter days (e.g., 30, 60, 90  comma separated)'"
                     />
                     <button
                         @click="addIntervals()"

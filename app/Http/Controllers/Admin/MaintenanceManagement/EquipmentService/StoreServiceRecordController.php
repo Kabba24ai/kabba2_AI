@@ -12,9 +12,9 @@ class StoreServiceRecordController extends Controller
     public function __invoke(StoreServiceRecordRequest $request)
     {
         try {
-            // Convert date format from m/d/Y to Y-m-d for database
+            // Convert date format from m/d/Y to Y-m-d for database (handle nullable checked_date)
             $performedDate = Carbon::createFromFormat('m/d/Y', $request->performed_date)->format('Y-m-d');
-            $checkedDate = Carbon::createFromFormat('m/d/Y', $request->checked_date)->format('Y-m-d');
+            $checkedDate = $request->filled('checked_date') ? Carbon::createFromFormat('m/d/Y', $request->checked_date)->format('Y-m-d') : null;
 
             $data = [
                 'equipment_id' => $request->equipment_id,
@@ -24,7 +24,7 @@ class StoreServiceRecordController extends Controller
                 'interval_type' => $request->interval_type,
                 'performed_by' => $request->performed_by,
                 'performed_date' => $performedDate,
-                'checked_by' => $request->checked_by,
+                'checked_by' => $request->filled('checked_by') ? $request->checked_by : null,
                 'checked_date' => $checkedDate,
                 'actual_hours' => $request->actual_hours,
                 'notes' => $request->notes,

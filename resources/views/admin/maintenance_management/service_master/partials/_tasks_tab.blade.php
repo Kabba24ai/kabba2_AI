@@ -19,8 +19,8 @@
     <div x-show="showNewTaskForm" x-cloak class="bg-white rounded-lg border-2 border-blue-500 p-6 mb-6">
         <h3 class="text-lg font-semibold mb-4" x-text="editingTask ? 'Edit Service Task' : 'New Service Task'"></h3>
         <form @submit.prevent="saveTask">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
+            <div class="mb-4 flex flex-col md:flex-row md:items-start md:gap-4">
+                <div class="w-full md:w-2/5 pr-5">
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Task Name <span class="text-red-500">*</span>
                     </label>
@@ -32,7 +32,21 @@
                         required
                     />
                 </div>
-                <div>
+
+                <div class="w-full md:w-2/5 pr-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select
+                        x-model="taskForm.category_id"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="">Uncategorized</option>
+                        <template x-for="category in categories" :key="category.id">
+                            <option :value="category.id" x-text="category.name"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <div class="w-full md:w-1/5 ">
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Estimated Duration (minutes)
                     </label>
@@ -55,17 +69,32 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select
-                    x-model="taskForm.category_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                    <option value="">Uncategorized</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reference Links</label>
+                <div class="space-y-2">
+                    <template x-if="!taskForm.reference_links || taskForm.reference_links.length === 0">
+                        <div class="text-sm text-gray-500">No reference links. Add links below.</div>
+                    </template>
+
+                    <template x-for="(link, idx) in taskForm.reference_links || []" :key="idx">
+                        <div class="flex gap-2">
+                            <input
+                                type="text"
+                                x-model="taskForm.reference_links[idx]"
+                                placeholder="https://example.com/docs"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                            <button type="button" @click="taskForm.reference_links.splice(idx, 1)" class="px-3 py-2 bg-red-50 text-red-600 rounded-lg">Remove</button>
+                        </div>
+                    </template>
+
+                    <div class="mt-2">
+                        <button type="button" @click="(taskForm.reference_links = taskForm.reference_links || []).push('')" class="px-3 py-2 bg-blue-600 text-white rounded-lg">Add Link</button>
+                        <p class="text-sm text-gray-500 mt-2">Add documentation or resource URLs related to this task.</p>
+                    </div>
+                </div>
             </div>
+
+            <!-- removed duplicate Category block (moved into the top row) -->
 
             <div class="mb-4">
                 <label class="flex items-center gap-2">

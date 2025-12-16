@@ -429,6 +429,7 @@ function serviceMaster() {
                 category_id: '',
                 auto_apply: false,
                 inspection_required: false,
+                reference_links: [],
             };
         },
 
@@ -441,6 +442,7 @@ function serviceMaster() {
                 category_id: task.category_id || '',
                 auto_apply: task.auto_apply,
                 inspection_required: task.inspection_required || false,
+                reference_links: task.reference_links || [],
             };
             this.showNewTaskForm = true;
         },

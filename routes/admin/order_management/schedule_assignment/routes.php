@@ -3,10 +3,10 @@
 use Illuminate\Support\Facades\Route;
 
 // Controllers
-use App\Http\Controllers\Admin\OrderManagement\EquipmentInventory\IndexController;
+use App\Http\Controllers\Admin\OrderManagement\ScheduleAssignment\IndexController;
 
-Route::prefix('equipment-inventory')
-    ->name('equipment-inventory.')
+Route::prefix('schedule-assignment')
+    ->name('schedule-assignment.')
     ->group(function () {
         Route::get('/', IndexController::class)->name('index');
 });

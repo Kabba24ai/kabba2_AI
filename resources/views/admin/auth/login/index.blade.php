@@ -149,6 +149,17 @@ $watch('darkMode', value => {
                                 </div>
                             </div>
                         {{ html()->form()->close() }}
+
+                        <!-- Auto-fill Demo Credentials Button -->
+                        @if (in_array(app()->environment(), ['local', 'demo']) || in_array(request()->getHost(), ['demo', 'localhost']))
+                            <div class="mt-6">
+                                <button type="button"
+                                    class="w-full px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-800"
+                                    @click="document.getElementById('email').value = 'admin@kabba.ai'; document.getElementById('password').value = 'K@bba!9XrT#L2pQ';">
+                                    Auto-fill Demo Credentials
+                                </button>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

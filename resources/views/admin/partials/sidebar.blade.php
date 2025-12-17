@@ -44,11 +44,11 @@
                 ]);
 
                 $ordersActive = Route::is([
-                'admin.order-management.orders.*',
-                'admin.order-management.schedules.*',
-                'admin.order-management.equipment-inventory.*',
-                'admin.order-management.inventory-equipment.*',
-
+                    'admin.order-management.orders.*',
+                    'admin.order-management.schedules.*',
+                    'admin.order-management.equipment-inventory.*',
+                    'admin.order-management.schedule-assignment.*',
+                    'admin.order-management.inventory-equipment.*',
                 ]);
 
                 $customerChecklistActive = Route::is([
@@ -116,7 +116,25 @@
                                     <a href="{{ route('admin.order-management.schedules.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.order-management.schedules.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-calendar class="h-5 w-5" /> Schedules
+                                        <x-heroicon-o-calendar class="h-5 w-5" /> Schedule
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.order-management.schedule-assignment.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.order-management.schedule-assignment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-inventory w-5 h-5">
+                                            <rect x="3" y="3" width="7" height="7" rx="1" />
+                                            <path d="M3 7h7" />
+                                            <rect x="14" y="3" width="7" height="7" rx="1" />
+                                            <path d="M14 7h7" />
+                                            <rect x="8.5" y="14" width="7" height="7" rx="1" />
+                                            <path d="M8.5 18h7" />
+                                        </svg> Schedule Assignment
                                     </a>
                                 </li>
 
@@ -137,6 +155,8 @@
                                         </svg> Equipment Inventory
                                     </a>
                                 </li>
+
+
 
                                 {{-- <li>
                                     <a href="{{ route('admin.order-management.inventory-equipment.index') }}"

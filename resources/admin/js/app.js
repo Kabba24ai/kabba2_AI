@@ -14,8 +14,8 @@ import '../../shared/js/pagination.js';
 import AirDatepicker from "air-datepicker";
 
 // Make Alpine globally available
-Alpine.plugin(persist);
-window.Alpine = Alpine;
+// Alpine.plugin(persist);
+// window.Alpine = Alpine;
 window.Sortable = Sortable;
 
 // Start Alpine.js

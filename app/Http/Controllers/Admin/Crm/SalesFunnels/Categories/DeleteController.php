@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Stores;
+namespace App\Http\Controllers\Admin\Crm\SalesFunnels\Categories;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customers\SalesFunnelCategory;
 use Illuminate\Http\Request;
 
 // Models
-use App\Models\Stores\Store;
 
 class DeleteController extends Controller
 {
@@ -19,10 +19,10 @@ class DeleteController extends Controller
 
     public function __invoke($unique_id, Request $request)
     {
-        $objRecord = Store::where('unique_id', $unique_id)->firstOrFail();
+        $objRecord = SalesFunnelCategory::where('unique_id', $unique_id)->firstOrFail();
         $objRecord->delete();
 
-        flash('Store deleted successfully.')->success();
-        return redirect()->route('admin.stores.index');
+        flash('Category deleted successfully.')->success();
+        return redirect()->route('admin.crm.sales-funnels.index');
     }
 }

@@ -14,12 +14,11 @@
 
     <!-- Core Css -->
     @vite(['resources/admin/css/app.css', 'resources/admin/js/app.js'])
-   
-     @livewireStyles
-     @livewireScripts
 
 
     <meta name="vite-app-css" content="{{ Vite::asset('resources/css/app.css') }}">
+
+    @livewireStyles
 
     @stack('css')
     <style>
@@ -80,6 +79,7 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
         <!-- ===== Content Area End ===== -->
     </div>
     <!-- ===== Page Wrapper End ===== -->
+    @livewireScripts
     @stack('js')
     <script>
         window.Laravel = {
@@ -87,7 +87,7 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
             error: @json(session('error'))
         };
 
-      
+
 
     </script>
 </body>

@@ -27,6 +27,8 @@ Route::prefix('crm')
     require base_path('routes/admin/crm/tags/routes.php');
 
     //message_management
-        require base_path('routes/admin/crm/message_management/routes.php');
+    require base_path('routes/admin/crm/message_management/routes.php');
+
+    require base_path('routes/admin/crm/sales_funnels/routes.php');
 
 });

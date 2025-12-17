@@ -1,7 +1,7 @@
 {{-- Stats Cards --}}
-<div class="grid grid-cols-5 gap-4 mb-6">
-    <a href="{{ route('admin.maintenance-management.equipment.index') }}"
-       class="bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ !request('status') ? 'border-gray-400 bg-gray-50' : 'border-gray-100 hover:border-gray-300' }}">
+<div class="grid grid-cols-5 gap-4 mb-6 p-2">
+    <a href="#" data-status=""
+       class="stats-filter bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ !request('status') ? 'border-gray-400 bg-gray-50' : 'border-gray-100 hover:border-gray-200' }}">
         <div class="flex items-center justify-between">
             <div class="text-left">
                 <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total</p>
@@ -12,8 +12,9 @@
         </div>
     </a>
 
-    <a href="{{ route('admin.maintenance-management.equipment.index', ['status' => 'available']) }}"
-       class="bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ request('status') === 'available' ? 'border-green-300 bg-green-50' : 'border-gray-100 hover:border-green-200' }}">
+    <a href="#"
+       data-status="available"
+       class="stats-filter bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ request('status') === 'available' ? 'border-green-300 bg-green-50' : 'border-gray-100 hover:border-green-200' }}">
         <div class="flex items-center justify-between">
             <div class="text-left">
                 <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Available</p>
@@ -23,8 +24,9 @@
         </div>
     </a>
 
-    <a href="{{ route('admin.maintenance-management.equipment.index', ['status' => 'rented']) }}"
-       class="bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ request('status') === 'rented' ? 'border-blue-300 bg-blue-50' : 'border-gray-100 hover:border-blue-200' }}">
+    <a href="#"
+       data-status="rented"
+       class="stats-filter bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ request('status') === 'rented' ? 'border-blue-300 bg-blue-50' : 'border-gray-100 hover:border-blue-200' }}">
         <div class="flex items-center justify-between">
             <div class="text-left">
                 <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Rented</p>
@@ -34,8 +36,9 @@
         </div>
     </a>
 
-    <a href="{{ route('admin.maintenance-management.equipment.index', ['status' => 'maintenance']) }}"
-       class="bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ request('status') === 'maintenance' ? 'border-yellow-300 bg-yellow-50' : 'border-gray-100 hover:border-yellow-200' }}">
+    <a  href="#"
+       data-status="maintenance"
+       class="stats-filter bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ request('status') === 'maintenance' ? 'border-yellow-300 bg-yellow-50' : 'border-gray-100 hover:border-yellow-200' }}">
         <div class="flex items-center justify-between">
             <div class="text-left">
                 <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Maintenance</p>
@@ -45,8 +48,9 @@
         </div>
     </a>
 
-    <a href="{{ route('admin.maintenance-management.equipment.index', ['status' => 'damaged']) }}"
-       class="bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ request('status') === 'damaged' ? 'border-red-300 bg-red-50' : 'border-gray-100 hover:border-red-200' }}">
+    <a href="#"
+       data-status="damaged"
+       class="stats-filter bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ request('status') === 'damaged' ? 'border-red-300 bg-red-50' : 'border-gray-100 hover:border-red-200' }}">
         <div class="flex items-center justify-between">
             <div class="text-left">
                 <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Damaged</p>

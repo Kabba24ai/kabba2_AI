@@ -11,13 +11,16 @@
             <p class="text-sm text-gray-600 mt-1">Rental & Sales Management System</p>
         </div>
 
-        <!-- Section 1: Task Badges -->
-        <div class="mb-6">
-           @include('admin.dashboard.partials._schedule_section')
-        </div>
+      
+
+        <!-- Section 1 -->
+<div class="mb-6">
+    <livewire:dashboard.schedule-section />
+</div>
 
         <!-- Section 2: Customer Alerts -->
         <div class="mb-6">
+            <livewire:dashboard.alerts-section />
               @include('admin.dashboard.partials._alerts_section')
         </div>
 
@@ -28,6 +31,7 @@
 
         <!-- Section 4: Maintenance & Damaged Items Tracking -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
+            
             @include('admin.dashboard.partials._maintenance_and_damaged')
         </div>
 
@@ -37,68 +41,305 @@
 @push('js')
 <script>
 const salesDataFromServer = @json($salesData);
+   //  REAL DATA from backend
+    window.damageAlerts = @json($damagedOrderAlerts);
+
+    window.AUTH_USER_ID = {{ auth()->id() }};
+
+    window.chartData = @json($chartData);
 
 /**
  * Vanilla JavaScript Dashboard Controller
  * Replaces Alpine.js completely.
  */
-class Dashboard {
-    constructor(root) {
+    class Dashboard {
+        constructor(root) {
 
-        // store reference to the root element
-        this.root = root;
+            // store reference to the root element
+            this.root = root;
 
-        // state
-        this.salesPeriod = "rolling30";
-        this.fuelAlerts = [...this.defaultFuelAlerts()];
-        this.damageAlerts = [...this.defaultDamageAlerts()];
-        this.showAmountModal = false;
-        this.showNotesModal = false;
-        this.showUpdateDropdown = null;
-        this.editingAlert = null;
-        this.tempAmount = "";
-        this.tempNotes = "";
+            // state
+            this.salesPeriod = "rolling30";
+            this.fuelAlerts = [...this.defaultFuelAlerts()];
+            this.damageAlerts = [...this.defaultDamageAlerts()];
+            this.showAmountModal = false;
+            this.showNotesModal = false;
+            this.showUpdateDropdown = null;
+            this.editingAlert = null;
+            this.tempAmount = "";
+            this.tempNotes = "";
 
-        // charts
-        this.salesChart = null;
-        this.maintenanceChart = null;
-        this.damagedChart = null;
+            // charts
+            this.salesChart = null;
+            this.maintenanceChart = null;
+            this.damagedChart = null;
 
-        // initialize
-        this.init();
-    }
 
-    /** ------------------------
-     *      DEFAULT DATA
-     --------------------------*/
-    defaultFuelAlerts() {
-        return [
-            { id: 1, customerName: 'ABC Events LLC', orderId: 'ORD-2024-001', amountOwed: 'Pending', date: '2024-01-27', type: 'fuel', notes: '' },
-            { id: 2, customerName: 'Wedding Bliss Co', orderId: 'ORD-2024-002', amountOwed: '$45.00', date: '2024-01-26', type: 'fuel', notes: 'Customer disputed charge initially' },
-            { id: 3, customerName: 'Corporate Solutions', orderId: 'ORD-2024-003', amountOwed: 'Pending', date: '2024-01-25', type: 'fuel', notes: '' },
-            { id: 4, customerName: 'Party Time Rentals', orderId: 'ORD-2024-004', amountOwed: '$32.50', date: '2024-01-24', type: 'fuel', notes: 'Awaiting payment confirmation' },
-            { id: 5, customerName: 'Elite Celebrations', orderId: 'ORD-2024-005', amountOwed: 'Pending', date: '2024-01-23', type: 'fuel', notes: 'Need to calculate mileage' },
-            { id: 6, customerName: 'Dream Weddings Inc', orderId: 'ORD-2024-006', amountOwed: '$28.75', date: '2024-01-22', type: 'fuel', notes: '' },
-        ];
-    }
 
-    updateFuelAlertHeader() {
-        const count = this.fuelAlerts.length;
+            this.activeOrderUniqueId = null;
 
-        document.getElementById("fuel-alert-count").textContent = count;
 
-        document.getElementById("fuel-alert-s").textContent = count === 1 ? "" : "s";
-    }
+            // initialize
+            this.init();
+        }
 
-    updateFuelAlertBadge() {
+        /** ------------------------
+         *      DEFAULT DATA
+         --------------------------*/
+        defaultFuelAlerts() {
+            return [
+                { id: 1, customerName: 'ABC Events LLC', orderId: 'ORD-2024-001', amountOwed: 'Pending', date: '2024-01-27', type: 'fuel', notes: '' },
+                { id: 2, customerName: 'Wedding Bliss Co', orderId: 'ORD-2024-002', amountOwed: '$45.00', date: '2024-01-26', type: 'fuel', notes: 'Customer disputed charge initially' },
+                { id: 3, customerName: 'Corporate Solutions', orderId: 'ORD-2024-003', amountOwed: 'Pending', date: '2024-01-25', type: 'fuel', notes: '' },
+                { id: 4, customerName: 'Party Time Rentals', orderId: 'ORD-2024-004', amountOwed: '$32.50', date: '2024-01-24', type: 'fuel', notes: 'Awaiting payment confirmation' },
+                { id: 5, customerName: 'Elite Celebrations', orderId: 'ORD-2024-005', amountOwed: 'Pending', date: '2024-01-23', type: 'fuel', notes: 'Need to calculate mileage' },
+                { id: 6, customerName: 'Dream Weddings Inc', orderId: 'ORD-2024-006', amountOwed: '$28.75', date: '2024-01-22', type: 'fuel', notes: '' },
+            ];
+        }
+
+        updateFuelAlertHeader() {
             const count = this.fuelAlerts.length;
 
-            const badge = document.getElementById("fuel-alert-badge");
+            document.getElementById("fuel-alert-count").textContent = count;
 
-            // Update the text
+            document.getElementById("fuel-alert-s").textContent = count === 1 ? "" : "s";
+        }
+
+        updateFuelAlertBadge() {
+                const count = this.fuelAlerts.length;
+
+                const badge = document.getElementById("fuel-alert-badge");
+
+                // Update the text
+                badge.textContent = count > 0 ? `${count} Active` : "All Clear";
+
+                // Update colors
+                if (count > 0) {
+                    badge.classList.remove("bg-green-100", "text-green-800");
+                    badge.classList.add("bg-red-100", "text-red-800");
+                } else {
+                    badge.classList.remove("bg-red-100", "text-red-800");
+                    badge.classList.add("bg-green-100", "text-green-800");
+                }
+            }
+
+        renderFuelAlerts() {
+            const wrapper = document.getElementById("fuel-alert-list-wrapper");
+            const template = document.getElementById("fuel-alert-item-template").content;
+
+            wrapper.innerHTML = ""; // clear previous items
+
+            const list = this.fuelAlerts.slice(0, 5);
+
+            if (list.length === 0) {
+                wrapper.innerHTML = `
+
+            <div class="text-center py-8 text-gray-500">
+                <div class="text-gray-400 mb-2">
+                    <svg fill="currentColor" class="w-10 h-10 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                        <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/>
+                    </svg>
+                </div>
+                <p class="text-gray-500">No pending alerts</p>
+            </div>
+
+                `;
+                return;
+            }
+
+            list.forEach(alert => {
+                const item = document.importNode(template, true);
+
+                item.querySelector("[data-customer]").textContent = alert.customerName;
+                item.querySelector("[data-order-id]").textContent = alert.orderId;
+
+                // Order click
+                item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
+
+                // Edit amount
+                item.querySelector("[data-edit-amount]").onclick = () => {
+                    this.editingAlert = alert;
+                    this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
+                    // this.showAmountModal = true;
+                    this.openAmountModal(alert);
+
+                };
+
+                // Status dropdown toggle
+                const dropdown = item.querySelector("[data-status-dropdown]");
+                item.querySelector("[data-status-btn]").onclick = () => {
+                    dropdown.classList.toggle("hidden");
+                };
+
+                // Status actions
+                item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
+                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
+
+                // Edit notes
+                item.querySelector("[data-edit-notes]").onclick = () => {
+                    this.editingAlert = alert;
+                    // this.tempNotes = alert.notes || "";
+
+                    this.tempNotes = alert.notes || "";
+                    
+                    this.activeOrderUniqueId = alert.orderId;
+
+                    this.openNotesModal(alert);
+
+                };
+
+                // Amount display
+                const amountEl = item.querySelector("[data-amount]");
+                amountEl.textContent = alert.amountOwed;
+
+                if (alert.amountOwed === "Pending") {
+                    amountEl.className = "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full";
+                } else {
+                    amountEl.className = "text-sm font-semibold text-green-700";
+                }
+
+                // Notes
+                if (alert.notes) {
+                    item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
+                    item.querySelector("[data-notes]").textContent = alert.notes;
+                }
+
+                wrapper.appendChild(item);
+            });
+        }
+
+        openAmountModal(alert) {
+            this.editingAlert = alert;
+            this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
+
+            document.getElementById("amount-input").value = this.tempAmount;
+            document.getElementById("amount-modal-title").textContent =
+                alert.amountOwed === "Pending" ? "Add Amount" : "Edit Amount";
+
+            document.getElementById("amount-modal").classList.remove("hidden");
+        }
+
+        closeAmountModal() {
+            document.getElementById("amount-modal").classList.add("hidden");
+        }
+
+
+        // DamageAlerts
+
+    defaultDamageAlerts() {
+
+            console.log('window.damageAlerts');
+            console.log(window.damageAlerts);
+            console.log('window.damageAlerts');
+
+
+            // Prefer backend data
+            if (Array.isArray(window.damageAlerts) && window.damageAlerts.length) {
+                return window.damageAlerts;
+            }
+
+            // Optional fallback (dev / empty state)
+            return [];
+        }
+
+
+        renderDamageAlerts() {
+            const wrapper = document.getElementById("damage-alert-list-wrapper");
+            const template = document.getElementById("damage-alert-item-template").content;
+
+            wrapper.innerHTML = ""; // Clear previous
+
+            const list = this.damageAlerts.slice(0, 5);
+
+            if (list.length === 0) {
+                wrapper.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-gray-400 mb-2">
+                            <svg fill="currentColor" class="w-10 h-10 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500">No pending alerts</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(alert => {
+                const item = document.importNode(template, true);
+
+                // Fill text
+                item.querySelector("[data-customer]").textContent = alert.customerName;
+                item.querySelector("[data-order-id]").textContent = alert.orderId;
+
+                // Buttons
+            item.querySelector("[data-order-btn]").onclick = () => {
+                    if (alert.orderLink) {
+                        // window.location.href = alert.orderLink;
+                        window.open(alert.orderLink, "_blank");
+
+                    }
+                };
+
+
+                item.querySelector("[data-edit-amount]").onclick = () => {
+                    this.editingAlert = alert;
+                    this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
+                    // this.showAmountModal = true;
+                        this.openAmountModal(alert);
+
+                };
+
+                const dropdown = item.querySelector("[data-status-dropdown]");
+                item.querySelector("[data-status-btn]").onclick = () => dropdown.classList.toggle("hidden");
+
+                item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
+                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
+
+                item.querySelector("[data-edit-notes]").onclick = () => {
+                    this.editingAlert = alert;
+                    this.tempNotes = "";
+                    // this.showNotesModal = true;
+                    this.activeOrderUniqueId = alert.orderId;
+
+                    console.log("Dashboard Notes → Order ID:", this.activeOrderUniqueId);
+
+                    this.openNotesModal(alert);
+
+                };
+
+                // Amount color
+                const amountEl = item.querySelector("[data-amount]");
+                amountEl.textContent = alert.amountOwed;
+                amountEl.className =
+                    alert.amountOwed === "Pending"
+                        ? "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full"
+                        : "text-sm font-semibold text-green-700";
+
+                // Notes
+                if (alert.notes) {
+                    item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
+                    item.querySelector("[data-notes]").textContent = alert.notes;
+                }
+
+                wrapper.appendChild(item);
+            });
+        }
+
+        updateDamageAlertHeader() {
+            const count = this.damageAlerts.length;
+
+            document.getElementById("damage-alert-count").textContent = count;
+            document.getElementById("damage-alert-s").textContent = count === 1 ? "" : "s";
+        }
+
+
+        updateDamageAlertBadge() {
+            const count = this.damageAlerts.length;
+            const badge = document.getElementById("damage-alert-badge");
+
             badge.textContent = count > 0 ? `${count} Active` : "All Clear";
 
-            // Update colors
             if (count > 0) {
                 badge.classList.remove("bg-green-100", "text-green-800");
                 badge.classList.add("bg-red-100", "text-red-800");
@@ -108,225 +349,20 @@ class Dashboard {
             }
         }
 
-    renderFuelAlerts() {
-        const wrapper = document.getElementById("fuel-alert-list-wrapper");
-        const template = document.getElementById("fuel-alert-item-template").content;
+        openNotesModal(alert) {
+        // this.editingAlert = alert;
+        this.tempNotes =  "";
 
-        wrapper.innerHTML = ""; // clear previous items
+        document.getElementById("notes-input").value = this.tempNotes;
+        document.getElementById("notes-modal-title").textContent =
+            alert.notes ? "Add Notes" : "Add Notes";
 
-        const list = this.fuelAlerts.slice(0, 5);
-
-        if (list.length === 0) {
-            wrapper.innerHTML = `
-
-        <div class="text-center py-8 text-gray-500">
-            <div class="text-gray-400 mb-2">
-                <svg fill="currentColor" class="w-10 h-10 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                    <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/>
-                </svg>
-            </div>
-            <p class="text-gray-500">No pending alerts</p>
-        </div>
-
-            `;
-            return;
-        }
-
-        list.forEach(alert => {
-            const item = document.importNode(template, true);
-
-            item.querySelector("[data-customer]").textContent = alert.customerName;
-            item.querySelector("[data-order-id]").textContent = alert.orderId;
-
-            // Order click
-            item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
-
-            // Edit amount
-            item.querySelector("[data-edit-amount]").onclick = () => {
-                this.editingAlert = alert;
-                this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
-                // this.showAmountModal = true;
-                this.openAmountModal(alert);
-
-            };
-
-            // Status dropdown toggle
-            const dropdown = item.querySelector("[data-status-dropdown]");
-            item.querySelector("[data-status-btn]").onclick = () => {
-                dropdown.classList.toggle("hidden");
-            };
-
-            // Status actions
-            item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
-            item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
-
-            // Edit notes
-            item.querySelector("[data-edit-notes]").onclick = () => {
-                this.editingAlert = alert;
-                this.tempNotes = alert.notes || "";
-                // this.showNotesModal = true;
-                this.openNotesModal(alert);
-
-            };
-
-            // Amount display
-            const amountEl = item.querySelector("[data-amount]");
-            amountEl.textContent = alert.amountOwed;
-
-            if (alert.amountOwed === "Pending") {
-                amountEl.className = "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full";
-            } else {
-                amountEl.className = "text-sm font-semibold text-green-700";
-            }
-
-            // Notes
-            if (alert.notes) {
-                item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
-                item.querySelector("[data-notes]").textContent = alert.notes;
-            }
-
-            wrapper.appendChild(item);
-        });
+        document.getElementById("notes-modal").classList.remove("hidden");
     }
 
-    openAmountModal(alert) {
-    this.editingAlert = alert;
-    this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
-
-    document.getElementById("amount-input").value = this.tempAmount;
-    document.getElementById("amount-modal-title").textContent =
-        alert.amountOwed === "Pending" ? "Add Amount" : "Edit Amount";
-
-    document.getElementById("amount-modal").classList.remove("hidden");
-}
-
-closeAmountModal() {
-    document.getElementById("amount-modal").classList.add("hidden");
-}
-
-
-    // DamageAlerts
-
-    defaultDamageAlerts() {
-        return [
-            { id: 1, customerName: 'Luxury Events Co', orderId: 'ORD-2024-007', amountOwed: '$150.00', date: '2024-01-27', type: 'damage', notes: 'Tablecloth stain - professional cleaning required' },
-            { id: 2, customerName: 'Premier Parties', orderId: 'ORD-2024-008', amountOwed: 'Pending', date: '2024-01-26', type: 'damage', notes: '' },
-            { id: 3, customerName: 'Celebration Central', orderId: 'ORD-2024-009', amountOwed: '$89.99', date: '2024-01-25', type: 'damage', notes: 'Chair leg broken during event' },
-            { id: 4, customerName: 'Event Masters LLC', orderId: 'ORD-2024-010', amountOwed: 'Pending', date: '2024-01-24', type: 'damage', notes: 'Assessing tent damage from wind' },
-            { id: 5, customerName: 'Perfect Day Events', orderId: 'ORD-2024-011', amountOwed: '$225.00', date: '2024-01-23', type: 'damage', notes: 'Multiple items damaged - invoice sent' },
-            { id: 6, customerName: 'Grand Occasions', orderId: 'ORD-2024-012', amountOwed: 'Pending', date: '2024-01-22', type: 'damage', notes: '' },
-        ];
+    closeNotesModal() {
+        document.getElementById("notes-modal").classList.add("hidden");
     }
-
-    renderDamageAlerts() {
-        const wrapper = document.getElementById("damage-alert-list-wrapper");
-        const template = document.getElementById("damage-alert-item-template").content;
-
-        wrapper.innerHTML = ""; // Clear previous
-
-        const list = this.damageAlerts.slice(0, 5);
-
-        if (list.length === 0) {
-            wrapper.innerHTML = `
-                <div class="text-center py-8 text-gray-500">
-                    <div class="text-gray-400 mb-2">
-                        <svg fill="currentColor" class="w-10 h-10 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                            <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/>
-                        </svg>
-                    </div>
-                    <p class="text-gray-500">No pending alerts</p>
-                </div>
-            `;
-            return;
-        }
-
-        list.forEach(alert => {
-            const item = document.importNode(template, true);
-
-            // Fill text
-            item.querySelector("[data-customer]").textContent = alert.customerName;
-            item.querySelector("[data-order-id]").textContent = alert.orderId;
-
-            // Buttons
-            item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
-
-            item.querySelector("[data-edit-amount]").onclick = () => {
-                this.editingAlert = alert;
-                this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
-                // this.showAmountModal = true;
-                    this.openAmountModal(alert);
-
-            };
-
-            const dropdown = item.querySelector("[data-status-dropdown]");
-            item.querySelector("[data-status-btn]").onclick = () => dropdown.classList.toggle("hidden");
-
-            item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
-            item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
-
-            item.querySelector("[data-edit-notes]").onclick = () => {
-                this.editingAlert = alert;
-                this.tempNotes = alert.notes || "";
-                // this.showNotesModal = true;
-                    this.openNotesModal(alert);
-
-            };
-
-            // Amount color
-            const amountEl = item.querySelector("[data-amount]");
-            amountEl.textContent = alert.amountOwed;
-            amountEl.className =
-                alert.amountOwed === "Pending"
-                    ? "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full"
-                    : "text-sm font-semibold text-green-700";
-
-            // Notes
-            if (alert.notes) {
-                item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
-                item.querySelector("[data-notes]").textContent = alert.notes;
-            }
-
-            wrapper.appendChild(item);
-        });
-    }
-
-    updateDamageAlertHeader() {
-        const count = this.damageAlerts.length;
-
-        document.getElementById("damage-alert-count").textContent = count;
-        document.getElementById("damage-alert-s").textContent = count === 1 ? "" : "s";
-    }
-
-
-    updateDamageAlertBadge() {
-        const count = this.damageAlerts.length;
-        const badge = document.getElementById("damage-alert-badge");
-
-        badge.textContent = count > 0 ? `${count} Active` : "All Clear";
-
-        if (count > 0) {
-            badge.classList.remove("bg-green-100", "text-green-800");
-            badge.classList.add("bg-red-100", "text-red-800");
-        } else {
-            badge.classList.remove("bg-red-100", "text-red-800");
-            badge.classList.add("bg-green-100", "text-green-800");
-        }
-    }
-
-    openNotesModal(alert) {
-    this.editingAlert = alert;
-    this.tempNotes = alert.notes || "";
-
-    document.getElementById("notes-input").value = this.tempNotes;
-    document.getElementById("notes-modal-title").textContent =
-        alert.notes ? "Edit Notes" : "Add Notes";
-
-    document.getElementById("notes-modal").classList.remove("hidden");
-}
-
-closeNotesModal() {
-    document.getElementById("notes-modal").classList.add("hidden");
-}
 
 
     /** ------------------------
@@ -350,19 +386,19 @@ closeNotesModal() {
     }
 
     updatePeriodButtons() {
-    const periods = ["rolling30", "currentMonth", "lastMonth"];
+        const periods = ["rolling30", "currentMonth", "lastMonth"];
 
-    periods.forEach(period => {
-        const btn = document.getElementById(`btn-${period}`);
-        btn.classList.remove("bg-blue-600", "text-white", "bg-gray-100", "text-gray-700");
+        periods.forEach(period => {
+            const btn = document.getElementById(`btn-${period}`);
+            btn.classList.remove("bg-blue-600", "text-white", "bg-gray-100", "text-gray-700");
 
-        if (this.salesPeriod === period) {
-            btn.classList.add("bg-blue-600", "text-white");
-        } else {
-            btn.classList.add("bg-gray-100", "text-gray-700");
-        }
-    });
-}
+            if (this.salesPeriod === period) {
+                btn.classList.add("bg-blue-600", "text-white");
+            } else {
+                btn.classList.add("bg-gray-100", "text-gray-700");
+            }
+        });
+    }
 
 
     /** ------------------------
@@ -386,18 +422,18 @@ closeNotesModal() {
         this.renderDamageAlerts();
 
         this.updateSalesMetrics();
-this.updatePeriodButtons();
+        this.updatePeriodButtons();
 
 
     }
 
 
     changeSalesPeriod(period) {
-    this.salesPeriod = period;
-      this.updatePeriodButtons();
-    this.updateSalesMetrics();
-    this.updateSalesChart();
-}
+        this.salesPeriod = period;
+        this.updatePeriodButtons();
+        this.updateSalesMetrics();
+        this.updateSalesChart();
+    }
 
 
     /** ------------------------
@@ -449,30 +485,67 @@ this.updatePeriodButtons();
 
         this.editingAlert = null;
         this.tempAmount = "";
-    this.closeAmountModal();
+        this.closeAmountModal();
         this.renderFuelAlerts();
         this.renderDamageAlerts();
 
     }
 
     saveNotes() {
-        if (!this.editingAlert) return;
+        if (!this.activeOrderUniqueId) {
+            notyf.error("Order not found.");
+            return;
+        }
 
-        const list =
-            this.editingAlert.type === "fuel"
-                ? this.fuelAlerts
-                : this.damageAlerts;
+        const note = document.getElementById("notes-input").value.trim();
+        if (!note) {
+            notyf.error("Please enter a note.");
+            return;
+        }
 
-        const index = list.findIndex((a) => a.id === this.editingAlert.id);
-        if (index !== -1) list[index].notes = this.tempNotes;
+        const url =
+            "{{ route('admin.order-management.orders.notes.store', ':unique_id') }}"
+            .replace(':unique_id', this.activeOrderUniqueId);
 
-        this.tempNotes = "";
-        this.editingAlert = null;
-         this.closeNotesModal();
-        this.renderFuelAlerts();
-        this.renderDamageAlerts();
+        const saveBtn = document.querySelector("#notes-modal button.bg-blue-600");
+        const originalText = saveBtn.textContent;
 
-    }
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+
+        apiFetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute("content"),
+            },
+            body: JSON.stringify({
+                note: note,
+                user_id: window.AUTH_USER_ID,
+            }),
+        })
+            .then((res) => {
+                if (res && res.success) {
+                    notyf.success(res.message || "Note added");
+
+                    //  Update alert locally (UI sync)
+                    this.editingAlert.notes = note;
+
+                    this.closeNotesModal();
+                    this.renderDamageAlerts();
+                    this.renderFuelAlerts();
+                } else {
+                    notyf.error(res?.message || "Failed to save note");
+                }
+            })
+            .finally(() => {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            });
+}
+
 
     /** ------------------------
      *         CHARTS
@@ -559,9 +632,12 @@ this.updatePeriodButtons();
 
         this.maintenanceChart = new ApexCharts(el, {
             series: [
-                { name: "Due", data: [5, 3, 7, 4, 6, 2, 1, 8, 5, 3, 6, 4, 2, 3] },
-                { name: "Completed", data: [3, 4, 2, 6, 5, 3, 2, 4, 7, 5, 3, 8, 4, 2] },
-            ],
+                { name: "Due", data: window.chartData.maintenance.due },
+                { name: "Completed", data:  window.chartData.maintenance.completed },
+            ], 
+            xaxis: {
+                categories: window.chartData.labels,
+            },
             chart: { height: 300, type: "line", toolbar: { show: false } },
         });
 
@@ -574,9 +650,12 @@ this.updatePeriodButtons();
 
         this.damagedChart = new ApexCharts(el, {
             series: [
-                { name: "Due", data: [2, 1, 4, 3, 2, 1, 0, 5, 3, 2, 4, 1, 2, 1] },
-                { name: "Completed", data: [1, 3, 2, 4, 3, 2, 1, 2, 4, 3, 1, 5, 3, 2] },
+                { name: "Due", data: window.chartData.damaged.due },
+                { name: "Completed", data: window.chartData.damaged.completed },
             ],
+             xaxis: {
+                categories: window.chartData.labels,
+            },
             chart: { height: 300, type: "line", toolbar: { show: false } },
         });
 
@@ -590,5 +669,20 @@ this.updatePeriodButtons();
 document.addEventListener("DOMContentLoaded", () => {
     window.dashboard = new Dashboard(document.getElementById("dashboard"));
 });
+
+
+
+// JS listens to Livewire events
+
+document.addEventListener('livewire:init', () => {
+    Livewire.on('alerts-updated', ({ alerts }) => {
+        dashboard.damageAlerts = alerts;
+        dashboard.updateDamageAlertHeader();
+        dashboard.updateDamageAlertBadge();
+        dashboard.renderDamageAlerts();
+    });
+});
+
+
 </script>
 @endpush

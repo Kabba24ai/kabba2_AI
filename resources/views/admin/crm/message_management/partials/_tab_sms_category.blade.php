@@ -370,6 +370,18 @@ function refreshSmsCategoryDropdown(selectId, categories, defaultOptionText = "S
                 if (data.status === "success") {
                     notyf.success("SMS Category deleted!");
                     refreshSmsCategoryCards();
+
+
+                     // Refresh broadcasts list
+                    if (typeof window.fetchBroadcasts === 'function') {
+                        window.fetchBroadcasts(1);
+                    }
+
+                    // Refresh funnels list
+                    if (typeof window.fetchSmsfunnels === 'function') {
+                        window.fetchSmsfunnels(1);
+                    }
+
                 }
             })
             .catch(() => notyf.error("Delete error. Try again."));

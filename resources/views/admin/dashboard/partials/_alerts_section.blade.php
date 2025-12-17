@@ -192,9 +192,9 @@
 
         <div class="px-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-            <input id="amount-input" type="number" step="0.01"
+            <input id="amount-input" type="number" step="0.01"   data-digit-input = 'true'  data-parsley-maxlength='8'
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0.00">
+                placeholder="0.00" >
         </div>
 
         <div class="flex justify-end gap-2 px-6 pb-4">

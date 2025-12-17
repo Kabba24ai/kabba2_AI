@@ -4,7 +4,8 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 
-
+use App\Models\MaintenanceManagement\Equipment;
+use App\Observers\EquipmentObserver;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -29,7 +30,8 @@ class AppServiceProvider extends ServiceProvider
         // Gate Registration
         $this->gatesRegistration();
 
-       
+           //  REGISTER OBSERVER
+    Equipment::observe(EquipmentObserver::class);
     }
 
     private function enableHttps(): void

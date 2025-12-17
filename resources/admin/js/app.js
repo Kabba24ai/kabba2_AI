@@ -19,8 +19,7 @@ window.Alpine = Alpine;
 window.Sortable = Sortable;
 
 // Start Alpine.js
-Alpine.start();
-
+// Alpine.start();
 
 
 window.AirDatepicker = AirDatepicker;

@@ -118,6 +118,49 @@
 @push('js')
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+
+        
+                /* --------------------------
+                    FREEZE FILTER (LOCAL STORAGE)
+                -------------------------- */
+                const screenKey = "equipment_filters";
+            
+            const STATUS_KEY = screenKey + '_status';
+            const statusClassMap = {
+            '':        ['ring-gray-400', 'bg-gray-50'],
+            'available':   ['ring-green-400', 'bg-green-50'],
+            'rented':      ['ring-blue-400', 'bg-blue-50'],
+            'maintenance': ['ring-yellow-400', 'bg-yellow-50'],
+            'damaged':     ['ring-red-400', 'bg-red-50'],
+        };
+
+                function setActiveStatCard() {
+            document.querySelectorAll('.stats-filter').forEach(card => {
+                const status = card.dataset.status || '';
+                const classes = statusClassMap[status] || [];
+
+                // remove ALL ring + bg classes first
+                card.classList.remove(
+                    'ring-2',
+                    'ring-gray-400',
+                    'ring-green-400',
+                    'ring-blue-400',
+                    'ring-yellow-400',
+                    'ring-red-400',
+                    'bg-gray-50',
+                    'bg-green-50',
+                    'bg-blue-50',
+                    'bg-yellow-50',
+                    'bg-red-50'
+                );
+
+                if ((currentStatus || '') === status) {
+                    card.classList.add('ring-2', ...classes);
+                }
+            });
+        }
+
+
         let searchInput = document.querySelector('input[name="search"]');
         let categorySelect = document.querySelector('select[name="category"]');
         let checklistMasterSelect = document.querySelector('select[name="checklist_master"]');
@@ -133,12 +176,36 @@
         let timeout = null;
         const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
         const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
+let currentStatus =
+    localStorage.getItem(STATUS_KEY) ??
+    new URLSearchParams(window.location.search).get('status');
+setActiveStatCard();
 
 
-        /* --------------------------
-            FREEZE FILTER (LOCAL STORAGE)
-        -------------------------- */
-        const screenKey = "equipment_filters";
+
+document.addEventListener('click', function (e) {
+    const card = e.target.closest('.stats-filter');
+    if (!card) return;
+
+    e.preventDefault();
+
+    currentStatus = card.dataset.status || null;
+
+    if (currentStatus) {
+        localStorage.setItem(STATUS_KEY, currentStatus);
+    } else {
+        localStorage.removeItem(STATUS_KEY);
+    }
+
+    setActiveStatCard();
+    fetchEquipments(1);
+});
+
+
+
+
+
+
 
         const fieldMap = {
             'search': searchInput,
@@ -172,6 +239,7 @@
             if (category) params.append('category', category);
             if (checklistMasterValue) params.append('checklist_master', checklistMasterValue);
 if (equipmentId) params.append('equipment_id', equipmentId);
+if (currentStatus) params.append('status', currentStatus);
 
             if (locationStoreValue) params.append('location_store', locationStoreValue);
 
@@ -194,6 +262,7 @@ if (equipmentId) params.append('equipment_id', equipmentId);
                 })
                 .then(response => {
                     wrapper.innerHTML = response.html;
+                      setActiveStatCard();
                 })
         }
 

@@ -7,6 +7,19 @@
                         <h3 class="text-lg font-bold text-gray-900 flex items-center gap-1">Schedule</h3>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        @php
+                            $due       = $scheduleStats['deliveries_truck']['due_today'] ?? 0;
+                            $completed = $scheduleStats['deliveries_truck']['completed_today'] ?? 0;
+
+                            $total = $due + $completed;
+
+                            $progress = $total > 0
+                                ? round(($completed / $total) * 100)
+                                : 0;
+
+                            $allDone = $total > 0 && $completed === $total;
+                        @endphp
+
                         <!-- Deliveries - Truck -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
@@ -18,16 +31,18 @@
                             <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Deliveries - Truck</h3>
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-gray-400 mb-1">0</div>
+                                    <div class="text-2xl font-bold text-gray-400 mb-1"> {{ $scheduleStats['deliveries_truck']['due_today'] ?? 0 }} </div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
                                 </div>
                                 <div class="h-12 w-px bg-gray-300"></div>
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">15</div>
+                                    <div class="text-2xl font-bold text-green-600 mb-1"> {{ $scheduleStats['deliveries_truck']['completed_today'] ?? 0 }} </div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
                                 </div>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-300">
+                                   {{-- IF ALL DONE → SHOW TROPHY --}}
+                            @if ($allDone)
                                 <div class="flex items-center justify-center">
                                     <div class="flex items-center bg-gradient-to-r from-yellow-400 to-amber-500 px-3 py-1.5 rounded-full shadow-sm">
 
@@ -35,8 +50,32 @@
                                         <span class="text-white font-semibold text-xs tracking-wide">ALL DONE!</span>
                                     </div>
                                 </div>
+                                 {{-- OTHERWISE → SHOW PROGRESS BAR --}}
+                            @else
+                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                    <span>Progress</span>
+                                    <span>{{ $progress }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-green-500 transition-all duration-500" style="width: {{ $progress }}%"></div>
+                                </div>
+                             @endif
                             </div>
                         </div>
+
+                        @php
+                            $dueStore       = $scheduleStats['deliveries_store']['due_today'] ?? 0;
+                            $completedStore = $scheduleStats['deliveries_store']['completed_today'] ?? 0;
+
+                            $totalStore = $dueStore + $completedStore;
+
+                            $progressStore = $totalStore > 0
+                                ? round(($completedStore / $totalStore) * 100)
+                                : 0;
+
+                            $allDoneStore = $totalStore > 0 && $completedStore === $totalStore;
+                        @endphp
+
 
                         <!-- Deliveries - In Store -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
@@ -49,25 +88,55 @@
                             <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Deliveries - In Store</h3>
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">3</div>
+                                    <div class="text-2xl font-bold text-red-600 mb-1">{{ $scheduleStats['deliveries_store']['due_today'] ?? 0 }} </div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
                                 </div>
                                 <div class="h-12 w-px bg-gray-300"></div>
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">8</div>
+                                    <div class="text-2xl font-bold text-green-600 mb-1">{{ $scheduleStats['deliveries_store']['completed_today'] ?? 0 }} </div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
                                 </div>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-300">
+
+
+                             {{-- IF ALL DONE → SHOW TROPHY --}}
+                            @if ($allDoneStore)
+                                <div class="flex items-center justify-center">
+                                    <div class="flex items-center bg-gradient-to-r from-yellow-400 to-amber-500 px-3 py-1.5 rounded-full shadow-sm">
+
+                                         <svg fill="currentColor" class="w-6 h-6 text-white mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M208.3 64L432.3 64C458.8 64 480.4 85.8 479.4 112.2C479.2 117.5 479 122.8 478.7 128L528.3 128C554.4 128 577.4 149.6 575.4 177.8C567.9 281.5 514.9 338.5 457.4 368.3C441.6 376.5 425.5 382.6 410.2 387.1C390 415.7 369 430.8 352.3 438.9L352.3 512L416.3 512C434 512 448.3 526.3 448.3 544C448.3 561.7 434 576 416.3 576L224.3 576C206.6 576 192.3 561.7 192.3 544C192.3 526.3 206.6 512 224.3 512L288.3 512L288.3 438.9C272.3 431.2 252.4 416.9 233 390.6C214.6 385.8 194.6 378.5 175.1 367.5C121 337.2 72.2 280.1 65.2 177.6C63.3 149.5 86.2 127.9 112.3 127.9L161.9 127.9C161.6 122.7 161.4 117.5 161.2 112.1C160.2 85.6 181.8 63.9 208.3 63.9zM165.5 176L113.1 176C119.3 260.7 158.2 303.1 198.3 325.6C183.9 288.3 172 239.6 165.5 176zM444 320.8C484.5 297 521.1 254.7 527.3 176L475 176C468.8 236.9 457.6 284.2 444 320.8z"/></svg>
+                                        <span class="text-white font-semibold text-xs tracking-wide">ALL DONE!</span>
+                                    </div>
+                                </div>
+                              {{-- OTHERWISE → SHOW PROGRESS BAR --}}
+                            @else
                                 <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                     <span>Progress</span>
-                                    <span>73%</span>
+                                     <span>{{ $progressStore }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-green-500 transition-all duration-500" style="width: 73%"></div>
+                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-green-500 transition-all duration-500" style="width: {{ $progressStore }}%"></div>
                                 </div>
+                            @endif
+
                             </div>
                         </div>
+
+
+                        @php
+                            $dueReturnTruck       = $scheduleStats['returns_truck']['due_today'] ?? 0;
+                            $completedReturnTruck = $scheduleStats['returns_truck']['completed_today'] ?? 0;
+
+                            $totalReturnTruck = $dueReturnTruck + $completedReturnTruck;
+
+                            $progressReturnTruck = $totalReturnTruck > 0
+                                ? round(($completedReturnTruck / $totalReturnTruck) * 100)
+                                : 0;
+
+                            $allDoneReturnTruck = $totalReturnTruck > 0 && $completedReturnTruck === $totalReturnTruck;
+                        @endphp
+
 
                         <!-- Returns - Truck -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
@@ -80,25 +149,53 @@
                             <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Returns - Truck</h3>
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">2</div>
+                                    <div class="text-2xl font-bold text-red-600 mb-1">{{ $scheduleStats['returns_truck']['due_today'] ?? 0 }}</div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
                                 </div>
                                 <div class="h-12 w-px bg-gray-300"></div>
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">12</div>
+                                    <div class="text-2xl font-bold text-green-600 mb-1">{{ $scheduleStats['returns_truck']['completed_today'] ?? 0 }} </div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
                                 </div>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-300">
+                                  {{-- IF ALL DONE → SHOW TROPHY --}}
+                                 @if ($allDoneReturnTruck)
+                                <div class="flex items-center justify-center">
+                                    <div class="flex items-center bg-gradient-to-r from-yellow-400 to-amber-500 px-3 py-1.5 rounded-full shadow-sm">
+
+                                         <svg fill="currentColor" class="w-6 h-6 text-white mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M208.3 64L432.3 64C458.8 64 480.4 85.8 479.4 112.2C479.2 117.5 479 122.8 478.7 128L528.3 128C554.4 128 577.4 149.6 575.4 177.8C567.9 281.5 514.9 338.5 457.4 368.3C441.6 376.5 425.5 382.6 410.2 387.1C390 415.7 369 430.8 352.3 438.9L352.3 512L416.3 512C434 512 448.3 526.3 448.3 544C448.3 561.7 434 576 416.3 576L224.3 576C206.6 576 192.3 561.7 192.3 544C192.3 526.3 206.6 512 224.3 512L288.3 512L288.3 438.9C272.3 431.2 252.4 416.9 233 390.6C214.6 385.8 194.6 378.5 175.1 367.5C121 337.2 72.2 280.1 65.2 177.6C63.3 149.5 86.2 127.9 112.3 127.9L161.9 127.9C161.6 122.7 161.4 117.5 161.2 112.1C160.2 85.6 181.8 63.9 208.3 63.9zM165.5 176L113.1 176C119.3 260.7 158.2 303.1 198.3 325.6C183.9 288.3 172 239.6 165.5 176zM444 320.8C484.5 297 521.1 254.7 527.3 176L475 176C468.8 236.9 457.6 284.2 444 320.8z"/></svg>
+                                        <span class="text-white font-semibold text-xs tracking-wide">ALL DONE!</span>
+                                    </div>
+                                </div>
+                                  {{-- OTHERWISE → SHOW PROGRESS --}}
+                                @else
                                 <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                     <span>Progress</span>
-                                    <span>86%</span>
+                                    <span>{{ $progressReturnTruck }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-purple-400 to-purple-500 transition-all duration-500" style="width: 86%"></div>
+                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-purple-400 to-purple-500 transition-all duration-500" style="width: {{ $progressReturnTruck }}%"></div>
                                 </div>
+                                @endif
+
+
                             </div>
                         </div>
+
+                        @php
+                            $dueReturnStore       = $scheduleStats['returns_store']['due_today'] ?? 0;
+                            $completedReturnStore = $scheduleStats['returns_store']['completed_today'] ?? 0;
+
+                            $totalReturnStore = $dueReturnStore + $completedReturnStore;
+
+                            $progressReturnStore = $totalReturnStore > 0
+                                ? round(($completedReturnStore / $totalReturnStore) * 100)
+                                : 0;
+
+                            $allDoneReturnStore = $totalReturnStore > 0 && $completedReturnStore === $totalReturnStore;
+                        @endphp
+
 
                         <!-- Returns - In Store -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
@@ -111,23 +208,39 @@
                             <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Returns - In Store</h3>
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">1</div>
+                                    <div class="text-2xl font-bold text-red-600 mb-1">{{ $scheduleStats['returns_store']['due_today'] ?? 0 }} </div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
                                 </div>
                                 <div class="h-12 w-px bg-gray-300"></div>
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">6</div>
+                                    <div class="text-2xl font-bold text-green-600 mb-1"> {{ $scheduleStats['returns_store']['completed_today'] ?? 0 }}</div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
                                 </div>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-300">
+
+                                {{-- IF ALL DONE → SHOW TROPHY --}}
+                                @if ($allDoneReturnStore)
+                                <div class="flex items-center justify-center">
+                                    <div class="flex items-center bg-gradient-to-r from-yellow-400 to-amber-500 px-3 py-1.5 rounded-full shadow-sm">
+
+                                         <svg fill="currentColor" class="w-6 h-6 text-white mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M208.3 64L432.3 64C458.8 64 480.4 85.8 479.4 112.2C479.2 117.5 479 122.8 478.7 128L528.3 128C554.4 128 577.4 149.6 575.4 177.8C567.9 281.5 514.9 338.5 457.4 368.3C441.6 376.5 425.5 382.6 410.2 387.1C390 415.7 369 430.8 352.3 438.9L352.3 512L416.3 512C434 512 448.3 526.3 448.3 544C448.3 561.7 434 576 416.3 576L224.3 576C206.6 576 192.3 561.7 192.3 544C192.3 526.3 206.6 512 224.3 512L288.3 512L288.3 438.9C272.3 431.2 252.4 416.9 233 390.6C214.6 385.8 194.6 378.5 175.1 367.5C121 337.2 72.2 280.1 65.2 177.6C63.3 149.5 86.2 127.9 112.3 127.9L161.9 127.9C161.6 122.7 161.4 117.5 161.2 112.1C160.2 85.6 181.8 63.9 208.3 63.9zM165.5 176L113.1 176C119.3 260.7 158.2 303.1 198.3 325.6C183.9 288.3 172 239.6 165.5 176zM444 320.8C484.5 297 521.1 254.7 527.3 176L475 176C468.8 236.9 457.6 284.2 444 320.8z"/></svg>
+                                        <span class="text-white font-semibold text-xs tracking-wide">ALL DONE!</span>
+                                    </div>
+                                </div>
+                                
+                                {{-- OTHERWISE → SHOW PROGRESS --}}
+                                @else
+
                                 <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                     <span>Progress</span>
-                                    <span>86%</span>
+                                    <span>{{ $progressReturnStore }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-500 transition-all duration-500" style="width: 86%"></div>
+                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-500 transition-all duration-500" style="width:  {{ $progressReturnStore }}%"></div>
                                 </div>
+
+                                 @endif
                             </div>
                         </div>
                     </div>
@@ -142,6 +255,22 @@
 
                         <h3 class="text-lg font-bold text-gray-900 flex items-center gap-1">Operations</h3>
                     </div>
+
+                    @php
+    $dueMaintenance       = $equipmentStats['maintenance']['due_today'] ?? 0;
+    $completedMaintenance = $equipmentStats['maintenance']['completed_today'] ?? 0;
+
+    $totalMaintenance = $dueMaintenance + $completedMaintenance;
+
+    $progressMaintenance = $totalMaintenance > 0
+        ? round(($completedMaintenance / $totalMaintenance) * 100)
+        : 0;
+
+    $allDoneMaintenance = $totalMaintenance > 0
+        && $completedMaintenance === $totalMaintenance;
+@endphp
+
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <!-- Maintenance Hold -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
@@ -154,23 +283,36 @@
                             <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Maintenance Hold</h3>
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">4</div>
+                                    <div class="text-2xl font-bold text-red-600 mb-1">{{ $equipmentStats['maintenance']['due_today'] ?? 0; }}</div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
                                 </div>
                                 <div class="h-12 w-px bg-gray-300"></div>
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">3</div>
+                                    <div class="text-2xl font-bold text-green-600 mb-1">    {{ $completedMaintenance }}</div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
                                 </div>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-300">
+
+                             @if ($allDoneMaintenance)
+                                <div class="flex items-center justify-center">
+                                    <div class="flex items-center bg-gradient-to-r from-yellow-400 to-amber-500 px-3 py-1.5 rounded-full shadow-sm">
+
+                                         <svg fill="currentColor" class="w-6 h-6 text-white mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M208.3 64L432.3 64C458.8 64 480.4 85.8 479.4 112.2C479.2 117.5 479 122.8 478.7 128L528.3 128C554.4 128 577.4 149.6 575.4 177.8C567.9 281.5 514.9 338.5 457.4 368.3C441.6 376.5 425.5 382.6 410.2 387.1C390 415.7 369 430.8 352.3 438.9L352.3 512L416.3 512C434 512 448.3 526.3 448.3 544C448.3 561.7 434 576 416.3 576L224.3 576C206.6 576 192.3 561.7 192.3 544C192.3 526.3 206.6 512 224.3 512L288.3 512L288.3 438.9C272.3 431.2 252.4 416.9 233 390.6C214.6 385.8 194.6 378.5 175.1 367.5C121 337.2 72.2 280.1 65.2 177.6C63.3 149.5 86.2 127.9 112.3 127.9L161.9 127.9C161.6 122.7 161.4 117.5 161.2 112.1C160.2 85.6 181.8 63.9 208.3 63.9zM165.5 176L113.1 176C119.3 260.7 158.2 303.1 198.3 325.6C183.9 288.3 172 239.6 165.5 176zM444 320.8C484.5 297 521.1 254.7 527.3 176L475 176C468.8 236.9 457.6 284.2 444 320.8z"/></svg>
+                                        <span class="text-white font-semibold text-xs tracking-wide">ALL DONE!</span>
+                                    </div>
+                                </div>
+                               @else
+
                                 <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                     <span>Progress</span>
-                                    <span>43%</span>
+                                    <span>{{ $progressMaintenance }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all duration-500" style="width: 43%"></div>
+                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all duration-500" style="width: {{ $progressMaintenance }}%"></div>
                                 </div>
+
+                                  @endif
                             </div>
                         </div>
 
@@ -182,31 +324,58 @@
                                     <svg fill="currentColor" class="w-6 h-6  text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/></svg>
                                 </div>
                             </div>
+
+                            @php
+                                $dueDamaged       = $equipmentStats['damaged']['due_today'] ?? 0;
+                                $completedDamaged = $equipmentStats['damaged']['completed_today'] ?? 0;
+
+                                $totalDamaged = $dueDamaged + $completedDamaged;
+
+                                $progressDamaged = $totalDamaged > 0
+                                    ? round(($completedDamaged / $totalDamaged) * 100)
+                                    : 0;
+
+                                $allDoneDamaged = $totalDamaged > 0
+                                    && $completedDamaged === $totalDamaged;
+                            @endphp
+
+
                             <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Damaged Items</h3>
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">1</div>
+                                    <div class="text-2xl font-bold text-red-600 mb-1">{{ $equipmentStats['damaged']['due_today'] ?? 0; }}</div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
                                 </div>
                                 <div class="h-12 w-px bg-gray-300"></div>
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">2</div>
+                                    <div class="text-2xl font-bold text-green-600 mb-1">{{ $completedDamaged }}</div>
                                     <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
                                 </div>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-300">
+
+                            @if ($allDoneDamaged)
+                                <div class="flex items-center justify-center">
+                                    <div class="flex items-center bg-gradient-to-r from-yellow-400 to-amber-500 px-3 py-1.5 rounded-full shadow-sm">
+
+                                         <svg fill="currentColor" class="w-6 h-6 text-white mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M208.3 64L432.3 64C458.8 64 480.4 85.8 479.4 112.2C479.2 117.5 479 122.8 478.7 128L528.3 128C554.4 128 577.4 149.6 575.4 177.8C567.9 281.5 514.9 338.5 457.4 368.3C441.6 376.5 425.5 382.6 410.2 387.1C390 415.7 369 430.8 352.3 438.9L352.3 512L416.3 512C434 512 448.3 526.3 448.3 544C448.3 561.7 434 576 416.3 576L224.3 576C206.6 576 192.3 561.7 192.3 544C192.3 526.3 206.6 512 224.3 512L288.3 512L288.3 438.9C272.3 431.2 252.4 416.9 233 390.6C214.6 385.8 194.6 378.5 175.1 367.5C121 337.2 72.2 280.1 65.2 177.6C63.3 149.5 86.2 127.9 112.3 127.9L161.9 127.9C161.6 122.7 161.4 117.5 161.2 112.1C160.2 85.6 181.8 63.9 208.3 63.9zM165.5 176L113.1 176C119.3 260.7 158.2 303.1 198.3 325.6C183.9 288.3 172 239.6 165.5 176zM444 320.8C484.5 297 521.1 254.7 527.3 176L475 176C468.8 236.9 457.6 284.2 444 320.8z"/></svg>
+                                        <span class="text-white font-semibold text-xs tracking-wide">ALL DONE!</span>
+                                    </div>
+                                </div>
+                               @else
                                 <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                     <span>Progress</span>
-                                    <span>67%</span>
+                                    <span> {{ $progressDamaged }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-500" style="width: 67%"></div>
+                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-500" style="width:  {{ $progressDamaged }}%"></div>
                                 </div>
+                                 @endif
                             </div>
                         </div>
 
                         <!-- Tasks Overdue -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all ">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-200">
                                      <svg class="w-6 h-6 text-white" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z"/></svg>
@@ -236,7 +405,7 @@
                         </div>
 
                         <!-- Tasks Due Today -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 group">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all ">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 group-hover:scale-110 transition-transform duration-200">
 

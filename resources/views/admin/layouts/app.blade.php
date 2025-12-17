@@ -14,6 +14,11 @@
 
     <!-- Core Css -->
     @vite(['resources/admin/css/app.css', 'resources/admin/js/app.js'])
+   
+     @livewireStyles
+     @livewireScripts
+
+
     <meta name="vite-app-css" content="{{ Vite::asset('resources/css/app.css') }}">
 
     @stack('css')
@@ -81,6 +86,9 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
             success: @json(session('success')),
             error: @json(session('error'))
         };
+
+      
+
     </script>
 </body>
 

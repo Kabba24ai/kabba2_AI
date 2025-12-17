@@ -122,7 +122,7 @@
                 <!-- Schedule Type -->
                 <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-calendar class="w-5 h-5 text-blue-500" />
-                    <span class="font-medium">Schedule Type</span>
+                    <span class="font-medium">Schedule Type</span>  
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" value="Delivery" name="schedule_type[]"
                             class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" @checked(is_array($scheduleType) ? in_array('Delivery', $scheduleType) : true)>

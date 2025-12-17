@@ -8,6 +8,16 @@ use App\Models\Orders\Order;
 use App\Models\Orders\OrderPayment;
 use App\Enums\Orders\OrderPaymentStatus;
 use Carbon\Carbon;
+use App\Models\Orders\OrderProduct;
+use Illuminate\Support\Facades\Log;
+use App\Models\MaintenanceManagement\Equipment;
+use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
+
+
+use App\Helpers\CustomHelper;
+
+
 use Illuminate\Support\Facades\DB;
 
 class IndexController extends Controller
@@ -17,12 +27,236 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
+
+        $damagedOrderAlerts = OrderProduct::with([
+            'order.customer',
+            'equipment',
+            ])
+            ->whereHas('equipment', function ($q) {
+                $q->where('current_status', EquipmentCurrentStatus::Damaged)
+                ->where('not_for_rent', 0)
+                ->whereNull('deleted_at');
+            })
+            ->whereHas('order')
+            ->orderByDesc('id')
+            ->get()
+            ->unique('order_id')   
+        
+            ->values()
+            ->map(function ($op, $index) {
+
+                $latestNote =
+                $op->order
+                    ?->notes()
+                    ->whereDate('created_at', today())
+                    ->latest()
+                    ->first()
+                ??
+                $op->order
+                    ?->notes()
+                    ->latest()
+                    ->first();
+
+                return [
+                    'id'           => $index + 1, // for frontend list key
+                    'customerName' => $op->order?->customer?->full_name
+                                        ?? '—',
+                    'orderId'      => $op->order?->unique_id ?? '—',
+                    'orderLink' => $op->order
+            ? route('admin.order-management.orders.edit', $op->order->unique_id)
+            : null,
+
+                    'amountOwed'   => ($op->order?->grand_total ?? 0) > 0
+                                        ? '$' . number_format($op->order->grand_total, 2)
+                                        : 'Pending',
+                    'date'         => optional($op->order?->created_at)
+                                        ->toDateString(),
+                    'type'         => 'damage',
+                    'notes'        => $latestNote?->note ?? '',
+                    'equipment'    => [
+                        'id'   => $op->equipment?->unique_id,
+                        'name' => $op->equipment?->equipment_name,
+                    ],
+                ];
+        });
+
         // Get sales data for different periods
         $salesData = $this->getSalesData();
+
+        $chartData = $this->getMaintenanceChartData();
+
+        // dd($chartData);
         
-        return view('admin.dashboard.index', compact('salesData'));
+        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData'));
+        
     }
+
     
+        // Get The Schedule data 
+
+        // $scheduleStats = [
+        //     'deliveries_truck' => [
+        //         'due_today' => $this->getScheduleCount('delivery', 'Truck', 'Due', true),
+        //         'completed_today' => $this->getScheduleCount('delivery', 'Truck', 'Completed', true),
+        //     ],
+        //     'deliveries_store' => [
+        //         'due_today' => $this->getScheduleCount('delivery', 'Store', 'Due', true),
+        //         'completed_today' => $this->getScheduleCount('delivery', 'Store', 'Completed', true),
+        //     ],
+        //     'returns_truck' => [
+        //         'due_today' => $this->getScheduleCount('pickup', 'Truck', 'Due', true),
+        //         'completed_today' => $this->getScheduleCount('pickup', 'Truck', 'Completed', true),
+        //     ],
+
+        //     'returns_store' => [
+        //         'due_today' => $this->getScheduleCount('pickup', 'Store', 'Due', true),
+        //         'completed_today' => $this->getScheduleCount('pickup', 'Store', 'Completed', true),
+        //     ],
+        // ];
+
+        // Get The Schedule data 
+        // $maintenanceCompleted = EquipmentStatusLog::whereDate('changed_at', today())
+        //     ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
+        //     ->whereIn('to_status', [
+        //         EquipmentCurrentStatus::Available->value,
+        //         EquipmentCurrentStatus::Rented->value,
+        //     ])->whereHas('equipment', function ($q) {
+        //         $q->where('not_for_rent', 0)
+        //         ->whereNull('deleted_at');
+        //     })->count();
+
+        // $damagedCompleted = EquipmentStatusLog::whereDate('changed_at', today())
+        //     ->where('from_status', EquipmentCurrentStatus::Damaged->value)
+        //     ->whereIn('to_status', [
+        //         EquipmentCurrentStatus::Available->value,
+        //         EquipmentCurrentStatus::Rented->value,
+        //     ])->whereHas('equipment', function ($q) {
+        //         $q->where('not_for_rent', 0)
+        //         ->whereNull('deleted_at');
+        //     })->count();
+
+
+        //     $equipmentStats = [
+
+        //     'maintenance' => [
+              
+        //         'due_today' => Equipment::where('current_status', EquipmentCurrentStatus::Maintenance)->where('not_for_rent', 0)
+        //             ->whereNull('deleted_at')
+        //             ->count(),
+
+              
+        //         'completed_today' => $maintenanceCompleted,
+        //     ],
+
+        //     'damaged' => [
+               
+        //         'due_today' => Equipment::where('current_status', EquipmentCurrentStatus::Damaged)
+        //             ->where('not_for_rent', 0)
+        //             ->whereNull('deleted_at')
+        //             ->count(),
+
+            
+        //         'completed_today' => $damagedCompleted,
+        //     ],
+        // ];
+
+        private function getScheduleCount(
+            string $type,       
+            string $transport,  
+            string $status,     
+            bool $todayOnly = false
+        ) {
+            $query = OrderProduct::query()
+                ->where('product_data->product_type', 'Rental')
+                ->whereNotNull($type . '_date')
+                ->where($type . '_transport_mode', $transport)
+                ->when($status === 'Completed',
+                    fn ($q) => $q->where($type . '_status', 'Completed'),
+                    fn ($q) => $q->whereIn($type . '_status', ['Pending', 'Reschedule'])
+                )
+                ->when($todayOnly,
+                    fn ($q) => $q->whereDate($type . '_date', Carbon::today())
+                );
+
+
+            return $query->count();
+        }
+
+
+        private function getMaintenanceChartData()
+        {
+            $days = collect(range(13, 0))->map(fn ($i) =>
+                Carbon::today()->subDays($i)->toDateString()
+            );
+
+            $maintenanceDue = [];
+            $maintenanceCompleted = [];
+            $damagedDue = [];
+            $damagedCompleted = [];
+
+            foreach ($days as $day) {
+
+                // ENTERED maintenance that day
+                $maintenanceDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                    ->where('to_status', EquipmentCurrentStatus::Maintenance->value)
+                    ->whereHas('equipment', function ($q) {
+                        $q->where('not_for_rent', 0)
+                        ->whereNull('deleted_at');
+                    })->count();
+
+                // EXITED maintenance that day
+                $maintenanceCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                    ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
+                    ->whereIn('to_status', [
+                        EquipmentCurrentStatus::Available->value,
+                        EquipmentCurrentStatus::Rented->value,
+                    ])->whereHas('equipment', function ($q) {
+                        $q->where('not_for_rent', 0)
+                        ->whereNull('deleted_at');
+                    })
+                    ->count();
+
+                // ENTERED damaged
+                $damagedDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                    ->where('to_status', EquipmentCurrentStatus::Damaged->value)
+                    ->whereHas('equipment', function ($q) {
+                        $q->where('not_for_rent', 0)
+                        ->whereNull('deleted_at');
+                    })->count();
+
+                // EXITED damaged
+                $damagedCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                    ->where('from_status', EquipmentCurrentStatus::Damaged->value)
+                    ->whereIn('to_status', [
+                        EquipmentCurrentStatus::Available->value,
+                        EquipmentCurrentStatus::Rented->value,
+                    ])->whereHas('equipment', function ($q) {
+                        $q->where('not_for_rent', 0)
+                        ->whereNull('deleted_at');
+                    })
+                    ->count();
+            }
+
+              // Formatted labels for chart
+            $labels = $days->map(fn ($date) =>
+                CustomHelper::formatDate($date)
+            );
+
+            return [
+                'labels' => $labels,
+                'maintenance' => [
+                    'due' =>  $maintenanceDue,
+                    'completed' => $maintenanceCompleted,
+                ],
+                'damaged' => [
+                    'due' => $damagedDue ,
+                    'completed' => $damagedCompleted ,
+                ],
+            ];
+        }
+
+
+
     /**
      * Get sales data grouped by different periods
      */

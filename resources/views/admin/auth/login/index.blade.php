@@ -8,6 +8,7 @@
     <title>Sign In | {{ config('app.name') }}</title>
 
     @vite(['resources/admin/css/app.css', 'resources/admin/js/app.js'])
+    @livewireScripts
 </head>
 
 <body x-data="{ 'loaded': true, darkMode: $persist(false) }" x-init="darkMode = JSON.parse(localStorage.getItem('darkMode'));

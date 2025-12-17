@@ -4,10 +4,13 @@ import Choices from 'choices.js';
 import "parsleyjs";
 import IMask from "imask";
 window.Choices = Choices;
-
+import ApexCharts from "apexcharts";
 
 window.$ = $;
 window.jQuery = $;
+
+
+window.ApexCharts = ApexCharts;
 
 window.Parsley = Parsley;
 

@@ -18,14 +18,14 @@
 
     <meta name="vite-app-css" content="{{ Vite::asset('resources/css/app.css') }}">
 
-    @livewireStyles
-
     @stack('css')
     <style>
         .active {
             color: #fff !important;
         }
     </style>
+
+    @livewireStyles
 </head>
 
 <body x-data="{

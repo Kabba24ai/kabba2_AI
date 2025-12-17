@@ -172,10 +172,10 @@
         </div>
 
         <div class="flex justify-end gap-2 px-6 pb-4">
-            <button onclick="dashboard.closeNotesModal()"
+            <button onclick="dashboardApp.closeNotesModal()"
                 class="px-6 py-3 text-md rounded-lg font-medium  border border-gray-300 bg-white text-gray-700">Cancel</button>
 
-            <button onclick="dashboard.saveNotes()"
+            <button onclick="dashboardApp.saveNotes()"
                 class="px-6 py-3 text-md rounded-lg font-medium  bg-blue-600 text-white hover:bg-blue-700">
                 Save
             </button>
@@ -198,12 +198,12 @@
         </div>
 
         <div class="flex justify-end gap-2 px-6 pb-4">
-            <button onclick="dashboard.closeAmountModal()"
+            <button onclick="dashboardApp.closeAmountModal()"
                 class="px-6 py-3 text-md rounded-lg font-medium  border border-gray-300 bg-white text-gray-700">
                 Cancel
             </button>
 
-            <button onclick="dashboard.saveAmount()"
+            <button onclick="dashboardApp.saveAmount()"
                 class="px-6 py-3 text-md rounded-lg font-medium  bg-blue-600 text-white hover:bg-blue-700">
                 Save
             </button>

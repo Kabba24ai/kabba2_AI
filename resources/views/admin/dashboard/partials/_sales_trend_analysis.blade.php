@@ -48,19 +48,19 @@
             <div class="flex space-x-2 mb-6">
 
                 <button id="btn-rolling30"
-                    onclick="dashboard.changeSalesPeriod('rolling30')"
+                    onclick="dashboardApp.changeSalesPeriod('rolling30')"
                     class="px-6 py-3 rounded-lg text-md font-medium transition-colors">
                     Rolling 30 Days
                 </button>
 
                 <button id="btn-currentMonth"
-                    onclick="dashboard.changeSalesPeriod('currentMonth')"
+                    onclick="dashboardApp.changeSalesPeriod('currentMonth')"
                     class="px-6 py-3 rounded-lg text-md font-medium transition-colors">
                     Current Month
                 </button>
 
                 <button id="btn-lastMonth"
-                    onclick="dashboard.changeSalesPeriod('lastMonth')"
+                    onclick="dashboardApp.changeSalesPeriod('lastMonth')"
                     class="px-6 py-3 rounded-lg text-md font-medium transition-colors">
                     Last Month
                 </button>

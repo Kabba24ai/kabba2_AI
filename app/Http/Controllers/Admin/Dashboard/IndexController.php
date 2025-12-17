@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
+use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 
 
 use App\Helpers\CustomHelper;
@@ -28,56 +29,58 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
 
-        $damagedOrderAlerts = OrderProduct::with([
+        $damagedOrderAlerts = EquipmentSoftAssign::with([
             'order.customer',
             'equipment',
-            ])
-            ->whereHas('equipment', function ($q) {
-                $q->where('current_status', EquipmentCurrentStatus::Damaged)
-                ->where('not_for_rent', 0)
-                ->whereNull('deleted_at');
-            })
-            ->whereHas('order')
-            ->orderByDesc('id')
-            ->get()
-            ->unique('order_id')   
-        
-            ->values()
-            ->map(function ($op, $index) {
+            'orderProduct',
+        ])
+        ->whereHas('equipment', function ($q) {
+            $q->where('current_status', EquipmentCurrentStatus::Damaged)
+              ->where('not_for_rent', 0)
+              ->whereNull('deleted_at');
+        })
+        ->whereHas('order')
+        ->latest('id')
+        ->get()
+        ->unique('order_id')   // one alert per order
+        ->values()
+        ->map(function ($softAssign, $index) {
 
-                $latestNote =
-                $op->order
-                    ?->notes()
-                    ->whereDate('created_at', today())
-                    ->latest()
-                    ->first()
-                ??
-                $op->order
-                    ?->notes()
-                    ->latest()
-                    ->first();
+            $order = $softAssign->order;
+            $equipment = $softAssign->equipment;
 
-                return [
-                    'id'           => $index + 1, // for frontend list key
-                    'customerName' => $op->order?->customer?->full_name
-                                        ?? '—',
-                    'orderId'      => $op->order?->unique_id ?? '—',
-                    'orderLink' => $op->order
-            ? route('admin.order-management.orders.edit', $op->order->unique_id)
-            : null,
+            $latestNote = $order?->notes()
+                ->whereDate('created_at', today())
+                ->latest()
+                ->first();
 
-                    'amountOwed'   => ($op->order?->grand_total ?? 0) > 0
-                                        ? '$' . number_format($op->order->grand_total, 2)
-                                        : 'Pending',
-                    'date'         => optional($op->order?->created_at)
-                                        ->toDateString(),
-                    'type'         => 'damage',
-                    'notes'        => $latestNote?->note ?? '',
-                    'equipment'    => [
-                        'id'   => $op->equipment?->unique_id,
-                        'name' => $op->equipment?->equipment_name,
-                    ],
-                ];
+            return [
+                'id'           => $index + 1,
+                'customerName' => $order?->customer?->full_name ?? '—',
+                'orderId'      => $order?->unique_id ?? '—',
+
+                'orderLink'    => $order
+                    ? route('admin.order-management.orders.edit', $order->unique_id)
+                    : null,
+
+                'amountOwed'   => ($order?->grand_total ?? 0) > 0
+                    ? '$' . number_format($order->grand_total, 2)
+                    : 'Pending',
+
+                'date'         => optional($order?->created_at)->toDateString(),
+                'type'         => 'damage',
+
+                'notes'        => $latestNote?->note ?? '',
+
+                'equipment'    => [
+                    'id'   => $equipment?->unique_id,
+                    'name' => $equipment?->equipment_name,
+                ],
+
+                'order_product' => [
+                    'id' => $softAssign->orderProduct?->id,
+                ],
+            ];
         });
 
         // Get sales data for different periods
@@ -85,80 +88,12 @@ class IndexController extends Controller
 
         $chartData = $this->getMaintenanceChartData();
 
-        // dd($chartData);
+        // dd($damagedOrderAlerts);
         
         return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData'));
         
     }
 
-    
-        // Get The Schedule data 
-
-        // $scheduleStats = [
-        //     'deliveries_truck' => [
-        //         'due_today' => $this->getScheduleCount('delivery', 'Truck', 'Due', true),
-        //         'completed_today' => $this->getScheduleCount('delivery', 'Truck', 'Completed', true),
-        //     ],
-        //     'deliveries_store' => [
-        //         'due_today' => $this->getScheduleCount('delivery', 'Store', 'Due', true),
-        //         'completed_today' => $this->getScheduleCount('delivery', 'Store', 'Completed', true),
-        //     ],
-        //     'returns_truck' => [
-        //         'due_today' => $this->getScheduleCount('pickup', 'Truck', 'Due', true),
-        //         'completed_today' => $this->getScheduleCount('pickup', 'Truck', 'Completed', true),
-        //     ],
-
-        //     'returns_store' => [
-        //         'due_today' => $this->getScheduleCount('pickup', 'Store', 'Due', true),
-        //         'completed_today' => $this->getScheduleCount('pickup', 'Store', 'Completed', true),
-        //     ],
-        // ];
-
-        // Get The Schedule data 
-        // $maintenanceCompleted = EquipmentStatusLog::whereDate('changed_at', today())
-        //     ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
-        //     ->whereIn('to_status', [
-        //         EquipmentCurrentStatus::Available->value,
-        //         EquipmentCurrentStatus::Rented->value,
-        //     ])->whereHas('equipment', function ($q) {
-        //         $q->where('not_for_rent', 0)
-        //         ->whereNull('deleted_at');
-        //     })->count();
-
-        // $damagedCompleted = EquipmentStatusLog::whereDate('changed_at', today())
-        //     ->where('from_status', EquipmentCurrentStatus::Damaged->value)
-        //     ->whereIn('to_status', [
-        //         EquipmentCurrentStatus::Available->value,
-        //         EquipmentCurrentStatus::Rented->value,
-        //     ])->whereHas('equipment', function ($q) {
-        //         $q->where('not_for_rent', 0)
-        //         ->whereNull('deleted_at');
-        //     })->count();
-
-
-        //     $equipmentStats = [
-
-        //     'maintenance' => [
-              
-        //         'due_today' => Equipment::where('current_status', EquipmentCurrentStatus::Maintenance)->where('not_for_rent', 0)
-        //             ->whereNull('deleted_at')
-        //             ->count(),
-
-              
-        //         'completed_today' => $maintenanceCompleted,
-        //     ],
-
-        //     'damaged' => [
-               
-        //         'due_today' => Equipment::where('current_status', EquipmentCurrentStatus::Damaged)
-        //             ->where('not_for_rent', 0)
-        //             ->whereNull('deleted_at')
-        //             ->count(),
-
-            
-        //         'completed_today' => $damagedCompleted,
-        //     ],
-        // ];
 
         private function getScheduleCount(
             string $type,       

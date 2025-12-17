@@ -554,7 +554,7 @@
                                     <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
                                         <x-heroicon-o-arrow-right-circle class="w-5 h-5" /> Delivery Schedule
                                     </div>
-                                    <div class="bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
+                                    <div class="  bg-white border rounded-xl p-3 flex flex-wrap gap-3 items-center">
                                         <div class="flex flex-wrap items-center gap-2 w-full">
                                             <!-- Date -->
                                             <div class="flex flex-col items-start min-w-[100px] max-w-[120px] flex-[0.9]">
@@ -2279,7 +2279,7 @@
 
 
             document.querySelectorAll('.order-product-unique-id').forEach(function(hiddenInput, idx) {
-                const container = hiddenInput.closest('.bg-white.rounded-lg.border');
+                const container = hiddenInput.closest('.bg-white.rounded-xl.border');
                 if (!container) return;
 
                 const orderProductId = hiddenInput.value;
@@ -3249,30 +3249,65 @@
 
         });
 
-        document.getElementById('send-terms').addEventListener('click', function() {
-            const btn = this;
-            btn.disabled = true;
+        // document.getElementById('send-terms').addEventListener('click', function() {
+        //     const btn = this;
+        //     btn.disabled = true;
 
-            const endpoint = btn.dataset.url;
+        //     const endpoint = btn.dataset.url;
 
-            apiFetch(endpoint, {
+        //     apiFetch(endpoint, {
+        //             method: 'POST',
+        //             headers: {
+        //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+        //                     .getAttribute('content')
+        //             }
+        //         })
+        //         .then(res => {
+        //             if (res && res.success) {
+        //                 notyf.success(res.message);
+        //             } else {
+        //                 notyf.error(res && res.message);
+        //             }
+        //         })
+        //         .finally(() => {
+        //             btn.disabled = false;
+        //         });
+        // });
+
+        const sendTermsBtn = document.getElementById('send-terms');
+
+        if (sendTermsBtn) {
+            sendTermsBtn.addEventListener('click', function () {
+                const btn = this;
+                btn.disabled = true;
+
+                const endpoint = btn.dataset.url;
+
+                apiFetch(endpoint, {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                            .getAttribute('content')
+                        'X-CSRF-TOKEN': document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content')
                     }
                 })
                 .then(res => {
                     if (res && res.success) {
                         notyf.success(res.message);
                     } else {
-                        notyf.error(res && res.message);
+                        notyf.error(res?.message || 'Something went wrong');
                     }
+                })
+                .catch(() => {
+                    notyf.error('Request failed');
                 })
                 .finally(() => {
                     btn.disabled = false;
                 });
-        });
+            });
+        }
+
+
     </script>
 
     <script>

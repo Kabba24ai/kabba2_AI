@@ -21,6 +21,17 @@ class StoreServiceRecordRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Determine whether the selected service task requires inspection
+        $inspectionRequired = false;
+        if ($this->filled('service_task_id')) {
+            try {
+                $inspectionRequired = \DB::table('service_tasks')->where('id', $this->service_task_id)->value('inspection_required') ?? false;
+            } catch (\Exception $e) {
+                // If DB lookup fails, default to false (do not require checked fields)
+                $inspectionRequired = false;
+            }
+        }
+
         return [
             'record_id' => 'nullable|exists:equipment_service_tasks,id',
             'equipment_id' => 'required|exists:equipment,id',
@@ -31,8 +42,8 @@ class StoreServiceRecordRequest extends FormRequest
             'interval_type' => 'required|in:hour,date',
             'performed_by' => 'required|exists:users,id',
             'performed_date' => 'required|date_format:m/d/Y',
-            'checked_by' => 'required|exists:users,id',
-            'checked_date' => 'required|date_format:m/d/Y|after_or_equal:performed_date',
+            'checked_by' => $inspectionRequired ? 'required|exists:users,id' : 'nullable|exists:users,id',
+            'checked_date' => $inspectionRequired ? 'required|date_format:m/d/Y|after_or_equal:performed_date' : 'nullable|date_format:m/d/Y|after_or_equal:performed_date',
             'actual_hours' => 'required|numeric|min:0',
             'notes' => 'nullable|string|max:5000',
         ];

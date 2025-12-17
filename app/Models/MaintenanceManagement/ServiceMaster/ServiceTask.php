@@ -20,11 +20,13 @@ class ServiceTask extends Model
         'auto_apply',
         'inspection_required',
         'instructions',
+        'reference_links',
     ];
 
     protected $casts = [
         'auto_apply' => 'boolean',
         'inspection_required' => 'boolean',
+        'reference_links' => 'array',
     ];
 
     public function category()

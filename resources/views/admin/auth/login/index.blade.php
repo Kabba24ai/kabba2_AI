@@ -8,7 +8,7 @@
     <title>Sign In | {{ config('app.name') }}</title>
 
     @vite(['resources/admin/css/app.css', 'resources/admin/js/app.js'])
-    @livewireScripts
+    @livewireStyles
 </head>
 
 <body x-data="{ 'loaded': true, darkMode: $persist(false) }" x-init="darkMode = JSON.parse(localStorage.getItem('darkMode'));
@@ -164,6 +164,7 @@ $watch('darkMode', value => {
             </div> --}}
         </div>
     </div>
+    @livewireScripts
     <script>
         window.Laravel = {
             success: @json(session('success')),

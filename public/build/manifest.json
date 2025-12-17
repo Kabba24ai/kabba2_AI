@@ -1,6 +1,6 @@
 {
-  "_api-68L1VAcS.js": {
-    "file": "assets/api-68L1VAcS.js",
+  "_api-CJ32vqwM.js": {
+    "file": "assets/api-CJ32vqwM.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
@@ -53,12 +53,12 @@
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-Ctc6RFY9.js",
+    "file": "assets/app-BdQT5Twh.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-68L1VAcS.js"
+      "_api-CJ32vqwM.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
@@ -81,12 +81,12 @@
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-BJxTScRB.js",
+    "file": "assets/app-mMc4td_Y.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-68L1VAcS.js"
+      "_api-CJ32vqwM.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"

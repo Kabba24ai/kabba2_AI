@@ -1,5 +1,5 @@
-import Alpine from 'alpinejs';
-import persist from "@alpinejs/persist";
+// import Alpine from 'alpinejs';
+// import persist from "@alpinejs/persist";
 import Sortable from 'sortablejs';
 
 import '../../shared/js/app.js';

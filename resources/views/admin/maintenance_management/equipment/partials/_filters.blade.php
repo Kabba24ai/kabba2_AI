@@ -40,17 +40,7 @@
 </div>
 
 
-         <div class="w-full sm:w-48">
-            <select name="category"
-                class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-                <option value="">Select Category</option>
-                @foreach ($categories as $id => $title)
-                <option value="{{ $id }}" @selected(request('category')==$id)>
-                    {{ $title }}
-                </option>
-                @endforeach
-            </select>
-        </div>
+        
 
         <div class="w-full sm:w-48">
             <select name="checklist_master"
@@ -70,8 +60,16 @@
             </select>
         </div>
 
-
-
+        <div class="w-full sm:w-48">
+            <select name="service_due"
+                class="choices-select w-full mt-2 rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                <option value="">Select Service Due</option>
+                <option value="not_due" @selected(request('service_due')=='not_due' )>Not due</option>
+                <option value="overdue" @selected(request('service_due')=='overdue' )>Overdue</option>
+                <option value="pending" @selected(request('service_due')=='pending' )>Pending</option>
+            </select>
+        </div>
+   
         <div class="w-full sm:w-auto sm:ml-auto">
             <a href="{{ route('admin.maintenance-management.equipment.create') }}"
                 class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">

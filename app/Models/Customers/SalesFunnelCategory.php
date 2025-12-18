@@ -10,6 +10,7 @@ class SalesFunnelCategory extends Model
     protected $table = 'sales_funnel_categories';
 
     protected $fillable = [
+        'unique_id',
         'category_name',
         'description',
         'color_code',

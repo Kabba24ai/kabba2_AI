@@ -324,7 +324,7 @@
 
                                         <button type="submit"
                                             class="w-1/2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
-                                            Add Category
+                                            Save Category
                                         </button>
                                     </div>
                                 {{ html()->form()->close() }}
@@ -356,8 +356,9 @@
 
             function fetchCategories(page = 1, perPage = 10) {
                 const params = new URLSearchParams();
-                params.set('page', 1); // Always reset to first page on filter
+
                 if (perPage) params.append('per_page', perPage);
+                if (page) params.append('page', page);
 
                 // Show loader
                 loader.classList.remove('hidden');
@@ -374,6 +375,7 @@
                     .finally(() => {
                         loader.classList.add('hidden');
                         wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                        initSingleDeleteButtons();
                     });
 
             }
@@ -383,6 +385,44 @@
                 wrapper: wrapper,
                 fetchCallback: fetchCategories
             });
+
+            function initSingleDeleteButtons() {
+                const singleDeleteButtons = document.querySelectorAll('.category-delete-button');
+
+                singleDeleteButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const uniqueId = this.dataset.uniqueId;
+
+                        showConfirm('Do you want to delete this note?', 'Are you sure?').then((result) => {
+                            if (result.isConfirmed) {
+                                const url =
+                                    '{{ route('admin.crm.sales-funnels.categories.delete', [':unique_id']) }}'
+                                    .replace(':unique_id', uniqueId);
+
+                                apiFetch(url, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                            .getAttribute('content'),
+                                        'Accept': 'application/json'
+                                    }
+                                }).then(res => {
+                                    if (res.success || (res.message && res.message.toLowerCase().includes('deleted'))) {
+                                        notyf.success(res.message, 'Deleted!');
+                                        const row = document.getElementById('category-row-' +
+                                            uniqueId);
+                                        if (row) row.remove();
+                                    } else {
+                                        notyf.error(res.message);
+                                    }
+                                })
+                            }
+                        });
+                    });
+                });
+            }
+
+            initSingleDeleteButtons();
 
             const modal = document.getElementById('categoryModal');
             const openers = document.querySelectorAll('[data-open-category-modal]');
@@ -400,6 +440,10 @@
             function closeModal() {
                 modal.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
+                $(categoryForm).parsley().reset();
+                document.getElementById('editCategoryId')?.remove(); // Remove hidden input if exists
+                document.getElementById('categoryForm').reset();
+                document.getElementById('categoryModalTitle').textContent = 'Add Category';
             }
 
             function syncColorSelection(hex) {
@@ -438,7 +482,6 @@
 
             // Handle categoryForm form submit (AJAX logic to be added as needed)
             categoryForm.addEventListener('submit', function(e) {
-
                 e.preventDefault();
 
                 if (!$(categoryForm).parsley().isValid()) {
@@ -453,13 +496,11 @@
                 const categoryColorValue = categoryColorInput.value.trim();
                 const descriptionValue = descriptionInput.value.trim();
 
-                const editField = document.getElementById('editFieldId');
+                const editCategoryId = document.getElementById('editCategoryId');
 
-                if (editField && editField.value) {
+                if (editCategoryId && editCategoryId.value) {
                     // Editing existing category
-                    // url =
-                    //     '{{ route('admin.crm.sales-funnels.categories.store', [':category_id']) }}'
-                    //     .replace(':category_id', editField.value);
+                    url = '{{ route('admin.crm.sales-funnels.categories.update', [':unique_id']) }}'.replace(':unique_id', editCategoryId.value);
                     method = 'PUT';
                 } else {
                     // Adding new category
@@ -491,52 +532,53 @@
                             closeModal();
                             categoryForm.reset();
                             fetchCategories();
+                            // After a successful update
+                            if (editCategoryId) {
+                                editCategoryId.remove(); // Remove the hidden input
+                            }
                         } else {
                             notyf.error(res && res.message ? res.message : '');
                         }
                     })
                     .finally(() => {
-                        // After a successful update
-                        if (editField) {
-                            editField.remove(); // Remove the hidden input
-                        }
                         submitBtn.disabled = false;
                         submitBtn.textContent = originalText;
                     });
             });
 
-            const editCategoryButtons = document.querySelectorAll('.edit-category-button');
-            editCategoryButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    console.log('Edit button clicked');
-                    const uniqueId = button.getAttribute('data-unique_id');
-                    const categoryName = button.getAttribute('data-category_name');
-                    const description = button.getAttribute('data-description');
-                    const colorCode = button.getAttribute('data-color_code');
-                    // Populate the form fields
-                    categoryNameInput.value = categoryName;
-                    descriptionInput.value = description;
-                    categoryColorInput.value = colorCode;
-                    syncColorSelection(colorCode);
-                    // Add a hidden input to indicate edit mode
-                    let editField = document.getElementById('editFieldId');
-                    if (!editField) {
-                        editField = document.createElement('input');
-                        editField.type = 'hidden';
-                        editField.id = 'editFieldId';
-                        editField.name = 'edit_unique_id';
-                        categoryForm.appendChild(editField);
-                    }
-                    editField.value = uniqueId;
-                    // Update modal title
-                    document.getElementById('categoryModalTitle').textContent = 'Edit Category';
-                    // Update submit button text
-                    const submitBtn = categoryForm.querySelector('button[type="submit"]');
-                    submitBtn.textContent = 'Update Category';
-                    // Open the modal
-                    openModal();
-                });
+             // Delegated event: Edit Category
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('button[title="Edit Category"]');
+                if (!btn) return;
+
+                // Get data from attributes
+                const uniqueId = btn.getAttribute('data-unique_id');
+                const categoryName = btn.getAttribute('data-category_name');
+                const description = btn.getAttribute('data-description');
+                const colorCode = btn.getAttribute('data-color_code');
+
+                // Populate modal fields
+                categoryNameInput.value = categoryName;
+                descriptionInput.value = description;
+                categoryColorInput.value = colorCode;
+                syncColorSelection(colorCode);
+                document.getElementById('categoryModalTitle').textContent = 'Edit Category';
+
+                // Add hidden input to track edit mode
+                let hidden = document.getElementById('editCategoryId');
+                if (!hidden) {
+                    hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'category_id';
+                    hidden.id = 'editCategoryId';
+                    document.getElementById('categoryForm').appendChild(hidden);
+                }
+                hidden.value = uniqueId;
+
+                // Show modal
+                document.getElementById('categoryModal').classList.remove('hidden');
             });
+
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -572,7 +614,6 @@
             // Default tab
             setActive('funnels');
         });
-
 
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('funnelModal');

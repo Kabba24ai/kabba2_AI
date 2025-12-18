@@ -16,7 +16,6 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateOrderAddressControll
 use App\Http\Controllers\Admin\OrderManagement\Orders\ReceiptDownload;
 use App\Http\Controllers\Admin\OrderManagement\Orders\SendReceiptEmailController;
 
-
 use App\Http\Controllers\Admin\OrderManagement\Orders\AddToAccountPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\SendTermsAndConditionsController;
 
@@ -56,21 +55,16 @@ Route::prefix('orders')
         // Send Terms and Conditions
         Route::post('/{unique_id}/send-terms', SendTermsAndConditionsController::class)->name('send-terms');
 
-    Route::get('/{unique_id}/receipt-download', ReceiptDownload::class)->name('receipt-download');
-    Route::get('/{unique_id}/receipt-email', SendReceiptEmailController::class)->name('receipt-email');
+        Route::get('/{unique_id}/receipt-download', ReceiptDownload::class)->name('receipt-download');
+        Route::get('/{unique_id}/receipt-email', SendReceiptEmailController::class)->name('receipt-email');
 
-
-
-
-
-
-    // Notes
-    Route::prefix('notes')
+        // Notes
+        Route::prefix('notes')
             ->name('notes.')
             ->group(function () {
                 Route::get('/{unique_id}', NotesIndexController::class)->name('index');
                 Route::post('/{unique_id}', NotesStoreController::class)->name('store');
                 Route::put('/{unique_id}/{note_unique_id}/update', NotesUpdateController::class)->name('update');
                 Route::delete('/{unique_id}/{note_unique_id}', NotesDeleteController::class)->name('delete');
-        });
-});
+            });
+    });

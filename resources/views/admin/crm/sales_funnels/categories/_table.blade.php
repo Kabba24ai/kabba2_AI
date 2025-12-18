@@ -11,7 +11,7 @@
         <div id="categories-loading" class="hidden"></div>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-950">
             @forelse ($categories as $category)
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800" id="category-row-{{ $category->unique_id }}">
                     <td class="px-4 py-4 text-left">
                         <div class="font-medium text-gray-800 dark:text-gray-100">{{ $category->category_name }}</div>
                     </td>
@@ -24,27 +24,19 @@
                     </td>
                     <td class="px-4 py-4 text-right whitespace-nowrap">
                         <div class="flex float-right gap-x-3">
-                            {{-- <a href="javascript:void(0);"
+                            <button type="button"
                                 data-unique_id="{{ $category->unique_id }}"
                                 data-color_code="{{ $category->color_code }}"
                                 data-category_name="{{ $category->category_name }}"
                                 data-description="{{ $category->description }}"
-                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 edit-category-button"
-                                title="Edit">
+                                class="edit-category-button text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                title="Edit Category">
                                 <x-heroicon-o-pencil class="w-5 h-5" />
-                            </a> --}}
-                            <form
-                                action="{{ route('admin.crm.sales-funnels.categories.delete', ['unique_id'=>$category->unique_id]) }}"
-                                method="POST"
-                                onsubmit="return confirm('Are you sure you want to delete this category?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                    title="Delete">
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
-                            </form>
+                            </button>
+                            <button type="button" class="category-delete-button text-red-600 hover:text-red-800" title="Delete"
+                                data-unique-id="{{ $category->unique_id }}">
+                                <x-heroicon-o-trash class="w-4 h-4" />
+                            </button>
                         </div>
                     </td>
                 </tr>

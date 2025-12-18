@@ -9,6 +9,7 @@ class SalesFunnel extends Model
     protected $table = 'sales_funnels';
 
     protected $fillable = [
+        'unique_id',
         'funnel_name',
         'description',
         'sales_funnel_category_id',

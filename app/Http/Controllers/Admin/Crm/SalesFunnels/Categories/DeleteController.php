@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin\Crm\SalesFunnels\Categories;
 
 use App\Http\Controllers\Controller;
-use App\Models\Customers\SalesFunnelCategory;
 use Illuminate\Http\Request;
 
 // Models
+use App\Models\Customers\SalesFunnelCategory;
 
 class DeleteController extends Controller
 {
@@ -19,10 +19,19 @@ class DeleteController extends Controller
 
     public function __invoke($unique_id, Request $request)
     {
-        $objRecord = SalesFunnelCategory::where('unique_id', $unique_id)->firstOrFail();
-        $objRecord->delete();
+        try {
+            $objRecord = SalesFunnelCategory::where('unique_id', $unique_id)->firstOrFail();
+            $objRecord->delete();
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Category not found.'], 404);
+        }
 
-        flash('Category deleted successfully.')->success();
-        return redirect()->route('admin.crm.sales-funnels.index');
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'Category deleted successfully.',
+            ],
+            200,
+        );
     }
 }

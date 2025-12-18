@@ -151,7 +151,14 @@ $watch('darkMode', value => {
                         {{ html()->form()->close() }}
 
                         <!-- Auto-fill Demo Credentials Button -->
-                        @if (in_array(app()->environment(), ['local', 'demo']) || in_array(request()->getHost(), ['demo', 'localhost']))
+                        @if (in_array(request()->getHost(), [
+                            'kabba.local',
+                            'admin.kabba.local',
+                            'demo-kabba.ai',
+                            'demo-admin.kabba.ai',
+                            'front.kabba.ai',
+                            'admin.kabba.ai',
+                        ]))
                             <div class="mt-6">
                                 <button type="button"
                                     class="w-full px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-800"

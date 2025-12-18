@@ -16,6 +16,10 @@ class StoreController extends Controller
         $data['is_tracked'] = ($data['is_tracked'] ?? false) ? 'Yes' : 'No';
         $data['not_for_rent'] = isset($data['not_for_rent']) ? 1 : 0;
 
+        // If bring_service_flag is checked and bring_service_hour is not null, set equipment_hours to bring_service_hour
+        if (isset($data['bring_service_flag']) && $data['bring_service_flag'] && isset($data['bring_service_hour']) && $data['bring_service_hour'] !== null) {
+            $data['equipment_hours'] = $data['bring_service_hour'];
+        }
 
         Equipment::create($data);
 

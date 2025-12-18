@@ -21,7 +21,12 @@
         @include('admin.maintenance_management.equipment.partials._stats')
         @include('admin.maintenance_management.equipment.partials._filters')
         <div id="equipment-table-wrapper" aria-live="polite">
-               @include('admin.maintenance_management.equipment.partials._table', ['equipment' => []])
+               @include('admin.maintenance_management.equipment.partials._table', [
+                   'equipment' => [],
+                   'serviceRecords' => $serviceRecords ?? collect(),
+                   'pendingBeforeHours' => $pendingBeforeHours ?? 20,
+                   'pendingAfterHours' => $pendingAfterHours ?? 15
+               ])
 
         </div>
     </div>
@@ -169,7 +174,7 @@
 
 
         let locationStore = document.querySelector('select[name="location_store"]');
-        // let serviceDue = document.querySelector('select[name="serviceDue"]');
+        let serviceDue = document.querySelector('select[name="service_due"]');
         // let rentalReady = document.querySelector('select[name="rentalReady"]');
         // let equipService = document.querySelector('select[name="equipService"]');
         let wrapper = document.querySelector('#equipment-table-wrapper');
@@ -213,6 +218,7 @@ document.addEventListener('click', function (e) {
             'checklist_master': checklistMasterSelect,
             'location_store': locationStore,
             'equipment_id': equipmentIdSelect,
+            'service_due': serviceDue,
 
         };
 
@@ -228,9 +234,9 @@ document.addEventListener('click', function (e) {
             const checklistMasterValue = checklistMasterSelect.value;
             const locationStoreValue = locationStore.value;
             const equipmentId = equipmentIdSelect.value;
+            const serviceDueValue = serviceDue.value;
 
 
-            // const serviceDueValue = serviceDue.value;
             // const rentalReadyValue = rentalReady.value;
             // const equipServiceValue = equipService.value;
 
@@ -242,6 +248,7 @@ if (equipmentId) params.append('equipment_id', equipmentId);
 if (currentStatus) params.append('status', currentStatus);
 
             if (locationStoreValue) params.append('location_store', locationStoreValue);
+            if (serviceDueValue) params.append('service_due', serviceDueValue);
 
             if (perPage) params.append('per_page', perPage);
             params.append('page', page);
@@ -285,9 +292,9 @@ if (currentStatus) params.append('status', currentStatus);
         checklistMasterSelect.addEventListener('change', fetchEquipments);
         locationStore.addEventListener('change', fetchEquipments);
 equipmentIdSelect.addEventListener('change', fetchEquipments);
+        serviceDue.addEventListener('change', fetchEquipments);
 
         //status.addEventListener('change', fetchEquipments);
-        // serviceDue.addEventListener('change', fetchEquipments);
         // rentalReady.addEventListener('change', fetchEquipments);
         // equipService.addEventListener('change', fetchEquipments);
 

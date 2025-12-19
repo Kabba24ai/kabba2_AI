@@ -102,22 +102,32 @@
                                     <div class="mt-4">
                                         <label class="text-sm font-medium text-slate-700">Category</label>
 
-                                        <div class="mt-2 flex items-center gap-3">
+                                        <!-- SELECT WRAPPER -->
+                                        <div class="mt-2 flex items-center gap-3" id="categorySelectWrapper">
                                             <select name="category_id"
                                                 class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
                                                 <option value="">No Category</option>
-                                                {{-- add your categories here --}}
-                                                {{-- <option value="1">Category 1</option> --}}
                                             </select>
 
                                             <button type="button"
                                                 class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                                                aria-label="Add Category" title="Add Category" data-open-category-modal>
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M12 4v16m8-8H4" />
-                                                </svg>
+                                                title="Add Category"
+                                                id="showCategoryInput">
+                                                +
+                                            </button>
+                                        </div>
+
+                                        <!-- INPUT WRAPPER (hidden by default) -->
+                                        <div class="mt-2 hidden" id="categoryInputWrapper">
+                                            <input type="text"
+                                                name="new_category"
+                                                placeholder="Enter new category"
+                                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
+
+                                            <button type="button"
+                                                class="mt-2 text-sm text-blue-600 hover:underline"
+                                                id="backToSelect">
+                                                ← Back to category list
                                             </button>
                                         </div>
                                     </div>
@@ -636,6 +646,22 @@
 
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+            });
+
+            const selectWrapper = document.getElementById('categorySelectWrapper');
+            const inputWrapper  = document.getElementById('categoryInputWrapper');
+            const showBtn       = document.getElementById('showCategoryInput');
+            const backBtn       = document.getElementById('backToSelect');
+
+            showBtn.addEventListener('click', () => {
+                selectWrapper.classList.add('hidden');
+                inputWrapper.classList.remove('hidden');
+                inputWrapper.querySelector('input').focus();
+            });
+
+            backBtn.addEventListener('click', () => {
+                inputWrapper.classList.add('hidden');
+                selectWrapper.classList.remove('hidden');
             });
 
             // Demo submit (replace with ajax)

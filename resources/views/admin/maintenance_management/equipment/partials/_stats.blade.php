@@ -1,7 +1,7 @@
 {{-- Stats Cards --}}
 <div class="grid grid-cols-5 gap-4 mb-6 p-2">
     <a href="#" data-status=""
-       class="stats-filter bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ !request('status') ? 'border-gray-400 bg-gray-50' : 'border-gray-100 hover:border-gray-200' }}">
+       class="stats-filter bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md {{ !request('status') ? 'border-gray-100 bg-gray-50' : 'border-gray-100 hover:border-gray-200' }}">
         <div class="flex items-center justify-between">
             <div class="text-left">
                 <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total</p>

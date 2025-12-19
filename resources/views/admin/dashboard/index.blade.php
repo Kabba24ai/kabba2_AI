@@ -12,9 +12,9 @@
         </div>
 
         <!-- Section 1 -->
-<div class="mb-6">
-    <livewire:dashboard.schedule-section />
-</div>
+        <div class="mb-6">
+            <livewire:dashboard.schedule-section />
+        </div>
 
         <!-- Section 2: Customer Alerts -->
         <div class="mb-6">
@@ -29,10 +29,9 @@
 
         <!-- Section 4: Maintenance & Damaged Items Tracking -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
-            
             @include('admin.dashboard.partials._maintenance_and_damaged')
         </div>
-
+    <livewire:dashboard.maintenance-charts />
     </div>
 
 @endsection
@@ -603,6 +602,9 @@ const salesDataFromServer = @json($salesData);
                 type: "line",
                 toolbar: { show: false },
             },
+            xaxis: {
+                 categories: data.categories, 
+            },
         });
 
         this.salesChart.render();
@@ -611,6 +613,11 @@ const salesDataFromServer = @json($salesData);
     updateSalesChart() {
         if (!this.salesChart) return;
         const data = this.getSalesData();
+ this.salesChart.updateOptions({
+        xaxis: {
+            categories: data.categories, 
+        },
+    });
 
         this.salesChart.updateSeries([
             { name: "Current Period", data: data.current },
@@ -653,6 +660,36 @@ const salesDataFromServer = @json($salesData);
 
         this.damagedChart.render();
     }
+
+
+
+    updateMaintenanceChart(chartData) {
+    if (!this.maintenanceChart) return;
+
+        this.maintenanceChart.updateOptions({
+            xaxis: { categories: chartData.labels }
+        });
+
+        this.maintenanceChart.updateSeries([
+            { name: "Due", data: chartData.maintenance.due },
+            { name: "Completed", data: chartData.maintenance.completed },
+        ]);
+    }
+
+    updateDamagedChart(chartData) {
+        if (!this.damagedChart) return;
+
+        this.damagedChart.updateOptions({
+            xaxis: { categories: chartData.labels }
+        });
+
+        this.damagedChart.updateSeries([
+            { name: "Due", data: chartData.damaged.due },
+            { name: "Completed", data: chartData.damaged.completed },
+        ]);
+    }
+
+
 }
 
 
@@ -674,6 +711,19 @@ document.addEventListener('livewire:init', () => {
         window.dashboardApp.renderDamageAlerts();
     });
 });
+
+
+document.addEventListener('livewire:init', () => {
+    Livewire.on('maintenance-charts-updated', ({ chartData }) => {
+        if (!window.dashboardApp) return;
+
+        window.dashboardApp.updateMaintenanceChart(chartData);
+        window.dashboardApp.updateDamagedChart(chartData);
+    });
+});
+
+
+
 
 
 </script>

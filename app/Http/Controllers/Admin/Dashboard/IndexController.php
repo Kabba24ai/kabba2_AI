@@ -88,7 +88,7 @@ class IndexController extends Controller
 
         $chartData = $this->getMaintenanceChartData();
 
-        // dd($damagedOrderAlerts);
+        // dd($salesData);
         
         return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData'));
         
@@ -120,74 +120,86 @@ class IndexController extends Controller
 
         private function getMaintenanceChartData()
         {
-            $days = collect(range(13, 0))->map(fn ($i) =>
-                Carbon::today()->subDays($i)->toDateString()
-            );
+           $days = collect(range(13, 0))->map(fn ($i) =>
+            Carbon::today()->subDays($i)->toDateString()
+        );
 
-            $maintenanceDue = [];
-            $maintenanceCompleted = [];
-            $damagedDue = [];
-            $damagedCompleted = [];
+        $maintenanceDue = [];
+        $maintenanceCompleted = [];
+        $damagedDue = [];
+        $damagedCompleted = [];
 
-            foreach ($days as $day) {
+        foreach ($days as $day) {
 
-                // ENTERED maintenance that day
-                $maintenanceDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                    ->where('to_status', EquipmentCurrentStatus::Maintenance->value)
-                    ->whereHas('equipment', function ($q) {
-                        $q->where('not_for_rent', 0)
-                        ->whereNull('deleted_at');
-                    })->count();
+            //  IF TODAY → USE DASHBOARD LOGIC
+            if ($day === Carbon::today()->toDateString()) {
 
-                // EXITED maintenance that day
+                $maintenanceDue[] = Equipment::where('current_status', EquipmentCurrentStatus::Maintenance)
+                    ->where('not_for_rent', 0)
+                    ->whereNull('deleted_at')
+                    ->count();
+
                 $maintenanceCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
                     ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
                     ->whereIn('to_status', [
                         EquipmentCurrentStatus::Available->value,
                         EquipmentCurrentStatus::Rented->value,
-                    ])->whereHas('equipment', function ($q) {
-                        $q->where('not_for_rent', 0)
-                        ->whereNull('deleted_at');
-                    })
+                    ])
                     ->count();
 
-                // ENTERED damaged
-                $damagedDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                    ->where('to_status', EquipmentCurrentStatus::Damaged->value)
-                    ->whereHas('equipment', function ($q) {
-                        $q->where('not_for_rent', 0)
-                        ->whereNull('deleted_at');
-                    })->count();
+                $damagedDue[] = Equipment::where('current_status', EquipmentCurrentStatus::Damaged)
+                    ->where('not_for_rent', 0)
+                    ->whereNull('deleted_at')
+                    ->count();
 
-                // EXITED damaged
                 $damagedCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
                     ->where('from_status', EquipmentCurrentStatus::Damaged->value)
                     ->whereIn('to_status', [
                         EquipmentCurrentStatus::Available->value,
                         EquipmentCurrentStatus::Rented->value,
-                    ])->whereHas('equipment', function ($q) {
-                        $q->where('not_for_rent', 0)
-                        ->whereNull('deleted_at');
-                    })
+                    ])
                     ->count();
+
+                continue;
             }
 
-              // Formatted labels for chart
-            $labels = $days->map(fn ($date) =>
-                CustomHelper::formatDate($date)
-            );
+            //  OTHER DAYS → KEEP YOUR EXISTING LOGIC
+            $maintenanceDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                ->where('to_status', EquipmentCurrentStatus::Maintenance->value)
+                ->count();
 
-            return [
-                'labels' => $labels,
-                'maintenance' => [
-                    'due' =>  $maintenanceDue,
-                    'completed' => $maintenanceCompleted,
-                ],
-                'damaged' => [
-                    'due' => $damagedDue ,
-                    'completed' => $damagedCompleted ,
-                ],
-            ];
+            $maintenanceCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
+                ->whereIn('to_status', [
+                    EquipmentCurrentStatus::Available->value,
+                    EquipmentCurrentStatus::Rented->value,
+                ])
+                ->count();
+
+            $damagedDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                ->where('to_status', EquipmentCurrentStatus::Damaged->value)
+                ->count();
+
+            $damagedCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                ->where('from_status', EquipmentCurrentStatus::Damaged->value)
+                ->whereIn('to_status', [
+                    EquipmentCurrentStatus::Available->value,
+                    EquipmentCurrentStatus::Rented->value,
+                ])
+                ->count();
+        }
+
+        return [
+            'labels' => collect($days)->map(fn ($d) => CustomHelper::formatDate($d)),
+            'maintenance' => [
+                'due' => $maintenanceDue,
+                'completed' => $maintenanceCompleted,
+            ],
+            'damaged' => [
+                'due' => $damagedDue,
+                'completed' => $damagedCompleted,
+            ],
+        ];
         }
 
 
@@ -282,7 +294,7 @@ class IndexController extends Controller
         for ($i = 0; $i < 30; $i++) {
             $date = $startDate->copy()->addDays($i);
             $dateStr = $date->format('Y-m-d');
-            $categories[] = $date->format('n/j'); // Format: M/D
+            $categories[] =  CustomHelper::formatDate($date) ; 
             
             $currentData[] = isset($currentPeriodData[$dateStr]) ? (float)$currentPeriodData[$dateStr] : 0;
             

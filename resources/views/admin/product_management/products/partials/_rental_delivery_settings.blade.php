@@ -430,6 +430,7 @@
 
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
+        @include('admin.product_management.products.partials._terms_checklist')
     </div>
 
     <!-- Additional Prices -->

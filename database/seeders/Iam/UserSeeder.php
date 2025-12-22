@@ -57,10 +57,92 @@ class UserSeeder extends Seeder
                 'email' => 'admin@kabba.ai',
                 'password' => Hash::make('K@bba!9XrT#L2pQ'),
                 'status' => 'Active',
-            ]
+            ],
+            [
+                'first_name' => 'Sue',
+                'last_name' => 'Perb',
+                'email' => 'sue.perb@kabba.ai',
+                'password' => Hash::make('Sue#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Paige',
+                'last_name' => 'Turner',
+                'email' => 'paige.turner@kabba.ai',
+                'password' => Hash::make('Paige#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Hank',
+                'last_name' => 'Greaser',
+                'email' => 'hank.greaser@kabba.ai',
+                'password' => Hash::make('Hank#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Frank',
+                'last_name' => 'Leeorganized',
+                'email' => 'frank.leeorganized@kabba.ai',
+                'password' => Hash::make('Frank#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Gus',
+                'last_name' => 'Wrencher',
+                'email' => 'gus.wrencher@kabba.ai',
+                'password' => Hash::make('Gus#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Doug',
+                'last_name' => 'Cashman',
+                'email' => 'doug.cashman@kabba.ai',
+                'password' => Hash::make('Doug#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Mike',
+                'last_name' => 'Hammerly',
+                'email' => 'mike.hammerly@kabba.ai',
+                'password' => Hash::make('Mike#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Will',
+                'last_name' => 'Booker',
+                'email' => 'will.booker@kabba.ai',
+                'password' => Hash::make('Will#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Neil',
+                'last_name' => 'Stockman',
+                'email' => 'neil.stockman@kabba.ai',
+                'password' => Hash::make('Neil#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Drew',
+                'last_name' => 'Ledger',
+                'email' => 'drew.ledger@kabba.ai',
+                'password' => Hash::make('Drew#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Cal',
+                'last_name' => 'Torkman',
+                'email' => 'cal.torkman@kabba.ai',
+                'password' => Hash::make('Cal#1234'),
+                'status' => 'Active',
+            ],
+            [
+                'first_name' => 'Bill',
+                'last_name' => 'Payton',
+                'email' => 'bill.payton@kabba.ai',
+                'password' => Hash::make('Bill#1234'),
+                'status' => 'Active',
+            ],
         ];
-
-
 
         $role_item = \Spatie\Permission\Models\Role::orderBy('id', 'ASC')->first();
 

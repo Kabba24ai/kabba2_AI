@@ -186,14 +186,32 @@
     <!-- Main Images Upload -->
     <div
         class="md:col-span-3 border border-dashed border-gray-300 dark:border-gray-600 rounded-md p-4 bg-white dark:bg-gray-800">
-        <label class="block font-medium text-sm text-gray-700 dark:text-gray-300 mb-1">
-            Images <span class="text-xs font-normal text-gray-500">(Optimum Image Size: 650 × 650 pixels)</span>
-        </label>
-        <div class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md h-40 flex flex-col justify-center items-center cursor-pointer hover:border-blue-500"
+        <div class="flex items-center gap-3 mb-1">
+            <label class="font-medium text-sm text-gray-700 dark:text-gray-300">
+                Images
+                <span class="text-xs font-normal text-gray-500">
+                    (Optimum Image Size: 650 × 650 pixels)
+                </span>
+            </label>
+
+            <button
+                type="button"
+                onclick="document.getElementById('mainImageInput').click()"
+                class="inline-flex items-center px-3 py-1.5 text-sm font-medium
+                    text-white bg-blue-600 rounded-md
+                    hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Upload Image
+            </button>
+        </div>
+
+        {{-- <div id="mainDropZone"
+            class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md h-40 flex flex-col justify-center items-center cursor-pointer hover:border-blue-500"
             onclick="document.getElementById('mainImageInput').click()">
             <x-heroicon-o-photo class="w-6 h-6 text-gray-400" />
             <span class="text-sm text-blue-600 mt-1">Add Images</span>
-        </div>
+            <span class="text-xs text-gray-500 mt-1">or drag & drop here</span>
+        </div> --}}
+
         <input type="file" name="images[]" id="mainImageInput" accept="image/*" multiple class="hidden">
 
         @error('images')
@@ -208,7 +226,7 @@
             @foreach ($mediaChildren as $image)
                 <div class="relative group" data-key="{{ $image->id }}">
                     <a href="{{ $image->media->getUrl() }}" target="_blank">
-                        <img src="{{ $image->media->getUrl() }}" class="w-full h-60 object-cover rounded-md border" />
+                        <img src="{{ $image->media->getUrl() }}" class="w-full aspect-square object-cover rounded-md border" />
                     </a>
 
                     <button type="button"
@@ -226,14 +244,21 @@
     <!-- Hover Image Upload -->
     <div
         class="md:col-span-1 border border-dashed border-gray-300 dark:border-gray-600 rounded-md p-4 bg-white dark:bg-gray-800">
-        <label class="block font-medium text-sm text-gray-700 dark:text-gray-300 mb-1">
-            Mouse Over Image
-        </label>
-        <div class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md h-40 flex flex-col justify-center items-center cursor-pointer hover:border-blue-500"
-            onclick="document.getElementById('hoverImageInput').click()">
-            <x-heroicon-o-photo class="w-6 h-6 text-gray-400" />
-            <span class="text-sm text-blue-600 mt-1">Add Image</span>
+        <div class="flex items-center gap-3 mb-1">
+            <label class="font-medium text-sm text-gray-700 dark:text-gray-300">
+                Mouse Over Image
+            </label>
+
+            <button
+                type="button"
+                onclick="document.getElementById('hoverImageInput').click()"
+                class="inline-flex items-center px-3 py-1.5 text-sm font-medium
+                    text-white bg-blue-600 rounded-md
+                    hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Upload Image
+            </button>
         </div>
+
         <input type="file" name="hover_image" id="hoverImageInput" accept="image/*" class="hidden">
 
         @error('hover_image')
@@ -243,7 +268,7 @@
         <!-- Hover Image Preview -->
         @if (!empty($hoverImage))
             <div class="relative mt-4" id="hoverImagePreview">
-                <img src="{{ $hoverImage }}" alt="Hover Image" class="w-full h-60 object-cover rounded-md border"
+                <img src="{{ $hoverImage }}" alt="Hover Image" class="w-full aspect-square object-cover rounded-md border"
                     id="hoverImageTag" />
                 <button type="button"
                     class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100"
@@ -254,7 +279,7 @@
             </div>
         @else
             <div class="relative mt-4" id="hoverImagePreview" style="display: none;">
-                <img id="hoverImageTag" class="w-full h-60 object-cover rounded-md border" />
+                <img id="hoverImageTag" class="w-full aspect-square object-cover rounded-md border" />
                 <button type="button"
                     class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100"
                     onclick="removeHoverImage()">
@@ -398,13 +423,14 @@
 </div>
 
 
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-    @include('admin.product_management.products.partials._terms_checklist')
-
-    <!-- Categories Column -->
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
-        <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Add 1 or More Categories</h4>
+    <!-- Categories Column (1 col) -->
+    <div class="md:col-span-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
+        <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">
+            Add 1 or More Categories
+        </h4>
 
         @if ($categoryTree->isNotEmpty())
             <div class="max-h-64 overflow-y-auto pr-2 custom-scroll">
@@ -421,32 +447,52 @@
         @endif
     </div>
 
-    <!-- Sales Funnels Column -->
-    <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
-        <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Add 1 or More Sales Funnels</h4>
+    <!-- Sales Funnels Column (2 cols) -->
+    <div class="md:col-span-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
+        <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                Add 1 or More Sales Funnels
+            </h4>
 
-        <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
-            <div class="flex items-center space-x-2 text-sm" x-data x-show="$store.productForm.selectedType === 'Rental'" x-cloak>
-                {!! html()->checkbox('is_default_funnel') !!}
+            <div
+                class="flex items-center space-x-2 text-sm"
+                x-data
+                x-show="$store.productForm.selectedType === 'Rental'"
+                x-cloak
+            >
+                {!! html()->checkbox(
+                    'is_default_funnel',
+                    old('is_default_funnel', $objProduct->is_default_funnel ?? true)
+                ) !!}
+
                 <label for="is_default_funnel" class="text-gray-700 dark:text-gray-300">
                     Default Sales Funnel
                 </label>
             </div>
+        </div>
+
+
+        <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
+
+
             @if ($funnels->isNotEmpty())
                 @foreach ($funnels as $funnel)
                     <div class="flex items-center space-x-2 text-sm">
-                        {!! html()->checkbox('funnels[]', in_array($funnel->id, old('funnels', [])))->value($funnel->id)->id("funnel_{$funnel->id}") !!}
+                        {!! html()
+                            ->checkbox('funnels[]', in_array($funnel->id, old('funnels', [])))
+                            ->value($funnel->id)
+                            ->id("funnel_{$funnel->id}") !!}
                         <label for="funnel_{{ $funnel->id }}" class="text-gray-700 dark:text-gray-300">
                             {{ $funnel->name }}
                         </label>
                     </div>
                 @endforeach
-            @else
-                {{-- <p class="text-sm text-gray-500 dark:text-gray-400">No  custom sales funnels available.</p> --}}
             @endif
         </div>
     </div>
+
 </div>
+
 
 {{-- SEO Meta Section --}}
 <div class="border border-gray-200 rounded-md p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 mb-6">
@@ -680,80 +726,216 @@
                 });
             }
 
+
+            const mainDropZone = document.getElementById("mainDropZone");
             const mainImageInput = document.getElementById("mainImageInput");
             const mainImagePreview = document.getElementById("mainImagePreview");
+
+            const REQUIRED_WIDTH = 650;
+            const REQUIRED_HEIGHT = 650;
+
+            // Helper: Create FileList from array of Files
+            function createFileList(files) {
+                const dt = new DataTransfer();
+                files.forEach(f => dt.items.add(f));
+                return dt.files;
+            }
+
+            function appendMainImagePreviews(files) {
+                files.forEach(file => {
+                    if (!file.type || !file.type.startsWith("image/")) {
+                        notyf?.error?.("Only image files are allowed.");
+                        return;
+                    }
+
+                    const imgCheck = new Image();
+                    const objectUrl = URL.createObjectURL(file);
+
+                    imgCheck.onload = function () {
+                        // ❌ Reject if dimensions do not match exactly
+                        if (imgCheck.width !== REQUIRED_WIDTH || imgCheck.height !== REQUIRED_HEIGHT) {
+                            notyf?.error?.(
+                                `Invalid image size (${imgCheck.width}×${imgCheck.height}). Required: 650×650 px`
+                            );
+                            URL.revokeObjectURL(objectUrl);
+                            return;
+                        }
+
+                        // ✅ Passed validation → render preview
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const wrapper = document.createElement("div");
+                            wrapper.className = "relative group";
+                            wrapper.dataset.key = `new-${file.name}-${file.size}-${file.lastModified}`;
+
+                            const anchor = document.createElement("a");
+                            anchor.href = e.target.result;
+                            anchor.target = "_blank";
+
+                            const img = document.createElement("img");
+                            img.src = e.target.result;
+                            img.className = "w-full aspect-square object-cover rounded-md border";
+
+                            const button = document.createElement("button");
+                            button.type = "button";
+                            button.className =
+                                "absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100";
+                            button.innerHTML = "&times;";
+                            button.onclick = () => {
+                                wrapper.remove();
+                                window.refreshImageSortOrder?.();
+                            };
+
+                            // Hidden file input so it submits correctly
+                            const hiddenInput = document.createElement("input");
+                            hiddenInput.type = "file";
+                            hiddenInput.name = "images[]";
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            hiddenInput.files = dt.files;
+                            hiddenInput.className = "hidden";
+
+                            anchor.appendChild(img);
+                            wrapper.appendChild(anchor);
+                            wrapper.appendChild(button);
+                            wrapper.appendChild(hiddenInput);
+                            mainImagePreview.appendChild(wrapper);
+
+                            window.refreshImageSortOrder?.();
+                        };
+
+                        reader.readAsDataURL(file);
+                        URL.revokeObjectURL(objectUrl);
+                    };
+
+                    imgCheck.onerror = function () {
+                        notyf?.error?.("Invalid image file.");
+                        URL.revokeObjectURL(objectUrl);
+                    };
+
+                    imgCheck.src = objectUrl;
+                });
+            }
+
+            // Existing picker: just call the helper
+            if (mainImageInput) {
+                mainImageInput.addEventListener("change", function () {
+                    const files = Array.from(this.files || []);
+                    appendMainImagePreviews(files);
+                    this.value = ""; // reset so selecting same files again works
+                });
+            }
+
+            // Drag & drop support
+            if (mainDropZone) {
+                const prevent = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                };
+
+                ["dragenter", "dragover", "dragleave", "drop"].forEach(evt =>
+                    mainDropZone.addEventListener(evt, prevent)
+                );
+
+                mainDropZone.addEventListener("dragenter", () => {
+                    mainDropZone.classList.add("border-blue-500");
+                });
+
+                mainDropZone.addEventListener("dragleave", () => {
+                    mainDropZone.classList.remove("border-blue-500");
+                });
+
+                mainDropZone.addEventListener("drop", (e) => {
+                    mainDropZone.classList.remove("border-blue-500");
+                    const files = Array.from(e.dataTransfer?.files || []);
+                    appendMainImagePreviews(files);
+                });
+            }
 
             const hoverImageInput = document.getElementById("hoverImageInput");
             const hoverImagePreview = document.getElementById("hoverImagePreview");
             const hoverImageTag = document.getElementById("hoverImageTag");
 
-            // Helper: Create FileList from a single File
-            function createFileList(files) {
-                const dataTransfer = new DataTransfer();
-                files.forEach(file => dataTransfer.items.add(file));
-                return dataTransfer.files;
+            const hoverDropZone = document.getElementById("hoverDropZone");
+
+            // Click to open file picker (keeps existing UX)
+            if (hoverDropZone && hoverImageInput) {
+                hoverDropZone.addEventListener("click", () => hoverImageInput.click());
             }
 
-            // Append new images to main preview
-            mainImageInput.addEventListener("change", function() {
-                const files = Array.from(this.files);
-                // sanitize: lowercase, replace spaces with dashes, remove non-word chars
-                files.forEach(file => {
+            function setHoverImage(file) {
+                if (!file?.type?.startsWith("image/")) {
+                    notyf?.error?.("Only image files are allowed.");
+                    return;
+                }
+
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+
+                img.onload = () => {
+                    if (img.width !== REQUIRED_WIDTH || img.height !== REQUIRED_HEIGHT) {
+                        notyf?.error?.(
+                            `Invalid image size (${img.width}×${img.height}). Required: 650×650`
+                        );
+                        URL.revokeObjectURL(url);
+                        return;
+                    }
+
+                    // Put file into input so form submits correctly
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    hoverImageInput.files = dt.files;
+
                     const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const wrapper = document.createElement("div");
-                        wrapper.className = "relative group";
-                        wrapper.dataset.key = `new-${file.name}`;
+                    reader.onload = e => {
+                        hoverImageTag.src = e.target.result;
+                        hoverImageTag.className =
+                            "w-full aspect-square object-cover rounded-md border";
+                        hoverImagePreview.style.display = "block";
 
-                        const anchor = document.createElement("a");
-                        anchor.href = e.target.result;
-                        anchor.target = "_blank";
-
-                        const img = document.createElement("img");
-                        img.src = e.target.result;
-                        img.className = "w-full h-60 object-cover rounded-md border";
-
-                        const button = document.createElement("button");
-                        button.type = "button";
-                        button.className =
-                            "absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100";
-                        button.innerHTML = "&times;";
-                        button.onclick = () => wrapper.remove();
-
-                        const hiddenInput = document.createElement("input");
-                        hiddenInput.type = "file";
-                        hiddenInput.name = "images[]";
-                        hiddenInput.files = createFileList([file]);
-                        hiddenInput.className = "hidden";
-
-                        anchor.appendChild(img);
-                        wrapper.appendChild(anchor);
-                        wrapper.appendChild(button);
-                        wrapper.appendChild(hiddenInput);
-                        mainImagePreview.appendChild(wrapper);
+                        // Remove existing image reference if present
+                        document
+                            .querySelector('input[name="existing_hover_image"]')
+                            ?.remove();
                     };
+
                     reader.readAsDataURL(file);
+                    URL.revokeObjectURL(url);
+                };
+
+                img.src = url;
+            }
+
+            // Your existing change listener can just call setHoverFile
+            hoverImageInput.addEventListener("change", function () {
+                setHoverImage(this.files && this.files[0]);
+            });
+
+            // Drag & drop wiring
+            if (hoverDropZone) {
+                const prevent = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                };
+
+                ["dragenter", "dragover", "dragleave", "drop"].forEach(evt =>
+                    hoverDropZone.addEventListener(evt, prevent)
+                );
+
+                hoverDropZone.addEventListener("dragenter", () => {
+                    hoverDropZone.classList.add("border-blue-500");
+                });
+                hoverDropZone.addEventListener("dragleave", () => {
+                    hoverDropZone.classList.remove("border-blue-500");
                 });
 
-                this.value = '';
-            });
+                hoverDropZone.addEventListener("drop", (e) => {
+                    hoverDropZone.classList.remove("border-blue-500");
+                    const file = e.dataTransfer?.files?.[0];
+                    setHoverFile(file);
+                });
+            }
 
-            // Hover image preview
-            hoverImageInput.addEventListener("change", function() {
-                const file = this.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    hoverImageTag.src = e.target.result;
-                    hoverImagePreview.style.display = "block";
-
-                    // Remove any existing input to avoid duplication
-                    const oldHiddenInput = document.querySelector('input[name="existing_hover_image"]');
-                    if (oldHiddenInput) oldHiddenInput.remove();
-                };
-                reader.readAsDataURL(file);
-            });
 
             // Expose to global for use in HTML
             window.removeHoverImage = function() {

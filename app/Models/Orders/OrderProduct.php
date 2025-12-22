@@ -209,4 +209,15 @@ class OrderProduct extends Model
         );
     }
 
+    public function equipmentLocation()
+    {
+        if ($this->checklistQuestions->isNotEmpty()) {
+            return $this->equipment->status_label === 'Rented'
+                ? $this->order?->customer_name ?? '-'
+                : $this->equipment->store?->store_name ?? '-';
+        }
+
+        return $this->softAssignment?->equipment?->store?->store_name ?? '-';
+    }
+
 }

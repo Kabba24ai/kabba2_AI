@@ -69,6 +69,9 @@ class ListResource extends JsonResource
 
             'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
 
+            'current_order_unique_id' => $this->order->unique_id ?? "",
+
+
         ];
 
         return $return;

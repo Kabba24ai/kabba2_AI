@@ -9,9 +9,56 @@ use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use App\Services\TwilioService;
 
+// Resources
+use App\Http\Resources\Api\Admin\V1\Equipment\ListResource;
+use App\Models\MaintenanceManagement\Equipment;
+
 class IndexController extends Controller
 {
     // new method here
+
+    public function __invoke($type)
+    {
+
+        $type = $type ?? null;
+
+        // that is use for the ordering of the equipment based on the type
+        if($type === 'RentalReady'){
+            $order = ['damaged', 'maintenance', 'rented', 'available'];
+        }else{
+            $order = ['available', 'rented', 'maintenance', 'damaged'];
+        }
+
+        $equipment = Equipment::with(['productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer'])
+            ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')") // order by current_status based on the defined order
+            ->orderByRaw('equipment_name asc')
+            ->get();
+
+
+        $equipment->map(function($item) {
+            $isRentedAndDelivered = $item->current_status->isRented()
+                && $item->orderProduct
+                && ($item->orderProduct->is_delivered == 1);
+            if ($isRentedAndDelivered) {
+                $questions = optional($item->orderProduct->checklistQuestions) ?? collect();
+            } else {
+                $templateQuestions = $item->checklistMaster?->customerAdminTemplate?->templateQuestions;
+                $questions = collect($templateQuestions)
+                    ->pluck('question')
+                    ->filter()
+                    ->values();
+            }
+            $item->setRelation('checklistQA', $questions);
+            return $item;
+        });
+        dd($equipment->toArray());
+        return response()->json([
+            'success' => true,
+            'message' => trans('messages.api.admin.v1.equipment.equipment_found'),
+            'equipment' => ListResource::collection($equipment),
+        ]);
+    }
+
     public  function sendFirebaseNotification()
     {
         $firebase = new \App\Services\FirebaseService();

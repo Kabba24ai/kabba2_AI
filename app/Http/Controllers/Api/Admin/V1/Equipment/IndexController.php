@@ -30,8 +30,10 @@ class IndexController extends BaseController
         // that is use for the ordering of the equipment based on the type
         if($type === 'RentalReady'){
             $order = ['damaged', 'maintenance', 'rented', 'available'];
-        }else{
+        }else if($type === 'Checklist'){
             $order = ['available', 'rented', 'maintenance', 'damaged'];
+        }else{
+            $order = ['damaged', 'maintenance', 'rented', 'available'];
         }
 
         $equipment = Equipment::with(['productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer'])

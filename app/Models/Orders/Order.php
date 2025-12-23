@@ -16,6 +16,7 @@ use App\Helpers\ModelHelper;
 use App\Models\Customers\Customer;
 use App\Models\Customers\Invoice;
 
+
 class Order extends Model
 {
     protected $fillable = [
@@ -228,4 +229,15 @@ class Order extends Model
         return $this->hasOne(\App\Models\Customers\Receipt::class)
             ->latestOfMany(); // Laravel helper
     }
+
+    public function extraCharges()
+{
+    return $this->hasMany(
+        OrderExtraCharges::class,
+        'order_id',
+        'id'
+    )->latest();
+}
+
+
 }

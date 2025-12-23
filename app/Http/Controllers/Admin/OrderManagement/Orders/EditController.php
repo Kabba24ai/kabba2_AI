@@ -27,16 +27,24 @@ class EditController extends Controller
             'products.deliverySignatureMedia' , 'products.returnSignatureMedia',
             'products.checklistQuestions.latestValidAnswer',
             'products.equipment',
-            'latestReceipt'])->where('unique_id', $uniqueid)->firstOrFail();
+            'products.damageChargeLogs',
+            'latestReceipt',
+            'extraCharges.responsiblePerson',
+            'extraCharges.customer',
+            'extraCharges.orderProduct',
+            'extraCharges.orderProduct'
+            ])->where('unique_id', $uniqueid)->firstOrFail();
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
+ //  define payments from relationship
+    $payments = $order->extraCharges->sortByDesc('type');
 
         // dd($order);
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting'));
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting','payments'));
     }
 }

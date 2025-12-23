@@ -182,7 +182,7 @@ class StoreController extends Controller
             } else {
                 // Create new template. If existing was Rental Ready, delete it first (and its questions/logs)
                 if ($existingTemplate && $existingTemplate->status === 'Rental Ready') {
-                    Log::info('Removing previous Rental Ready template', ['template_id' => $existingTemplate->id]);
+                    // Log::info('Removing previous Rental Ready template', ['template_id' => $existingTemplate->id]);
 
                         EquipmentRentalReadyTemplate::where('equipment_id', $request->input('equipment_id'))
                             ->where('status', 'Rental Ready')
@@ -264,7 +264,7 @@ class StoreController extends Controller
                         'general_notes' => data_get($q, 'note'),
                     ]);
 
-                    Log::info('Created checklist question', ['checklist_question_id' => $question->id, 'question_db_id' => $questionDbId]);
+                    // Log::info('Created checklist question', ['checklist_question_id' => $question->id, 'question_db_id' => $questionDbId]);
 
                 }
 

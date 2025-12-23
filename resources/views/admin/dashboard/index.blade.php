@@ -205,16 +205,44 @@ const salesDataFromServer = @json($salesData);
             });
         }
 
-        openAmountModal(alert) {
-            this.editingAlert = alert;
-            this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
+       openAmountModal(alert) {
+            // console.log(alert);
 
-            document.getElementById("amount-input").value = this.tempAmount;
+            this.editingAlert = alert;
+
+            const input   = document.getElementById("amount-input");
+            const baseEl  = document.getElementById("base-damage-amount");
+            const currEl  = document.getElementById("current-damage-amount");
+            const prevEl  = document.getElementById("preview-damage-amount");
+
+            // Base & current values must come from backend
+            const baseAmount    = Number(alert.order_product.base_damage_charge ?? 0);
+            const currentAmount = Number(alert.order_product.current_damage_charge ?? baseAmount);
+
+            // Fill static values
+            baseEl.textContent = `$${baseAmount.toFixed(2)}`;
+            currEl.textContent = `$${currentAmount.toFixed(2)}`;
+            prevEl.textContent = `$${currentAmount.toFixed(2)}`;
+
+            // Adjustment input must ALWAYS start empty
+            input.value = "";
+            input.digits = "";
+
+            // Live preview
+            input.oninput = () => {
+                const change = parseFloat(input.value || 0);
+                const next   = Math.max(0, currentAmount + change);
+                prevEl.textContent = `$${next.toFixed(2)}`;
+            };
+
+            // Title is always adjustment-based
             document.getElementById("amount-modal-title").textContent =
-                alert.amountOwed === "Pending" ? "Add Amount" : "Edit Amount";
+                "Adjust Damage Charge";
 
             document.getElementById("amount-modal").classList.remove("hidden");
         }
+
+
 
         closeAmountModal() {
             document.getElementById("amount-modal").classList.add("hidden");
@@ -285,15 +313,13 @@ const salesDataFromServer = @json($salesData);
                 item.querySelector("[data-status-btn]").onclick = () => dropdown.classList.toggle("hidden");
 
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
-                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
+                // item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
 
                 item.querySelector("[data-edit-notes]").onclick = () => {
                     this.editingAlert = alert;
                     this.tempNotes = "";
                     // this.showNotesModal = true;
                     this.activeOrderUniqueId = alert.orderId;
-
-                    // console.log("Dashboard Notes → Order ID:", this.activeOrderUniqueId);
 
                     this.openNotesModal(alert);
 
@@ -307,11 +333,28 @@ const salesDataFromServer = @json($salesData);
                         ? "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full"
                         : "text-sm font-semibold text-green-700";
 
-                // Notes
-                if (alert.notes) {
-                    item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
-                    item.querySelector("[data-notes]").textContent = alert.notes;
-                }
+
+              
+// Notes (multiple notes, same design, clean)
+if (Array.isArray(alert.notes) && alert.notes.length > 0) {
+    const container = item.querySelector("[data-notes-container]");
+
+    container.classList.remove("hidden");
+    container.innerHTML = ""; // clear old notes
+
+    alert.notes.forEach(note => {
+        const noteEl = document.createElement("div");
+        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
+        noteEl.innerHTML = `
+            <strong>Notes:</strong> ${note.note}
+        `;
+
+        container.appendChild(noteEl);
+    });
+}
+
+
+
 
                 wrapper.appendChild(item);
             });
@@ -400,13 +443,10 @@ const salesDataFromServer = @json($salesData);
         this.initMaintenanceChart();
         this.initDamagedChart();
 
-
          // Update all UI pieces
         this.updateFuelAlertHeader();
         this.updateFuelAlertBadge();
         this.renderFuelAlerts();
-
-
 
         this.updateDamageAlertHeader();
         this.updateDamageAlertBadge();
@@ -414,8 +454,6 @@ const salesDataFromServer = @json($salesData);
 
         this.updateSalesMetrics();
         this.updatePeriodButtons();
-
-
     }
 
 
@@ -452,35 +490,204 @@ const salesDataFromServer = @json($salesData);
         this.renderFuelAlerts();
 
         } else {
-            this.damageAlerts = this.damageAlerts.filter((a) => a.id !== id);
-            this.updateDamageAlertHeader();  // NEW
-            this.updateDamageAlertBadge();   // NEW
-            this.renderDamageAlerts();
+            // this.damageAlerts = this.damageAlerts.filter((a) => a.id !== id);
+            // this.updateDamageAlertHeader();  // NEW
+            // this.updateDamageAlertBadge();   // NEW
+            // this.renderDamageAlerts();
+
+
+
+              this.selectedDamageAlert = this.damageAlerts.find(a => a.id === id);  
+              // Open payment modal
+
+
+
+                this.openPaymentModal(this.selectedDamageAlert);
+
         }
     }
 
-    saveAmount() {
-        if (!this.editingAlert) return;
+    openPaymentModal(alert) {
 
-        const formatted = this.tempAmount
-            ? `$${parseFloat(this.tempAmount).toFixed(2)}`
-            : "Pending";
+              
+                 window.resetCreditCardState();
 
-        const list =
-            this.editingAlert.type === "fuel"
-                ? this.fuelAlerts
-                : this.damageAlerts;
 
-        const index = list.findIndex((a) => a.id === this.editingAlert.id);
-        if (index !== -1) list[index].amountOwed = formatted;
+        // console.log(alert);
 
-        this.editingAlert = null;
-        this.tempAmount = "";
-        this.closeAmountModal();
-        this.renderFuelAlerts();
-        this.renderDamageAlerts();
+        const modal = document.getElementById('PaymentModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+
+        // Set customer ID
+        document.getElementById('customer_id').value = alert.customer.id;
+        document.getElementById('order_id').value = alert.orderId;
+        document.getElementById('order_product_id').value = alert.order_product.unique_id;
+        document.getElementById('type').value = alert.type;
+
+        // console.log(alert.customer.id);
+        // Prefill amount
+        const amountInput = document.querySelector('#recordpayment input[name="amount"]');
+
+        if (amountInput) {
+            const raw = alert.amountOwed.replace("$", "");
+
+            if (raw && raw !== 'Pending') {
+                const cleaned = raw.replace(/[^0-9.]/g, '');
+                const num = Number(cleaned);
+
+                if (Number.isFinite(num) && num > 0) {
+                    amountInput.digits = Math.round(num * 100).toString();
+                    amountInput.value = num.toFixed(2);
+                } else {
+                    amountInput.digits = "";
+                    amountInput.value = "";
+                }
+            } else {
+                amountInput.digits = "";
+                amountInput.value = "";
+            }
+        }
+
+
+        // Populate cards
+        const cardSelect = document.getElementById('existing_card_id');
+        const cardOption = document.getElementById('cardOption');
+        const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
+const paymentType = document.getElementById('payment_type');
+
+       cardSelect.innerHTML = `<option value="">-- Select a saved card --</option>`;
+
+        if (paymentType.value === 'CreditCard' && Array.isArray(alert.customer.cards) && alert.customer.cards.length > 0) {
+            alert.customer.cards.forEach(card => {
+                cardSelect.insertAdjacentHTML(
+                    'beforeend',
+                    `<option value="${card.id}">${card.label}</option>`
+                );
+            });
+
+            cardOption.value = 'CardOnFile';
+
+
+            cardOnFileDropdown.classList.remove('hidden');
+            
+        } else {
+            cardOption.value = 'NewCard';
+            cardOnFileDropdown.classList.add('hidden');
+        }
+
+        this.selectedDamageAlert = alert;
 
     }
+
+    closePaymentModal() {
+        const modal = document.getElementById('PaymentModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+
+        // reset selection
+        this.selectedDamageAlert = null;
+    }
+
+
+    removeSelectedDamageAlert() {
+        if (!this.selectedDamageAlert) return;
+
+        this.damageAlerts = this.damageAlerts.filter(
+            a => a.id !== this.selectedDamageAlert.id
+        );
+
+        this.updateDamageAlertHeader();
+        this.updateDamageAlertBadge();
+        this.renderDamageAlerts();
+
+        this.selectedDamageAlert = null;
+    }
+
+
+
+
+
+    saveAmount() {
+        if (!this.editingAlert) {
+        notyf.error("Alert not found.");
+        return;
+    }
+
+        const amount = document.getElementById("amount-input").value.trim();
+
+        
+    if (!amount || isNaN(amount)) {
+        notyf.error("Please enter a valid amount.");
+        return;
+    }
+
+
+    
+    const url =
+        "{{ route('admin.dashboard.amount.update', ':unique_id') }}"
+            .replace(":unique_id", this.editingAlert.order_product.unique_id);
+
+    const saveBtn = document.querySelector("#amount-modal #save-btn-amount");
+    const originalText = saveBtn.textContent;
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+
+    apiFetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document
+                .querySelector('meta[name="csrf-token"]')
+                .getAttribute("content"),
+        },
+        body: JSON.stringify({
+            amount: parseFloat(amount),
+            type: this.editingAlert.type, // fuel | damage
+            user_id: window.AUTH_USER_ID,
+        }),
+    })
+        .then((res) => {
+            if (res && res.success) {
+                notyf.success(res.message || "Amount updated");
+
+                // Update local UI state
+                this.editingAlert.amountOwed = `$${parseFloat(amount).toFixed(2)}`;
+
+                this.closeAmountModal();
+                this.renderFuelAlerts();
+                this.renderDamageAlerts();
+            } else {
+                notyf.error(res?.message || "Failed to save amount");
+            }
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+        });
+}
+
+
+        // const formatted = this.tempAmount
+        //     ? `$${parseFloat(this.tempAmount).toFixed(2)}`
+        //     : "Pending";
+
+        // const list =
+        //     this.editingAlert.type === "fuel"
+        //         ? this.fuelAlerts
+        //         : this.damageAlerts;
+
+        // const index = list.findIndex((a) => a.id === this.editingAlert.id);
+        // if (index !== -1) list[index].amountOwed = formatted;
+
+        // this.editingAlert = null;
+        // this.tempAmount = "";
+        // this.closeAmountModal();
+        // this.renderFuelAlerts();
+        // this.renderDamageAlerts();
+
+    // }
 
     saveNotes() {
         if (!this.activeOrderUniqueId) {
@@ -495,7 +702,7 @@ const salesDataFromServer = @json($salesData);
         }
 
         const url =
-            "{{ route('admin.order-management.orders.notes.store', ':unique_id') }}"
+            "{{ route('admin.dashboard.notes.store', ':unique_id') }}"
             .replace(':unique_id', this.activeOrderUniqueId);
 
         const saveBtn = document.querySelector("#notes-modal button.bg-blue-600");

@@ -16,6 +16,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
     // auth
     require base_path('routes/api/admin/v1/auth/routes.php');
 
+    require base_path('routes/api/admin/v1/authorize/routes.php');
+
     Route::middleware(['auth:api_user'])->group(function () {
         require base_path('routes/api/admin/v1/orders/routes.php');
 

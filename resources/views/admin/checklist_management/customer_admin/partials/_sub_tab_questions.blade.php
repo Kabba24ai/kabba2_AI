@@ -247,8 +247,8 @@
 
                                                    <div
                                                        class="flex items-center gap-1 bg-white px-2 py-1 rounded border">
-                                                       <svg xmlns="http://www.w3.org/2000/svg" width="30"
-                                                           height="30" viewBox="0 0 30 30" fill="none"
+                                                       <svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                           height="24" viewBox="0 0 24 24" fill="none"
                                                            stroke="currentColor" stroke-width="2"
                                                            stroke-linecap="round" stroke-linejoin="round"
                                                            class="lucide lucide-dollar-sign w-3 h-3 text-green-600">
@@ -667,47 +667,84 @@
 
            let nextId = 1;
 
-           function syncInputsToData() {
-               const containers = document.querySelectorAll('#sortable-list > div');
+        //    function syncInputsToData() {
 
-               containers.forEach((wrapper, index) => {
+        //        const containers = document.querySelectorAll('#sortable-list > div');
 
-                if (!answerOptions[index]) {
-    answerOptions[index] = {
-      id: nextId++,
-      answer_delivery_text: '',
-      answer_return_text: '',
-      delivery_amt: 0,
-      return_amt: 0,
-      syncEnabled: true,
-      is_damaged: 0
-    };
-  }
+        //        containers.forEach((wrapper, index) => {
 
-                   const deliveryText = wrapper.querySelector('.delivery_text')?.value || '';
-                   const returnText = wrapper.querySelector('.return_text')?.value || '';
-                   const deliveryAmt = parseFloat(wrapper.querySelector('.delivery_amt')?.value) || 0;
-                   const returnAmt = parseFloat(wrapper.querySelector('.return_amt')?.value) || 0;
-                   const syncEnabled = wrapper.querySelector('.sync-toggle')?.checked || false;
+        //         if (!answerOptions[index]) {
+        //             answerOptions[index] = {
+        //             id: nextId++,
+        //             answer_delivery_text: '',
+        //             answer_return_text: '',
+        //             delivery_amt: 0,
+        //             return_amt: 0,
+        //             syncEnabled: true,
+        //             is_damaged: 0
+        //             };
+        //         }
 
-                   // Update the data
-                   answerOptions[index].answer_delivery_text = deliveryText;
-                   answerOptions[index].answer_return_text = returnText;
-                   answerOptions[index].delivery_amt = deliveryAmt;
-                   answerOptions[index].return_amt = syncEnabled ? deliveryAmt : returnAmt;
-                   answerOptions[index].syncEnabled = syncEnabled;
-               });
+        //            const deliveryText = wrapper.querySelector('.delivery_text')?.value || '';
+        //            const returnText = wrapper.querySelector('.return_text')?.value || '';
+        //            const deliveryAmt = wrapper.querySelector('.delivery_amt')?.value || 0;
+        //            const returnAmt = wrapper.querySelector('.return_amt')?.value || 0;
+        //            const syncEnabled = wrapper.querySelector('.sync-toggle')?.checked || false;
 
+        //            // Update the data
+        //            answerOptions[index].answer_delivery_text = deliveryText;
+        //            answerOptions[index].answer_return_text = syncEnabled ? deliveryText : returnText;
+        //            answerOptions[index].delivery_amt = deliveryAmt;
+        //            answerOptions[index].return_amt = syncEnabled ? deliveryAmt : returnAmt;
+        //            answerOptions[index].syncEnabled = syncEnabled;
+        //        });
 
-        //   console.log("Rendering options:", JSON.parse(JSON.stringify(answerOptions)));
+        //    }
 
+            function syncInputsToData() {
+                const containers = document.querySelectorAll('#sortable-list > div');
 
-           }
+                containers.forEach(wrapper => {
+
+                    const id = Number(wrapper.getAttribute('data-id'));
+                    const option = answerOptions.find(o => o.id === id);
+                    if (!option) return;
+
+                    const deliveryText = wrapper.querySelector('.delivery_text')?.value || '';
+                    const returnText   = wrapper.querySelector('.return_text')?.value || '';
+                    const deliveryAmt  = Number(wrapper.querySelector('.delivery_amt')?.value || 0);
+                    const returnAmt    = Number(wrapper.querySelector('.return_amt')?.value || 0);
+                    const syncEnabled  = wrapper.querySelector('.sync-toggle')?.checked || false;
+
+                    option.answer_delivery_text = deliveryText;
+                    // option.answer_return_text   = syncEnabled ? deliveryText : returnText;
+                    if (syncEnabled && deliveryText.trim() !== '') {
+                        option.answer_return_text = deliveryText;
+                    } else {
+                        option.answer_return_text = returnText;
+                    }
+
+                    option.delivery_amt         = deliveryAmt;
+                    // option.return_amt           = syncEnabled ? deliveryAmt : returnAmt;
+
+                     if (syncEnabled && deliveryAmt != 0) {
+                        
+                    option.return_amt = deliveryAmt;
+                    } else {
+                        
+
+                    option.return_amt = returnAmt;
+                    }
+
+                    option.syncEnabled   = syncEnabled;
+                });
+            }
+
 
 
            function renderOptions() {
 
-            //    syncInputsToData(); // <-- ADD THIS LINE
+            //    syncInputsToData(); 
                //alert(JSON.stringify(answerOptions));
                const container = document.getElementById('sortable-list');
                container.innerHTML = '';
@@ -724,142 +761,146 @@
                    const chargeSign = chargeDifference > 0 ? '+' : '';
 
                    wrapper.innerHTML = `
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-sm font-medium text-gray-700">Answer ${index + 1}</span>
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <input type="hidden" name="options[${index}][index_number]" value="${index}">
-                            <input type="checkbox" name="options[${index}][syncEnabled]" id="sync-${index}" class="sync-toggle rounded border-gray-300 text-blue-600 focus:ring-blue-500" onchange="updateCheckValue(this)" value="${option.syncEnabled ? option.syncEnabled : 0}" ${option.syncEnabled ? 'checked' : ''}>
-                            <label for="sync-${index}" class="text-xs text-gray-600 flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link w-3 h-3">
-                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                                </svg>Sync
-                            </label>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-medium text-gray-700">Answer ${index + 1}</span>
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="options[${index}][index_number]" value="${index}">
+                                <input type="checkbox" name="options[${index}][syncEnabled]" id="sync-${index}" class="sync-toggle rounded border-gray-300 text-blue-600 focus:ring-blue-500" onchange="updateCheckValue(this)" value="${option.syncEnabled ? option.syncEnabled : 0}" ${option.syncEnabled ? 'checked' : ''}>
+                                <label for="sync-${index}" class="text-xs text-gray-600 flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link w-3 h-3">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                    </svg>Sync
+                                </label>
+                            </div>
+                            <div class="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded text-xs border border-yellow-200">
+                                <span class="text-gray-600">Charge:</span>
+                                <span class="font-medium charge-display ${chargeColorClass}">${chargeSign}$${Math.abs(chargeDifference).toFixed(2)}</span>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded text-xs border border-yellow-200">
-                            <span class="text-gray-600">Charge:</span>
-                            <span class="font-medium charge-display ${chargeColorClass}">${chargeSign}$${Math.abs(chargeDifference).toFixed(2)}</span>
-                        </div>
                     </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div class="border border-blue-200 rounded-lg p-3 bg-blue-50">
-                        <label class="block text-sm font-medium text-blue-900 mb-2">
-                            <p class="flex items-center gap-2 text-sm font-medium text-blue-900">
-    <svg class="w-5 h-5 text-blue-900" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-        <path d="M19.5 17.5C19.5 18.8807 18.3807 20 17 20C15.6193 20 14.5 18.8807 14.5 17.5C14.5 16.1193 15.6193 15 17 15C18.3807 15 19.5 16.1193 19.5 17.5Z" stroke="currentColor" />
-        <path d="M9.5 17.5C9.5 18.8807 8.38071 20 7 20C5.61929 20 4.5 18.8807 4.5 17.5C4.5 16.1193 5.61929 15 7 15C8.38071 15 9.5 16.1193 9.5 17.5Z" stroke="currentColor" />
-        <path d="M14.5 17.5H9.5M19.5 17.5H20.2632C20.4831 17.5 20.5931 17.5 20.6855 17.4885C21.3669 17.4036 21.9036 16.8669 21.9885 16.1855C22 16.0931 22 15.9831 22 15.7632V13C22 9.41015 19.0899 6.5 15.5 6.5M15 15.5V7C15 5.58579 15 4.87868 14.5607 4.43934C14.1213 4 13.4142 4 12 4H5C3.58579 4 2.87868 4 2.43934 4.43934C2 4.87868 2 5.58579 2 7V15C2 15.9346 2 16.4019 2.20096 16.75C2.33261 16.978 2.52197 17.1674 2.75 17.299C3.09808 17.5 3.56538 17.5 4.5 17.5" stroke="currentColor" />
-        <path d="M9.32653 12L10.8131 10.8258C11.6044 10.2008 12 9.88833 12 9.5M9.32653 7L10.8131 8.17417C11.6044 8.79917 12 9.11168 12 9.5M12 9.5L5 9.5" stroke="currentColor" />
-    </svg>
-    Delivery Text:
-</p>
-                            </label>
-                        <div class="flex items-start gap-2">
-    <div class="flex flex-col flex-1">
-        <input
-            type="text"
-            name="options[${index}][answer_delivery_text]"
-            placeholder="Answer description..."
-            class="delivery_text px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            value="${option.answer_delivery_text ? option.answer_delivery_text : ''}"
-            oninput="updateDeliveryText(${index}, this.value)"
-            required
-        >
-    </div>
-
-    <!-- Dollar input block -->
-    <div class="flex items-center gap-1 bg-white px-2 py-2 rounded-md border border-gray-300">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 text-green-600">
-            <line x1="12" x2="12" y1="2" y2="22"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-        </svg>
-
-        <input name="options[${index}][delivery_amt]" type="number" placeholder="0" class="delivery_amt w-16 border-0 focus:ring-0 p-0 text-sm" min="0" step="0.01" value="${option.delivery_amt ? option.delivery_amt : 0}" oninput="updateDeliveryAmt(${index}, this.value)">
-    </div>
-</div>
-
-                    </div>
-                    <div class="border border-green-200 rounded-lg p-3 bg-green-50">
-                        <label class="block text-sm font-medium text-green-900 mb-2">
-
-                            <p class="flex items-center gap-2 text-sm font-medium text-blue-900">
-    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" color="currentColor"><path d="M17 20C18.1046 20 19 19.1046 19 18C19 16.8954 18.1046 16 17 16C15.8954 16 15 16.8954 15 18C15 19.1046 15.8954 20 17 20Z" stroke="currentColor"></path><path d="M7 20C8.10457 20 9 19.1046 9 18C9 16.8954 8.10457 16 7 16C5.89543 16 5 16.8954 5 18C5 19.1046 5.89543 20 7 20Z" stroke="currentColor"></path><path d="M19 11H22V13C22 15.357 22 16.5355 21.2678 17.2678C20.7809 17.7546 20.0967 17.9178 19 17.9724M5 17.9724C3.90328 17.9178 3.2191 17.7546 2.73223 17.2678C2 16.5355 2 15.357 2 13V9C2 6.64298 2 5.46447 2.73223 4.73223C3.46447 4 4.64298 4 7 4H10.3C11.4168 4 11.9752 4 12.4271 4.14683C13.3404 4.44358 14.0564 5.15964 14.3532 6.07295C14.5 6.52485 14.5 7.08323 14.5 8.2C14.5 9.42079 14.5 10.0312 14.1657 10.444C14.0998 10.5254 14.0254 10.5998 13.944 10.6657C13.5312 11 12.9208 11 11.7 11H8M15 18H9" stroke="currentColor"></path><path d="M14.5 6H16.3212C17.7766 6 18.5042 6 19.0964 6.35371C19.6886 6.70742 20.0336 7.34811 20.7236 8.6295L22 11" stroke="currentColor"></path><path d="M10 13C10 13 9.3279 12.4436 8.73729 11.9161C8.31975 11.5803 8 11.2926 8 11.0048C8 10.7498 8.24949 10.5128 8.6558 10.1415C9.23188 9.66187 10 9 10 9" stroke="currentColor"></path></svg>
-    Return <span class="text-xs">${option.syncEnabled ? '(Synced)' : ''}</span>
-</p>
-</label>
-                        <div class="flex items-start gap-2">
-    <div class="flex flex-col flex-1">
-        <input
-            type="text"
-            placeholder="Answer description..."
-            name="options[${index}][answer_return_text]"
-            class="return_text px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            value="${option.answer_return_text ? option.answer_return_text : ''}"
-            oninput="updateReturnText(${index}, this.value)"
-            required
-        >
-        <!-- Optional: Add a fixed height error list placeholder for smoother UX -->
-        <ul class="parsley-errors-list" style="min-height: 1rem;"></ul>
-
-        <div class="flex items-center gap-2 mt-2">
-         <input type="hidden" name="options[${index}][is_damaged]" value="0">
-    <input
-        type="checkbox"
-        id="damage-${index}"
-        value="1"
-        name="options[${index}][is_damaged]"
-        class="damage-checkbox h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-     ${option.is_damaged == 1 || option.is_damaged === true || option.is_damaged === 'on' ? 'checked' : ''}
-
-        onchange="updateDamageFlag(${index}, this.checked)"
-    >
-    <label for="damage-${index}" class="text-sm text-gray-700">
-        Flag as Damage
-    </label>
-</div>
-
-    </div>
-
-
-    <!-- Amount input with dollar icon -->
-    <div class="flex items-center gap-1 bg-white px-2 py-2 rounded-md border border-gray-300">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            class="lucide lucide-dollar-sign w-4 h-4 text-green-600">
-            <line x1="12" x2="12" y1="2" y2="22"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-        </svg>
-        <input
-            type="number"
-            name="options[${index}][return_amt]"
-            placeholder="0"
-            class="return_amt w-16 border-0 focus:ring-0 p-0 text-sm"
-            min="0"
-            step="0.01"
-            value="${option.syncEnabled ? option.delivery_amt : option.return_amt}"
-            oninput="updateReturnAmt(${index}, this.value)"
-        >
-    </div>
-</div>
-
-                    </div>
-                </div>
-                <div class="flex items-center justify-between mt-4">
-                    <div class="flex items-center gap-2">
-                        <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                    <div class="border border-blue-200 rounded-lg p-3 bg-blue-50">
+                                        <label class="block text-sm font-medium text-blue-900 mb-2">
+                                            <p class="flex items-center gap-2 text-sm font-medium text-blue-900">
+                            <svg class="w-5 h-5 text-blue-900" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M19.5 17.5C19.5 18.8807 18.3807 20 17 20C15.6193 20 14.5 18.8807 14.5 17.5C14.5 16.1193 15.6193 15 17 15C18.3807 15 19.5 16.1193 19.5 17.5Z" stroke="currentColor" />
+                                <path d="M9.5 17.5C9.5 18.8807 8.38071 20 7 20C5.61929 20 4.5 18.8807 4.5 17.5C4.5 16.1193 5.61929 15 7 15C8.38071 15 9.5 16.1193 9.5 17.5Z" stroke="currentColor" />
+                                <path d="M14.5 17.5H9.5M19.5 17.5H20.2632C20.4831 17.5 20.5931 17.5 20.6855 17.4885C21.3669 17.4036 21.9036 16.8669 21.9885 16.1855C22 16.0931 22 15.9831 22 15.7632V13C22 9.41015 19.0899 6.5 15.5 6.5M15 15.5V7C15 5.58579 15 4.87868 14.5607 4.43934C14.1213 4 13.4142 4 12 4H5C3.58579 4 2.87868 4 2.43934 4.43934C2 4.87868 2 5.58579 2 7V15C2 15.9346 2 16.4019 2.20096 16.75C2.33261 16.978 2.52197 17.1674 2.75 17.299C3.09808 17.5 3.56538 17.5 4.5 17.5" stroke="currentColor" />
+                                <path d="M9.32653 12L10.8131 10.8258C11.6044 10.2008 12 9.88833 12 9.5M9.32653 7L10.8131 8.17417C11.6044 8.79917 12 9.11168 12 9.5M12 9.5L5 9.5" stroke="currentColor" />
                             </svg>
-                        </span>
-                        <span class="text-xs text-gray-500">Drag to reorder</span>
+                            Delivery Text:
+                        </p>
+                                                    </label>
+                                                <div class="flex items-start gap-2">
+                            <div class="flex flex-col flex-1">
+                                <input
+                            type="text"
+                            name="options[${index}][answer_delivery_text]"
+                            placeholder="Answer description..."
+                            class="delivery_text px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            value="${option.answer_delivery_text ? option.answer_delivery_text : ''}"
+                            oninput="updateDeliveryText(${index}, this.value)"
+                            required
+                        >
                     </div>
-                    <button type="button" onclick="removeOption(${option.id})" class="delete-button text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800" title="Delete">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </button>
-                </div>
-            `;
+
+                    <!-- Dollar input block -->
+                    <div class="flex items-center gap-1 bg-white px-2 py-2 rounded-md border border-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 text-green-600">
+                                    <line x1="12" x2="12" y1="2" y2="22"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+
+                                <input name="options[${index}][delivery_amt]" type="number" placeholder="0" class="delivery_amt w-16 border-0 focus:ring-0 p-0 text-sm" min="0" step="0.01" value="${option.delivery_amt ? option.delivery_amt : 0}" oninput="updateDeliveryAmt(${index}, this.value)">
+                            </div>
+                        </div>
+
+                                    </div>
+                                    <div class="border border-green-200 rounded-lg p-3 bg-green-50">
+                                        <label class="block text-sm font-medium text-green-900 mb-2">
+
+                                                    <p class="flex items-center gap-2 text-sm font-medium text-blue-900">
+                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" color="currentColor"><path d="M17 20C18.1046 20 19 19.1046 19 18C19 16.8954 18.1046 16 17 16C15.8954 16 15 16.8954 15 18C15 19.1046 15.8954 20 17 20Z" stroke="currentColor"></path><path d="M7 20C8.10457 20 9 19.1046 9 18C9 16.8954 8.10457 16 7 16C5.89543 16 5 16.8954 5 18C5 19.1046 5.89543 20 7 20Z" stroke="currentColor"></path><path d="M19 11H22V13C22 15.357 22 16.5355 21.2678 17.2678C20.7809 17.7546 20.0967 17.9178 19 17.9724M5 17.9724C3.90328 17.9178 3.2191 17.7546 2.73223 17.2678C2 16.5355 2 15.357 2 13V9C2 6.64298 2 5.46447 2.73223 4.73223C3.46447 4 4.64298 4 7 4H10.3C11.4168 4 11.9752 4 12.4271 4.14683C13.3404 4.44358 14.0564 5.15964 14.3532 6.07295C14.5 6.52485 14.5 7.08323 14.5 8.2C14.5 9.42079 14.5 10.0312 14.1657 10.444C14.0998 10.5254 14.0254 10.5998 13.944 10.6657C13.5312 11 12.9208 11 11.7 11H8M15 18H9" stroke="currentColor"></path><path d="M14.5 6H16.3212C17.7766 6 18.5042 6 19.0964 6.35371C19.6886 6.70742 20.0336 7.34811 20.7236 8.6295L22 11" stroke="currentColor"></path><path d="M10 13C10 13 9.3279 12.4436 8.73729 11.9161C8.31975 11.5803 8 11.2926 8 11.0048C8 10.7498 8.24949 10.5128 8.6558 10.1415C9.23188 9.66187 10 9 10 9" stroke="currentColor"></path></svg>
+                            Return <span class="text-xs">${option.syncEnabled ? '(Synced)' : ''}</span>
+                        </p>
+                        </label>
+                                                <div class="flex items-start gap-2">
+                            <div class="flex flex-col flex-1">
+                                <input
+                                    type="text"
+                                    placeholder="Answer description..."
+                                    name="options[${index}][answer_return_text]"
+                                    class="return_text px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    value="${option.answer_return_text ? option.answer_return_text : ''}"
+                                    oninput="updateReturnText(${index}, this.value)"
+                                    required
+                                >
+                                <!-- Optional: Add a fixed height error list placeholder for smoother UX -->
+                                <ul class="parsley-errors-list" style="min-height: 1rem;"></ul>
+
+                                <div class="flex items-center gap-2 mt-2">
+                                <input type="hidden" name="options[${index}][is_damaged]" value="0">
+                            <input
+                                type="checkbox"
+                                id="damage-${index}"
+                                value="1"
+                                name="options[${index}][is_damaged]"
+                                class="damage-checkbox h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                            ${option.is_damaged == 1 || option.is_damaged === true || option.is_damaged === 'on' ? 'checked' : ''}
+
+                                onchange="updateDamageFlag(${index}, this.checked)"
+                            >
+                            <label for="damage-${index}" class="text-sm text-gray-700">
+                                Flag as Damage
+                            </label>
+                        </div>
+
+                            </div>
+
+
+                            <!-- Amount input with dollar icon -->
+                            <div class="flex items-center gap-1 bg-white px-2 py-2 rounded-md border border-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="lucide lucide-dollar-sign w-4 h-4 text-green-600">
+                                    <line x1="12" x2="12" y1="2" y2="22"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                                <input
+                                    type="number"
+                                    name="options[${index}][return_amt]"
+                                    placeholder="0"
+                                    class="return_amt w-16 border-0 focus:ring-0 p-0 text-sm"
+                                    min="0"
+                                    step="0.01"
+                                    value="${
+                                        option.syncEnabled && option.delivery_amt > 0
+                                            ? option.delivery_amt
+                                            : option.return_amt
+                                        }"
+                                    oninput="updateReturnAmt(${index}, this.value)"
+                                >
+                            </div>
+                             </div>
+
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mt-4">
+                        <div class="flex items-center gap-2">
+                            <span class="drag-handle w-7 h-7 flex items-center justify-center rounded-full text-gray-900 cursor-move">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01" />
+                                </svg>
+                            </span>
+                            <span class="text-xs text-gray-500">Drag to reorder</span>
+                        </div>
+                        <button type="button" onclick="removeOption(${option.id})" class="delete-button text-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:text-red-800" title="Delete">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </button>
+                    </div>
+               `;
 
                    container.appendChild(wrapper);
 
@@ -875,21 +916,42 @@
                    Sortable.create(container, {
                        handle: '.drag-handle',
                        animation: 150,
-                       onEnd: function(evt) {
-                           const movedItem = answerOptions.splice(evt.oldIndex, 1)[0];
-                           answerOptions.splice(evt.newIndex, 0, movedItem);
-                           renderOptions();
-                       }
+                    //    onEnd: function(evt) {
+                    //        const movedItem = answerOptions.splice(evt.oldIndex, 1)[0];
+                    //        answerOptions.splice(evt.newIndex, 0, movedItem);
+                    //        renderOptions();
+                    //    }
+
+                    onEnd: function () {
+                    // Save current input values FIRST
+                    syncInputsToData();
+
+                    //  Reorder answerOptions based on DOM order (by ID)
+                    const newOrder = [];
+                    document.querySelectorAll('#sortable-list > div').forEach(div => {
+                        const id = Number(div.getAttribute('data-id'));
+                        const option = answerOptions.find(o => o.id === id);
+                        if (option) newOrder.push(option);
+                    });
+
+                    answerOptions = newOrder;
+
+                    // Re-render safely
+                    renderOptions();
+                }
+
+
                    });
                }
            }
 
            function addOption() {
+          
             syncInputsToData();
                answerOptions.push({
                    id: nextId++,
-                   delivery_text: '',
-                   return_text: '',
+                   answer_delivery_text: '',
+                   answer_return_text: '',
                    delivery_amt: 0,
                    return_amt: 0,
                    syncEnabled: true
@@ -938,14 +1000,14 @@
            }
 
            function updateDeliveryAmt(index, value) {
-               answerOptions[index].delivery_amt = parseFloat(value) || 0;
+               answerOptions[index].delivery_amt = value || 0;
                if (answerOptions[index].syncEnabled) {
                    // Update return amount if sync is enabled
                    const returnAmtInputs = document.querySelectorAll('.return_amt');
                    if (returnAmtInputs[index]) {
                        returnAmtInputs[index].value = value;
                    }
-                   answerOptions[index].return_amt = parseFloat(value) || 0;
+                   answerOptions[index].return_amt = value || 0;
                }
                updateChargeDisplay(index);
            }
@@ -955,7 +1017,7 @@
            }
 
            function updateReturnAmt(index, value) {
-               answerOptions[index].return_amt = parseFloat(value) || 0;
+               answerOptions[index].return_amt = value || 0;
                updateChargeDisplay(index);
            }
 
@@ -990,44 +1052,44 @@
                 }
 
                 // 2. Find the corresponding wrapper div for this index
-    const wrapper = document.querySelector(`#sortable-list > div[data-id="${answerOptions[index].id}"]`);
-    if (!wrapper) {
-        console.warn('Wrapper not found for option id', answerOptions[index].id);
-        return;
-    }
-// 3. Get the specific input fields within that wrapper
-    const deliveryTextInput = wrapper.querySelector('.delivery_text');
-    const deliveryAmtInput  = wrapper.querySelector('.delivery_amt');
-    const returnTextInput   = wrapper.querySelector('.return_text');
-    const returnAmtInput    = wrapper.querySelector('.return_amt');
-    const labelSpan         = wrapper.querySelector('.border-green-200 span');
+                const wrapper = document.querySelector(`#sortable-list > div[data-id="${answerOptions[index].id}"]`);
+                if (!wrapper) {
+                    console.warn('Wrapper not found for option id', answerOptions[index].id);
+                    return;
+                }
+                 // 3. Get the specific input fields within that wrapper
+                const deliveryTextInput = wrapper.querySelector('.delivery_text');
+                const deliveryAmtInput  = wrapper.querySelector('.delivery_amt');
+                const returnTextInput   = wrapper.querySelector('.return_text');
+                const returnAmtInput    = wrapper.querySelector('.return_amt');
+                const labelSpan         = wrapper.querySelector('.border-green-200 span');
 
-    // 4. Sync data if enabled
-    if (isEnabled) {
-        const deliveryText = deliveryTextInput?.value || '';
-        const deliveryAmt  = parseFloat(deliveryAmtInput?.value) || 0;
+                // 4. Sync data if enabled
+                if (isEnabled) {
+                    const deliveryText = deliveryTextInput?.value || '';
+                    const deliveryAmt  = deliveryAmtInput?.value || 0;
 
-        // Copy delivery → return
-        if (returnTextInput) returnTextInput.value = deliveryText;
-        if (returnAmtInput)  returnAmtInput.value  = deliveryAmt;
+                    // Copy delivery → return
+                    if (returnTextInput) returnTextInput.value = deliveryText;
+                    if (returnAmtInput)  returnAmtInput.value  = deliveryAmt;
 
-        // Update data model
-        answerOptions[index].answer_delivery_text = deliveryText;
-        answerOptions[index].delivery_amt = deliveryAmt;
-        answerOptions[index].answer_return_text = deliveryText;
-        answerOptions[index].return_amt = deliveryAmt;
-    }
+                    // Update data model
+                    answerOptions[index].answer_delivery_text = deliveryText;
+                    answerOptions[index].delivery_amt = deliveryAmt;
+                    answerOptions[index].answer_return_text = deliveryText;
+                    answerOptions[index].return_amt = deliveryAmt;
+                }
 
-    // 5. Update "(Synced)" label
-    if (labelSpan) {
-        labelSpan.textContent = isEnabled ? '(Synced)' : '';
-    }
+                // 5. Update "(Synced)" label
+                if (labelSpan) {
+                    labelSpan.textContent = isEnabled ? '(Synced)' : '';
+                }
 
-    // 6. Optionally refresh charges
-    if (typeof updateChargeDisplay === 'function') {
-        updateChargeDisplay(index);
-    }
-}
+                // 6. Optionally refresh charges
+                if (typeof updateChargeDisplay === 'function') {
+                    updateChargeDisplay(index);
+                }
+            }
 
 
            // Before submitting form, sync options into hidden input

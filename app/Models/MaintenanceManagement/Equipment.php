@@ -230,5 +230,24 @@ class Equipment extends Model
         return $this->current_order_product_id !== null;
     }
 
+    public function equipmentLocation()
+    {
+
+        if ($this->orderProduct?->checklistQuestions->isNotEmpty()) {
+            return $this->status_label === 'Rented'
+                ? $this->order?->customer_name ?? '-'
+                : $this->store?->store_name ?? '-';
+
+        }
+
+
+        if ($this->softAssignments && $this->softAssignments->isNotEmpty()) {
+            return $this->softAssignment?->store?->store_name ?? '-';
+        }
+
+
+        return $this->store?->store_name ?? '-';
+    }
+
 
 }

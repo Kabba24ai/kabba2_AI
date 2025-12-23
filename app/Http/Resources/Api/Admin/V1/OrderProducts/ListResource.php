@@ -21,8 +21,6 @@ class ListResource extends JsonResource
      */
     public function toArray(Request $request)
     {
-        $location = $this->equipmentLocation() ?? '';
-
         $return = [
             'id' => $this->id ?? 0,
             'unique_id' => $this->unique_id ?? 0,
@@ -89,8 +87,6 @@ class ListResource extends JsonResource
 
             'equipment_details' => $this->equipment_details ?? new EquipmentListResource($this->whenLoaded('softEquipment')) ?? '',
 
-            'equipment_location' => $location ?? '',
-
             'assigned_by' => $this->equipment_assigned_by ?? '',
 
             'assigned_at' => CustomHelper::formatDateTime($this->equipment_assigned_at) ?? '',
@@ -98,6 +94,8 @@ class ListResource extends JsonResource
             'delivery_store' => new StoresListResource($this->whenLoaded('deliveryStore')),
 
             'pickup_store' => new StoresListResource($this->whenLoaded('pickupStore')),
+
+            'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
 
         ];
 

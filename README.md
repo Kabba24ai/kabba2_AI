@@ -390,3 +390,4 @@ Equipment through web only be soft assignment
     - If `current_order_product_id` is not null, the equipment is considered hard-assigned.
     - If checklist questions are not answered, the equipment is also considered hard-assigned.
 
+44|EhLvIzZzAlYc793ZcGe2yR5j2zSQndqYuXyrSs2i614e15d7

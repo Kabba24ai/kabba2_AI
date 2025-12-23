@@ -56,7 +56,7 @@ class ListResource extends JsonResource
             'equipment_notes' => $this->equipment_notes ?? '',
             'current_status' => $this->current_status->label() ?? '',
 
-            'current_status_updated_by' => $this->statusUpdatedByUser?->full_name ?? 0,
+            'current_status_updated_by' => $this->statusUpdatedByUser?->full_name ?? "",
             'current_status_changed_at' => CustomHelper::formatDateTime($this->current_status_changed_at) ?? '',
             'product_category' => new ProductCategoriesListResource($this->whenLoaded('productCategory')),
 
@@ -66,6 +66,8 @@ class ListResource extends JsonResource
             'order_product' => new OrderProductsListResource($this->whenLoaded('orderProduct')),
 
             'checklist_qas' => CustomerChecklistQuestionsListResource::collection($this->whenLoaded('checklistQA')),
+
+            'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
 
         ];
 

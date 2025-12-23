@@ -57,296 +57,234 @@
 
                     {{-- Funnel Modal --}}
                     {{-- Modal --}}
-                    <div id="funnelModal" class="fixed inset-0 z-9999 hidden">
-                        {{-- Overlay --}}
-                        <div data-close-funnel-modal class="absolute inset-0 bg-black/40"></div>
+                    {{-- Funnel Modal --}}
+                    <div id="funnelModal"
+                        class="fixed inset-0 z-[99999] hidden flex items-center justify-center
+                                bg-black/50 px-4 py-10">
 
-                        {{-- Dialog --}}
-                        <div class="relative mx-auto flex min-h-screen max-w-lg items-center justify-center px-4">
-                            <div class="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-xl" role="dialog"
-                                aria-modal="true" aria-labelledby="funnelModalTitle">
-                                {{-- Header --}}
-                                <div class="flex items-center justify-between px-6 py-4">
-                                    <h3 id="funnelModalTitle" class="text-lg font-semibold text-slate-900">Create New Funnel
-                                    </h3>
-                                    <button type="button" data-close-funnel-modal
-                                        class="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
-                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                        <div class="modal-scrollable w-full mx-auto">
+                            <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg
+                                        border border-gray-200 overflow-hidden
+                                        flex flex-col max-h-full">
+
+                                <!-- ================= HEADER ================= -->
+                                <div class="flex justify-between items-center px-6 pt-4 border-b">
+                                    <div class="flex items-center gap-2">
+                                       
+                                        <h2 id="funnelModalTitle"
+                                            class="text-lg font-medium text-gray-900">
+                                            Create New Funnel
+                                        </h2>
+                                    </div>
+
+                                    <button type="button"
+                                            data-close-funnel-modal
+                                            class="text-gray-400 hover:text-gray-700 text-xl">
+                                        ×
                                     </button>
                                 </div>
-                                <div class="h-px bg-slate-200"></div>
 
-                                {{-- Body --}}
-                                <form id="funnelForm" class="px-6 py-5">
-                                    {{-- Funnel Name --}}
-                                    <div>
-                                        <label class="text-sm font-medium text-slate-700">Funnel Name <span
-                                                class="text-red-500">*</span></label>
-                                        <input type="text" name="name" required
-                                            class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                                            placeholder="e.g., Welcome Series" />
-                                    </div>
+                                <!-- ================= BODY ================= -->
+                                <div class="px-6 overflow-y-auto">
+                                    <form id="funnelForm"  data-parsley-validate= "true" class="space-y-6 py-4">
 
-                                    {{-- Description --}}
-                                    <div class="mt-4">
-                                        <label class="text-sm font-medium text-slate-700">Description</label>
-                                        <textarea name="description" rows="4"
-                                            class="mt-2 w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                                            placeholder="Brief description of this funnel's purpose"></textarea>
-                                    </div>
-
-                                    {{-- Category + plus --}}
-                                    <div class="mt-4">
-                                        <label class="text-sm font-medium text-slate-700">Category</label>
-
-                                        <!-- SELECT WRAPPER -->
-                                        <div class="mt-2 flex items-center gap-3" id="categorySelectWrapper">
-                                            <select name="category_id"
-                                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                                                <option value="">No Category</option>
-                                            </select>
-
-                                            <button type="button"
-                                                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                                                title="Add Category"
-                                                id="showCategoryInput">
-                                                +
-                                            </button>
+                                        <!-- Funnel Name -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1 required">
+                                                Funnel Name
+                                            </label>
+                                            <input type="text" name="name" required
+                                                class="w-full border border-gray-300 rounded-md
+                                                        px-3 py-3 text-sm
+                                                        focus:ring-2 focus:ring-blue-500"
+                                                placeholder="e.g. Welcome Series">
                                         </div>
 
-                                        <!-- INPUT WRAPPER (hidden by default) -->
-                                        <div class="mt-2 hidden" id="categoryInputWrapper">
-                                            <input type="text"
-                                                name="new_category"
-                                                placeholder="Enter new category"
-                                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
-
-                                            <button type="button"
-                                                class="mt-2 text-sm text-blue-600 hover:underline"
-                                                id="backToSelect">
-                                                ← Back to category list
-                                            </button>
+                                        <!-- Description -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                Description
+                                            </label>
+                                            <textarea name="description" rows="3"
+                                                    class="w-full border border-gray-300 rounded-md
+                                                            px-3 py-3 text-sm resize-none
+                                                            focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Brief description of this funnel"></textarea>
                                         </div>
-                                    </div>
 
-                                    {{-- Trigger Event --}}
-                                    <div class="mt-4">
-                                        <label class="text-sm font-medium text-slate-700">Trigger Event <span
-                                                class="text-red-500">*</span></label>
-
-                                        <select name="trigger_event" required
-                                            class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                                            <option value="rental_start_date" selected>Rental Start Date</option>
-                                            <option value="new_lead_added">New Lead Added</option>
-                                        </select>
-
-                                        <p class="mt-2 text-xs text-slate-500">Triggers based on the rental start date</p>
-                                    </div>
-
-                                    {{-- Funnel Start Timing --}}
-                                    <div class="mt-4">
-                                        <label class="text-sm font-medium text-slate-700">Funnel Start Timing <span
-                                                class="text-red-500">*</span></label>
-
-                                        <div class="mt-2 flex items-center gap-10">
-                                            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-                                                <input type="radio" name="timing" value="before" class="h-4 w-4" />
-                                                Before Event
+                                        <!-- Category -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                Category
                                             </label>
 
-                                            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-                                                <input type="radio" name="timing" value="after" class="h-4 w-4"
-                                                    checked />
-                                                After Event
+                                            <div class="flex gap-2">
+                                                <select name="category_id" id="funnelCategorySelect"
+
+                                                        class="flex-1 border border-gray-300 rounded-md
+                                                            px-3 py-3 text-sm
+                                                            focus:ring-2 focus:ring-blue-500">
+                                                    <option value="">No Category</option>
+                                                </select>
+
+                                                <button type="button"
+                                                        id="showCategoryInput"
+                                                        class="w-10 h-10 rounded-md border
+                                                            border-gray-300 text-gray-600
+                                                            hover:bg-gray-50">
+                                                    +
+                                                </button>
+                                            </div>
+
+                                            <div id="categoryInputWrapper" class="hidden mt-2">
+                                                <input type="text" name="new_category"
+                                                    class="w-full border border-gray-300 rounded-md
+                                                            px-3 py-3 text-sm"
+                                                    placeholder="Enter new category">
+                                                <button type="button"
+                                                        id="backToSelect"
+                                                        class="mt-1 text-xs text-blue-600 hover:underline">
+                                                    ← Back to category list
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Trigger Event -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1 required">
+                                                Trigger Event
+                                            </label>
+                                            <select name="trigger_event" required
+                                                    class="w-full border border-gray-300 rounded-md
+                                                     forwarding px-3 py-3 text-sm
+                                                        focus:ring-2 focus:ring-blue-500">
+                                                <option value="rental_start_date">Rental Start Date</option>
+                                                <option value="new_lead_added">New Lead Added</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Funnel Start Timing -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2 required">
+                                                Funnel Start Timing
+                                            </label>
+
+                                            <!-- Before / After -->
+                                            <div class="flex items-center gap-8 mb-3">
+                                                <label class="inline-flex items-center gap-2 text-sm">
+                                                    <input type="radio" name="timing" value="before">
+                                                    Before Event
+                                                </label>
+
+                                                <label class="inline-flex items-center gap-2 text-sm">
+                                                    <input type="radio" name="timing" value="after" checked>
+                                                    After Event
+                                                </label>
+                                            </div>
+
+                                            <!-- Timing Box -->
+                                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                                                    <!-- Day -->
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                            Day
+                                                        </label>
+                                                        <select name="date_value"
+                                                                class="w-full border border-gray-300 rounded-md
+                                                                    px-3 py-2 text-sm">
+                                                            <option value="">Select</option>
+                                                            @for ($i = 1; $i <= 31; $i++)
+                                                                <option value="{{ $i }}">{{ $i }}</option>
+                                                            @endfor
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Hour -->
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                            Hour
+                                                        </label>
+                                                        <select name="hour_value"
+                                                                class="w-full border border-gray-300 rounded-md
+                                                                    px-3 py-2 text-sm">
+                                                            <option value="">Select</option>
+                                                            @for ($i = 1; $i <= 23; $i++)
+                                                                <option value="{{ $i }}">{{ $i }}</option>
+                                                            @endfor
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Minute -->
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                            Minute
+                                                        </label>
+                                                        <select name="minute_value"
+                                                                class="w-full border border-gray-300 rounded-md
+                                                                    px-3 py-2 text-sm">
+                                                            <option value="">Select</option>
+                                                            <option value="15">15</option>
+                                                            <option value="30">30</option>
+                                                            <option value="45">45</option>
+                                                        </select>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Active -->
+                                        <div>
+                                            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                                                <input type="checkbox" name="is_active" checked>
+                                                Set as active
                                             </label>
                                         </div>
 
-                                        <div class="mt-3 grid grid-cols-2 gap-3">
-                                            <select name="offset_unit"
-                                                class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                                                <option value="days" selected>Days</option>
-                                                <option value="hours">Hours</option>
-                                                <option value="minutes">Minutes</option>
-                                            </select>
+                                    </form>
+                                </div>
 
-                                            <input type="number" name="offset_value" value="0" min="0"
-                                                class="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
-                                        </div>
+                                <!-- ================= FOOTER ================= -->
+                                <div class="flex justify-end gap-2 px-6 py-4 border-t">
+                                    <button type="button"
+                                            data-close-funnel-modal
+                                            class="px-6 py-2 rounded-lg border
+                                                border-gray-300 bg-white text-gray-700">
+                                        Cancel
+                                    </button>
 
-                                        <p class="mt-2 text-xs text-slate-500">Funnel starts at the trigger event</p>
-                                    </div>
+                                    <button
+                                    type="submit"
+                                    id="funnelForm-btn"
+                                    form="funnelForm"
+                                    class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                                    Create Funnel
+                                </button>
 
-                                    {{-- Active --}}
-                                    <div class="mt-4">
-                                        <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-                                            <input type="checkbox" name="is_active"
-                                                class="h-4 w-4 rounded border-slate-300" checked />
-                                            Set as active
-                                        </label>
-                                    </div>
+                                </div>
 
-                                    {{-- Footer --}}
-                                    <div class="mt-6 flex items-center gap-4">
-                                        <button type="button" data-close-funnel-modal
-                                            class="w-1/2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                                            Cancel
-                                        </button>
-
-                                        <button type="submit"
-                                            class="w-1/2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
-                                            Create
-                                        </button>
-                                    </div>
-                                </form>
                             </div>
                         </div>
                     </div>
+
                 </div>
 
-                <div class="mt-6 rounded-2xl border-2 border-dashed border-slate-300 bg-white p-12">
-                    <div class="mx-auto flex max-w-md flex-col items-center text-center">
-                        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-                            <svg class="h-7 w-7 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                            </svg>
-                        </div>
+                <div class="mt-6 ">
+                    <div id="funnels-loading" class="hidden"></div>
 
-                        <h3 class="mt-4 text-lg font-semibold text-slate-900">No funnels yet</h3>
-                        <p class="mt-1 text-sm text-slate-500">Create your first funnel to get started</p>
-
-                        <button type="button"
-                            class="mt-6 inline-flex items-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
-                            Create Your First Funnel
-                        </button>
+                    <div id="funnels-table-wrapper">
+                        @include('admin.crm.sales_funnels.partials._table', ['funnels' => []])
                     </div>
+
                 </div>
             </div>
 
             {{-- TAB: Categories --}}
             <div data-tab-panel="categories" class="hidden">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-semibold text-slate-900">Category Management</h2>
-                        <p class="mt-1 text-sm text-slate-500">Organize your sales funnels with categories</p>
-                    </div>
+                 @include('admin.crm.sales_funnels.partials._tab_categories')
 
-                    <button type="button" data-open-category-modal
-                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add Category
-                    </button>
-
-                    {{-- Modal --}}
-                    <div id="categoryModal" class="fixed inset-0 z-9999 hidden">
-                        {{-- Overlay --}}
-                        <div data-close-category-modal class="absolute inset-0 bg-black/40"></div>
-
-                        {{-- Dialog --}}
-                        <div class="relative mx-auto flex min-h-screen max-w-lg items-center justify-center px-4">
-                            <div class="w-full overflow-hidden rounded-2xl bg-white shadow-xl" role="dialog"
-                                aria-modal="true" aria-labelledby="categoryModalTitle">
-                                {{-- Header --}}
-                                <div class="flex items-center justify-between px-6 py-4">
-                                    <h3 id="categoryModalTitle" class="text-lg font-semibold text-slate-900">
-                                        Add Category
-                                    </h3>
-                                    <button type="button" data-close-category-modal
-                                        class="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
-                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="h-px bg-slate-200"></div>
-
-                                {{-- Body --}}
-                                {{ html()->form()->attributes([
-                                        'data-parsley-validate' => true,
-                                        'class' => 'px-6 py-5',
-                                        'id' => 'categoryForm',
-                                    ])->open() }}
-                                    {{-- Category Name --}}
-                                    <div>
-                                        <label class="text-sm font-medium text-slate-700 required" for="categoryName">
-                                            Category Name
-                                        </label>
-                                        <input type="text" name="name" id="categoryName"
-                                            class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                                            placeholder="Enter category name" required />
-                                    </div>
-
-                                    {{-- Description --}}
-                                    <div class="mt-4">
-                                        <label class="text-sm font-medium text-slate-700">Description</label>
-                                        <textarea name="description" rows="4" id="description"
-                                            class="mt-2 w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                                            placeholder="Enter description"></textarea>
-                                    </div>
-
-                                    {{-- Color Picker --}}
-                                    <div class="mt-4">
-                                        <label class="text-sm font-medium text-slate-700">Color <span
-                                                class="text-red-500">*</span></label>
-
-                                        <input type="hidden" name="color" id="categoryColor" value="#34d399"
-                                            required />
-
-                                        <div class="mt-3 grid grid-cols-4 gap-3">
-                                            @php
-                                                $colors = [
-                                                    '#3b82f6', // blue
-                                                    '#34d399', // green
-                                                    '#f59e0b', // orange
-                                                    '#ef4444', // red
-                                                    '#8b5cf6', // purple
-                                                    '#ec4899', // pink
-                                                    '#2dd4bf', // teal
-                                                    '#6366f1', // indigo
-                                                ];
-                                            @endphp
-
-                                            @foreach ($colors as $c)
-                                                <button type="button" data-color-btn data-color="{{ $c }}"
-                                                    class="relative h-12 w-full rounded-lg"
-                                                    style="background: {{ $c }};"
-                                                    aria-label="Pick color {{ $c }}">
-                                                    <span
-                                                        class="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-transparent"></span>
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-
-                                    {{-- Footer Buttons --}}
-                                    <div class="mt-6 flex items-center gap-4">
-                                        <button type="button" data-close-category-modal
-                                            class="w-1/2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                                            Cancel
-                                        </button>
-
-                                        <button type="submit"
-                                            class="w-1/2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
-                                            Save Category
-                                        </button>
-                                    </div>
-                                {{ html()->form()->close() }}
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div id="categories-table-wrapper" aria-live="polite" class="mt-6">
-                    @include('admin.crm.sales_funnels.categories._table', ['categories' => []])
-                </div>
             </div>
 
         </div>
@@ -361,6 +299,34 @@
             let timeout = null;
             const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
+
+
+            function initFunnelCategorySelect(selectedId = null) {
+            const select = document.getElementById('funnelCategorySelect');
+            if (!select) return;
+
+            select.innerHTML = `<option value="">No Category</option>`;
+
+            apiFetch("{{ route('admin.crm.sales-funnels.categories.all') }}")
+                .then(res => {
+                    if (!res || !res.success || !Array.isArray(res.data)) return;
+
+                    res.data.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.category_name;
+
+                        if (selectedId && selectedId === cat.id) {
+                            option.selected = true;
+                        }
+
+                        select.appendChild(option);
+                    });
+                });
+        }
+            initFunnelCategorySelect();
+
+
 
             fetchCategories(pageParam, perPageParam); // initial fetch after loading saved filters
 
@@ -381,6 +347,9 @@
                     })
                     .then(response => {
                         wrapper.innerHTML = response.html;
+
+                       
+
                     })
                     .finally(() => {
                         loader.classList.add('hidden');
@@ -422,6 +391,8 @@
                                         const row = document.getElementById('category-row-' +
                                             uniqueId);
                                         if (row) row.remove();
+
+                                         reloadFunnelsTable();
                                     } else {
                                         notyf.error(res.message);
                                     }
@@ -591,6 +562,10 @@
 
         });
 
+
+       
+
+
         document.addEventListener('DOMContentLoaded', () => {
             const buttons = Array.from(document.querySelectorAll('[data-tab-btn]'));
             const panels = Array.from(document.querySelectorAll('[data-tab-panel]'));
@@ -623,15 +598,70 @@
 
             // Default tab
             setActive('funnels');
+
+            window.switchTab = setActive;
+
         });
+
+      
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('funnelModal');
             const openers = document.querySelectorAll('[data-open-funnel-modal]');
             const closers = document.querySelectorAll('[data-close-funnel-modal]');
-            const form = document.getElementById('funnelForm');
+            const funnelForm = document.getElementById('funnelForm');
+                    
+            const loader  = document.getElementById('funnels-loading');
+            const wrapper = document.getElementById('funnels-table-wrapper');
+
+            const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
+            const perPageParam = document.getElementById('per_page_sm')?.value || 10;
+
+            const selectWrapper = document.getElementById('categorySelectWrapper');
+            const inputWrapper  = document.getElementById('categoryInputWrapper');
+            const showBtn       = document.getElementById('showCategoryInput');
+            const backBtn       = document.getElementById('backToSelect');
+
+            fetchFunnels(pageParam, perPageParam);
+
+            function fetchFunnels(page = 1, perPage = 10) {
+                const params = new URLSearchParams();
+                params.append('page', page);
+                params.append('per_page', perPage);
+
+                loader?.classList.remove('hidden');
+                wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+                apiFetch("{{ route('admin.crm.sales-funnels.index') }}?" + params.toString(), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => {
+                    if (res?.success) {
+                        wrapper.innerHTML = res.html;
+
+                        // rebind delete buttons
+                initSingleFunnelDeleteButtons();
+                    }
+                })
+                .finally(() => {
+                    loader?.classList.add('hidden');
+                    wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                });
+            }
+
+            // Pagination support
+            Paginator.init({
+                wrapper: wrapper,
+                fetchCallback: fetchFunnels
+            });
+
+            // Make globally accessible if needed
+            window.reloadFunnelsTable = fetchFunnels;
+
 
             function openModal() {
+                 resetFunnelForm();
                 modal.classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
             }
@@ -648,15 +678,22 @@
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
 
-            const selectWrapper = document.getElementById('categorySelectWrapper');
-            const inputWrapper  = document.getElementById('categoryInputWrapper');
-            const showBtn       = document.getElementById('showCategoryInput');
-            const backBtn       = document.getElementById('backToSelect');
+          
+          showBtn.addEventListener('click', () => {
 
-            showBtn.addEventListener('click', () => {
-                selectWrapper.classList.add('hidden');
-                inputWrapper.classList.remove('hidden');
-                inputWrapper.querySelector('input').focus();
+            const closeFunnelBtn = document.querySelector('[data-close-funnel-modal]');
+                if (closeFunnelBtn) {
+                    closeFunnelBtn.click();
+                }
+
+                // Switch to Categories tab
+                window.switchTab('categories');
+
+                //  Open category modal
+                const openCategoryBtn = document.querySelector('[data-open-category-modal]');
+                if (openCategoryBtn) {
+                    openCategoryBtn.click();
+                }
             });
 
             backBtn.addEventListener('click', () => {
@@ -664,24 +701,175 @@
                 selectWrapper.classList.remove('hidden');
             });
 
-            // Demo submit (replace with ajax)
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
+                  funnelForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
 
-                const payload = {
-                    name: form.name.value,
-                    description: form.description.value,
-                    category_id: form.category_id.value,
-                    trigger_event: form.trigger_event.value,
-                    timing: form.timing.value,
-                    offset_unit: form.offset_unit.value,
-                    offset_value: form.offset_value.value,
-                    is_active: form.is_active.checked ? 1 : 0,
-                };
+                    if (!$(funnelForm).parsley().isValid()) {
+                        $(funnelForm).parsley().validate();
+                        return;
+                    }
 
-                console.log('Funnel payload:', payload);
-                closeModal();
-            });
+                    const url = editingFunnelId
+                        ? `{{ route('admin.crm.sales-funnels.update', ':id') }}`
+                            .replace(':id', editingFunnelId)
+                        : `{{ route('admin.crm.sales-funnels.store') }}`;
+
+                    const method = editingFunnelId ? 'PUT' : 'POST';
+
+                    const submitBtn = document.getElementById('funnelForm-btn');
+                    const originalText = submitBtn.textContent;
+
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Saving...';
+
+                    apiFetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document
+                                .querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            name: funnelForm.name.value,
+                            description: funnelForm.description.value,
+                            category_id: funnelForm.category_id.value,
+                            trigger_event: funnelForm.trigger_event.value,
+                            timing: funnelForm.timing.value,
+                            date_value: funnelForm.date_value.value,
+                            hour_value: funnelForm.hour_value.value,
+                            minute_value: funnelForm.minute_value.value,
+                            is_active: funnelForm.is_active.checked ? 1 : 0,
+                        })
+                    })
+                    .then(res => {
+                        if (res?.success) {
+                            notyf.success(res.message);
+                            closeFunnelModal();
+                            reloadFunnelsTable(); 
+                        } else {
+                            notyf.error(res?.message || 'Failed');
+                        }
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                         resetFunnelForm();
+                    });
+                });
+
+
+
+                function initSingleFunnelDeleteButtons() {
+                    const deleteButtons = document.querySelectorAll('.funnel-delete-button');
+
+                    deleteButtons.forEach(button => {
+                        button.addEventListener('click', function () {
+                            const uniqueId = this.dataset.uniqueId;
+
+                            showConfirm(
+                                'Do you want to delete this funnel?',
+                                'This action cannot be undone.'
+                            ).then(result => {
+                                if (!result.isConfirmed) return;
+
+                                const url =
+                                    '{{ route('admin.crm.sales-funnels.delete', [':unique_id']) }}'
+                                        .replace(':unique_id', uniqueId);
+
+                                apiFetch(url, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document
+                                            .querySelector('meta[name="csrf-token"]')
+                                            .getAttribute('content'),
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(res => {
+                                    if (res?.success) {
+                                        notyf.success(res.message);
+
+                                        // Remove row from table
+                                        const row = document.getElementById('funnel-row-' + uniqueId);
+                                        if (row) row.remove();
+                                    } else {
+                                        notyf.error(res?.message || 'Failed to delete funnel');
+                                    }
+                                });
+                            });
+                        });
+                    });
+                }
+
+                // --  edit funnal -- 
+
+                let editingFunnelId = null;
+
+
+                function openFunnelModal() {
+                    document.getElementById('funnelModal').classList.remove('hidden');
+                    document.body.classList.add('overflow-hidden');
+                }
+
+                function closeFunnelModal() {
+                    document.getElementById('funnelModal').classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                    resetFunnelForm();
+                }
+
+                function resetFunnelForm() {
+                    const form = document.getElementById('funnelForm');
+                    form.reset();
+
+                    editingFunnelId = null;
+
+                    document.getElementById('funnelModalTitle').textContent = 'Create New Funnel';
+                    document.getElementById('funnelForm-btn').textContent = 'Create Funnel';
+                }
+
+
+                document.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.funnel-edit-button');
+                    if (!btn) return;
+
+                    const uniqueId = btn.dataset.uniqueId;
+                    editingFunnelId = uniqueId;
+
+                    apiFetch(`{{ route('admin.crm.sales-funnels.show', ':id') }}`
+                        .replace(':id', uniqueId))
+                        .then(res => {
+                            if (!res.success) return;
+
+                            const f = res.data;
+                            const form = document.getElementById('funnelForm');
+
+                            form.name.value = f.funnel_name;
+                            form.description.value = f.description ?? '';
+                            form.category_id.value = f.sales_funnel_category_id ?? '';
+                            form.trigger_event.value =
+                                f.trigger_event === 'Rental Start Date'
+                                    ? 'rental_start_date'
+                                    : 'new_lead_added';
+
+                            form.timing.value =
+                                f.trigger_event_timing === 'Before Event'
+                                    ? 'before'
+                                    : 'after';
+
+                            form.date_value.value = f.date_value ?? '';
+                            form.hour_value.value = f.hour_value ?? '';
+                            form.minute_value.value = f.minute_value ?? '';
+                            form.is_active.checked = f.status === 'Active';
+
+                            document.getElementById('funnelModalTitle').textContent = 'Edit Funnel';
+                            document.getElementById('funnelForm-btn').textContent = 'Update Funnel';
+
+                            openFunnelModal();
+                        });
+                });
+
+
         });
     </script>
 @endpush

@@ -12,6 +12,7 @@ class OrderNote extends Model
         'unique_id',
         'order_id',
         'note',
+        'note_type',
         'user_id',
         'created_by_type',
         'created_by_id',
@@ -62,4 +63,9 @@ class OrderNote extends Model
     {
         return $this->created_by_type_name === 'Customer';
     }
+    public function scopeDashboard($query)
+{
+    return $query->where('note_type', 'dashboard');
+}
+    
 }

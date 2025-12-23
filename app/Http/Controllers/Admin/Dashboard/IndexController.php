@@ -14,6 +14,9 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\MaintenanceManagement\EquipmentSoftAssign;
+use App\Models\Iam\Personnel\User;
+use App\Helpers\ConfigurationHelper;
+use App\Models\Customers\Customer;
 
 
 use App\Helpers\CustomHelper;
@@ -30,9 +33,10 @@ class IndexController extends Controller
     {
 
         $damagedOrderAlerts = EquipmentSoftAssign::with([
-            'order.customer',
+            'order.customer.cards',
             'equipment',
             'orderProduct',
+              'orderProduct.damageChargeLogs',
         ])
         ->whereHas('equipment', function ($q) {
             $q->where('current_status', EquipmentCurrentStatus::Damaged)
@@ -40,58 +44,84 @@ class IndexController extends Controller
               ->whereNull('deleted_at');
         })
         ->whereHas('order')
+        ->whereHas('orderProduct', function ($q) {
+            $q->where('damage_status', '!=', 'completed');
+        })
         ->latest('id')
         ->get()
         ->unique('order_id')   // one alert per order
         ->values()
         ->map(function ($softAssign, $index) {
 
-            $order = $softAssign->order;
-            $equipment = $softAssign->equipment;
+                $order = $softAssign->order;
+                $equipment = $softAssign->equipment;
+                $orderProduct = $softAssign->orderProduct;
 
-            $latestNote = $order?->notes()
-                ->whereDate('created_at', today())
-                ->latest()
-                ->first();
+                $latestNote = $order?->notes()
+                    ->dashboard()
+                    ->latest()
+                    ->get(['id', 'note', 'created_at']);
 
-            return [
-                'id'           => $index + 1,
-                'customerName' => $order?->customer?->full_name ?? '—',
-                'orderId'      => $order?->unique_id ?? '—',
+                $baseDamage = (float) ($orderProduct->damage_charge ?? 0);
+                $adjustments = $orderProduct->damageChargeLogs->sum('change_amount');
+                $currentDamage = max(0, $baseDamage + $adjustments);
 
-                'orderLink'    => $order
-                    ? route('admin.order-management.orders.edit', $order->unique_id)
-                    : null,
+                return [
+                    'id' => $index + 1,
 
-                'amountOwed'   => ($order?->grand_total ?? 0) > 0
-                    ? '$' . number_format($order->grand_total, 2)
-                    : 'Pending',
+                    'customer' => [
+                        'id' => $order?->customer?->id,
+                        'full_name' => $order?->customer?->full_name,
+                        'cards' => $order?->customer?->cards?->map(fn ($card) => [
+                            'id' => $card->unique_id,
+                            'label' => $card->card_number,
+                        ])->values(),
+                    ],
 
-                'date'         => optional($order?->created_at)->toDateString(),
-                'type'         => 'damage',
+                    'customerName' => $order?->customer?->full_name ?? '—',
+                    'orderId' => $order?->unique_id ?? '—',
 
-                'notes'        => $latestNote?->note ?? '',
+                    'orderLink' => $order
+                        ? route('admin.order-management.orders.edit', $order->unique_id)
+                        : null,
 
-                'equipment'    => [
-                    'id'   => $equipment?->unique_id,
-                    'name' => $equipment?->equipment_name,
-                ],
+                    'amountOwed' => $currentDamage > 0  
+                        ? '$' . number_format($currentDamage, 2)
+                        : 'Pending',
 
-                'order_product' => [
-                    'id' => $softAssign->orderProduct?->id,
-                ],
-            ];
-        });
+                    'date' => optional($order?->created_at)->toDateString(),
+                    'type' => 'damage',
+
+                    'notes' => $latestNote,
+
+                    'equipment' => [
+                        'id' => $equipment?->unique_id,
+                        'name' => $equipment?->equipment_name,
+                    ],
+
+                    'order_product' => [
+                        'id' => $orderProduct?->id,
+                        'unique_id' => $orderProduct?->unique_id,
+                        'base_damage_charge' => $baseDamage,
+                        'current_damage_charge' => $currentDamage,
+                    ],
+                ];
+            });
+
 
         // Get sales data for different periods
         $salesData = $this->getSalesData();
 
         $chartData = $this->getMaintenanceChartData();
+        
+        $users = User::where('status', 'Active')->get();
+      
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
         // dd($damagedOrderAlerts);
         
-        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData'));
-        
+        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting'));
+                        
     }
 
 
@@ -120,74 +150,86 @@ class IndexController extends Controller
 
         private function getMaintenanceChartData()
         {
-            $days = collect(range(13, 0))->map(fn ($i) =>
-                Carbon::today()->subDays($i)->toDateString()
-            );
+           $days = collect(range(13, 0))->map(fn ($i) =>
+            Carbon::today()->subDays($i)->toDateString()
+        );
 
-            $maintenanceDue = [];
-            $maintenanceCompleted = [];
-            $damagedDue = [];
-            $damagedCompleted = [];
+        $maintenanceDue = [];
+        $maintenanceCompleted = [];
+        $damagedDue = [];
+        $damagedCompleted = [];
 
-            foreach ($days as $day) {
+        foreach ($days as $day) {
 
-                // ENTERED maintenance that day
-                $maintenanceDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                    ->where('to_status', EquipmentCurrentStatus::Maintenance->value)
-                    ->whereHas('equipment', function ($q) {
-                        $q->where('not_for_rent', 0)
-                        ->whereNull('deleted_at');
-                    })->count();
+            //  IF TODAY → USE DASHBOARD LOGIC
+            if ($day === Carbon::today()->toDateString()) {
 
-                // EXITED maintenance that day
+                $maintenanceDue[] = Equipment::where('current_status', EquipmentCurrentStatus::Maintenance)
+                    ->where('not_for_rent', 0)
+                    ->whereNull('deleted_at')
+                    ->count();
+
                 $maintenanceCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
                     ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
                     ->whereIn('to_status', [
                         EquipmentCurrentStatus::Available->value,
                         EquipmentCurrentStatus::Rented->value,
-                    ])->whereHas('equipment', function ($q) {
-                        $q->where('not_for_rent', 0)
-                        ->whereNull('deleted_at');
-                    })
+                    ])
                     ->count();
 
-                // ENTERED damaged
-                $damagedDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                    ->where('to_status', EquipmentCurrentStatus::Damaged->value)
-                    ->whereHas('equipment', function ($q) {
-                        $q->where('not_for_rent', 0)
-                        ->whereNull('deleted_at');
-                    })->count();
+                $damagedDue[] = Equipment::where('current_status', EquipmentCurrentStatus::Damaged)
+                    ->where('not_for_rent', 0)
+                    ->whereNull('deleted_at')
+                    ->count();
 
-                // EXITED damaged
                 $damagedCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
                     ->where('from_status', EquipmentCurrentStatus::Damaged->value)
                     ->whereIn('to_status', [
                         EquipmentCurrentStatus::Available->value,
                         EquipmentCurrentStatus::Rented->value,
-                    ])->whereHas('equipment', function ($q) {
-                        $q->where('not_for_rent', 0)
-                        ->whereNull('deleted_at');
-                    })
+                    ])
                     ->count();
+
+                continue;
             }
 
-              // Formatted labels for chart
-            $labels = $days->map(fn ($date) =>
-                CustomHelper::formatDate($date)
-            );
+            //  OTHER DAYS → KEEP YOUR EXISTING LOGIC
+            $maintenanceDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                ->where('to_status', EquipmentCurrentStatus::Maintenance->value)
+                ->count();
 
-            return [
-                'labels' => $labels,
-                'maintenance' => [
-                    'due' =>  $maintenanceDue,
-                    'completed' => $maintenanceCompleted,
-                ],
-                'damaged' => [
-                    'due' => $damagedDue ,
-                    'completed' => $damagedCompleted ,
-                ],
-            ];
+            $maintenanceCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
+                ->whereIn('to_status', [
+                    EquipmentCurrentStatus::Available->value,
+                    EquipmentCurrentStatus::Rented->value,
+                ])
+                ->count();
+
+            $damagedDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                ->where('to_status', EquipmentCurrentStatus::Damaged->value)
+                ->count();
+
+            $damagedCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
+                ->where('from_status', EquipmentCurrentStatus::Damaged->value)
+                ->whereIn('to_status', [
+                    EquipmentCurrentStatus::Available->value,
+                    EquipmentCurrentStatus::Rented->value,
+                ])
+                ->count();
+        }
+
+        return [
+            'labels' => collect($days)->map(fn ($d) => CustomHelper::formatDate($d)),
+            'maintenance' => [
+                'due' => $maintenanceDue,
+                'completed' => $maintenanceCompleted,
+            ],
+            'damaged' => [
+                'due' => $damagedDue,
+                'completed' => $damagedCompleted,
+            ],
+        ];
         }
 
 
@@ -215,141 +257,166 @@ class IndexController extends Controller
         ];
     }
     
-    /**
-     * Get rolling 30 days sales data
-     */
     private function getRolling30DaysData($now)
-    {
-        $endDate = $now->copy();
-        $startDate = $now->copy()->subDays(29); // Last 30 days including today
-        
-        // Get current period data - only orders with Paid/Account status
-        $currentPeriodData = Order::whereBetween('orders.order_date', [
-            $startDate->format('Y-m-d'),
-            $endDate->format('Y-m-d')
-        ])
-        ->join('order_payments', 'orders.id', '=', 'order_payments.order_id')
-        ->whereIn('order_payments.status', [
-            OrderPaymentStatus::Paid->value,
-            OrderPaymentStatus::Account->value,
-            OrderPaymentStatus::InvoiceCard->value,
-            OrderPaymentStatus::InvoiceCash->value,
-            OrderPaymentStatus::InvoiceOnline->value,
-            OrderPaymentStatus::InvoiceCheque->value,
-            OrderPaymentStatus::InvoiceOther->value,
-        ])
-        ->select(DB::raw('DATE(orders.order_date) as date'), DB::raw('SUM(DISTINCT orders.grand_total) as total'))
-        ->groupBy('date', 'orders.id')
-        ->get()
-        ->groupBy('date')
-        ->map(function ($items) {
-            return $items->sum('total');
-        })
+{
+    $endDate = $now->copy()->endOfDay();
+    $startDate = $now->copy()->subDays(29)->startOfDay();
+
+    // ---------- CURRENT PERIOD ----------
+    $currentRows = $this->getRevenueRows($startDate, $endDate);
+
+    $currentPeriodData = $currentRows
+        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
+        ->map(fn ($items) => $items->sum('grand_total'))
         ->toArray();
-        
-        // Get previous period data (30 days before)
-        $prevEndDate = $startDate->copy()->subDay();
-        $prevStartDate = $prevEndDate->copy()->subDays(29);
-        
-        $previousPeriodData = Order::whereBetween('orders.order_date', [
-            $prevStartDate->format('Y-m-d'),
-            $prevEndDate->format('Y-m-d')
-        ])
-        ->join('order_payments', 'orders.id', '=', 'order_payments.order_id')
-        ->whereIn('order_payments.status', [
-            OrderPaymentStatus::Paid->value,
-            OrderPaymentStatus::Account->value,
-            OrderPaymentStatus::InvoiceCard->value,
-            OrderPaymentStatus::InvoiceCash->value,
-            OrderPaymentStatus::InvoiceOnline->value,
-            OrderPaymentStatus::InvoiceCheque->value,
-            OrderPaymentStatus::InvoiceOther->value,
-        ])
-        ->select(DB::raw('DATE(orders.order_date) as date'), DB::raw('SUM(DISTINCT orders.grand_total) as total'))
-        ->groupBy('date', 'orders.id')
-        ->get()
-        ->groupBy('date')
-        ->map(function ($items) {
-            return $items->sum('total');
-        })
+
+    // ---------- PREVIOUS PERIOD ----------
+    $prevEndDate = $startDate->copy()->subDay()->endOfDay();
+    $prevStartDate = $prevEndDate->copy()->subDays(29)->startOfDay();
+
+    $previousRows = $this->getRevenueRows($prevStartDate, $prevEndDate);
+
+    $previousPeriodData = $previousRows
+        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
+        ->map(fn ($items) => $items->sum('grand_total'))
         ->toArray();
-        
-        // Build complete data arrays with all dates
-        $categories = [];
-        $currentData = [];
-        $previousData = [];
-        
-        for ($i = 0; $i < 30; $i++) {
-            $date = $startDate->copy()->addDays($i);
-            $dateStr = $date->format('Y-m-d');
-            $categories[] = $date->format('n/j'); // Format: M/D
-            
-            $currentData[] = isset($currentPeriodData[$dateStr]) ? (float)$currentPeriodData[$dateStr] : 0;
-            
-            $prevDate = $prevStartDate->copy()->addDays($i);
-            $prevDateStr = $prevDate->format('Y-m-d');
-            $previousData[] = isset($previousPeriodData[$prevDateStr]) ? (float)$previousPeriodData[$prevDateStr] : 0;
-        }
-        
-        return [
-            'categories' => $categories,
-            'current' => $currentData,
-            'previous' => $previousData,
-            'totalSales' => array_sum($currentData),
-            'previousTotalSales' => array_sum($previousData),
-        ];
+
+    // ---------- BUILD OUTPUT ----------
+    $categories = [];
+    $currentData = [];
+    $previousData = [];
+
+    for ($i = 0; $i < 30; $i++) {
+        $date = $startDate->copy()->addDays($i);
+        $dateStr = $date->format('Y-m-d');
+
+        $categories[] = CustomHelper::formatDate($date);
+
+        $currentData[] = (float) ($currentPeriodData[$dateStr] ?? 0);
+
+        $prevDate = $prevStartDate->copy()->addDays($i);
+        $previousData[] = (float) ($previousPeriodData[$prevDate->format('Y-m-d')] ?? 0);
     }
-    
+
+    return [
+        'categories' => $categories,
+        'current' => $currentData,
+        'previous' => $previousData,
+        'totalSales' => array_sum($currentData),
+        'previousTotalSales' => array_sum($previousData),
+    ];
+}
+
+
+
     /**
      * Get current month sales data (grouped by week)
      */
+
     private function getCurrentMonthData($now)
-    {
-        $startDate = $now->copy()->startOfMonth();
-        $endDate = $now->copy()->endOfMonth();
-        
-        // Get current month data
-        $currentMonthData = $this->getWeeklyData($startDate, $endDate);
-        
-        // Get previous month data
-        $prevStartDate = $now->copy()->subMonth()->startOfMonth();
-        $prevEndDate = $now->copy()->subMonth()->endOfMonth();
-        $previousMonthData = $this->getWeeklyData($prevStartDate, $prevEndDate);
-        
-        return [
-            'categories' => $currentMonthData['categories'],
-            'current' => $currentMonthData['data'],
-            'previous' => $previousMonthData['data'],
-            'totalSales' => array_sum($currentMonthData['data']),
-            'previousTotalSales' => array_sum($previousMonthData['data']),
-        ];
+{
+    $startDate = $now->copy()->startOfMonth()->startOfDay();
+    $endDate   = $now->copy()->endOfMonth()->endOfDay();
+
+    // ---------- CURRENT PERIOD ----------
+    $currentRows = $this->getRevenueRows($startDate, $endDate);
+
+    $currentPeriodData = $currentRows
+        ->groupBy(function ($row) {
+            $day = Carbon::parse($row->date)->day;
+            return min(3, floor(($day - 1) / 7)); // week index
+        })
+        ->map(fn ($items) => $items->sum('grand_total'))
+        ->toArray();
+
+    // ---------- PREVIOUS PERIOD ----------
+    $prevStart = $startDate->copy()->subMonth()->startOfMonth();
+    $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
+
+    $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
+
+    $previousPeriodData = $previousRows
+        ->groupBy(function ($row) {
+            $day = Carbon::parse($row->date)->day;
+            return min(3, floor(($day - 1) / 7));
+        })
+        ->map(fn ($items) => $items->sum('grand_total'))
+        ->toArray();
+
+    // ---------- BUILD OUTPUT ----------
+    $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    $currentData = [];
+    $previousData = [];
+
+    for ($i = 0; $i < 4; $i++) {
+        $currentData[]  = (float) ($currentPeriodData[$i] ?? 0);
+        $previousData[] = (float) ($previousPeriodData[$i] ?? 0);
     }
-    
+
+    return [
+        'categories' => $categories,
+        'current' => $currentData,
+        'previous' => $previousData,
+        'totalSales' => array_sum($currentData),
+        'previousTotalSales' => array_sum($previousData),
+    ];
+}
+
+
     /**
      * Get last month sales data (grouped by week)
      */
+
     private function getLastMonthData($now)
-    {
-        $startDate = $now->copy()->subMonth()->startOfMonth();
-        $endDate = $now->copy()->subMonth()->endOfMonth();
-        
-        // Get last month data
-        $lastMonthData = $this->getWeeklyData($startDate, $endDate);
-        
-        // Get month before last data
-        $prevStartDate = $now->copy()->subMonths(2)->startOfMonth();
-        $prevEndDate = $now->copy()->subMonths(2)->endOfMonth();
-        $previousMonthData = $this->getWeeklyData($prevStartDate, $prevEndDate);
-        
-        return [
-            'categories' => $lastMonthData['categories'],
-            'current' => $lastMonthData['data'],
-            'previous' => $previousMonthData['data'],
-            'totalSales' => array_sum($lastMonthData['data']),
-            'previousTotalSales' => array_sum($previousMonthData['data']),
-        ];
+{
+    $startDate = $now->copy()->subMonth()->startOfMonth()->startOfDay();
+    $endDate   = $now->copy()->subMonth()->endOfMonth()->endOfDay();
+
+    // ---------- CURRENT PERIOD ----------
+    $currentRows = $this->getRevenueRows($startDate, $endDate);
+
+    $currentPeriodData = $currentRows
+        ->groupBy(function ($row) {
+            $day = Carbon::parse($row->date)->day;
+            return min(3, floor(($day - 1) / 7));
+        })
+        ->map(fn ($items) => $items->sum('grand_total'))
+        ->toArray();
+
+    // ---------- PREVIOUS PERIOD ----------
+    $prevStart = $startDate->copy()->subMonth()->startOfMonth();
+    $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
+
+    $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
+
+    $previousPeriodData = $previousRows
+        ->groupBy(function ($row) {
+            $day = Carbon::parse($row->date)->day;
+            return min(3, floor(($day - 1) / 7));
+        })
+        ->map(fn ($items) => $items->sum('grand_total'))
+        ->toArray();
+
+    // ---------- BUILD OUTPUT ----------
+    $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    $currentData = [];
+    $previousData = [];
+
+    for ($i = 0; $i < 4; $i++) {
+        $currentData[]  = (float) ($currentPeriodData[$i] ?? 0);
+        $previousData[] = (float) ($previousPeriodData[$i] ?? 0);
     }
-    
+
+    return [
+        'categories' => $categories,
+        'current' => $currentData,
+        'previous' => $previousData,
+        'totalSales' => array_sum($currentData),
+        'previousTotalSales' => array_sum($previousData),
+    ];
+}
+
+
     /**
      * Get weekly aggregated data for a date range
      */
@@ -391,4 +458,35 @@ class IndexController extends Controller
             'data' => $weeklyData,
         ];
     }
+
+
+
+
+private function getRevenueRows(Carbon $start, Carbon $end)
+{
+    // ORDERS (same rules as Sales Tax)
+    $orders = Order::whereBetween('order_date', [$start, $end])
+        ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
+        ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
+        ->get()
+        ->map(fn ($order) => (object) [
+            'date' => $order->order_date,
+            'grand_total' => (float) $order->grand_total,
+        ]);
+
+    // PAYMENT ACCOUNTS (same rules as Sales Tax)
+    $payments = Customer::with('paymentAccounts')
+        ->get()
+        ->pluck('paymentAccounts')
+        ->flatten()
+        ->filter(fn ($p) => $p->date >= $start && $p->date <= $end)
+        ->map(fn ($p) => (object) [
+            'date' => $p->date,
+            'grand_total' => (float) $p->amount,
+        ]);
+
+    return $orders->concat($payments);
+}
+
+
 }

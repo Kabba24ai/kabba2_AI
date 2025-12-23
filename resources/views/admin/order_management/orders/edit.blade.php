@@ -1050,7 +1050,21 @@
                 </div>
             </div>
         </div>
+        @if (!empty($payments) && $payments->isNotEmpty())
+            {{--  Order Extra Payments --}}
+            <div class="grid md:grid-cols-1 gap-4">
+                <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col relative">
+                    <h2 class="text-black font-semibold text-lg mb-2">
+                        Order Extra Payments
+                    </h2>
 
+                    <div class=" max-h-60 overflow-y-auto">
+                        <x-admin.order-management.orders.order-extra-payments-list
+                            :payments="$payments" />
+                    </div>
+                </div>
+            </div>
+        @endif
 
 
     </div>
@@ -1664,8 +1678,6 @@
                                                         @endif
                                                     </td>
 
-
-
                                                     @php
 
                                                         // Get the last valid answer (delivery or return != 0), sorted by index_number
@@ -1735,9 +1747,53 @@
                                                 </tr>
                                             @endforeach
                                         @endforeach
+
+                                        @php
+                                            $damageBaseTotal = 0;
+                                            $damageAdjustmentTotal = 0;
+
+                                            foreach ($order->products as $product) {
+                                                $base = (float) ($product->damage_charge ?? 0);
+                                                $adjustments = $product->damageChargeLogs?->sum('change_amount') ?? 0;
+
+                                                $damageBaseTotal += $base;
+                                                $damageAdjustmentTotal += $adjustments;
+                                            }
+
+                                            $finalDamageTotal = max(0, $damageBaseTotal + $damageAdjustmentTotal);
+                                        @endphp
+                                        @if ($damageBaseTotal > 0 || $damageAdjustmentTotal != 0)
+                                            {{-- DAMAGE SUMMARY ROW --}}
+                                            <tr class=" border-b ">
+                                                <td class="py-2 px-2 ">
+                                                    Damage Amount Initialized
+                                                </td>
+
+                                                <td class="py-2 px-2 ">
+                                                    Base Amount (${{ number_format($damageBaseTotal, 2) }})
+                                                </td>
+
+                                                <td class="py-2 px-2  {{ $damageAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                    Adjust Amount ( 
+                                                    {{ $damageAdjustmentTotal >= 0 ? '+' : '-' }}
+                                                    ${{ number_format(abs($damageAdjustmentTotal), 2) }} )
+                                                </td>
+
+                                                <td class="py-2 px-2 text-right text-gray-800">
+                                                     ${{ number_format($finalDamageTotal, 2) }}
+                                                </td>
+                                            </tr>
+                                        @endif
+                                           
+
+
                                     </tbody>
                                 </table>
                             </div>
+
+                          
+
+                            
                             {{-- Second Table: Hour Tracking --}}
                             <div class="bg-white border border-gray-200 rounded-md overflow-x-auto mt-6">
                                 <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
@@ -1787,25 +1843,59 @@
                                             @endif
                                         @endforeach
                                     </tbody>
-                                    <tfoot class="bg-gray-50 text-gray-800">
+
+                                  <tfoot class="bg-gray-50 text-gray-800">
+
                                         <tr>
-                                            <td colspan="7" class="py-2 px-2 text-right">Checklist Total:</td>
-                                            <td class="py-2 px-2 text-right">${{ number_format($checklistTotal, 2) }}
+                                            <td colspan="7" class="py-2 px-2 text-right">
+                                                Checklist Total:
                                             </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="7" class="py-2 px-2 text-right">Hour Tracking Total:</td>
-                                            <td class="py-2 px-2 text-right">${{ number_format($hourTrackingTotal, 2) }}
+                                            <td class="py-2 px-2 text-right">
+                                                ${{ number_format($checklistTotal, 2) }}
                                             </td>
                                         </tr>
 
-                                        <tr class="font-bold">
-                                            <td colspan="7" class="py-2 px-2 text-right ">Grand Total:</td>
-                                            <td class="py-2 px-2 text-right ">
-                                                ${{ number_format($checklistTotal + $hourTrackingTotal, 2) }}
+                                        <tr>
+                                            <td colspan="7" class="py-2 px-2 text-right">
+                                                Hour Tracking Total:
+                                            </td>
+                                            <td class="py-2 px-2 text-right">
+                                                ${{ number_format($hourTrackingTotal, 2) }}
                                             </td>
                                         </tr>
+@if ($damageBaseTotal > 0 || $damageAdjustmentTotal != 0)
+
+                                        <tr>
+                                            <td colspan="7" class="py-2 px-2 text-right ">
+                                                Final Damage Charge:
+                                            </td>
+                                            <td class="py-2 px-2 text-right ">
+                                                ${{ number_format($finalDamageTotal, 2) }}
+                                            </td>
+                                        </tr>
+@endif
+
+                                        <tr class="font-bold border-t">
+                                            <td colspan="7" class="py-3 px-2 text-right">
+                                                Grand Total:
+                                            </td>
+                                            <td class="py-3 px-2 text-right text-gray-900">
+                                                {{
+                                                    number_format(
+                                                        $checklistTotal
+                                                        + $hourTrackingTotal
+                                                        + $finalDamageTotal,
+                                                        2
+                                                    )
+                                                }}
+                                            </td>
+                                        </tr>
+
                                     </tfoot>
+
+
+
+
 
                                 </table>
                             </div>

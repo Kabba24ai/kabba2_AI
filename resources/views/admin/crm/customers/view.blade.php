@@ -1228,7 +1228,7 @@
             <div class="flex items-center justify-between mb-2">
                 <label class="block text-sm font-medium text-gray-700">Tags</label>
             </div>
-            <div id="accountTagList" class="flex flex-wrap gap-2"></div>
+            <div id="accountTagList" class="flex flex-wrap gap-2 max-h-60 overflow-y-auto"></div>
         `;
 
         const list = wrapperAccount.querySelector("#accountTagList");

@@ -62,6 +62,8 @@ class OrderProduct extends Model
         'fuel_initial_reading',
         'fuel_final_reading',
         'total_charge',
+        'damage_charge',
+        'damage_status',
 
         'equipment_id',
         'equipment_details',
@@ -218,6 +220,28 @@ class OrderProduct extends Model
         }
 
         return $this->softAssignment?->equipment?->store?->store_name ?? '-';
+    }
+
+    public function damageChargeLogs()
+    {
+        return $this->hasMany(
+            OrderProductDamageChargeLog::class
+        )->latest();
+    }
+
+
+    /**
+     * Current damage owed (base + adjustments)
+     */
+    public function getCurrentDamageChargeAttribute(): float
+    {
+        $base = (float) ($this->damage_charge ?? 0);
+
+        $adjustments = (float) $this->damageChargeLogs()
+            ->sum('change_amount');
+
+        return max(0, $base + $adjustments);
+
     }
 
 }

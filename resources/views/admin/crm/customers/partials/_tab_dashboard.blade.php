@@ -139,9 +139,9 @@
                                     Add
                                 </button>
         </div>
-        <div class="flex flex-wrap " id="customerTagsWrapper">
-    <!-- show customer tags here (from JS, not from blade) -->
-</div>
+        <div class="flex flex-wrap gap-2 p-2 max-h-60 overflow-y-auto" id="customerTagsWrapper">
+            <!-- show customer tags here (from JS, not from blade) -->
+        </div>
 
     </div>
 
@@ -350,7 +350,7 @@
                             <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank" title="View">
                                 <x-heroicon-o-eye class="w-5 h-5 text-blue-600" />
                             </a>
-                            <a href="javascript:void(0)" title="Download">
+                            <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}" title="Download">
                                 <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600" />
                             </a>
                         </div>

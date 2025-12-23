@@ -301,10 +301,29 @@
 
                    </div>
 
-                   <div class="flex justify-end gap-2 px-6 pb-4">
-                       <button type="button" onclick="closeQuestionModal()" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">Cancel</button>
-                       <button type="submit" class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600">Save Question</button>
-                   </div>
+                   <div class="flex items-center justify-between px-6 pb-4">
+                    <!-- Left text -->
+                    <span class="text-sm font-medium text-gray-400">
+                        *Grayed out fields are fixed and cannot be changed
+                    </span>
+
+                    <!-- Right buttons -->
+                    <div class="flex gap-2">
+                        <button
+                            type="button"
+                            onclick="closeQuestionModal()"
+                            class="px-4 py-2 text-sm rounded border border-gray-300 bg-white">
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-brand-600">
+                            Save Question
+                        </button>
+                    </div>
+                </div>
+
 
                    {{ html()->form()->close() }}
 
@@ -456,6 +475,15 @@
                 // SELECT LOCK — only last and first lock full
               const selectDisabled = (option.lockFull || isSecond || isLast) ? 'disabled' : '';
 
+              const selectClass = `
+                w-full mt-2 sm:mt-0
+                border border-gray-300 rounded-md
+                px-3 py-2 text-sm
+                focus:outline-none focus:ring-2 focus:ring-blue-500
+                ${selectDisabled ? 'custom-bg-gray text-gray-500 cursor-not-allowed' : 'bg-white'}
+            `;
+
+
                wrapper.innerHTML = `
 
      ${dragHandle}
@@ -468,7 +496,7 @@
     </div>
 
     <div>
-        <select class="w-full mt-2 sm:mt-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <select  class="${selectClass}"
             onchange="updateStatus(${index}, this.value)"  ${selectDisabled} >
             <option ${option.status === 'Rental Ready' ? 'selected' : ''}>Rental Ready</option>
             <option ${option.status === 'Maint. Hold' ? 'selected' : ''}>Maint. Hold</option>

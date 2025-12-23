@@ -14,60 +14,12 @@ class AlertsSection extends Component
 
     public function refreshAlerts()
     {
-        // $alerts = OrderProduct::with([
-        //     'order.customer',
-        //     'equipment',
-        //     ])
-        //     ->whereHas('equipment', function ($q) {
-        //         $q->where('current_status', EquipmentCurrentStatus::Damaged)
-        //         ->where('not_for_rent', 0)
-        //         ->whereNull('deleted_at');
-        //     })
-        //     ->whereHas('order')
-        //     ->orderByDesc('id')
-        //     ->get()
-        //     ->unique('order_id')   
         
-        //     ->values()
-        //     ->map(function ($op, $index) {
-
-        //         $latestNote =
-        //         $op->order
-        //             ?->notes()
-        //             ->whereDate('created_at', today())
-        //             ->latest()
-        //             ->first()
-        //         ??
-        //         '';
-
-        //         return [
-        //             'id'           => $index + 1, // for frontend list key
-        //             'customerName' => $op->order?->customer?->full_name
-        //                                 ?? '—',
-        //             'orderId'      => $op->order?->unique_id ?? '—',
-        //             'orderLink' => $op->order
-        //     ? route('admin.order-management.orders.edit', $op->order->unique_id)
-        //     : null,
-
-        //             'amountOwed'   => ($op->order?->grand_total ?? 0) > 0
-        //                                 ? '$' . number_format($op->order->grand_total, 2)
-        //                                 : 'Pending',
-        //             'date'         => optional($op->order?->created_at)
-        //                                 ->toDateString(),
-        //             'type'         => 'damage',
-        //             'notes'        => $latestNote?->note ?? '',
-        //             'equipment'    => [
-        //                 'id'   => $op->equipment?->unique_id,
-        //                 'name' => $op->equipment?->equipment_name,
-        //             ],
-        //         ];
-        // });
-
-
         $alerts = EquipmentSoftAssign::with([
-            'order.customer',
+            'order.customer.cards',
             'equipment',
             'orderProduct',
+              'orderProduct.damageChargeLogs',
         ])
         ->whereHas('equipment', function ($q) {
             $q->where('current_status', EquipmentCurrentStatus::Damaged)
@@ -75,48 +27,77 @@ class AlertsSection extends Component
               ->whereNull('deleted_at');
         })
         ->whereHas('order')
+        ->whereHas('orderProduct', function ($q) {
+            $q->where('damage_status', '!=', 'completed');
+        })
         ->latest('id')
         ->get()
         ->unique('order_id')   // one alert per order
         ->values()
-        ->map(function ($softAssign, $index) {
+       ->map(function ($softAssign, $index) {
 
-            $order = $softAssign->order;
-            $equipment = $softAssign->equipment;
+    $order = $softAssign->order;
+    $equipment = $softAssign->equipment;
+    $orderProduct = $softAssign->orderProduct;
 
-            $latestNote = $order?->notes()
-                ->whereDate('created_at', today())
-                ->latest()
-                ->first();
+    $latestNote = $order?->notes()
+        ->dashboard()
+        ->latest()
+        ->get(['id', 'note', 'created_at']);
 
-            return [
-                'id'           => $index + 1,
-                'customerName' => $order?->customer?->full_name ?? '—',
-                'orderId'      => $order?->unique_id ?? '—',
 
-                'orderLink'    => $order
-                    ? route('admin.order-management.orders.edit', $order->unique_id)
-                    : null,
+    $baseDamage = (float) ($orderProduct->damage_charge ?? 0);
 
-                'amountOwed'   => ($order?->grand_total ?? 0) > 0
-                    ? '$' . number_format($order->grand_total, 2)
-                    : 'Pending',
+    
+    $adjustments = $orderProduct->damageChargeLogs->sum('change_amount');
 
-                'date'         => optional($order?->created_at)->toDateString(),
-                'type'         => 'damage',
+  
+    $currentDamage = max(0, $baseDamage + $adjustments);
 
-                'notes'        => $latestNote?->note ?? '',
+    return [
+        'id' => $index + 1,
 
-                'equipment'    => [
-                    'id'   => $equipment?->unique_id,
-                    'name' => $equipment?->equipment_name,
-                ],
+        'customer' => [
+            'id' => $order?->customer?->id,
+            'full_name' => $order?->customer?->full_name,
+            'cards' => $order?->customer?->cards?->map(fn ($card) => [
+                'id' => $card->unique_id,
+                'label' => $card->card_number,
+            ])->values(),
+        ],
 
-                'order_product' => [
-                    'id' => $softAssign->orderProduct?->id,
-                ],
-            ];
-        });
+        'customerName' => $order?->customer?->full_name ?? '—',
+        'orderId' => $order?->unique_id ?? '—',
+
+        'orderLink' => $order
+            ? route('admin.order-management.orders.edit', $order->unique_id)
+            : null,
+
+      
+        'amountOwed' => $currentDamage > 0
+            ? '$' . number_format($currentDamage, 2)
+            : 'Pending',
+
+        'date' => optional($order?->created_at)->toDateString(),
+        'type' => 'damage',
+
+        'notes' => $latestNote,
+
+        'equipment' => [
+            'id' => $equipment?->unique_id,
+            'name' => $equipment?->equipment_name,
+        ],
+
+      
+        'order_product' => [
+            'id' => $orderProduct?->id,
+            'unique_id' => $orderProduct?->unique_id,
+            'base_damage_charge' => $baseDamage,
+            'current_damage_charge' => $currentDamage,
+        ],
+    ];
+});
+
 
 
         //  Send data to JS

@@ -21,11 +21,11 @@ class ChecklistQuestionsController extends Controller
             $order_product_id = $request->input('order_product_id');
 
 
-            Log::info('Checklist request params', [
-                'checklist_id'     => $checklist_id,
-                'equipment_id'     => $equipment_id,
-                'order_product_id' => $order_product_id,
-            ]);
+            // Log::info('Checklist request params', [
+            //     'checklist_id'     => $checklist_id,
+            //     'equipment_id'     => $equipment_id,
+            //     'order_product_id' => $order_product_id,
+            // ]);
 
             // Required params
             if (!$checklist_id || !$equipment_id) {

@@ -699,7 +699,7 @@
                });
 
 
-          console.log("Rendering options:", JSON.parse(JSON.stringify(answerOptions)));
+        //   console.log("Rendering options:", JSON.parse(JSON.stringify(answerOptions)));
 
 
            }
@@ -771,7 +771,11 @@
 
     <!-- Dollar input block -->
     <div class="flex items-center gap-1 bg-white px-2 py-2 rounded-md border border-gray-300">
-        <svg xmlns="http://www.w3.org/2000/svg" ... class="lucide lucide-dollar-sign w-4 h-4 text-green-600">...</svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 text-green-600">
+            <line x1="12" x2="12" y1="2" y2="22"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+
         <input name="options[${index}][delivery_amt]" type="number" placeholder="0" class="delivery_amt w-16 border-0 focus:ring-0 p-0 text-sm" min="0" step="0.01" value="${option.delivery_amt ? option.delivery_amt : 0}" oninput="updateDeliveryAmt(${index}, this.value)">
     </div>
 </div>
@@ -900,7 +904,7 @@
            function updateDamageFlag(index, isChecked) {
                 if (answerOptions[index]) {
                     answerOptions[index].is_damaged = isChecked;
-                    console.log(`Option ${index} damage flag:`, isChecked);
+                    // console.log(`Option ${index} damage flag:`, isChecked);
                 }
             }
 
@@ -1072,8 +1076,8 @@
 document.addEventListener("DOMContentLoaded", function() {
 
 function resetAnswerOptions() {
-    console.log("Resetting answer options for new question.== start");
-    console.log("Before reset:", JSON.stringify(answerOptions, null, 4));
+    // console.log("Resetting answer options for new question.== start");
+    // console.log("Before reset:", JSON.stringify(answerOptions, null, 4));
 
     // Clear in place (important: this keeps references intact)
     answerOptions.splice(0, answerOptions.length, {
@@ -1088,8 +1092,8 @@ function resetAnswerOptions() {
 
     nextId = 2;
 
-    console.log("After reset:", JSON.stringify(answerOptions[0], null, 4));
-    console.log("Resetting answer options for new question.== end");
+    // console.log("After reset:", JSON.stringify(answerOptions[0], null, 4));
+    // console.log("Resetting answer options for new question.== end");
 }
 
 
@@ -1110,7 +1114,7 @@ function resetAnswerOptions() {
     // ====== Handle Edit Button ======
     document.querySelectorAll(".edit-question-btn").forEach(button => {
     button.addEventListener("click", function() {
-        console.log("Opening EDIT modal for:", this.dataset.id);
+        // console.log("Opening EDIT modal for:", this.dataset.id);
 
         // --- Extract question data ---
         const questionId = this.dataset.id;
@@ -1166,14 +1170,14 @@ function resetAnswerOptions() {
         // --- Open modal ---
         modalWrapper.classList.remove("hidden");
 
-        console.log('Form ready for EDIT question:', answerOptions);
+        // console.log('Form ready for EDIT question:', answerOptions);
     });
 });
 
 
     // ====== Handle "+ New Question" ======
    window.openQuestionModal = function() {
-    console.log('Opening NEW question modal...');
+    // console.log('Opening NEW question modal...');
 
     // --- Reset global data ---
     resetAnswerOptions();
@@ -1207,7 +1211,7 @@ function resetAnswerOptions() {
     // --- Show modal ---
     modalWrapper.classList.remove("hidden");
 
-    console.log('Form ready for NEW question:', answerOptions);
+    // console.log('Form ready for NEW question:', answerOptions);
 };
 
 
@@ -1215,7 +1219,7 @@ function resetAnswerOptions() {
     // ====== Handle Close ======
    window.closeQuestionModal = function() {
     modalWrapper.classList.add("hidden");
-    console.log("Modal closed");
+    // console.log("Modal closed");
 };
 
 });

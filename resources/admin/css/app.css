@@ -984,3 +984,8 @@ svg.checkmark {
   }
 
   /* dashboard  */
+
+
+  .custom-bg-gray{
+    background-color: #f5f5f5 !important;
+  }

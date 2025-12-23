@@ -37,7 +37,6 @@ class IndexController extends BaseController
         }
 
         $equipment = Equipment::with(['productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer', 'softAssignments', 'store'])
-            ->where('id', 4)
             ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')") // order by current_status based on the defined order
             ->orderBy('equipment_name', 'ASC')
             ->get();

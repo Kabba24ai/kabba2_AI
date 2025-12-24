@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 
 use App\Http\Controllers\Api\Admin\V1\Authorize\PostController;
+use App\Http\Controllers\Api\Admin\V1\Authorize\ScheduleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,3 +19,4 @@ use App\Http\Controllers\Api\Admin\V1\Authorize\PostController;
 
 // Apply the default throttle middleware to limit requests to 3 per minute
 Route::post('/authorize', PostController::class);
+Route::post('/schedule', ScheduleController::class);

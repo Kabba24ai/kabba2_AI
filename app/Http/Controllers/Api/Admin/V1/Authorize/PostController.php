@@ -10,13 +10,14 @@ use Illuminate\Support\Facades\Hash;
 use Throwable;
 
 use App\Http\Requests\Api\Admin\V1\Authorize\PostRequest;
+use App\Services\TwilioService;
 
 class PostController extends BaseController
 {
 
     /**
      * Authorize Payment
-     * @group Admin App
+     * @group Kabba Sales Site
      */
     public function __invoke(PostRequest $request): JsonResponse
     {
@@ -101,6 +102,12 @@ class PostController extends BaseController
                 ],
             ])->save();
 
+            $twilio = new TwilioService();
+
+            $to = '+16158156734'; // Replace with the destination phone number
+            $message = 'Hello, A New Customer has just signed up for a Kabba account';
+            $response = $twilio->sendSms($to, $message);
+
             if (! $isChargeSuccessful) {
                 return response()->json([
                     'success' => false,
@@ -112,6 +119,7 @@ class PostController extends BaseController
                     ],
                 ], 422);
             }
+
 
             return response()->json([
                 'success' => true,
@@ -125,11 +133,11 @@ class PostController extends BaseController
                 ],
             ], 201);
         } catch (Throwable $exception) {
-            logger()->error('Authrise action failed', [
+            logger()->error('Authorize action failed', [
                 'submission_id' => $submission->id,
                 'error' => $exception->getMessage(),
             ]);
-            dd($exception);
+
             $submission->fill([
                 'status' => 'failed',
                 'response_message' => $exception->getMessage(),

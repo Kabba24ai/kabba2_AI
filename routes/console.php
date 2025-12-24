@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -35,6 +36,13 @@ Schedule::job(new \App\Jobs\SendReturnSameDayRentalReminderJob())
     ->withoutOverlapping()
     ->onOneServer()
     ->name('send-return-same-day-rental-reminder-job');
+
+Schedule::command('db:refresh-staging')
+    ->dailyAt('07:00')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('refresh-staging-database');
 
 
 

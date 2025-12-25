@@ -48,7 +48,11 @@ class PostController extends BaseController
         ]);
 
         try {
-            $authorizeService = new AuthorizeNetService();
+            $authorizeService = new AuthorizeNetService([
+                'login_id' => "8E695xRcs",
+                'transaction_key' => "85Xb468m38RQh3uC",
+                'test_mode' => true,
+            ]);
 
             $customerPayload = [
                 'first_name' => $validated['first_name'],

@@ -13,12 +13,21 @@ class AuthorizeNetService
     protected $currency;
     protected bool $isTestMode;
 
-    public function __construct()
+
+    public function __construct(?array $credentials = null)
     {
+        // 1) Load defaults
         $paymentSettings = \App\Helpers\ConfigurationHelper::getSettings('Payment Settings');
-        $loginId = Crypt::decryptString($paymentSettings['payment_api_key']) ?? '';
-        $transactionKey = Crypt::decryptString($paymentSettings['payment_api_secret']) ?? '';
-        $isTestMode = $paymentSettings['payment_test_mode'] ?? false;
+
+        $defaultLoginId = Crypt::decryptString($paymentSettings['payment_api_key'] ?? '') ?: '';
+        $defaultTxnKey  = Crypt::decryptString($paymentSettings['payment_api_secret'] ?? '') ?: '';
+        $defaultTestMode = $paymentSettings['payment_test_mode'] ?? false;
+
+        // 2) Override if provided
+        $loginId = $credentials['login_id'] ?? $defaultLoginId;
+        $transactionKey = $credentials['transaction_key'] ?? $defaultTxnKey;
+        $testMode = $credentials['test_mode'] ?? $defaultTestMode;
+
         if (empty($loginId) || empty($transactionKey)) {
             throw new \Exception('Payment API credentials are not set.');
         }
@@ -26,7 +35,8 @@ class AuthorizeNetService
         $this->merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $this->merchantAuthentication->setName($loginId);
         $this->merchantAuthentication->setTransactionKey($transactionKey);
-        $this->isTestMode = $isTestMode === true || $isTestMode === 'true' || $isTestMode === 1 || $isTestMode === '1';
+
+        $this->isTestMode = $testMode === true || $testMode === 'true' || $testMode === 1 || $testMode === '1';
     }
 
     /**

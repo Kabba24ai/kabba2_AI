@@ -43,6 +43,7 @@ class SalesFunnelAutomation extends Command
         // 1) Load active funnels
         $funnels = SalesFunnel::query()
             ->where('status', "Active")
+            ->with('products')
             ->get();
 
         $logger->info('Active funnels loaded', [
@@ -72,14 +73,25 @@ class SalesFunnelAutomation extends Command
                     continue;
                 }
 
+                $productIds = $this->funnelProductIds($funnel);
+
+                if ($productIds->isEmpty()) {
+                    $logger->info('Skipped funnel (no products selected)', [
+                        'funnel_id' => $funnel->id,
+                        'unique_id' => $funnel->unique_id,
+                    ]);
+                    continue;
+                }
+
                 $logger->info('Processing funnel', [
                     'funnel_id' => $funnel->id,
                     'unique_id' => $funnel->unique_id,
                     'trigger_event' => $funnel->trigger_event,
                     'timing' => $funnel->trigger_event_timing,
+                    'product_filter_count' => $productIds->count(),
                 ]);
 
-                $targets = $this->fetchOrdersForFunnel($funnel, $expectedEventMoment);
+                $targets = $this->fetchOrdersForFunnel($funnel, $expectedEventMoment, $productIds);
                 $dueTargets = $targets->filter(function ($target) use ($funnel) {
                     return $this->shouldSendTargetNow($funnel, $target['event_at']);
                 })->values();
@@ -138,19 +150,27 @@ class SalesFunnelAutomation extends Command
             && in_array($funnel->trigger_event_timing, $validTiming, true);
     }
 
-    private function fetchOrdersForFunnel(SalesFunnel $funnel, Carbon $expectedEventMoment): Collection
+    private function fetchOrdersForFunnel(SalesFunnel $funnel, Carbon $expectedEventMoment, Collection $productIds): Collection
     {
+        if ($productIds->isEmpty()) {
+            return collect();
+        }
+
         [$windowStart, $windowEnd] = $this->matchingWindow($expectedEventMoment);
 
         return match ($funnel->trigger_event) {
-            'Rental Start Date' => $this->fetchRentalTargets($windowStart, $windowEnd),
-            'New Lead Added' => $this->fetchLeadTargets($windowStart, $windowEnd),
+            'Rental Start Date' => $this->fetchRentalTargets($windowStart, $windowEnd, $productIds),
+            'New Lead Added' => $this->fetchLeadTargets($windowStart, $windowEnd, $productIds),
             default => collect(),
         };
     }
 
-    private function fetchRentalTargets(Carbon $windowStart, Carbon $windowEnd): Collection
+    private function fetchRentalTargets(Carbon $windowStart, Carbon $windowEnd, Collection $productIds): Collection
     {
+        if ($productIds->isEmpty()) {
+            return collect();
+        }
+
         $timezone = $this->appTimezone();
         $dates = collect([
             $windowStart->copy()->setTimezone($timezone)->toDateString(),
@@ -162,6 +182,7 @@ class SalesFunnelAutomation extends Command
             ->whereBetween('delivery_date', [$dates->first(), $dates->last()])
             ->whereNotNull('delivery_date')
             ->where('product_data->product_type', 'Rental')
+            ->whereIn('product_id', $productIds->all())
             ->get();
 
         return $products
@@ -185,14 +206,21 @@ class SalesFunnelAutomation extends Command
             ->values();
     }
 
-    private function fetchLeadTargets(Carbon $windowStart, Carbon $windowEnd): Collection
+    private function fetchLeadTargets(Carbon $windowStart, Carbon $windowEnd, Collection $productIds): Collection
     {
+        if ($productIds->isEmpty()) {
+            return collect();
+        }
+
         $windowStartUtc = $windowStart->copy()->setTimezone('UTC');
         $windowEndUtc = $windowEnd->copy()->setTimezone('UTC');
 
         $orders = Order::query()
             ->with(['shippingAddress', 'billingAddress'])
             ->whereBetween('created_at', [$windowStartUtc, $windowEndUtc])
+            ->whereHas('products', function ($query) use ($productIds) {
+                $query->whereIn('product_id', $productIds->all());
+            })
             ->get();
 
         return $orders->map(function (Order $order) {
@@ -280,6 +308,18 @@ class SalesFunnelAutomation extends Command
     {
         return 'Asia/Kolkata';
         // return 'America/Chicago';
+    }
+
+    private function funnelProductIds(SalesFunnel $funnel): Collection
+    {
+        if (! $funnel->relationLoaded('products')) {
+            $funnel->loadMissing('products');
+        }
+
+        return $funnel->products
+            ->pluck('id')
+            ->filter()
+            ->values();
     }
 
     /**

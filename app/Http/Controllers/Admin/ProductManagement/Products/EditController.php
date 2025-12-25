@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\View\View;
 
 // Models
+use App\Models\Customers\SalesFunnel;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\ProductManagement\ProductOption;
@@ -22,11 +23,11 @@ class EditController extends Controller
      */
     public function __invoke(string $unique_id): View
     {
-        $objProduct = Product::with(['categories'])
+        $objProduct = Product::with(['categories', 'funnels'])
             ->where('unique_id', $unique_id)
             ->firstOrFail();
         $categoryTree = ProductCategory::with('childCategories')->whereNull('parent_id')->orderByAdmin()->get();
-        $funnels = collect(); // Empty Collection
+        $funnels = SalesFunnel::active()->orderBy('funnel_name')->select('funnel_name', 'id')->get();
         $terms = Terms::product()->orderByTitle()->published()->pluck('title', 'id');
         $terms->prepend('Select a term...', '');
         $productOptions = ProductOption::orderBy('name')->get();

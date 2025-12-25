@@ -120,6 +120,9 @@ class UpdateRequest extends ApiBaseFormRequest
 
             'is_default_funnel' => ['nullable', 'boolean'],
             'has_high_demand_alert' => ['nullable', 'boolean'],
+
+            'funnels' => ['nullable', 'array'],
+            'funnels.*' => ['exists:sales_funnels,id'],
         ];
     }
 

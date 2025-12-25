@@ -44,5 +44,12 @@ Schedule::command('db:refresh-staging')
     ->onOneServer()
     ->name('refresh-staging-database');
 
+// Schedule::command('sales:funnel-automation')
+//     ->everyMinute()
+//     ->timezone('America/Chicago')
+//     ->withoutOverlapping()
+//     ->onOneServer()
+//     ->name('sales-funnel-automation');
+
 
 

@@ -9,6 +9,7 @@ use Cviebrock\EloquentSluggable\Sluggable;
 use Str;
 
 use App\Helpers\ModelHelper;
+use App\Models\Customers\SalesFunnel;
 use App\Models\Global\Media;
 use App\Models\TermsAndConditions\Terms;
 
@@ -176,6 +177,16 @@ class Product extends Model
         });
     }
 
+    public function funnels()
+    {
+        return $this->belongsToMany(
+            SalesFunnel::class,
+            'sales_funnel_products', // pivot table name
+            'product_id', // foreign key on pivot for this model
+            'sales_funnel_id', // foreign key on pivot for related model
+        )->withTimestamps();
+    }
+
     public function terms()
     {
         return $this->belongsToMany(
@@ -183,7 +194,7 @@ class Product extends Model
             'product_terms_children', // pivot table name
             'product_id', // foreign key on pivot for this model
             'terms_and_condition_id', // foreign key on pivot for related model
-        );
+        )->withTimestamps();
     }
 
     public function getHoverImageUrlAttribute()

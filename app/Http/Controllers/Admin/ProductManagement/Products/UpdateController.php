@@ -156,6 +156,13 @@ class UpdateController extends Controller
                 $product->terms()->detach();
             }
 
+            // Sync funnels
+            if (!empty($validated['funnels']) && is_array($validated['funnels'])) {
+                $product->funnels()->sync($validated['funnels']);
+            } else {
+                $product->funnels()->detach();
+            }
+
             // --- HOVER IMAGE HANDLING ---
             if ($request->hasFile('hover_image')) {
 

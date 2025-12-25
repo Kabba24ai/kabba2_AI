@@ -129,6 +129,12 @@ class StoreController extends Controller
             // Finally, create the product
             $product = Product::create($productData);
 
+            if (!empty($validated['funnels']) && is_array($validated['funnels'])) {
+                $product->funnels()->sync($validated['funnels']);
+            }else {
+                $product->funnels()->detach();
+            }
+
             // Save specific terms if custom is selected
             if (!empty($validated['is_custom_term_type']) && !empty($validated['terms'])) {
                 $terms = is_array($validated['terms']) ? $validated['terms'] : [$validated['terms']];

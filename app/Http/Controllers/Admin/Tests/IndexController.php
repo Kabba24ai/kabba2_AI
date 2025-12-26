@@ -11,13 +11,238 @@ use App\Services\TwilioService;
 
 // Resources
 use App\Http\Resources\Api\Admin\V1\Equipment\ListResource;
+use App\Jobs\SalesFunnelAfterEventJob;
+use App\Models\Customers\SalesFunnel;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\Orders\OrderProduct;
+use App\Models\Orders\OrderProductFunnelLog;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Str;
 
 class IndexController extends Controller
 {
     // new method here
+    public function salesFunnelAfterEventJob()
+    {
+        // Dispatch the SalesFunnelAfterEventJob
+        SalesFunnelAfterEventJob::dispatch();
+        return response()->json(['status' => 'Sales Funnel After Event Job dispatched.']);
+    }
 
-    public function __invoke($type)
+    public function salesFunnelBeforeEventJob()
+    {
+        // Dispatch the SalesFunnelBeforeEventJob
+        \App\Jobs\SalesFunnelBeforeEventJob::dispatch();
+        return response()->json(['status' => 'Sales Funnel Before Event Job dispatched.']);
+    }
+
+    public function salesFunnelAfterEvent()
+    {
+        $now = Carbon::now('Asia/Kolkata');
+        // 15-min cron: align window to the current 15-min block
+        $windowStart = $now->copy()->floorMinutes(15);
+        $windowEnd   = $windowStart->copy()->addMinutes(15);
+
+        $twilio = new TwilioService();
+
+        $funnels = SalesFunnel::query()
+            ->active()
+            ->afterEvent()
+            ->whereHas('products')
+            ->with(['products:id']) // load only product ids
+            ->get();
+
+        foreach ($funnels as $funnel) {
+            $days    = (int) ($funnel->date_value ?? 0);
+            $hours   = (int) ($funnel->hour_value ?? 0);
+            $minutes = (int) ($funnel->minute_value ?? 0);
+
+            $offsetMinutes = ($days * 1440) + ($hours * 60) + $minutes;
+
+            // AFTER EVENT:
+            // send_at = delivery_at + offset
+            // send_at in [windowStart, windowEnd]
+            // => delivery_at in [windowStart - offset, windowEnd - offset]
+            $startDelivery = $windowStart->copy()->subMinutes($offsetMinutes);
+            $endDelivery   = $windowEnd->copy()->subMinutes($offsetMinutes);
+
+            dd($startDelivery->toDateTimeString(), $endDelivery->toDateTimeString(), $now->toDateTimeString());
+            // echo "Processing Funnel ID: {$funnel->id}, Offset Minutes: {$offsetMinutes}\n";
+            // echo "Start Delivery Window: " . $startDelivery->toDateTimeString() . "\n";
+            // echo "End Delivery Window: " . $endDelivery->toDateTimeString() . "\n";
+
+            $productIds = $funnel->products->pluck('id');
+
+            $orderProducts = OrderProduct::query()
+                ->with(['order.customer', 'order.shippingAddress'])
+                ->whereIn('product_id', $productIds)
+                ->where('delivery_status', 'Pending')
+
+                // not already processed for this funnel
+                ->whereDoesntHave('funnelLogs', function ($q) use ($funnel) {
+                    $q->where('sales_funnel_id', $funnel->id);
+                })
+
+                // THIS is the "before event" timing check
+                ->whereBetween(
+                    DB::raw("TIMESTAMP(order_products.delivery_date, order_products.delivery_time)"),
+                    [$startDelivery->toDateTimeString(), $endDelivery->toDateTimeString()]
+                )
+                ->get();
+
+            // $sql = Str::replaceArray(
+            //     '?',
+            //     collect($orderProducts->getBindings())->map(function ($binding) {
+            //         return is_numeric($binding)
+            //             ? $binding
+            //             : "'{$binding}'";
+            //     })->toArray(),
+            //     $orderProducts->toSql()
+            // );
+            // dd($sql);
+
+            foreach ($orderProducts as $op) {
+                $customer = $op->order->customer;
+                $phoneNumber = $op->order->shippingAddress->phone ?? $op->order->customer_phone;
+
+                $message = $funnel->description;
+
+                try {
+                    $twilio->sendSms($phoneNumber, $message);
+                    OrderProductFunnelLog::create([
+                        'order_product_id' => $op->id,
+                        'sales_funnel_id'  => $funnel->id,
+                        'product_id'      => $op->product_id,
+                        'message'         => $message,
+                        'status'          => 'Sent',
+                        'sent_at'         => Carbon::now(),
+                    ]);
+                } catch (\Exception $e) {
+                    OrderProductFunnelLog::create([
+                        'order_product_id' => $op->id,
+                        'sales_funnel_id'  => $funnel->id,
+                        'product_id'      => $op->product_id,
+                        'message'         => $message,
+                        'status'          => 'Failed',
+                        'sent_at'         => Carbon::now(),
+                    ]);
+                    \Log::channel('sales_funnel')->error("Failed to send SMS. OP={$op->id}, Funnel={$funnel->id}, Error={$e->getMessage()}");
+                    continue; // Skip logging if SMS fails
+                }
+                \Log::channel('sales_funnel')->info("Sent SMS. OP={$op->id}, Funnel={$funnel->id}");
+            }
+
+        }
+        return response()->json([
+            'current_time' => $now->toDateTimeString(),
+            'window_start' => $windowStart->toDateTimeString(),
+            'window_end'   => $windowEnd->toDateTimeString(),
+        ]);
+    }
+
+    public function salesFunnelBeforeEvent()
+    {
+        $now = Carbon::now('America/Chicago');
+        $windowStart = $now->copy()->floorMinutes(15);
+        $windowEnd   = $now->copy()->floorMinutes(15)->addMinutes(15);
+
+        $twilio = new TwilioService();
+
+        $funnels = SalesFunnel::query()
+            ->active()
+            ->beforeEvent()
+            ->whereHas('products')
+            ->with(['products:id']) // load only product ids
+            ->get();
+
+        foreach ($funnels as $funnel) {
+            $days    = (int) ($funnel->date_value ?? 0);
+            $hours   = (int) ($funnel->hour_value ?? 0);
+            $minutes = (int) ($funnel->minute_value ?? 0);
+
+            $offsetMinutes = ($days * 1440) + ($hours * 60) + $minutes;
+
+            // If send_at = delivery_at - offset
+            // Then delivery_at must be between (nowWindow + offset)
+            $startDelivery = $windowStart->copy()->addMinutes($offsetMinutes);
+            $endDelivery   = $windowEnd->copy()->addMinutes($offsetMinutes);
+
+            dd($startDelivery->toDateTimeString(), $endDelivery->toDateTimeString(), $now->toDateTimeString());
+            echo "Processing Funnel ID: {$funnel->id}, Offset Minutes: {$offsetMinutes}\n";
+            echo "Start Delivery Window: " . $startDelivery->toDateTimeString() . "\n";
+            echo "End Delivery Window: " . $endDelivery->toDateTimeString() . "\n";
+
+            $productIds = $funnel->products->pluck('id');
+
+            $orderProducts = OrderProduct::query()
+                ->with(['order.customer', 'order.shippingAddress'])
+                ->whereIn('product_id', $productIds)
+                ->where('delivery_status', 'Pending')
+
+                // not already processed for this funnel
+                ->whereDoesntHave('funnelLogs', function ($q) use ($funnel) {
+                    $q->where('sales_funnel_id', $funnel->id);
+                })
+
+                // THIS is the "before event" timing check
+                ->whereBetween(
+                    DB::raw("TIMESTAMP(order_products.delivery_date, order_products.delivery_time)"),
+                    [$startDelivery->toDateTimeString(), $endDelivery->toDateTimeString()]
+                )
+                ->get();
+
+            // $sql = Str::replaceArray(
+            //     '?',
+            //     collect($orderProducts->getBindings())->map(function ($binding) {
+            //         return is_numeric($binding)
+            //             ? $binding
+            //             : "'{$binding}'";
+            //     })->toArray(),
+            //     $orderProducts->toSql()
+            // );
+            // dd($sql);
+
+            foreach ($orderProducts as $op) {
+                $customer = $op->order->customer;
+                $phoneNumber = $op->order->shippingAddress->phone ?? $op->order->customer_phone;
+
+                $message = $funnel->description;
+
+                try {
+                    $twilio->sendSms($phoneNumber, $message);
+                    OrderProductFunnelLog::create([
+                        'order_product_id' => $op->id,
+                        'sales_funnel_id'  => $funnel->id,
+                        'product_id'      => $op->product_id,
+                        'message'         => $message,
+                        'status'          => 'Sent',
+                        'sent_at'         => Carbon::now(),
+                    ]);
+                } catch (\Exception $e) {
+                    OrderProductFunnelLog::create([
+                        'order_product_id' => $op->id,
+                        'sales_funnel_id'  => $funnel->id,
+                        'product_id'      => $op->product_id,
+                        'message'         => $message,
+                        'status'          => 'Failed',
+                        'sent_at'         => Carbon::now(),
+                    ]);
+                    \Log::channel('sales_funnel')->error("Failed to send SMS. OP={$op->id}, Funnel={$funnel->id}, Error={$e->getMessage()}");
+                    continue; // Skip logging if SMS fails
+                }
+                \Log::channel('sales_funnel')->info("Sent SMS. OP={$op->id}, Funnel={$funnel->id}");
+            }
+
+        }
+        return response()->json([
+            'current_time' => $now->toDateTimeString(),
+            'window_start' => $windowStart->toDateTimeString(),
+            'window_end'   => $windowEnd->toDateTimeString(),
+        ]);
+    }
+
+    public function equipmentList($type = null)
     {
 
         $type = $type ?? null;

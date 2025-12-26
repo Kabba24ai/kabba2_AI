@@ -44,12 +44,19 @@ Schedule::command('db:refresh-staging')
     ->onOneServer()
     ->name('refresh-staging-database');
 
-// Schedule::command('sales:funnel-automation')
-//     ->everyMinute()
-//     ->timezone('America/Chicago')
-//     ->withoutOverlapping()
-//     ->onOneServer()
-//     ->name('sales-funnel-automation');
+Schedule::job(new \App\Jobs\SalesFunnelAfterEventJob())
+    ->everyFifteenMinutes()
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('sales-funnel-after-event-job');
+
+Schedule::job(new \App\Jobs\SalesFunnelBeforeEventJob())
+    ->everyFifteenMinutes()
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('sales-funnel-before-event-job');
 
 
 

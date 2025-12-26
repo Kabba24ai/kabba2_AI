@@ -92,6 +92,11 @@ class OrderProduct extends Model
         return $this->belongsTo(Equipment::class);
     }
 
+    public function funnelLogs()
+    {
+        return $this->hasMany(OrderProductFunnelLog::class, 'order_product_id');
+    }
+
     /**
      * Get the product associated with the order product
      */

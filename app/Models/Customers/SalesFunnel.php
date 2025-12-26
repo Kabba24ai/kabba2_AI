@@ -4,6 +4,7 @@ namespace App\Models\Customers;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Helpers\ModelHelper;
+use App\Models\Orders\OrderProductFunnelLog;
 use App\Models\ProductManagement\Product;
 
 class SalesFunnel extends Model
@@ -39,9 +40,19 @@ class SalesFunnel extends Model
         return $query->where('status', 'Active');
     }
 
-     /**
+    public function scopeBeforeEvent($query)
+    {
+        return $query->where('trigger_event_timing', 'Before Event');
+    }
+
+    public function scopeAfterEvent($query)
+    {
+        return $query->where('trigger_event_timing', 'After Event');
+    }
+
+    /**
      * 🔗 Funnel belongs to a category
-     */
+    */
     public function category()
     {
         return $this->belongsTo(
@@ -61,6 +72,11 @@ class SalesFunnel extends Model
             'sales_funnel_id',
             'product_id'
         );
+    }
+
+    public function funnelLogs()
+    {
+        return $this->hasMany(OrderProductFunnelLog::class, 'sales_funnel_id');
     }
 
 }

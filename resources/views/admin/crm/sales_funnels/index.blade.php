@@ -63,30 +63,30 @@
                                 bg-black/50 px-4 py-10">
 
                         <div class="modal-scrollable w-full mx-auto">
-                            <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg
+                            <div
+                                class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg
                                         border border-gray-200 overflow-hidden
                                         flex flex-col max-h-full">
 
                                 <!-- ================= HEADER ================= -->
-                                <div class="flex justify-between items-center px-6 pt-4 border-b">
-                                    <div class="flex items-center gap-2">
-                                       
-                                        <h2 id="funnelModalTitle"
-                                            class="text-lg font-medium text-gray-900">
-                                            Create New Funnel
-                                        </h2>
-                                    </div>
-
-                                    <button type="button"
-                                            data-close-funnel-modal
-                                            class="text-gray-400 hover:text-gray-700 text-xl">
-                                        ×
+                                <div class="flex items-center justify-between px-6 py-4">
+                                    <h3 id="funnelModalTitle" class="text-lg font-semibold text-slate-900">
+                                        Create New Funnel
+                                    </h3>
+                                    <button type="button" data-close-category-modal
+                                        class="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
                                     </button>
                                 </div>
+                                <div class="h-px bg-slate-200"></div>
 
                                 <!-- ================= BODY ================= -->
                                 <div class="px-6 overflow-y-auto">
-                                    <form id="funnelForm"  data-parsley-validate= "true" class="space-y-6 py-4">
+                                    <form id="funnelForm" data-parsley-validate= "true" class="space-y-6 py-4">
 
                                         <!-- Funnel Name -->
                                         <div>
@@ -106,10 +106,10 @@
                                                 Description
                                             </label>
                                             <textarea name="description" rows="3"
-                                                    class="w-full border border-gray-300 rounded-md
+                                                class="w-full border border-gray-300 rounded-md
                                                             px-3 py-3 text-sm resize-none
                                                             focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="Brief description of this funnel"></textarea>
+                                                placeholder="Brief description of this funnel"></textarea>
                                         </div>
 
                                         <!-- Category -->
@@ -120,16 +120,14 @@
 
                                             <div class="flex gap-2">
                                                 <select name="category_id" id="funnelCategorySelect"
-
-                                                        class="flex-1 border border-gray-300 rounded-md
+                                                    class="flex-1 border border-gray-300 rounded-md
                                                             px-3 py-3 text-sm
                                                             focus:ring-2 focus:ring-blue-500">
                                                     <option value="">No Category</option>
                                                 </select>
 
-                                                <button type="button"
-                                                        id="showCategoryInput"
-                                                        class="w-10 h-10 rounded-md border
+                                                <button type="button" id="showCategoryInput"
+                                                    class="w-10 h-10 rounded-md border
                                                             border-gray-300 text-gray-600
                                                             hover:bg-gray-50">
                                                     +
@@ -141,9 +139,8 @@
                                                     class="w-full border border-gray-300 rounded-md
                                                             px-3 py-3 text-sm"
                                                     placeholder="Enter new category">
-                                                <button type="button"
-                                                        id="backToSelect"
-                                                        class="mt-1 text-xs text-blue-600 hover:underline">
+                                                <button type="button" id="backToSelect"
+                                                    class="mt-1 text-xs text-blue-600 hover:underline">
                                                     ← Back to category list
                                                 </button>
                                             </div>
@@ -155,7 +152,7 @@
                                                 Trigger Event
                                             </label>
                                             <select name="trigger_event" required
-                                                    class="w-full border border-gray-300 rounded-md
+                                                class="w-full border border-gray-300 rounded-md
                                                      forwarding px-3 py-3 text-sm
                                                         focus:ring-2 focus:ring-blue-500">
                                                 <option value="rental_start_date">Rental Start Date</option>
@@ -192,11 +189,12 @@
                                                             Day
                                                         </label>
                                                         <select name="date_value"
-                                                                class="w-full border border-gray-300 rounded-md
+                                                            class="w-full border border-gray-300 rounded-md
                                                                     px-3 py-2 text-sm">
                                                             <option value="">Select</option>
                                                             @for ($i = 1; $i <= 31; $i++)
-                                                                <option value="{{ $i }}">{{ $i }}</option>
+                                                                <option value="{{ $i }}">{{ $i }}
+                                                                </option>
                                                             @endfor
                                                         </select>
                                                     </div>
@@ -207,11 +205,12 @@
                                                             Hour
                                                         </label>
                                                         <select name="hour_value"
-                                                                class="w-full border border-gray-300 rounded-md
+                                                            class="w-full border border-gray-300 rounded-md
                                                                     px-3 py-2 text-sm">
                                                             <option value="">Select</option>
                                                             @for ($i = 1; $i <= 23; $i++)
-                                                                <option value="{{ $i }}">{{ $i }}</option>
+                                                                <option value="{{ $i }}">{{ $i }}
+                                                                </option>
                                                             @endfor
                                                         </select>
                                                     </div>
@@ -222,7 +221,7 @@
                                                             Minute
                                                         </label>
                                                         <select name="minute_value"
-                                                                class="w-full border border-gray-300 rounded-md
+                                                            class="w-full border border-gray-300 rounded-md
                                                                     px-3 py-2 text-sm">
                                                             <option value="">Select</option>
                                                             <option value="15">15</option>
@@ -248,20 +247,16 @@
 
                                 <!-- ================= FOOTER ================= -->
                                 <div class="flex justify-end gap-2 px-6 py-4 border-t">
-                                    <button type="button"
-                                            data-close-funnel-modal
-                                            class="px-6 py-2 rounded-lg border
+                                    <button type="button" data-close-funnel-modal
+                                        class="px-6 py-2 rounded-lg border
                                                 border-gray-300 bg-white text-gray-700">
                                         Cancel
                                     </button>
 
-                                    <button
-                                    type="submit"
-                                    id="funnelForm-btn"
-                                    form="funnelForm"
-                                    class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-                                    Create Funnel
-                                </button>
+                                    <button type="submit" id="funnelForm-btn" form="funnelForm"
+                                        class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                                        Create Funnel
+                                    </button>
 
                                 </div>
 
@@ -283,7 +278,7 @@
 
             {{-- TAB: Categories --}}
             <div data-tab-panel="categories" class="hidden">
-                 @include('admin.crm.sales_funnels.partials._tab_categories')
+                @include('admin.crm.sales_funnels.partials._tab_categories')
 
             </div>
 
@@ -297,33 +292,35 @@
             let loader = document.querySelector('#categories-loading');
             let wrapper = document.querySelector('#categories-table-wrapper');
             let timeout = null;
-            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search).get('per_page') || null;
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location
+                .search).get('per_page') || null;
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
 
             function initFunnelCategorySelect(selectedId = null) {
-            const select = document.getElementById('funnelCategorySelect');
-            if (!select) return;
+                const select = document.getElementById('funnelCategorySelect');
+                if (!select) return;
 
-            select.innerHTML = `<option value="">No Category</option>`;
+                select.innerHTML = `<option value="">No Category</option>`;
 
-            apiFetch("{{ route('admin.crm.sales-funnels.categories.all') }}")
-                .then(res => {
-                    if (!res || !res.success || !Array.isArray(res.data)) return;
+                apiFetch("{{ route('admin.crm.sales-funnels.categories.all') }}")
+                    .then(res => {
+                        if (!res || !res.success || !Array.isArray(res.data)) return;
 
-                    res.data.forEach(cat => {
-                        const option = document.createElement('option');
-                        option.value = cat.id;
-                        option.textContent = cat.category_name;
+                        res.data.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.id;
+                            option.textContent = cat.category_name;
 
-                        if (selectedId && selectedId === cat.id) {
-                            option.selected = true;
-                        }
+                            if (selectedId && selectedId === cat.id) {
+                                option.selected = true;
+                            }
 
-                        select.appendChild(option);
-                    });
-                });
-        }
+                            select.appendChild(option);
+                        });
+                    })
+            }
+
             initFunnelCategorySelect();
 
 
@@ -348,13 +345,15 @@
                     .then(response => {
                         wrapper.innerHTML = response.html;
 
-                       
+
 
                     })
                     .finally(() => {
                         loader.classList.add('hidden');
                         wrapper.classList.remove('opacity-50', 'pointer-events-none');
                         initSingleDeleteButtons();
+                        const openers = document.querySelectorAll('[data-open-category-modal]');
+                        openers.forEach(btn => btn.addEventListener('click', openModal));
                     });
 
             }
@@ -372,7 +371,8 @@
                     button.addEventListener('click', function() {
                         const uniqueId = this.dataset.uniqueId;
 
-                        showConfirm('Do you want to delete this note?', 'Are you sure?').then((result) => {
+                        showConfirm('Do you want to delete this note?', 'Are you sure?').then((
+                            result) => {
                             if (result.isConfirmed) {
                                 const url =
                                     '{{ route('admin.crm.sales-funnels.categories.delete', [':unique_id']) }}'
@@ -381,18 +381,21 @@
                                 apiFetch(url, {
                                     method: 'DELETE',
                                     headers: {
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                                'meta[name="csrf-token"]')
                                             .getAttribute('content'),
                                         'Accept': 'application/json'
                                     }
                                 }).then(res => {
-                                    if (res.success || (res.message && res.message.toLowerCase().includes('deleted'))) {
+                                    if (res.success || (res.message && res.message
+                                            .toLowerCase().includes('deleted'))) {
                                         notyf.success(res.message, 'Deleted!');
-                                        const row = document.getElementById('category-row-' +
+                                        const row = document.getElementById(
+                                            'category-row-' +
                                             uniqueId);
                                         if (row) row.remove();
 
-                                         reloadFunnelsTable();
+                                        reloadFunnelsTable();
                                     } else {
                                         notyf.error(res.message);
                                     }
@@ -481,7 +484,8 @@
 
                 if (editCategoryId && editCategoryId.value) {
                     // Editing existing category
-                    url = '{{ route('admin.crm.sales-funnels.categories.update', [':unique_id']) }}'.replace(':unique_id', editCategoryId.value);
+                    url = '{{ route('admin.crm.sales-funnels.categories.update', [':unique_id']) }}'
+                        .replace(':unique_id', editCategoryId.value);
                     method = 'PUT';
                 } else {
                     // Adding new category
@@ -527,7 +531,7 @@
                     });
             });
 
-             // Delegated event: Edit Category
+            // Delegated event: Edit Category
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('button[title="Edit Category"]');
                 if (!btn) return;
@@ -563,7 +567,7 @@
         });
 
 
-       
+
 
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -603,7 +607,7 @@
 
         });
 
-      
+
 
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -611,17 +615,17 @@
             const openers = document.querySelectorAll('[data-open-funnel-modal]');
             const closers = document.querySelectorAll('[data-close-funnel-modal]');
             const funnelForm = document.getElementById('funnelForm');
-                    
-            const loader  = document.getElementById('funnels-loading');
+
+            const loader = document.getElementById('funnels-loading');
             const wrapper = document.getElementById('funnels-table-wrapper');
 
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
             const perPageParam = document.getElementById('per_page_sm')?.value || 10;
 
             const selectWrapper = document.getElementById('categorySelectWrapper');
-            const inputWrapper  = document.getElementById('categoryInputWrapper');
-            const showBtn       = document.getElementById('showCategoryInput');
-            const backBtn       = document.getElementById('backToSelect');
+            const inputWrapper = document.getElementById('categoryInputWrapper');
+            const showBtn = document.getElementById('showCategoryInput');
+            const backBtn = document.getElementById('backToSelect');
 
             fetchFunnels(pageParam, perPageParam);
 
@@ -634,20 +638,25 @@
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
                 apiFetch("{{ route('admin.crm.sales-funnels.index') }}?" + params.toString(), {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(res => {
-                    if (res?.success) {
-                        wrapper.innerHTML = res.html;
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => {
+                        if (res?.success) {
+                            wrapper.innerHTML = res.html;
 
-                        // rebind delete buttons
-                initSingleFunnelDeleteButtons();
-                    }
-                })
-                .finally(() => {
-                    loader?.classList.add('hidden');
-                    wrapper.classList.remove('opacity-50', 'pointer-events-none');
-                });
+                            // rebind delete buttons
+                            initSingleFunnelDeleteButtons();
+                        }
+                    })
+                    .finally(() => {
+                        loader?.classList.add('hidden');
+                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                        const openers = document.querySelectorAll('[data-open-funnel-modal]');
+                        openers.forEach(btn => btn.addEventListener('click', openModal));
+                        console.log(openers);
+                    });
             }
 
             // Pagination support
@@ -661,7 +670,7 @@
 
 
             function openModal() {
-                 resetFunnelForm();
+                resetFunnelForm();
                 modal.classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
             }
@@ -678,10 +687,10 @@
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
 
-          
-          showBtn.addEventListener('click', () => {
 
-            const closeFunnelBtn = document.querySelector('[data-close-funnel-modal]');
+            showBtn.addEventListener('click', () => {
+
+                const closeFunnelBtn = document.querySelector('[data-close-funnel-modal]');
                 if (closeFunnelBtn) {
                     closeFunnelBtn.click();
                 }
@@ -701,28 +710,28 @@
                 selectWrapper.classList.remove('hidden');
             });
 
-                  funnelForm.addEventListener('submit', function (e) {
-                    e.preventDefault();
+            funnelForm.addEventListener('submit', function(e) {
+                e.preventDefault();
 
-                    if (!$(funnelForm).parsley().isValid()) {
-                        $(funnelForm).parsley().validate();
-                        return;
-                    }
+                if (!$(funnelForm).parsley().isValid()) {
+                    $(funnelForm).parsley().validate();
+                    return;
+                }
 
-                    const url = editingFunnelId
-                        ? `{{ route('admin.crm.sales-funnels.update', ':id') }}`
-                            .replace(':id', editingFunnelId)
-                        : `{{ route('admin.crm.sales-funnels.store') }}`;
+                const url = editingFunnelId ?
+                    `{{ route('admin.crm.sales-funnels.update', ':id') }}`
+                    .replace(':id', editingFunnelId) :
+                    `{{ route('admin.crm.sales-funnels.store') }}`;
 
-                    const method = editingFunnelId ? 'PUT' : 'POST';
+                const method = editingFunnelId ? 'PUT' : 'POST';
 
-                    const submitBtn = document.getElementById('funnelForm-btn');
-                    const originalText = submitBtn.textContent;
+                const submitBtn = document.getElementById('funnelForm-btn');
+                const originalText = submitBtn.textContent;
 
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Saving...';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
 
-                    apiFetch(url, {
+                apiFetch(url, {
                         method: method,
                         headers: {
                             'Content-Type': 'application/json',
@@ -746,7 +755,7 @@
                         if (res?.success) {
                             notyf.success(res.message);
                             closeFunnelModal();
-                            reloadFunnelsTable(); 
+                            reloadFunnelsTable();
                         } else {
                             notyf.error(res?.message || 'Failed');
                         }
@@ -754,30 +763,30 @@
                     .finally(() => {
                         submitBtn.disabled = false;
                         submitBtn.textContent = originalText;
-                         resetFunnelForm();
+                        resetFunnelForm();
                     });
-                });
+            });
 
 
 
-                function initSingleFunnelDeleteButtons() {
-                    const deleteButtons = document.querySelectorAll('.funnel-delete-button');
+            function initSingleFunnelDeleteButtons() {
+                const deleteButtons = document.querySelectorAll('.funnel-delete-button');
 
-                    deleteButtons.forEach(button => {
-                        button.addEventListener('click', function () {
-                            const uniqueId = this.dataset.uniqueId;
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const uniqueId = this.dataset.uniqueId;
 
-                            showConfirm(
-                                'Do you want to delete this funnel?',
-                                'This action cannot be undone.'
-                            ).then(result => {
-                                if (!result.isConfirmed) return;
+                        showConfirm(
+                            'Do you want to delete this funnel?',
+                            'This action cannot be undone.'
+                        ).then(result => {
+                            if (!result.isConfirmed) return;
 
-                                const url =
-                                    '{{ route('admin.crm.sales-funnels.delete', [':unique_id']) }}'
-                                        .replace(':unique_id', uniqueId);
+                            const url =
+                                '{{ route('admin.crm.sales-funnels.delete', [':unique_id']) }}'
+                                .replace(':unique_id', uniqueId);
 
-                                apiFetch(url, {
+                            apiFetch(url, {
                                     method: 'DELETE',
                                     headers: {
                                         'X-CSRF-TOKEN': document
@@ -791,83 +800,85 @@
                                         notyf.success(res.message);
 
                                         // Remove row from table
-                                        const row = document.getElementById('funnel-row-' + uniqueId);
+                                        const row = document.getElementById(
+                                            'funnel-row-' + uniqueId);
                                         if (row) row.remove();
                                     } else {
-                                        notyf.error(res?.message || 'Failed to delete funnel');
+                                        notyf.error(res?.message ||
+                                            'Failed to delete funnel');
                                     }
                                 });
-                            });
                         });
                     });
-                }
-
-                // --  edit funnal -- 
-
-                let editingFunnelId = null;
-
-
-                function openFunnelModal() {
-                    document.getElementById('funnelModal').classList.remove('hidden');
-                    document.body.classList.add('overflow-hidden');
-                }
-
-                function closeFunnelModal() {
-                    document.getElementById('funnelModal').classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
-                    resetFunnelForm();
-                }
-
-                function resetFunnelForm() {
-                    const form = document.getElementById('funnelForm');
-                    form.reset();
-
-                    editingFunnelId = null;
-
-                    document.getElementById('funnelModalTitle').textContent = 'Create New Funnel';
-                    document.getElementById('funnelForm-btn').textContent = 'Create Funnel';
-                }
-
-
-                document.addEventListener('click', function (e) {
-                    const btn = e.target.closest('.funnel-edit-button');
-                    if (!btn) return;
-
-                    const uniqueId = btn.dataset.uniqueId;
-                    editingFunnelId = uniqueId;
-
-                    apiFetch(`{{ route('admin.crm.sales-funnels.show', ':id') }}`
-                        .replace(':id', uniqueId))
-                        .then(res => {
-                            if (!res.success) return;
-
-                            const f = res.data;
-                            const form = document.getElementById('funnelForm');
-
-                            form.name.value = f.funnel_name;
-                            form.description.value = f.description ?? '';
-                            form.category_id.value = f.sales_funnel_category_id ?? '';
-                            form.trigger_event.value =
-                                f.trigger_event === 'Rental Start Date'
-                                    ? 'rental_start_date'
-                                    : 'new_lead_added';
-
-                            form.timing.value =
-                                f.trigger_event_timing === 'Before Event'
-                                    ? 'before'
-                                    : 'after';
-
-                            form.date_value.value = f.date_value ?? '';
-                            form.hour_value.value = f.hour_value ?? '';
-                            form.minute_value.value = f.minute_value ?? '';
-                            form.is_active.checked = f.status === 'Active';
-
-                            document.getElementById('funnelModalTitle').textContent = 'Edit Funnel';
-                            document.getElementById('funnelForm-btn').textContent = 'Update Funnel';
-
-                            openFunnelModal();
-                        });
                 });
+            }
+
+            // --  edit funnal --
+
+            let editingFunnelId = null;
+
+
+            function openFunnelModal() {
+                document.getElementById('funnelModal').classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeFunnelModal() {
+                document.getElementById('funnelModal').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                resetFunnelForm();
+            }
+
+            function resetFunnelForm() {
+                const form = document.getElementById('funnelForm');
+                form.reset();
+
+                editingFunnelId = null;
+
+                document.getElementById('funnelModalTitle').textContent = 'Create New Funnel';
+                document.getElementById('funnelForm-btn').textContent = 'Create Funnel';
+            }
+
+
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.funnel-edit-button');
+                if (!btn) return;
+
+                const uniqueId = btn.dataset.uniqueId;
+                editingFunnelId = uniqueId;
+
+                apiFetch(`{{ route('admin.crm.sales-funnels.show', ':id') }}`
+                        .replace(':id', uniqueId))
+                    .then(res => {
+                        if (!res.success) return;
+
+                        const f = res.data;
+                        const form = document.getElementById('funnelForm');
+
+                        form.name.value = f.funnel_name;
+                        form.description.value = f.description ?? '';
+                        form.category_id.value = f.sales_funnel_category_id ?? '';
+                        form.trigger_event.value =
+                            f.trigger_event === 'Rental Start Date' ?
+                            'rental_start_date' :
+                            'new_lead_added';
+
+                        form.timing.value =
+                            f.trigger_event_timing === 'Before Event' ?
+                            'before' :
+                            'after';
+
+                        form.date_value.value = f.date_value ?? '';
+                        form.hour_value.value = f.hour_value ?? '';
+                        form.minute_value.value = f.minute_value ?? '';
+                        form.is_active.checked = f.status === 'Active';
+
+                        document.getElementById('funnelModalTitle').textContent = 'Edit Funnel';
+                        document.getElementById('funnelForm-btn').textContent = 'Update Funnel';
+
+                        openFunnelModal();
+                    });
+            });
 
 
         });

@@ -42,7 +42,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3" class="px-4 py-4 text-center text-gray-500">
+                    <td colspan="4" class="px-4 py-4 text-center text-gray-500">
                         @if ($categories)
                             <div class="mt-6 rounded-2xl border-2 border-dashed border-slate-300 bg-white p-12">
                                 <div class="mx-auto flex max-w-md flex-col items-center text-center">
@@ -58,7 +58,7 @@
                                     <h3 class="mt-4 text-lg font-semibold text-slate-900">No Categories Yet</h3>
                                     <p class="mt-1 text-sm text-slate-500">Create your first category to organize your funnels</p>
 
-                                    <button type="button"
+                                    <button type="button" data-open-category-modal
                                         class="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">

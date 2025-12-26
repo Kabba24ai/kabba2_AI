@@ -68,36 +68,40 @@
             @empty
                 {{-- EMPTY STATE --}}
                 <tr>
-                    <td colspan="5" class="px-4 py-16">
-                        <div class="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-12">
-                            <div class="mx-auto flex max-w-md flex-col items-center text-center">
-                                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-                                    <svg class="h-7 w-7 text-slate-400"
-                                         fill="none" viewBox="0 0 24 24"
-                                         stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round"
-                                              stroke-linejoin="round"
-                                              d="M12 4v16m8-8H4" />
-                                    </svg>
+                    <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+                        @if ($funnels)
+                            <div class="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-12">
+                                <div class="mx-auto flex max-w-md flex-col items-center text-center">
+                                    <div class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+                                        <svg class="h-7 w-7 text-slate-400"
+                                            fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </div>
+
+                                    <h3 class="mt-4 text-lg font-semibold text-slate-900">
+                                        No funnels yet
+                                    </h3>
+
+                                    <p class="mt-1 text-sm text-slate-500">
+                                        Create your first funnel to get started
+                                    </p>
+
+                                    <button type="button"
+                                            data-open-funnel-modal
+                                            class="mt-6 inline-flex items-center rounded-lg
+                                                bg-blue-600 px-5 py-2.5 text-sm
+                                                font-medium text-white hover:bg-blue-700">
+                                        Create Your First Funnel
+                                    </button>
                                 </div>
-
-                                <h3 class="mt-4 text-lg font-semibold text-slate-900">
-                                    No funnels yet
-                                </h3>
-
-                                <p class="mt-1 text-sm text-slate-500">
-                                    Create your first funnel to get started
-                                </p>
-
-                                <button type="button"
-                                        data-open-funnel-modal
-                                        class="mt-6 inline-flex items-center rounded-lg
-                                               bg-blue-600 px-5 py-2.5 text-sm
-                                               font-medium text-white hover:bg-blue-700">
-                                    Create Your First Funnel
-                                </button>
                             </div>
-                        </div>
+                        @else
+                            <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                        @endif
                     </td>
                 </tr>
             @endforelse

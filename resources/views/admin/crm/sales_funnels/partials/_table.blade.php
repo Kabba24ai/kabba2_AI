@@ -5,6 +5,7 @@
                 <th class="px-4 py-3">Funnel Name</th>
                 <th class="px-4 py-3">Category</th>
                 <th class="px-4 py-3">Trigger Event</th>
+                <th class="px-4 py-3">Trigger Event Timing</th>
                 <th class="px-4 py-3">Status</th>
                 <th class="px-4 py-3 text-right">Actions</th>
             </tr>
@@ -26,6 +27,10 @@
 
                     <td class="px-4 py-4 text-gray-600 dark:text-gray-300">
                         {{ ucfirst(str_replace('_', ' ', $funnel->trigger_event)) }}
+                    </td>
+
+                    <td class="px-4 py-4 text-gray-600 dark:text-gray-300">
+                        {{ ucfirst(str_replace('_', ' ', $funnel->trigger_event_timing)) }}
                     </td>
 
                     <td class="px-4 py-4">
@@ -57,7 +62,7 @@
                             </button>
 
                         </div>
-                    </td> 
+                    </td>
                 </tr>
 
             @empty

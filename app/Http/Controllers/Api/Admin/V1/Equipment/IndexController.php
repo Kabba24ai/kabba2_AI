@@ -36,19 +36,21 @@ class IndexController extends BaseController
             $order = ['damaged', 'maintenance', 'rented', 'available'];
         }
 
-        $equipment = Equipment::with(['productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer', 'softAssignments', 'store','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])
+        $equipment = Equipment::with(['productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer', 'softAssignments', 'store','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category', 'orderProduct.equipmentRentalReadyTemplate.checklistQuestions'])
             ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')") // order by current_status based on the defined order
             ->orderBy('equipment_name', 'ASC')
             ->get();
+
 
         $equipment->map(function($item) {
             $isRentedAndDelivered = $item->current_status->isRented()
                 && $item->orderProduct
                 && ($item->orderProduct->is_delivered == 1);
+
             if ($isRentedAndDelivered) {
                 $questions = optional($item->orderProduct->checklistQuestions) ?? collect();
 
-                $rentalReadyQuestions = optional($item->orderProduct->equipmentRentalReadyTemplate->checklistQuestions)
+                $rentalReadyQuestions = optional($item->orderProduct->equipmentRentalReadyTemplate?->checklistQuestions)
                             ->pluck('rental_ready_qa_json')   // same as map->question but clearer
                             ->filter()            // remove nulls
                             ->values() ?? collect();

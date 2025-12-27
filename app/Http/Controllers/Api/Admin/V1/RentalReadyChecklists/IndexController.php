@@ -43,7 +43,7 @@ class IndexController extends BaseController
 
         if (isset($equipment->orderProduct)) {
             // find from order product's rental ready checklist if exists
-            $questions = optional($equipment->orderProduct->equipmentRentalReadyTemplate->checklistQuestions)
+            $questions = optional($equipment->orderProduct->equipmentRentalReadyTemplate?->checklistQuestions)
                         ->pluck('rental_ready_qa_json')   // same as map->question but clearer
                         ->filter()            // remove nulls
                         ->values() ?? collect();

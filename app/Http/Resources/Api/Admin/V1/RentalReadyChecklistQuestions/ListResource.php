@@ -18,6 +18,13 @@ class ListResource extends JsonResource
      */
     public function toArray(Request $request)
     {
+
+        if (is_array($this['selected_answer'] ?? null)) {
+            $selectedAnswer = $this['selected_answer']['unique_id'] ?? null;
+        }else {
+            $selectedAnswer = null;
+        }
+
         // Handle both array and object cases
         if (is_array($this->resource)) {
             $return = [
@@ -27,7 +34,7 @@ class ListResource extends JsonResource
                 'question_name' => $this['question_name'] ?? '',
                 'required_question' => $this['required_question'] ?? false,
                 'answers' => RentalReadyChecklistQuestionAnswersListResource::collection($this['answers'] ?? []),
-                'selected_answer' => new RentalReadyChecklistQuestionAnswersListResource($this['selected_answer'] ?? null),
+                'selected_answer' => $selectedAnswer,
                 'note' => $this['note'] ?? '',
             ];
         } else {

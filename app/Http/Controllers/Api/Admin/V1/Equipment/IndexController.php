@@ -50,14 +50,14 @@ class IndexController extends BaseController
             if ($isRentedAndDelivered) {
                 $questions = optional($item->orderProduct->checklistQuestions) ?? collect();
 
-                $rentalReadyQuestions = optional($item->orderProduct->equipmentRentalReadyTemplate?->checklistQuestions)
-                            ->pluck('rental_ready_qa_json')   // same as map->question but clearer
-                            ->filter()            // remove nulls
-                            ->values() ?? collect();
+                $rentalReadyQuestions = collect(
+                                            $item->orderProduct->equipmentRentalReadyTemplate?->checklistQuestions
+                                        )
+                                            ->pluck('rental_ready_qa_json')
+                                            ->filter()
+                                            ->map(fn ($item) => is_string($item) ? json_decode($item, true) : $item)
+                                            ->values();
 
-                $rentalReadyQuestions = collect($rentalReadyQuestions)->map(function ($item) {
-                                return is_string($item) ? json_decode($item, true) : $item; // decode to array
-                            });
             } else {
                 $templateQuestions = $item->checklistMaster?->customerAdminTemplate?->templateQuestions;
                 $questions = collect($templateQuestions)

@@ -43,7 +43,7 @@
         {{-- Public Key --}}
         <div>
             <label for="payment_api_public_key" class="block text-sm font-medium text-gray-700 mb-1">
-                Payment API - Public Key
+                Payment API - Public Client Key
             </label>
             <div class="relative">
                 {!! html()->input(
@@ -86,7 +86,7 @@
         {{-- API Key (Encrypted) --}}
         <div>
             <label for="payment_api_key" class="block text-sm font-medium text-gray-700 mb-1">
-                Payment API Key <span class="text-xs text-blue-600 ml-1">(Encrypted)</span>
+                Payment API Login ID <span class="text-xs text-blue-600 ml-1">(Encrypted)</span>
             </label>
             <div class="relative">
                 {!! html()->input(
@@ -128,7 +128,7 @@
         {{-- API Secret Key (*) --}}
         <div>
             <label for="payment_api_secret" class="block text-sm font-medium text-gray-700 mb-1">
-                Payment API Secret Key <span class="text-red-500 ml-1">*</span>
+                Payment API Transaction Key <span class="text-red-500 ml-1">*</span>
             </label>
             <div class="relative">
                 {!! html()->input(

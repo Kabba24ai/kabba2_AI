@@ -26,4 +26,10 @@ class SalesFunnelCategory extends Model
         });
     }
 
+    // Relationships
+    public function funnels()
+    {
+        return $this->hasMany(SalesFunnel::class, 'sales_funnel_category_id');
+    }
+
 }

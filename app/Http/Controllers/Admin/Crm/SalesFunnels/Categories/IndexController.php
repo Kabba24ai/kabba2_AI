@@ -32,6 +32,6 @@ class IndexController extends Controller
                 'html' => $html,
             ]);
         }
-        return view('admin.crm.sales_funnels.index');
+        return view('admin.crm.sales_funnels.index', );
     }
 }

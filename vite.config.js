@@ -27,6 +27,13 @@ export default defineConfig(() => {
             //     strict: false,
             //     allow: [".."],
             // },
+            watch: {
+                ignored: [
+                    '**/app/Http/**',
+                    '**/storage/**',
+                    '**/vendor/**',
+                ],
+            },
         },
         build: {
             rollupOptions: {
@@ -81,7 +88,7 @@ export default defineConfig(() => {
 
 
                 ],
-                refresh: ['resources/views/**/*.php',  'routes/**/*.php'],
+                refresh: ['resources/views/**/*.php'],
             }),
         ],
     };

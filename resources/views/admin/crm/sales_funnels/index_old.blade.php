@@ -73,7 +73,7 @@
                                     <h3 id="funnelModalTitle" class="text-lg font-semibold text-slate-900">
                                         Create New Funnel
                                     </h3>
-                                    <button type="button" data-close-funnel-modal
+                                    <button type="button" data-close-category-modal
                                         class="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
                                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                             stroke-width="2">
@@ -265,198 +265,11 @@
 
                 </div>
 
-                <div class="mt-6">
-                    {{-- Filter by Category (Design only) --}}
-                    <div class="bg-white rounded-lg border border-gray-200 p-4">
-                        <div class="flex items-center gap-3 mb-3">
-                            {{-- Filter icon --}}
-                            <svg class="w-[18px] h-[18px] text-gray-500" viewBox="0 0 24 24" fill="none"
-                                aria-hidden="true">
-                                <path d="M3 4h18l-7 8v6l-4 2v-8L3 4z" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-
-                            <h3 class="font-medium text-gray-900">Filter by Category</h3>
-                        </div>
-
-                        <div class="flex flex-wrap gap-2">
-                            {{-- All Funnels (active example) --}}
-                            <button type="button"
-                                class="filter-category px-4 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white shadow-sm border border-slate-900 shadow-sm"
-                                data-value="">
-                                All Funnels ({{ $totalFunnels }})
-                            </button>
-
-                            @foreach ($categories as $category)
-                                <button type="button"
-                                    class="filter-category px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-700 hover:opacity-90 text-white"
-                                    style="background-color: {{ $category->color_code }};"
-                                    data-value="{{ $category->id }}">
-                                    {{ $category->category_name }} ({{ $category->funnels_count }})
-                                </button>
-                            @endforeach
-                            {{-- Uncategorized (inactive example) --}}
-                            <button type="button"
-                                class="filter-category px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                data-value="unassigned">
-                                Uncategorized ({{ $unassignedFunnels }})
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="mt-6 ">
-
                     <div id="funnels-loading" class="hidden"></div>
 
                     <div id="funnels-table-wrapper">
                         @include('admin.crm.sales_funnels.partials._table', ['funnels' => []])
-                    </div>
-
-                    <!-- Add Step Modal -->
-                    <div id="addStepModal" class="fixed inset-0 z-9999 hidden" aria-hidden="true">
-                        <!-- backdrop -->
-                        <div class="absolute inset-0 bg-black/40" data-modal-backdrop></div>
-
-                        <!-- modal -->
-                        <div class="relative min-h-full flex items-center justify-center p-4">
-                            <div
-                                class="w-full max-w-3xl bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
-                                <!-- header -->
-                                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                                    <h3 class="text-lg font-semibold text-gray-900" id="stepModalTitle">Add Funnel Step</h3>
-                                    <button type="button" class="p-2 rounded-lg hover:bg-gray-50"
-                                        data-close-add-step-modal aria-label="Close">
-                                        <!-- X -->
-                                        <svg class="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M18 6 6 18M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                <!-- body -->
-                                <div class="px-6 py-5">
-                                    <form id="stepForm" data-parsley-validate="true" class="space-y-6 py-4">
-                                        <input type="hidden" id="funnel_unique_id" name="funnel_unique_id" value="">
-
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <!-- Delay -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 required">
-                                                    Delay from Funnel Start
-                                                </label>
-
-                                                <div class="mt-2 flex gap-3">
-                                                    <select name="delay_unit" id="delay_unit" data-parsley-errors-container="#delay_unit-errors"
-                                                        class="w-40 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                                        <option value="Days">Days</option>
-                                                        <option value="Hours">Hours</option>
-                                                        <option value="Minutes">Minutes</option>
-                                                    </select>
-
-                                                    <input type="number" value="0" name="delay_value" data-parsley-errors-container="#delay_value-errors" id="delay_value"
-                                                        class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                                </div>
-                                                <div id="delay_value-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-                                                <div id="delay_unit-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-                                                <p class="mt-2 text-xs text-gray-500">0 = at funnel start</p>
-                                            </div>
-
-                                            <!-- Message type -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 required">
-                                                    Message Type
-                                                </label>
-
-                                                <div class="mt-3 flex items-center gap-6">
-                                                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                                                        <input type="radio" name="step_type" value="SMS" checked required data-parsley-errors-container="#step_type-errors"
-                                                            class="text-blue-600 focus:ring-blue-500">
-                                                        <span class="inline-flex items-center gap-2">
-                                                            <!-- sms icon -->
-                                                            <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24"
-                                                                fill="none" stroke="currentColor" stroke-width="2">
-                                                                <path
-                                                                    d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-                                                            </svg>
-                                                            SMS
-                                                        </span>
-                                                    </label>
-
-                                                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                                                        <input type="radio" name="step_type" value="Email" required data-parsley-errors-container="#step_type-errors"
-                                                            class="text-blue-600 focus:ring-blue-500">
-                                                        <span class="inline-flex items-center gap-2">
-                                                            <!-- mail icon -->
-                                                            <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24"
-                                                                fill="none" stroke="currentColor" stroke-width="2">
-                                                                <path d="M4 4h16v16H4z" />
-                                                                <path d="m22 6-10 7L2 6" />
-                                                            </svg>
-                                                            Email
-                                                        </span>
-                                                    </label>
-                                                </div>
-                                                <div id="step_type-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-                                            </div>
-
-                                            <!-- Category -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700">
-                                                    Select Message Category
-                                                </label>
-                                                <select name="sms_category_id" id="smsCategorySelect" data-parsley-errors-container="#sms_category_id-errors"
-                                                    class="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                                    <option value="" selected>Select a category...</option>
-                                                    @foreach ($smsCategories as $smsCategory)
-                                                        <option value="{{ $smsCategory->id }}"
-                                                            data-description="{{ $smsCategory->description }}">
-                                                            {{ $smsCategory->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div id="sms_category_id-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-                                            </div>
-
-                                            <!-- Message -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 required">
-                                                    Select Message
-                                                </label>
-                                                <select name="sms_funnel_id" id="smsFunnelSelect" data-parsley-errors-container="#sms_funnel_id-errors"
-                                                    class="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                                    <option value="" selected>Select a message...</option>
-                                                </select>
-                                                <div id="sms_funnel_id-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-                                            </div>
-
-                                        </div>
-
-                                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 hidden" id="messagePreview">
-                                            <h4 class="text-sm font-semibold text-gray-900 mb-2">Message Preview</h4>
-                                            <div class="text-sm text-gray-700">
-                                                <div class="whitespace-pre-wrap" id="messagePreviewContent">Please select a message to see the preview.</div>
-                                            </div>
-                                        </div>
-                                        <!-- footer buttons -->
-                                        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <button type="button"
-                                                class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50"
-                                                data-close-add-step-modal>
-                                                Cancel
-                                            </button>
-
-                                            <button type="submit" id="addStepButton"
-                                                class="w-full px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50"
-                                                disabled>
-                                                Save Step
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                 </div>
@@ -465,7 +278,9 @@
             {{-- TAB: Categories --}}
             <div data-tab-panel="categories" class="hidden">
                 @include('admin.crm.sales_funnels.partials._tab_categories')
+
             </div>
+
         </div>
     </div>
 @endsection
@@ -506,6 +321,8 @@
             }
 
             initFunnelCategorySelect();
+
+
 
             fetchCategories(pageParam, perPageParam); // initial fetch after loading saved filters
 
@@ -748,6 +565,10 @@
 
         });
 
+
+
+
+
         document.addEventListener('DOMContentLoaded', () => {
             const buttons = Array.from(document.querySelectorAll('[data-tab-btn]'));
             const panels = Array.from(document.querySelectorAll('[data-tab-panel]'));
@@ -785,6 +606,9 @@
 
         });
 
+
+
+
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('funnelModal');
             const openers = document.querySelectorAll('[data-open-funnel-modal]');
@@ -794,7 +618,6 @@
             const loader = document.getElementById('funnels-loading');
             const wrapper = document.getElementById('funnels-table-wrapper');
 
-            const categoryFilter = document.querySelectorAll('.filter-category');
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
             const perPageParam = document.getElementById('per_page_sm')?.value || 10;
 
@@ -803,29 +626,12 @@
             const showBtn = document.getElementById('showCategoryInput');
             const backBtn = document.getElementById('backToSelect');
 
-            categoryFilter.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    categoryFilter.forEach(b => {
-                        b.classList.remove('border', 'border-slate-900', 'shadow-sm');
-                    });
-
-                    btn.classList.add('border', 'border-slate-900', 'shadow-sm');
-
-                    // Fetch funnels for selected category
-                    fetchFunnels(1, perPageParam);
-                });
-            });
-
             fetchFunnels(pageParam, perPageParam);
 
             function fetchFunnels(page = 1, perPage = 10) {
                 const params = new URLSearchParams();
                 params.append('page', page);
                 params.append('per_page', perPage);
-                const activeFilter = document.querySelector('.filter-category.border.border-slate-900.shadow-sm');
-                if (activeFilter) {
-                    params.append('category_id', activeFilter.getAttribute('data-value'));
-                }
 
                 loader?.classList.remove('hidden');
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
@@ -848,6 +654,7 @@
                         wrapper.classList.remove('opacity-50', 'pointer-events-none');
                         const openers = document.querySelectorAll('[data-open-funnel-modal]');
                         openers.forEach(btn => btn.addEventListener('click', openModal));
+                        console.log(openers);
                     });
             }
 
@@ -959,6 +766,8 @@
                     });
             });
 
+
+
             function initSingleFunnelDeleteButtons() {
                 const deleteButtons = document.querySelectorAll('.funnel-delete-button');
 
@@ -1007,6 +816,7 @@
 
             let editingFunnelId = null;
 
+
             function openFunnelModal() {
                 document.getElementById('funnelModal').classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
@@ -1028,10 +838,10 @@
                 document.getElementById('funnelForm-btn').textContent = 'Create Funnel';
             }
 
+
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.funnel-edit-button');
                 if (!btn) return;
-                btn.disabled = true;
 
                 const uniqueId = btn.dataset.uniqueId;
                 editingFunnelId = uniqueId;
@@ -1066,341 +876,9 @@
                         document.getElementById('funnelForm-btn').textContent = 'Update Funnel';
 
                         openFunnelModal();
-                    }).finally(() => {
-                        btn.disabled = false;
                     });
             });
 
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.funnel-toggle-button');
-                if (!btn) return;
-                btn.disabled = true;
-                const uniqueId = btn.dataset.uniqueId;
-
-                apiFetch(`{{ route('admin.crm.sales-funnels.status.toggle', ':unique_id') }}`
-                        .replace(':unique_id', uniqueId), {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document
-                                    .querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content'),
-                                'Accept': 'application/json'
-                            }
-                        })
-                    .then(res => {
-                        if (!res.success) return;
-                        notyf.success(res.message);
-                    })
-                    .finally(() => {
-                        btn.disabled = false;
-                        reloadFunnelsTable();
-                    });
-            });
-
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.funnel-duplicate-button');
-                if (!btn) return;
-                btn.disabled = true;
-                const uniqueId = btn.dataset.uniqueId;
-
-                apiFetch(`{{ route('admin.crm.sales-funnels.duplicate', ':unique_id') }}`
-                        .replace(':unique_id', uniqueId), {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document
-                                    .querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content'),
-                                'Accept': 'application/json'
-                            }
-                        })
-                    .then(res => {
-                        if (!res.success) return;
-                        notyf.success(res.message);
-                    })
-                    .finally(() => {
-                        btn.disabled = false;
-                        reloadFunnelsTable();
-                    });
-            });
-
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('addStepModal');
-            const modalFunnelIdInput = document.getElementById('funnel_unique_id');
-            if (!modal) return;
-
-            const openModal = (funnelUniqueId) => {
-                modalFunnelIdInput.value = funnelUniqueId;
-                modal.classList.remove('hidden');
-                modal.setAttribute('aria-hidden', 'false');
-                document.body.classList.add('overflow-hidden');
-            };
-
-            const closeModal = () => {
-                modalFunnelIdInput.value = '';
-                modal.classList.add('hidden');
-                modal.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('overflow-hidden');
-                document.getElementById('stepModalTitle').textContent = 'Add Funnel Step';
-                document.getElementById('stepForm').reset();
-                document.getElementById('messagePreview').classList.add('hidden');
-                document.getElementById('messagePreviewContent').textContent = 'Please select a message to see the preview.';
-                editStepUniqueIdInput = document.getElementById('editStepUniqueId');
-                if (editStepUniqueIdInput) {
-                    editStepUniqueIdInput.remove();
-                }
-            };
-
-            // Event delegation: open/close buttons anywhere on page (works with multiple partials)
-            document.addEventListener('click', (e) => {
-                // OPEN
-                if (e.target.closest('[data-open-add-step]')) {
-                    e.preventDefault();
-                    const funnelId = e.target.closest('[data-open-add-step]').getAttribute(
-                    'data-funnel-unique-id');
-                    openModal(funnelId);
-                    return;
-                }
-
-                // CLOSE (supports both attributes in your markup)
-                if (e.target.closest('[data-close-add-step-modal]')) {
-                    e.preventDefault();
-                    closeModal();
-                    return;
-                }
-
-                // Backdrop click to close (clicking outside the modal content)
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-
-            // ESC to close
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                    closeModal();
-                }
-            });
-
-            const form = document.getElementById('stepForm');
-
-            if (!form) return; // safety guard
-
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                if (!$(this).parsley().isValid()) {
-                    $(this).parsley().validate();
-                    return;
-                }
-
-                const editStepUniqueIdInput = document.getElementById('editStepUniqueId');
-                const url = editStepUniqueIdInput && editStepUniqueIdInput.value ?
-                    `{{ route('admin.crm.sales-funnels.steps.update', ':step_unique_id') }}`
-                    .replace(':step_unique_id', editStepUniqueIdInput.value) :
-                    `{{ route('admin.crm.sales-funnels.steps.store') }}`;
-
-                const formData = JSON.stringify({
-                    funnel_unique_id: modalFunnelIdInput.value,
-                    step_type: this.step_type.value,
-                    delay_value: this.delay_value.value,
-                    delay_unit: this.delay_unit.value,
-                    sms_category_id: this.sms_category_id ? this.sms_category_id.value : null,
-                    sms_funnel_id: this.sms_funnel_id ? this.sms_funnel_id.value : null,
-                });
-
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Saving...';
-
-                apiFetch(url, {
-                        method: editStepUniqueIdInput && editStepUniqueIdInput.value ? 'PUT' : 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document
-                                .querySelector('meta[name="csrf-token"]')
-                                .getAttribute('content')
-                        },
-                        body: formData
-                    })
-                    .then(res => {
-                        if (res?.success) {
-                            form.reset();
-                            notyf.success(res.message);
-                            reloadFunnelsTable();
-                            closeModal();
-                        } else {
-                            notyf.error(res?.message || 'Failed to add step');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                    })
-                    .finally(() => {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = originalText;
-                    });
-            });
-
-            const smsCategorySelect = document.getElementById('smsCategorySelect');
-            if (smsCategorySelect) {
-                smsCategorySelect.addEventListener('change', function() {
-                    messagePreview.classList.add('hidden')
-                    smsFunnelSelect.innerHTML = '<option value="">Select message</option>';
-                    const categoryId = this.value;
-                    if (categoryId){
-                        fetchSmsCategories(categoryId);
-                    }
-                });
-            }
-
-
-            const smsFunnelSelect = document.getElementById('smsFunnelSelect');
-            const messagePreview = document.getElementById('messagePreview');
-            const messagePreviewContent = document.getElementById('messagePreviewContent');
-            const addStepButton = document.getElementById('addStepButton');
-            if(smsFunnelSelect){
-                smsFunnelSelect.addEventListener('change', function() {
-                    const selectedOption = this.options[this.selectedIndex];
-                    const content = selectedOption.dataset.content || 'No preview available';
-                    messagePreviewContent.textContent = content;
-                    messagePreview.classList.remove('hidden');
-                    addStepButton.disabled = !this.value;
-                });
-            }
-
-            function fetchSmsCategories(categoryId, preselectFunnelId = null) {
-
-                smsFunnelSelect.innerHTML = '<option value="">Select message</option>';
-                apiFetch(`{{ route('admin.crm.message-management.sms-funnel.fetch', ':categoryId') }}`
-                        .replace(':categoryId', categoryId))
-                    .then(res => {
-                        if (res?.success) {
-                            // Handle the fetched SMS categories as needed
-                            res.funnels.forEach(funnel => {
-                                const option = document.createElement('option');
-                                option.value = funnel.id;
-                                option.textContent = funnel.name;
-                                option.dataset.content = funnel.description || '';
-                                smsFunnelSelect.appendChild(option);
-                            });
-
-                            // Preselect funnel if provided
-                            if (preselectFunnelId) {
-                                smsFunnelSelect.value = preselectFunnelId;
-                                smsFunnelSelect.dispatchEvent(new Event('change'));
-                            }
-                        } else {
-                            notyf.error(res?.message || 'Failed to fetch SMS categories');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        notyf.error('Something went wrong while fetching SMS categories');
-                    });
-            }
-
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.step-edit-button');
-                if (!btn) return;
-                btn.disabled = true;
-                document.getElementById('stepForm').reset();
-                // Parse step data from data attribute
-                const dataStepJson = btn.getAttribute('data-step-json');
-                if (!dataStepJson) {
-                    btn.disabled = false;
-                    return;
-                }
-                let stepData;
-                try {
-                    stepData = JSON.parse(dataStepJson);
-                } catch (err) {
-                    btn.disabled = false;
-                    return;
-                }
-
-                // Populate modal fields
-                modalFunnelIdInput.value = stepData.funnel_unique_id || '';
-                // Set step type radio
-                const radios = document.getElementsByName('step_type');
-                radios.forEach(radio => {
-                    radio.checked = radio.value === stepData.step_type;
-                });
-                document.getElementById('delay_value').value = stepData.delay_value || 0;
-                document.getElementById('delay_unit').value = stepData.delay_unit || 'Days';
-
-                // Set SMS Category and fetch messages
-                document.getElementById('smsCategorySelect').value = stepData.sms_category_id || '';
-                fetchSmsCategories(stepData.sms_category_id, stepData.sms_message_id);
-
-                // Set modal title and button
-                document.getElementById('stepModalTitle').textContent = 'Edit Funnel Step';
-
-                // Add hidden input to track edit mode
-                let hidden = document.getElementById('editStepUniqueId');
-                if (!hidden) {
-                    hidden = document.createElement('input');
-                    hidden.type = 'hidden';
-                    hidden.name = 'step_unique_id';
-                    hidden.id = 'editStepUniqueId';
-                    document.getElementById('stepForm').appendChild(hidden);
-                }
-                hidden.value = stepData.unique_id;
-
-                // Show modal
-                modal.classList.remove('hidden');
-                modal.setAttribute('aria-hidden', 'false');
-                document.body.classList.add('overflow-hidden');
-
-                btn.disabled = false;
-            });
-
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.step-delete-button');
-                if (!btn) return;
-                btn.disabled = true;
-
-                const uniqueId = btn.getAttribute('data-step-unique-id');
-
-                showConfirm(
-                    'Do you want to delete this step?',
-                    'This action cannot be undone.'
-                ).then(result => {
-                    if (!result.isConfirmed) {
-                        btn.disabled = false;
-                        return;
-                    }
-
-                    const url = `{{ route('admin.crm.sales-funnels.steps.delete', ':unique_id') }}`
-                        .replace(':unique_id', uniqueId);
-
-                    apiFetch(url, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': document
-                                .querySelector('meta[name="csrf-token"]')
-                                .getAttribute('content'),
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(res => {
-                        if (res?.success) {
-                            notyf.success(res.message);
-                            reloadFunnelsTable();
-                        } else {
-                            notyf.error(res?.message || 'Failed to delete step');
-                        }
-                    })
-                    .finally(() => {
-                        btn.disabled = false;
-                    });
-                });
-            });
 
         });
     </script>

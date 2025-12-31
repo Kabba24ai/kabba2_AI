@@ -79,4 +79,12 @@ class SalesFunnel extends Model
         return $this->hasMany(OrderProductFunnelLog::class, 'sales_funnel_id');
     }
 
+    /**
+     * 🔗 Funnel has many steps
+     */
+    public function steps()
+    {
+        return $this->hasMany(SalesFunnelSteps::class, 'sales_funnel_id')->orderBy('sort_order');
+    }
+
 }

@@ -29,7 +29,7 @@
                         {!! $order->view_link !!}
                     </td>
                     <td class="py-4 px-6">
-                        <div class="font-medium">{{ $order->billingAddress->full_name }}</div>
+                        <div class="font-medium">{{ $order->customer_name }}</div>
                         {{-- <div class="text-gray-500 text-xs">{{ $order->customer?->unique_id }}</div> --}}
                     </td>
                     <td class="py-4 px-6">

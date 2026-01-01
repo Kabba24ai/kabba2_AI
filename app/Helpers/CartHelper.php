@@ -36,12 +36,12 @@ class CartHelper
         $discount = floatval($input['discount'] ?? 0);
 
         // Determine tax exemption based on authenticated customer
-        $customer = auth('customer')->check() ? auth('customer')->user() : null;
+        // $customer = auth('customer')->check() ? auth('customer')->user() : null;
 
-        // Override $taxExempt if customer is authenticated and marked as Exempt
-        if ($customer && method_exists($customer, 'getTaxStatus')) {
-            $taxExempt = $customer->getTaxStatus() !== 'Taxable';
-        }
+        // // Override $taxExempt if customer is authenticated and marked as Exempt
+        // if ($customer && method_exists($customer, 'getTaxStatus')) {
+        //     $taxExempt = $customer->getTaxStatus() !== 'Taxable';
+        // }
 
         // --- Prepare Cart Data ---
         $cartData = $input['cart_items'];

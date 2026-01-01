@@ -26,7 +26,7 @@ window.loadCartSidebarPreview = (function() {
         if (!cart?.length) {
             cartDataDiv.innerHTML = '<p class="text-center py-10 text-gray-600">Your cart is empty.</p>';
             if (cartSummaryDiv) {
-            cartSummaryDiv.innerHTML = '<p class="text-center py-6 text-gray-600">No summary available.</p>';
+            cartSummaryDiv.innerHTML = '<p class="text-center py-6 text-gray-600">No Items in Cart.</p>';
             }
             window.updateCartCount(); // Update cart count to 0
             return;

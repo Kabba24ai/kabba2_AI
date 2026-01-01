@@ -2,6 +2,10 @@
 
 @section('title', $title)
 
+@push('css')
+
+@endpush
+
 @section('content')
     <!-- Page Title Section -->
     <section
@@ -91,6 +95,9 @@
                             $primaryAddress = auth('customer')->user()->billingAddress;
                             $companyName = auth('customer')->user()->company_name ?? null;
                             $companyWebsite = auth('customer')->user()->company_website ?? null;
+                            $firstName = auth('customer')->user()->first_name ?? null;
+                            $lastName = auth('customer')->user()->last_name ?? null;
+                            $phone = auth('customer')->user()->phone ?? null;
                         @endphp
                         <div>
                             {{-- <label for="selAddress" class="block text-sm font-medium text-gray-800 mt-3">
@@ -113,6 +120,9 @@
                                 <h5 class="text-base font-bold" id="addressName">
                                     {{ $primaryAddress ? $primaryAddress->full_name : '' }}
                                 </h5>
+                                <p id="addressCompany">
+                                    {{ $primaryAddress ? 'Company: ' . $companyName : '' }}
+                                </p>
                                 <p id="addressFull">
                                     {{ $primaryAddress ? $primaryAddress->full_address : '' }}
                                 </p>
@@ -141,6 +151,9 @@
                             $primaryAddress = null;
                             $companyName = null;
                             $companyWebsite = null;
+                            $firstName = null;
+                            $lastName = null;
+                            $phone = null;
                         @endphp
                     @endauth
                     <!-- Tax Exempt -->
@@ -149,7 +162,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 ">
                             <div>
                                 <label for="billingFirstName" class="block text-sm text-gray-600 mb-1">First Name</label>
-                                {{ html()->text('billingFirstName', old('billingFirstName', $primaryAddress ? $primaryAddress->first_name : null))->class([
+                                {{ html()->text('billingFirstName', old('billingFirstName', $primaryAddress ? $primaryAddress->first_name : $firstName))->class([
                                         'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
                                         'input-error' => $errors->has('billingFirstName'),
                                     ])->attributes([
@@ -166,7 +179,7 @@
                             </div>
                             <div>
                                 <label for="billingLastName" class="block text-sm text-gray-600 mb-1">Last Name</label>
-                                {{ html()->text('billingLastName', old('billingLastName', $primaryAddress ? $primaryAddress->last_name : null))->class([
+                                {{ html()->text('billingLastName', old('billingLastName', $primaryAddress ? $primaryAddress->last_name : $lastName))->class([
                                         'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
                                         'input-error' => $errors->has('billingLastName'),
                                     ])->attributes([
@@ -198,7 +211,7 @@
                             @enderror
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <div>
+                            <div >
                                 <label for="billingEmail" class="block text-sm text-gray-600 mb-1">Email</label>
                                 {{ html()->email(
                                         'billingEmail',
@@ -219,13 +232,14 @@
                                             auth('customer')->check() ? ['readonly' => 'readonly'] : [],
                                         ),
                                     )->required() }}
+                                    <p id="billingEmailError" class="hidden mt-1 text-xs text-red-600"></p>
                                 @error('billingEmail')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
                                 <label for="billingPhone" class="block text-sm text-gray-600 mb-1">Phone</label>
-                                {{ html()->text('billingPhone', old('billingPhone', $primaryAddress ? $primaryAddress->phone : null))->class(
+                                {{ html()->text('billingPhone', old('billingPhone', $primaryAddress ? $primaryAddress->phone : $phone))->class(
                                         'masked-phone w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
                                     )->attributes([
                                         'maxlength' => 240,
@@ -257,7 +271,7 @@
                                 <label for="billingState" class="block text-sm text-gray-600 mb-1">State</label>
                                 <select name="billingState" id="billingState"
                                     class="w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none">
-                                    <option disabled value="">Select State...</option>
+                                    <option value="">Select State...</option>
                                     @foreach ($states as $id => $name)
                                         <option value="{{ $id }}" @selected(old('billingState', $primaryAddress ? $primaryAddress->state_id : null) == $id)>
                                             {{ $name }}
@@ -428,7 +442,7 @@
                                 <label for="deliveryState" class="block text-sm text-gray-600 mb-1">State</label>
                                 <select name="deliveryState" id="deliveryState"
                                     class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none{{ $errors->has('deliveryState') ? ' border-red-400' : '' }}">
-                                    <option disabled value="">Select State...</option>
+                                    <option value="">Select State...</option>
                                     @foreach ($states as $id => $name)
                                         <option value="{{ $id }}" @selected(old('deliveryState') == $id)>
                                             {{ $name }}</option>
@@ -789,9 +803,9 @@
             const form = document.getElementById('checkout-form');
             if (!form) return;
 
-            var checkoutBtn = document.getElementById('checkoutBtn');
-            var checkoutBtnText = document.getElementById('checkoutBtnText');
-            var checkoutBtnLoader = document.getElementById('checkoutBtnLoader');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            const checkoutBtnText = document.getElementById('checkoutBtnText');
+            const checkoutBtnLoader = document.getElementById('checkoutBtnLoader');
 
             function disableCheckoutButton() {
                 if (!checkoutBtn) return;
@@ -810,8 +824,9 @@
             form.addEventListener('submit', function(e) {
 
                 const employeeCode = document.getElementById('employee_code').value.trim();
-                const isRequired = '{{ session()->has('impersonated_by_admin') || session()->has('master_passcode') }}';
-                if(isRequired && !employeeCode) {
+                const isRequired =
+                    '{{ session()->has('impersonated_by_admin') || session()->has('master_passcode') }}';
+                if (isRequired && !employeeCode) {
                     notyf.error('Employee code is required.');
                     e.preventDefault();
                     return;
@@ -988,6 +1003,8 @@
             updateHighlight();
 
             // Card info live update
+            const billingFirstNameInput = document.getElementById('billingFirstName');
+            const billingLastNameInput = document.getElementById('billingLastName');
             const cardNumberInput = document.getElementById('cardNumber');
             const firstNameInput = document.getElementById('firstName');
             const lastNameInput = document.getElementById('lastName');
@@ -1019,7 +1036,19 @@
             lastNameInput.addEventListener('input', function() {
                 updateName();
             });
+            if (billingFirstNameInput) {
+                billingFirstNameInput.addEventListener('input', function() {
+                    firstNameInput.value = this.value;
+                    firstNameInput.dispatchEvent(new Event('input'));
+                });
+            }
 
+            if (billingLastNameInput) {
+                billingLastNameInput.addEventListener('input', function() {
+                    lastNameInput.value = this.value;
+                    lastNameInput.dispatchEvent(new Event('input'));
+                });
+            }
             function updateName() {
                 const name = (firstNameInput.value + ' ' + lastNameInput.value).trim();
                 displayFullName.textContent = name || 'FULL NAME';
@@ -1190,6 +1219,7 @@
                             addr.zip_code
                         ].filter(Boolean).join(', ');
                         document.getElementById('addressPhone').textContent = 'Phone: ' + (addr.phone || '');
+                        document.getElementById('addressCompany').textContent = 'Company: ' + (addr.company || '');
                         document.getElementById('addressEmail').textContent = 'Email: ' + (addr.email || '');
                         document.getElementById('addressDefault').textContent = addr.is_primary ? 'Default' : '';
                         preview.classList.remove('hidden');
@@ -1314,6 +1344,91 @@
                         submitLoader.classList.add('hidden');
                     });
             }
+
+            // ============================
+            // Email Uniqueness Check
+            // ============================
+
+            const emailInput = document.getElementById('billingEmail');
+            const emailError = document.getElementById('billingEmailError');
+            if (!emailInput || !emailError) return;
+
+            const CHECK_URL = "{{ route('front.auth.register.check.email.unique') }}";
+
+            let emailValid = true;
+            let emailChecking = false;
+            let lastCheckedEmail = "";
+
+            function showEmailError(msg) {
+                emailValid = false;
+                emailError.textContent = msg;
+                emailError.classList.remove('hidden');
+                emailInput.classList.add('border-red-500');
+            }
+
+            function clearEmailError() {
+                emailValid = true;
+                emailError.textContent = "";
+                emailError.classList.add('hidden');
+                emailInput.classList.remove('border-red-500');
+            }
+
+            async function checkEmailUnique(email) {
+                if (!email) return;
+
+                // basic format check
+                const okFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                if (!okFormat) {
+                    showEmailError("Please enter a valid email address.");
+                    return;
+                }
+
+                // avoid repeated calls for same email
+                if (email === lastCheckedEmail) return;
+
+                emailChecking = true;
+                lastCheckedEmail = email;
+                clearEmailError();
+                showEmailError("please wait, checking email...");
+                checkoutBtn.disabled = true;
+                checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                try {
+                   const res = await fetch(`${CHECK_URL}?email=${encodeURIComponent(email)}`, {
+                                    method: "GET",
+                                    headers: {
+                                        "Accept": "application/json"
+                                    }
+                                });
+
+
+                    const data = await res.json();
+
+                    // Adjust this based on your API response shape:
+                    // Expecting: { valid: true } or { valid: false }
+                    if (data.valid === true) {
+                        clearEmailError();
+                        checkoutBtn.disabled = false;
+                        checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        showEmailError(
+                            "There is an account already created with this email address. Please login to add this order to your account history or use a different email address and checkout as a Guest."
+                        );
+                    }
+                } catch (err) {
+                    console.error("Email check error:", err);
+                    showEmailError("Unable to validate email right now. Please try again.");
+                } finally {
+                    emailChecking = false;
+                }
+            }
+
+            emailInput.addEventListener("blur", function() { //
+                if (emailInput.readOnly) return; // skip for logged-in readonly email
+                checkEmailUnique(emailInput.value.trim());
+            });
         });
+
+
+
     </script>
 @endpush

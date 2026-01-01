@@ -45,7 +45,7 @@ class PostController extends Controller
     public function __invoke(PostRequest $request)
     {
         $validated = $request->validated();
-
+        // return redirect()->back()->withInput()->with('error', 'Debug stop before processing.');
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
         $employeeCode = $validated['employee_code'] ?? null;

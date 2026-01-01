@@ -114,7 +114,7 @@ class PostRequest extends FormRequest
         }
 
         if (session()->has('impersonated_by_admin') || session()->has('master_passcode')) {
-            $rules['employee_code'] = ['required', 'string', 'max:10', 'exists:users,employee_code'];
+            $rules['employee_code'] = ['nullable', 'string', 'max:10', 'exists:users,employee_code'];
         }else{
             $rules['employee_code'] = ['nullable', 'string', 'max:10', 'exists:users,employee_code'];
         }
@@ -135,6 +135,18 @@ class PostRequest extends FormRequest
                 }
                 if ($deliveryEmail && $deliveryEmail !== $userEmail) {
                     $validator->errors()->add('deliveryEmail', 'The delivery email must match your account email.');
+                }
+            });
+        }else{
+            $validator->after(function ($validator) {
+                $billingEmail = $this->input('billingEmail');
+
+                // Check billing email uniqueness
+                if ($billingEmail) {
+                    $exists = \App\Models\Customers\Customer::whereRaw('LOWER(email) = ?', [strtolower($billingEmail)])->exists();
+                    if ($exists) {
+                        $validator->errors()->add('billingEmail', 'The billing email is already taken.');
+                    }
                 }
             });
         }

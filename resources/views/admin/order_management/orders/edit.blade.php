@@ -18,7 +18,14 @@
                 <h2 class="text-lg font-semibold text-gray-800">
                     <span class="text-gray-700">Order ID:</span> {{ $order->order_number }}
                 </h2>
-                <span class="text-sm text-gray-600">Customer: {{ $order->customer_name }}</span>
+                <div class="flex flex-col leading-tight">
+                    <span class="text-sm font-medium text-gray-800">
+                        Customer: {{ $order->customer_name }}
+                    </span>
+                    <span class="text-xs italic text-gray-600">
+                        Company: {{ $order->company_name }}
+                    </span>
+                </div>
             </div>
 
             {{-- Payment Status + Refund Button --}}
@@ -155,9 +162,9 @@
 
     @if ($order->latestReceipt && !empty($order->latestReceipt->mail_send_at))
         <div class="text-xs text-gray-600 mt-1 ml-[2px] text-center">
-            
+
             {{ \App\Helpers\CustomHelper::formatDateTime($order->latestReceipt->mail_send_at) }}
-         
+
         </div>
     @endif
 </div>
@@ -1774,7 +1781,7 @@
                                                 </td>
 
                                                 <td class="py-2 px-2  {{ $damageAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
-                                                    Adjust Amount ( 
+                                                    Adjust Amount (
                                                     {{ $damageAdjustmentTotal >= 0 ? '+' : '-' }}
                                                     ${{ number_format(abs($damageAdjustmentTotal), 2) }} )
                                                 </td>
@@ -1784,16 +1791,16 @@
                                                 </td>
                                             </tr>
                                         @endif
-                                           
+
 
 
                                     </tbody>
                                 </table>
                             </div>
 
-                          
 
-                            
+
+
                             {{-- Second Table: Hour Tracking --}}
                             <div class="bg-white border border-gray-200 rounded-md overflow-x-auto mt-6">
                                 <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">

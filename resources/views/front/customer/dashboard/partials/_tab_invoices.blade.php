@@ -10,7 +10,8 @@
 
              <div class="text-left md:text-right">
                  <p class="text-sm text-gray-600">Current Balance</p>
-                 <p class="text-lg font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}</p>
+                 <p class="text-lg font-bold text-gray-900">
+                     {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}</p>
              </div>
          </div>
      </div>
@@ -22,13 +23,12 @@
      <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm ">
          <div>
              <p class="text-sm text-gray-500">Paid Invoices</p>
-             <p class="text-xl font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_paid_invoices) }}</p>
+             <p class="text-xl font-semibold text-gray-900">
+                 {{ \App\Helpers\CustomHelper::formatCurrency($customer->total_paid_invoices) }}</p>
          </div>
          <div class="bg-green-100 p-2 rounded-md">
-             <svg xmlns="http://www.w3.org/2000/svg"
-                 width="20" height="20" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                  class="lucide lucide-check-circle w-6 h-6 text-green-500">
                  <path d="M9 12l2 2l4 -4"></path>
                  <circle cx="12" cy="12" r="10"></circle>
@@ -40,11 +40,14 @@
      <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm">
          <div>
              <p class="text-sm text-gray-500">Pending Invoices</p>
-             <p class="text-xl font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_pending_invoices) }}</p>
+             <p class="text-xl font-semibold text-gray-900">
+                 {{ \App\Helpers\CustomHelper::formatCurrency($customer->total_pending_invoices) }}</p>
          </div>
          <div class="bg-yellow-100 p-2 rounded-md">
-             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
              </svg>
          </div>
      </div>
@@ -53,13 +56,12 @@
      <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm ">
          <div>
              <p class="text-sm text-gray-500">Overdue Invoices</p>
-             <p class="text-xl font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_overdue_invoices) }}</p>
+             <p class="text-xl font-semibold text-gray-900">
+                 {{ \App\Helpers\CustomHelper::formatCurrency($customer->total_overdue_invoices) }}</p>
          </div>
          <div class="bg-red-100 p-2 rounded-md  text-red-500">
-             <svg xmlns="http://www.w3.org/2000/svg"
-                 width="20" height="20" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                  class="lucide lucide-alert-circle w-6 h-6">
                  <circle cx="12" cy="12" r="10" />
                  <line x1="12" y1="8" x2="12" y2="12" />
@@ -91,51 +93,62 @@
              <tbody id="invoiceTable" class="divide-y divide-gray-200">
 
                  @forelse($customer->invoices as $invoice)
-                 <tr>
-                     <td class="px-4 py-3 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
-                     <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}</td>
-                     <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}</td>
-                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-500">{{ App\Helpers\CustomHelper::formatCurrency($invoice->total) ?? '-' }} </td>
-                     <td class="px-4 py-3">
+                     <tr>
+                         <td class="px-4 py-3 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
+                         <td class="px-4 py-3">
+                             {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}</td>
+                         <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
+                         </td>
+                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-500">
+                             {{ App\Helpers\CustomHelper::formatCurrency($invoice->total) ?? '-' }} </td>
+                         <td class="px-4 py-3">
 
-                         @php
-                         $statusColors = [
-                         'paid' => 'green',
-                         'overdue' => 'red',
-                         'pending' => 'yellow',
-                         ];
-                         $color = $statusColors[$invoice->invoice_status] ?? 'gray';
-                         @endphp
+                             @php
+                                 $statusColors = [
+                                     'paid' => 'green',
+                                     'overdue' => 'red',
+                                     'pending' => 'yellow',
+                                 ];
+                                 $color = $statusColors[$invoice->invoice_status] ?? 'gray';
+                             @endphp
 
-                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800"> {{ $invoice->invoice_status }}</span>
+                             <span
+                                 class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                                 {{ $invoice->invoice_status }}</span>
 
-                     </td>
-                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                         <a href="{{ route('front.customer.dashboard.invoice.view',$invoice->unique_id ) }}" target="_blank" class="text-blue-600 inline-flex items-center">
-                             <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                         </a>
+                         </td>
+                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                             <a href="{{ route('front.customer.dashboard.invoice.view', $invoice->unique_id) }}"
+                                 target="_blank" class="text-blue-600 inline-flex items-center">
+                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                             </a>
 
 
-                         <a href="{{ route('front.customer.dashboard.invoice.download',$invoice->unique_id ) }}" class="text-green-600 inline-flex items-center cursor-pointer">
-                             <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                         </a>
+                             <a href="{{ route('front.customer.dashboard.invoice.download', $invoice->unique_id) }}"
+                                 class="text-green-600 inline-flex items-center cursor-pointer">
+                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                             </a>
 
-                         <a href="javascript:void(0)" class="{{ ($invoice->invoice_status !== 'paid') ? 'text-purple-600' : 'text-gray-600' }} inline-flex items-center cursor-pointer @if($invoice->invoice_status !== 'paid') openDiscountModal @endif "
-                             data-invoice="{{ $invoice->invoice_number }}"
-                             data-due="{{ App\Helpers\CustomHelper::formatDate($invoice->due_date) }}"
-                             data-amount="{{ App\Helpers\CustomHelper::formatCurrency($invoice->total) }}">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-4 h-4 mr-2">
-                                 <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-                                 <line x1="2" x2="22" y1="10" y2="10"></line>
-                             </svg>
-                         </a>
+                             <a href="javascript:void(0)"
+                                 class="{{ $invoice->invoice_status !== 'paid' ? 'text-purple-600' : 'text-gray-600' }} inline-flex items-center cursor-pointer @if ($invoice->invoice_status !== 'paid') openDiscountModal @endif "
+                                 data-invoice="{{ $invoice->invoice_number }}"
+                                 data-due="{{ App\Helpers\CustomHelper::formatDate($invoice->due_date) }}"
+                                 data-amount="{{ App\Helpers\CustomHelper::formatCurrency($invoice->total) }}">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round"
+                                     class="lucide lucide-credit-card w-4 h-4 mr-2">
+                                     <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                                     <line x1="2" x2="22" y1="10" y2="10"></line>
+                                 </svg>
+                             </a>
 
-                     </td>
-                 </tr>
+                         </td>
+                     </tr>
                  @empty
-                 <tr>
-                     <td colspan="6" class="text-center px-4 py-3">No invoices found</td>
-                 </tr>
+                     <tr>
+                         <td colspan="6" class="text-center px-4 py-3">No invoices found</td>
+                     </tr>
                  @endforelse
 
              </tbody>
@@ -145,9 +158,11 @@
 
 
  <!-- New Discount Wrapper -->
- <div id="discountModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+ <div id="discountModalWrapper" style="display: none;"
+     class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
      <div class="modal-scrollable w-full mx-auto">
-         <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full overflow-y-auto">
+         <div
+             class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full overflow-y-auto">
              <div class="flex justify-between items-center px-6 pt-4">
                  <div class="flex items-center gap-2">
                      <h2 class="text-lg font-medium text-gray-900">Pay Invoice</h2>
@@ -155,26 +170,26 @@
                  <button id="closeDiscountModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
              </div>
              {{ html()->form('POST', route('front.customer.dashboard.invoice.paymentstore'))->id('recordpayment')->attributes([
-                            'autocomplete' => 'off',
-                            'data-parsley-validate' => true,
-                            'class' => 'space-y-8',
-                        ])->open() }}
+                     'autocomplete' => 'off',
+                     'data-parsley-validate' => true,
+                     'class' => 'space-y-8',
+                 ])->open() }}
 
 
              {!! html()->text('customer_id', $customer->id ?? '')->class('hidden')->attributes([
-             'id' => 'customer_id',
-             'autocomplete' => 'off'
-             ]) !!}
+                     'id' => 'customer_id',
+                     'autocomplete' => 'off',
+                 ]) !!}
 
              {!! html()->hidden('amount')->attributes([
-             'id' => 'amount',
-             'autocomplete' => 'off'
-             ]) !!}
+                     'id' => 'amount',
+                     'autocomplete' => 'off',
+                 ]) !!}
 
              {!! html()->hidden('invoice_id')->attributes([
-             'id' => 'invoice_id',
-             'autocomplete' => 'off'
-             ]) !!}
+                     'id' => 'invoice_id',
+                     'autocomplete' => 'off',
+                 ]) !!}
 
 
 
@@ -204,7 +219,7 @@
                          <option value="NewCard" selected>New Card</option>
 
                          @if ($customer->cards && $customer->cards->count() > 0)
-                         <option value="CardOnFile">Card on File</option>
+                             <option value="CardOnFile">Card on File</option>
                          @endif
 
                      </select>
@@ -222,7 +237,8 @@
                                  class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                          </div>
                          <div class="md:col-span-2">
-                             <input type="text" placeholder="Card number" maxlength="19" id="cardNumber" name="cardNumber"
+                             <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
+                                 name="cardNumber"
                                  class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                          </div>
                          <div class="md:col-span-1">
@@ -240,16 +256,17 @@
 
                  <!-- Card on File Dropdown -->
                  @if ($customer->cards && $customer->cards->count() > 0)
-                 <div id="cardOnFileDropdown" class="mb-4 hidden">
-                     <label class="block text-sm font-medium text-gray-700 mb-1 required">Select Existing Card </label>
-                     <select name="existing_card_id"
-                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
-                         <option value="">-- Select a saved card --</option>
-                         @foreach ($customer->cards as $card)
-                         <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
-                         @endforeach
-                     </select>
-                 </div>
+                     <div id="cardOnFileDropdown" class="mb-4 hidden">
+                         <label class="block text-sm font-medium text-gray-700 mb-1 required">Select Existing Card
+                         </label>
+                         <select name="existing_card_id"
+                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                             <option value="">-- Select a saved card --</option>
+                             @foreach ($customer->cards as $card)
+                                 <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
+                             @endforeach
+                         </select>
+                     </div>
                  @endif
 
                  <!-- Addresh Info -->
@@ -259,32 +276,30 @@
                          <div>
                              <p class="text-sm font-medium text-gray-900">Billing Address</p>
                              <p class="text-xs text-gray-700 mt-1">
-                                 @if($customer->billingAddress)
-                                 @if($customer->billingAddress->full_name)
-                                 {{ $customer->billingAddress->full_name }} <br>
-                                 @endif
+                                 @if ($customer->billingAddress)
+                                     @if ($customer->billingAddress->full_name)
+                                         {{ $customer->billingAddress->full_name }} <br>
+                                     @endif
 
-                                 @if($customer->billingAddress->address || $customer->billingAddress->city)
-                                 {{ $customer->billingAddress->address ?? '' }}
-                                 {{ $customer->billingAddress->city ? ', ' . $customer->billingAddress->city : '' }}<br>
-                                 @endif
+                                     @if ($customer->billingAddress->address || $customer->billingAddress->city)
+                                         {{ $customer->billingAddress->address ?? '' }}
+                                         {{ $customer->billingAddress->city ? ', ' . $customer->billingAddress->city : '' }}<br>
+                                     @endif
 
-                                 @if(optional($customer->billingAddress->state)->name || $customer->billingAddress->zip_code)
-                                 {{ optional($customer->billingAddress->state)->name ?? '' }}
-                                 {{ $customer->billingAddress->zip_code ? ' ' . $customer->billingAddress->zip_code : '' }}<br>
-                                 @endif
+                                     @if (optional($customer->billingAddress->state)->name || $customer->billingAddress->zip_code)
+                                         {{ optional($customer->billingAddress->state)->name ?? '' }}
+                                         {{ $customer->billingAddress->zip_code ? ' ' . $customer->billingAddress->zip_code : '' }}<br>
+                                     @endif
 
-                                 @if($customer->billingAddress->phone)
-                                 {{ App\Helpers\CustomHelper::formatPhone($customer->billingAddress->phone) }}
-                                 @endif
+                                     @if ($customer->billingAddress->phone)
+                                         {{ App\Helpers\CustomHelper::formatPhone($customer->billingAddress->phone) }}
+                                     @endif
                                  @else
-                                 <span class="text-gray-500 italic">No billing address on file.</span>
+                                     <span class="text-gray-500 italic">No billing address on file.</span>
                                  @endif
                              </p>
 
-                             <a id="updateAddressLink"
-                                 x-on:click="activeTab = 'account'"
-                                 href="javascript:void(0)"
+                             <a id="updateAddressLink" x-on:click="activeTab = 'account'" href="javascript:void(0)"
                                  class="text-blue-600 text-xs hover:text-blue-800 flex items-center gap-1">
                                  Update / New Address
                              </a>
@@ -296,13 +311,16 @@
                  <!-- Secure Payment Info -->
                  <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
                      <div class="flex items-center">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-5 h-5 text-blue-600 mr-3">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="lucide lucide-credit-card w-5 h-5 text-blue-600 mr-3">
                              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
                              <line x1="2" x2="22" y1="10" y2="10"></line>
                          </svg>
                          <div>
                              <p class="text-sm font-medium text-blue-900">Secure Payment Processing</p>
-                             <p class="text-xs text-blue-700 mt-1">Payments are processed securely through our payment gateway. You'll enter your payment details on the next step.</p>
+                             <p class="text-xs text-blue-700 mt-1">Payments are processed securely through our payment
+                                 gateway. You'll enter your payment details on the next step.</p>
                          </div>
                      </div>
                  </div>
@@ -311,14 +329,18 @@
 
              <!-- Footer -->
              <div class="flex space-x-3 gap-3 px-6 py-4">
-                 <button id="cancelDiscountBtn" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
+                 <button id="cancelDiscountBtn"
+                     class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
                      Cancel
                  </button>
-                 <button type="submit" id="submitTemplatesBtn" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                 <button type="submit" id="submitTemplatesBtn"
+                     class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
                      <span id="btnText"> Pay </span> <span data-field="Payamount"></span>
 
-                     <svg id="btnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                     <svg id="btnSpinner" xmlns="http://www.w3.org/2000/svg"
+                         class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                             stroke-width="4"></circle>
                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                      </svg>
                  </button>
@@ -332,224 +354,230 @@
 
 
  @push('js')
- <script>
-     document.addEventListener('DOMContentLoaded', () => {
-         const modalWrapper = document.getElementById('discountModalWrapper');
-         const openBtns = document.querySelectorAll('.openDiscountModal');
-         const closeBtn = document.getElementById('closeDiscountModalBtn');
-         const cancelBtn = document.getElementById('cancelDiscountBtn');
+     <script>
+         document.addEventListener('DOMContentLoaded', () => {
+             const modalWrapper = document.getElementById('discountModalWrapper');
+             const openBtns = document.querySelectorAll('.openDiscountModal');
+             const closeBtn = document.getElementById('closeDiscountModalBtn');
+             const cancelBtn = document.getElementById('cancelDiscountBtn');
 
-         //  Always default to New Card when opening modal
-         const cardOption = document.getElementById('cardOption');
-         const newCardFields = document.getElementById('newCardFields');
-         const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
+             //  Always default to New Card when opening modal
+             const cardOption = document.getElementById('cardOption');
+             const newCardFields = document.getElementById('newCardFields');
+             const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
 
-         cardOption.value = 'NewCard';
-         newCardFields.classList.remove('hidden');
-         if (cardOnFileDropdown) cardOnFileDropdown.classList.add('hidden');
+             cardOption.value = 'NewCard';
+             newCardFields.classList.remove('hidden');
+             if (cardOnFileDropdown) cardOnFileDropdown.classList.add('hidden');
 
-         // Loop through all open buttons
-         openBtns.forEach(btn => {
-             btn.addEventListener('click', () => {
-                 document.querySelector('#discountModalWrapper [data-field="invoice"]').textContent = btn.dataset.invoice;
-                 document.querySelector('#discountModalWrapper [data-field="due"]').textContent = btn.dataset.due;
-                 document.querySelector('#discountModalWrapper [data-field="amount"]').textContent = btn.dataset.amount;
-                 document.querySelector('#discountModalWrapper [data-field="Payamount"]').textContent = btn.dataset.amount;
+             // Loop through all open buttons
+             openBtns.forEach(btn => {
+                 btn.addEventListener('click', () => {
+                     document.querySelector('#discountModalWrapper [data-field="invoice"]')
+                         .textContent = btn.dataset.invoice;
+                     document.querySelector('#discountModalWrapper [data-field="due"]').textContent =
+                         btn.dataset.due;
+                     document.querySelector('#discountModalWrapper [data-field="amount"]')
+                         .textContent = btn.dataset.amount;
+                     document.querySelector('#discountModalWrapper [data-field="Payamount"]')
+                         .textContent = btn.dataset.amount;
 
-                 document.querySelector('#amount').value = btn.dataset.amount;
-                 document.querySelector('#invoice_id').value = btn.dataset.invoice;
+                     document.querySelector('#amount').value = btn.dataset.amount;
+                     document.querySelector('#invoice_id').value = btn.dataset.invoice;
 
-                 modalWrapper.style.display = 'flex';
+                     modalWrapper.style.display = 'flex';
+                 });
              });
+
+             const closeModal = () => {
+                 modalWrapper.style.display = 'none';
+             };
+
+             if (closeBtn) closeBtn.addEventListener('click', closeModal);
+             if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
          });
+     </script>
 
-         const closeModal = () => {
-             modalWrapper.style.display = 'none';
-         };
+     <!-- payment getway seeting  -->
 
-         if (closeBtn) closeBtn.addEventListener('click', closeModal);
-         if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
-     });
- </script>
+     @if ($paymentSetting['payment_test_mode'] ?? false)
+         <script src="https://jstest.authorize.net/v1/Accept.js"></script>
+     @else
+         <script src="https://js.authorize.net/v1/Accept.js"></script>
+     @endif
 
- <!-- payment getway seeting  -->
+     <script>
+         document.addEventListener('DOMContentLoaded', function() {
 
- @if ( $paymentSetting['payment_api_public_key'] ?? false)
- <script src="https://jstest.authorize.net/v1/Accept.js"></script>
- @else
- <script src="https://js.authorize.net/v1/Accept.js"></script>
- @endif
+             const form = document.getElementById('recordpayment');
+             const creditCardOptions = document.getElementById('creditCardOptions');
+             const cardOption = document.getElementById('cardOption');
+             const newCardFields = document.getElementById('newCardFields');
+             const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
+             const cardNumberInput = document.getElementById('cardNumber');
+             const expiryInput = document.getElementById('expiry');
+             const cvcInput = document.getElementById('cvc');
+             const submitBtn = document.getElementById('submitTemplatesBtn');
+             const btnText = document.getElementById('btnText');
+             const btnSpinner = document.getElementById('btnSpinner');
 
- <script>
-     document.addEventListener('DOMContentLoaded', function() {
+             // ===== Show/hide card sections =====
 
-         const form = document.getElementById('recordpayment');
-         const creditCardOptions = document.getElementById('creditCardOptions');
-         const cardOption = document.getElementById('cardOption');
-         const newCardFields = document.getElementById('newCardFields');
-         const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
-         const cardNumberInput = document.getElementById('cardNumber');
-         const expiryInput = document.getElementById('expiry');
-         const cvcInput = document.getElementById('cvc');
-         const submitBtn = document.getElementById('submitTemplatesBtn');
-         const btnText = document.getElementById('btnText');
-         const btnSpinner = document.getElementById('btnSpinner');
-
-         // ===== Show/hide card sections =====
-
-         cardOption.addEventListener('change', function() {
-             console.log("Card option changed:", this.value);
-             if (this.value === 'NewCard') {
-                 newCardFields.classList.remove('hidden');
-                 cardOnFileDropdown.classList.add('hidden');
-             } else {
-                 newCardFields.classList.add('hidden');
-                 cardOnFileDropdown.classList.remove('hidden');
-             }
-         });
-
-         // ===== Input formatting =====
-         cardNumberInput.addEventListener('input', function() {
-             this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim();
-         });
-
-         expiryInput.addEventListener('input', function() {
-             let val = this.value.replace(/[^0-9]/g, '').substring(0, 4);
-             if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2);
-             this.value = val;
-         });
-
-         cvcInput.addEventListener('input', function() {
-             this.value = this.value.replace(/\D/g, '').substring(0, 4);
-         });
-
-         // ===== Submit handler =====
-         form.addEventListener('submit', function(e) {
-             e.preventDefault();
-             console.log(" Form submit triggered");
-
-
-             // If using existing card, skip tokenization
-
-             if (cardOption.value === 'CardOnFile') {
-                 console.log(" Using existing card, skipping tokenization");
-
-                 //  Now check Parsley validation before final submit
-                 if ($(form).parsley().isValid()) {
-                     console.log(" Form validation passed — submitting now");
-                     form.submit();
+             cardOption.addEventListener('change', function() {
+                 console.log("Card option changed:", this.value);
+                 if (this.value === 'NewCard') {
+                     newCardFields.classList.remove('hidden');
+                     cardOnFileDropdown.classList.add('hidden');
                  } else {
-                     console.warn(" Form validation failed for existing card");
-                     notyf.error("Please fix the form errors before submitting.");
+                     newCardFields.classList.add('hidden');
+                     cardOnFileDropdown.classList.remove('hidden');
                  }
-                 return; // Stop further processing
-             }
+             });
+
+             // ===== Input formatting =====
+             cardNumberInput.addEventListener('input', function() {
+                 this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ')
+             .trim();
+             });
+
+             expiryInput.addEventListener('input', function() {
+                 let val = this.value.replace(/[^0-9]/g, '').substring(0, 4);
+                 if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2);
+                 this.value = val;
+             });
+
+             cvcInput.addEventListener('input', function() {
+                 this.value = this.value.replace(/\D/g, '').substring(0, 4);
+             });
+
+             // ===== Submit handler =====
+             form.addEventListener('submit', function(e) {
+                 e.preventDefault();
+                 console.log(" Form submit triggered");
 
 
-             const cardOpt = cardOption.value;
+                 // If using existing card, skip tokenization
 
-             // Show loader immediately
-             submitBtn.disabled = true;
-             btnText.textContent = 'Processing...';
-             btnSpinner.classList.remove('hidden');
-             console.log(" Loader shown, starting tokenization");
-
-             try {
-                 // Parse expiry
-                 let [expMonth, expYearShort] = expiryInput.value.split('/');
-                 expMonth = expMonth?.trim();
-                 expYearShort = expYearShort?.trim();
-                 let expYear = '';
-                 if (expYearShort?.length === 2) expYear = '20' + expYearShort;
-                 else if (expYearShort?.length === 4) expYear = expYearShort;
-
-                 console.log(" Expiry parsed:", expMonth, expYear);
-
-                 // Tokenize
-                 Accept.dispatchData({
-                     authData: {
-                         clientKey: "{{ Crypt::decryptString($paymentSetting['payment_api_public_key']) ?? '' }}",
-                         apiLoginID: "{{ Crypt::decryptString($paymentSetting['payment_api_key']) ?? '' }}"
-                     },
-                     cardData: {
-                         cardNumber: cardNumberInput.value.replace(/\s/g, ''),
-                         month: expMonth,
-                         year: expYear,
-                         cardCode: cvcInput.value,
-                     }
-                 }, function(response) {
-                     console.log(" Tokenization response:", response);
-
-                     if (response.messages.resultCode === 'Error') {
-                         let errorMsg = response.messages.message?.[0]?.text || "Tokenization failed.";
-
-                         console.error(" Tokenization error:", errorMsg);
-
-                         notyf.error(errorMsg);
-
-                         // Reset UI
-                         submitBtn.disabled = false;
-                         btnText.textContent = 'pay';
-                         btnSpinner.classList.add('hidden');
-                         return; // Stop submit
-                     }
-
-                     console.log(" Tokenization success — Opaque Data:", response.opaqueData);
-
-                     notyf.success("Payment details validated successfully!");
+                 if (cardOption.value === 'CardOnFile') {
+                     console.log(" Using existing card, skipping tokenization");
 
                      //  Now check Parsley validation before final submit
                      if ($(form).parsley().isValid()) {
                          console.log(" Form validation passed — submitting now");
-
-                         document.getElementById('opaqueDataValue').value = response.opaqueData.dataValue;
-                         document.getElementById('opaqueDataDescriptor').value = response.opaqueData.dataDescriptor;
-
                          form.submit();
-
                      } else {
-                         console.warn(" Form validation failed after tokenization");
+                         console.warn(" Form validation failed for existing card");
                          notyf.error("Please fix the form errors before submitting.");
-
-                         submitBtn.disabled = false;
-                         btnText.textContent = 'pay';
-                         btnSpinner.classList.add('hidden');
                      }
+                     return; // Stop further processing
+                 }
 
-                 });
 
-             } catch (error) {
-                 console.error(" Tokenization JS error:", error);
-                 notyf.error("Something went wrong during payment processing.");
+                 const cardOpt = cardOption.value;
 
-                 // Reset UI
-                 submitBtn.disabled = false;
-                 btnText.textContent = 'pay';
-                 btnSpinner.classList.add('hidden');
+                 // Show loader immediately
+                 submitBtn.disabled = true;
+                 btnText.textContent = 'Processing...';
+                 btnSpinner.classList.remove('hidden');
+                 console.log(" Loader shown, starting tokenization");
 
-                 return; // Stop submit
-             }
+                 try {
+                     // Parse expiry
+                     let [expMonth, expYearShort] = expiryInput.value.split('/');
+                     expMonth = expMonth?.trim();
+                     expYearShort = expYearShort?.trim();
+                     let expYear = '';
+                     if (expYearShort?.length === 2) expYear = '20' + expYearShort;
+                     else if (expYearShort?.length === 4) expYear = expYearShort;
+
+                     console.log(" Expiry parsed:", expMonth, expYear);
+
+                     // Tokenize
+                     Accept.dispatchData({
+                         authData: {
+                             clientKey: "{{ Crypt::decryptString($paymentSetting['payment_api_public_key']) ?? '' }}",
+                             apiLoginID: "{{ Crypt::decryptString($paymentSetting['payment_api_key']) ?? '' }}"
+                         },
+                         cardData: {
+                             cardNumber: cardNumberInput.value.replace(/\s/g, ''),
+                             month: expMonth,
+                             year: expYear,
+                             cardCode: cvcInput.value,
+                         }
+                     }, function(response) {
+                         console.log(" Tokenization response:", response);
+
+                         if (response.messages.resultCode === 'Error') {
+                             let errorMsg = response.messages.message?.[0]?.text ||
+                                 "Tokenization failed.";
+
+                             console.error(" Tokenization error:", errorMsg);
+
+                             notyf.error(errorMsg);
+
+                             // Reset UI
+                             submitBtn.disabled = false;
+                             btnText.textContent = 'pay';
+                             btnSpinner.classList.add('hidden');
+                             return; // Stop submit
+                         }
+
+                         console.log(" Tokenization success — Opaque Data:", response.opaqueData);
+
+                         notyf.success("Payment details validated successfully!");
+
+                         //  Now check Parsley validation before final submit
+                         if ($(form).parsley().isValid()) {
+                             console.log(" Form validation passed — submitting now");
+
+                             document.getElementById('opaqueDataValue').value = response.opaqueData
+                                 .dataValue;
+                             document.getElementById('opaqueDataDescriptor').value = response
+                                 .opaqueData.dataDescriptor;
+
+                             form.submit();
+
+                         } else {
+                             console.warn(" Form validation failed after tokenization");
+                             notyf.error("Please fix the form errors before submitting.");
+
+                             submitBtn.disabled = false;
+                             btnText.textContent = 'pay';
+                             btnSpinner.classList.add('hidden');
+                         }
+
+                     });
+
+                 } catch (error) {
+                     console.error(" Tokenization JS error:", error);
+                     notyf.error("Something went wrong during payment processing.");
+
+                     // Reset UI
+                     submitBtn.disabled = false;
+                     btnText.textContent = 'pay';
+                     btnSpinner.classList.add('hidden');
+
+                     return; // Stop submit
+                 }
+
+             });
 
          });
+     </script>
 
-     });
- </script>
-
- <!-- payment getway seeting  -->
+     <!-- payment getway seeting  -->
 
  @endpush
 
  @push('js')
- <script>
-     document.addEventListener('DOMContentLoaded', () => {
-         const updateLink = document.getElementById('updateAddressLink');
-         updateLink?.addEventListener('click', () => {
+     <script>
+         document.addEventListener('DOMContentLoaded', () => {
+             const updateLink = document.getElementById('updateAddressLink');
+             updateLink?.addEventListener('click', () => {
 
-             setTimeout(() => document.getElementById('editBtn')?.click(), 300);
+                 setTimeout(() => document.getElementById('editBtn')?.click(), 300);
 
+             });
          });
-     });
- </script>
-
-
+     </script>
  @endpush

@@ -390,4 +390,33 @@ Equipment through web only be soft assignment
     - If `current_order_product_id` is not null, the equipment is considered hard-assigned.
     - If checklist questions are not answered, the equipment is also considered hard-assigned.
 
-44|EhLvIzZzAlYc793ZcGe2yR5j2zSQndqYuXyrSs2i614e15d7
+## Database Tables: Fresh Start Truncate List
+
+The following tables should be truncated when performing a "fresh start" reset of the application data:
+
+- `customer_accounts`
+- `customer_cards`
+- `customer_notes`
+- `customer_addresses`
+- `customers`
+- `invoices`
+- `invoice_items`
+
+- `receipts`
+- `receipt_items`
+
+- `order_addresses`
+- `order_extra_charges`
+- `order_histories`
+- `order_media`
+- `order_notes`
+- `order_payments`
+- `order_product_checklist_question_answers`
+- `order_product_checklist_questions`
+- `order_product_damage_charge_logs`
+- `order_product_funnel_logs`
+- `order_products`
+- `orders`
+
+> **Note:** Truncating these tables will remove all customer and order-related data, ensuring a clean state for testing or development.
+

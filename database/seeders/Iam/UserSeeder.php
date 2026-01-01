@@ -58,6 +58,9 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('K@bba!9XrT#L2pQ'),
                 'status' => 'Active',
             ],
+        ];
+
+        $demoUsers =[
             [
                 'first_name' => 'Sue',
                 'last_name' => 'Perb',
@@ -143,6 +146,10 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
         ];
+
+        if (config('app.demo_enabled') === true) {
+            $users = array_merge($users, $demoUsers);
+        }
 
         $role_item = \Spatie\Permission\Models\Role::orderBy('id', 'ASC')->first();
 

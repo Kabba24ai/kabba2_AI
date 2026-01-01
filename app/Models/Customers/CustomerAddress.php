@@ -63,7 +63,7 @@ class CustomerAddress extends Model
 
     public function getFullAddressAttribute()
     {
-        return trim("{$this->address}, {$this->city}, {$this->state->name}, {$this->zip_code}");
+        return trim("{$this->address}, {$this->city}, {$this->state?->name}, {$this->zip_code}");
     }
 
     public function getStateNameAttribute()

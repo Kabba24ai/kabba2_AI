@@ -215,4 +215,6 @@ return [
 
     'super_admin_passcode' => env('SUPER_ADMIN_PASSCODE', '12345678'),
 
+    'demo_enabled' => env('DEMO_ENABLED', false),
+
 ];

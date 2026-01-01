@@ -82,8 +82,8 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <select id="supplierpartCategory" name="category" class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                 <option value="">All Categories</option>
-                @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->title }}</option>
+                 @foreach ($categories as $id => $title)
+                                <option value="{{ $id }}">{{ $title }}</option>
                                 @endforeach
             </select>
         </div>

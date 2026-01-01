@@ -14,6 +14,13 @@ use Database\Seeders\Configurations\EncryptedSettingSeeder;
 use Database\Seeders\Iam\ModuleSeeder;
 use Database\Seeders\Iam\RoleSeeder;
 use Database\Seeders\Iam\UserSeeder;
+
+use Database\Seeders\Iam\VacationDaySeeder;
+use Database\Seeders\Iam\VacationHourSeeder;
+use Database\Seeders\Iam\AchievementGoalSeeder;
+use Database\Seeders\Iam\VacationRequestHoursSeeder;
+
+
 use Database\Seeders\Locations\StateSeeder;
 use Database\Seeders\MaintenanceManagement\SupplierSeeder;
 use Database\Seeders\Stores\StoreSeeder;
@@ -37,6 +44,12 @@ class DatabaseSeeder extends Seeder
         $this->call(ColorSeeder::class); // fourth to create settings
         $this->call(TermsSeeder::class); // fourth to create settings
         $this->call(SupplierSeeder::class); // fourth to create settings
+
+        $this->call(VacationDaySeeder::class); // fourth to create settings
+        $this->call(VacationHourSeeder::class); // fourth to create settings
+        $this->call(AchievementGoalSeeder::class); // fourth to create settings
+        $this->call(VacationRequestHoursSeeder::class); // fourth to create settings
+
 
 
     }

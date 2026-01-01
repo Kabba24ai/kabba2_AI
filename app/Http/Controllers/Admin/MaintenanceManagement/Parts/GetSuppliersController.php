@@ -10,7 +10,7 @@ class GetSuppliersController extends Controller
 {
     public function __invoke()
     {
-        $suppliers = Supplier::with('state')->get();
+        $suppliers = Supplier::with('state')->orderBy('name', 'asc')->get();
 
         $data = $suppliers->map(function ($supplier) {
             $parts = Part::where('primary_part_supplier_id', $supplier->unique_id)

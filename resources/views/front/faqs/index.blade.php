@@ -2,6 +2,24 @@
 
 @section('title', $title)
 
+@push('meta')
+<meta name="description" content="Rental equipment delivered to your doorstep or job site.
+
+A new kind of equipment rental company in Dickson &amp; Hickman county to service the busy schedules of the construction industry, contractors and serious DIY homeowners.
+
+When time is money… we put the money in your pocket!">
+<link rel="canonical" href="/faqs">
+<meta property="og:site_name" content="Equipment Rentals Hickman / Dickson County">
+<meta property="og:title" content="FAQs">
+<meta property="og:description" content="">
+<meta property="og:url" content="/faqs">
+<meta property="og:type" content="article">
+
+<meta name="twitter:title" content="FAQs">
+<meta name="twitter:description" content="">
+
+@endpush
+
 @section('content')
 <!-- Page Title Section -->
 <style>

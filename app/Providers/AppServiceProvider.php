@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Observers\EquipmentObserver;
 
+use App\Models\Iam\Personnel\TimeEntry;
+use App\Observers\TimeEntryObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
 
            //  REGISTER OBSERVER
     Equipment::observe(EquipmentObserver::class);
+    TimeEntry::observe(TimeEntryObserver::class);
     }
 
     private function enableHttps(): void

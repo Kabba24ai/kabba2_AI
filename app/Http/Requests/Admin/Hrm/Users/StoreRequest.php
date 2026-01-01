@@ -40,6 +40,11 @@ class StoreRequest extends FormRequest
             'clockCode' => ['nullable'],
             'limit_start' => ['nullable', 'boolean'],
             'limit_end' => ['nullable', 'boolean'],
+
+     'shift_start_time' => ['nullable'],
+'shift_end_time'   => ['nullable'],
+
+            
             // Emergency Contact 1
             'emergency_first_name' => ['nullable'],
             'emergency_middle_name' => ['nullable'],

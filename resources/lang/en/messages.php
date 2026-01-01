@@ -32,5 +32,11 @@ return [
 
             ],
         ],
+
+        'time_tracker' => [
+            'v1' => [
+                'auth' => require base_path('resources/lang/en/api/time_tracker/v1/auth/messages.php'),
+            ],
+        ],
     ],
 ];

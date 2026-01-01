@@ -44,6 +44,14 @@ class User extends Authenticatable
         'limit_end_time',
         'status', // 'Active' or 'Inactive'
         'password',
+
+
+        'shift_start_time',
+        'shift_end_time',
+        'vacation_eligible',
+        'vacation_allotment_hour_id',
+        'vacation_start_day_id',
+
     ];
 
     protected $appends = ['full_name', 'role_short_names'];
@@ -142,4 +150,54 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserDevice::class, 'user_id', 'id');
     }
+
+    public function vacationStartDay()
+    {
+        return $this->belongsTo(
+            VacationDay::class,
+            'vacation_start_day_id'
+        );
+    }
+
+    public function vacationAllotmentHour()
+    {
+        return $this->belongsTo(
+            VacationHour::class,
+            'vacation_allotment_hour_id'
+        );
+    }
+
+
+
+    public function timeEntries()
+    {
+        return $this->hasMany(TimeEntry::class, 'employee_id');
+    }
+
+    public function activeTimeEntry()
+    {
+        return $this->hasOne(TimeEntry::class, 'employee_id')
+            ->whereNull('clock_out')
+            ->where('status', 'active');
+    }
+
+
+    public function vacationRequests()
+    {
+        return $this->hasMany(
+            VacationRequest::class,
+            'employee_id'
+        );
+    }
+
+    public function approvedVacationRequests()
+    {
+        return $this->hasMany(
+            VacationRequest::class,
+            'approved_by'
+        );
+    }
+
+
+
 }

@@ -23,7 +23,7 @@ class IndexController extends Controller
         session()->forget('order.cart_data');
 
         return view('front.home.index', [
-            'title' => 'Home',
+            'title' => 'Equipment Rentals Hickman / Dickson County',
             'category_tree'=> $category_tree,
             'cart_data' => $cartData,
         ])->with('success', 'Something went wrong. Please try again.');

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ExceptionHandling
 {
@@ -28,6 +29,21 @@ class ExceptionHandling
         ) {
             return self::handleTokenMismatchException($request);
         }
+
+
+        //   // 404 → MASTER 301 redirect to homepage
+        // if ($exception instanceof NotFoundHttpException) {
+
+        //     // Prevent infinite redirect loop
+        //     if ($request->path() === '/') {
+        //         return null;
+        //     }
+
+        //     return redirect('/', 301);
+        // }
+
+        // // Let Laravel handle everything else
+        // return null;
 
     }
 

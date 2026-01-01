@@ -406,6 +406,45 @@
                 </label>
             </div>
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+
+            {{-- Shift Start Time --}}
+            <div class="flex flex-col items-start">
+                <label class="block text-xs font-medium text-gray-500 mb-0.5">
+                    Shift Start Time
+                </label>
+
+                <input
+                    type="text"
+                    name="shift_start_time"
+                    value="{{ old('shift_start_time', $user->shift_start_time ?? '') }}"
+                    class="time-picker border rounded px-3 py-3 text-xs w-full"
+                    placeholder="Select time"
+                    
+                    readonly
+                >
+            </div>
+
+            {{-- Shift End Time --}}
+            <div class="flex flex-col items-start">
+                <label class="block text-xs font-medium text-gray-500 mb-0.5">
+                    Shift End Time
+                </label>
+
+                <input
+                    type="text"
+                    name="shift_end_time"
+                    value="{{ old('shift_end_time', $user->shift_end_time ?? '') }}"
+                    class="time-picker border rounded px-3 py-3 text-xs w-full"
+                    placeholder="Select time"
+                    
+                    readonly
+                >
+            </div>
+
+        </div>
+
     </div>
 
     <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
@@ -822,6 +861,65 @@
             return response.valid === true;
         });
 
+
+        const shiftStartInput = document.querySelector('input[name="shift_start_time"]');
+
+if (shiftStartInput) {
+    let lastValue = shiftStartInput.value
+        ? flatpickr.parseDate(shiftStartInput.value, "h:i K")
+        : null;
+
+    flatpickr(shiftStartInput, {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "h:i K",
+        time_24hr: false,
+
+        onClose: function (_, dateStr) {
+            const newValue = dateStr
+                ? flatpickr.parseDate(dateStr, "h:i K")
+                : null;
+
+            const changed =
+                (lastValue && newValue && newValue.getTime() !== lastValue.getTime()) ||
+                (!lastValue && newValue);
+
+            if (changed) {
+                // Optional: AJAX save OR just update hidden input
+                lastValue = newValue;
+            }
+        }
+    });
+}
+
+const shiftEndInput = document.querySelector('input[name="shift_end_time"]');
+
+if (shiftEndInput) {
+    let lastValue = shiftEndInput.value
+        ? flatpickr.parseDate(shiftEndInput.value, "h:i K")
+        : null;
+
+    flatpickr(shiftEndInput, {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "h:i K",
+        time_24hr: false,
+
+        onClose: function (_, dateStr) {
+            const newValue = dateStr
+                ? flatpickr.parseDate(dateStr, "h:i K")
+                : null;
+
+            const changed =
+                (lastValue && newValue && newValue.getTime() !== lastValue.getTime()) ||
+                (!lastValue && newValue);
+
+            if (changed) {
+                lastValue = newValue;
+            }
+        }
+    });
+}
 
     });
 </script>

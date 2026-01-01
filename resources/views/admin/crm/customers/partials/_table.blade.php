@@ -136,7 +136,7 @@
                         </button>
                     </form>
 
-                    </a>
+                   
 
                 </td>
             </tr>
@@ -171,7 +171,7 @@
 
 
 <!-- delete- -->
-<script>
+<!-- <script>
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.delete-customer-form').forEach(function(form) {
             form.addEventListener('submit', function(e) {
@@ -190,8 +190,31 @@
             });
         });
     });
-</script>
+</script> -->
 
 <!-- delete- -->
+
+
+<script>
+document.addEventListener('submit', function (e) {
+  const form = e.target.closest('.delete-customer-form');
+  if (!form) return;
+
+  e.preventDefault();
+
+  const name = form.dataset.customerName || 'this customer';
+
+  window.showConfirm(
+    `Delete "${name}"? This action cannot be undone!`,
+    'Delete customer'
+  ).then(result => {
+    if (result.isConfirmed) {
+      form.submit();
+    }
+  });
+});
+</script>
+
+
 
 @endpush

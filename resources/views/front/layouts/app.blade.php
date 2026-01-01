@@ -13,6 +13,9 @@
     <link rel="shortcut icon" href="{{ asset('storage/front/images/fav.png') }}">
 
     <title>@yield('title', config('app.name'))</title>
+    
+    @stack('meta')
+
 
     @vite([
         'resources/front/assets/css/app.css',

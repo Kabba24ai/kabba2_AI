@@ -24,16 +24,17 @@
         <tr class="hover:bg-gray-50 transition-colors">
 
          <td class="py-4 px-6 whitespace-nowrap">
-                <span class="text-sm text-gray-900">
-                  @if($part->partsLists->isNotEmpty())
-        @foreach($part->partsLists as $list)
-                {{ $list->category->title ?? '—' }}
+               <span class="text-sm text-gray-900">
+    @php
+        $categories = $part->partsLists
+            ->pluck('category.title')
+            ->filter()
+            ->unique();
+    @endphp
 
-        @endforeach
-    @else
-        -
-    @endif
-                </span>
+    {{ $categories->isNotEmpty() ? $categories->implode(', ') : '-' }}
+</span>
+
             </td>
 
 

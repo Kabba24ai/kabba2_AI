@@ -40,7 +40,7 @@ class IndexController extends Controller
         }
 
         return view('front.faqs.index', [
-            'title' => 'Frequently Asked Questions',
+            'title' => 'FAQs - Equipment Rentals Hickman / Dickson County',
             'categories' => $categories,
             'search' => $search,
             'matchedFaqIds' => $matchedFaqIds,

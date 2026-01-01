@@ -15,7 +15,7 @@ class IndexController extends Controller
     {
         $stores = Store::with('state')->active()->get();
         return view('front.contact_us.index',[
-            'title'=> 'Contact Us',
+            'title'=> 'Contact - Equipment Rentals Hickman / Dickson County',
             'stores' => $stores
         ]);
     }

@@ -20,31 +20,29 @@ class EditController extends Controller
 
         // $categories = ProductCategory::with('products', 'equipments')->get();
         // Load categories with sorted relationships
-        $categories = ProductCategory::with([
-            'products',
-            'equipments' => function ($q) {
-                $q->orderBy('equipment_name', 'asc'); // SORT HERE
-            }
-        ])->get();
+        // $categories = ProductCategory::with([
+        //     'products',
+        //     'equipments' => function ($q) {
+        //         $q->orderBy('equipment_name', 'asc'); // SORT HERE
+        //     }
+        // ])->get();
 
-        $parts = Part::with('category')->get();
+         $hierarchy = ProductCategory::getHierarchy();
+        
+            $categories = ProductCategory::with([
+                'products',
+                'equipments' => fn ($q) => $q->orderBy('equipment_name', 'asc'),
+            ])
+            ->whereIn('id', array_keys($hierarchy))
+            ->get()
+            ->sortBy(fn ($cat) => array_search($cat->id, array_keys($hierarchy)))
+            ->values();
 
-//          // Add specific assignment status
-//    foreach ($parts as $part) {
-//     // Assigned to this current list?
-//     $assignedToThis = $part->isAssigned($list->id);
+            $categories->each(function ($category) use ($hierarchy) {
+                $category->hierarchy_title = $hierarchy[$category->id] ?? $category->title;
+            });
 
-//     // Assigned globally?
-//     $assignedGlobal = $part->isAssigned();
-
-//     // Override assigned field meaning for edit mode:
-//     // assigned == assigned to THIS list
-//     $part->assigned = $assignedToThis;
-
-//     // New variable for blade:
-//     $part->assigned_other = $assignedGlobal && !$assignedToThis;
-// }
-
+        $parts = Part::with('category')->orderBy('part_name')->get();
 
 
         $selectedPartIds = $list->parts->pluck('id')->toArray();

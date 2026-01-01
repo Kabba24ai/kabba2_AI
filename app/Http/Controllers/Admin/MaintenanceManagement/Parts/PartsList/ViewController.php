@@ -14,7 +14,7 @@ class ViewController extends Controller
         $list = PartsList::with(['creator', 'category', 'parts.category', 'parts.primarySupplier'])->where('unique_id', $unique_id)->firstOrFail();
 
         // Load all parts for reference (if needed for filters)
-        $parts = Part::with('category')->get();
+        $parts = Part::with('category')->orderBy('part_name')->get();
 
         // Compute total template value
         $totalValue = $list->parts->sum(function ($part) {

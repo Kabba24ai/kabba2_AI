@@ -21,7 +21,7 @@ class CreateController extends Controller
 
         $suppliers = Supplier::orderBy('name')->get(['unique_id', 'name']);
 
-        $list = PartsList::get();
+        $list = PartsList::orderBy('name')->get();
 
         return view('admin.maintenance_management.parts.create', compact('categories', 'suppliers','list'));
     }

@@ -10,6 +10,8 @@ use App\Helpers\CustomHelper;
 use App\Http\Requests\Admin\Hrm\Users\UpdateRequest;
 use App\Models\Iam\AccessControl\Role;
 use Hash;
+use Carbon\Carbon;
+
 
 class UpdateController extends Controller
 {
@@ -50,6 +52,14 @@ class UpdateController extends Controller
                 'limit_start_time' => $validated['limit_start'] ?? false,
 
                 'limit_end_time' => $validated['limit_end'] ?? false,
+
+                'shift_start_time' => !empty($validated['shift_start_time'])
+        ? Carbon::createFromFormat('h:i A', $validated['shift_start_time'])->format('H:i')
+        : null,
+
+    'shift_end_time' => !empty($validated['shift_end_time'])
+        ? Carbon::createFromFormat('h:i A', $validated['shift_end_time'])->format('H:i')
+        : null,
             ];
 
             // Only update password if provided

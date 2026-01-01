@@ -24,7 +24,7 @@ class EditController extends Controller
 
         $suppliers = Supplier::orderBy('name')->get(['unique_id', 'name']);
 
-   $list = PartsList::get();
+   $list = PartsList::orderBy('name')->get();
         // dd($part);
 
         return view('admin.maintenance_management.parts.edit', compact('part', 'categories', 'equipmentOptions', 'suppliers','list'));

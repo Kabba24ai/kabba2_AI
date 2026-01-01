@@ -12,6 +12,7 @@ use App\Helpers\CustomHelper;
 use App\Http\Requests\Admin\Hrm\Users\StoreRequest;
 use App\Models\Iam\AccessControl\Role;
 use Hash;
+use Carbon\Carbon;
 
 class StoreController extends Controller
 {
@@ -23,8 +24,6 @@ class StoreController extends Controller
         $validated = $request->validated();
 
         $password = $validated['password'] ?? '12345678' ;
-
-        // dd($password);
 
         DB::beginTransaction();
 
@@ -47,6 +46,15 @@ class StoreController extends Controller
                 'status'         => $validated['status'] ?? 'Active',
                 'limit_start_time' => $validated['limit_start'] ?? false,
                 'limit_end_time' => $validated['limit_end'] ?? false,
+
+                'shift_start_time' => !empty($validated['shift_start_time'])
+        ? Carbon::createFromFormat('h:i A', $validated['shift_start_time'])->format('H:i')
+        : null,
+
+    'shift_end_time' => !empty($validated['shift_end_time'])
+        ? Carbon::createFromFormat('h:i A', $validated['shift_end_time'])->format('H:i')
+        : null,
+
                 'password' => Hash::make($password),
             ];
 

@@ -46,9 +46,9 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
             $q->where('equipment_name', 'like', '%' . $search . '%');
         });
 
-$query->when($request->equipment_id, function ($q, $equipmentId) {
-    $q->where('equipment_id', $equipmentId);
-});
+        $query->when($request->equipment_id, function ($q, $equipmentId) {
+            $q->where('equipment_id', $equipmentId);
+        });
 
 
         // Category filter

@@ -67,7 +67,7 @@
                         class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white">
                         <option value="">All Categories</option>
                         @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->title }}</option>
+                        <option value="{{ $category->id }}">{{ $category->hierarchy_title  }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -80,7 +80,7 @@
                 <div class="mb-3" data-category-id="{{ $category->id }}">
                     <!-- Category title -->
                     <h3 class="text-sm font-semibold text-gray-700 mb-2">
-                        {{ $category->title }}
+                        {{ $category->hierarchy_title }}
                     </h3>
 
                     <!-- Products under this category -->

@@ -150,6 +150,7 @@
         const buttons = clickedBtn.closest('[data-tab-group]').querySelectorAll('button');
         buttons.forEach(btn => {
             if (group === 'main') {
+                
                 btn.classList.remove('bg-green-100', 'text-green-800');
                 btn.classList.add('text-gray-700');
             } else if (group === 'inner') {

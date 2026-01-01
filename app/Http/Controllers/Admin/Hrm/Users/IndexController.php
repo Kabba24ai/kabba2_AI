@@ -25,7 +25,7 @@ class IndexController extends Controller
     {
 
     //    $users = User::with('roles')->get();
-       $query = User::with('roles');
+       $query = User::with('roles')->orderBy('first_name');
 
       // Name filter
     if ($request->filled('search_name')) {

@@ -6,6 +6,14 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
 
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+
+
+
+
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         //web: __DIR__ . '/../routes/web.php',
@@ -24,6 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
+
+            'role' => RoleMiddleware::class,
+                'permission' => PermissionMiddleware::class,
+                'role_or_permission' => RoleOrPermissionMiddleware::class,
+
+                    'role.short' => \App\Http\Middleware\CheckRoleShortName::class,
+
+
             'prevent-back-history' => \App\Http\Middleware\PreventBackHistoryMiddleware::class,
 
             // Front Middleware
@@ -33,6 +49,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'customer.active' => \App\Http\Middleware\Front\EnsureCustomerIsActive::class,
 
         ]);
+
+
+      
 
         $middleware->redirectGuestsTo(function () {
             return request()->getHost() === config('app.domains.front')

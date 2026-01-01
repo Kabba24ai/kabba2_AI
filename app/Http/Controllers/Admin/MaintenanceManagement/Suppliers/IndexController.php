@@ -127,8 +127,9 @@ class IndexController extends Controller
         $states = State::get();
 
         // dd($parts);
-                 $categories = ProductCategory::with('products', 'equipments')->get();
-   
+                //  $categories = ProductCategory::with('products', 'equipments')->get();
+                
+        $categories = ProductCategory::getHierarchy();
 
         if ($request->ajax()) {
             $tableView = view('admin.maintenance_management.suppliers.partials._table', compact('suppliers'))->render();

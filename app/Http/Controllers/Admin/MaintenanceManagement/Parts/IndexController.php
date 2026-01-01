@@ -17,11 +17,12 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
 
-            $equipments = Equipment::get();
+            $equipments = Equipment::orderBy('equipment_name', 'asc')->get();
 
-            $allpartlists = PartsList::get();
+            $allpartlists = PartsList::orderBy('name', 'asc')->get();
 
-                 $categories = ProductCategory::with('products', 'equipments')->get();
+                //  $categories = ProductCategory::with('products', 'equipments')->get();
+                $categories = ProductCategory::getHierarchy();
 
          $query = Part::query()->with('category', 'templates',  'templates.category',
           'partsLists',
@@ -105,7 +106,7 @@ $parts = $query->paginate($perPageVal)->withQueryString();
 
         // Part List
 
-        $partlistQuery = PartsList::with(['creator', 'category', 'parts'])->latest();
+        $partlistQuery = PartsList::with(['creator', 'category', 'parts'])->orderBy('name', 'asc');
 
         if ($request->filled('tsearch')) {
             $partlistQuery->where('name', 'like', "%{$request->tsearch}%");
@@ -154,7 +155,7 @@ if ($request->has('tsearch') || $request->has('tcategory') || $request->has('tpl
 
         }
 
-        // dd($parts->first());
+        // dd($categories);
 
        return view('admin.maintenance_management.parts.index', compact( 'partlists', 'categories', 'stockCounts', 'equipments','allpartlists'));
 

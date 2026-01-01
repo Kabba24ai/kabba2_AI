@@ -165,8 +165,8 @@
                             <select id="partCategorys-filter" name="category"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-md text-sm text-gray-900">
                                 <option value="">All Categories</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->title }}</option>
+                                @foreach ($categories as $id => $title)
+                                    <option value="{{ $id }}">{{ $title }}</option>
                                 @endforeach
 
                             </select>
@@ -296,8 +296,8 @@
                                 <select id="tcategory" name="tcategory"
                                     class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900">
                                     <option value="">All Category</option>
-                                    @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}">{{ $category->title }}</option>
+                                  @foreach ($categories as $id => $title)
+                                        <option value="{{ $id }}">{{ $title }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -497,10 +497,7 @@ function closePartListModal() {
             })
             .then(response => response.json())
             .then(data => {
-                // console.log('Suppliers data:');
-                // console.log(data);
-                // console.log('Suppliers data:');
-
+               
                 // Assign response to global variable
                 SUPPLIERS_DATA = data;
 

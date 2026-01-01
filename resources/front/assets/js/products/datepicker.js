@@ -23,7 +23,7 @@ export function initDatepicker() {
         locale: window.airDatepickerLocaleEn,
         timepicker: false,
         dateFormat: scheduleStartDateInput.dataset.format || 'yyyy-MM-dd',
-        minDate: scheduleStartDateInput.dataset.minDate ? new Date(scheduleStartDateInput.dataset.minDate) : false,
+        minDate: scheduleStartDateInput.dataset.minDate ? parseLocalYMD(scheduleStartDateInput.dataset.minDate) : false,
         autoClose: false,
         keyboardNav: true,
         onSelect({ date, formattedDate, datepicker }) {
@@ -53,4 +53,10 @@ export function initDatepicker() {
     }
 
     scheduleStartDateInput._airPicker = picker;
+
+    function parseLocalYMD(ymd) {
+        const [y, m, d] = ymd.split('-').map(Number);
+        return new Date(y, m - 1, d); // local midnight
+    }
+
 }

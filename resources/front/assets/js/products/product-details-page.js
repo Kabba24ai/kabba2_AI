@@ -6,7 +6,7 @@ import { initAddToCart } from './add-to-cart';
 
 // You can inject these context values in the Blade (see tip below)
 const context = window.productPageContext || {};
-console.log('Product Page Context:', context);
+
 document.addEventListener('DOMContentLoaded', function() {
     // Attach globally if needed in inline HTML
     window.changeQty = changeQty;

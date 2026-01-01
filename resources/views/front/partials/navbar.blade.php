@@ -309,15 +309,23 @@
     }
 
     // Close the dropdown when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const dropdown = document.getElementById('userDropdown');
-        if (!dropdown) return; // Exit early if the element doesn't exist
+        if (!dropdown) return;
 
         const trigger = dropdown.previousElementSibling;
+
+        // If trigger doesn't exist, just close dropdown safely
+        if (!trigger) {
+            dropdown.classList.add('hidden');
+            return;
+        }
+
         if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
             dropdown.classList.add('hidden');
         }
     });
+
 </script>
 
 <script>

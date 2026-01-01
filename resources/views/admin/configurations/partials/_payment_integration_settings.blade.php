@@ -42,8 +42,8 @@
 
         {{-- Public Key --}}
         <div>
-            <label for="payment_api_public_key" class="block text-sm font-medium text-gray-700 mb-1">
-                Payment API - Public Client Key
+            <label for="payment_api_public_key" class="block text-sm font-medium text-gray-700 mb-1 required">
+                Public Client Key
             </label>
             <div class="relative">
                 {!! html()->input(
@@ -51,7 +51,7 @@
                         'payment_api_public_key',
                         old('payment_api_public_key', $settings['Payment Settings']['payment_api_public_key']['setting_value'] ? '************' : ''),
                     )->class([
-                        'w-full rounded border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white pr-10 bg-gray-100 rounded-md focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('payment_api_public_key'),
                         'border-red-500' => $errors->has('payment_api_public_key'),
                     ])->attributes([
@@ -85,8 +85,8 @@
 
         {{-- API Key (Encrypted) --}}
         <div>
-            <label for="payment_api_key" class="block text-sm font-medium text-gray-700 mb-1">
-                Payment API Login ID <span class="text-xs text-blue-600 ml-1">(Encrypted)</span>
+            <label for="payment_api_key" class="block text-sm font-medium text-gray-700 mb-1 required">
+                API Login ID
             </label>
             <div class="relative">
                 {!! html()->input(
@@ -127,8 +127,8 @@
 
         {{-- API Secret Key (*) --}}
         <div>
-            <label for="payment_api_secret" class="block text-sm font-medium text-gray-700 mb-1">
-                Payment API Transaction Key <span class="text-red-500 ml-1">*</span>
+            <label for="payment_api_secret" class="block text-sm font-medium text-gray-700 mb-1 required">
+                Transaction Key
             </label>
             <div class="relative">
                 {!! html()->input(
@@ -178,10 +178,10 @@
                     disabled>
                     <option value="1"
                         {{ old('payment_test_mode', $settings['Payment Settings']['payment_test_mode']['setting_value'] ?? '') == 1 ? 'selected' : '' }}>
-                        Yes</option>
+                        Testing Only</option>
                     <option value="0"
                         {{ old('payment_test_mode', $settings['Payment Settings']['payment_test_mode']['setting_value'] ?? '') == 0 ? 'selected' : '' }}>
-                        No</option>
+                        Live Card Processing</option>
                 </select>
 
                 {{-- Lock --}}

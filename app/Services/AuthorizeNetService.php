@@ -13,14 +13,13 @@ class AuthorizeNetService
     protected $currency;
     protected bool $isTestMode;
 
-
     public function __construct(?array $credentials = null)
     {
         // 1) Load defaults
         $paymentSettings = \App\Helpers\ConfigurationHelper::getSettings('Payment Settings');
 
         $defaultLoginId = Crypt::decryptString($paymentSettings['payment_api_key'] ?? '') ?: '';
-        $defaultTxnKey  = Crypt::decryptString($paymentSettings['payment_api_secret'] ?? '') ?: '';
+        $defaultTxnKey = Crypt::decryptString($paymentSettings['payment_api_secret'] ?? '') ?: '';
         $defaultTestMode = $paymentSettings['payment_test_mode'] ?? false;
 
         // 2) Override if provided
@@ -67,11 +66,26 @@ class AuthorizeNetService
         if (!empty($customer['email'])) {
             $customerAddress->setEmail($customer['email']);
         }
-        if (!empty($customer['company'])) {
-            $customerAddress->setCompany($customer['company']);
+        if (!empty($customer['company_name'])) {
+            $customerAddress->setCompany($customer['company_name']);
         }
-        if (!empty($customer['address'])) {
-            $customerAddress->setAddress($customer['address']);
+
+        if (!empty($customer['billing_address']) && is_array($customer['billing_address'])) {
+            if (!empty($customer['billing_address']['address'])) {
+                $customerAddress->setAddress($customer['billing_address']['address']);
+            }
+            if (!empty($customer['billing_address']['city'])) {
+                $customerAddress->setCity($customer['billing_address']['city']);
+            }
+            if (!empty($customer['billing_address']['state_name'])) {
+                $customerAddress->setState($customer['billing_address']['state_name']);
+            }
+            if (!empty($customer['billing_address']['zip_code'])) {
+                $customerAddress->setZip($customer['billing_address']['zip_code']);
+            }
+            if (!empty($customer['billing_address']['country'])) {
+                $customerAddress->setCountry($customer['billing_address']['country']);
+            }
         }
 
         // Set up payment profile
@@ -349,6 +363,9 @@ class AuthorizeNetService
         $searchResponse = $searchController->executeWithApiResponse($this->getApiEnvironment());
         if ($searchResponse && $searchResponse->getMessages()->getResultCode() === 'Ok') {
             $profileIds = $searchResponse->getIds();
+            if (empty($profileIds)) {
+                return null;
+            }
             foreach ($profileIds as $profileId) {
                 $getRequest = new AnetAPI\GetCustomerProfileRequest();
                 $getRequest->setMerchantAuthentication($this->merchantAuthentication);
@@ -483,6 +500,7 @@ class AuthorizeNetService
                 $options['customer'],
                 $opaqueDataValue, // Accept.js data for card
             );
+
             $customerProfileId = $profileResult['customer_profile_id'];
             $paymentProfileId = $profileResult['payment_profile_id'];
 
@@ -619,7 +637,7 @@ class AuthorizeNetService
                     $options['customer']['unique_id'],
                     $options['customer'],
                     null, // No opaque data
-                    $cardData // Card data for payment profile
+                    $cardData, // Card data for payment profile
                 );
                 $customerProfileId = $profileResult['customer_profile_id'];
                 $paymentProfileId = $profileResult['payment_profile_id'];
@@ -635,7 +653,7 @@ class AuthorizeNetService
 
                     $transactionRequest->setProfile($profilePayment);
                 } else {
-                   throw new \Exception('Failed to create or retrieve customer/payment profile');
+                    throw new \Exception('Failed to create or retrieve customer/payment profile');
                     // fallback to direct card data if profile/payment profile could not be created
                     //$this->setDirectCardPayment($transactionRequest, $cardNumber, $expiration_month, $expiration_year, $cardData['card_cvv']);
                 }
@@ -756,7 +774,7 @@ class AuthorizeNetService
             return ['status' => 'failure', 'message' => 'Transaction not found'];
         }
 
-        if (!in_array($transactionDetails->status, ['settledSuccessfully','refundSettledSuccessfully'])) {
+        if (!in_array($transactionDetails->status, ['settledSuccessfully', 'refundSettledSuccessfully'])) {
             return ['status' => 'failure', 'message' => 'Transaction not settled; try void instead'];
         }
 
@@ -800,7 +818,7 @@ class AuthorizeNetService
                 'transaction_id' => $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null,
                 'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
                 'card_number' => $transactionResponse && method_exists($transactionResponse, 'getAccountNumber') ? $transactionResponse->getAccountNumber() : null,
-                'card_type' => $transactionResponse && method_exists($transactionResponse, 'getAccountType') ? $transactionResponse->getAccountType() : null
+                'card_type' => $transactionResponse && method_exists($transactionResponse, 'getAccountType') ? $transactionResponse->getAccountType() : null,
             ];
         }
 
@@ -950,5 +968,4 @@ class AuthorizeNetService
     {
         return $this->isTestMode ? \net\authorize\api\constants\ANetEnvironment::SANDBOX : \net\authorize\api\constants\ANetEnvironment::PRODUCTION;
     }
-
 }

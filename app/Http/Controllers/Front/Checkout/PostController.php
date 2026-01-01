@@ -265,6 +265,7 @@ class PostController extends Controller
             $order->pending_terms_content = $termsContentData['terms_content'] ?? null;
             $order->terms_status = OrderTermsStatus::Pending;
             $order->saveQuietly(); // saveQuietly() saves the model to the database without firing any Eloquent events (like "saved", "updated", etc.)
+            $customer->load('billingAddress', 'shippingAddress');
 
             // If payment type is card, process payment using AuthorizeNetService
             if (strtolower($validated['payment']) === 'card') {
@@ -284,6 +285,7 @@ class PostController extends Controller
 
                     // Your service should wrap Authorize.Net CIM createTransactionRequest
                     // e.g. createProfileTransaction / chargeCustomerProfile
+
                     $paymentResult = $authorizeNetService->chargeCustomerProfile($customerProfileId, $paymentProfileId, $amount, [
                         'order_number' => $order->order_number,
                         'customer' => $customer->toArray(),

@@ -25,9 +25,12 @@ class VacationSummaryController extends Controller
         $accruedHours = round($hoursWorked * (80 / 2080), 2);
 
         // //  Used vacation hours (approved only)
-        // $usedHours = $user->vacationRequests()
-        //     ->where('status', 'approved')
-        //     ->sum('hours');
+          $usedHours = $user
+                        ->approvedVacationRequestsForYear($year)
+                        ->with('requestHour')
+                        ->get()
+                        ->sum(fn ($req) => $req->requestHour?->hours ?? 0);
+
 
         //  Allotted hours (from user or config)
         $allottedHours = optional($user->vacationAllotmentHour)->hours ?? 0;
@@ -38,9 +41,9 @@ class VacationSummaryController extends Controller
             'data' => [
                 'allotted_hours' => $allottedHours,
                 'accrued_hours' => min($accruedHours, $allottedHours), // cap
-                // 'used_hours' => $usedHours,
+                'used_hours' => $usedHours,
                 'hours_worked_this_year' => round($hoursWorked, 2),
-                'used_hours' => 0,
+                
                 
             ],
         ]);

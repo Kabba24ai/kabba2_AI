@@ -37,11 +37,17 @@ class ClockOutController extends BaseController
         }
 
 
-        $entry->update([
-            'clock_out' => now(),
-            'break_duration' => $request->validated('break_duration') ?? 0,
-            'status' => 'completed',
-        ]);
+        // $entry->update([
+        //     'clock_out' => now(),
+        //     'break_duration' => $request->validated('break_duration') ?? 0,
+        //     'status' => 'completed',
+        // ]);
+         //  IMPORTANT: assign + save
+        $entry->clock_out = $actualClockOut;
+        $entry->break_duration = $request->validated('break_duration') ?? 0;
+        $entry->status = 'completed';
+
+        $entry->save(); // triggers saving() → total_hours calculated
 
         return response()->json([
             'success' => true,

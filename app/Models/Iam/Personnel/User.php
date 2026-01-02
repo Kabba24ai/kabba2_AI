@@ -190,14 +190,25 @@ class User extends Authenticatable
         );
     }
 
+
     public function approvedVacationRequests()
     {
         return $this->hasMany(
             VacationRequest::class,
-            'approved_by'
-        );
+            'employee_id'
+        )->where('status', 'approved');
     }
 
+
+    public function approvedVacationRequestsForYear(int $year)
+    {
+        return $this->hasMany(
+            VacationRequest::class,
+            'employee_id'
+        )
+        ->where('status', 'approved')
+        ->whereYear('start_date', $year);
+    }
 
 
 }

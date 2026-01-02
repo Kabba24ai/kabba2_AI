@@ -18,19 +18,20 @@ class ListVacationBalancesController extends BaseController
         $year = Carbon::now()->year;
 
         $users = User::with([
-                'vacationAllotmentHour',
-                'timeEntries' => function ($q) use ($year) {
-                    $q->whereYear('clock_in', $year)
-                      ->whereNotNull('clock_out');
-                },
-                // 'vacationRequests' => fn ($q) => $q->where('status', 'approved')
-            ])
-            ->where('vacation_eligible', true)
-            ->active()
-            ->orderBy('first_name')
-            ->paginate($perPage);
+            'vacationAllotmentHour',
+            'timeEntries' => function ($q) use ($year) {
+                $q->whereYear('clock_in', $year)
+                ->whereNotNull('clock_out');
+            },
+            'approvedVacationRequests.requestHour',
+        ])
+        ->where('vacation_eligible', true)
+        ->active()  
+        ->orderBy('first_name')
+        ->paginate($perPage);
 
-        $data = $users->map(function ($user) use ($year) {
+
+           $data = $users->map(function ($user) use ($year) {
 
             // worked this year
             $hoursWorked = $user->timeEntries->sum('total_hours');
@@ -45,8 +46,14 @@ class ListVacationBalancesController extends BaseController
             $accruedHours = min($accruedHours, $allottedHours);
 
             //  Used vacation hours (approved)
-            // $usedHours = $user->vacationRequests->sum('hours');
-            $usedHours = 0; // enable later
+            
+            $usedHours = $user
+                        ->approvedVacationRequestsForYear($year)
+                        ->with('requestHour')
+                        ->get()
+                        ->sum(fn ($req) => $req->requestHour?->hours ?? 0);
+
+            $vacation_allotment_hour_id =  $user->vacation_allotment_hour_id ;
 
             return [
                 'id' => (string) $user->id,
@@ -58,6 +65,8 @@ class ListVacationBalancesController extends BaseController
                 'used_hours' => $usedHours,
 
                 'hours_worked_this_year' => round($hoursWorked, 2),
+
+                'vacation_allotment_hour_id'=> $vacation_allotment_hour_id,
             ];
         });
 

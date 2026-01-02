@@ -32,17 +32,21 @@ return new class extends Migration
             /**
              * MySQL GENERATED column
              */
-            $table->decimal('total_hours', 5, 2)
-                ->storedAs("
-                    CASE
-                        WHEN clock_out IS NOT NULL
-                        THEN ROUND(
-                            (TIMESTAMPDIFF(SECOND, clock_in, clock_out)
-                            - (break_duration * 60)) / 3600, 2
-                        )
-                        ELSE 0
-                    END
-                ");
+            // $table->decimal('total_hours', 5, 2)
+            //     ->storedAs("
+            //         CASE
+            //             WHEN clock_out IS NOT NULL
+            //             THEN ROUND(
+            //                 (TIMESTAMPDIFF(SECOND, clock_in, clock_out)
+            //                 - (break_duration * 60)) / 3600, 2
+            //             )
+            //             ELSE 0
+            //         END
+            //     ");
+
+                $table->decimal('total_hours', 5, 2)->default(0); //  NORMAL COLUMN
+
+
 
             $table->timestamps();
 

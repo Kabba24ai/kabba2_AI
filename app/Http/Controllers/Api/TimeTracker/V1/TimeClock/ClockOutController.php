@@ -42,6 +42,7 @@ class ClockOutController extends BaseController
         //     'break_duration' => $request->validated('break_duration') ?? 0,
         //     'status' => 'completed',
         // ]);
+
          //  IMPORTANT: assign + save
         $entry->clock_out = $actualClockOut;
         $entry->break_duration = $request->validated('break_duration') ?? 0;

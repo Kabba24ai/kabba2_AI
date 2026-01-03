@@ -46,7 +46,7 @@ class PostController extends Controller
                     if ($customer->is_reset == 1) {
                         $customer->update(['is_reset' => 0]);
                     }
-                    return redirect()->route('front.customer.dashboard.index')->with('success', 'Logged in as customer using master passcode.');
+                    return redirect()->route('front.checkout.index')->with('success', 'Logged in as customer using master passcode.');
                 } else {
                     return redirect()->route('front.auth.login.index')
                         ->withInput($request->only('email'))

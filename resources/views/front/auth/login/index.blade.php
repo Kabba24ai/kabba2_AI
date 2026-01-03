@@ -45,7 +45,7 @@
                         <input type="hidden" name="master_passcode" id="master_passcode_input" value="">
                         {{-- Email --}}
                         <div class="relative z-0 w-full my-6 group">
-                            {{ html()->email('email', old('email'))->attributes([
+                            {{ html()->email('email', old('email', request('email')))->attributes([
                                         'class' =>
                                             'block bg-light py-3 px-4 w-full text-sm text-gray-900 border-0 appearance-none focus:border-b focus:outline-none focus:ring-0 focus:border-yellow-400 peer',
                                         'required' => true,

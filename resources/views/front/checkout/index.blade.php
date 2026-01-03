@@ -143,7 +143,7 @@
                                 <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create
                                     Account</a>
                                 <span class="mx-1">|</span>
-                                <a href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To
+                                <a id="loginWithEmailLink" href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To
                                     Account</a>
                             </div>
                         </div>
@@ -1359,11 +1359,21 @@
             let emailChecking = false;
             let lastCheckedEmail = "";
 
-            function showEmailError(msg) {
+            const loginLink = document.getElementById('loginWithEmailLink');
+
+
+         function showEmailError(msg, email = null) {
+
                 emailValid = false;
                 emailError.textContent = msg;
                 emailError.classList.remove('hidden');
                 emailInput.classList.add('border-red-500');
+
+                if (email && loginLink) {
+                    const baseUrl = "{{ route('front.auth.login.index') }}";
+                    loginLink.href = `${baseUrl}?email=${encodeURIComponent(email)}`;
+                }
+
             }
 
             function clearEmailError() {
@@ -1411,7 +1421,8 @@
                         checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                     } else {
                         showEmailError(
-                            "There is an account already created with this email address. Please login to add this order to your account history or use a different email address and checkout as a Guest."
+                            "There is an account already created with this email address. Please login to add this order to your account history or use a different email address and checkout as a Guest.",
+                            email
                         );
                     }
                 } catch (err) {

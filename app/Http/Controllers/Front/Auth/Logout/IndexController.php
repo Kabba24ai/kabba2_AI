@@ -11,6 +11,9 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
+
+      
+
         if (!Auth::guard('customer')->check()) {
             return redirect(route('front.auth.login.index'));
         }
@@ -29,9 +32,12 @@ class IndexController extends Controller
         }
 
         Auth::guard('customer')->logout();
+
+   
+
         Session::flush();
         Session::regenerate();
-
+   
         return redirect(route('front.auth.login.index'))->with('success', 'Logout Successfully');
     }
 }

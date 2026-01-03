@@ -1,12 +1,17 @@
-                    <div class="bg-white mt-6 rounded-md shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-200">
+                    <div class="bg-white mt-6 rounded-md shadow-sm p-6
+                            flex flex-col md:flex-row gap-6
+                            border border-gray-200">
                         <!-- Left: Name and Account -->
-                        <div class="text-left">
+                        <div class="text-left w-full md:w-1/3">
                             <h2 class="text-2xl font-bold text-gray-900">{{ $customer->full_name }}</h2>
                             <p class="text-sm text-gray-600">Account: {{ $customer->unique_id }}</p>
+
+                           
+                            
                         </div>
 
                         <!-- Center: Tax Status (Responsive) -->
-                        <div class="text-left md:text-center w-full md:w-auto">
+                        <div class="w-full md:w-1/4 text-left md:text-center">
                             <p class="text-xs tracking-wide text-gray-500 font-medium mb-1">Tax Status</p>
                             <div class="inline-flex items-center gap-2">
                                 <span class="inline-flex items-center px-2 gap-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
@@ -31,26 +36,78 @@
 
                         <!-- Right: Status + Button -->
 
-                        <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
-
-                            @if ($approved && $hasCreditLimit)
-                            <!-- Status Badge -->
-                            <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 w-auto">
-                                Good Standing
-                            </span>
+                        <div class="w-full md:w-5/12 flex flex-col gap-2 text-right items-end">
 
 
-                            @elseif ($approved && !$hasCreditLimit)
+                           <div class="flex items-center gap-2">
+                                
+                                <div>
+                                   <p class="text-xs text-gray-500 font-medium">Phone Number</p>
+                                       @if (!empty($customer->phone))
+                                    <p class="text-sm text-gray-900">
+                                            {{ App\Helpers\CustomHelper::formatPhone($customer->phone) }}
+                                      </p>
+                                    @else
+                                        <a href="javascript:void(0)"
+                                        onclick="OpenCustomerEditModal()"
+                                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                            + Add Phone Number Now
+                                        </a>
+                                    @endif
+                                  
+                                   
+                                </div>
+                            </div>
 
-                            <!-- Status Badge -->
-                            <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-green-800 w-auto">
-                                Pending
-                            </span>
+                       
+ 
+                            <div class="text-sm text-gray-700 space-y-4">
+ <hr class="border-gray-200">
+                                   @php
+                            $billingAddress = $customer->addresses->firstWhere('type', 'billing');
+                            $deliveryAddress = $customer->addresses->firstWhere('type', 'delivery');
+                            @endphp
 
 
-                            @else
 
-                            @endif
+                                    @foreach ($customer->addresses->where('is_primary', 1) as $addresse)
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-500 mb-1">
+                                            {{ ($addresse->type=='Shipping' ? 'Delivery' : $addresse->type) }} Address
+                                        
+                                        </p>
+                                        @php
+                                        // Collect all non-empty fields except country
+                                        $mainParts = array_filter([
+                                        $addresse->address,
+                                        $addresse->city,
+                                        $addresse->state?->name,
+                                        $addresse->zip_code,
+                                        ]);
+
+                                        // Add country only if there is at least one other part
+                                        $parts = $mainParts;
+                                        if (!empty($mainParts) && !empty($addresse->country)) {
+                                        $parts[] = $addresse->country;
+                                        }
+                                        @endphp
+
+                                    
+                                    @if (!empty($parts))
+                                        <p>{{ implode(', ', $parts) }}</p>
+                                    @else
+                                        <a href="javascript:void(0)"
+                                        onclick="OpenCustomerEditModal()"
+                                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                            + Add  {{ ($addresse->type=='Shipping' ? 'Delivery' : $addresse->type) }} Address Now
+                                        </a>
+                                    @endif
+
+                                    </div>
+                                    <hr class="border-gray-200">
+                                    @endforeach
+                                        
+                             </div>
 
 
                         </div>

@@ -43,7 +43,8 @@ class RefundStoreController extends Controller
             DB::commit();
 
             flash('Refund processed successfully.')->success();
-            session()->flash('active_tab', 'credit');
+            // session()->flash('active_tab', 'credit');
+            session(['active_tab' => 'credit']);
 
             return redirect()->back();
         } catch (\Throwable $e) {
@@ -51,7 +52,8 @@ class RefundStoreController extends Controller
             report($e);
 
             flash('Something went wrong while processing the refund.')->error();
-            session()->flash('active_tab', 'credit');
+            // session()->flash('active_tab', 'credit');
+            session(['active_tab' => 'credit']);
 
             Log::error('Refund error: '.$e->getMessage());
 

@@ -278,11 +278,11 @@
                 <h3 class="text-base font-semibold flex items-center flex-wrap gap-2 text-gray-900">
                     <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900 flex-shrink-0" />
                     {{ $addressItem['label'] == 'Shipping' ? 'Delivery' : $addressItem['label'] }} Address
-                    @if ($addresse && $addresse->is_primary)
+                    <!-- @if ($addresse && $addresse->is_primary)
                         <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-0.5 rounded">
                             Default Address
                         </span>
-                    @endif
+                    @endif -->
                 </h3>
 
                 @if ($addressItem['label'] == 'Shipping')
@@ -476,7 +476,7 @@
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">Notes</label>
                     <button type="button" id="addNoteBtn"
-                        class="edit-view text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                        class=" text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
 
                         + Add
                     </button>
@@ -587,7 +587,7 @@
                 <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
                 Credit Information
             </h3>
-            <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span>
+            <!-- <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span> -->
         </div>
         <div class="space-y-2 text-sm">
             <div class="flex justify-between items-center">
@@ -600,8 +600,8 @@
                         {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
 
                     </span>
-                    <a href="#"
-                        class="ml-1 text-blue-500 text-xs inline-flex items-center"><x-heroicon-o-pencil-square
+                    <a href="#"  onclick="OpenCustomerEditModal()"
+                        class="ml-1 text-blue-500 text-xs inline-flex items-center" ><x-heroicon-o-pencil-square
                             class="w-4 h-4 mr-1" /></a>
                 </span>
 
@@ -679,11 +679,11 @@
             <div class="flex items-center gap-1">
                 <x-heroicon-o-document class="w-5 h-5 text-gray-900" />
                 <h2 class="text-base font-semibold text-gray-800">Tax Exempt Status</h2>
-                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span>
+                <!-- <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin Control</span> -->
             </div>
             <div class="flex justify-between items-center">
                 <span class="text-xs text-gray-500 font-medium">Tax Status:</span>
-                <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $customer->tax_status ?? 'N/A' }}</span> -->
+                
 
                 <div class="static-view">
                     <div class="inline-flex items-center gap-2">
@@ -1141,9 +1141,7 @@
             closeBtn?.addEventListener('click', closeModal);
             cancelBtn?.addEventListener('click', closeModal);
 
-            // resetModal?.addEventListener('click', (e) => {
-            //     if (e.target === resetModal) closeModal();
-            // });
+    
         });
     </script>
 
@@ -1439,14 +1437,19 @@
 
             // Fetch all notes (from backend API)
             window.fetchNotes = function() {
-                if (notesLoading) return;
+               
+                // if (notesLoading) return;
+              
+
                 notesLoading = true;
+                
 
                 return  fetch(`{{ route('admin.crm.customers.notes.fetch', $customer->id ?? 0) }}`)
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
                                 notes = data.notes || [];
+                
 
                                 renderNotes();
                                 fetchNotes2();
@@ -1499,6 +1502,7 @@
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
+                                
                                 notyf.success('Note updated successfully');
                                 fetchNotes();
                                 closeNotesModal();

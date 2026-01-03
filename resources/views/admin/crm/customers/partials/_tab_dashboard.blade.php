@@ -7,6 +7,10 @@
             <div>
                 <h2 class="text-lg font-semibold text-gray-900">{{ $customer->full_name }}</h2>
                 <p class="text-sm text-gray-500 mt-1">Account: {{ $customer->unique_id }}</p>
+                    <br>
+                  <label class="text-sm text-gray-500 font-medium ">Company Name </label>
+                <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
+
             </div>
 
             <!-- Right: Tax Status -->
@@ -39,53 +43,117 @@
 </div>
 
 <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+
     <!-- Contact Information -->
     <div class="bg-white rounded-xl shadow-sm p-5">
-        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-1 mb-4">
+      
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-1">
             <svg class="w-5 h-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"></path>
-            </svg>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"></path>
+                    </svg>
             Contact Information
         </h3>
-        <div class="space-y-4 text-sm text-gray-700">
-            <div class="flex items-center gap-1 ">
-                <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
+
+        <!-- Edit Button -->
+        <button
+                type="button"
+                onclick="OpenCustomerEditModal()"
+                class="text-gray-500 hover:text-blue-600 transition">
+            <svg class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
                 </svg>
-                <div>
-                    <p class="text-sm text-gray-900"> {{ $customer->email ?? 'N/A' }}</p>
-                    <p class="text-xs text-gray-500 font-medium">Email Address</p>
+            </button>
+        </div>
+
+        <!-- TWO COLUMN GRID -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
+
+            <!-- COLUMN 1 -->
+            <div class="space-y-4">
+                <!-- Email -->
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"></path>
+                    </svg>
+                    <div>
+                        <p class="text-sm text-gray-900">{{ $customer->email ?? 'N/A' }}</p>
+                        <p class="text-xs text-gray-500 font-medium">Email Address</p>
+                    </div>
+                </div>
+
+                <!-- Personal Phone -->
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
+                    </svg>
+                    <div>
+                        <p class="text-sm text-gray-900">
+                            {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
+                        </p>
+                        <p class="text-xs text-gray-500 font-medium">Personal Phone</p>
+                    </div>
                 </div>
             </div>
-            <div class="flex items-center gap-1">
+
+            <!-- COLUMN 2 -->
+            <div class="space-y-4">
+                <!-- Website -->
+                <div class="flex items-center gap-2">
+                    <x-heroicon-o-globe-alt class="w-4 h-4 text-blue-600 hover:text-blue-800" />
+                    <div>
+                        <a href="{{ !empty($customer->company_website) ? $customer->company_website : 'jaavscript:void(0)' }}"
+                            class="text-blue-600 hover:text-blue-800">
+                        
+                    
+                        <p class="text-xs  font-medium">          {{ !empty($customer->company_website) ? $customer->company_website : 'N/A' }}</p>
+                        </a>
+                        <p class="text-xs text-gray-500 font-medium">Company Website</p>
+                    </div>
+                </div>
+
+                <!-- Company Phone -->
+                <div class="flex items-center gap-2">
                 <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
-                </svg>
-                <div>
-                    <p class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}</p>
-                    <p class="text-xs text-gray-500 font-medium">Personal Phone</p>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"></path>
+                    </svg>
+                    <div>
+                        <p class="text-sm text-gray-900">
+                            {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}
+                        </p>
+                        <p class="text-xs text-gray-500 font-medium">Company Phone</p>
+                    </div>
                 </div>
             </div>
-            <div class="flex items-center gap-1">
-                <svg class="w-4 h-4 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"></path>
-                </svg>
-                <div>
-                    <p class="text-sm text-gray-900">{{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}</p>
-                    <p class="text-xs text-gray-500 font-medium">Company Phone</p>
-                </div>
-            </div>
+
         </div>
     </div>
+
+
     <!-- Address Information -->
     <div class="bg-white rounded-xl shadow-sm p-5  overflow-y-scroll overflow-x-hidden">
-        <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1 mb-4">
-            <svg class="w-5 h-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+       
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1">
+                 <svg class="w-5 h-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"></path>
             </svg>
-            Address Information
-        </h3>
+                Address Information
+            </h3>
+
+            <!-- Edit Button -->
+            <button
+                type="button"
+                onclick="OpenCustomerEditModal()"
+                class="text-gray-500 hover:text-blue-600 transition">
+                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
+            </svg>
+            </button>
+        </div>
+
+
         <div class="text-sm text-gray-700 space-y-4">
 
             @php
@@ -99,9 +167,7 @@
             <div>
                 <p class="text-xs font-medium text-gray-500 mb-1">
                     {{ ($addresse->type=='Shipping' ? 'Delivery' : $addresse->type) }} Address
-                    <span class="ml-2 inline-block bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
-                        Default Address
-                    </span>
+                    
                 </p>
                 @php
                 // Collect all non-empty fields except country

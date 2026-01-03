@@ -75,7 +75,7 @@
                         Invoices
                     </button>
 
-                    <button
+                    <button id="tab-account"
                         class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                         x-bind:class="activeTab === 'account' ? ' text-brand-500 border-brand-500' :
                                 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700'"
@@ -415,22 +415,9 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const creditUsed = {
-            {
-                $customer - > available_credit_balance ?? 0
-            }
-        };
-        const creditLimit = {
-            {
-                $customer - > credit_limit ?? 0
-            }
-        };
-        const available = {
-            {
-                \
-                App\ Helpers\ CustomHelper::getAvailableCredit($customer)
-            }
-        };
+        const creditUsed = {{ $customer->available_credit_balance ?? 0  }};
+        const creditLimit = {{  $customer->credit_limit ?? 0 }};
+        const available = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer) }};
         const percentUsed = (creditUsed / creditLimit) * 100;
 
         document.getElementById("usedAmount").textContent =
@@ -482,4 +469,31 @@
         });
     });
 </script>
+
+
+<script>
+    function OpenCustomerEditModal() {
+        //  Click Account tab button
+        const accountTabBtn = document.getElementById('tab-account');
+
+        if (!accountTabBtn) {
+            console.error('Account tab button not found');
+            return;
+        }
+
+        accountTabBtn.click();
+
+        //  Wait for tab content to render
+        setTimeout(() => {
+            const editBtn = document.getElementById('editBtn');
+
+            if (editBtn) {
+                editBtn.click();
+            } else {
+                console.error('Edit button not found');
+            }
+        }, 250);
+    }
+</script>
+
 @endpush

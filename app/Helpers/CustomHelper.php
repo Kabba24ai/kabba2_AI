@@ -427,4 +427,85 @@ class CustomHelper
         $customer->available_credit_balance = $adjustedBalance;
         $customer->save();
     }
+   
+  /**
+     * Get customer account status + alert metadata
+     */
+    public static function getCustomerAccountStatus(Customer $customer): array
+    {
+        $days = $customer->days_since_last_payment;
+
+        // Credit conditions
+        $notApproved = $customer->is_credit_account != 1;
+        $noCreditLimit = empty($customer->credit_limit);
+        $hasAvailableBalance = ($customer->available_credit_balance ?? 0) > 0;
+
+        // Defaults
+        $status = 'Good Standing';
+        $badge = [
+            'label' => 'Good Standing',
+            'bg' => 'bg-green-100',
+            'text' => 'text-green-800',
+        ];
+
+        $alert = [
+            'show' => false,
+            'color' => null,
+            'days' => $days,
+        ];
+
+        /**
+         * RULE 1:
+         * Bad Debt if NOT approved + NO credit limit + available balance
+         */
+        if ($notApproved && $noCreditLimit && $hasAvailableBalance) {
+            return [
+                'status' => 'Bad Debt',
+                'badge' => [
+                    'label' => 'Bad Debt',
+                    'bg' => 'bg-red-100',
+                    'text' => 'text-red-800',
+                ],
+                'alert' => $alert,
+            ];
+        }
+
+        /**
+         * RULE 2:
+         * Payment aging
+         */
+        if ($days !== null) {
+            if ($days >= 60) {
+                // 60+ days → Bad Debt
+                return [
+                    'status' => 'Bad Debt',
+                    'badge' => [
+                        'label' => 'Bad Debt',
+                        'bg' => 'bg-red-100',
+                        'text' => 'text-red-800',
+                    ],
+                    'alert' => [
+                        'show' => true,
+                        'color' => 'red',
+                        'days' => $days,
+                    ],
+                ];
+            }
+
+            if ($days > 45) {
+                $alert = ['show' => true, 'color' => 'red', 'days' => $days];
+            } elseif ($days > 30) {
+                $alert = ['show' => true, 'color' => 'orange', 'days' => $days];
+            } elseif ($days > 0) {
+                $alert = ['show' => true, 'color' => 'yellow', 'days' => $days];
+            }
+        }
+
+        return [
+            'status' => $status,
+            'badge' => $badge,
+            'alert' => $alert,
+        ];
+    }
+
 }

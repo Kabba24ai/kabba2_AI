@@ -26,11 +26,12 @@ class DeleteController extends Controller
             DB::commit();
 
             flash('Transaction successfully deleted.')->success();
-            session()->flash('active_tab', 'credit');
-
+            // session()->flash('active_tab', 'credit');
+session(['active_tab' => 'credit']);
             return redirect()->back();
         } catch (\Throwable $e) {
             DB::rollBack();
+            session(['active_tab' => 'credit']);
             Log::error($e);
             flash('Failed to delete transaction.')->error();
             return redirect()->back()->withErrors(['error' => 'Delete failed. Please try again.']);

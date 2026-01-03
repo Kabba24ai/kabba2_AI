@@ -109,8 +109,8 @@ class ViewUpdateController extends Controller
             DB::commit();
 
             flash('Customer updated successfully.')->success();
-            session()->flash('active_tab', 'account');
-
+            // session()->flash('active_tab', 'account');
+session(['active_tab' => 'account']);
             return redirect()
            ->back() ;
 
@@ -120,7 +120,9 @@ class ViewUpdateController extends Controller
         report($e);
 
         flash('Something went wrong while updating the customer.'.$e)->error();
-        session()->flash('active_tab', 'account');
+        // session()->flash('active_tab', 'account');
+session(['active_tab' => 'account']);
+
 
         return redirect()
             ->back()

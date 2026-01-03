@@ -61,8 +61,6 @@
         </div>
 
 
-
-
         <!-- Right Section: Buttons -->
         <div class="flex flex-wrap gap-2">
             <!-- Edit Button -->
@@ -101,7 +99,7 @@
 @include('flash::message')
 @include('admin.partials.formErrors')
 
-<div class="rounded-xl dark:border-gray-800" x-data="{ activeTab: '{{ session('active_tab', 'dashboard') }}' }">
+<div id="customerTabs" class="rounded-xl dark:border-gray-800" x-data="{ activeTab: '{{ session('active_tab', 'dashboard') }}' }">
     <div class="border-b border-gray-200 dark:border-gray-800">
         <nav
             class="-mb-px flex space-x-2 overflow-x-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 dark:[&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:h-1.5">
@@ -153,7 +151,7 @@
                 Invoices
             </button>
 
-            <button
+            <button   id="tab-account"
                 class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                 x-bind:class="activeTab === 'account' ? ' text-brand-500 border-brand-500   dark:text-brand-500' : 'bg-transparent text-gray-500 border-transparent  hover:text-gray-700  dark:text-gray-400 dark:hover:text-gray-200'"
                 x-on:click="activeTab = 'account'">
@@ -169,7 +167,7 @@
         </nav>
     </div>
 
-    <div class="dark:border-gray-800">
+    <div class="dark:border-gray-800" >
         <div x-show="activeTab === 'dashboard'">
             @include('admin.crm.customers.partials._tab_dashboard')
 
@@ -193,7 +191,7 @@
 
         </div>
 
-        <div x-show="activeTab === 'account'">
+        <div x-show="activeTab === 'account'" >
 
             @include('admin.crm.customers.partials._tab_account')
         </div>
@@ -1225,9 +1223,14 @@
     ------------------------------ */
     if (wrapperAccount) {
         wrapperAccount.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-                <label class="block text-sm font-medium text-gray-700">Tags</label>
-            </div>
+             <div class="flex items-center justify-between mb-2">
+                    <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
+                    <button type="button" onclick="openTagModal()"
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+
+                        + Add
+                    </button>
+                </div>
             <div id="accountTagList" class="flex flex-wrap gap-2 max-h-60 overflow-y-auto"></div>
         `;
 
@@ -1486,10 +1489,30 @@ document.addEventListener("click", function (e) {
     }
 });
 </script>
+<script>
+    function OpenCustomerEditModal() {
+        //  Click Account tab button
+        const accountTabBtn = document.getElementById('tab-account');
 
+        if (!accountTabBtn) {
+            console.error('Account tab button not found');
+            return;
+        }
 
+        accountTabBtn.click();
 
+        //  Wait for tab content to render
+        setTimeout(() => {
+            const editBtn = document.getElementById('editBtn');
 
+            if (editBtn) {
+                editBtn.click();
+            } else {
+                console.error('Edit button not found');
+            }
+        }, 250);
+    }
+</script>
 
 
 @endpush

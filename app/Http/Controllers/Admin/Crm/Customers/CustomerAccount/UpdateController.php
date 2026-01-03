@@ -78,7 +78,8 @@ class UpdateController extends Controller
                 DB::commit();
 
                 flash('Transaction successfully updated.')->success();
-                session()->flash('active_tab', 'credit');
+                // session()->flash('active_tab', 'credit');
+                session(['active_tab' => 'credit']);
                 return redirect()->back();
             } catch (\Throwable $e) {
                 DB::rollBack();

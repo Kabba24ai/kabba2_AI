@@ -14,7 +14,9 @@ class IndexController extends Controller
     public function __invoke(Request $request ,$unique_id)
     {
         
-        session()->flash('active_tab', 'invoices');
+        // session()->flash('active_tab', 'invoices');
+session(['active_tab' => 'invoices']);
+
 
         return redirect()->route('admin.crm.customers.view', $unique_id) ;
     }

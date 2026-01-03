@@ -38,7 +38,9 @@ class SendEmailController extends Controller
         }
 
 
-        session()->flash('active_tab', 'invoices');
+        // session()->flash('active_tab', 'invoices');
+        session(['active_tab' => 'invoices']);
+
 
 
         // Redirect back to customer view (adjust route name if needed)

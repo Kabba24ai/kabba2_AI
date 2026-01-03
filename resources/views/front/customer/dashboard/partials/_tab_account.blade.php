@@ -26,6 +26,14 @@
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
             <div class="flex items-center gap-2">
+
+            <button type="button"
+                id="openResetPasswordModal"
+                class="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm">
+                Update Password
+            </button>
+
+
                 <button type="button" id="editBtn" class="bg-blue-600 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md hover:bg-green-700 transition">Edit Information</button>
                 <button type="submit" id="saveBtn" style="display:none;" class="bg-green-600 text-white px-4 py-2 rounded text-sm saveBtn">Save Changes</button>
                 <button type="button" id="cancelBtn" style="display:none;" class="bg-gray-700 text-white px-4 py-2 rounded text-sm cancelBtn">Cancel</button>
@@ -116,12 +124,23 @@
                 <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
                 <div class=" static-view">
                     <p class="text-gray-900 flex items-center gap-1 text-gray-900">
-                        <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? 'N/A' }}
+                        <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> 
+                        
+                          @if (!empty($customer->phone))
+        
+            {{ App\Helpers\CustomHelper::formatPhone($customer->phone) }}
+      
+    @else
+        <a href="javascript:void(0)"
+           onclick="OpenCustomerEditModal()"
+           class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+            + Add now
+        </a>
+    @endif
                     </p>
                 </div>
                 <!-- Edit View -->
-                <!-- <input class="masked-phone edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->phone ?? '' }}" /> -->
-
+                
                 {!! html()->text('phone', old('phone', $customer->phone ?? ''))
                 ->class([
                 'masked-phone edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
@@ -149,8 +168,21 @@
         <div class="grid grid-cols-1 gap-4 text-sm text-gray-700">
             <div>
                 <label class="text-xs text-gray-500 font-medium ">Company Name </label>
-                <div class="static-view text-sm text-gray-900">{{ $customer->company_name ?? 'N/A' }}</div>
-                <!-- <input class="edit-view pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm" value="{{ $customer->company_name ?? '' }}" /> -->
+                <div class="static-view text-sm text-gray-900">
+                  
+
+                    @if (!empty($customer->company_name))
+                        {{ $customer->company_name }}
+                    @else
+                        <a href="javascript:void(0)"
+                        onclick="OpenCustomerEditModal()"
+                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                            + Add now
+                        </a>
+                    @endif
+
+                </div>
+                
 
                 {!! html()->text('company_name', old('company_name', $customer->company_name ?? ''))
                 ->class([
@@ -171,7 +203,19 @@
                 <label class="text-xs text-gray-500 font-medium">Company Phone</label>
                 <div class=" static-view">
                     <p class=" text-gray-900 text-sm flex items-center gap-1">
-                        <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}
+                        <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> 
+                        
+                        
+
+                           @if (!empty($customer->company_phone))
+                       {{ App\Helpers\CustomHelper::formatPhone($customer->company_phone) ?? 'N/A' }}
+                    @else
+                        <a href="javascript:void(0)"
+                        onclick="OpenCustomerEditModal()"
+                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                            + Add now
+                        </a>
+                    @endif
                     </p>
                 </div>
                 <!-- Edit View -->
@@ -277,9 +321,9 @@ $defaultAddresses = [
             <h3 class="text-base font-semibold mb-4 flex flex-wrap items-start gap-1">
                 <x-heroicon-o-map-pin class="w-5 h-5 text-gray-900" />
                 {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
-                @if ($addresse && $addresse->is_primary)
+                <!-- @if ($addresse && $addresse->is_primary)
                 - <span class="text-xs bg-red-100 text-red-600 font-normal px-2 py-1 rounded">Default Address</span>
-                @endif
+                @endif -->
             </h3>
             @if ($addressItem['label']=='Shipping')
             <!-- Checkbox -->
@@ -297,7 +341,7 @@ $defaultAddresses = [
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="edit-view">
                     <label class="text-xs text-gray-500 font-medium mb-1 ">First Name </label>
-                    {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? ''))
+                    {!! html()->text("addresses[$index][first_name]", old("addresses.$index.first_name", $addresse->first_name ?? $customer->first_name ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has("addresses.$index.first_name"),
@@ -309,7 +353,7 @@ $defaultAddresses = [
                 </div>
                 <div class="edit-view">
                     <label class="text-xs text-gray-500 font-medium mb-1 ">Last Name </label>
-                    {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? ''))
+                    {!! html()->text("addresses[$index][last_name]", old("addresses.$index.last_name", $addresse->last_name ?? $customer->last_name ?? ''))
                     ->class([
                     'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has("addresses.$index.last_name"),
@@ -342,7 +386,15 @@ $defaultAddresses = [
                     }
                     @endphp
 
-                    <p>{{ implode(', ', $parts) ?: 'No address provided.' }}</p>
+                    @if (!empty($parts))
+                        <p>{{ implode(', ', $parts) }}</p>
+                    @else
+                        <a href="javascript:void(0)"
+                        onclick="OpenCustomerEditModal()"
+                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                            + Add now
+                        </a>
+                    @endif
 
 
                 </div>
@@ -485,10 +537,13 @@ $defaultAddresses = [
                     Approved
                 </span>
                 @else
-                <span class="text-red-600 font-medium flex items-center gap-1 text-xs">
+                <!-- <span class="text-red-600 font-medium flex items-center gap-1 text-xs">
                     <x-heroicon-o-x-circle class="w-4 h-4 text-red-600" />
                     Not Approved
-                </span>
+                </span> -->
+
+                N/A
+
                 @endif
 
 
@@ -563,14 +618,24 @@ $defaultAddresses = [
         <!-- Left: Tax Info -->
         <div class="space-y-2 text-sm text-gray-700">
             <div class="flex justify-between items-center">
+    
                 <span class="text-xs text-gray-500 font-medium">Tax Status:</span>
-                <div class="inline-flex items-center gap-2">
-                    <span class="inline-flex items-center px-2 gap-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                        <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
-                        <span class="leading-[1.2]">Tax Exempt</span>
-                    </span>
+                
+                <div class="">
+                    <div class="inline-flex items-center gap-2">
+                        <span class="text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            <span class="leading-[1.2] inline-flex items-center gap-2 px-2 py-1">
+                                @if ($customer->tax_status === 'Exempt')
+                                    <x-heroicon-o-shield-check class="w-5 h-5 text-green-500" />
+                                @else
+                                    <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
+                                @endif
+                                {{ $customer->tax_status ?? 'N/A' }}
+                            </span>
+                        </span>
+                    </div>
                 </div>
-                <!-- <span class="text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">Tax Exempt</span> -->
+                
             </div>
             <div class="flex justify-between items-center">
                 <span class="text-xs text-gray-500 font-medium">Valid Until:</span>
@@ -585,11 +650,7 @@ $defaultAddresses = [
         <!-- Right: File Card -->
         <div class="border border-gray-200 rounded-lg p-4 text-sm bg-white w-full">
             <div id="taxDocPreviewWrapper" class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-
-
                 @include('front.customer.dashboard.partials.tax_doc_preview', ['customer' => $customer])
-
-
             </div>
         </div>
 
@@ -686,6 +747,111 @@ $defaultAddresses = [
     </div>
 </div>
 
+
+<!-- Reset Password Modal Wrapper -->
+<div id="resetPasswordModalWrapper" style="display: none;"
+    class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+    <div class="modal-scrollable w-full mx-auto">
+        <div
+            class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-full">
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center">
+                    <div class="text-yellow-500 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="lucide lucide-lock w-4 h-4 mr-2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900">Reset Password</h2>
+                </div>
+                <button id="closeResetPasswordModalBtn"
+                    class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl">&times;</button>
+            </div>
+
+            <div class="px-6 overflow-y-auto">
+
+
+                {{ html()->form()->attributes([
+                        'class' => 'space-y-5',
+                        'method' => 'POST',
+                        'id' => 'resetPasswordForm',
+                        'autocomplete' => 'off',
+                        'data-parsley-validate' => true,
+                    ])->open() }}
+
+                @csrf
+                @method('POST')
+
+                {{ html()->hidden('customer_id', $customer->id) }}
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <div class="relative">
+                        {{ html()->password('password')->attributes([
+                                'class' => 'pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
+                                'required' => true,
+                                'id' => 'password',
+                                'data-parsley-minlength' => '6',
+                                'data-parsley-minlength-message' => 'Password must be at least 6 characters.',
+                            ])->placeholder('') }}
+                        <button type="button" onclick="toggleVisibility('password', this)"
+                            class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                        <div id="password-errors" class="mt-1 text-sm text-red-600"></div>
+                        @error('password')
+                            <p class="text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password Confirmation</label>
+                    <div class="relative">
+                        {{ html()->password('password_confirmation')->attributes([
+                                'class' => 'pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
+                                'required' => true,
+                                'id' => 'password_confirmation',
+                                'data-parsley-equalto' => '#password',
+                            ])->placeholder('') }}
+                        <button type="button" onclick="toggleVisibility('password_confirmation', this)"
+                            class="absolute inset-y-0 h-[35px] right-3 pl-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pb-4">
+                    <button type="button" id="cancelResetPasswordBtn"
+                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                        Update Password
+                    </button>
+                </div>
+
+                {{ html()->form()->close() }}
+
+            </div>
+        </div>
+    </div>
+</div>
 
 
 @push('js')
@@ -1013,6 +1179,86 @@ $defaultAddresses = [
     });
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('resetPasswordModalWrapper');
+    const openBtn = document.getElementById('openResetPasswordModal');
+    const closeBtn = document.getElementById('closeResetPasswordModalBtn');
+    const cancelBtn = document.getElementById('cancelResetPasswordBtn');
+
+    if (!modal || !openBtn) return;
+
+    const openModal = () => modal.style.display = 'flex';
+    const closeModal = () => modal.style.display = 'none';
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', closeModal);
+
+    // Optional: close on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+});
+</script>
+
+  <script>
+        document.getElementById('resetPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+
+
+            if (!$(form).parsley().isValid()) {
+                return; // stop if validation fails
+            }
+
+
+            const formData = new FormData(form);
+
+
+            fetch("{{ route('front.customer.dashboard.password.update') }}", {
+                    method: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content')
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        notyf.success(data.message || "Password updated.");
+                        document.getElementById('resetPasswordModalWrapper').style.display = 'none';
+                    } else {
+                        notyf.error(data.message || "Password reset failed.");
+                    }
+                })
+                .catch(error => {
+                    console.error("AJAX error:", error);
+                    notyf.error("Something went wrong.");
+                });
+        });
+    </script>
+
+    <script>
+        function toggleVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+
+            const svg = btn.querySelector('svg');
+            svg.innerHTML = isPassword ?
+                `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.042 10.042 0 013.03-4.362M6.873 6.876A9.953 9.953 0 0112 5c4.477 0 8.267 2.943 9.541 7a9.966 9.966 0 01-1.249 2.527M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M3 3l18 18" />` :
+                `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+        }
+    </script>
 
 
 @endpush

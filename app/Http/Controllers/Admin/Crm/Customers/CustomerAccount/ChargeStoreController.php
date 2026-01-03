@@ -55,7 +55,8 @@ class ChargeStoreController extends Controller
             DB::commit();
 
             flash('Charge successfully added')->success();
-            session()->flash('active_tab', 'credit');
+            // session()->flash('active_tab', 'credit');
+session(['active_tab' => 'credit']);
 
             return redirect()->back();
 
@@ -64,7 +65,8 @@ class ChargeStoreController extends Controller
             report($e);
 
             flash('Something went wrong adding charge. Please try again.')->error();
-            session()->flash('active_tab', 'credit');
+            // session()->flash('active_tab', 'credit');
+            session(['active_tab' => 'credit']);
 
             Log::error($e);
 

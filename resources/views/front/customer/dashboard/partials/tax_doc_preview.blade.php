@@ -28,7 +28,7 @@
                                         <a href="{{ isset($customer->media) ? $customer->media->getUrl() : 'javascript:void(0)' }}" @if(isset($customer->media)) target="_blank" @endif class="text-blue-600">View</a>
                                         <a href="javascript:void(0)" id="opentaxdocModal" class="text-green-600">Replace</a>
                                           @else
-                                        <a href="javascript:void(0)" id="opentaxdocModal" class="text-green-600">Add New</a>
+                                        <a href="javascript:void(0)" id="opentaxdocModal" class="text-blue-600">Add New</a>
 
                                          @endif
                                     </div>

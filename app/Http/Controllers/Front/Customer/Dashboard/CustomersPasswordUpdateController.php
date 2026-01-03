@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Crm\Customers;
+namespace App\Http\Controllers\Front\Customer\Dashboard;
 
 use App\Http\Controllers\Controller;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -11,7 +12,8 @@ use App\Models\Customers\Customer;
 use Illuminate\Support\Facades\Log;
 
 
-class PasswordResetController extends Controller
+
+class CustomersPasswordUpdateController extends Controller
 {
     /**
      * Reset customer password via AJAX.

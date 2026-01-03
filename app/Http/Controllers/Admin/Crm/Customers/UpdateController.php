@@ -133,6 +133,9 @@ class UpdateController extends Controller
 
             flash('Customer updated successfully.')->success();
 
+    session(['active_tab' => 'account']);
+
+
             return match ($request->input('action')) {
                 'save' => redirect()->route('admin.crm.customers.edit', ['unique_id' => $customer->unique_id]),
                 'save_new' => redirect()->route('admin.crm.customers.create'),
@@ -143,6 +146,7 @@ class UpdateController extends Controller
             report($e);
 
             flash('Something went wrong while updating the customer.'.$e)->error();
+    session(['active_tab' => 'account']);
 
             return redirect()
                 ->back()

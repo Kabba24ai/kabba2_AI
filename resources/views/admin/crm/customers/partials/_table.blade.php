@@ -57,43 +57,23 @@
                     </div>
                     @endif
                 </td>
+              
                 @php
+                $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+            @endphp
 
 
 
-                $approved = $customer->is_credit_account == 1;
-                $hasCreditLimit = !empty($customer->credit_limit);
-
-
-                if ($approved && $hasCreditLimit){
-                    $status = 'Good Standing';
-                } else {
-                    $status = 'Bad Debt';
-                }
-
-
-                $statusStyles = [
-                'Good Standing' => [
-                'label' => 'Good Standing',
-                'bg' => 'bg-green-100',
-                'text' => 'text-green-800',
-                ],
-                'Bad Debt' => ['label' => 'Bad Debt', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
-                ];
-
-                $style = $statusStyles[$status] ?? [
-                'label' => $status,
-                'bg' => 'bg-gray-100',
-                'text' => 'text-gray-800',
-                ];
-                @endphp
 
 
                 <td class="py-4 px-6 inline-flex whitespace-nowrap">
-                    <span
-                        class="items-center gap-2 px-2 py-1 text-xs font-medium rounded-full {{ $style['bg'] }} {{ $style['text'] }} px-2 py-0.5 text-xs font-medium">
-                        {{ $style['label'] }}
+                  
+                                    <!-- Status Badge -->
+                    <span class="items-center gap-2 px-2 py-1 text-xs font-medium rounded-full  px-2 py-0.5 text-xs font-medium
+                        {{ $account['badge']['bg'] }} {{ $account['badge']['text'] }}">
+                        {{ $account['badge']['label'] }}
                     </span>
+
                     @if ($customer->tax_status === 'Exempt')
                     <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check
                             class="w-5 h-5 text-green-500" /></span>
@@ -101,6 +81,20 @@
                     <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check
                             class="w-5 h-5 text-gray-500" /></span>
                     @endif
+
+
+                          <!-- Payment Alert Icon -->
+                    <!-- @if ($account['alert']['show'])
+                    <span class="items-center gap-2  py-1">
+                        <x-heroicon-o-currency-dollar
+                            title="No payment for {{ $account['alert']['days'] }} days"
+                            class="w-5 h-5
+                                {{ $account['alert']['color'] === 'yellow' ? 'text-yellow-500' : '' }}
+                                {{ $account['alert']['color'] === 'orange' ? 'text-orange-500' : '' }}
+                                {{ $account['alert']['color'] === 'red' ? 'text-red-600' : '' }}
+                            " />
+                    </span>
+                    @endif -->
 
 
                 </td>

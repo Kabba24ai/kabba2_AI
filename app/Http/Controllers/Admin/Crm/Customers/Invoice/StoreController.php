@@ -77,7 +77,10 @@ class StoreController extends Controller
 
             flash('Invoice created successfully.')->success();
 
-            session()->flash('active_tab', 'invoices');
+            // session()->flash('active_tab', 'invoices');
+            
+            session(['active_tab' => 'invoices']);
+
 
             return redirect()->route('admin.crm.customers.view', $customer->unique_id);
 

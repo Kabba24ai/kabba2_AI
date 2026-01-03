@@ -31,14 +31,12 @@ class TaxDocumentDeleteController extends Controller
         $customer->update([
             'tax_document_media_id' => null,
             'tax_document_upload_date' => null,
+            'tax_document_valid_until' => null,
             'tax_document_status' => '',
         ]);
 
-        // if (request()->ajax()) {
+     
             return response()->json(['success' => true]);
-        // }
-
-        // flash('Tax document deleted successfully.')->success();
-        // return redirect()->back();
+       
     }
 }

@@ -261,7 +261,8 @@ class UpdateController extends Controller
 
             flash('Invoice updated successfully.')->success();
 
-            session()->flash('active_tab', 'invoices');
+            // session()->flash('active_tab', 'invoices');
+session(['active_tab' => 'invoices']);
 
             return redirect()->route('admin.crm.customers.view', $customer->unique_id);
 

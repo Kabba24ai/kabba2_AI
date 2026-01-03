@@ -44,8 +44,8 @@ class DiscountStoreController extends Controller
 
               flash('Discount successfully applied')->success();
 
-             session()->flash('active_tab', 'credit');
-
+            //  session()->flash('active_tab', 'credit');
+session(['active_tab' => 'credit']);
              return redirect()->back();
 
         } catch (\Throwable $e) {
@@ -54,7 +54,8 @@ class DiscountStoreController extends Controller
             report($e);
 
             flash('Something went wrong apply discount..  Please try again. ')->error();
-             session()->flash('active_tab', 'credit');
+            //  session()->flash('active_tab', 'credit');
+            session(['active_tab' => 'credit']);
             Log::info($e);
 
             return redirect()->back()->withInput()->withErrors([

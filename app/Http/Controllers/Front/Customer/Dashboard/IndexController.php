@@ -18,12 +18,9 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
 
-
         $customer = Auth::guard('customer')->user() ;
 
-
         CustomHelper::markOverdueInvoices($customer->id);
-
 
         $customer->load('addresses.state');
 

@@ -19,21 +19,45 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        //     $query = Customer::with('orders','addresses')->whereIn('status', ['Active', 'Archived'])->orderByRaw("
-        // CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
-        // ");
-
-
+      
         if ($request->ajax()) {
-            $query = Customer::with('orders', 'addresses')
-                ->whereIn('status', ['Active', 'Archived'])
-                ->select('customers.*')->orderByRaw("
-                    CASE
-                        WHEN (is_credit_account = 1 AND credit_limit IS NOT NULL AND credit_limit != '') THEN 1  -- Good Standing
-                        ELSE 0  -- Bad Debt
-                    END ASC,  -- Bad Debt first
-                    CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
-                ");
+            // $query = Customer::with('orders', 'addresses')
+            //     ->whereIn('status', ['Active', 'Archived'])
+            //     ->select('customers.*')->orderByRaw("
+            //         CASE
+            //             WHEN (is_credit_account = 1 AND credit_limit IS NOT NULL AND credit_limit != '') THEN 1  -- Good Standing
+            //             ELSE 0  -- Bad Debt
+            //         END DESC,  -- Bad Debt first
+            //         CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+            //     ");
+
+
+           $query = Customer::with('orders', 'addresses')
+            ->whereIn('status', ['Active', 'Archived'])
+            ->select('customers.*')
+            ->orderByRaw("
+                CASE
+                    -- BAD DEBT: credit rule
+                    WHEN (
+                        is_credit_account != 1
+                        AND (credit_limit IS NULL OR credit_limit = '')
+                        AND available_credit_balance > 0
+                    ) THEN 1
+
+                    -- BAD DEBT: payment rule (60+ days since last payment)
+                    WHEN (
+                        SELECT DATEDIFF(CURDATE(), MAX(date))
+                        FROM customer_accounts
+                        WHERE customer_accounts.customer_id = customers.id
+                        AND customer_accounts.type = 'payment'
+                    ) >= 60 THEN 1
+
+                    -- GOOD STANDING
+                    ELSE 0
+                END ASC,
+                CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+            ");
+
 
             if ($request->filled('search_name')) {
                 $query->where(function ($q) use ($request) {

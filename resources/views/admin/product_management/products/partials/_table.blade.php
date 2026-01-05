@@ -58,7 +58,17 @@
                             {{ $product->status }}
                         </span>
                     </td>
-                    <td class="text-right  px-6 py-4 space-x-2">
+                    <td class="text-right  px-4 py-4 space-x-2">
+                        {{-- Copy Button --}}
+                        <form action="{{ route('admin.product-management.products.copy', $product->unique_id) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit"
+                                class="inline-flex items-center justify-center rounded-md p-1.5 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                                title="Copy Product">
+                                <x-heroicon-o-document-duplicate class="w-5 h-5" />
+                            </button>
+                        </form>
+
                         {{-- Edit Button --}}
                         <a href="{{ route('admin.product-management.products.edit', $product->unique_id) }}" target="_blank"
                             class="inline-flex items-center justify-center rounded-md p-1.5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"

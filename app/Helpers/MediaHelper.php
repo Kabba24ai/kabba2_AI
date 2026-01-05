@@ -57,7 +57,7 @@ class MediaHelper
     {
         try {
             // Determine the disk to use
-            $disk = $media->asset_type === "Secure Asset" ? 'secure_asset' : 'public_asset';
+            $disk = $media->asset_type === 'Secure Asset' ? 'secure_asset' : 'public_asset';
 
             $filePath = $media->getFilePath();
             // Check if the file exists
@@ -80,13 +80,13 @@ class MediaHelper
     /* Upload Storage File to Storage  */
     public static function uploadOriginalFileToStorage($asset_type, $file, $full_path, $filename)
     {
-        $diskName = $asset_type === "Secure Asset" ? 'secure_asset' : 'public_asset';
+        $diskName = $asset_type === 'Secure Asset' ? 'secure_asset' : 'public_asset';
         // Upload the file to Storage
         $path = Storage::disk($diskName)->put($full_path . '/' . $filename, file_get_contents($file));
     }
 
     /* Upload Storage File */
-    public static function uploadStorageFile($asset_type, $file, $folder, $model = null, $is_used = 'Yes',)
+    public static function uploadStorageFile($asset_type, $file, $folder, $model = null, $is_used = 'Yes')
     {
         if (!is_null($file)) {
             $file_mime_type = \File::mimeType($file);
@@ -96,11 +96,11 @@ class MediaHelper
             $file_size = \File::size($file);
 
             $original_file_name_without_extension = Str::lower(pathinfo($original_file_name, PATHINFO_FILENAME));
-            $filename = Str::random(6) . '-media-' . preg_replace("/[^a-z0-9\_\-\.]/i", '', $original_file_name_without_extension . '.' . $file_extension);
+            $filename = Str::random(6) . '-media-' . preg_replace('/[^a-z0-9\_\-\.]/i', '', $original_file_name_without_extension . '.' . $file_extension);
 
             // File Store s3 Bucket
             $folder_name = now()->format('Y/m') . ($folder ? '/' . $folder : '');
-            $full_path =  $folder_name;
+            $full_path = $folder_name;
 
             // File move to destination folder
             self::uploadOriginalFileToStorage($asset_type, $file, $full_path, $filename);
@@ -127,5 +127,57 @@ class MediaHelper
             ];
             return $returnArr;
         }
+    }
+
+    public static function copyExistingMediaOnDisk($sourceMedia, $asset_type, $folder, $model = null, $is_used = 'Yes')
+    {
+        // Pick correct disk
+        $diskName = $asset_type === 'Secure Asset' ? 'secure_asset' : 'public_asset';
+
+        // Source path INSIDE the disk, e.g. "2025/12/products/abc.jpg"
+        $sourcePath = $sourceMedia->getFilePath();
+
+        if (!Storage::disk($diskName)->exists($sourcePath)) {
+            return [
+                'error' => 'Source file not found',
+                'sourcePath' => $sourcePath,
+            ];
+        }
+
+        // Destination folder: Y/m/products (same style as your existing code)
+        $folder_name = now()->format('Y/m') . ($folder ? '/' . $folder : '');
+
+        // Build a new filename
+        $originalName = $sourceMedia->original_file_name ?? ($sourceMedia->file_name ?? 'file');
+        $nameOnly = Str::lower(pathinfo($originalName, PATHINFO_FILENAME));
+
+        $ext = $sourceMedia->file_extension ?: pathinfo($sourcePath, PATHINFO_EXTENSION) ?: 'jpg';
+
+        $filename = Str::random(6) . '-media-' . preg_replace('/[^a-z0-9\_\-\.]/i', '', $nameOnly . '.' . $ext);
+
+        $destPath = $folder_name . '/' . $filename;
+
+        // Physically copy file within the same disk
+        Storage::disk($diskName)->copy($sourcePath, $destPath);
+
+        // Create new media record
+        $mediaObj = Media::create([
+            'asset_type' => $asset_type,
+            'folder_name' => $folder_name,
+            'file_name' => $filename,
+            'original_file_name' => $sourceMedia->original_file_name ?? $originalName,
+            'file_type' => $sourceMedia->file_type ?? 'image',
+            'mime_type' => $sourceMedia->mime_type ?? Storage::disk($diskName)->mimeType($destPath),
+            'file_extension' => $ext,
+            'file_size' => Storage::disk($diskName)->size($destPath),
+            'is_used' => $is_used,
+            'model_type' => optional($model)->getMorphClass(),
+            'model_id' => optional($model)->getKey(),
+        ]);
+
+        return [
+            'mediaObj' => $mediaObj,
+            'full_path' => $destPath,
+        ];
     }
 }

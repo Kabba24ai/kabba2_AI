@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ProductManagement\Products\UpdateController;
 use App\Http\Controllers\Admin\ProductManagement\Products\DeleteController;
 use App\Http\Controllers\Admin\ProductManagement\Products\FetchOptionsController;
 use App\Http\Controllers\Admin\ProductManagement\Products\ProductSearchController;
+use App\Http\Controllers\Admin\ProductManagement\Products\CopyController;
 
 Route::prefix('products')
 ->name('products.')
@@ -29,6 +30,8 @@ Route::prefix('products')
     // Delete
     Route::delete('/{unique_id}', DeleteController::class)->name('delete');
 
+    // Copy
+    Route::post('/{unique_id}/copy', CopyController::class)->name('copy');
 
     // Fetch Options
     Route::get('/fetch/options/{optionId}', FetchOptionsController::class)->name('fetch-options');

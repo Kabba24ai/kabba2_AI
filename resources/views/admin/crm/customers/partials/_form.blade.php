@@ -66,7 +66,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="mb-4">
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1 required">Email Address </label>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1 ">Email Address </label>
 
                 {!! html()->email('email', old('email', $customer->email ?? ''))->class([
                 'w-full rounded-md border focus:outline-none px-3 py-3 text-sm shadow-sm focus:ring-2',
@@ -85,7 +85,7 @@
                 ]),
                 'data-parsley-remote-validator' => 'customemailcheck',
                 'data-parsley-remote-message' => 'This email is already taken by another user.',
-                ])->required() !!}
+                ]) !!}
 
 
 
@@ -96,7 +96,7 @@
 
 
             <div class="mb-4">
-                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1 required">Phone Number </label>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1 ">Phone Number </label>
                 {!! html()->text('phone', old('phone', $customer->phone ?? ''))->class([
                 'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
                 'border-red-500' => $errors->has('phone'),
@@ -108,7 +108,7 @@
                 'placeholder' => '(xxx) xxx-xxxx',
                 'id' => 'phone',
                 'autocomplete' => 'tel',
-                ])->required() !!}
+                ]) !!}
                 @error('phone')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror

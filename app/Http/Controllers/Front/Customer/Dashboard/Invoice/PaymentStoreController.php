@@ -224,7 +224,9 @@ class PaymentStoreController extends Controller
 
             DB::commit();
             flash('Payment recorded successfully.')->success();
-            session()->flash('active_tab', 'invoices');
+            // session()->flash('active_tab', 'invoices');
+session(['active_tab' => 'invoices']);
+
 
             return redirect()->back();
         } catch (\Throwable $e) {
@@ -236,7 +238,8 @@ class PaymentStoreController extends Controller
             report($e);
 
             flash('Something went wrong while recording the payment.')->error();
-            session()->flash('active_tab', 'invoices');
+            // session()->flash('active_tab', 'invoices');
+session(['active_tab' => 'invoices']);
 
             return redirect()->back()->withInput()->withErrors([
                 'error' => 'An error occurred while recording the payment.',

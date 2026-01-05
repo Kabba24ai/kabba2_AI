@@ -36,6 +36,9 @@ class UpdateController extends Controller
                 'phone' => isset($validated['phone']) ? CustomHelper::unformatPhone($validated['phone']) : null,
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
                 'same_as_billing' => !empty($validated['sameAsBilling']) ? 1 : 0,
+
+                'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
+
             ];
 
            
@@ -95,7 +98,10 @@ class UpdateController extends Controller
             DB::commit();
 
             flash('Customer updated successfully.')->success();
-            session()->flash('active_tab', 'account');
+            // session()->flash('active_tab', 'account');
+
+session(['active_tab' => 'account']);
+
 
             return redirect()
            ->back() ;
@@ -106,7 +112,10 @@ class UpdateController extends Controller
         report($e);
 
         flash('Something went wrong while updating the customer.'.$e)->error();
-        session()->flash('active_tab', 'account');
+        // session()->flash('active_tab', 'account');
+
+session(['active_tab' => 'account']);
+
 
         return redirect()
             ->back()

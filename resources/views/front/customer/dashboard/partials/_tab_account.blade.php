@@ -121,7 +121,7 @@
             </div>
 
             <div class="min-w-0">
-                <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
+                <label class="text-xs text-gray-500 font-medium ">Phone Number </label>
                 <div class=" static-view">
                     <p class="text-gray-900 flex items-center gap-1 text-gray-900">
                         <x-heroicon-o-phone class="w-4 h-4 text-gray-900" /> 
@@ -154,7 +154,7 @@
                 'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
                 'data-parsley-error-message' => 'Please enter phone number in <br> format (xxx) xxx-xxxx',
                 ])
-                ->required() !!}
+                 !!}
 
             </div>
 
@@ -329,7 +329,7 @@ $defaultAddresses = [
             <!-- Checkbox -->
             <label class="edit-view flex items-center space-x-2 text-sm text-gray-700 cursor-pointer  font-semibold mb-4 gap-1">
                 <input type="checkbox" id="sameAsBilling" name="sameAsBilling"
-                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" {{ old('sameAsBilling', $customer->same_as_billing ?? 0) ? 'checked' : '' }}>
+                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" {{ old('sameAsBilling', $customer->same_as_billing ?? 1) ? 'checked' : '' }}>
                 <span>Same as billing address</span>
             </label>
             @endif
@@ -637,10 +637,41 @@ $defaultAddresses = [
                 </div>
                 
             </div>
-            <div class="flex justify-between items-center">
+            <!-- <div class="flex justify-between items-center">
                 <span class="text-xs text-gray-500 font-medium">Valid Until:</span>
                 <span class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</span>
+            </div> -->
+
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <span class="text-xs text-gray-500 font-medium">Valid Until:</span>
+
+
+                <div class="static-view">
+                    <span
+                        class="text-sm">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until) ?? 'N/A' }}</span>
+                </div>
+
+                <div class="edit-view" id="valid-until">
+                        <input
+                            class="w-full sm:w-32 md:w-32 border rounded-md py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 bg-white datepicker border-gray-300 pl-2 pr-2 {{ $customer->media ? '' : 'hidden' }}"
+                            value="{{ \App\Helpers\CustomHelper::formatDate($customer->tax_document_valid_until ?? null) }}"
+                            type="text"
+                            name="tax_document_valid_until"
+                            id="tax_document_valid_until"
+                            placeholder="MM-DD-YYYY"
+                            autocomplete="off"
+                        />
+
+                        
+
+                        <span id="valid-until-na" class="{{ $customer->media ? 'hidden' : '' }}">
+                            N/A
+                        </span>
+                    </div>
+
+
             </div>
+
             <div class="flex justify-between items-center">
                 <span class="text-xs text-gray-500 font-medium">Uploaded:</span>
                 <span class="text-sm" id="tax_document_upload_date">{{ App\Helpers\CustomHelper::formatDate($customer->tax_document_upload_date) ?? 'N/A' }}</span>
@@ -855,7 +886,9 @@ $defaultAddresses = [
 
 
 @push('js')
-
+  <script>
+        window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
+    </script>
 
 <script>
     document.addEventListener('click', (e) => {
@@ -1007,6 +1040,39 @@ $defaultAddresses = [
                 const result = await response.json();
 
                 if (response.ok && result.success) {
+
+
+                                        // Enable "Valid Until" after successful upload
+                        const validUntilInput = document.getElementById('tax_document_valid_until');
+                        const validUntilNA = document.getElementById('valid-until-na');
+
+                        if (validUntilInput) {
+                            validUntilInput.classList.remove('hidden');
+                            validUntilInput.removeAttribute('disabled');
+
+                            // Destroy existing instance if any
+                            if (validUntilInput._airDatepicker) {
+                                validUntilInput._airDatepicker.destroy();
+                            }
+
+                            // Re-initialize AirDatepicker
+                            validUntilInput._airDatepicker = new AirDatepicker(validUntilInput, {
+                                locale: window.airDatepickerLocaleEn,
+                                timepicker: false,
+                                dateFormat: validUntilInput.dataset.format
+                                    || window.APP_DATE_FORMAT
+                                    || 'MM-dd-yyyy',
+                                autoClose: true,
+                                keyboardNav: true,
+                            });
+                        }
+
+                        if (validUntilNA) {
+                            validUntilNA.classList.add('hidden');
+                        }
+
+
+
                     modalWrapper.style.display = 'none';
 
                     resetTaxDocModalForm();
@@ -1020,6 +1086,7 @@ $defaultAddresses = [
                     if (uploadDateInput && result.upload_date) {
                         uploadDateInput.textContent = result.upload_date;
                     }
+                    
 
                     notyf.success(result.message || 'Uploaded successfully');
                 } else {

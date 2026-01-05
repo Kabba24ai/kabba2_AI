@@ -178,7 +178,7 @@
                     <label class="inline-flex items-center text-gray-700">
                         <input type="checkbox" name="credit_types[]" value="none" class="mr-2" /> Credit - None
                     </label>
-                    <p class="text-xs text-gray-500">Showing: All / Both</p>
+                    <!-- <p class="text-xs text-gray-500">Showing: All / Both</p> -->
                 </div>
             </div>
 

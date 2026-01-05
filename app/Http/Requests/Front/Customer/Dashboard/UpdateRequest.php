@@ -32,7 +32,7 @@ class UpdateRequest extends FormRequest
                 'email'
             ],
             
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30'],
 
             'company_website' => ['nullable'],
             'company_phone' => ['nullable'],
@@ -43,6 +43,8 @@ class UpdateRequest extends FormRequest
 
             'website_protocol' => ['nullable'],
             'website_extension' => ['nullable'],
+
+                'tax_document_valid_until' => ['nullable'],
 
         ];
     }

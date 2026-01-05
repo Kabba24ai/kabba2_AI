@@ -16,7 +16,7 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         if ($request->ajax()) {
-            $query = Customer::with('orders.payments', 'addresses', 'accounts')->whereIn('status', ['Active', 'Archived']);
+            $query = Customer::with('orders.payments', 'addresses', 'accounts')->whereIn('status', ['Active', 'Archived'])->where('available_credit_balance', '!=', 0);
 
             // Apply filters
             if ($request->filled('search_name')) {
@@ -51,7 +51,7 @@ class IndexController extends Controller
                         $query->where('status', 'Archived');
                         break;
                 }
-            }
+            } 
 
             if ($request->filled('credit_types')) {
                 $types = $request->input('credit_types');

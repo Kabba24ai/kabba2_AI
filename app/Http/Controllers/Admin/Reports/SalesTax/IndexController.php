@@ -5,17 +5,21 @@ namespace App\Http\Controllers\Admin\Reports\SalesTax;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Orders\Order;
+use App\Models\Orders\OrderExtraCharges;
+
 use App\Models\Stores\Store;
 use Carbon\Carbon;
 use App\Models\Customers\Customer;
 use App\Helpers\CustomHelper;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Helpers\ConfigurationHelper;
+use Illuminate\Support\Facades\Log;
 
 class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
+
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
         //  Orders Query
@@ -75,6 +79,7 @@ class IndexController extends Controller
         //  Combine & Paginate
         $combined = $orders->concat($paymentAccounts)->sortByDesc(fn($item) => isset($item->is_payment_account) ? $item->date : $item->order_date)->values();
 
+
         //  Combine into unified rows
         $reportRows = $orders
             ->map(function ($order) {
@@ -128,7 +133,10 @@ class IndexController extends Controller
             ->sortByDesc(fn($row) => $row->date)
             ->values();
 
+
         $totalRevenue = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->grand_total));
+
+        $reportRowsTotal = $reportRows->sum(fn($row) => $row->grand_total);
 
         $taxFreeRevenue = CustomHelper::formatCurrency($reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal));
 
@@ -141,6 +149,26 @@ class IndexController extends Controller
         $salesTaxCollected = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->tax_amount));
 
         $reportRows = $reportRows->filter(fn($row) => $row->tax_amount > 0)->values();
+
+ $orderExtraCharges = OrderExtraCharges::query()
+    ->when($request->filled('month_range'), function ($q) use ($request) {
+        [$year, $month] = explode('-', $request->month_range);
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+        $end = Carbon::create($year, $month, 1)->endOfMonth();
+        $q->whereBetween('created_at', [$start, $end]);
+    })
+    ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
+        $start = Carbon::parse($request->start_date)->startOfDay();
+        $end = Carbon::parse($request->end_date)->endOfDay();
+        $q->whereBetween('created_at', [$start, $end]);
+    })
+    ->get();
+
+$extraChargesTotalRaw = $orderExtraCharges->sum('amount');
+
+
+        $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal);
+
 
         // Pagination
         $perPage = $request->get('per_page', 10);
@@ -161,6 +189,7 @@ class IndexController extends Controller
 
             $stats = [
                 'totalRevenue' => $totalRevenue,
+                'totalCollectedAllSources' => $totalCollectedAllSources,
                 'taxFreeRevenue' => $taxFreeRevenue,
                 'taxableRevenue' => $taxableRevenue,
                 'salesTaxCollected' => $salesTaxCollected,
@@ -182,6 +211,7 @@ class IndexController extends Controller
             'stores' => Store::all(),
             'availableMonths' => $availableMonths,
             'totalRevenue' => $totalRevenue,
+                'totalCollectedAllSources' => $totalCollectedAllSources,
             'taxFreeRevenue' => $taxFreeRevenue,
             'taxableRevenue' => $taxableRevenue,
             'salesTaxCollected' => $salesTaxCollected,

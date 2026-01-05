@@ -42,9 +42,10 @@
                            <div class="flex items-center gap-2">
                                 
                                 <div>
-                                   <p class="text-xs text-gray-500 font-medium">Phone Number</p>
+                                  
                                        @if (!empty($customer->phone))
-                                    <p class="text-sm text-gray-900">
+                                        <p class="text-xs text-gray-500 font-medium">Phone Number</p>
+                                       <p class="text-sm text-gray-900">
                                             {{ App\Helpers\CustomHelper::formatPhone($customer->phone) }}
                                       </p>
                                     @else
@@ -61,12 +62,12 @@
 
                        
  
-                            <div class="text-sm text-gray-700 space-y-4">
- <hr class="border-gray-200">
+                            <!-- <div class="text-sm text-gray-700 space-y-4">
+                                <hr class="border-gray-200">
                                    @php
-                            $billingAddress = $customer->addresses->firstWhere('type', 'billing');
-                            $deliveryAddress = $customer->addresses->firstWhere('type', 'delivery');
-                            @endphp
+                                        $billingAddress = $customer->addresses->firstWhere('type', 'billing');
+                                        $deliveryAddress = $customer->addresses->firstWhere('type', 'delivery');
+                                        @endphp
 
 
 
@@ -107,7 +108,61 @@
                                     <hr class="border-gray-200">
                                     @endforeach
                                         
-                             </div>
+                            </div> -->
+
+
+                            <div class="text-sm text-gray-700 space-y-4">
+                                <hr class="border-gray-200">
+
+                                @php
+                                    $primaryAddresses = $customer->addresses->where('is_primary', 1);
+                                @endphp
+
+                                @if ($primaryAddresses->isNotEmpty())
+                                    @foreach ($primaryAddresses as $addresse)
+                                        <div>
+                                            <p class="text-xs font-medium text-gray-500 mb-1">
+                                                {{ $addresse->type === 'Shipping' ? 'Delivery' : $addresse->type }} Address
+                                            </p>
+
+                                            @php
+                                                $mainParts = array_filter([
+                                                    $addresse->address,
+                                                    $addresse->city,
+                                                    $addresse->state?->name,
+                                                    $addresse->zip_code,
+                                                ]);
+
+                                                $parts = $mainParts;
+                                                if (!empty($mainParts) && !empty($addresse->country)) {
+                                                    $parts[] = $addresse->country;
+                                                }
+                                            @endphp
+
+                                            @if (!empty($parts))
+                                                <p>{{ implode(', ', $parts) }}</p>
+                                            @else
+                                                <a href="javascript:void(0)"
+                                                onclick="OpenCustomerEditModal()"
+                                                class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                                    + Add {{ $addresse->type === 'Shipping' ? 'Delivery' : $addresse->type }} Address Now
+                                                </a>
+                                            @endif
+                                        </div>
+                                        <hr class="border-gray-200">
+                                    @endforeach
+                                @else
+                                    <div class="text-right text-xs text-gray-500">
+                                      
+                                        <a href="javascript:void(0)"
+                                        onclick="OpenCustomerEditModal()"
+                                        class="text-blue-600 hover:underline font-medium">
+                                            + Add Address Now
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+
 
 
                         </div>

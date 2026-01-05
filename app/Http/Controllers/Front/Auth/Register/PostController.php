@@ -35,6 +35,7 @@ class PostController extends Controller
                 'first_name' => $validated['first_name'] ?? null,
                 'last_name' => $validated['last_name'] ?? null,
                 'email' => $validated['email'],
+                'same_as_billing' => 1,
                 'password' => Hash::make($validated['password']),
             ];
 

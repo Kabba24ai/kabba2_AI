@@ -105,8 +105,8 @@
 
     <div class="dark:border-gray-800">
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4  mx-auto mt-6">
-            <!-- Total Revenue -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4  mx-auto mt-6">
+            <!-- Total Collected- All Sources  -->
             <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                 <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-6 h-6">
@@ -115,11 +115,33 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-500">Total Revenue</p>
-                    <p class="text-xl font-semibold text-gray-900" id="totalRevenue">
+                    <p class="text-sm text-gray-500">Total Collected- All Sources </p>
+                    <p class="text-xl font-semibold text-gray-900" id="totalCollectedAllSources">
+                        $5555
                     </p>
                 </div>
             </div>
+
+            <!-- Total Revenue Excluding Sales Tax -->
+            <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+                <div class="bg-indigo-100 text-indigo-600 rounded-md p-2">
+                    <!-- Wallet Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-wallet w-6 h-6" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                        <path d="M16 12h4v4h-4z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">
+                        Total Revenue - Excluding Sales Tax
+                    </p>
+                     <p class="text-xl font-semibold text-gray-900" id="totalRevenue">
+                    </p>
+                   
+                </div>
+            </div>
+
 
             <!-- Available Credit -->
             <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
@@ -261,6 +283,7 @@
                             // Update stats dynamically
                             if (data.stats) {
                                 document.querySelector('#totalRevenue').textContent = data.stats.totalRevenue;
+                                document.querySelector('#totalCollectedAllSources').textContent = data.stats.totalCollectedAllSources;
                                 document.querySelector('#taxFreeRevenue').textContent = data.stats.taxFreeRevenue;
                                 document.querySelector('#taxableRevenue').textContent = data.stats.taxableRevenue;
                                 document.querySelector('#salesTaxCollected').textContent = data.stats.salesTaxCollected;

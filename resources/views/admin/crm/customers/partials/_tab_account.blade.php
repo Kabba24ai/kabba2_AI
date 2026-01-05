@@ -87,7 +87,7 @@
             </div>
 
             <div class="min-w-0">
-                <label class="text-xs text-gray-500 font-medium required">Email Address </label>
+                <label class="text-xs text-gray-500 font-medium ">Email Address </label>
                 <div class=" static-view">
                     <p class="text-gray-900 flex items-center gap-1 text-sm">
                         <x-heroicon-o-envelope class="w-4 h-4 text-gray-900" />{{ $customer->email ?? '' }}
@@ -110,12 +110,12 @@
                         ]),
                         'data-parsley-remote-validator' => 'customemailcheck',
                         'data-parsley-remote-message' => 'This email is already taken by another user.',
-                    ])->required() !!}
+                    ]) !!}
 
             </div>
 
             <div class="min-w-0">
-                <label class="text-xs text-gray-500 font-medium required">Phone Number </label>
+                <label class="text-xs text-gray-500 font-medium ">Phone Number </label>
                 <div class=" static-view">
                     <p class="text-gray-900 flex items-center gap-1 text-gray-900">
                         <x-heroicon-o-phone class="w-4 h-4 text-gray-900" />
@@ -135,7 +135,7 @@
                         'autocomplete' => 'tel',
                         'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
                         'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
-                    ])->required() !!}
+                    ]) !!}
 
 
             </div>

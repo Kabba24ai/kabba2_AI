@@ -27,11 +27,11 @@ class ViewUpdateRequest extends FormRequest
             'last_name' => ['nullable'],
             'company_name' => ['nullable'],
             'email' => [
-                'required',
+                'nullable',
                 'email'
             ],
 
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30'],
 
             'company_website' => ['nullable'],
             'company_phone' => ['nullable'],

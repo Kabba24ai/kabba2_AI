@@ -27,10 +27,10 @@ class UpdateRequest extends FormRequest
             'last_name' => ['required'],
             'company_name' => ['nullable'],
             'email' => [
-                'required',
+                'nullable',
                 'email'
             ],
-            'phone' => ['required', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:20'],
 
             'tax_document_review_status' => ['nullable'],
 

@@ -105,6 +105,7 @@ class ChecklistQuestionsController extends Controller
     /**
      * Return a fresh template with questions.
      */
+
     private function returnFreshTemplate(Equipment $equipment, ChecklistMaster $checklist)
     {
         if (!$equipment->checklistMaster?->rental_ready_template_id) {

@@ -118,7 +118,7 @@ class IndexController extends Controller
       
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
-        // dd($damagedOrderAlerts);
+        // dd($salesData);
         
         return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting'));
                         

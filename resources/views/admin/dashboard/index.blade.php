@@ -36,6 +36,12 @@
 
 @endsection
 @push('js')
+
+<script>
+    window.APP_CURRENCY = "{{ config('app.currency.code') }}";
+</script>
+
+
 <script>
 const salesDataFromServer = @json($salesData);
    //  REAL DATA from backend
@@ -468,15 +474,28 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
     /** ------------------------
      *      CURRENCY FORMATTER
      --------------------------*/
-    formatCurrency(val) {
+    // formatCurrency(val) {
+    //     return (
+    //         "$" +
+    //         val.toLocaleString("en-US", {
+    //             minimumFractionDigits: 0,
+    //             maximumFractionDigits: 0,
+    //         })
+    //     );
+    // }
+
+    formatCurrency(value) {
+        if (value === null || value === undefined) return `${window.APP_CURRENCY}0.00`;
+
         return (
-            "$" +
-            val.toLocaleString("en-US", {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
+            window.APP_CURRENCY +
+            Number(value).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
             })
         );
     }
+
 
     /** ------------------------
      *         ALERTS
@@ -810,9 +829,20 @@ const paymentType = document.getElementById('payment_type');
                 toolbar: { show: false },
             },
             xaxis: {
-                 categories: data.categories, 
+                categories: data.categories,
+            },
+            yaxis: {
+                labels: {
+                    formatter: (val) => this.formatCurrency(val),
+                },
+            },
+            tooltip: {
+                y: {
+                    formatter: (val) => this.formatCurrency(val),
+                },
             },
         });
+
 
         this.salesChart.render();
     }

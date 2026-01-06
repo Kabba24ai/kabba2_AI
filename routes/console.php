@@ -44,6 +44,14 @@ Schedule::command('db:refresh-staging')
     ->onOneServer()
     ->name('refresh-staging-database');
 
+
+Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
+    ->everyMinute()
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('auto-clock-out-employees');
+
 // Schedule::job(new \App\Jobs\SalesFunnelAfterEventJob())
 //     ->everyFifteenMinutes()
 //     ->timezone('America/Chicago')

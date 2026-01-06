@@ -63,6 +63,7 @@ class ListResource extends JsonResource
 
             'current_order_id' => $this->current_order_id ?? 0,
             'current_order_product_id' => $this->current_order_product_id ?? 0,
+            'current_order_number' => $this->order->order_number ?? "",
 
             'order_product' => new OrderProductsListResource($this->whenLoaded('orderProduct')),
 
@@ -72,7 +73,6 @@ class ListResource extends JsonResource
 
             'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
 
-            'current_order_unique_id' => $this->order->unique_id ?? "",
 
 
         ];

@@ -71,8 +71,20 @@
                 </select>
             </div>
 
+            <div class="whitespace-nowrap">
+                <div
+                    class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
+                    <label class="flex items-center gap-1 ml-2">
+                        <input type="checkbox" name="hide_unassigned" value="1" id="hide_unassigned"
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
+                            {{ request('hide_unassigned') ? 'checked' : '' }}>
+                        Hide Unassigned
+                    </label>
+                </div>
+            </div>
+
             <!-- Equipment Status -->
-            <div class=" whitespace-nowrap">
+            <div class="whitespace-nowrap">
                 <div
                     class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
                     <svg class=" w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,7 +107,7 @@
                 </div>
             </div>
 
-            <div class=" whitespace-nowrap">
+            <div class="whitespace-nowrap">
                 <!-- Issues & Maintenance -->
                 <div
                     class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
@@ -121,7 +133,6 @@
                     </label>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -136,7 +147,7 @@
 
         {{-- Schedule table (only if there are unassigned orders) --}}
         @if ($orderProducts->total() > 0)
-            <div class="bg-white shadow-sm rounded-lg {{ ($orderProducts->total() > 4) ? 'flex-1' : '' }} flex flex-col min-h-0">
+            <div class="bg-white shadow-sm rounded-lg {{ ($orderProducts->total() > 4) ? 'flex-1' : '' }} flex flex-col min-h-0" id="unassignedOrder">
                 <h2 class="text-lg font-semibold p-5">
                     Unassigned Orders ({{ $orderProducts->total() }})
                 </h2>
@@ -303,6 +314,24 @@
                         equipmentTableWrapper.classList.remove('opacity-50', 'pointer-events-none');
                     });
             }
+
+            let hideAssigned = document.querySelector('input[name="hide_unassigned"]');
+            let unassignedOrder = document.getElementById('unassignedOrder');
+            hideAssigned.checked = localStorage.getItem('hide_unassigned') === '1' ? true : false;
+            if (hideAssigned.checked) {
+                unassignedOrder.classList.add('hidden');
+            } else {
+                unassignedOrder.classList.remove('hidden');
+            }
+            hideAssigned.addEventListener('change', function() {
+                const hideValue = this.checked ? '1' : '0';
+                if (hideValue === '1') {
+                    unassignedOrder.classList.add('hidden');
+                } else {
+                    unassignedOrder.classList.remove('hidden');
+                }
+                localStorage.setItem('hide_unassigned', hideValue);
+            });
 
             // Register pagination
             Paginator.init({

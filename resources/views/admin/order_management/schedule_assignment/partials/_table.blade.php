@@ -122,13 +122,19 @@
                                 'Available' => 'green',
                                 'Maint. Hold' => 'yellow',
                                 'Damaged' => 'red',
-                                default => 'blue',
+                                default => 'green',
                             };
 
                             $hasAny = $isBooked || $isSoftAssigned;
 
-                            $textColor = $isBooked && $isSoftAssigned || ($softAssignments->count() > 1) ? 'text-white' : 'text-gray-500';
-                            $activeColor = $isBooked && $isSoftAssigned || ($softAssignments->count() > 1) ? 'red-500' : 'blue-100';
+                            // Light blue for soft assign, dark blue with white text for hard assign
+                            if ($isBooked) {
+                                $activeColor = 'blue-600';
+                                $textColor = 'text-white';
+                            } else {
+                                $activeColor = 'blue-100';
+                                $textColor = 'text-gray-600';
+                            }
                         @endphp
 
                         @if ($hasAny)

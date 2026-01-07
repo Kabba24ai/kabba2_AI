@@ -511,7 +511,12 @@
                         </div>
                     </li>
                     <li x-data="{ open: 'false' }">
-                        <a href="https://projectmanager.kabba.ai/" target="_blank"
+                        @php
+                            $ssoUrl = auth()->check() 
+                                ? \App\Helpers\SsoHelper::generateSsoUrl(auth()->user()->email, 'http://projectmanager.kabba.ai')
+                                : 'https://projectmanager.kabba.ai/';
+                        @endphp
+                        <a href="{{ $ssoUrl }}" target="_blank"
                             class="menu-item group flex items-center gap-3 menu-item-inactive }}">
                             <x-heroicon-o-squares-plus class="w-6 h-6" />
 

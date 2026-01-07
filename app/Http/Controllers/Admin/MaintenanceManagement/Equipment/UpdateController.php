@@ -13,15 +13,21 @@ class UpdateController extends Controller
     {
 
 
-         $oldequipment = Equipment::where('unique_id', $unique_id)->firstOrFail();
+    //      $oldequipment = Equipment::where('unique_id', $unique_id)->firstOrFail();
 
-      $equipmentId = (string) $oldequipment->id;
+    //   $equipmentId = (string) $oldequipment->id;
 
-    $oldPartsListIds = PartsList::whereJsonContains(
-        'selected_products',
-        $equipmentId
-    )->pluck('id')->toArray();
+    // $oldPartsListIds = PartsList::whereJsonContains(
+    //     'selected_products',
+    //     $equipmentId
+    // )->pluck('id')->toArray();
 
+
+        $equipment = Equipment::where('unique_id', $unique_id)->firstOrFail();
+
+        $equipmentId = (string) $equipment->id;
+        $oldPartsListId = $equipment->parts_list_id;   
+        $newPartsListId = $request->input('parts_list_id'); 
 
 
 
@@ -40,41 +46,87 @@ class UpdateController extends Controller
 
 
          // Extract new selections
-        $newPartsListIds = $data['parts_lists'] ?? [];
+        // $newPartsListIds = $data['parts_lists'] ?? [];
           /**
          * REMOVE unselected
          */
-        $toRemove = array_diff($oldPartsListIds, $newPartsListIds);
+        // $toRemove = array_diff($oldPartsListIds, $newPartsListIds);
 
-        foreach ($toRemove as $listId) {
-            $list = PartsList::find($listId);
-            if (!$list) continue;
+        // foreach ($toRemove as $listId) {
+        //     $list = PartsList::find($listId);
+        //     if (!$list) continue;
 
-            $products = array_map('strval', $list->selected_products ?? []);
-            $products = array_values(array_diff($products, [$equipmentId]));
+        //     $products = array_map('strval', $list->selected_products ?? []);
+        //     $products = array_values(array_diff($products, [$equipmentId]));
 
-            $list->update(['selected_products' => $products]);
+        //     $list->update(['selected_products' => $products]);
+        // }
+
+        // /**
+        //  * ADD newly selected
+        //  */
+        // $toAdd = array_diff($newPartsListIds, $oldPartsListIds);
+
+        // foreach ($toAdd as $listId) {
+        //     $list = PartsList::find($listId);
+        //     if (!$list) continue;
+
+        //     $products = array_map('strval', $list->selected_products ?? []);
+
+        //     if (!in_array($equipmentId, $products, true)) {
+        //         $products[] = $equipmentId;
+        //     }
+
+        //     $list->update([
+        //         'selected_products' => array_values(array_unique($products)),
+        //     ]);
+        // }
+
+
+
+
+
+        /**
+         * ---------------------------------------------------------
+         * REMOVE from OLD parts list (if changed)
+         * ---------------------------------------------------------
+         */
+        if ($oldPartsListId && $oldPartsListId != $newPartsListId) {
+            $oldList = PartsList::find($oldPartsListId);
+
+            if ($oldList) {
+                $products = array_map('strval', $oldList->selected_products ?? []);
+                $products = array_values(array_diff($products, [$equipmentId]));
+
+                $oldList->update([
+                    'selected_products' => $products
+                ]);
+            }
         }
 
         /**
-         * ADD newly selected
+         * ---------------------------------------------------------
+         * ADD to NEW parts list
+         * ---------------------------------------------------------
          */
-        $toAdd = array_diff($newPartsListIds, $oldPartsListIds);
+        if ($newPartsListId) {
+            $newList = PartsList::find($newPartsListId);
 
-        foreach ($toAdd as $listId) {
-            $list = PartsList::find($listId);
-            if (!$list) continue;
+            if ($newList) {
+                $products = array_map('strval', $newList->selected_products ?? []);
 
-            $products = array_map('strval', $list->selected_products ?? []);
+                if (!in_array($equipmentId, $products, true)) {
+                    $products[] = $equipmentId;
+                }
 
-            if (!in_array($equipmentId, $products, true)) {
-                $products[] = $equipmentId;
+                $newList->update([
+                    'selected_products' => array_values(array_unique($products))
+                ]);
             }
-
-            $list->update([
-                'selected_products' => array_values(array_unique($products)),
-            ]);
         }
+
+
+
 
         return redirect()
             ->route('admin.maintenance-management.equipment.index')

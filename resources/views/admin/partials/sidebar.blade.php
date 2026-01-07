@@ -125,7 +125,7 @@
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.order-management.schedule-assignment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-calendar-days class="h-5 w-5" />
-                                        Schedule AssignmentSchedule Assignment
+                                        Schedule Assignment
                                     </a>
                                 </li>
 

@@ -100,6 +100,7 @@ class StoreRequest extends FormRequest
             'volts' => 'nullable', // or array if you send as array and implode before saving
             'amps'  => 'nullable', // same as above
 
+             'parts_lists'   => 'nullable|array',
         ];
     }
 

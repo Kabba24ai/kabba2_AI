@@ -100,7 +100,8 @@ class UpdateRequest extends FormRequest
 
             'volts' => 'nullable',
             'amps'  => 'nullable',
-
+            
+ 'parts_lists'   => 'nullable|array',
         ];
     }
 

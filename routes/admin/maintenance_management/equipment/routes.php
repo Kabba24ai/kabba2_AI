@@ -17,6 +17,9 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\ServiceController
 
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CopyController;
 
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\GetPartslistsController;
+
+
 
 Route::prefix('equipment')
     ->name('equipment.')
@@ -46,6 +49,10 @@ Route::prefix('equipment')
         Route::post('/store-assign', AssignStoreController::class)->name('store-assign');
 
         Route::get('/{unique_id}/copy', CopyController::class)->name('copy');
+
+
+            
+        Route::get('/get-parts-lists/{category}',GetPartslistsController::class)->name('get-parts-lists');
 
 
     });

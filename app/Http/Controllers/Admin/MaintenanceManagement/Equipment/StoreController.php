@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MaintenanceManagement\Equipment\StoreRequest;
 use App\Models\MaintenanceManagement\Equipment;
- 
+ use App\Models\MaintenanceManagement\PartsList;
+
+
 class StoreController extends Controller
 {
     public function __invoke(StoreRequest $request)
@@ -21,8 +23,28 @@ class StoreController extends Controller
             $data['equipment_hours'] = $data['bring_service_hour'];
         }
 
-        Equipment::create($data);
+      $equipment =  Equipment::create($data);
 
+  //  ALWAYS STRING
+        $equipmentId = (string) $equipment->id;
+
+        $partsListIds = $data['parts_lists'] ?? [];
+
+        foreach ($partsListIds as $listId) {
+            $list = PartsList::find($listId);
+            if (!$list) continue;
+
+            $products = array_map('strval', $list->selected_products ?? []);
+
+            if (!in_array($equipmentId, $products, true)) {
+                $products[] = $equipmentId;
+            }
+
+            $list->update([
+                'selected_products' => array_values(array_unique($products)),
+            ]);
+        }
+        
         return redirect()
             ->route('admin.maintenance-management.equipment.index')
             ->with('success', 'Equipment created successfully!');

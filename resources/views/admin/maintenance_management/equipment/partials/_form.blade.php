@@ -703,26 +703,29 @@
         </div>
 
         {{-- Equipment Part List --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <div class="flex items-center space-x-3 mb-4">
-                <x-heroicon-o-cube class="h-5 w-5 text-purple-600" />
-                <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
+       
+
+        <div class="bg-white rounded-xl shadow-sm border p-5">
+            <div class="flex items-center justify-between mb-2">
+                <label class="text-sm font-medium text-gray-700">
+                    Parts List Templates
+                </label>
             </div>
 
-            <div>
-                <label for="part_id" class="block text-sm font-medium text-gray-700 mb-1">Parts List Template</label>
-                {!! html()->select('part_id', ['' => 'Select Parts List Template'])->class([
-                        'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
-                        'border-red-500' => $errors->has('part_id'),
-                    ]) !!}
-                <p class="mt-2 text-xs text-gray-500">
-                    Assign a parts list template for this equipment
-                </p>
-                @error('part_id')
-                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-            </div>
+           <select
+                name="parts_lists[]"
+                id="parts_lists_Select"
+                multiple
+                class="choices-select w-full rounded-md border border-gray-300 text-sm">
+            </select>
+
+
+            <p class="mt-2 text-xs text-gray-500">
+                Select parts lists applicable to this equipment
+            </p>
         </div>
+
+
     </div>
 
     {{-- Equipment Notes - Full Width --}}
@@ -960,4 +963,85 @@
             isTracked.addEventListener('change', toggleOverageRate);
         });
     </script>
+
+
+<script>
+    window.routes = {
+        partsListsByCategory: "{{ route('admin.maintenance-management.equipment.get-parts-lists', ':id') }}"
+    };
+
+     window.selectedPartsListIds = @json($selectedPartsListIds ?? []);
+
+</script>
+<script>
+let partsListChoices;
+
+document.addEventListener('DOMContentLoaded', function () {
+    partsListChoices = new Choices('#parts_lists_Select', {
+        removeItemButton: true,
+        shouldSort: false,
+        placeholder: true,
+        placeholderValue: 'Select Parts Lists'
+    });
+
+    // Disable initially
+    partsListChoices.disable();
+});
+</script>
+
+<script>
+function loadPartsListsByCategory(categoryId, preselectedIds = []) {
+    // Hard reset
+    partsListChoices.hideDropdown();
+    partsListChoices.removeActiveItems();
+    partsListChoices.clearChoices();
+    partsListChoices.disable();
+
+    if (!categoryId) return;
+
+    const url = window.routes.partsListsByCategory.replace(':id', categoryId);
+
+    fetch(url)
+        .then(res => res.json())
+        .then(res => {
+            if (!res.success) return;
+
+            const choices = res.data.map(item => ({
+                value: String(item.id),
+                label: item.name,
+                selected: preselectedIds.includes(String(item.id))
+            }));
+
+            partsListChoices.setChoices(choices, 'value', 'label', true);
+            partsListChoices.enable();
+        })
+        .catch(err => {
+            console.error('Failed to load parts lists', err);
+            partsListChoices.disable();
+        });
+}
+</script>
+<script>
+document.addEventListener('change', function (e) {
+    if (e.target.id !== 'product_category_id') return;
+
+    loadPartsListsByCategory(e.target.value, []);
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const categorySelect = document.getElementById('product_category_id');
+    if (!categorySelect || !categorySelect.value) return;
+
+    // Auto load on edit
+    loadPartsListsByCategory(
+        categorySelect.value,
+        window.selectedPartsListIds.map(String)
+    );
+});
+</script>
+
+
+
+
 @endpush

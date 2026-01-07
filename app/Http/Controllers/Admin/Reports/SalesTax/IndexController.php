@@ -24,7 +24,14 @@ class IndexController extends Controller
 
         //  Orders Query
         $ordersQuery = Order::with('shippingAddress', 'products.product.categories', 'lastPayment')
-            ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
+            // ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
+            ->whereHas('lastPayment', function ($q) {
+                $q->where('payment_method', '!=', 'COD')
+                ->orWhere(function ($q) {
+                    $q->where('payment_method', 'COD')
+                        ->where('status', 'Paid');
+                });
+            })
             ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
             ->when($request->filled('payment_method') && $request->payment_method !== 'All Methods', fn($q) => $q->whereRelation('lastPayment', 'payment_method', $request->payment_method))
             ->when($request->filled('store'), function ($q) use ($request) {
@@ -43,6 +50,8 @@ class IndexController extends Controller
             });
 
         $orders = $ordersQuery->get();
+
+       
 
         // Load payment accounts ONLY when a store is NOT selected
         $paymentAccounts = collect(); // default empty collection
@@ -133,6 +142,7 @@ class IndexController extends Controller
             ->sortByDesc(fn($row) => $row->date)
             ->values();
 
+            //  dd($reportRows);
 
         $totalRevenue = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->grand_total));
 

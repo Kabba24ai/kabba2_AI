@@ -1515,4 +1515,16 @@ document.addEventListener("click", function (e) {
 </script>
 
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        window.reloadGlobalNotes = function () {
+            fetchNotes2();
+            fetchNotes();
+        }
+
+        reloadGlobalNotes();
+    });
+</script>
+
 @endpush

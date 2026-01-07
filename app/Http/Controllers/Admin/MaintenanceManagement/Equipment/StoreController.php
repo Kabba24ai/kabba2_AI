@@ -25,26 +25,48 @@ class StoreController extends Controller
 
       $equipment =  Equipment::create($data);
 
-  //  ALWAYS STRING
-        $equipmentId = (string) $equipment->id;
 
-        $partsListIds = $data['parts_lists'] ?? [];
+      // Assign equipment to ONE parts list
+        if (!empty($data['parts_list_id'])) {
 
-        foreach ($partsListIds as $listId) {
-            $list = PartsList::find($listId);
-            if (!$list) continue;
+            $list = PartsList::find($data['parts_list_id']);
 
-            $products = array_map('strval', $list->selected_products ?? []);
+            if ($list) {
+                $equipmentId = (string) $equipment->id;
 
-            if (!in_array($equipmentId, $products, true)) {
-                $products[] = $equipmentId;
+                $products = array_map('strval', $list->selected_products ?? []);
+
+                if (!in_array($equipmentId, $products, true)) {
+                    $products[] = $equipmentId;
+                }
+
+                $list->update([
+                    'selected_products' => array_values(array_unique($products)),
+                ]);
             }
-
-            $list->update([
-                'selected_products' => array_values(array_unique($products)),
-            ]);
         }
-        
+
+
+  //  ALWAYS STRING
+        // $equipmentId = (string) $equipment->id;
+
+        // $partsListIds = $data['parts_lists'] ?? [];
+
+        // foreach ($partsListIds as $listId) {
+        //     $list = PartsList::find($listId);
+        //     if (!$list) continue;
+
+        //     $products = array_map('strval', $list->selected_products ?? []);
+
+        //     if (!in_array($equipmentId, $products, true)) {
+        //         $products[] = $equipmentId;
+        //     }
+
+        //     $list->update([
+        //         'selected_products' => array_values(array_unique($products)),
+        //     ]);
+        // }
+
         return redirect()
             ->route('admin.maintenance-management.equipment.index')
             ->with('success', 'Equipment created successfully!');

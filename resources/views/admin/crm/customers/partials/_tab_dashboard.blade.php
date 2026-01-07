@@ -524,15 +524,13 @@
         };
 
          // Fetch all notes (from backend API)
-       window.fetchNotes2 = function() {
+        window.fetchNotes2 = function() {
         return fetch(`{{ route('admin.crm.customers.notes.fetch', $customer->id ?? 0) }}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
                         notes = data.notes || [];
                         renderNotes();
-                       fetchNotes();
-
                     } else {
                         notyf.error("Failed to fetch notes");
                     }
@@ -542,47 +540,47 @@
 
         
        // Render Notes List
-function renderNotes() {
-    if (notes.length === 0) {
-        noteList.innerHTML = `<li class="text-gray-400 text-sm">No notes available.</li>`;
-        return;
-    }
+        function renderNotes() {
+            if (notes.length === 0) {
+                noteList.innerHTML = `<li class="text-gray-400 text-sm">No notes available.</li>`;
+                return;
+            }
 
-    noteList.innerHTML = notes
-        .map(note => {
-            const isUpdated = note.updated_at && note.updated_at !== note.created_at;
+            noteList.innerHTML = notes
+                .map(note => {
+                    const isUpdated = note.updated_at && note.updated_at !== note.created_at;
 
-            return `
-                <li class="list-disc border-b border-gray-200 pb-3" data-id="${note.id}">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1 pr-3">
-                            <p class="text-sm text-gray-800 leading-relaxed font-semibold">${note.text}</p>
-                            <div class="mt-1 text-xs text-gray-500 space-y-1">
+                    return `
+                        <li class="list-disc border-b border-gray-200 pb-3" data-id="${note.id}">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1 pr-3">
+                                    <p class="text-sm text-gray-800 leading-relaxed font-semibold">${note.text}</p>
+                                    <div class="mt-1 text-xs text-gray-500 space-y-1">
 
-                                ${!isUpdated
-                                    ? `
-                                        <div>
-                                             ${note.created_at}
-                                            by <span class="font-semibold">${note.user_name}</span>
-                                        </div>
-                                      `
-                                    : `
-                                        <div>
-                                            ${note.updated_at}
-                                            by <span class="font-semibold">${note.user_name}</span>
-                                        </div>
-                                      `
-                                }
+                                        ${!isUpdated
+                                            ? `
+                                                <div>
+                                                    ${note.created_at}
+                                                    by <span class="font-semibold">${note.user_name}</span>
+                                                </div>
+                                            `
+                                            : `
+                                                <div>
+                                                    ${note.updated_at}
+                                                    by <span class="font-semibold">${note.user_name}</span>
+                                                </div>
+                                            `
+                                        }
 
+                                    </div>
+                                </div>
+                                
                             </div>
-                        </div>
-                        
-                    </div>
-                </li>
-            `;
-        })
-        .join('');
-}
+                        </li>
+                    `;
+                })
+                .join('');
+        }
 
 
         //  Save note (create or update)
@@ -615,7 +613,8 @@ function renderNotes() {
                           
                             closeNotesModal2();
 
-             fetchNotes2();                
+            //  fetchNotes2();
+            reloadGlobalNotes();                
                         } else {
                             notyf.error(data.message || 'Failed to add note');
                         }
@@ -623,7 +622,7 @@ function renderNotes() {
                     .catch(() => notyf.error('Error adding note'));
             
         });
-fetchNotes2();
+
 
     });
 </script>

@@ -466,7 +466,14 @@ private function getRevenueRows(Carbon $start, Carbon $end)
 {
     // ORDERS (same rules as Sales Tax)
     $orders = Order::whereBetween('order_date', [$start, $end])
-        ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
+        // ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
+        ->whereHas('lastPayment', function ($q) {
+                $q->where('payment_method', '!=', 'COD')
+                ->orWhere(function ($q) {
+                    $q->where('payment_method', 'COD')
+                        ->where('status', 'Paid');
+                });
+            })
         ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
         ->get()
         ->map(fn ($order) => (object) [

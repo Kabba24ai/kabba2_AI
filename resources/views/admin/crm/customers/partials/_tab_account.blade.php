@@ -1438,8 +1438,6 @@
             // Fetch all notes (from backend API)
             window.fetchNotes = function() {
                
-                // if (notesLoading) return;
-              
 
                 notesLoading = true;
                 
@@ -1452,7 +1450,7 @@
                 
 
                                 renderNotes();
-                                fetchNotes2();
+                                // fetchNotes2();
                             } else {
                                 notyf.error("Failed to fetch notes");
                             }
@@ -1504,7 +1502,8 @@
                             if (data.success) {
                                 
                                 notyf.success('Note updated successfully');
-                                fetchNotes();
+                                // fetchNotes();
+                                reloadGlobalNotes();
                                 closeNotesModal();
                             } else {
                                 notyf.error(data.message || 'Failed to update note');
@@ -1524,7 +1523,8 @@
                         .then(data => {
                             if (data.success) {
                                 notyf.success('Note added successfully');
-                                fetchNotes();
+                                // fetchNotes();
+                                reloadGlobalNotes()
                                 closeNotesModal();
                             } else {
                                 notyf.error(data.message || 'Failed to add note');
@@ -1620,7 +1620,8 @@
                                 .then(data => {
                                     if (data.success) {
                                         notyf.success('Note deleted successfully');
-                                        fetchNotes();
+                                        // fetchNotes();
+                                        reloadGlobalNotes();
                                     } else {
                                         notyf.error(data.message || 'Failed to delete note');
                                     }
@@ -1632,7 +1633,7 @@
             });
 
             //  Initial load
-            fetchNotes();
+            // fetchNotes();
         });
     </script>
 

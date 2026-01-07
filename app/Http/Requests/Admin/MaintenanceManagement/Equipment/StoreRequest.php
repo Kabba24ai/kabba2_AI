@@ -101,6 +101,8 @@ class StoreRequest extends FormRequest
             'amps'  => 'nullable', // same as above
 
              'parts_lists'   => 'nullable|array',
+             'parts_list_id' => 'nullable|exists:parts_lists,id',
+
         ];
     }
 

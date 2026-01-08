@@ -57,7 +57,7 @@
                     <div class="mb-4">
                         <label class="text-sm font-medium text-gray-700 mb-1 block">Status</label>
                         <select class="w-full border px-3 py-2 rounded-md text-sm" id="statusFilter"
-                            onclick="applyFilters()">
+                            onchange="applyFilters()">
                             <option>All Statuses</option>
                             <option>Damaged</option>
                             <option>Maint. Hold</option>

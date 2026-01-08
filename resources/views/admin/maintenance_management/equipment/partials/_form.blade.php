@@ -706,6 +706,12 @@
        
 
         <div class="bg-white rounded-xl shadow-sm border p-5">
+
+             <div class="flex items-center space-x-3 mb-4">
+                <x-heroicon-o-cube class="h-5 w-5 text-purple-600" />
+                <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
+            </div>
+
             <div class="flex items-center justify-between mb-2">
                 <label class="text-sm font-medium text-gray-700">
                     Parts List Templates

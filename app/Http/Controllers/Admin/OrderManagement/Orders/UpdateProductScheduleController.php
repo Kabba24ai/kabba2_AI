@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
 // Base Controller
+
+use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Http\Controllers\Controller;
 
 // Events
@@ -28,10 +30,13 @@ class UpdateProductScheduleController extends Controller
         if (!$orderProduct) {
             return response()->json(['message' => 'Order product not found.'], 404);
         }
+        $user = auth()->user();
 
         $deliveryChanged = false;
         $pickupChanged = false;
         $storeChange = false;
+        $deliveryStatusChanged = false;
+        $pickupStatusChanged = false;
 
         // Only update the single field passed for delivery or pickup/return using $validatedData
         if ($validatedData['type'] === 'delivery') {
@@ -45,6 +50,10 @@ class UpdateProductScheduleController extends Controller
                     // Track if mode was changed
                     if ($field === 'delivery_transport_mode') {
                         $deliveryChanged = true;
+                    }
+
+                    if ($field === 'delivery_status') {
+                        $deliveryStatusChanged = true;
                     }
                     break;
                 }
@@ -66,6 +75,10 @@ class UpdateProductScheduleController extends Controller
                     if ($field === 'pickup_transport_mode') {
                         $pickupChanged = true;
                     }
+
+                    if ($field === 'pickup_status') {
+                        $pickupStatusChanged = true;
+                    }
                     break;
                 }
             }
@@ -78,7 +91,50 @@ class UpdateProductScheduleController extends Controller
             $orderProduct->service_option = $serviceData['service_option'];
         }
 
+        if ($deliveryStatusChanged || $pickupStatusChanged) {
+            $equipment = $orderProduct->equipment;
+            // If status changed to Completed, set completed_at timestamp
+            if ($deliveryStatusChanged) {
+                // $orderProduct->delivery_date = now()->format('Y-m-d');
+                // $orderProduct->delivery_time = now()->format('H:i');
+                if($orderProduct->delivery_status === 'Completed'){
+                    $orderProduct->is_delivered = true;
+                }else{
+                    $orderProduct->is_delivered = false;
+                }
+
+                if($equipment){
+                    $equipment->current_status = EquipmentCurrentStatus::Rented->value;
+                    $equipment->current_status_updated_by = $user->id;
+                    $equipment->current_status_changed_at = now();
+                    $equipment->saveQuietly();
+                }
+            }
+
+            if ($pickupStatusChanged) {
+                // $orderProduct->pickup_date = now()->format('Y-m-d');
+                // $orderProduct->pickup_time = now()->format('H:i');
+                if($orderProduct->pickup_status === 'Completed'){
+                    $orderProduct->is_returned = true;
+                }else{
+                    $orderProduct->is_returned = false;
+                }
+
+                if($equipment){
+                    $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
+                    $equipment->current_status_updated_by = $user->id;
+                    $equipment->current_status_changed_at = now();
+                    if($orderProduct->pickup_store_id){
+                        $equipment->store_id = $orderProduct->pickup_store_id;
+                    }
+                    $equipment->saveQuietly();
+                }
+            }
+
+        }
+
         $orderProduct->save();
+
 
         if ($storeChange) {
             $equipment = $orderProduct->equipment;
@@ -87,8 +143,6 @@ class UpdateProductScheduleController extends Controller
                 $equipment->saveQuietly();
             }
         }
-
-        $user = auth()->user();
 
         // Fire an event for the updated schedule
         $data = [

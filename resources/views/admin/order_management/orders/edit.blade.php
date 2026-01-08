@@ -639,7 +639,7 @@
                                                     x-model="deliveryStatus"
                                                     class="delivery_status border rounded px-3 py-3 text-xs w-full">
                                                     <option value="Pending"
-                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : 'disabled' }}>
                                                         Pending</option>
                                                     <option value="Completed"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}>

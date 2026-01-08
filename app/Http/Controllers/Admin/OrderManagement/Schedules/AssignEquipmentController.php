@@ -53,12 +53,12 @@ class AssignEquipmentController extends Controller
             ], 409);
         }
 
-        if ($equipment->isHardAssigned()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Equipment is already hard assigned and cannot be assigned.'
-            ], 409);
-        }
+        // if ($equipment->isHardAssigned()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Equipment is already hard assigned and cannot be assigned.'
+        //     ], 409);
+        // }
 
         if($orderProduct?->checklistQuestions->isNotEmpty()){
             return response()->json([
@@ -82,7 +82,7 @@ class AssignEquipmentController extends Controller
         // $equipment->save();
 
         $orderProduct->softAssignment()->delete();
-        $orderProduct->softAssignment()->create(            
+        $orderProduct->softAssignment()->create(
             [
                 'equipment_id' => $equipment->id,
                 'order_id'     => $orderProduct->order_id,

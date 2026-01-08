@@ -171,7 +171,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="{{ 7 + count($dates) }}" class="px-4 py-4 text-center text-gray-500">
+                <td colspan="{{ 5 + count($dates) }}" class="px-4 py-4 text-center text-gray-500">
                     @if ($equipment)
                         No equipment found.
                     @else

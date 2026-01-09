@@ -3,6 +3,21 @@
 @section('title', 'Schedule Assignment')
 
 @push('css')
+    <style>
+        .tw-tooltip::before {
+            content: "";
+            position: absolute;
+            top: -6px;
+            left: 16px;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-left: 1px solid rgb(229 231 235);
+            /* gray-200 */
+            border-top: 1px solid rgb(229 231 235);
+            transform: rotate(45deg);
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -239,6 +254,110 @@
 @endsection
 
 @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.__scheduleTooltipInitialized) return;
+            window.__scheduleTooltipInitialized = true;
+
+            const tooltip = document.createElement('div');
+            tooltip.className =
+                'fixed hidden rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700 shadow-lg max-w-xs z-[9999]';
+            document.body.appendChild(tooltip);
+
+            let activeTrigger = null;
+            let timeouts = {
+                open: null,
+                close: null
+            };
+
+            const DELAYS = {
+                open: 120,
+                close: 80
+            };
+            const GAP = 8;
+
+            function hide() {
+                clearTimeout(timeouts.open);
+                clearTimeout(timeouts.close);
+                activeTrigger = null;
+                tooltip.classList.add('hidden');
+            }
+
+            function position(trigger) {
+                if (!trigger) return;
+
+                tooltip.classList.remove('hidden');
+                const triggerRect = trigger.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+
+                let top = triggerRect.bottom + GAP;
+                let left = triggerRect.left;
+
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    left = window.innerWidth - tooltipRect.width - 10;
+                }
+                if (left < 10) left = 10;
+
+                if (top + tooltipRect.height > window.innerHeight - 10) {
+                    top = triggerRect.top - GAP - tooltipRect.height;
+                }
+
+                tooltip.style.cssText = `top: ${top}px; left: ${left}px;`;
+            }
+
+            function show(trigger) {
+                clearTimeout(timeouts.close);
+                timeouts.open = setTimeout(() => {
+                    activeTrigger = trigger;
+                    tooltip.innerHTML = trigger.dataset.tooltipHtml || '';
+                    requestAnimationFrame(() => position(trigger));
+                }, DELAYS.open);
+            }
+
+            function scheduleHide(trigger) {
+                clearTimeout(timeouts.open);
+                timeouts.close = setTimeout(() => {
+                    if (activeTrigger === trigger) hide();
+                }, DELAYS.close);
+            }
+
+            function getTrigger(target) {
+                return target?.closest?.('.tooltip-trigger');
+            }
+
+            document.addEventListener('pointerover', event => {
+                const trigger = getTrigger(event.target);
+                if (!trigger || trigger.contains(event.relatedTarget)) return;
+                show(trigger);
+            });
+
+            document.addEventListener('pointerout', event => {
+                const trigger = getTrigger(event.target);
+                if (!trigger || trigger.contains(event.relatedTarget)) return;
+                scheduleHide(trigger);
+            });
+
+            document.addEventListener('focusin', event => {
+                const trigger = getTrigger(event.target);
+                if (trigger) show(trigger);
+            });
+
+            document.addEventListener('focusout', event => {
+                const trigger = getTrigger(event.target);
+                if (trigger) scheduleHide(trigger);
+            });
+
+            ['scroll', 'resize'].forEach(event => {
+                window.addEventListener(event, () => {
+                    if (activeTrigger && !tooltip.classList.contains('hidden')) {
+                        requestAnimationFrame(() => position(activeTrigger));
+                    }
+                }, {
+                    passive: true
+                });
+            });
+        });
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');

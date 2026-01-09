@@ -8,6 +8,7 @@ return [
 
     'allowed_origins' => [
         'http://localhost:5173',
+        'https://timetrackerpro.kabba.ai',
     ],
 
     'allowed_headers' => ['*'],

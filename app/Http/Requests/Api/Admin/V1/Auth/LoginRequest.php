@@ -16,7 +16,7 @@ class LoginRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email|max:200|exists:users,email',
+            'email' => 'required|email|max:200',
             'password' => 'required|max:50',
         ];
     }
@@ -42,10 +42,4 @@ class LoginRequest extends ApiBaseFormRequest
         ];
     }
 
-    public function messages()
-    {
-        return [
-            'email.exists' => 'The email or password you entered is incorrect. Please try again.',
-        ];
-    }
 }

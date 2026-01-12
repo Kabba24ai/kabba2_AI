@@ -16,7 +16,10 @@ class FirebaseService
     public function __construct()
     {
         $this->projectId = config('services.firebase.project_id');
-        $this->serviceAccountPath = base_path(config('services.firebase.service_account_path'));
+
+        $this->serviceAccountPath = storage_path(
+            config('services.firebase.service_account_path')
+        );
 
         $this->httpClient = new Client([
             'base_uri' => 'https://fcm.googleapis.com/v1/',
@@ -29,20 +32,38 @@ class FirebaseService
      */
     protected function getAccessToken(): string
     {
+        Log::debug('FCM getAccessToken: Starting token retrieval', [
+            'project_id' => $this->projectId,
+            'service_account_path' => $this->serviceAccountPath,
+        ]);
+
         $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
-        $credentials = new ServiceAccountCredentials(
-            $scopes,
-            $this->serviceAccountPath
-        );
+        try {
+            $credentials = new ServiceAccountCredentials(
+                $scopes,
+                $this->serviceAccountPath
+            );
 
-        $token = $credentials->fetchAuthToken();
+            $token = $credentials->fetchAuthToken(
+                    \Google\Auth\HttpHandler\HttpHandlerFactory::build(new Client())
+                );
 
-        if (!isset($token['access_token'])) {
-            throw new \RuntimeException('Unable to fetch Firebase access token.');
+
+            if (!isset($token['access_token'])) {
+                throw new \RuntimeException('Unable to fetch Firebase access token.');
+            }
+
+            return $token['access_token'];
+        } catch (\Throwable $e) {
+            Log::error('FCM getAccessToken error', [
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'exception_class' => get_class($e),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
         }
-
-        return $token['access_token'];
     }
 
     /**
@@ -62,15 +83,17 @@ class FirebaseService
                     'body'  => $body,
                 ],
                 // Custom data (optional)
-                'data' => $data,
+                'data' => array_map('strval', $data),
             ],
         ];
 
         try {
+
             $response = $this->httpClient->post($url, [
                 'headers' => [
                     'Authorization' => "Bearer {$accessToken}",
                     'Content-Type'  => 'application/json',
+                    'Accept' => 'application/json',
                 ],
                 'json' => $payload,
             ]);
@@ -80,8 +103,13 @@ class FirebaseService
             // Response contains message name like: projects/xxx/messages/0:123...
             return $body['name'] ?? null;
         } catch (\Throwable $e) {
-            Log::error('FCM sendToDevice error: ' . $e->getMessage(), [
-                'exception' => $e,
+            Log::error('FCM sendToDevice error', [
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'device_token' => substr($deviceToken, 0, 20) . '...',
+                'title' => $title,
+                'exception_class' => get_class($e),
+                'trace' => $e->getTraceAsString(),
             ]);
             return null;
         }
@@ -108,6 +136,7 @@ class FirebaseService
         ];
 
         try {
+
             $response = $this->httpClient->post($url, [
                 'headers' => [
                     'Authorization' => "Bearer {$accessToken}",
@@ -120,8 +149,13 @@ class FirebaseService
 
             return $body['name'] ?? null;
         } catch (\Throwable $e) {
-            Log::error('FCM sendToTopic error: ' . $e->getMessage(), [
-                'exception' => $e,
+            Log::error('FCM sendToTopic error', [
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'topic' => $topic,
+                'title' => $title,
+                'exception_class' => get_class($e),
+                'trace' => $e->getTraceAsString(),
             ]);
             return null;
         }
@@ -132,8 +166,12 @@ class FirebaseService
      */
     public function sendToAllDevices(string $title, string $body, array $data = []): array
     {
+
         $devices = UserDevice::whereNotNull('fcm_token')->pluck('fcm_token')->filter();
+
         $results = [];
+        $successCount = 0;
+        $failureCount = 0;
 
         foreach ($devices as $deviceToken) {
             if (!$deviceToken) {
@@ -141,7 +179,19 @@ class FirebaseService
             }
             $messageId = $this->sendToDevice($deviceToken, $title, $body, $data);
             $results[$deviceToken] = $messageId;
+
+            if ($messageId) {
+                $successCount++;
+            } else {
+                $failureCount++;
+            }
         }
+
+        Log::info('FCM sendToAllDevices: Bulk send completed', [
+            'total_devices' => count($results),
+            'successful' => $successCount,
+            'failed' => $failureCount,
+        ]);
 
         return $results;
     }

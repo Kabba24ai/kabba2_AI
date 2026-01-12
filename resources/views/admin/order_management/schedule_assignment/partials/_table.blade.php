@@ -103,7 +103,7 @@
 
                             // Common date filter as a closure so we don't repeat it
                             $dateFilter = function ($query) use ($day) {
-                                $query->whereDate('delivery_date', '<=', $day)->whereDate('pickup_date', '>', $day);
+                                $query->whereDate('delivery_date', '<=', $day)->whereDate('pickup_date', '>=', $day);
                             };
 
                             // Is booked for that day?
@@ -135,14 +135,16 @@
                                 $activeColor = 'blue-100';
                                 $textColor = 'text-gray-600';
                             }
+
+                            $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
                         @endphp
 
                         @if ($hasAny)
                             <div count="{{ count($softAssignments) }}"  flag="{{ $isBooked && $isSoftAssigned }}"
                                 class="w-auto bg-{{ $activeColor }} {{ $textColor }} rounded text-xs flex flex-col items-center justify-center">
 
-                                @if ($isBooked)
-                                    <div class="font-bold cursor-not-allowed group relative" title="Hard assigned - cannot be changed">
+                                @if ($isBooked && ! $isReturnDay)
+                                    <div class="px-2 font-bold cursor-not-allowed group relative" title="Hard assigned - cannot be changed">
                                         {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
                                         <span class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
                                             Hard assigned - cannot be changed
@@ -150,14 +152,34 @@
                                     </div>
                                 @endif
 
-                                @foreach ($softAssignments as $assignment)
-                                    <button type="button" class="text-xs {{ $textColor }} underline equipment-assign-btn"
-                                        data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
-                                        data-order-product-name="{{ $assignment->orderProduct->product_name }}"
-                                        data-order="{{ $assignment->orderProduct?->order?->order_number }}">
-                                        {{ $assignment->order->order_number }}
-                                    </button>
-                                @endforeach
+                                @if ($isReturnDay)
+                                    <div class="relative rounded overflow-hidden bg-blue-200 text-xs">
+                                        <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600"></span>
+
+                                        <div class="relative z-10 flex flex-col items-start">
+                                            @foreach ($softAssignments as $assignment)
+                                                <button type="button"
+                                                    class="w-full px-2 text-gray-700 underline text-left
+                                                        focus:outline-none focus:ring-0 equipment-assign-btn"
+                                                    data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
+                                                    data-order-product-name="{{ $assignment->orderProduct->product_name }}"
+                                                    data-order="{{ $assignment->orderProduct?->order?->order_number }}">
+                                                    {{ $assignment->order->order_number }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    @foreach ($softAssignments as $assignment)
+                                        <button type="button"
+                                            class="text-xs {{ $textColor }} underline px-2 equipment-assign-btn"
+                                            data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
+                                            data-order-product-name="{{ $assignment->orderProduct->product_name }}"
+                                            data-order="{{ $assignment->orderProduct?->order?->order_number }}">
+                                            {{ $assignment->order->order_number }}
+                                        </button>
+                                    @endforeach
+                                @endif
                             </div>
                         @else
                             <div

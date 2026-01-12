@@ -175,7 +175,7 @@ class Order extends Model
             $nextId = $latestOrder ? $latestOrder->id + 1 : 1;
 
             // Format: ORD-0001
-            $model->order_number = '#' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+            $model->order_number = '#' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             // Set current date and time
             $currentDateTime = Carbon::now();
             $model->order_date = $currentDateTime->format(config('app.date.db_date_format'));

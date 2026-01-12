@@ -1312,7 +1312,8 @@
                             </label>
                             <select id="cardOption" name="card_option"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
-                                <option value="NewCard" selected>New Card</option>
+                                <option value="" selected>Choose an option</option>
+                                <option value="NewCard" >New Card</option>
 
                                 @if ($order->customer->cards && $order->customer->cards->count() > 0)
                                     <option value="CardOnFile">Card on File</option>
@@ -2952,9 +2953,12 @@
                 if (this.value === 'NewCard') {
                     newCardFields.classList.remove('hidden');
                     cardOnFileDropdown.classList.add('hidden');
-                } else {
+                } else if (this.value === 'CardOnFile') {
                     newCardFields.classList.add('hidden');
                     cardOnFileDropdown.classList.remove('hidden');
+                }else {
+                    newCardFields.classList.add('hidden');
+                    cardOnFileDropdown.classList.add('hidden');
                 }
             });
 

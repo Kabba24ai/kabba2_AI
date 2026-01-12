@@ -137,6 +137,10 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     @include('admin.configurations.partials._communication_settings')
                 </div>
+                <!-- Notification Settings -->
+                    @include('admin.configurations.partials._notification_settings')
+                <!-- Notification Settings -->
+
             </x-admin.configurations.config-form>
         </div>
 

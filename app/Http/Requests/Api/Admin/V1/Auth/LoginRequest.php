@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\Admin\V1\Auth;
 
 use App\Http\Requests\ApiBaseFormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class LoginRequest extends ApiBaseFormRequest
 {
@@ -38,6 +39,13 @@ class LoginRequest extends ApiBaseFormRequest
                 'example' => 'Raj#1234',
                 'type' => 'string',
             ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'email.exists' => 'The email or password you entered is incorrect. Please try again.',
         ];
     }
 }

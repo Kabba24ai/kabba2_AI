@@ -137,7 +137,9 @@
                             }
 
                             $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
-
+                            if ($isReturnDay && !$isSoftAssigned) {
+                                $activeColor = $color . '-300';
+                            }
                         @endphp
 
                         @if ($hasAny)
@@ -146,9 +148,8 @@
 
                                 @if ($isBooked)
                                     @if ($isReturnDay && !$isSoftAssigned)
-                                        <div class="px-2 font-bold cursor-not-allowed group relative text-black rounded
-                                            bg-[linear-gradient(to_right,theme(colors.blue.600)_15%,theme(colors.{{$color}}.200)_15%)]"
-                                            title="Hard assigned - cannot be changed">
+                                        <div class="px-2 text-black font-bold cursor-not-allowed group relative overflow-hidden rounded px-2 " title="Hard assigned - cannot be changed">
+                                            <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600"></span>
                                             {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
                                             <span
                                                 class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">

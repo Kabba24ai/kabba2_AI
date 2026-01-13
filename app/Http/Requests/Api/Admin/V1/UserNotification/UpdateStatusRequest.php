@@ -12,7 +12,7 @@ class UpdateStatusRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'user_id'  => 'required|integer|exists:users,id',
+       
             'order_id' => 'required|integer|exists:orders,id',
         ];
     }
@@ -23,11 +23,7 @@ class UpdateStatusRequest extends ApiBaseFormRequest
     public function bodyParameters(): array
     {
         return [
-            'user_id' => [
-                'description' => 'User ID',
-                'example' => 1,
-                'type' => 'integer',
-            ],
+
             'order_id' => [
                 'description' => 'Order ID',
                 'example' => 10,

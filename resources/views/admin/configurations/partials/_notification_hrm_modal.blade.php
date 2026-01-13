@@ -21,7 +21,7 @@
             <button
                 type="button"
                 id="cancel-hrm-modal"
-                class="px-4 py-2 border rounded-lg"
+                class="px-6 py-3 border text-md font-medium rounded-lg" 
             >
                 Cancel
             </button>
@@ -29,7 +29,7 @@
             <button
                 type="button"
                 id="save-hrm-modal"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                class="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg"
             >
                 Add Selected
             </button>

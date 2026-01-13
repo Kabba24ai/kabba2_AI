@@ -4,26 +4,32 @@
    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
       <div class="grid grid-cols-1 gap-3">
          <div class="space-y-3 bg-blue-50 p-4 rounded-xl border border-blue-200">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"> 
                <div class="flex items-center gap-3">
                         <x-heroicon-o-bell class="h-5 w-5 text-blue-600" />
 
-                  <h2 class="text-lg font-semibold text-slate-800"> New Order Notification</h2>
+                  <h2 class="text-base font-semibold text-gray-800"> New Order Notification</h2>
                </div>
-              <div class="flex gap-2">
+              <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                 <button
                     type="button"
                     data-add-hrm="order"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                    class=" flex items-center gap-2 px-6 py-3 bg-blue-600 text-md text-white font-medium rounded-lg"    
                 >
+                    <svg aria-hidden="true" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" data-slot="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                    </svg>
                     Add HRM Users
                 </button>
 
                 <button
                     type="button"
                     data-edit="order"
-                    class="px-4 py-2 bg-white border rounded-lg text-blue-600"
+                    class="flex items-center gap-2 px-6 py-3 bg-white border text-md rounded-lg font-medium text-blue-600"
                 >
+                    <svg aria-hidden="true" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" data-slot="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                    </svg>
                     Add Manual
                 </button>
             </div>
@@ -43,28 +49,34 @@
    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
       <div class="grid grid-cols-1 gap-3">
          <div class="space-y-3 bg-green-50 p-4 rounded-xl border border-green-200">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                <div class="flex items-center gap-3">
                         <x-heroicon-o-bell class="h-5 w-5 text-blue-600" />
 
-                  <h2 class="text-lg font-semibold text-slate-800">Emergency Services Notification</h2>
+                  <h2 class="text-base font-semibold text-gray-800">Emergency Services Notification</h2>
                </div>
             
 
-               <!-- <div class="flex gap-2">
+               <!-- <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                     <button
                         type="button"
                         data-add-hrm="emergency"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                        class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
                     >
+                        <svg aria-hidden="true" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" data-slot="icon">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                        </svg>
                         Add HRM Users
                     </button>
 
                     <button
                         type="button"
                         data-edit="emergency"
-                        class="px-4 py-2 bg-white border rounded-lg text-blue-600"
+                        class="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-blue-600"
                     >
+                        <svg aria-hidden="true" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" data-slot="icon">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                        </svg>
                         Add Manual
                     </button>
                 </div> -->
@@ -100,7 +112,7 @@
             <input
                 id="manual-name"
                 type="text"
-                class="w-full border rounded-md px-3 py-2"
+                class="pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300 transition-colors"
                 placeholder="Person / Description"
             />
         </div>
@@ -110,7 +122,7 @@
             <input
                 id="manual-phone"
                 type="text"
-                class="masked-phone w-full border rounded-md px-3 py-2"
+                class="masked-phone w-full pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300 transition-colors"
                 placeholder="(xxx) xxx-xxxx"
             />
         </div>
@@ -119,7 +131,7 @@
             <button
                 type="button"
                 id="cancel-manual"
-                class="px-4 py-2 border rounded-lg"
+                class="px-6 py-3 border rounded-lg"
             >
                 Cancel
             </button>
@@ -127,7 +139,7 @@
             <button
                 type="button"
                 id="save-manual"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                class="px-6 py-3 bg-blue-600 text-white rounded-lg"
             >
                 Save
             </button>
@@ -595,7 +607,7 @@ document.getElementById('save-manual').onclick = () => {
                     data-hrm-phone="${user.phone}"
                 />
                 <div>
-                    <div class="font-medium">${user.name}</div>
+                    <div class="font-medium text-md">${user.name}</div>
                     <div class="text-sm text-gray-500">${user.phone}</div>
                 </div>
             `;

@@ -1,6 +1,7 @@
 @forelse($rows as $index => $row)
 <div
-    class="flex items-center gap-4 p-4 bg-white rounded-xl border hover:shadow-md transition"
+    class="flex flex-col gap-4 p-4 bg-white rounded-xl border hover:shadow-md transition
+         md:flex-row md:items-center"
     data-row-index="{{ $index }}"
     data-row-source="{{ $row['source'] ?? 'manual' }}"
 >
@@ -8,12 +9,12 @@
 
         {{-- NAME --}}
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
                 Person / Description
             </label>
             <input
                 type="text"
-                class="manual-name w-full px-3 py-2 border rounded-lg
+                class="manual-name w-full pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300
                     {{ ($row['source'] ?? '') === 'hrm' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                 value="{{ $row['name'] }}"
                 data-manual-name="{{ $index }}"
@@ -31,9 +32,9 @@
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <x-heroicon-o-phone class="w-4 h-4"/>
                 </span>
-                <input
+                <input 
     type="text"
-    class="manual-phone masked-phone w-full pl-9 pr-3 py-2 border rounded-lg
+    class="manual-phone masked-phone w-full pl-9 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300
            {{ ($row['source'] ?? '') === 'hrm' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
     value="{{ $row['phone'] }}"
     data-manual-phone="{{ $index }}"
@@ -65,7 +66,7 @@
                 data-update-manual="{{ $index }}"
                  data-id="{{ $row['id'] }}"
                 data-type="{{ $row['type'] }}"
-                class="data-update-manual px-3 py-1.5 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700"
+                class="data-update-manual px-3 py-1.5 text-sm rounded-sm md:mt-5 bg-green-600 text-white hover:bg-green-700"
             >
 
                 <x-heroicon-o-pencil-square class="w-5 h-5" />
@@ -79,7 +80,7 @@
                 data-delete="{{ $index }}"
                 data-id="{{ $row['id'] }}"
                 data-type="{{ $row['type'] }}"
-                class="px-3 py-1.5 text-sm rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
+                class="px-3 py-1.5 text-sm rounded-sm md:mt-5 bg-red-50 text-red-600 hover:bg-red-100"
             >
                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

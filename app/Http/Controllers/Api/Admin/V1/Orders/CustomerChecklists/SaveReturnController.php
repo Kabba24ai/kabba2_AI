@@ -71,33 +71,36 @@ class SaveReturnController extends BaseController
             );
         }
 
-        $questions = optional($orderProduct->checklistQuestions) ?? collect();
+        if(isset($validated['checklist']) && !empty($validated['checklist'])) {
+            $questions = optional($orderProduct->checklistQuestions) ?? collect();
 
-        if ($questions->isEmpty()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.customer_checklists.no_questions_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
-        }
+            if ($questions->isEmpty()) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => trans('messages.api.admin.v1.customer_checklists.no_questions_found'),
+                    ],
+                    JsonResponse::HTTP_NOT_FOUND,
+                );
+            }
 
-        $validatedAnswers = collect($validated['checklist'])->keyBy('answer_unique_id');
+            $validatedAnswers = collect($validated['checklist'])->keyBy('answer_unique_id');
 
-        foreach ($validatedAnswers as $answer) {
-            // $questions is a Collection of OrderProductChecklistQuestion models with ->answers loaded
-            $answer = $questions
-                ->pluck('answers') // Collection<Collection<Answer>>
-                ->flatten() // Collection<Answer>
-                ->firstWhere('unique_id', $answer['answer_unique_id'] ?? null);
+            foreach ($validatedAnswers as $answer) {
+                // $questions is a Collection of OrderProductChecklistQuestion models with ->answers loaded
+                $answer = $questions
+                    ->pluck('answers') // Collection<Collection<Answer>>
+                    ->flatten() // Collection<Answer>
+                    ->firstWhere('unique_id', $answer['answer_unique_id'] ?? null);
 
-            if ($answer) {
-                $answer->is_return_answer = true; // later if we save multiple time then need to false old ones
-                $answer->user_return_amount = $validatedAnswers[$answer->unique_id]['amount'] ?? null;
-                $answer->save();
+                if ($answer) {
+                    $answer->is_return_answer = true; // later if we save multiple time then need to false old ones
+                    $answer->user_return_amount = $validatedAnswers[$answer->unique_id]['amount'] ?? null;
+                    $answer->save();
+                }
             }
         }
+
 
         $orderProductData = [
             'pickup_store_id' => $validated['store_id'],

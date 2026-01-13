@@ -63,9 +63,9 @@ class SaveReturnRequest extends ApiBaseFormRequest
              // For multipart, Laravel's "max" is in KB; 2048 = 2MB
             'signature_media'         => 'nullable|image|max:2048',
 
-            'checklist'             => 'required|array',
-            'checklist.*.question_unique_id' => 'required|string|exists:order_product_checklist_questions,unique_id',
-            'checklist.*.answer_unique_id'   => 'required|string|exists:order_product_checklist_question_answers,unique_id',
+            'checklist'             => 'nullable|array',
+            'checklist.*.question_unique_id' => 'required_with:checklist|string|exists:order_product_checklist_questions,unique_id',
+            'checklist.*.answer_unique_id'   => 'required_with:checklist|string|exists:order_product_checklist_question_answers,unique_id',
             'checklist.*.amount'             => 'nullable|string',
         ];
     }

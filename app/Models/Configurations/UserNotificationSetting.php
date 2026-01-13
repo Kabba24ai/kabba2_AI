@@ -4,10 +4,10 @@ namespace App\Models\Configurations;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserNotification extends Model
+class UserNotificationSetting extends Model
 {
      protected $table = 'user_notification_settings';
-     
+
     protected $fillable = [
         'user_id',
         'name',

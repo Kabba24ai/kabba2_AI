@@ -13,13 +13,16 @@ return new class extends Migration
     {
         Schema::create('user_notification_settings', function (Blueprint $table) {
             $table->id();
-              
+
             $table->unsignedBigInteger('user_id')->default(0);
             $table->string('name');
             $table->string('phone', 20);
             $table->enum('type', ['order', 'emergency']);
-           
+
             $table->timestamps();
+
+            // Foreign Keys
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

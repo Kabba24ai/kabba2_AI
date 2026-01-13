@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Admin\Configurations\NotificationSettings;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configurations\UserNotification;
+use App\Models\Configurations\UserNotificationSetting;
 
 class DeleteController extends Controller
 {
-    public function __invoke(UserNotification $notification)
+    public function __invoke(UserNotificationSetting $notification)
     {
         $type = $notification->type;
         $notification->delete();
 
-        $rows = UserNotification::where('type', $type)->get()->toArray();
+        $rows = UserNotificationSetting::where('type', $type)->get()->toArray();
 
         $html = view('admin.configurations.partials._notification_view_table', [
             'rows' => $rows,

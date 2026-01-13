@@ -2,10 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\Iam\Personnel\UserDevice;
+use App\Models\Configurations\UserNotificationSetting;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+
+// Models
+use App\Models\Iam\Personnel\UserDevice;
+use App\Models\Iam\Personnel\UserNotification;
 
 class FirebaseService
 {
@@ -166,14 +170,15 @@ class FirebaseService
      */
     public function sendToAllDevices(string $title, string $body, array $data = []): array
     {
-
-        $devices = UserDevice::whereNotNull('fcm_token')->pluck('fcm_token')->filter();
+        $userIds = UserNotificationSetting::where('type', 'order')->pluck('user_id')->filter()->values();
+        $devices = UserDevice::has('user')->whereIn('user_id', $userIds)->whereNotNull('fcm_token')->get();
 
         $results = [];
         $successCount = 0;
         $failureCount = 0;
 
-        foreach ($devices as $deviceToken) {
+        foreach ($devices as $device) {
+            $deviceToken = $device->fcm_token;
             if (!$deviceToken) {
                 continue; // Skip if token is null or empty
             }
@@ -182,6 +187,16 @@ class FirebaseService
 
             if ($messageId) {
                 $successCount++;
+                $user = $device->user;
+                UserNotification::create([
+                    'user_id' => $user->id,
+                    'status' => 'unread',
+                    'type' => 'new_order',
+                    'title' => $title,
+                    'body' => $body,
+                    'params' => json_encode($data),
+                ]);
+
             } else {
                 $failureCount++;
             }

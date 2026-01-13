@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('equipment', function (Blueprint $table) {
+
             // migration
             $table->foreignId('parts_list_id')->nullable()->constrained('parts_lists')->nullOnDelete();
 
@@ -24,7 +25,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('equipment', function (Blueprint $table) {
-            //
+            // rollback
+            $table->dropForeign(['parts_list_id']);
+            $table->dropColumn('parts_list_id');
         });
     }
 };

@@ -12,31 +12,18 @@ use Illuminate\Support\Str;
 
 class UserNotification extends Model
 {
+    use HasFactory;
 
- use HasFactory;
+    protected $fillable = ['unique_id', 'user_id', 'order_id', 'status', 'type', 'body', 'params', 'title'];
 
-    protected $fillable = [
-        'unique_id',
-        'user_id',
-        'order_id',
-        'status',
-        'type',
-        'body',
-        'params',
-        'title',
-
-    ];
-
-       protected static function booted()
+    protected static function booted()
     {
         static::creating(function ($notification) {
-             $notification->unique_id = ModelHelper::generateUniqueID($notification, 'UNH');
+            $notification->unique_id = ModelHelper::generateUniqueID($notification, 'UNH');
         });
     }
 
-
     /* Relationships */
-
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -46,5 +33,4 @@ class UserNotification extends Model
     {
         return $this->belongsTo(Order::class);
     }
-
 }

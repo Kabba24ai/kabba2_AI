@@ -170,8 +170,7 @@ class FirebaseService
      */
     public function sendToAllDevices(string $title, string $body, array $data = []): array
     {
-        $userIds = UserNotificationSetting::where('type', 'order')->pluck('user_id')->filter()->values();
-        $devices = UserDevice::has('user')->whereIn('user_id', $userIds)->whereNotNull('fcm_token')->get();
+        $devices = UserDevice::has('user')->whereNotNull('fcm_token')->get();
 
         $results = [];
         $successCount = 0;
@@ -190,6 +189,7 @@ class FirebaseService
                 $user = $device->user;
                 UserNotification::create([
                     'user_id' => $user->id,
+                    'order_id' => $data['order_id'] ?? null,
                     'status' => 'unread',
                     'type' => 'new_order',
                     'title' => $title,

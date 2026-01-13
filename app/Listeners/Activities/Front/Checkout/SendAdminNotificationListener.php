@@ -15,8 +15,9 @@ class SendAdminNotificationListener
 
         // Send admin notification logic here
         $notification = new FirebaseService();
-        $title = 'New Order Placed';
-        $body = 'Order ' . $order->order_number . ' has been placed.';
+        $title = 'New Order Placed '. $order->order_number;
+        //$body = 'Order ' . $order->order_number . ' has been placed.';
+        $body = $order->customer_name . '|' . $order->products->pluck('name')->join(', ');
         $notification->sendToAllDevices($title, $body, [
             'order_id' => (string)$order->id,
             'order_unique_id' => (string)$order->unique_id,

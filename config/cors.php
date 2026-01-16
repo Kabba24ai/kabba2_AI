@@ -8,6 +8,9 @@ return [
 
     'allowed_origins' => [
         'http://localhost:5173',
+        'http://localhost:5174',
+        'http://kabba.local',
+        'http://admin.kabba.local',
     ],
 
     'allowed_headers' => ['*'],

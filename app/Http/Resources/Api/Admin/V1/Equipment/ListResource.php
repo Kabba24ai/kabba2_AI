@@ -3,9 +3,9 @@
 namespace App\Http\Resources\Api\Admin\V1\Equipment;
 
 use App\Helpers\CustomHelper;
-use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource as CustomerChecklistQuestionsListResource;
 use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource as OrderProductsListResource;
 use App\Http\Resources\Api\Admin\V1\ProductCategories\ListResource as ProductCategoriesListResource;
+use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource as CustomerChecklistQuestionsListResource;
 use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistQuestions\ListResource as RentalReadyChecklistQuestionsListResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

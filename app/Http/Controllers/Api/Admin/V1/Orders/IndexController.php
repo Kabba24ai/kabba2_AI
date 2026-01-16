@@ -65,6 +65,50 @@ class IndexController extends BaseController
             );
         }
 
+        $orders->getCollection()->transform(function ($order) {
+            $order->products->map(function ($orderProduct) {
+                $orderProduct->load('checklistQuestions.answers', 'checklistQuestions.deliverySelectedAnswer', 'checklistQuestions.returnSelectedAnswer', 'equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.answers','equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.category','equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.category','equipmentRentalReadyTemplate.checklistQuestions');
+
+                $item = $orderProduct->equipment;
+
+
+                $isRentedAndDelivered = $item?->current_status->isRented()
+                    && $orderProduct
+                    && ($orderProduct->is_delivered == 1);
+
+                if ($isRentedAndDelivered || !$item) {
+                    $questions = optional($orderProduct->checklistQuestions) ?? collect();
+                    $rentalReadyQuestions = collect(
+                                                $orderProduct->equipmentRentalReadyTemplate?->checklistQuestions
+                                            )
+                                                ->pluck('rental_ready_qa_json')
+                                                ->filter()
+                                                ->map(fn ($item) => is_string($item) ? json_decode($item, true) : $item)
+                                                ->values();
+
+                } else {
+                    $templateQuestions = $item->checklistMaster?->customerAdminTemplate?->templateQuestions;
+                    $questions = collect($templateQuestions)
+                        ->pluck('question')
+                        ->filter()
+                        ->values();
+
+                    $rentalReadyQuestions = $item->checklistMaster?->rentalReadyTemplate?->templateQuestions;
+                    $rentalReadyQuestions = collect($rentalReadyQuestions)
+                        ->pluck('question')   // same as map->question but clearer
+                        ->filter()            // remove nulls
+                        ->values() ?? collect();
+                }
+
+                $orderProduct->setRelation('checklistQA', $questions);
+                $orderProduct->setRelation('rentalReadyQA', $rentalReadyQuestions);
+
+                return $orderProduct;
+            });
+
+            return $order;
+        });
+
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.orders.orders_found'),

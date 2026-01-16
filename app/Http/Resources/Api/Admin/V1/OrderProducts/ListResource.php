@@ -10,6 +10,8 @@ use App\Http\Resources\Api\Admin\V1\Equipment\ListResource as EquipmentListResou
 use App\Http\Resources\Api\Admin\V1\OrderMedias\ListResource as OrderMediasListResource;
 use App\Http\Resources\Api\Admin\V1\Orders\ListResource as OrdersListResource;
 use App\Http\Resources\Api\Admin\V1\Stores\ListResource as StoresListResource;
+use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource as CustomerChecklistQuestionsListResource;
+use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistQuestions\ListResource as RentalReadyChecklistQuestionsListResource;
 
 class ListResource extends JsonResource
 {
@@ -96,6 +98,10 @@ class ListResource extends JsonResource
             'pickup_store' => new StoresListResource($this->whenLoaded('pickupStore')),
 
             'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
+
+            'customer_checklist_questions' => CustomerChecklistQuestionsListResource::collection($this->whenLoaded('checklistQA')),
+
+            'rental_ready_checklist_questions' => RentalReadyChecklistQuestionsListResource::collection($this->whenLoaded('rentalReadyQA')),
 
         ];
 

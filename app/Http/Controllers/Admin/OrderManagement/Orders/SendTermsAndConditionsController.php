@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
+use App\Enums\Communication\SmsType;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 
@@ -33,7 +34,13 @@ class SendTermsAndConditionsController extends Controller
 
                 try {
                     $twilio = new TwilioService();
-                    $result = $twilio->sendSms($billingAddress, $message);
+                    $result = $twilio->sendSms($billingAddress, $message, [], [
+                        'order_id'    => $order->id,
+                        'customer_id' => $order->customer_id,
+                        'sms_type'    => SmsType::TERMS_AND_CONDITIONS,
+                        'phone'       => $billingAddress,
+                        'message'     => $message,
+                    ]);
 
                     if ($result['success']) {
                         $order->last_terms_sms_sent_at = now()->format('Y-m-d H:i:s');

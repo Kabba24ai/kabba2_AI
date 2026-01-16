@@ -16,6 +16,7 @@ use App\Services\TwilioService;
 use App\Models\Orders\OrderProduct;
 use App\Models\Customers\SalesFunnel;
 use App\Models\Orders\OrderProductFunnelLog;
+use App\Enums\Communication\SmsType;
 use Illuminate\Support\Facades\DB;
 
 class SalesFunnelBeforeEventJob implements ShouldQueue
@@ -82,15 +83,27 @@ class SalesFunnelBeforeEventJob implements ShouldQueue
                         $message = $funnel->description;
 
                         try {
-                            $twilio->sendSms($phoneNumber, $message);
+                            $response = $twilio->sendSms($phoneNumber, $message, [], [
+                                'order_id'         => $op->order_id,
+                                'order_product_id' => $op->id,
+                                'customer_id'      => $customer?->id,
+                                'sms_type'         => SmsType::SALES_FUNNEL_BEFORE,
+                            ]);
+
                             OrderProductFunnelLog::create([
                                 'order_product_id' => $op->id,
                                 'sales_funnel_id' => $funnel->id,
                                 'product_id' => $op->product_id,
                                 'message' => $message,
-                                'status' => 'Sent',
+                                'status' => ($response['success'] ?? false) ? 'Sent' : 'Failed',
                                 'sent_at' => Carbon::now(),
                             ]);
+
+                            if (!($response['success'] ?? false)) {
+                                \Log::channel('sales_funnel')->warning("Failed to send SMS. OP={$op->id}, Funnel={$funnel->id}, Error=" . ($response['message'] ?? 'unknown'));
+                            } else {
+                                \Log::channel('sales_funnel')->info("Sent SMS. OP={$op->id}, Funnel={$funnel->id}");
+                            }
                         } catch (\Exception $e) {
                             OrderProductFunnelLog::create([
                                 'order_product_id' => $op->id,
@@ -100,11 +113,10 @@ class SalesFunnelBeforeEventJob implements ShouldQueue
                                 'status' => 'Failed',
                                 'sent_at' => Carbon::now(),
                             ]);
-                            \Log::channel('sales_funnel')->error("Failed to send SMS. OP={$op->id}, Funnel={$funnel->id}, Error={$e->getMessage()}");
-                            continue; // Skip logging if SMS fails
-                        }
 
-                        \Log::channel('sales_funnel')->info("Sent SMS. OP={$op->id}, Funnel={$funnel->id}");
+                            \Log::channel('sales_funnel')->error("Failed to send SMS. OP={$op->id}, Funnel={$funnel->id}, Error={$e->getMessage()}");
+                            continue;
+                        }
                     }
                 });
         }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Admin\V1\Authorize;
 
+use App\Enums\Communication\SmsType;
 use App\Http\Controllers\Api\BaseController;
 use App\Models\Authrise\Submission;
 use App\Services\AuthorizeNetService;
@@ -110,7 +111,9 @@ class PostController extends BaseController
 
             $to = '+16158156734'; // Replace with the destination phone number
             $message = 'Hello, A New Customer has just signed up for a Kabba account';
-            $response = $twilio->sendSms($to, $message);
+            $response = $twilio->sendSms($to, $message, [], [
+                'sms_type' => SmsType::NEW_CUSTOMER_SIGNUP_NOTIFICATION,
+            ]);
 
             if (! $isChargeSuccessful) {
                 return response()->json([

@@ -21,7 +21,7 @@ class UpdateStatusController extends BaseController
      * Update notification status (read/unread)
      *
      * @group Admin App
-     * @authenticated  
+     * @authenticated
      */
     public function __invoke(UpdateStatusRequest $request): JsonResponse
     {
@@ -30,26 +30,17 @@ class UpdateStatusController extends BaseController
         // Authenticated user only
         $userId = Auth::id();
 
-        $notification = UserNotification::query()
+        $notifications = UserNotification::query()
             ->where('user_id', $userId)
-            ->where('order_id', $validated['order_id'])
-            ->first();
+            ->when(isset($validated['order_id']), function ($query) use ($validated) {
+                $query->where('order_id', $validated['order_id']);
+            })
+            ->update(['status' => 'read']);
 
-        if (!$notification) {
-            return response()->json([
-                'success' => false,
-                'message' => trans('messages.api.admin.v1.user_notifications.no_notifications_found'),
-            ], JsonResponse::HTTP_NOT_FOUND);
-        }
-
-        $notification->update([
-            'status' => 'read',
-        ]);
 
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.user_notifications.notification_status_updated'),
-            'notification' => new ListResource($notification),
         ]);
     }
 }

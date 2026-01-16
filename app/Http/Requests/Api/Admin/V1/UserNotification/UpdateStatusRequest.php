@@ -12,7 +12,7 @@ class UpdateStatusRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'order_id' => 'required|integer|exists:orders,id',
+            'order_id' => 'nullable|integer|exists:orders,id',
         ];
     }
 

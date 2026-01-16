@@ -1,6 +1,7 @@
 <?php
 namespace App\Listeners\Activities\Front\Checkout;
 
+use App\Enums\Communication\SmsType;
 use App\Events\Front\Checkout\OrderPlacedEvent;
 
 // enums
@@ -61,7 +62,11 @@ class SendSmsListener
 
         try {
             $twilio = new TwilioService();
-            $result = $twilio->sendSms($to, $message);
+            $result = $twilio->sendSms($to, $message, [], [
+                'order_id'    => $order->id,
+                'customer_id' => $order->customer_id,
+                'sms_type'    => $order->lastPayment->payment_method === OrderPaymentMethod::COD ? SmsType::COD_ORDER_NOTIFICATION : SmsType::CARD_ORDER_NOTIFICATION,
+            ]);
 
             if ($result['success']) {
                 $order->history()->create([

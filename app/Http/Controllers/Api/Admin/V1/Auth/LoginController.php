@@ -49,7 +49,7 @@ class LoginController extends BaseController
             // Customer not found
             return response()->json([
                 'success' => false,
-                'message' => trans("messages.api.admin.v1.auth.user_not_exists"),
+                'message' => trans("messages.api.admin.v1.auth.login_failed"),
             ], JsonResponse::HTTP_NOT_FOUND);
         }
     }

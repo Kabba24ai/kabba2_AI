@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Configurations;
 
 use App\Http\Controllers\Controller;
 use App\Models\Configurations\Setting;
+use App\Models\Configurations\UserNotificationSetting;
 
 class IndexController extends Controller
 {
@@ -20,6 +21,9 @@ class IndexController extends Controller
             return $group->keyBy('setting_name');
         });
 
-        return view('admin.configurations.index', compact('settings'));
+        $newOrderRows = UserNotificationSetting::where('type', 'order')->get()->toArray();
+        $emergencyRows = UserNotificationSetting::where('type', 'emergency')->get()->toArray();
+
+        return view('admin.configurations.index', compact('settings','newOrderRows','emergencyRows'));
     }
 }

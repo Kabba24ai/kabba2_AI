@@ -141,6 +141,7 @@ class AuthorizeNetService
         if ($createResponse && $createResponse->getMessages()->getResultCode() === 'Ok') {
             $profileId = $createResponse->getCustomerProfileId();
             $paymentProfileId = $createResponse->getCustomerPaymentProfileIdList()[0] ?? null;
+
             return [
                 'customer_profile_id' => $profileId,
                 'payment_profile_id' => $paymentProfileId,
@@ -176,13 +177,32 @@ class AuthorizeNetService
         $getProfileResponse = $getProfileController->executeWithApiResponse($this->getApiEnvironment());
 
         if (!$getProfileResponse || $getProfileResponse->getMessages()->getResultCode() !== 'Ok') {
-            throw new \Exception('Failed to retrieve customer profile');
+            $msgObj = $getProfileResponse?->getMessages()?->getMessage()[0] ?? null;
+            throw new \Exception(sprintf(
+                'Failed to retrieve customer profile%s%s',
+                $msgObj ? " [{$msgObj->getCode()}]" : '',
+                $msgObj ? " {$msgObj->getText()}" : ''
+            ));
         }
 
         $paymentProfiles = $getProfileResponse->getProfile()->getPaymentProfiles();
 
         // 4. Handle payment profile logic
         if (!empty($opaqueDataValue)) {
+
+            if ($cardData && !empty($cardData['card_number'])) {
+                // For opaque data with card data, check if a similar payment profile exists
+                $existingPaymentProfileId = $this->findMatchingPaymentProfile($paymentProfiles, $cardData);
+
+                if ($existingPaymentProfileId) {
+                    return [
+                        'customer_profile_id' => $profileId,
+                        'payment_profile_id' => $existingPaymentProfileId,
+                    ];
+                }
+
+            }
+
             // For opaque data, create a new payment profile
             return $this->createPaymentProfileForExistingCustomer($profileId, $customer, $opaqueDataValue, null);
         } elseif (!empty($cardData) && !empty($cardData['card_number'])) {
@@ -244,10 +264,28 @@ class AuthorizeNetService
         if (!empty($customer['address'])) {
             $customerAddress->setAddress($customer['address']);
         }
+        if (!empty($customer['billing_address']) && is_array($customer['billing_address'])) {
+            if (!empty($customer['billing_address']['address'])) {
+                $customerAddress->setAddress($customer['billing_address']['address']);
+            }
+            if (!empty($customer['billing_address']['city'])) {
+                $customerAddress->setCity($customer['billing_address']['city']);
+            }
+            if (!empty($customer['billing_address']['state_name'])) {
+                $customerAddress->setState($customer['billing_address']['state_name']);
+            }
+            if (!empty($customer['billing_address']['zip_code'])) {
+                $customerAddress->setZip($customer['billing_address']['zip_code']);
+            }
+            if (!empty($customer['billing_address']['country'])) {
+                $customerAddress->setCountry($customer['billing_address']['country']);
+            }
+        }
         $paymentProfile->setBillTo($customerAddress);
 
         // Handle payment method
         if (!empty($opaqueDataValue)) {
+
             $opaqueData = new AnetAPI\OpaqueDataType();
             $opaqueData->setDataDescriptor('COMMON.ACCEPT.INAPP.PAYMENT');
             $opaqueData->setDataValue($opaqueDataValue);
@@ -283,6 +321,13 @@ class AuthorizeNetService
         $createRequest->setMerchantAuthentication($this->merchantAuthentication);
         $createRequest->setCustomerProfileId($customerProfileId);
         $createRequest->setPaymentProfile($paymentProfile);
+
+        // Validation mode
+
+        /**
+         * Checks AVS (Address Verification System) settings.
+         * If you want to turn off AVS verification, set it to none.
+         */
         $createRequest->setValidationMode($this->isTestMode ? 'none' : 'liveMode');
 
         $controller = new AnetController\CreateCustomerPaymentProfileController($createRequest);
@@ -294,6 +339,27 @@ class AuthorizeNetService
                 'payment_profile_id' => $createResponse->getCustomerPaymentProfileId(),
             ];
         } else {
+            // ✅ Handle duplicate as success (re-use existing profile id)
+            if ($createResponse
+                && $createResponse->getMessages()
+                && isset($createResponse->getMessages()->getMessage()[0])
+            ) {
+                $msg = $createResponse->getMessages()->getMessage()[0];
+                $code = $msg->getCode();
+
+                if ($code === 'E00039') {
+                    $existingPaymentProfileId = $createResponse->getCustomerPaymentProfileId(); // <-- present in your dump
+
+                    if (!empty($existingPaymentProfileId)) {
+                        return [
+                            'customer_profile_id' => $customerProfileId,
+                            'payment_profile_id'  => $existingPaymentProfileId,
+                            'duplicate'           => true,
+                        ];
+                    }
+                }
+            }
+
             $error = 'Unknown error';
             if ($createResponse && $createResponse->getMessages() && $createResponse->getMessages()->getMessage()) {
                 $msgObj = $createResponse->getMessages()->getMessage()[0];
@@ -323,12 +389,14 @@ class AuthorizeNetService
 
         foreach ($paymentProfiles as $profile) {
             $payment = $profile->getPayment();
+
             if ($payment && $payment->getCreditCard()) {
                 $existingCard = $payment->getCreditCard();
                 $existingCardNumber = $existingCard->getCardNumber();
 
                 // Compare last 4 digits (Authorize.Net masks the card number)
                 if ($existingCardNumber && substr($existingCardNumber, -4) === $last4) {
+
                     // Additional check for expiration date if available
                     if (!empty($cardData['mm_yy'])) {
                         $expiry = $cardData['mm_yy'];
@@ -338,9 +406,12 @@ class AuthorizeNetService
                         $newExpirationDate = '20' . $expiration_year . '-' . $expiration_month;
 
                         $existingExpirationDate = $existingCard->getExpirationDate();
-                        if ($existingExpirationDate === $newExpirationDate) {
-                            return $profile->getCustomerPaymentProfileId();
-                        }
+
+                        // if ($existingExpirationDate === $newExpirationDate) {
+                        //     return $profile->getCustomerPaymentProfileId();
+                        // }
+
+                        return $profile->getCustomerPaymentProfileId();
                     } else {
                         // If no expiration date to compare, just match on last 4
                         return $profile->getCustomerPaymentProfileId();
@@ -499,6 +570,7 @@ class AuthorizeNetService
                 $options['customer']['unique_id'],
                 $options['customer'],
                 $opaqueDataValue, // Accept.js data for card
+                $options['card_data'] ?? [] // Optional card data for matching
             );
 
             $customerProfileId = $profileResult['customer_profile_id'];

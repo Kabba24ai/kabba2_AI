@@ -1,5 +1,6 @@
-<table class="min-w-full border-collapse text-sm ">
-    <thead class="font-semibold bg-gray-100 text-gray-600 sticky top-0 z-10">
+<div id="schedule-loading" class="hidden"></div>
+<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm ">
+    <thead class="bg-gray-100 text-gray-600 sticky top-0 z-10">
         <tr>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Product</th>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Order</th>
@@ -15,8 +16,7 @@
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Actions</th>
         </tr>
     </thead>
-    <div id="schedule-loading" class="hidden"></div>
-    <tbody class="divide-y">
+    <tbody class="divide-y divide-gray-100 text-gray-900 whitespace-nowrap">
         @forelse ($orderProducts as $orderProduct)
             <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
                 <td class="whitespace-nowrap px-4 py-3 text-left min-w-4xs max-w-4xs">
@@ -32,17 +32,16 @@
                             <span>{{ $categories->first()->title }}</span>
                         </div>
                     @elseif ($count > 1)
-                        <div id="tooltip-global"
-                            class="hidden fixed z-[999999]
-                                    bg-white border border-gray-300
-                                    rounded-md shadow-xl p-3 text-xs text-gray-700">
-                        </div>
-                        <span class="tooltip-trigger block text-blue-600 cursor-pointer text-xs "
-                            data-tooltip="
-                    <strong>Categories:</strong><br><br>
-                    @foreach ($categories as $cat)
-                        • {{ $cat->title }} <br>
-                        @endforeach ">
+                        @php
+                            $tooltipHtml = '<div class="font-semibold mb-2">Categories:</div>';
+
+                            foreach ($categories as $cat) {
+                                $tooltipHtml .=
+                                    '<div class="flex gap-2"><span>•</span><span>' . e($cat->title) . '</span></div>';
+                            }
+                        @endphp
+                        <span class="tooltip-trigger block text-blue-600 cursor-pointer text-xs"
+                            data-tooltip-html="{{ $tooltipHtml }}">
                             Categories ({{ $count }})
                         </span>
                     @endif
@@ -193,7 +192,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="10" class="text-center text-sm text-gray-500 px-4 py-6">
+                <td colspan="12" class="text-center text-sm text-gray-500 px-4 py-6">
                     No order found.
                 </td>
             </tr>

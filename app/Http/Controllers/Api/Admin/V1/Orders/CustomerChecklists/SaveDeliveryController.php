@@ -44,7 +44,7 @@ class SaveDeliveryController extends BaseController
             );
         }
 
-        if($orderProduct->checklistQuestions->isNotEmpty()){
+        if($orderProduct?->checklistQuestions->isNotEmpty() && isset($validated['checklist']) && !empty($validated['checklist'])) {
             return response()->json(
                 [
                     'success' => false,
@@ -59,7 +59,7 @@ class SaveDeliveryController extends BaseController
             ->where('unique_id', $uniqueId)
             ->first();
 
-        if (!$equipment || !$equipment->checklistMaster?->customer_admin_template_id) {
+        if ((!$equipment || !$equipment->checklistMaster?->customer_admin_template_id) && isset($validated['checklist']) && !empty($validated['checklist'])) {
             return response()->json(
                 [
                     'success' => false,
@@ -79,72 +79,74 @@ class SaveDeliveryController extends BaseController
             );
         }
 
-        $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map->question->values() ?? collect();
+        if(isset($validated['checklist']) && !empty($validated['checklist'])) {
+            $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map->question->values() ?? collect();
 
-        if ($questions->isEmpty()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.customer_checklists.no_questions_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
-        }
-
-
-        $checklistQuestionData = $orderProduct->checklistQuestions()->createMany($questions->map(function ($question, $index) use ($orderProduct) {
-            return [
-                'order_id' => $orderProduct->order_id,
-                'question_id' => $question->id,
-                'question_category_id' => $question->category_id,
-                'question_name' => $question->question_name,
-                'delivery_question' => $question->question_delivery_text,
-                'return_question' => $question->question_return_text,
-                'index_number' => $question->index_number ?? $index + 1,
-            ];
-        })->toArray());
+            if ($questions->isEmpty()) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => trans('messages.api.admin.v1.customer_checklists.no_questions_found'),
+                    ],
+                    JsonResponse::HTTP_NOT_FOUND,
+                );
+            }
 
 
-        // Option A: manually merge into the loaded relation (no extra query)
-        if ($orderProduct->relationLoaded('checklistQuestions')) {
-            $orderProduct->setRelation(
-                'checklistQuestions',
-                $orderProduct->checklistQuestions->concat($checklistQuestionData)
-            );
-        }
+            $checklistQuestionData = $orderProduct->checklistQuestions()->createMany($questions->map(function ($question, $index) use ($orderProduct) {
+                return [
+                    'order_id' => $orderProduct->order_id,
+                    'question_id' => $question->id,
+                    'question_category_id' => $question->category_id,
+                    'question_name' => $question->question_name,
+                    'delivery_question' => $question->question_delivery_text,
+                    'return_question' => $question->question_return_text,
+                    'index_number' => $question->index_number ?? $index + 1,
+                ];
+            })->toArray());
 
 
-        $validatedAnswers = collect($validated['checklist'])->keyBy('answer_unique_id')->map(function ($item) {
-            return [
-                'question_unique_id' => $item['question_unique_id'],
-                'amount' => $item['amount'] ?? null,
-            ];
-        })->toArray();
+            // Option A: manually merge into the loaded relation (no extra query)
+            if ($orderProduct->relationLoaded('checklistQuestions')) {
+                $orderProduct->setRelation(
+                    'checklistQuestions',
+                    $orderProduct->checklistQuestions->concat($checklistQuestionData)
+                );
+            }
 
-        foreach ($orderProduct->checklistQuestions as $checklistQuestion) {
-            $question = $questions->firstWhere('id', $checklistQuestion->question_id);
 
-            if ($question && isset($question->answers)) {
-                foreach ($question->answers as $index => $answer) {
+            $validatedAnswers = collect($validated['checklist'])->keyBy('answer_unique_id')->map(function ($item) {
+                return [
+                    'question_unique_id' => $item['question_unique_id'],
+                    'amount' => $item['amount'] ?? null,
+                ];
+            })->toArray();
 
-                    $isDeliveryAnswer = isset($validatedAnswers[$answer->unique_id]) ? true : false;
-                    $deliveryAmount = isset($validatedAnswers[$answer->unique_id]) ? $validatedAnswers[$answer->unique_id]['amount'] : 0;
+            foreach ($orderProduct->checklistQuestions as $checklistQuestion) {
+                $question = $questions->firstWhere('id', $checklistQuestion->question_id);
 
-                    // Create new answer
-                    $createdAnswer = $checklistQuestion->answers()->create([
-                        'order_id' => $orderProduct->order_id,
-                        'question_id' => $answer->question_id,
-                        'answer_id' => $answer->id,
-                        'delivery_answer' => $answer->answer_delivery_text,
-                        'return_answer' => $answer->answer_return_text,
-                        'delivery_amount' => $answer->delivery_amt,
-                        'return_amount' => $answer->return_amt,
-                        'is_delivery_answer' => $isDeliveryAnswer,
-                        'is_return_answer' => false,
-                        'user_delivery_amount' => $deliveryAmount,
-                        'is_sync' => $answer->sync_texts ?? 0,
-                        'index_number' => $answer->index_number ?? $index + 1,
-                    ]);
+                if ($question && isset($question->answers)) {
+                    foreach ($question->answers as $index => $answer) {
+
+                        $isDeliveryAnswer = isset($validatedAnswers[$answer->unique_id]) ? true : false;
+                        $deliveryAmount = isset($validatedAnswers[$answer->unique_id]) ? $validatedAnswers[$answer->unique_id]['amount'] : 0;
+
+                        // Create new answer
+                        $createdAnswer = $checklistQuestion->answers()->create([
+                            'order_id' => $orderProduct->order_id,
+                            'question_id' => $answer->question_id,
+                            'answer_id' => $answer->id,
+                            'delivery_answer' => $answer->answer_delivery_text,
+                            'return_answer' => $answer->answer_return_text,
+                            'delivery_amount' => $answer->delivery_amt,
+                            'return_amount' => $answer->return_amt,
+                            'is_delivery_answer' => $isDeliveryAnswer,
+                            'is_return_answer' => false,
+                            'user_delivery_amount' => $deliveryAmount,
+                            'is_sync' => $answer->sync_texts ?? 0,
+                            'index_number' => $answer->index_number ?? $index + 1,
+                        ]);
+                    }
                 }
             }
         }

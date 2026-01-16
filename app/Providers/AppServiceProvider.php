@@ -32,25 +32,20 @@ class AppServiceProvider extends ServiceProvider
         // Gate Registration
         $this->gatesRegistration();
 
-           //  REGISTER OBSERVER
-    Equipment::observe(EquipmentObserver::class);
-    TimeEntry::observe(TimeEntryObserver::class);
+        //  REGISTER OBSERVER
+        Equipment::observe(EquipmentObserver::class);
+        TimeEntry::observe(TimeEntryObserver::class);
     }
 
     private function enableHttps(): void
     {
-        if(config('app.env') !== 'local') {
+        if (config('app.vite_origin_protocol') === 'https') {
             \URL::forceScheme('https');
-            $this->app['request']->server->set('HTTPS', 'on');
-        }else{
-            if (env('VITE_ORIGIN_PROTOCOL') === 'https') {
-                \URL::forceScheme('https');
-                if (!$this->app['request']->isSecure()) {
-                    $request = $this->app['request'];
-                    $httpsUrl = 'https://' . $request->getHttpHost() . $request->getRequestUri();
-                    header('Location: ' . $httpsUrl, true, 301);
-                    exit;
-                }
+            if (!$this->app['request']->isSecure()) {
+                $request = $this->app['request'];
+                $httpsUrl = 'https://' . $request->getHttpHost() . $request->getRequestUri();
+                header('Location: ' . $httpsUrl, true, 301);
+                exit;
             }
         }
     }

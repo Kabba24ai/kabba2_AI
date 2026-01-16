@@ -73,6 +73,8 @@ class Equipment extends Model
 
         'created_by',
         'updated_by',
+
+        'parts_list_id',
     ];
 
     protected $casts = [

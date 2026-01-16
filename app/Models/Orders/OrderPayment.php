@@ -25,6 +25,7 @@ class OrderPayment extends Model
         'auth_code',
         'customer_profile_id',
         'payment_profile_id',
+        'cheque_number',
         'payment_note',
         'amount',
         'status', // e.g., 'Pending', 'Paid', 'Account', 'Partial Refund', 'Refunded', 'Failed'

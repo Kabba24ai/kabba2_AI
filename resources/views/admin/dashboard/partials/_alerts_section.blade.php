@@ -195,7 +195,7 @@
 
         <div class="px-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-            <input id="amount-input" type="number" step="0.01" 
+            <input id="amount-input" type="number" step="0.01"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0.00" >
         </div>
@@ -322,7 +322,7 @@
                    <button id="closeModalBtn" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
                </div>
                <div class=" px-6 overflow-y-auto">
-                  
+
                    {{ html()->form('POST', route('admin.dashboard.paymentstore'))->id('recordpayment')->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
@@ -397,7 +397,7 @@
                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700">
                            <option value="NewCard" selected>New Card</option>
                            <option value="CardOnFile">Card on File</option>
-                        
+
                        </select>
                    </div>
 
@@ -430,7 +430,7 @@
                    </div>
 
                    <!-- Card on File Dropdown -->
-                 
+
                    <div id="cardOnFileDropdown" class="mb-4 hidden">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Select Existing Card </label>
                        <select name="existing_card_id" id="existing_card_id"
@@ -438,7 +438,7 @@
                            <option value="">-- Select a saved card --</option>
                        </select>
                    </div>
-                 
+
 
                    <!-- Person Responsible -->
                    <div class="mb-4">
@@ -510,9 +510,9 @@
    <script>
        document.addEventListener('DOMContentLoaded', function() {
 
-   
 
-           
+
+
 
     const closeBtn = document.getElementById('closeModalBtn');
     const cancelBtn = document.getElementById('canceltempBtn');
@@ -547,20 +547,16 @@
            const chequeNumberField = document.getElementById('chequeNumberField');
 
 
-
            // ===== Show/hide card sections =====
            paymentType.addEventListener('change', function() {
-            //    console.log(" Payment type changed:", this.value);
                if (this.value === 'CreditCard') {
                    creditCardOptions.classList.remove('hidden');
                    cardOption.dispatchEvent(new Event('change'));
                    chequeNumberField.classList.add('hidden');
-
-               } // Handle Cheque section
-               else if (this.value === 'Cheque') {
+               }else if (this.value === 'Cheque') {
                    chequeNumberField.classList.remove('hidden');
                    creditCardOptions.classList.add('hidden');
-               } else {
+               }else {
                    creditCardOptions.classList.add('hidden');
                    chequeNumberField.classList.add('hidden');
 
@@ -712,7 +708,7 @@
                 cardOnFileDropdown.classList.add('hidden');
                 chequeNumberField.classList.add('hidden');
 
-                
+
                 // Clear inputs
                 cardNumberInput.value = '';
                 expiryInput.value = '';

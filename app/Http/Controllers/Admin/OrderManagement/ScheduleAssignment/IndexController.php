@@ -25,15 +25,21 @@ class IndexController extends Controller
         // Pass enum values to the view
         $statuses = EquipmentCurrentStatus::cases(); // returns all enum cases
 
-        $startDate = now();
-        $endDate = $startDate->copy()->addDays(13); // 14 days total (2 weeks)
+
+        if ($request->filled('past_seven_days') && $request->past_seven_days === '1') {
+            $startDate = now()->subDays(6); // 7 days total (including today)
+            $endDate = now();
+        }else{
+            $startDate = now();
+            $endDate = $startDate->copy()->addDays(13); // 14 days total (2 weeks)
+        }
         $dates = [];
 
         for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
             $dates[] = $date->copy();
         }
-
         if ($request->ajax()) {
+
             $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'orderProduct', 'lastOrderProduct', 'activeEquipmentRentalReadyTemplate')
             ->where('not_for_rent', 0)
                     ->when($request->filled('search'), function ($q) use ($request) {
@@ -67,7 +73,7 @@ class IndexController extends Controller
             $query
                 ->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id')
                 ->select('equipment.*') // keep equipment columns
-                ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")
+                //->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")
                 ->orderBy('product_categories.title', 'asc')
                 ->orderBy('equipment_name', 'asc')
                 ->orderBy('equipment_id', 'asc');
@@ -114,6 +120,6 @@ class IndexController extends Controller
 
         $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
 
-        return view('admin.order_management.schedule_assignment.index', compact('categories', 'stores', 'statuses', 'dates', 'orderProducts', 'employees'));
+        return view('admin.order_management.schedule_assignment.index', compact('categories', 'stores', 'dates', 'statuses', 'orderProducts', 'employees'));
     }
 }

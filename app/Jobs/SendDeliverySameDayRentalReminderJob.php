@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\Communication\SmsType;
 use App\Helpers\ConfigurationHelper;
 use App\Models\Orders\OrderProduct;
 use App\Services\TwilioService;
@@ -62,6 +63,7 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
 
         $records = OrderProduct::with([
                 'order.shippingAddress',
+                'order.lastPayment',
                 'product',
             ])
             ->whereHas('product', function ($query) {
@@ -101,19 +103,33 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
                 $message = $truckMessage;
             }
 
-            $response = $twilio->sendSms($phoneNumber, $message);
+            $response = $twilio->sendSms($phoneNumber, $message, [], [
+                'order_id'         => $record->order_id,
+                'order_product_id' => $record->id,
+                'customer_id'      => optional($record->order)->customer_id,
+                'sms_type'         => SmsType::DELIVERY_SAME_DAY,
+            ]);
 
             if (($response['success'] ?? false) === true) {
                 $sentCount++;
+                \Log::channel('jobs')->info('Sent same-day rental delivery SMS successfully.', [
+                    'order_id'         => $record->order_id,
+                    'order_product_id' => $record->id,
+                    'phone'            => $phoneNumber,
+                    'sid'              => $response['sid'] ?? null,
+                    'message'          => $message,
+                ]);
+
             } else {
                 \Log::channel('jobs')->warning('Failed to send same-day rental delivery SMS.', [
+                    'order_id'         => $record->order_id,
                     'order_product_id' => $record->id,
                     'phone'            => $phoneNumber,
                     'error'            => $response['error'] ?? null,
+                    'message'          => $message,
                 ]);
             }
         }
-
 
         $storeCODMessage    = trim($messages['store_delivery_same_day_cod_order_message'] ?? '');
         $truckCODMessage    = trim($messages['truck_delivery_same_day_cod_order_message'] ?? '');
@@ -134,9 +150,13 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
         }
 
         $sentSameDayCODCount = 0;
-
-        foreach ($records as $record) {
+        $codRecords = $records->filter(function ($record) {
+            $lastPayment = data_get($record, 'order.lastPayment');
+            return $lastPayment && data_get($lastPayment, 'payment_method') === 'COD' && data_get($lastPayment, 'status') === 'Pending';
+        });
+        foreach ($codRecords as $record) {
             // Safely get phone number
+
             $phoneNumber = data_get($record, 'order.shippingAddress.phone');
 
             if (!$phoneNumber) {
@@ -159,15 +179,30 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
                 $message = $truckCODMessage;
             }
 
-            $response = $twilio->sendSms($phoneNumber, $message);
+            $response = $twilio->sendSms($phoneNumber, $message, [], [
+                'order_id'         => $record->order_id,
+                'order_product_id' => $record->id,
+                'customer_id'      => optional($record->order)->customer_id,
+                'sms_type'         => SmsType::DELIVERY_SAME_DAY_COD,
+            ]);
 
             if (($response['success'] ?? false) === true) {
                 $sentSameDayCODCount++;
+                \Log::channel('jobs')->info('Sent same-day rental delivery COD SMS successfully.', [
+                    'order_id'         => $record->order_id,
+                    'order_product_id' => $record->id,
+                    'phone'            => $phoneNumber,
+                    'sid'              => $response['sid'] ?? null,
+                    'message'          => $message,
+                ]);
+
             } else {
                 \Log::channel('jobs')->warning('Failed to send same-day rental delivery SMS.', [
+                    'order_id'         => $record->order_id,
                     'order_product_id' => $record->id,
                     'phone'            => $phoneNumber,
                     'error'            => $response['error'] ?? null,
+                    'message'          => $message,
                 ]);
             }
         }

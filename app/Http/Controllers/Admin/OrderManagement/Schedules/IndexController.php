@@ -172,13 +172,20 @@ class IndexController extends Controller
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $orderProducts = $query->orderBy('delivery_date', 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 
-            $html = view('admin.order_management.schedules.partials._table', [
-                'orderProducts' => $orderProducts,
-            ])->render();
+            if ($request->filled('unassigned_equipment')) {
+                $html = view('admin.order_management.schedule_assignment.partials._schedule_table', [
+                    'orderProducts' => $orderProducts,
+                ])->render();
+            }else{
+                $html = view('admin.order_management.schedules.partials._table', [
+                    'orderProducts' => $orderProducts,
+                ])->render();
+            }
 
             return response()->json([
                 'success' => true,
                 'html' => $html,
+                'total' => $orderProducts->count(),
             ]);
         }
 

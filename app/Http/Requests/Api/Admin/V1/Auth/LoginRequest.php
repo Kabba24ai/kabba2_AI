@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\Admin\V1\Auth;
 
 use App\Http\Requests\ApiBaseFormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class LoginRequest extends ApiBaseFormRequest
 {
@@ -15,7 +16,7 @@ class LoginRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email|max:200|exists:users,email',
+            'email' => 'required|email|max:200',
             'password' => 'required|max:50',
         ];
     }
@@ -40,4 +41,5 @@ class LoginRequest extends ApiBaseFormRequest
             ],
         ];
     }
+
 }

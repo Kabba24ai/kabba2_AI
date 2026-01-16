@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\Communication\SmsType;
 use App\Helpers\ConfigurationHelper;
 use App\Models\Orders\OrderProduct;
 use App\Services\TwilioService;
@@ -102,15 +103,30 @@ class SendReturnSameDayRentalReminderJob implements ShouldQueue
                 $message = $truckMessage;
             }
 
-            $response = $twilio->sendSms($phoneNumber, $message);
+            $response = $twilio->sendSms($phoneNumber, $message, [], [
+                'order_id'         => $record->order_id,
+                'order_product_id' => $record->id,
+                'customer_id'      => optional($record->order)->customer_id,
+                'sms_type'         => SmsType::RETURN_SAME_DAY,
+            ]);
 
             if (($response['success'] ?? false) === true) {
                 $sentCount++;
+                \Log::channel('jobs')->info('Sent same-day rental return SMS successfully.', [
+                    'order_id'         => $record->order_id,
+                    'order_product_id' => $record->id,
+                    'phone'            => $phoneNumber,
+                    'sid'              => $response['sid'] ?? null,
+                    'message'          => $message,
+                ]);
+
             } else {
                 \Log::channel('jobs')->warning('Failed to send same-day rental return SMS.', [
+                    'order_id'         => $record->order_id,
                     'order_product_id' => $record->id,
                     'phone'            => $phoneNumber,
                     'error'            => $response['error'] ?? null,
+                    'message'          => $message,
                 ]);
             }
         }

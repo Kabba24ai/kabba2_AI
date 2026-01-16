@@ -124,17 +124,8 @@
                                     <a href="{{ route('admin.order-management.schedule-assignment.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.order-management.schedule-assignment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="lucide lucide-inventory w-5 h-5">
-                                            <rect x="3" y="3" width="7" height="7" rx="1" />
-                                            <path d="M3 7h7" />
-                                            <rect x="14" y="3" width="7" height="7" rx="1" />
-                                            <path d="M14 7h7" />
-                                            <rect x="8.5" y="14" width="7" height="7" rx="1" />
-                                            <path d="M8.5 18h7" />
-                                        </svg> Schedule Assignment
+                                        <x-heroicon-o-calendar-days class="h-5 w-5" />
+                                        Schedule Assignment
                                     </a>
                                 </li>
 
@@ -512,10 +503,9 @@
                     </li>
                     <li x-data="{ open: 'false' }">
                         @php
-                            $projectManagerUrl = config('app.domains.project_manager');
-                            $ssoUrl = auth()->check() 
-                                ? \App\Helpers\SsoHelper::generateSsoUrl(auth()->user()->email, $projectManagerUrl)
-                                : $projectManagerUrl;
+                            $ssoUrl = auth()->check()
+                                ? \App\Helpers\SsoHelper::generateSsoUrl(auth()->user()->email, 'http://projectmanager.kabba.ai')
+                                : 'https://projectmanager.kabba.ai/';
                         @endphp
                         <a href="{{ $ssoUrl }}" target="_blank"
                             class="menu-item group flex items-center gap-3 menu-item-inactive }}">
@@ -580,6 +570,16 @@
                                     <a href="{{ route('admin.hrm.users.index') }}"
                                         class="menu-dropdown-item group {{ $isUsers ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-users class="w-5 h-5" /> Users Account Settings
+
+                                    </a>
+                                </li>
+
+
+                                 <li>
+                                    <a href="https://timetrackerpro.kabba.ai/" target="_blank"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-clock class="w-5 h-5" />
+ Time Tracker Pro
 
                                     </a>
                                 </li>

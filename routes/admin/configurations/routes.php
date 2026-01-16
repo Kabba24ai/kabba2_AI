@@ -22,6 +22,13 @@ use App\Http\Controllers\Admin\Configurations\TermsConditions\SaveController as 
 use App\Http\Controllers\Admin\Configurations\PrivacyPolicy\SaveController as SavePrivacyPolicyController;
 
 
+use App\Http\Controllers\Admin\Configurations\NotificationSettings\HrmUsersController;
+use App\Http\Controllers\Admin\Configurations\NotificationSettings\SaveController as SaveNotificationSettingsController;
+use App\Http\Controllers\Admin\Configurations\NotificationSettings\DeleteController as DeleteNotificationSettingsController;
+
+
+
+
 Route::prefix('configurations')
 ->name('configurations.')
 ->group(function ($router) {
@@ -47,4 +54,11 @@ Route::prefix('configurations')
     //     Route::get('/', LegacyIndexController::class)->name('index');
     //     Route::post('/', UpdateController::class);
     // });
+
+    Route::get('/hrm-users', HrmUsersController::class)->name('hrm-users.index');
+
+    Route::post('/notification-settings.save', SaveNotificationSettingsController::class)->name('notification-settings.save');
+
+    Route::delete('notification-settings-delete/{notification}',DeleteNotificationSettingsController::class)->name('notification-settings.delete');
+
 });

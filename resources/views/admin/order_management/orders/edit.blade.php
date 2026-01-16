@@ -149,36 +149,40 @@
 
 
 
-             <!-- Blade Links with Tailwind loader -->
-<div class="flex flex-col">
-    <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
-       class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
-        <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
-        <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-        </svg>
-    </a>
+                <!-- Blade Links with Tailwind loader -->
+                <div class="flex flex-col">
+                    <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
+                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
+                        <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
+                        <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </a>
 
-    @if ($order->latestReceipt && !empty($order->latestReceipt->mail_send_at))
-        <div class="text-xs text-gray-600 mt-1 ml-[2px] text-center">
+                    @if ($order->latestReceipt && !empty($order->latestReceipt->mail_send_at))
+                        <div class="text-xs text-gray-600 mt-1 ml-[2px] text-center">
 
-            {{ \App\Helpers\CustomHelper::formatDateTime($order->latestReceipt->mail_send_at) }}
+                            {{ \App\Helpers\CustomHelper::formatDateTime($order->latestReceipt->mail_send_at) }}
 
-        </div>
-    @endif
-</div>
+                        </div>
+                    @endif
+                </div>
 
-<div class="flex flex-col">
-    <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
-   class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white rounded hover:bg-blue-700 receipt-action">
-   <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
-   <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-   </svg>
-</a>
-</div>
+                <div class="flex flex-col">
+                    <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
+                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white rounded hover:bg-blue-700 receipt-action">
+                        <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
+                        <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </a>
+                </div>
 
 
 
@@ -417,14 +421,15 @@
                                 {{ $orderProduct->product_name }} -
                                 {{ ucwords($orderProduct->product_data['product_variant'] ?? '') }}
                             </a>
-                          <p class="text-sm text-gray-500">
-    Equipment:
-    @if ($orderProduct->equipment)
-        {{ $orderProduct->equipment->equipment_name }} || {{ $orderProduct->equipment->equipment_id }}
-    @else
-        N/A
-    @endif
-</p>
+                            <p class="text-sm text-gray-500">
+                                Equipment:
+                                @if ($orderProduct->equipment)
+                                    {{ $orderProduct->equipment->equipment_name }} ||
+                                    {{ $orderProduct->equipment->equipment_id }}
+                                @else
+                                    N/A
+                                @endif
+                            </p>
 
                         </div>
                     </div>
@@ -639,7 +644,7 @@
                                                     x-model="deliveryStatus"
                                                     class="delivery_status border rounded px-3 py-3 text-xs w-full">
                                                     <option value="Pending"
-                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : 'disabled' }}>
                                                         Pending</option>
                                                     <option value="Completed"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}>
@@ -1066,8 +1071,7 @@
                     </h2>
 
                     <div class=" max-h-60 overflow-y-auto">
-                        <x-admin.order-management.orders.order-extra-payments-list
-                            :payments="$payments" />
+                        <x-admin.order-management.orders.order-extra-payments-list :payments="$payments" />
                     </div>
                 </div>
             </div>
@@ -1285,60 +1289,31 @@
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
                 <!-- Payment Method -->
                 <div class="space-y-4">
-                    <label class="text-sm font-medium text-gray-700">Select Payment Method</label>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Payment Method </label>
+                        {!! html()->select('payment_type', \App\Enums\Customers\PaymentMethod::options())->id('payment_type')->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->required() !!}
+                    </div>
 
-                    <div class="grid grid-cols-1 gap-3">
-                        <!-- Cash / Manual -->
-                        <label class="cursor-pointer block">
-                            <input type="radio" name="payment_method" value="cash" class="hidden peer" checked>
-                            <div
-                                class="border rounded-lg p-4 flex items-start gap-3 transition peer-checked:border-green-400 peer-checked:bg-green-50 peer-hover:border-blue-400 peer-hover:bg-blue-50">
-                                <div class="mt-1">
-                                    <!-- Icon -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-gray-900">Confirm Payment Received</p>
-                                    <p class="text-sm text-gray-500">Mark as paid (cash, check, etc.)</p>
-                                </div>
-                            </div>
+                    <!-- Cheque Number (hidden by default) -->
+                    <div id="chequeNumberField" class="mb-4 hidden">
+                        <label for="cheque_number" class="block text-sm font-medium text-gray-700 mb-1 ">
+                            Check Number
                         </label>
-
-                        <!-- Credit Card -->
-                        <label class="cursor-pointer block">
-                            <input type="radio" name="payment_method" value="card" class="hidden peer">
-                            <div
-                                class="border rounded-lg p-4 flex items-start gap-3 transition peer-checked:border-blue-400 peer-checked:bg-blue-50 peer-hover:border-blue-400 peer-hover:bg-blue-50">
-                                <div class="mt-1">
-                                    <!-- Icon -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <rect x="2" y="5" width="20" height="14" rx="2" ry="2"
-                                            stroke-width="2"></rect>
-                                        <line x1="2" y1="10" x2="22" y2="10"
-                                            stroke-width="2"></line>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-gray-900">Charge Credit Card</p>
-                                    <p class="text-sm text-gray-500">Process card payment now</p>
-                                </div>
-                            </div>
-                        </label>
+                        <input type="text" id="cheque_number" name="cheque_number"
+                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700"
+                            placeholder="Enter Check number" />
                     </div>
 
                     <!-- Credit card dropdown (hidden by default) -->
                     <div id="creditCardOptions" class="hidden mt-3 ">
                         <div class="mb-4">
-                            <label for="cardOption" class="block text-sm font-medium text-gray-700 mb-1 required">Card
-                                Options</label>
+                            <label for="cardOption" class="block text-sm font-medium text-gray-700 mb-1 required">
+                                Card Options
+                            </label>
                             <select id="cardOption" name="card_option"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
-                                <option value="" selected>New Card</option>
+                                <option value="" selected>Choose an option</option>
+                                <option value="NewCard" >New Card</option>
 
                                 @if ($order->customer->cards && $order->customer->cards->count() > 0)
                                     <option value="CardOnFile">Card on File</option>
@@ -1350,26 +1325,26 @@
                         <div id="newCardFields" class="mb-4 hidden">
                             <div class="grid md:grid-cols-2 gap-4">
                                 <div class="md:col-span-1">
-                                    <input type="text" placeholder="First name" id="firstName" name="firstName"
+                                    <input type="text" placeholder="First name" id="firstName" name="firstName" value=""
                                         class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                                 </div>
                                 <div class="md:col-span-1">
-                                    <input type="text" placeholder="Last name" id="lastName" name="lastName"
+                                    <input type="text" placeholder="Last name" id="lastName" name="lastName" value=""
                                         class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                                 </div>
                                 <div class="md:col-span-2">
                                     <input type="text" placeholder="Card number" maxlength="19" id="cardNumber"
-                                        name="cardNumber"
+                                        name="cardNumber" value=""
                                         class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                                 </div>
                                 <div class="md:col-span-1">
                                     <input type="text" placeholder="MM/YY" maxlength="5" id="expiry"
-                                        name="expiry"
+                                        name="expiry" value=""
                                         class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                                 </div>
                                 <div class="md:col-span-1">
                                     <input type="text" placeholder="CVC" maxlength="4" id="cvc"
-                                        name="cvc"
+                                        name="cvc" value=""
                                         class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                                 </div>
                             </div>
@@ -1380,17 +1355,37 @@
                         <!-- Card on File Dropdown -->
                         <div id="cardOnFileDropdown" class="mb-4 hidden">
                             @if ($order->customer->cards && $order->customer->cards->count() > 0)
-                                <label class="block text-sm font-medium text-gray-700 mb-1 required">Select Existing
-                                    Card</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1 required">
+                                    Select Existing Card
+                                </label>
                                 <select name="customer_card"
                                     class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
-                                    <option value="">-- Select a saved card --</option>
+                                    <option value="">Select a saved card</option>
                                     @foreach ($order->customer->cards as $card)
                                         <option value="{{ $card->unique_id }}">{{ $card->card_number }}</option>
                                     @endforeach
                                 </select>
                             @endif
                         </div>
+                    </div>
+
+                    <!-- Person Responsible -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Person Responsible </label>
+                        {!! html()->select(
+                                'responsible_person',
+                                $employees->pluck('full_name', 'id')->prepend('Select Person Responsible', '')->toArray(),
+                                old('responsible_person'),
+                            )->id('responsible_person')->class([
+                                'w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700',
+                                'border-red-500' => $errors->has('responsible_person'),
+                            ])->required() !!}
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                        {!! html()->textarea('payment_note', old('payment_note'))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->rows(3)->placeholder('Enter any additional notes...') !!}
                     </div>
                 </div>
             </div>
@@ -1648,7 +1643,7 @@
                                             <th class="py-2 px-2">Delivered</th>
                                             <th class="py-2 px-2">Returned</th>
                                             <!-- <th class="py-2 px-2">Balance</th>
-                                                                <th class="py-2 px-2">Value</th> -->
+                                                                        <th class="py-2 px-2">Value</th> -->
                                             <th class="py-2 px-2 text-right">Customer Owes</th>
                                         </tr>
                                     </thead>
@@ -1780,14 +1775,15 @@
                                                     Base Amount (${{ number_format($damageBaseTotal, 2) }})
                                                 </td>
 
-                                                <td class="py-2 px-2  {{ $damageAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                <td
+                                                    class="py-2 px-2  {{ $damageAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
                                                     Adjust Amount (
                                                     {{ $damageAdjustmentTotal >= 0 ? '+' : '-' }}
                                                     ${{ number_format(abs($damageAdjustmentTotal), 2) }} )
                                                 </td>
 
                                                 <td class="py-2 px-2 text-right text-gray-800">
-                                                     ${{ number_format($finalDamageTotal, 2) }}
+                                                    ${{ number_format($finalDamageTotal, 2) }}
                                                 </td>
                                             </tr>
                                         @endif
@@ -1851,7 +1847,7 @@
                                         @endforeach
                                     </tbody>
 
-                                  <tfoot class="bg-gray-50 text-gray-800">
+                                    <tfoot class="bg-gray-50 text-gray-800">
 
                                         <tr>
                                             <td colspan="7" class="py-2 px-2 text-right">
@@ -1870,31 +1866,23 @@
                                                 ${{ number_format($hourTrackingTotal, 2) }}
                                             </td>
                                         </tr>
-@if ($damageBaseTotal > 0 || $damageAdjustmentTotal != 0)
-
-                                        <tr>
-                                            <td colspan="7" class="py-2 px-2 text-right ">
-                                                Final Damage Charge:
-                                            </td>
-                                            <td class="py-2 px-2 text-right ">
-                                                ${{ number_format($finalDamageTotal, 2) }}
-                                            </td>
-                                        </tr>
-@endif
+                                        @if ($damageBaseTotal > 0 || $damageAdjustmentTotal != 0)
+                                            <tr>
+                                                <td colspan="7" class="py-2 px-2 text-right ">
+                                                    Final Damage Charge:
+                                                </td>
+                                                <td class="py-2 px-2 text-right ">
+                                                    ${{ number_format($finalDamageTotal, 2) }}
+                                                </td>
+                                            </tr>
+                                        @endif
 
                                         <tr class="font-bold border-t">
                                             <td colspan="7" class="py-3 px-2 text-right">
                                                 Grand Total:
                                             </td>
                                             <td class="py-3 px-2 text-right text-gray-900">
-                                                {{
-                                                    number_format(
-                                                        $checklistTotal
-                                                        + $hourTrackingTotal
-                                                        + $finalDamageTotal,
-                                                        2
-                                                    )
-                                                }}
+                                                {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal, 2) }}
                                             </td>
                                         </tr>
 
@@ -1985,11 +1973,11 @@
 
                                                     <!-- Save button pinned to bottom on md+ -->
                                                     <!-- <div class="mt-auto flex justify-end">
-                                                                            <button type="submit"
-                                                                                class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
-                                                                                Save
-                                                                            </button>
-                                                                        </div> -->
+                                                                                    <button type="submit"
+                                                                                        class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
+                                                                                        Save
+                                                                                    </button>
+                                                                                </div> -->
                                                 </div>
 
                                             </div>
@@ -2917,7 +2905,7 @@
                 'click',
                 closeProcessPaymentModal));
 
-            const radios = document.querySelectorAll('input[name="payment_method"]');
+            const paymentType = document.getElementById('payment_type');
             const creditCardOptions = document.getElementById('creditCardOptions');
             const cardOption = document.getElementById('cardOption');
             const newCardFields = document.getElementById('newCardFields');
@@ -2925,10 +2913,29 @@
             const cardNumberInput = document.getElementById('cardNumber');
             const expiryInput = document.getElementById('expiry');
             const cvcInput = document.getElementById('cvc');
+            const chequeNumberField = document.getElementById('chequeNumberField');
+
+            // ===== Show/hide card sections =====
+            paymentType.addEventListener('change', function() {
+                if (this.value === 'CreditCard') {
+                    creditCardOptions.classList.remove('hidden');
+                    cardOption.dispatchEvent(new Event('change'));
+                    chequeNumberField.classList.add('hidden');
+                }else if (this.value === 'Cheque') {
+                    chequeNumberField.classList.remove('hidden');
+                    creditCardOptions.classList.add('hidden');
+                }else {
+                    creditCardOptions.classList.add('hidden');
+                    chequeNumberField.classList.add('hidden');
+
+                    newCardFields.classList.add('hidden');
+                    cardOnFileDropdown.classList.add('hidden');
+                }
+            });
+
             // ===== Input formatting =====
             cardNumberInput.addEventListener('input', function() {
-                this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ')
-                    .trim();
+                this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim();
             });
 
             expiryInput.addEventListener('input', function() {
@@ -2941,27 +2948,17 @@
                 this.value = this.value.replace(/\D/g, '').substring(0, 4);
             });
 
-            radios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    if (this.value === 'card') {
-                        creditCardOptions.classList.remove('hidden');
-                        cardOption.dispatchEvent(new Event('change'));
-                    } else {
-                        creditCardOptions.classList.add('hidden');
-                        newCardFields.classList.add('hidden');
-                        cardOnFileDropdown.classList.add('hidden');
-                    }
-                });
-            });
-
             cardOption.addEventListener('change', function() {
                 console.log("Card option changed:", this.value);
-                if (!this.value) {
+                if (this.value === 'NewCard') {
                     newCardFields.classList.remove('hidden');
                     cardOnFileDropdown.classList.add('hidden');
-                } else {
+                } else if (this.value === 'CardOnFile') {
                     newCardFields.classList.add('hidden');
                     cardOnFileDropdown.classList.remove('hidden');
+                }else {
+                    newCardFields.classList.add('hidden');
+                    cardOnFileDropdown.classList.add('hidden');
                 }
             });
 
@@ -2977,69 +2974,22 @@
 
                 const submitBtn = form.querySelector('button[type="submit"]');
                 const originalText = submitBtn.textContent;
+                const selectedPaymentMethod = paymentType.value;
+                console.log("Selected payment method:", selectedPaymentMethod);
+                let endpoint = "{{ route('admin.order-management.orders.receive-payment', ':unique_id') }}";
 
-
-                let endpoint = '#';
-                const selectedPaymentMethod = Array.from(radios).find(radio => radio.checked)?.value;
-                console.log("Selected payment method:", selectedPaymentMethod, cardOption.value);
-
-                // Helper to send API request
-                function processApi(endpoint, form) {
-                    const formData = new FormData(form);
-                    formData.set('_method', 'PUT');
-                    // Never send these:
-                    formData.delete('cardNumber');
-                    formData.delete('expiry');
-                    formData.delete('cvc');
-                    if (!submitBtn.disabled) {
-                        submitBtn.disabled = true;
-                        submitBtn.textContent = 'Saving...';
-                    }
-
-                    apiFetch(endpoint, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content')
-                            },
-                            body: formData
-                        })
-                        .then(res => {
-                            if (res && res.success) {
-                                notyf.success(res.message);
-                                window.location.reload();
-                            } else {
-                                notyf.error(res && res.message);
-                            }
-                        })
-                        .finally(() => {
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = originalText;
-                        });
+                if (!selectedPaymentMethod) {
+                    notyf.error('Please select a payment method.');
+                    return;
                 }
+                endpoint = endpoint.replace(':unique_id', orderUniqueId);
 
-                if (selectedPaymentMethod === 'cash') {
-                    endpoint =
-                        '{{ route('admin.order-management.orders.confirm-payment', ':unique_id') }}';
-                    endpoint = endpoint.replace(':unique_id', orderUniqueId);
-
-                    showConfirm('Do you want to confirm this payment?', 'Are you sure?').then((result) => {
-                        if (result.isConfirmed) {
-                            processApi(endpoint, form); // ✅ Only proceed if confirmed
-                        }
-                    });
-
-                    return; // ✅ Prevent continuing if cash
-                } else {
-                    endpoint =
-                        '{{ route('admin.order-management.orders.charge-credit-card', ':unique_id') }}';
-                    endpoint = endpoint.replace(':unique_id', orderUniqueId);
-                    const customer_card = document.getElementById('cardOption').value;
-                    if (!customer_card) {
+                if (selectedPaymentMethod === 'CreditCard') {
+                    const selectedCardOption = document.getElementById('cardOption').value;
+                    if (selectedCardOption === 'NewCard') {
                         submitBtn.disabled = true;
                         submitBtn.textContent = 'Saving...';
                         try {
-
                             // Card fields
                             const firstName = document.getElementById('firstName').value.trim();
                             const lastName = document.getElementById('lastName').value.trim();
@@ -3123,7 +3073,7 @@
                                         .opaqueData.dataDescriptor;
 
                                     // ✅ Proceed only after tokenization success
-                                    processApi(endpoint, form);
+                                    processApi();
                                 }
                             });
                         } catch (error) {
@@ -3133,11 +3083,67 @@
                             return;
                         }
                     } else {
-                        processApi(endpoint, form);
+                        processApi();
                     }
+                }else{
+                    processApi();
                 }
-            });
 
+                // Helper to send API request
+                function processApi() {
+                    const formData = new FormData(form);
+                    formData.set('_method', 'PUT');
+                    // Never send these:
+                    formData.delete('cardNumber');
+                    formData.delete('expiry');
+                    formData.delete('cvc');
+                    if (!submitBtn.disabled) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Saving...';
+                    }
+
+                    const cardNumber = form.querySelector('[name="cardNumber"]').value;
+                    const expiry     = form.querySelector('[name="expiry"]').value; // MM/YY
+
+                    const last4 = cardNumber.replace(/\s+/g, '').slice(-4);
+
+                    let expMonth = '';
+                    let expYear  = '';
+
+                    if (expiry && expiry.includes('/')) {
+                        [expMonth, expYear] = expiry.split('/');
+                    }
+
+                    if(expMonth && expYear && last4){
+                        // ✅ Safe card metadata (for dedupe / matching)
+                        formData.set('card_number', last4);
+                        formData.set('mm_yy', expMonth + '/' + expYear);
+                    }
+
+
+                    apiFetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: formData
+                        })
+                        .then(res => {
+                            if (res && res.success) {
+                                notyf.success(res.message);
+                                window.location.reload();
+                            } else {
+                                notyf.error(res && res.message);
+                            }
+                        })
+                        .finally(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                        });
+                }
+
+            });
 
             // Modal open/close logic
             const refundPaymentBtn = document.getElementById('refundPaymentBtn');
@@ -3374,37 +3380,35 @@
         const sendTermsBtn = document.getElementById('send-terms');
 
         if (sendTermsBtn) {
-            sendTermsBtn.addEventListener('click', function () {
+            sendTermsBtn.addEventListener('click', function() {
                 const btn = this;
                 btn.disabled = true;
 
                 const endpoint = btn.dataset.url;
 
                 apiFetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document
-                            .querySelector('meta[name="csrf-token"]')
-                            ?.getAttribute('content')
-                    }
-                })
-                .then(res => {
-                    if (res && res.success) {
-                        notyf.success(res.message);
-                    } else {
-                        notyf.error(res?.message || 'Something went wrong');
-                    }
-                })
-                .catch(() => {
-                    notyf.error('Request failed');
-                })
-                .finally(() => {
-                    btn.disabled = false;
-                });
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content')
+                        }
+                    })
+                    .then(res => {
+                        if (res && res.success) {
+                            notyf.success(res.message);
+                        } else {
+                            notyf.error(res?.message || 'Something went wrong');
+                        }
+                    })
+                    .catch(() => {
+                        notyf.error('Request failed');
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                    });
             });
         }
-
-
     </script>
 
     <script>
@@ -3477,34 +3481,33 @@
         }
     </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.receipt-action').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if (this.classList.contains('processing')) {
-                e.preventDefault();
-                return;
-            }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.receipt-action').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.classList.contains('processing')) {
+                        e.preventDefault();
+                        return;
+                    }
 
-            e.preventDefault();
-            this.classList.add('processing');
+                    e.preventDefault();
+                    this.classList.add('processing');
 
-            const loader = this.querySelector('.loader-svg');
-           if (loader) {
-    loader.classList.remove('hidden');
-    const icon = this.querySelector('svg:not(.loader-svg)');
-    if (icon) icon.classList.add('hidden');
-}
+                    const loader = this.querySelector('.loader-svg');
+                    if (loader) {
+                        loader.classList.remove('hidden');
+                        const icon = this.querySelector('svg:not(.loader-svg)');
+                        if (icon) icon.classList.add('hidden');
+                    }
 
-            // Wait for next repaint
-            requestAnimationFrame(() => {
-                const href = this.getAttribute('href');
-                window.location.href = href;
+                    // Wait for next repaint
+                    requestAnimationFrame(() => {
+                        const href = this.getAttribute('href');
+                        window.location.href = href;
+                    });
+                });
             });
         });
-    });
-});
-
-</script>
+    </script>
 
 @endpush

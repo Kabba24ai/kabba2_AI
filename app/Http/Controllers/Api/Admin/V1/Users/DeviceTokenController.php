@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\BaseController;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Users\DeviceTokenRequest;
-
+use App\Models\Iam\Personnel\UserDevice;
 
 class DeviceTokenController extends BaseController
 {
@@ -25,9 +25,13 @@ class DeviceTokenController extends BaseController
 
         // Update the user's device tokens in the database
         $user = $request->user();
-        $user->devices()->updateOrCreate(
+
+        UserDevice::updateOrCreate(
             ['device_token' => $deviceToken],
-            ['fcm_token' => $fcmToken]
+            [
+                'user_id' => $user->id,
+                'fcm_token' => $fcmToken,
+            ]
         );
 
         return response()->json([

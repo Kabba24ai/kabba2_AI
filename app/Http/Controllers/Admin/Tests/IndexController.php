@@ -296,6 +296,18 @@ class IndexController extends Controller
         ]);
         return response()->json(['status' => 'Notification sent.', 'result' => $result]);
     }
+    public  function sendCustomFirebaseNotification($token)
+    {
+        $firebase = new \App\Services\FirebaseService();
+        $title = 'Test Notification';
+        $body = 'This is a test notification sent from IndexController.';
+        $result = $firebase->sendToDevice($token, $title, $body, [
+            'order_id' => 'test_order_id',
+            'order_unique_id' => 'test_order_unique_id',
+            'order_number' => 'test_order_number',
+        ]);
+        return response()->json(['status' => 'Notification sent.', 'result' => $result]);
+    }
 
     public function listTimezonesAndCurrentTimes()
     {

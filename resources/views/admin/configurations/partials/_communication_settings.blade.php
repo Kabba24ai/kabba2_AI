@@ -2,7 +2,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-envelope class="h-5 w-5 text-green-600" />
-        <h3 class="text-lg font-bold text-gray-900">Communication Settings</h3>
+        <h3 class="text-base font-semibold text-gray-800">Communication Settings</h3>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -16,7 +16,7 @@
                         'sms_gateway',
                         old('sms_gateway', $settings['Communication Settings']['sms_gateway']['setting_value'] ?? ''),
                     )->class([
-                        'w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300 disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('sms_gateway'),
                         'border-red-500' => $errors->has('sms_gateway'),
                     ])->attributes([
@@ -48,7 +48,7 @@
 
             <div class="relative">
                 {!! html()->input('password', 'twilio_sid', $settings['Communication Settings']['twilio_sid']['setting_value'] ? '************' : '')->class([
-                        'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-full pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('twilio_sid'),
                         'border-red-500' => $errors->has('twilio_sid'),
                     ])->attributes([
@@ -94,7 +94,7 @@
 
             <div class="relative">
                 {!! html()->input('password', 'twilio_auth_token', $settings['Communication Settings']['twilio_auth_token']['setting_value'] ? '************' : '')->class([
-                        'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-full pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('twilio_auth_token'),
                         'border-red-500' => $errors->has('twilio_auth_token'),
                     ])->attributes([
@@ -140,7 +140,7 @@
 
             <div class="relative">
                 {!! html()->input('password', 'twilio_from_number', $settings['Communication Settings']['twilio_from_number']['setting_value'] ? '************' : '')->class([
-                        'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-full pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('twilio_from_number'),
                         'border-red-500' => $errors->has('twilio_from_number'),
                     ])->attributes([
@@ -186,7 +186,7 @@
 
             <div class="relative">
                 {!! html()->input('password', 'twilio_messaging_service_sid', $settings['Communication Settings']['twilio_messaging_service_sid']['setting_value'] ? '************' : '')->class([
-                        'w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'w-full pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
                         'border-gray-300' => !$errors->has('twilio_messaging_service_sid'),
                         'border-red-500' => $errors->has('twilio_messaging_service_sid'),
                     ])->attributes([
@@ -231,7 +231,7 @@
 
             <div class="relative">
                 <select name="sms_test_mode" id="sms_test_mode"
-                    class="w-full pl-3 pr-10 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500"
+                    class="w-full pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300 transition-colors disabled:bg-gray-50 disabled:text-gray-500"
                     disabled>
                     <option value="1"
                         {{ old('sms_test_mode', $settings['Communication Settings']['sms_test_mode']['setting_value'] ?? '') == 1 ? 'selected' : '' }}>
@@ -257,3 +257,4 @@
     </div>
 </div>
 {{-- Communication Settings --}}
+

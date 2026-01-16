@@ -103,7 +103,7 @@
 
                             // Common date filter as a closure so we don't repeat it
                             $dateFilter = function ($query) use ($day) {
-                                $query->whereDate('delivery_date', '<=', $day)->whereDate('pickup_date', '>', $day);
+                                $query->whereDate('delivery_date', '<=', $day)->whereDate('pickup_date', '>=', $day);
                             };
 
                             // Is booked for that day?
@@ -122,36 +122,80 @@
                                 'Available' => 'green',
                                 'Maint. Hold' => 'yellow',
                                 'Damaged' => 'red',
-                                default => 'blue',
+                                default => 'green',
                             };
 
                             $hasAny = $isBooked || $isSoftAssigned;
 
-                            $textColor = $isBooked && $isSoftAssigned || ($softAssignments->count() > 1) ? 'text-white' : 'text-gray-500';
-                            $activeColor = $isBooked && $isSoftAssigned || ($softAssignments->count() > 1) ? 'red-500' : 'blue-100';
+                            // Light blue for soft assign, dark blue with white text for hard assign
+                            if ($isBooked) {
+                                $activeColor = 'blue-600';
+                                $textColor = 'text-white';
+                            } else {
+                                $activeColor = 'blue-100';
+                                $textColor = 'text-gray-600';
+                            }
+
+                            $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
+                            if ($isReturnDay && !$isSoftAssigned) {
+                                $activeColor = $color . '-300';
+                            }
                         @endphp
 
                         @if ($hasAny)
-                            <div count="{{ count($softAssignments) }}"  flag="{{ $isBooked && $isSoftAssigned }}"
+                            <div count="{{ count($softAssignments) }}" flag="{{ $isBooked && $isSoftAssigned }}"
                                 class="w-auto bg-{{ $activeColor }} {{ $textColor }} rounded text-xs flex flex-col items-center justify-center">
 
                                 @if ($isBooked)
-                                    <div class="font-bold cursor-not-allowed group relative" title="Hard assigned - cannot be changed">
-                                        {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
-                                        <span class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
-                                            Hard assigned - cannot be changed
-                                        </span>
-                                    </div>
+                                    @if ($isReturnDay && !$isSoftAssigned)
+                                        <div class="px-2 text-black font-bold cursor-not-allowed group relative overflow-hidden rounded px-2 " title="Hard assigned - cannot be changed">
+                                            <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600"></span>
+                                            {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
+                                            <span
+                                                class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                                                Hard assigned - cannot be changed
+                                            </span>
+                                        </div>
+                                    @else
+                                        <div class="px-2 font-bold cursor-not-allowed group relative"
+                                            title="Hard assigned - cannot be changed">
+                                            {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
+                                            <span
+                                                class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                                                Hard assigned - cannot be changed
+                                            </span>
+                                        </div>
+                                    @endif
                                 @endif
 
-                                @foreach ($softAssignments as $assignment)
-                                    <button type="button" class="text-xs {{ $textColor }} underline equipment-assign-btn"
-                                        data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
-                                        data-order-product-name="{{ $assignment->orderProduct->product_name }}"
-                                        data-order="{{ $assignment->orderProduct?->order?->order_number }}">
-                                        {{ $assignment->order->order_number }}
-                                    </button>
-                                @endforeach
+                                @if ($isReturnDay && $isSoftAssigned)
+                                    <div class="relative rounded overflow-hidden bg-blue-200 text-xs">
+                                        <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600"></span>
+
+                                        <div class="relative z-10 flex flex-col items-start">
+                                            @foreach ($softAssignments as $assignment)
+                                                <button type="button"
+                                                    class="w-full px-2 text-gray-700 underline text-left
+                                                        focus:outline-none focus:ring-0 equipment-assign-btn"
+                                                    data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
+                                                    data-order-product-name="{{ $assignment->orderProduct->product_name }}"
+                                                    data-order="{{ $assignment->orderProduct?->order?->order_number }}">
+                                                    {{ $assignment->order->order_number }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    @foreach ($softAssignments as $assignment)
+                                        <button type="button"
+                                            class="text-xs {{ $textColor }} underline px-2 equipment-assign-btn"
+                                            data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
+                                            data-order-product-name="{{ $assignment->orderProduct->product_name }}"
+                                            data-order="{{ $assignment->orderProduct?->order?->order_number }}">
+                                            {{ $assignment->order->order_number }}
+                                        </button>
+                                    @endforeach
+                                @endif
                             </div>
                         @else
                             <div
@@ -163,23 +207,23 @@
                 @endforeach
 
             </tr>
-        @empty
-            <tr>
-                <td colspan="{{ 7 + count($dates) }}" class="px-4 py-4 text-center text-gray-500">
-                    @if ($equipment)
-                        No equipment found.
-                    @else
-                        <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
-                    @endif
-                </td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
+            @empty
+                <tr>
+                    <td colspan="{{ 5 + count($dates) }}" class="px-4 py-4 text-center text-gray-500">
+                        @if ($equipment)
+                            No equipment found.
+                        @else
+                            <span class="text-gray-400 italic">inhale… exhale… bringing your data to life…</span>
+                        @endif
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
 
-{{-- Pagination --}}
-@if ($equipment)
-    <div class="mt-6">
-        {{ $equipment->links('vendor.pagination.tailwind') }}
-    </div>
-@endif
+    {{-- Pagination --}}
+    @if ($equipment)
+        <div class="mt-6">
+            {{ $equipment->links('vendor.pagination.tailwind') }}
+        </div>
+    @endif

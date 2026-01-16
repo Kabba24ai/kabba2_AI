@@ -26,13 +26,16 @@ class EditController extends Controller
         $serviceTemplates = ServiceTemplate::oldest('name')->pluck('name', 'id')->toArray();
 
 
-       $selectedPartsListIds = PartsList::whereJsonContains(
-    'selected_products',
-    (string) $equipment->id
-)->pluck('id')->toArray();
+//        $selectedPartsListIds = PartsList::whereJsonContains(
+//     'selected_products',
+//     (string) $equipment->id
+// )->pluck('id')->toArray();
 // dd($selectedPartsListIds);
 
+ $selectedPartsListId = $equipment->parts_list_id;
 
-        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates','partsLists','selectedPartsListIds'));
+
+
+        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates','partsLists','selectedPartsListId'));
     }
 }

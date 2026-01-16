@@ -706,18 +706,33 @@
        
 
         <div class="bg-white rounded-xl shadow-sm border p-5">
+
+             <div class="flex items-center space-x-3 mb-4">
+                <x-heroicon-o-cube class="h-5 w-5 text-purple-600" />
+                <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
+            </div>
+
             <div class="flex items-center justify-between mb-2">
                 <label class="text-sm font-medium text-gray-700">
                     Parts List Templates
                 </label>
             </div>
 
-           <select
+           <!-- <select
                 name="parts_lists[]"
                 id="parts_lists_Select"
                 multiple
                 class="choices-select w-full rounded-md border border-gray-300 text-sm">
-            </select>
+            </select> -->
+
+           {!! html()->select(
+                    'parts_list_id',
+                    ['' => 'Select Parts List'],
+                    $selectedPartsListId ?? null
+                )->id('parts_lists_Select')->class([
+                    'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                ]) !!}
+
 
 
             <p class="mt-2 text-xs text-gray-500">
@@ -965,15 +980,7 @@
     </script>
 
 
-<script>
-    window.routes = {
-        partsListsByCategory: "{{ route('admin.maintenance-management.equipment.get-parts-lists', ':id') }}"
-    };
-
-     window.selectedPartsListIds = @json($selectedPartsListIds ?? []);
-
-</script>
-<script>
+<!-- <script>
 let partsListChoices;
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -987,15 +994,59 @@ document.addEventListener('DOMContentLoaded', function () {
     // Disable initially
     partsListChoices.disable();
 });
+</script> -->
+
+
+
+<script>
+// function loadPartsListsByCategory(categoryId, preselectedIds = []) {
+//     // Hard reset
+//     partsListChoices.hideDropdown();
+//     partsListChoices.removeActiveItems();
+//     partsListChoices.clearChoices();
+//     partsListChoices.disable();
+
+//     if (!categoryId) return;
+
+//     const url = window.routes.partsListsByCategory.replace(':id', categoryId);
+
+//     fetch(url)
+//         .then(res => res.json())
+//         .then(res => {
+//             if (!res.success) return;
+
+//             const choices = res.data.map(item => ({
+//                 value: String(item.id),
+//                 label: item.name,
+//                 selected: preselectedIds.includes(String(item.id))
+//             }));
+
+//             partsListChoices.setChoices(choices, 'value', 'label', true);
+//             partsListChoices.enable();
+//         })
+//         .catch(err => {
+//             console.error('Failed to load parts lists', err);
+//             partsListChoices.disable();
+//         });
+// }
 </script>
 
 <script>
-function loadPartsListsByCategory(categoryId, preselectedIds = []) {
-    // Hard reset
-    partsListChoices.hideDropdown();
-    partsListChoices.removeActiveItems();
-    partsListChoices.clearChoices();
-    partsListChoices.disable();
+    window.routes = {
+        partsListsByCategory: "{{ route('admin.maintenance-management.equipment.get-parts-lists', ':id') }}"
+    };
+    
+    window.selectedPartsListId = @json($selectedPartsListId ?? null);
+
+    //  window.selectedPartsListIds = @json($selectedPartsListIds ?? []);
+
+</script>
+<script>
+function loadPartsListsByCategory(categoryId, selectedId = null) {
+    const select = document.getElementById('parts_lists_Select');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Parts List</option>';
 
     if (!categoryId) return;
 
@@ -1006,26 +1057,31 @@ function loadPartsListsByCategory(categoryId, preselectedIds = []) {
         .then(res => {
             if (!res.success) return;
 
-            const choices = res.data.map(item => ({
-                value: String(item.id),
-                label: item.name,
-                selected: preselectedIds.includes(String(item.id))
-            }));
+            res.data.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
 
-            partsListChoices.setChoices(choices, 'value', 'label', true);
-            partsListChoices.enable();
-        })
-        .catch(err => {
-            console.error('Failed to load parts lists', err);
-            partsListChoices.disable();
+                if (String(item.id) === String(selectedId)) {
+                    opt.selected = true;
+                }
+
+                select.appendChild(opt);
+            });
+
+            // Let Choices update UI
+            select.dispatchEvent(new Event('change', { bubbles: true }));
         });
 }
+
 </script>
+
+
 <script>
 document.addEventListener('change', function (e) {
     if (e.target.id !== 'product_category_id') return;
 
-    loadPartsListsByCategory(e.target.value, []);
+    loadPartsListsByCategory(e.target.value, null);
 });
 </script>
 <script>
@@ -1033,12 +1089,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const categorySelect = document.getElementById('product_category_id');
     if (!categorySelect || !categorySelect.value) return;
 
-    // Auto load on edit
     loadPartsListsByCategory(
         categorySelect.value,
-        window.selectedPartsListIds.map(String)
+        window.selectedPartsListId
     );
 });
+
 </script>
 
 

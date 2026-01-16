@@ -217,7 +217,7 @@
                 <div class="mb-4">
                     <label for="newTagInput" class="block text-sm font-medium text-gray-700 mb-1 required"> New Tag</label>
 
-                    <input class="w-full rounded-md border focus:outline-none px-3 py-3 text-sm shadow-sm border-gray-300 " type="text" name="newTagInput" id="newTagInput">
+                    <input class="w-full rounded-md border focus:outline-none px-3 py-3 text-sm shadow-sm border-gray-300 " type="text" name="newTagInput" id="newTagInput" autocomplete="off">
 
                     <!-- Tag suggestions dropdown -->
 <div id="tagDropdown" class="mt-2 border border-gray-300 rounded-md bg-white shadow hidden max-h-40 overflow-y-auto">
@@ -230,7 +230,7 @@
 
                 </div>
             </div>
-            <div class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
+            <div  id="tagModalFooter" class="flex justify-end gap-2 pt-4 pb-4 px-4 border-t border-gray-200">
                 <button type="button" onclick="closeTagModal()" class=" px-6 py-3 text-md rounded border border-gray-300 bg-white">Close</button>
                 <button type="button" id="addTagBtn" class="flex items-center justify-center gap-2 px-6 py-3 text-md rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-all"> <svg id="addTagSpinner" xmlns="http://www.w3.org/2000/svg"
                         class="h-4 w-4 hidden animate-spin"
@@ -1120,9 +1120,27 @@
 <!-- ==== tag module =========== -->
 
 
+
+
 <script>
+    
+    const footer = document.getElementById("tagModalFooter");
+const originalFooterHTML = footer.innerHTML;
+
+
     function openTagModal() {
         document.getElementById('TagModal').classList.remove('hidden');
+
+
+         const input = document.getElementById('newTagInput');
+
+        // Wait for modal render, then open dropdown
+    setTimeout(() => {
+        if (typeof getAvailableTags === "function") {
+            renderDropdown(getAvailableTags(), "");
+        }
+        input.focus();
+    }, 50);
 
     }
 
@@ -1193,15 +1211,15 @@
         }
 
         function renderCustomerTags(tags) {
-    const wrapperMain = document.getElementById("customerTagsWrapper");
-    const wrapperAccount = document.getElementById("customerTagsWrapperacount");
+            const wrapperMain = document.getElementById("customerTagsWrapper");
+            const wrapperAccount = document.getElementById("customerTagsWrapperacount");
 
-    // Empty message
-    const emptyHtml = `
-        <span class="text-gray-500 text-sm italic">
-            No tags assigned yet.
-        </span>
-    `;
+            // Empty message
+            const emptyHtml = `
+                <span class="text-gray-500 text-sm italic">
+                    No tags assigned yet.
+                </span>
+            `;
 
     /* ------------------------------
          Update main wrapper
@@ -1350,6 +1368,9 @@ const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $
             addTagSpinner.classList.remove('hidden');
             addTagText.textContent = 'Saving...';
 
+
+            console.log()
+
             fetch(`{{ route('admin.crm.tags.store') }}`, {
                     method: 'POST',
                     headers: {
@@ -1361,8 +1382,13 @@ const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $
                         unique_id: selectedCustomerId || null
                     })
                 })
-                .then(res => res.json())
+              .then(res => {
+    console.log("📡 Response status:", res.status);
+    return res.json();
+})
                 .then(data => {
+                    
+
                     if (data.success) {
                         notyf.success(data.message || 'Tag added!');
                         newTagInput.value = '';
@@ -1374,13 +1400,17 @@ const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $
                         notyf.error(data.message || 'Failed to add tag');
                     }
                 })
-                .catch(() => notyf.error("Failed to add tag"))
-                .finally(() => {
-                    //  Stop loading animation
-                    addTagBtn.disabled = false;
-                    addTagSpinner.classList.add('hidden');
-                    addTagText.textContent = 'Add';
-                });
+              .catch(err => {
+    console.error("❌ Fetch error:", err);
+    notyf.error("Failed to add tag");
+})
+.finally(() => {
+    console.log("🧹 Request finished, resetting UI");
+
+    addTagBtn.disabled = false;
+    addTagSpinner.classList.add('hidden');
+    addTagText.textContent = 'Add';
+});
         });
         // Initial render
         fetchTags();
@@ -1392,6 +1422,7 @@ const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $
 
 
 <script>
+
 const existingTags = @json($existingTagNames);
     const customerTagNames = @json($customerTagNames);
 
@@ -1399,6 +1430,7 @@ const tagInput      = document.getElementById("newTagInput");
 const tagWarning    = document.getElementById("tagDuplicateWarning");
 const addBtn        = document.getElementById("addTagBtn");
 const dropdown      = document.getElementById("tagDropdown");
+
 
 // Show dropdown items
 function renderDropdown(list, inputValue) {
@@ -1427,6 +1459,16 @@ function renderDropdown(list, inputValue) {
     dropdown.classList.remove("hidden");
 }
 
+
+function getAvailableTags() {
+    return existingTags.filter(tag =>
+        !customerTagNames.some(
+            ct => ct.toLowerCase() === tag.toLowerCase()
+        )
+    );
+}
+
+
 // User selects a tag from dropdown
 function selectTag(tag) {
     tagInput.value = tag;
@@ -1438,8 +1480,7 @@ function selectTag(tag) {
 tagInput.addEventListener("input", function () {
     const value = tagInput.value.trim().toLowerCase();
 
-    // Filter matching tags
-    const filteredTags = existingTags.filter(t =>
+    const filteredTags = getAvailableTags().filter(t =>
         t.toLowerCase().includes(value)
     );
 
@@ -1466,21 +1507,83 @@ tagInput.addEventListener("input", function () {
         return;
     }
 
-    //  Tag exists in DB but not for customer
-    if (existsInSystem) {
-        tagWarning.textContent = "This tag already exists!";
-        tagWarning.classList.remove("hidden");
-        addBtn.disabled = true;
-        addBtn.classList.add("opacity-50", "cursor-not-allowed");
-        return;
-    }
+
+//    if (existsInSystem) {
+//     tagWarning.innerHTML = `
+//         <button
+//             type="button"
+//             id="attachExistingTagBtn"
+//             class="ml-1 text-blue-600 hover:text-blue-800 font-medium underline">
+//             Add to this customer
+//         </button>
+//     `;
+//     tagWarning.classList.remove("hidden");
+
+//     console.log('abcccc');
+
+//     //  Attach click handler immediately
+//     const attachBtn = document.getElementById("attachExistingTagBtn");
+
+//     if (attachBtn) {
+//         attachBtn.onclick = () => {
+//             attachTagToCustomer(String(value).trim());
+//         };
+
+//     }
+
+//     return;
+// }
+
 });
+
+
+
+function attachTagToCustomer(tagName) {
+
+  console.log("attachTagToCustomer called with:", tagName); 
+
+    addBtn.disabled = true;
+    addTagSpinner.classList.remove("hidden");
+    addTagText.textContent = "Adding...";
+
+    fetch(`{{ route('admin.crm.tags.attach') }}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            customer_id: {{ $customer->id }},
+            tag_name: tagName
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            notyf.success("Tag added to customer!");
+            closeTagModal();
+            fetchCustomerTags();
+        } else {
+            notyf.error(data.message || "Failed to add tag");
+        }
+    })
+    .finally(() => {
+        addBtn.disabled = false;
+        addTagSpinner.classList.add("hidden");
+        addTagText.textContent = "Add";
+    });
+}
 
 
 // Show all tags when input is focused
+// tagInput.addEventListener("focus", () => {
+//     renderDropdown(existingTags, "");
+// });
+
 tagInput.addEventListener("focus", () => {
-    renderDropdown(existingTags, "");
+    renderDropdown(getAvailableTags(), "");
 });
+
 
 // Hide dropdown when clicking outside
 document.addEventListener("click", function (e) {
@@ -1488,6 +1591,11 @@ document.addEventListener("click", function (e) {
         dropdown.classList.add("hidden");
     }
 });
+
+
+
+
+
 </script>
 <script>
     function OpenCustomerEditModal() {
@@ -1514,5 +1622,17 @@ document.addEventListener("click", function (e) {
     }
 </script>
 
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        window.reloadGlobalNotes = function () {
+            fetchNotes2();
+            fetchNotes();
+        }
+
+        reloadGlobalNotes();
+    });
+</script>
 
 @endpush

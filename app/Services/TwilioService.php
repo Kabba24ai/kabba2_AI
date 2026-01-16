@@ -2,10 +2,19 @@
 
 namespace App\Services;
 
-use App\Helpers\ConfigurationHelper;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Twilio\Rest\Client;
-use Illuminate\Support\Facades\Crypt;
+
+// Enums
+use App\Enums\Communication\SmsType;
+
+// Helpers
+use App\Helpers\ConfigurationHelper;
+
+// Models
+use App\Models\Global\SMSLog;
+
 class TwilioService
 {
     protected ?Client $client = null;
@@ -40,9 +49,10 @@ class TwilioService
      * @param string $to E.164 formatted destination number
      * @param string $message Body text (max 1600 chars typical Twilio limit per segment aggregation)
      * @param array $options ['media_urls' => [...], 'status_callback' => url]
+     * @param array $context ['order_id' => ?, 'order_product_id' => ?, 'customer_id' => ?, 'sms_type' => ?]
      * @return array
      */
-    public function sendSms(string $to, string $message, array $options = []): array
+    public function sendSms(string $to, string $message, array $options = [], array $context = []): array
     {
         $to = $this->normalizePhone($to);
 
@@ -54,8 +64,18 @@ class TwilioService
             'from' => $this->fromNumber,
         ];
 
+        $logContext = [
+            'order_id'         => $context['order_id'] ?? null,
+            'order_product_id' => $context['order_product_id'] ?? null,
+            'customer_id'      => $context['customer_id'] ?? null,
+            'sms_type'         => $context['sms_type'] ?? null,
+            'phone'            => $to,
+            'message'          => $message,
+        ];
+
         if (!$this->isValidPhone($to)) {
             $result['message'] = 'Invalid destination phone number';
+            $this->logSmsAttempt($logContext, 'failed', $result['message'], null);
             return $result;
         }
 
@@ -77,6 +97,8 @@ class TwilioService
             $this->logError('Twilio sendSms failed: ' . $e->getMessage(), ['exception' => $e]);
             $result['message'] = $e->getMessage();
         }
+
+        $this->logSmsAttempt($logContext, $result['success'] ? 'sent' : 'failed', $result['message'] ?? null, $result['sid'] ?? null);
         return $result;
     }
 
@@ -96,7 +118,7 @@ class TwilioService
         foreach ($recipients as $to) {
             $result = $this->sendSms($to, $message, $options);
             $results[] = $result;
-            if ($result['status'] === 'success') {
+            if (($result['success'] ?? false) === true) {
                 $success++;
             } else {
                 $failed++;
@@ -196,7 +218,7 @@ class TwilioService
             $normalized = '+'.$digits;
         } elseif (strlen($digits) === 10) {
             // If number is 10 digits, assume India (+91)
-            $indianNumbers = ['8000912126'];
+            $indianNumbers = ['8000912126', '9725252582'];
             if (in_array($digits, $indianNumbers)) {
                 $normalized = '+91'.$digits;
             } else {
@@ -220,5 +242,33 @@ class TwilioService
     protected function isValidPhone(string $phone): bool
     {
         return preg_match('/^\+[1-9]\d{7,15}$/', $phone) === 1;
+    }
+
+    /**
+     * Persist SMS attempt to sms_logs.
+     */
+    protected function logSmsAttempt(array $context, string $status, ?string $errorMessage = null, ?string $twilioSid = null): void
+    {
+        $smsType = $context['sms_type'] ?? null;
+        if ($smsType instanceof SmsType) {
+            $smsType = $smsType->value;
+        }
+
+        try {
+            SMSLog::create([
+                'sms_type'         => $smsType,
+                'status'           => $status,
+                'phone'            => $context['phone'] ?? null,
+                'message'          => $context['message'] ?? null,
+                'sms_sent_at'      => $status === 'sent' ? now() : null,
+                'customer_id'      => $context['customer_id'] ?? null,
+                'order_product_id' => $context['order_product_id'] ?? null,
+                'order_id'         => $context['order_id'] ?? null,
+                'twilio_sid'       => $twilioSid,
+                'error_message'    => $status === 'failed' ? $errorMessage : null,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logError('Failed to persist SMS log: ' . $e->getMessage(), ['context' => $context]);
+        }
     }
 }

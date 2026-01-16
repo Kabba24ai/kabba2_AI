@@ -11,6 +11,7 @@ return [
         'http://localhost:5174',
         'http://kabba.local',
         'http://admin.kabba.local',
+        'https://timetrackerpro.kabba.ai',
     ],
 
     'allowed_headers' => ['*'],

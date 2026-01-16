@@ -3,6 +3,21 @@
 @section('title', 'Schedule Assignment')
 
 @push('css')
+    <style>
+        .tw-tooltip::before {
+            content: "";
+            position: absolute;
+            top: -6px;
+            left: 16px;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-left: 1px solid rgb(229 231 235);
+            /* gray-200 */
+            border-top: 1px solid rgb(229 231 235);
+            transform: rotate(45deg);
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -22,8 +37,8 @@
             <svg id="reloadIcon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0
-                                         3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
-                                         13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                             3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
+                                             13.803-3.7l3.181 3.182m0-4.991v4.99" />
             </svg>
             Reload
         </a>
@@ -31,13 +46,13 @@
 
     <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mb-6">
 
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:flex-wrap">
 
             {{-- Search Input --}}
-            <div class="relative w-full sm:w-48">
+            <div class="relative w-full md:w-56">
                 <input type="text" name="search" placeholder="Search equipment, ID, or customer"
                     value="{{ request('search') }}"
-                    class="w-full h-10 rounded-md border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 shadow-sm " />
+                    class="w-full h-10 rounded-md border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 shadow-sm" />
                 <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -47,10 +62,10 @@
                 </div>
             </div>
 
-            {{-- Select Category --}}
-            <div class="w-full sm:w-48">
+            {{-- Category --}}
+            <div class="w-full md:w-46">
                 <select name="category"
-                    class=" w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
+                    class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm">
                     <option value="">All Product Categories</option>
                     @foreach ($categories as $id => $title)
                         <option value="{{ $id }}" @selected(request('category') == $id)>
@@ -60,69 +75,90 @@
                 </select>
             </div>
 
-            {{-- Type Dropdown --}}
-            <div class="w-full sm:w-48">
+            {{-- Store --}}
+            <div class="w-full md:w-30">
                 <select name="store"
-                    class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
+                    class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm">
                     <option value="">All Stores</option>
                     @foreach ($stores as $store)
-                        <option value="{{ $store->id }}" @selected(request('store') == $store->id)>{{ $store->store_name }}</option>
+                        <option value="{{ $store->id }}" @selected(request('store') == $store->id)>
+                            {{ $store->store_name }}
+                        </option>
                     @endforeach
                 </select>
             </div>
 
-            <!-- Equipment Status -->
-            <div class=" whitespace-nowrap">
-                <div
-                    class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
-                    <svg class=" w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                    <span class="font-medium">Equipment Status</span>
-                    <label class="flex items-center gap-1 ml-2">
-                        <input type="checkbox" value="Available" name="equipment_status[]"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
-                            {{ request('equipment_status') === null || in_array('Available', (array) request('equipment_status')) ? 'checked' : '' }}>
-                        Available
-                    </label>
-                    <label class="flex items-center gap-1">
-                        <input type="checkbox" value="Rented" name="equipment_status[]"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
-                            {{ request('equipment_status') === null || in_array('Rented', (array) request('equipment_status')) ? 'checked' : '' }}>
-                        Rented
-                    </label>
-                </div>
+            @php
+                $pill =
+                    'inline-flex items-center h-10 gap-3 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm whitespace-nowrap';
+                $chk = 'h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500';
+                $lbl = 'inline-flex items-center gap-2 cursor-pointer select-none';
+            @endphp
+
+            {{-- Hide Unassigned --}}
+            <div class="{{ $pill }}">
+                <label class="{{ $lbl }}">
+                    <input type="checkbox" name="hide_unassigned" value="1" id="hide_unassigned"
+                        class="{{ $chk }}" {{ request('hide_unassigned') ? 'checked' : '' }}>
+                    Hide Unassigned
+                </label>
             </div>
 
-            <div class=" whitespace-nowrap">
-                <!-- Issues & Maintenance -->
-                <div
-                    class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm flex-wrap md:flex-nowrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="lucide lucide-wrench w-5 h-5 text-orange-500">
-                        <path
-                            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
-                        </path>
-                    </svg>
-                    <span class="font-medium">Issues & Maintenance </span>
-                    <label class="flex items-center gap-1 ml-2">
-                        <input type="checkbox" name="equipment_status[]" value="Maintenance"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
-                            {{ request('equipment_status') === null || in_array('Maintenance', (array) request('equipment_status')) ? 'checked' : '' }}>
-                        Maint. Hold
-                    </label>
-                    <label class="flex items-center gap-1">
-                        <input type="checkbox" name="equipment_status[]" value="Damaged"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
-                            {{ request('equipment_status') === null || in_array('Damaged', (array) request('equipment_status')) ? 'checked' : '' }}>
-                        Damaged
-                    </label>
-                </div>
+            {{-- Equipment Status --}}
+            <div class="{{ $pill }}">
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+                <span class="font-medium">Equipment Status</span>
+
+                <label class="{{ $lbl }}">
+                    <input type="checkbox" value="Available" name="equipment_status[]" class="{{ $chk }}"
+                        {{ request('equipment_status') === null || in_array('Available', (array) request('equipment_status')) ? 'checked' : '' }}>
+                    Available
+                </label>
+
+                <label class="{{ $lbl }}">
+                    <input type="checkbox" value="Rented" name="equipment_status[]" class="{{ $chk }}"
+                        {{ request('equipment_status') === null || in_array('Rented', (array) request('equipment_status')) ? 'checked' : '' }}>
+                    Rented
+                </label>
+            </div>
+
+            {{-- Issues & Maintenance --}}
+            <div class="{{ $pill }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-orange-500">
+                    <path
+                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                    </path>
+                </svg>
+                <span class="font-medium">Issues &amp; Maintenance</span>
+
+                <label class="{{ $lbl }}">
+                    <input type="checkbox" name="equipment_status[]" value="Maintenance" class="{{ $chk }}"
+                        {{ request('equipment_status') === null || in_array('Maintenance', (array) request('equipment_status')) ? 'checked' : '' }}>
+                    Maint. Hold
+                </label>
+
+                <label class="{{ $lbl }}">
+                    <input type="checkbox" name="equipment_status[]" value="Damaged" class="{{ $chk }}"
+                        {{ request('equipment_status') === null || in_array('Damaged', (array) request('equipment_status')) ? 'checked' : '' }}>
+                    Damaged
+                </label>
+            </div>
+
+            {{-- Past 7 days --}}
+            <div class="{{ $pill }}">
+                <label class="{{ $lbl }}">
+                    <input type="checkbox" name="past_seven_days" value="1" id="past_seven_days"
+                        class="{{ $chk }}" {{ request('past_seven_days') ? 'checked' : '' }}>
+                    Show past 7 days
+                </label>
             </div>
 
         </div>
+
     </div>
 
     <div class="flex flex-col gap-5 h-[calc(90vh-180px)] min-h-0"> {{-- adjust 180px as needed --}}
@@ -136,14 +172,14 @@
 
         {{-- Schedule table (only if there are unassigned orders) --}}
         @if ($orderProducts->total() > 0)
-            <div class="bg-white shadow-sm rounded-lg {{ ($orderProducts->total() > 4) ? 'flex-1' : '' }} flex flex-col min-h-0">
+            <div class="bg-white shadow-sm rounded-lg {{ $orderProducts->total() > 4 ? 'flex-1' : '' }} flex flex-col min-h-0"
+                id="unassignedOrder">
                 <h2 class="text-lg font-semibold p-5">
-                    Unassigned Orders ({{ $orderProducts->total() }})
+                    Unassigned Orders <span id="unassignedOrderCount">({{ $orderProducts->total() }})</span>
                 </h2>
 
-                <div id="schedule-table-wrapper"
-                    class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
-                    @include('admin.order_management.schedule_assignment.partials._table2', [
+                <div id="schedule-table-wrapper" class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                    @include('admin.order_management.schedule_assignment.partials._schedule_table', [
                         'orderProducts' => $orderProducts,
                     ])
                 </div>
@@ -219,34 +255,121 @@
 
 @push('js')
     <script>
-        document.querySelectorAll(".tooltip-trigger").forEach(el => {
-            const tooltip = document.getElementById("tooltip-global");
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.__scheduleTooltipInitialized) return;
+            window.__scheduleTooltipInitialized = true;
 
-            el.addEventListener("mouseenter", () => {
-                tooltip.innerHTML = el.dataset.tooltip;
-                tooltip.classList.remove("hidden");
+            const tooltip = document.createElement('div');
+            tooltip.className =
+                'fixed hidden rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700 shadow-lg max-w-xs z-[9999]';
+            document.body.appendChild(tooltip);
 
-                const rect = el.getBoundingClientRect();
-                const tRect = tooltip.getBoundingClientRect();
+            let activeTrigger = null;
+            let timeouts = {
+                open: null,
+                close: null
+            };
 
-                tooltip.style.left = (rect.left + rect.width / 2 - tRect.width / 2) + "px";
-                tooltip.style.top = (rect.top - tRect.height - 8) + "px";
+            const DELAYS = {
+                open: 120,
+                close: 80
+            };
+            const GAP = 8;
+
+            function hide() {
+                clearTimeout(timeouts.open);
+                clearTimeout(timeouts.close);
+                activeTrigger = null;
+                tooltip.classList.add('hidden');
+            }
+
+            function position(trigger) {
+                if (!trigger) return;
+
+                tooltip.classList.remove('hidden');
+                const triggerRect = trigger.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+
+                let top = triggerRect.bottom + GAP;
+                let left = triggerRect.left;
+
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    left = window.innerWidth - tooltipRect.width - 10;
+                }
+                if (left < 10) left = 10;
+
+                if (top + tooltipRect.height > window.innerHeight - 10) {
+                    top = triggerRect.top - GAP - tooltipRect.height;
+                }
+
+                tooltip.style.cssText = `top: ${top}px; left: ${left}px;`;
+            }
+
+            function show(trigger) {
+                clearTimeout(timeouts.close);
+                timeouts.open = setTimeout(() => {
+                    activeTrigger = trigger;
+                    tooltip.innerHTML = trigger.dataset.tooltipHtml || '';
+                    requestAnimationFrame(() => position(trigger));
+                }, DELAYS.open);
+            }
+
+            function scheduleHide(trigger) {
+                clearTimeout(timeouts.open);
+                timeouts.close = setTimeout(() => {
+                    if (activeTrigger === trigger) hide();
+                }, DELAYS.close);
+            }
+
+            function getTrigger(target) {
+                return target?.closest?.('.tooltip-trigger');
+            }
+
+            document.addEventListener('pointerover', event => {
+                const trigger = getTrigger(event.target);
+                if (!trigger || trigger.contains(event.relatedTarget)) return;
+                show(trigger);
             });
 
-            el.addEventListener("mouseleave", () => {
-                tooltip.classList.add("hidden");
+            document.addEventListener('pointerout', event => {
+                const trigger = getTrigger(event.target);
+                if (!trigger || trigger.contains(event.relatedTarget)) return;
+                scheduleHide(trigger);
+            });
+
+            document.addEventListener('focusin', event => {
+                const trigger = getTrigger(event.target);
+                if (trigger) show(trigger);
+            });
+
+            document.addEventListener('focusout', event => {
+                const trigger = getTrigger(event.target);
+                if (trigger) scheduleHide(trigger);
+            });
+
+            ['scroll', 'resize'].forEach(event => {
+                window.addEventListener(event, () => {
+                    if (activeTrigger && !tooltip.classList.contains('hidden')) {
+                        requestAnimationFrame(() => position(activeTrigger));
+                    }
+                }, {
+                    passive: true
+                });
             });
         });
-
+    </script>
+    <script>
         document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');
+            let pastSevenDays = document.querySelector('input[name="past_seven_days"]');
             let categorySelect = document.querySelector('select[name="category"]');
             // let statusSelect = document.querySelector('select[name="status"]');
             let storeSelect = document.querySelector('select[name="store"]');
             let equipmentTableWrapper = document.querySelector('#equipment-table-wrapper');
             let equipmentStatusCheckboxes = document.querySelectorAll('input[name="equipment_status[]"]');
             let timeout = null;
-            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location
+                    .search)
                 .get('per_page') || null;
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
@@ -259,6 +382,7 @@
                 // 'status': statusSelect,
                 'store': storeSelect,
                 'equipment_status': equipmentStatusCheckboxes,
+                'past_seven_days': pastSevenDays,
             };
 
             // Load saved filters on page load
@@ -269,6 +393,7 @@
                 const params = new URLSearchParams();
                 if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput
                     .value);
+                if (pastSevenDays.checked) params.append('past_seven_days', '1');
                 if (categorySelect.value) params.append('category', categorySelect.value);
                 // if (statusSelect.value) params.append('status', statusSelect.value);
                 if (storeSelect.value) params.append('store', storeSelect.value);
@@ -295,7 +420,8 @@
                         equipmentTableWrapper.innerHTML = data.html;
                     })
                     .catch(err => {
-                        equipmentTableWrapper.innerHTML = '<div class="text-red-500 p-4">Error loading equipment.</div>';
+                        equipmentTableWrapper.innerHTML =
+                            '<div class="text-red-500 p-4">Error loading equipment.</div>';
                         console.error(err);
                     })
                     .finally(() => {
@@ -303,6 +429,24 @@
                         equipmentTableWrapper.classList.remove('opacity-50', 'pointer-events-none');
                     });
             }
+
+            let hideAssigned = document.querySelector('input[name="hide_unassigned"]');
+            let unassignedOrder = document.getElementById('unassignedOrder');
+            hideAssigned.checked = localStorage.getItem('hide_unassigned') === '1' ? true : false;
+            if (hideAssigned.checked) {
+                unassignedOrder.classList.add('hidden');
+            } else {
+                unassignedOrder.classList.remove('hidden');
+            }
+            hideAssigned.addEventListener('change', function() {
+                const hideValue = this.checked ? '1' : '0';
+                if (hideValue === '1') {
+                    unassignedOrder.classList.add('hidden');
+                } else {
+                    unassignedOrder.classList.remove('hidden');
+                }
+                localStorage.setItem('hide_unassigned', hideValue);
+            });
 
             // Register pagination
             Paginator.init({
@@ -318,23 +462,31 @@
 
             // Immediate filters
             // [categorySelect, statusSelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipments));
-            [categorySelect, storeSelect].forEach(el => el.addEventListener('change', fetchEquipments));
+            categorySelect.addEventListener('change', () => {
+                fetchEquipments();
+                fetchSchedules();
+            });
+
+            storeSelect.addEventListener('change', fetchEquipments);
 
             // Immediate filter for checkboxes
             equipmentStatusCheckboxes.forEach(cb => cb.addEventListener('change', fetchEquipments));
 
+            pastSevenDays.addEventListener('change', fetchEquipments);
 
             let loadingIndicator = document.querySelector('#schedule-loading');
-            let wrapper = document.querySelector('#schedule-table-wrapper');
+            let scheduleTableWrapper = document.querySelector('#schedule-table-wrapper');
+            let unassignedOrderCount = document.getElementById('unassignedOrderCount');
 
             function fetchSchedules() {
                 const params = new URLSearchParams();
                 params.append('unassigned_equipment', 1);
+                if (categorySelect.value) params.append('category', categorySelect.value);
                 params.append('per_page', 'all');
 
                 // Show loader
                 loadingIndicator.classList.remove('hidden');
-                wrapper.classList.add('opacity-50', 'pointer-events-none');
+                scheduleTableWrapper.classList.add('opacity-50', 'pointer-events-none');
 
                 apiFetch("{{ route('admin.order-management.schedules.index') }}?" + params.toString(), {
                         headers: {
@@ -342,11 +494,12 @@
                         }
                     })
                     .then(response => {
-                        wrapper.innerHTML = response.html;
+                        scheduleTableWrapper.innerHTML = response.html;
+                        unassignedOrderCount.textContent = `(${response.total})`;
                     })
                     .finally(() => {
                         loadingIndicator.classList.add('hidden');
-                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                        scheduleTableWrapper.classList.remove('opacity-50', 'pointer-events-none');
                     });
             }
 

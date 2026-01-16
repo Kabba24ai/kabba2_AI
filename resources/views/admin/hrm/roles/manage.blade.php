@@ -65,7 +65,16 @@
                             </div>
                         </div>
 
-                        <!-- Right: Edit/Delete Icons -->
+                       
+
+                        @php
+                            $protectedRoles = ['master_admin', 'admin','technician','sales'];
+                        @endphp
+
+
+                        <div class="flex gap-2 text-gray-500">
+                            @if(!in_array($role->short_name, $protectedRoles))
+                                <!-- Right: Edit/Delete Icons -->
                         <div class="flex gap-2 text-gray-500">
                             <a href="{{ route('admin.hrm.roles.edit',$role->unique_id) }}" title="Edit">
                                 <x-heroicon-o-pencil-square class="w-4 h-4 text-gray-600" />
@@ -75,6 +84,15 @@
                                 <x-heroicon-o-trash class="w-4 h-4 text-gray-600" />
                             </button>
                         </div>
+                            @else
+                                <!-- Locked icon -->
+                                <x-heroicon-o-lock-closed
+                                    class="w-4 h-4 text-gray-400"
+                                    title="This role is system protected"
+                                />
+                            @endif
+                        </div>
+
                     </div>
                 </div>
 
@@ -84,7 +102,7 @@
 
                 <span class="inline-block text-xs px-3 py-1 rounded-full font-medium"
                     style="background-color: {{ $role->color }}20; color: {{ $role->color }};">
-                    {{ $role->short_name ?? $role->name }}
+                    {{ $role->name }}
                 </span>
             </div>
         @endforeach

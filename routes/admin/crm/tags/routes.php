@@ -7,6 +7,9 @@ use App\Http\Controllers\Admin\Crm\Tags\FetchController;
 use App\Http\Controllers\Admin\Crm\Tags\UpdateController;
 use App\Http\Controllers\Admin\Crm\Tags\DeleteController;
 
+use App\Http\Controllers\Admin\Crm\Tags\AttachController;
+
+
 
 Route::prefix('tags')
     ->name('tags.')
@@ -17,4 +20,8 @@ Route::prefix('tags')
         Route::put('/update/{tag}', UpdateController::class)->name('update');
         Route::delete('/delete/{tag}', DeleteController::class)->name('delete');
         
+
+        Route::post('/attach-to-c', AttachController::class)->name('attach');
+
+
 });

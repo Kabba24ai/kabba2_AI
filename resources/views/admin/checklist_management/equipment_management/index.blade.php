@@ -222,49 +222,27 @@
             const rawEquipment = @json($equipments);
 
             const icons = {
-                damaged: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     class="lucide lucide-alert-triangle w-4 h-4 text-red-500">
-                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8
-                              14A2 2 0 0 0 4 21h16a2 2
-                              0 0 0 1.73-3Z"></path>
-                     <path d="M12 9v4"></path>
-                     <path d="M12 17h.01"></path>
-                 </svg>`,
-                maintenance: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="lucide lucide-wrench w-4 h-4 text-orange-500">
-                        <path d="M14.7 6.3a1 1 0 0 0 0
-                                 1.4l1.6 1.6a1 1 0 0 0
-                                 1.4 0l3.77-3.77a6 6 0 0
-                                 1-7.94 7.94l-6.91 6.91a2.12
-                                 2.12 0 0 1-3-3l6.91-6.91a6
-                                 6 0 0 1 7.94-7.94l-3.76
-                                 3.76z"></path>
+                damaged: ` <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                                    <path d="M12 9v4" />
+                                    <path d="M12 17h.01" />
                     </svg>`,
-                available: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                       class="lucide lucide-check-circle w-4 h-4 text-green-500">
-                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                       <path d="m9 11 3 3L22 4"></path>
-                   </svg>`,
-                rented: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                   class="lucide lucide-truck w-4 h-4 text-blue-500">
-                   <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2
-                            0 0 0-2 2v11a1 1 0 0 0
-                            1 1h2"></path>
-                   <path d="M15 18H9"></path>
-                   <path d="M19 18h2a1 1 0 0 0
-                            1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1
-                            0 0 0 17.52 8H14"></path>
-                   <circle cx="17" cy="18" r="2"></circle>
-                   <circle cx="7" cy="18" r="2"></circle>
-                </svg>`,
+                maintenance: `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z" />
+                                </svg>`,
+                available: `  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-500" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                    <path d="m9 11 3 3L22 4" />
+                                </svg>`,
+                rented: ` <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-8 0v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>`,
             };
 
             
@@ -393,11 +371,12 @@
         <div class="flex flex-wrap items-start gap-2 mb-2">
             <div class="flex items-center gap-2 min-w-0 flex-1">
                 <h3 class="font-medium text-sm sm:text-base text-gray-900 truncate">${eq.name}</h3>
-                ${eq.icon}   
+              
             </div>
 
-            <div class="basis-full sm:basis-auto sm:ml-auto">
-                <span class="inline-flex px-3 py-1 rounded-full text-xs font-medium border ${badgeColors(eq.badge)}">
+            <div class="basis-full sm:basis-auto sm:ml-auto inline-flex items-center gap-1.5 whitespace-nowrap">
+              ${eq.icon}   
+                <span class="inline-flex px-2 py-1 rounded text-xs font-medium border ${badgeColors(eq.badge)}">
                     ${eq.badge}
                 </span>
             </div>
@@ -469,10 +448,10 @@
             }
 
             function badgeColors(b) {
-                if (b === "Damaged") return "bg-red-100 text-red-800 border-red-200";
-                if (b === "Maint. Hold") return "bg-orange-100 text-orange-800 border-orange-200";
-                if (b === "Available") return "bg-green-100 text-green-800 border-green-200";
-                if (b === "Rented") return "bg-blue-100 text-blue-800 border-blue-200";
+                if (b === "Damaged") return "bg-red-100 text-red-700 border-red-200";
+                if (b === "Maint. Hold") return "bg-yellow-100 text-yellow-700 border-yellow-200";
+                if (b === "Available") return "bg-green-100 text-green-700 border-green-200";
+                if (b === "Rented") return "bg-blue-100 text-blue-700 border-blue-200";
                 return "bg-gray-100 text-gray-700 border-gray-200";
             }
 
@@ -652,8 +631,11 @@
                                     card.id = `item-${itemId}`;
                                     card.innerHTML = `
                         <div class="flex flex-wrap items-center gap-2 mb-3">
-                            <span id="icon-${itemId}" class="inline-flex shrink-0">${iconSvg("default")}</span>
+                            <span id="icon-${itemId}" class="inline-flex shrink-0 ">${iconSvg("default")}</span>
                             <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>' : ''}</span>
+
+                            
+
                             <span id="chip-${itemId}"></span>
                         </div>
                         <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
@@ -791,7 +773,7 @@
 
                 box.classList.remove("bg-green-50", "bg-yellow-50", "bg-red-50", "bg-gray-50",
                     "border-green-300", "border-yellow-300", "border-red-300", "border-gray-200");
-                chip.className = "ml-auto text-xs px-2 py-1 rounded-full font-medium";
+                chip.className = "ml-auto text-xs px-2 py-1 rounded font-medium";
 
                 if (status === "Rental Ready") {
                     box.classList.add("bg-green-50", "border-green-300");
@@ -989,14 +971,22 @@
             /* =================== ICONS & BADGES =================== */
             function statusBadge(status) {
                 if (status === "Rental Ready")
-                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> <span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-800">Rental Ready</span></div>`;
+                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> <span class="text-xs px-2 py-1 rounded font-medium bg-green-100 text-green-800">Rental Ready</span></div>`;
 
                 if (status === "Maint. Hold")
-                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-circle w-4 h-4 text-orange-500"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span class="text-xs px-2 py-1 rounded-full font-medium bg-orange-100 text-orange-800">Maint. Hold</span></div>`;
+                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z" />
+                                </svg><span class="text-xs px-2 py-1 rounded font-medium bg-yellow-100 text-yellow-800">Maint. Hold</span></div>`;
 
                 if (status === "Damaged")
-                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle w-4 h-4 text-red-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg><span class="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-800">Damaged</span></div>`;
-                return `<span class="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-600">—</span>`;
+                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                    <path d="M12 9v4"></path>
+                                    <path d="M12 17h.01"></path>
+                    </svg><span class="text-xs px-2 py-1 rounded font-medium bg-red-100 text-red-700">Damaged</span></div>`;
+                return `<span class="text-xs px-2 py-1 rounded font-medium bg-gray-100 text-gray-600">—</span>`;
             }
 
             function sectionIcon() {
@@ -1007,9 +997,17 @@
                 if (type === "ready")
                     return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>`;
                 if (type === "hold")
-                    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-circle w-4 h-4 text-orange-500"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>`;
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z" />
+                                </svg>`;
                 if (type === "damaged")
-                    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle w-4 h-4 text-red-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>`;
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                    <path d="M12 9v4"></path>
+                                    <path d="M12 17h.01"></path>
+                    </svg>`;
                 return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
             }
 

@@ -272,15 +272,42 @@ class CustomHelper
             'yes' => 'bg-green-100 text-green-800',
             'no' => 'bg-red-100 text-red-800',
             'draft' => 'bg-blue-100 text-blue-800',
-            'rented' => 'bg-purple-100 text-purple-800',
-            'available' => 'bg-green-100 text-green-800',
-            'damaged' => 'bg-red-100 text-red-800',
-            'maint. hold' => 'bg-warning-100 text-warning-800'
+            'rented' => 'bg-blue-100 text-blue-700 text-xs font-medium',
+            'available' => 'bg-green-100 text-green-700 text-xs font-medium',
+            'damaged' => 'bg-red-100 text-red-700 text-xs font-medium',
+            'maint. hold' => 'bg-yellow-100 text-yellow-700 text-xs font-medium'
         ];
 
         $class = $classes[$normalizedStatus] ?? 'bg-gray-200 text-gray-800';
 
-        return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">' . ucfirst($status) . '</span>';
+         // default
+    $extraClass = 'text-xs font-semibold';
+    $icon = '';
+
+    if (in_array($normalizedStatus, ['rented', 'available', 'damaged', 'maint. hold'])) {
+        $extraClass = 'text-xs font-medium';
+
+        $icon = match ($normalizedStatus) {
+            'rented'      => '<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-8 0v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>',
+            'available'   => '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <path d="m9 11 3 3L22 4"></path>
+                                </svg>',
+            'damaged'     => '<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                    <path d="M12 9v4"></path>
+                                    <path d="M12 17h.01"></path>
+                                </svg>',
+            'maint. hold' => '<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z"></path>
+                                </svg>',
+        };
+    }
+
+        return '' . $icon . ' <span class="px-2 py-1 rounded ' . $extraClass . ' ' . $class . '">' . ucfirst($status) . '</span>';
     }
 
     public static function paymentMethodLabel(null|string|OrderPaymentMethod $method): string
@@ -427,7 +454,7 @@ class CustomHelper
         $customer->available_credit_balance = $adjustedBalance;
         $customer->save();
     }
-   
+
   /**
      * Get customer account status + alert metadata
      */

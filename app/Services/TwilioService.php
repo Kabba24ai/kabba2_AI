@@ -2,12 +2,19 @@
 
 namespace App\Services;
 
-use App\Enums\Communication\SmsType;
-use App\Helpers\ConfigurationHelper;
-use App\Models\SMSLog;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Twilio\Rest\Client;
+
+// Enums
+use App\Enums\Communication\SmsType;
+
+// Helpers
+use App\Helpers\ConfigurationHelper;
+
+// Models
+use App\Models\Global\SMSLog;
+
 class TwilioService
 {
     protected ?Client $client = null;

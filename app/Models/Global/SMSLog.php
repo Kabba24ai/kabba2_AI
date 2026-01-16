@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Global;
 
 use App\Enums\Communication\SmsType;
 use App\Models\Customers\Customer;

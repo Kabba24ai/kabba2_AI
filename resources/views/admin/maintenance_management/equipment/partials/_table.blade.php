@@ -37,7 +37,7 @@
                             </span>
                         </td>
 
-                        <td class="py-3 px-3">
+                        <td class="py-3 px-3 inline-flex items-center gap-1.5 whitespace-nowrap">
                             {!! \App\Helpers\CustomHelper::statusBadge($item->current_status->label()) !!}
                         </td>
                         <td class="px-3 py-3 text-center">
@@ -58,9 +58,7 @@
                         <td class="py-4 px-6">
                             @if ($item->status_label == 'Rented' && $item?->orderProduct?->checklistQuestions->isNotEmpty())
                                 {{ $item->order->customer_name ?? '-' }}
-                                {{-- <a href="{{ route('admin.crm.customers.view', $item->order->customer->unique_id) }}"
-                                target="_blank" class="text-black hover:underline">
-                                </a> --}}
+
                             @else
                                 @if ($item->store?->store_name)
                                     <button type="button" class="text-blue-600 underline store-assign-btn"
@@ -91,31 +89,31 @@
                             @php
                                 // Calculate service status
                                 $serviceStatus = 'empty';
-                                
+
                                 if ($item->serviceTemplate && $item->serviceTemplate->preset && $item->serviceTemplate->templateTasks->isNotEmpty()) {
                                     $intervalType = $item->serviceTemplate->preset->interval_type ?? 'hour';
                                     $isDateBased = $intervalType !== 'hour';
-                                    
+
                                     // Calculate current value
                                     if ($isDateBased && $item->date_acquired) {
                                         $currentValue = ceil((time() - strtotime($item->date_acquired)) / (60 * 60 * 24));
                                     } else {
                                         $currentValue = $item->equipment_hours ?? 0;
                                     }
-                                    
+
                                     $intervals = $item->serviceTemplate->preset->intervals ?? [];
                                     $tasks = $item->serviceTemplate->templateTasks;
-                                    
+
                                     $hasOverdue = false;
                                     $hasPending = false;
                                     $hasNotDue = false;
                                     $totalTasks = 0;
                                     $completedTasks = 0;
-                                    
+
                                     foreach ($tasks as $templateTask) {
                                         $taskId = $templateTask->task?->id;
                                         if (!$taskId) continue;
-                                        
+
                                         $ints = $templateTask->intervals ?? $templateTask->intervals_json ?? $templateTask->interval ?? [];
                                         $arr = [];
                                         if (is_array($ints)) {
@@ -125,28 +123,28 @@
                                         } elseif (is_numeric($ints)) {
                                             $arr = [$ints];
                                         }
-                                        
+
                                         foreach ($arr as $interval) {
                                             $totalTasks++;
-                                            
+
                                             // Check if this interval is completed
                                             $recordKey = $item->id . '_' . $taskId;
                                             $records = $serviceRecords[$recordKey] ?? collect();
                                             $isCompleted = $records->contains(function($record) use ($interval) {
                                                 return $record->interval_value == $interval;
                                             });
-                                            
+
                                             if ($isCompleted) {
                                                 $completedTasks++;
                                                 continue;
                                             }
-                                            
+
                                             // Calculate status for this interval
                                             $before = intval($pendingBeforeHours ?? 20);
                                             $after = intval($pendingAfterHours ?? 15);
                                             $greyThreshold = $interval - $before;
                                             $yellowMax = $interval + $after;
-                                            
+
                                             if ($currentValue < $greyThreshold) {
                                                 $hasNotDue = true;
                                             } elseif ($currentValue <= $yellowMax) {
@@ -156,7 +154,7 @@
                                             }
                                         }
                                     }
-                                    
+
                                     // Determine overall status based on priority
                                     if ($hasOverdue) {
                                         $serviceStatus = 'overdue';
@@ -169,7 +167,7 @@
                                     }
                                 }
                             @endphp
-                            
+
                             @if($serviceStatus === 'empty')
                                 <span class="text-gray-400" title="No Service Template">-</span>
                             @elseif($serviceStatus === 'overdue')

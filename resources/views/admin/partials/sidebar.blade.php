@@ -575,6 +575,16 @@
                                 </li>
 
 
+                                 <li>
+                                    <a href="https://timetrackerpro.kabba.ai/" target="_blank"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-clock class="w-5 h-5" />
+ Time Tracker Pro
+
+                                    </a>
+                                </li>
+
+
                             </ul>
                         </div>
                     </li>

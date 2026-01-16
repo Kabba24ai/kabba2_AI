@@ -16,24 +16,23 @@ class HrmUsersController extends Controller
 
         $users = User::query()
             ->active()
-            ->select(
-                'id',
-                'first_name',
-                'last_name',
-                'mobile_phone',
-               
-            )
-            ->where(function ($q) {
-                $q->whereNotNull('mobile_phone');
-            })
+            ->with(['roles:id,name,color']) //  load roles
+            ->select('id', 'first_name', 'last_name', 'mobile_phone')
+            ->whereNotNull('mobile_phone')
             ->orderBy('first_name')
-             ->get();
+            ->get();
 
         return response()->json([
             'users' => $users->map(fn ($u) => [
                 'id'    => $u->id,
                 'name'  => trim($u->first_name . ' ' . $u->last_name),
                 'phone' => $u->mobile_phone,
+
+                //  role data
+                'roles' => $u->roles->map(fn ($r) => [
+                    'name'  => $r->name,
+                    'color' => $r->color,
+                ])->values(),
             ])->values()
         ]);
     }

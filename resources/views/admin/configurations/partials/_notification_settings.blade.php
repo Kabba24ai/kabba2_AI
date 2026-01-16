@@ -584,49 +584,59 @@ document.getElementById('save-manual').onclick = () => {
     }
 
     function renderHrmUsers() {
-        hrmList.innerHTML = '';
+    hrmList.innerHTML = '';
 
-        const existingIds = (window.notificationData[hrmSelectedType] || [])
-            .filter(r => r.source === 'hrm')
-            .map(r => String(r.user_id));
+    const existingIds = (window.notificationData[hrmSelectedType] || [])
+        .filter(r => r.source === 'hrm')
+        .map(r => String(r.user_id));
 
-        state.hrmUsers.forEach(user => {
-            const isAdded = existingIds.includes(String(user.id));
+    state.hrmUsers.forEach(user => {
+        const isAdded = existingIds.includes(String(user.id));
 
-            const div = document.createElement('div');
-            div.className =
-                'flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50';
+        const rolesHtml = (user.roles || []).map(role => `
+            <span
+                class="inline-block text-xs px-3 py-1 rounded-full font-medium mr-1"
+                style="background-color: ${role.color}20; color: ${role.color};"
+            >
+                ${role.name}
+            </span>
+        `).join('');
 
-            div.innerHTML = `
-                <input
-                    type="checkbox"
-                    class="hrm-checkbox"
-                    ${isAdded ? 'checked ' : ''}
-                    data-hrm-id="${user.id}"
-                    data-hrm-name="${user.name}"
-                    data-hrm-phone="${user.phone}"
-                />
-                <div>
-                    <div class="font-medium text-md">${user.name}</div>
-                    <div class="text-sm text-gray-500">${user.phone}</div>
+        const div = document.createElement('div');
+        div.className =
+            'flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50';
+
+        div.innerHTML = `
+            <input
+                type="checkbox"
+                class="hrm-checkbox mt-1"
+                ${isAdded ? 'checked' : ''}
+                data-hrm-id="${user.id}"
+                data-hrm-name="${user.name}"
+                data-hrm-phone="${user.phone}"
+            />
+
+            <div class="flex-1">
+                <div class="font-medium text-md">${user.name}</div>
+                <div class="text-sm text-gray-500">${user.phone}</div>
+                <div class="mt-1 flex flex-wrap gap-1">
+                    ${rolesHtml}
                 </div>
-            `;
+            </div>
+        `;
 
-            const checkbox = div.querySelector('.hrm-checkbox');
+        const checkbox = div.querySelector('.hrm-checkbox');
 
-            // click anywhere in row toggles checkbox
-            div.addEventListener('click', (e) => {
-                // prevent double toggle when clicking checkbox itself
-                if (e.target.tagName === 'INPUT') return;
-
-                if (checkbox.disabled) return;
-
-                checkbox.checked = !checkbox.checked;
-            });
-
-            hrmList.appendChild(div);
+        div.addEventListener('click', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            if (checkbox.disabled) return;
+            checkbox.checked = !checkbox.checked;
         });
-    }
+
+        hrmList.appendChild(div);
+    });
+}
+
 
     document.getElementById('save-hrm-modal').onclick = () => {
         const updated = [];

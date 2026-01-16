@@ -9,7 +9,7 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|unique:tags,name',
+            'name' => 'required',
             'unique_id' => 'nullable'
 
         ];

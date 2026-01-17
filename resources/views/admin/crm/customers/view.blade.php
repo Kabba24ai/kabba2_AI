@@ -1369,7 +1369,7 @@ const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $
             addTagText.textContent = 'Saving...';
 
 
-            console.log()
+            // console.log()
 
             fetch(`{{ route('admin.crm.tags.store') }}`, {
                     method: 'POST',
@@ -1383,15 +1383,27 @@ const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $
                     })
                 })
               .then(res => {
-    console.log("📡 Response status:", res.status);
-    return res.json();
-})
+                    // console.log("📡 Response status:", res.status);
+                            return res.json();
+                        })
                 .then(data => {
                     
 
                     if (data.success) {
                         notyf.success(data.message || 'Tag added!');
                         newTagInput.value = '';
+
+
+                                                //  update customer tags (GLOBAL)
+                                if (data.customer_tag_names) {
+                                    customerTagNames = data.customer_tag_names;
+                                }
+
+                                //  ensure new tag is in system tags
+                                if (!existingTags.some(t => t.toLowerCase() === data.tag.name.toLowerCase())) {
+                                    existingTags.push(data.tag.name);
+                                }
+
 
                            closeTagModal();
 
@@ -1401,17 +1413,18 @@ const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $
                     }
                 })
               .catch(err => {
-    console.error("❌ Fetch error:", err);
-    notyf.error("Failed to add tag");
-})
-.finally(() => {
-    console.log("🧹 Request finished, resetting UI");
+                console.error(" Fetch error:", err);
+                notyf.error("Failed to add tag");
+                })
+                .finally(() => {
+                    // console.log("🧹 Request finished, resetting UI");
 
-    addTagBtn.disabled = false;
-    addTagSpinner.classList.add('hidden');
-    addTagText.textContent = 'Add';
-});
-        });
+                    addTagBtn.disabled = false;
+                    addTagSpinner.classList.add('hidden');
+                    addTagText.textContent = 'Add';
+                });
+            });
+
         // Initial render
         fetchTags();
 
@@ -1423,8 +1436,8 @@ const customerTagsRoute = "{{ route('admin.crm.customers.tags.fetch', ['id' => $
 
 <script>
 
-const existingTags = @json($existingTagNames);
-    const customerTagNames = @json($customerTagNames);
+let existingTags = @json($existingTagNames);
+    let customerTagNames = @json($customerTagNames);
 
 const tagInput      = document.getElementById("newTagInput");
 const tagWarning    = document.getElementById("tagDuplicateWarning");
@@ -1507,40 +1520,13 @@ tagInput.addEventListener("input", function () {
         return;
     }
 
-
-//    if (existsInSystem) {
-//     tagWarning.innerHTML = `
-//         <button
-//             type="button"
-//             id="attachExistingTagBtn"
-//             class="ml-1 text-blue-600 hover:text-blue-800 font-medium underline">
-//             Add to this customer
-//         </button>
-//     `;
-//     tagWarning.classList.remove("hidden");
-
-//     console.log('abcccc');
-
-//     //  Attach click handler immediately
-//     const attachBtn = document.getElementById("attachExistingTagBtn");
-
-//     if (attachBtn) {
-//         attachBtn.onclick = () => {
-//             attachTagToCustomer(String(value).trim());
-//         };
-
-//     }
-
-//     return;
-// }
-
 });
 
 
 
 function attachTagToCustomer(tagName) {
 
-  console.log("attachTagToCustomer called with:", tagName); 
+//   console.log("attachTagToCustomer called with:", tagName); 
 
     addBtn.disabled = true;
     addTagSpinner.classList.remove("hidden");

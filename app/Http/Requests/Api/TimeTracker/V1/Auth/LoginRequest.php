@@ -6,36 +6,25 @@ use App\Http\Requests\ApiBaseFormRequest;
 
 class LoginRequest extends ApiBaseFormRequest
 {
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
-     */
     public function rules(): array
     {
         return [
-            'email' => 'required|email|max:200|exists:users,email',
-            'password' => 'required|max:50',
+            'user_id' => 'required|exists:users,id',
+            'employee_code' => 'required|string|max:10',
         ];
     }
 
-    /**
-     * Get the body parameters for the request documentation.
-     *
-     * @return array
-     */
     public function bodyParameters(): array
     {
         return [
-            'email' => [
-                'description' => 'The email address of the user.',
-                'example' => 'rajkc.webdev@gmail.com',
-                'type' => 'string',
+            'user_id' => [
+                'description' => 'Selected employee user ID',
+                'example' => 5,
+                'type' => 'integer',
             ],
-            'password' => [
-                'description' => 'The password for the user account.',
-                'example' => 'Raj#1234',
+            'employee_code' => [
+                'description' => 'Employee code for authentication',
+                'example' => '123456',
                 'type' => 'string',
             ],
         ];

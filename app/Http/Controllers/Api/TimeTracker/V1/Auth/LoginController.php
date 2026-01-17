@@ -3,58 +3,36 @@
 namespace App\Http\Controllers\Api\TimeTracker\V1\Auth;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Api\BaseController;
-
-// Resources
+use App\Http\Requests\Api\TimeTracker\V1\Auth\LoginRequest;
 use App\Http\Resources\Api\TimeTracker\V1\Users\ListResource;
 use App\Http\Resources\Api\TimeTracker\V1\Users\EmployeeResource;
-
-
-// Requests
-use App\Http\Requests\Api\TimeTracker\V1\Auth\LoginRequest;
-// Model
 use App\Models\Iam\Personnel\User;
 
 class LoginController extends BaseController
 {
-
-    /**
-     * Login
-     * @group Admin App
-     */
-    public function __invoke(LoginRequest $request)
+    public function __invoke(LoginRequest $request): JsonResponse
     {
-        $validatedData = $request->validated();
+        $data = $request->validated();
 
-        try {
-            $user = User::where("email", $validatedData['email'])->firstOrFail();
+        $user = User::active()->find($data['user_id']);
 
-            if (!$user || !Hash::check($validatedData['password'], $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => trans("messages.api.time_tracker.v1.auth.login_failed"),
-                ], JsonResponse::HTTP_NOT_ACCEPTABLE);
-            }
-
-            // If the customer is found, continue with your logic
-            // $user->tokens()->delete();
-            $user->token = $user->createToken('api_user')->plainTextToken;
-
-           return response()->json([
-                'success' => true,
-                'message' => trans("messages.api.time_tracker.v1.auth.login_success"),
-                'user' => new ListResource($user),
-                'employee' => new EmployeeResource($user),
-                'roles' => $user->roles->pluck('short_name'),
-            ]);
-
-        } catch (\Exception $exception) {
-            // Customer not found
+        if (!$user || $user->employee_code !== $data['employee_code']) {
             return response()->json([
                 'success' => false,
-                'message' => trans("messages.api.time_tracker.v1.auth.user_not_exists"),
-            ], JsonResponse::HTTP_NOT_FOUND);
+                'message' => 'Invalid employee code',
+            ], JsonResponse::HTTP_NOT_ACCEPTABLE);
         }
+
+        // Generate token
+        $user->token = $user->createToken('api_user')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => trans("messages.api.time_tracker.v1.auth.login_success"),
+            'user' => new ListResource($user),
+            'employee' => new EmployeeResource($user),
+            'roles' => $user->roles->pluck('short_name'),
+        ]);
     }
 }

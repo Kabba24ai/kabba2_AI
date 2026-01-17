@@ -10,12 +10,20 @@ class GetActiveTimeEntryController extends BaseController
 {
     public function __invoke(): JsonResponse
     {
+        $entry = auth()->user()->activeTimeEntry;
+        $activeBreak = $entry?->activeBreak;
+
         return response()->json([
             'success' => true,
             'message' => 'Active time entry',
-            'data' => auth()->user()->activeTimeEntry
-                ? new TimeEntryResource(auth()->user()->activeTimeEntry)
-                : null,
+            'data' => [
+                'entry' => $entry ? new TimeEntryResource($entry) : null,
+                'active_break' => $activeBreak ? [
+                    'id' => $activeBreak->id,
+                    'type' => $activeBreak->type,
+                    'start_time' => $activeBreak->start_time,
+                ] : null,
+            ],
         ]);
     }
 }

@@ -119,87 +119,56 @@
                             $isSoftAssigned = $softAssignments->isNotEmpty();
 
                             $color = match ($eq->status_label) {
-                                'Available' => 'green',
-                                'Maint. Hold' => 'yellow',
-                                'Damaged' => 'red',
-                                default => 'green',
+                                'Available' => 'green-100',
+                                'Maint. Hold' => 'yellow-100',
+                                'Damaged' => 'red-100',
+                                default => 'green-100',
                             };
 
                             $hasAny = $isBooked || $isSoftAssigned;
-
+                            $textColor = 'text-gray-600';
                             // Light blue for soft assign, dark blue with white text for hard assign
-                            if ($isBooked) {
-                                $activeColor = 'blue-600';
+                            $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
+                            if ($isBooked && !$isReturnDay) {
+                                $color = 'blue-600';
                                 $textColor = 'text-white';
-                            } else {
-                                $activeColor = 'blue-100';
-                                $textColor = 'text-gray-600';
                             }
 
-                            $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
-                            if ($isReturnDay && !$isSoftAssigned) {
-                                $activeColor = $color . '-300';
-                            }
                         @endphp
 
                         @if ($hasAny)
                             <div count="{{ count($softAssignments) }}" flag="{{ $isBooked && $isSoftAssigned }}"
-                                class="w-auto bg-{{ $activeColor }} {{ $textColor }} rounded text-xs flex flex-col items-center justify-center">
+                                class="w-auto rounded text-xs flex flex-col items-center justify-center group relative overflow-hidden rounded">
 
                                 @if ($isBooked)
-                                    @if ($isReturnDay && !$isSoftAssigned)
-                                        <div class="px-2 text-black font-bold cursor-not-allowed group relative overflow-hidden rounded px-2 " title="Hard assigned - cannot be changed">
-                                            <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600"></span>
-                                            {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
-                                            <span
-                                                class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
-                                                Hard assigned - cannot be changed
-                                            </span>
-                                        </div>
-                                    @else
-                                        <div class="px-2 font-bold cursor-not-allowed group relative"
-                                            title="Hard assigned - cannot be changed">
-                                            {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
-                                            <span
-                                                class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
-                                                Hard assigned - cannot be changed
-                                            </span>
-                                        </div>
-                                    @endif
+                                <div class="px-2 font-bold cursor-not-allowed group relative {{ $textColor }} bg-{{$color}} rounded w-full text-center"
+                                title="Hard assigned - cannot be changed">
+                                        @if ($isReturnDay)
+                                            <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
+                                        @endif
+                                        {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
+                                        <span
+                                            class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                                            Hard assigned - cannot be changed
+                                        </span>
+                                    </div>
                                 @endif
 
-                                @if ($isReturnDay && $isSoftAssigned)
-                                    <div class="relative rounded overflow-hidden bg-blue-200 text-xs">
-                                        <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600"></span>
-
-                                        <div class="relative z-10 flex flex-col items-start">
-                                            @foreach ($softAssignments as $assignment)
-                                                <button type="button"
-                                                    class="w-full px-2 text-gray-700 underline text-left
-                                                        focus:outline-none focus:ring-0 equipment-assign-btn"
-                                                    data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
-                                                    data-order-product-name="{{ $assignment->orderProduct->product_name }}"
-                                                    data-order="{{ $assignment->orderProduct?->order?->order_number }}">
-                                                    {{ $assignment->order->order_number }}
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @else
+                                <div class="text-gray-600 bg-blue-100 rounded mt-1 w-full flex flex-col items-center justify-center">
                                     @foreach ($softAssignments as $assignment)
                                         <button type="button"
-                                            class="text-xs {{ $textColor }} underline px-2 equipment-assign-btn"
+                                            class="text-xs underline px-2 equipment-assign-btn"
                                             data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
                                             data-order-product-name="{{ $assignment->orderProduct->product_name }}"
                                             data-order="{{ $assignment->orderProduct?->order?->order_number }}">
                                             {{ $assignment->order->order_number }}
                                         </button>
                                     @endforeach
-                                @endif
+                                </div>
                             </div>
                         @else
                             <div
-                                class="w-auto h-4 bg-{{ $color }}-100 rounded text-xs flex items-center justify-center text-gray-500">
+                                class="w-auto h-4 bg-{{ $color }} rounded text-xs flex items-center justify-center text-gray-500">
                             </div>
                         @endif
 

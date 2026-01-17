@@ -13,24 +13,26 @@ class StoreController extends Controller
     {
         $data = $request->validated();
 
-        \Log::info('Tag Store Request', $data);
+        // \Log::info('Tag Store Request', $data);
 
         // Normalize tag name (important)
         $tagName = trim(strtolower($data['name']));
 
-        // 🔍 Find existing tag (case-insensitive)
+        //  Find existing tag (case-insensitive)
         $tag = Tag::whereRaw('LOWER(name) = ?', [$tagName])->first();
 
         if ($tag) {
-            \Log::info('Tag already exists', $tag->toArray());
+            // \Log::info('Tag already exists', $tag->toArray());
         } else {
-            // ➕ Create only if it does NOT exist
+            //  Create only if it does NOT exist
             $tag = Tag::create([
                 'name' => $tagName,
             ]);
 
-            \Log::info('Tag created', $tag->toArray());
+            // \Log::info('Tag created', $tag->toArray());
         }
+
+       $customerTagNames = [];
 
         // -------------------------
         // Attach tag to customer
@@ -40,16 +42,16 @@ class StoreController extends Controller
             $customer = Customer::where('unique_id', $data['unique_id'])->first();
 
             if (!$customer) {
-                \Log::warning('Customer NOT Found', [
-                    'unique_id' => $data['unique_id'],
-                ]);
+                // \Log::warning('Customer NOT Found', [
+                //     'unique_id' => $data['unique_id'],
+                // ]);
             } else {
 
                 $existingTags = json_decode($customer->tags, true) ?? [];
 
-                \Log::info('Customer Existing Tags (before)', [
-                    'tags' => $existingTags
-                ]);
+                // \Log::info('Customer Existing Tags (before)', [
+                //     'tags' => $existingTags
+                // ]);
 
                 // Attach only if not already attached
                 if (!in_array($tag->id, $existingTags)) {
@@ -59,14 +61,23 @@ class StoreController extends Controller
                         'tags' => json_encode($existingTags),
                     ]);
 
-                    \Log::info('Customer Tags (after)', [
-                        'tags' => $existingTags
-                    ]);
+
+                 if (!empty($customer)) {
+                        $tagIds = json_decode($customer->tags, true) ?? [];
+
+                        $customerTagNames = Tag::whereIn('id', $tagIds)
+                            ->pluck('name')
+                            ->toArray();
+                    }
+
+                    // \Log::info('Customer Tags (after)', [
+                    //     'tags' => $existingTags
+                    // ]);
                 } else {
-                    \Log::info('Tag already attached to customer', [
-                        'tag_id' => $tag->id,
-                        'customer_id' => $customer->id,
-                    ]);
+                    // \Log::info('Tag already attached to customer', [
+                    //     'tag_id' => $tag->id,
+                    //     'customer_id' => $customer->id,
+                    // ]);
                 }
             }
         }
@@ -75,6 +86,7 @@ class StoreController extends Controller
             'success' => true,
             'message' => 'Tag added to customer successfully!',
             'tag' => $tag,
+               'customer_tag_names' => $customerTagNames,
         ]);
     }
 }

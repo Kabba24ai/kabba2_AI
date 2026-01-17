@@ -23,6 +23,14 @@ class TimeEntryResource extends JsonResource
             'status' => $this->status,
 
             'created_at' => $this->created_at?->toDateTimeString(),
+
+
+            'breaks' => $this->breaks->map(fn ($b) => [
+                'id' => $b->id,
+                'type' => $b->type,
+                'start_time' => $b->start_time,
+                'end_time' => $b->end_time,
+            ]),
         ];
     }
 }

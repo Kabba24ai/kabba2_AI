@@ -11,49 +11,42 @@ use Carbon\Carbon;
 class ClockOutController extends BaseController
 {
     public function __invoke(ClockOutRequest $request): JsonResponse
-    {
-        $user = auth()->user();
-        $entry = $user->activeTimeEntry;
+{
+    $entry = auth()->user()->activeTimeEntry;
 
-        if (!$entry) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active time entry found',
-                'data' => null,
-            ], 422);
-        }
-
-        
-        $actualClockOut = now();
-        $clockIn = Carbon::parse($entry->clock_in);
-
-        //  Prevent clock-out before clock-in
-        if ($actualClockOut->lessThan($clockIn)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You cannot clock out before your clock-in time.',
-                'data' => null,
-            ], 422);
-        }
-
-
-        // $entry->update([
-        //     'clock_out' => now(),
-        //     'break_duration' => $request->validated('break_duration') ?? 0,
-        //     'status' => 'completed',
-        // ]);
-
-         //  IMPORTANT: assign + save
-        $entry->clock_out = $actualClockOut;
-        $entry->break_duration = $request->validated('break_duration') ?? 0;
-        $entry->status = 'completed';
-
-        $entry->save(); // triggers saving() → total_hours calculated
-
+    if (!$entry) {
         return response()->json([
-            'success' => true,
-            'message' => 'Clock-out successful',
-            'data' => new TimeEntryResource($entry),
+            'success' => false,
+            'message' => 'No active time entry found',
+        ], 422);
+    }
+
+    $now = now();
+    $clockIn = Carbon::parse($entry->clock_in);
+
+    //  If clock-out is before clock-in, force it to clock-in
+    if ($now->lessThan($clockIn)) {
+        $now = $clockIn;
+    }
+
+    //  Close active break automatically
+    if ($entry->activeBreak) {
+        $entry->activeBreak->update([
+            'end_time' => $now,
         ]);
     }
+
+    //  Single update (saving() runs ONCE)
+    $entry->update([
+        'clock_out' => $now,
+        'status' => 'completed',
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Clock-out successful',
+        'data' => new TimeEntryResource($entry->fresh()),
+    ]);
+}
+
 }

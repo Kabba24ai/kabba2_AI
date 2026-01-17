@@ -468,18 +468,18 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-document.getElementById('sms-cat-open').addEventListener('click', function () {
-    closeModal('new-smsbroadcast'); // Close current modal
+    document.getElementById('sms-cat-open').addEventListener('click', function () {
+        closeModal('new-smsbroadcast'); // Close current modal
 
 
-    // Activate "Categories" tab from inside the modal
-    const tabBtn = document.getElementById('tab-categories');
-    if (tabBtn) {
-        showTab('categories', tabBtn);
-    }
+        // Activate "Categories" tab from inside the modal
+        const tabBtn = document.getElementById('tab-categories');
+        if (tabBtn) {
+            showTab('categories', tabBtn);
+        }
 
-    openModal('btn-smscat-modal'); // Open category modal
-});
+        openModal('btn-smscat-modal'); // Open category modal
+    });
 
 
     // ---------------------------------------

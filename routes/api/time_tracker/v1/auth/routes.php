@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 
 use App\Http\Controllers\Api\TimeTracker\V1\Auth\LoginController;
+use App\Http\Controllers\Api\TimeTracker\V1\Auth\ListUsersController;
 // use App\Http\Controllers\Api\TimeTracker\V1\Auth\LogoutController;
 
 /*
@@ -20,4 +21,12 @@ use App\Http\Controllers\Api\TimeTracker\V1\Auth\LoginController;
 // Apply the default throttle middleware to limit requests to 3 per minute
 Route::middleware('throttle:20,1')->group(function () {
        Route::post('/login', LoginController::class);
+});
+
+
+Route::group(['prefix' => 'login-users'], function () {
+
+        // LIST Users
+        Route::get('/', ListUsersController::class);
+
 });

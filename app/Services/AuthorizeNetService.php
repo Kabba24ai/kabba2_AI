@@ -133,7 +133,8 @@ class AuthorizeNetService
         $createRequest = new AnetAPI\CreateCustomerProfileRequest();
         $createRequest->setMerchantAuthentication($this->merchantAuthentication);
         $createRequest->setProfile($profile);
-        $createRequest->setValidationMode($this->isTestMode ? 'none' : 'liveMode');
+        //$createRequest->setValidationMode($this->isTestMode ? 'none' : 'liveMode');
+        $createRequest->setValidationMode('none');
 
         $controller = new AnetController\CreateCustomerProfileController($createRequest);
         $createResponse = $controller->executeWithApiResponse($this->getApiEnvironment());
@@ -328,7 +329,8 @@ class AuthorizeNetService
          * Checks AVS (Address Verification System) settings.
          * If you want to turn off AVS verification, set it to none.
          */
-        $createRequest->setValidationMode($this->isTestMode ? 'none' : 'liveMode');
+        //$createRequest->setValidationMode($this->isTestMode ? 'none' : 'liveMode');
+        $createRequest->setValidationMode('none');
 
         $controller = new AnetController\CreateCustomerPaymentProfileController($createRequest);
         $createResponse = $controller->executeWithApiResponse($this->getApiEnvironment());

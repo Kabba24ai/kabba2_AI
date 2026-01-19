@@ -503,9 +503,10 @@
                     </li>
                     <li x-data="{ open: 'false' }">
                         @php
-                            $ssoUrl = auth()->check()
-                                ? \App\Helpers\SsoHelper::generateSsoUrl(auth()->user()->email, 'http://projectmanager.kabba.ai')
-                                : 'https://projectmanager.kabba.ai/';
+                            $projectManagerUrl = config('app.domains.project_manager');
+                            $ssoUrl = auth()->check() 
+                                ? \App\Helpers\SsoHelper::generateSsoUrl(auth()->user()->email, $projectManagerUrl)
+                                : $projectManagerUrl;
                         @endphp
                         <a href="{{ $ssoUrl }}" target="_blank"
                             class="menu-item group flex items-center gap-3 menu-item-inactive }}">

@@ -45,6 +45,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
                      require base_path('routes/api/time_tracker/v1/system/routes.php');
                      
                      require base_path('routes/api/time_tracker/v1/vacation/routes.php');
+
+                     require base_path('routes/api/time_tracker/v1/time_reports/routes.php');
               });
 
        });

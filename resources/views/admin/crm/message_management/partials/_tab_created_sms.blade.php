@@ -23,7 +23,7 @@
 </div>
 
 <div id="created-broadcast-table-wrapper">
-    @include('admin.crm.message_management.partials._sms_created_broadcast_table', [
+    @include('admin.crm.message_management.partials._sms_created_table', [
         'broadcasts' => []
     ])
 </div>
@@ -79,15 +79,16 @@ document.addEventListener("DOMContentLoaded", () => {
         .finally(() => unfreezeUI());
     }
 
-    Paginator.init({ wrapper, fetchCallback: fetchBroadcasts });
+    Paginator.init({ wrapper, fetchCallback: fetchCreatedBroadcasts });
 
-    nameInput.addEventListener('input', () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fetchBroadcasts(1), 300);
-    });
+        nameInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => fetchCreatedBroadcasts(1), 300);
+        });
 
-    categorySelect.addEventListener('change', () => fetchBroadcasts(1));
-    fetchBroadcasts(1); // initial load
+        categorySelect.addEventListener('change', () => fetchCreatedBroadcasts(1));
+        fetchCreatedBroadcasts(1); // initial load
+
 
 
 

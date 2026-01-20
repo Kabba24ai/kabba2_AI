@@ -14,13 +14,11 @@ class LunchStartController extends BaseController
     public function __invoke(): JsonResponse
     {
        $user = auth()->user();
-    $entry = $user->activeTimeEntry;
+       $entry = $user->activeTimeEntry;
 
         if (!$entry || $entry->activeBreak) {
             return response()->json(['message' => 'Invalid state'], 422);
         }
-
-    
 
         $entry->breaks()->create([
             'type' => 'lunch',

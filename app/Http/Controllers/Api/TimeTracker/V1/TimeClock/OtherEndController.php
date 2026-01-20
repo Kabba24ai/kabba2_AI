@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\TimeTracker\V1\TimeClock;
 
 use App\Http\Controllers\Api\BaseController;
+use App\Helpers\TimeTrackerHelper;
 use Illuminate\Http\JsonResponse;
+use Carbon\Carbon;
 
 class OtherEndController extends BaseController
 {
@@ -18,8 +20,18 @@ class OtherEndController extends BaseController
             ], 422);
         }
 
+        //  Get default lunch duration (minutes)
+        $lunchMinutes = TimeTrackerHelper::getTimeTrackerSetting(
+            'default_lunch_duration_minutes',
+            30 // fallback
+        );
+
+         //  Calculate end time
+        $startTime = Carbon::parse($break->start_time);
+        $endTime   = $startTime->copy()->addMinutes((int) $lunchMinutes);
+
         $break->update([
-            'end_time' => now(),
+            'end_time' => $endTime,
         ]);
 
         return response()->json([

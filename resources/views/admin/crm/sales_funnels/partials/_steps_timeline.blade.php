@@ -149,6 +149,7 @@
                                 {{-- Edit button using Heroicons (pencil-square) --}}
                                 <button type="button"
                                     data-step-unique-id="{{ $step->unique_id }}"
+                                    data-funnel-unique-id="{{ $funnel->unique_id }}"
                                     data-step-json='@json($step)'
                                     class="step-edit-button p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                     <x-heroicon-o-pencil class="w-5 h-5" />
@@ -181,7 +182,7 @@
                                 @if ($step->delay_value == 0)
                                     Sends when after funnel starts
                                 @else
-                                    Sends {{ $step->delay_value }} {{ ucfirst($step->delay_unit) }} after funnel starts
+                                    Sends {{ $step->delay_value }} {{ ucfirst($step->delay_unit) }} after above step completed
                                 @endif
                             </p>
                         </div>

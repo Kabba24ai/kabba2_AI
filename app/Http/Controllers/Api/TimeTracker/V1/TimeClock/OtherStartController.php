@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\TimeTracker\V1\TimeClock;
 
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
+use Carbon\Carbon;
 
 class OtherStartController extends BaseController
 {
@@ -19,7 +20,7 @@ class OtherStartController extends BaseController
 
         $entry->breaks()->create([
             'type' => 'other',
-            'start_time' => now(),
+            'start_time' => Carbon::now(),
         ]);
 
         return response()->json([

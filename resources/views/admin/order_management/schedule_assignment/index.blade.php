@@ -133,7 +133,7 @@
                         d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
                     </path>
                 </svg>
-                <span class="font-medium">Issues &amp; Maintenance</span>
+                <span class="font-medium">Issues & Maint.</span>
 
                 <label class="{{ $lbl }}">
                     <input type="checkbox" name="equipment_status[]" value="Maintenance" class="{{ $chk }}"
@@ -153,7 +153,7 @@
                 <label class="{{ $lbl }}">
                     <input type="checkbox" name="past_seven_days" value="1" id="past_seven_days"
                         class="{{ $chk }}" {{ request('past_seven_days') ? 'checked' : '' }}>
-                    Show past 7 days
+                    Past 7 days
                 </label>
             </div>
 
@@ -189,43 +189,63 @@
 
     <!-- Equipment Assign Modal -->
     <div id="equipmentAssignModal"
-        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center px-4">
         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
-            <div class="flex justify-between items-center p-4 border-b">
-                <h2 id="addressModalTitle" class="text-lg font-semibold">Assign Equipment : <span
-                        id="equipmentAssignModalTitle"></span></h2>
+            <div class="relative px-6 pt-6 pb-4 border-b">
+                <h2 class="text-xl font-semibold text-gray-900 text-center">Assign Equipment</h2>
                 <button type="button"
-                    class="close-equipment-assign-modal text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+                    class="close-equipment-assign-modal text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none absolute right-6 top-6">&times;</button>
             </div>
-            <!-- Body -->
+
             {{ html()->form()->attributes([
                     'data-parsley-validate' => true,
                     'class' => 'flex-1',
                     'id' => 'equipmentAssignForm',
                 ])->open() }}
 
-            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
-                <div>
-                    <label class="text-sm font-medium text-gray-700 required" for="user_unique_id">User</label>
-                    {!! html()->select('user_unique_id', $employees)->id('user_unique_id')->class([
-                            'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
-                        ])->required() !!}
+            <div class="px-4 pt-3 space-y-2 overflow-y-auto">
+                <!-- Order Information Section -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                    <div>
+                        <span class="text-xs font-semibold text-blue-700">Order ID:</span>
+                        <span id="assign-order-id" class="text-sm text-blue-900 font-semibold">-</span>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-blue-700">Customer:</span>
+                        <span id="assign-customer-name" class="text-sm text-blue-900 font-semibold">-</span>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-blue-700">Product Ordered:</span>
+                        <span id="assign-product-name" class="text-sm text-blue-900 font-semibold">-</span>
+                    </div>
                 </div>
 
-                <div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-gray-700 required" for="user_unique_id">User</label>
+                    <select name="user_unique_id" id="user_unique_id"
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
+                        required>
+                        <option value="">Select Employee</option>
+                        @foreach ($employees as $employeeId => $employeeName)
+                            <option value="{{ $employeeId }}">{{ $employeeName }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="space-y-1">
                     <label class="text-sm font-medium text-gray-700 required">Category</label>
                     <select id="category_select"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-700">
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-700">
                         <option value="">Select Category</option>
                     </select>
                 </div>
 
 
-                <div>
+                <div class="space-y-1">
                     <label class="text-sm font-medium text-gray-700 required" for="equipment_unique_id">Equipment</label>
                     <select name="equipment_unique_id" id="equipment_unique_id"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
                         <option value="" data-current-status="">Select Equipment</option>
                     </select>
                     <div class="flex items-center justify-between gap-3 mt-2">
@@ -240,11 +260,11 @@
             <!-- Footer -->
             <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
                 <button type="button"
-                    class="close-equipment-assign-modal px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    class="close-equipment-assign-modal px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                     Cancel
                 </button>
                 <button type="submit" id="equipment-assign-submit"
-                    class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    class="px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
                     Assign
                 </button>
             </div>
@@ -505,13 +525,16 @@
 
 
             const modal = document.getElementById('equipmentAssignModal');
-            const equipmentAssignModalTitle = document.getElementById('equipmentAssignModalTitle');
+
             const equipmentAssignForm = document.getElementById('equipmentAssignForm');
             const equipmentCategorySelect = document.getElementById('category_select');
             const equipmentSelect = document.getElementById('equipment_unique_id');
             const assignBtn = document.getElementById('equipment-assign-submit');
             const statusDisplayId = 'equipment-status-display';
             const equipmentPageLinkId = 'equipment-page-link';
+            const orderIdLabel = document.getElementById('assign-order-id');
+            const customerNameLabel = document.getElementById('assign-customer-name');
+            const productNameLabel = document.getElementById('assign-product-name');
 
             let fullData = {}; // store categories + equipment
 
@@ -522,12 +545,24 @@
                 if (!btn) return;
 
                 const orderProductUniqueId = btn.getAttribute('data-order-product-unique-id');
-                const orderProductName = btn.getAttribute('data-order-product-name');
-                const orderNumber = btn.getAttribute('data-order');
+                const orderId = btn.dataset.orderId || '';
+                const productName = btn.dataset.productName || '';
+                const customerName = btn.dataset.customerName || '';
 
                 document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
-                equipmentAssignModalTitle.textContent = (orderNumber || '') + ' ' + (orderProductName ||
-                    '');
+
+                if (orderIdLabel) {
+                    orderIdLabel.textContent = orderId ? `#${orderId.replace(/^#/, '')}` : '-';
+                }
+
+                if (customerNameLabel) {
+                    customerNameLabel.textContent = customerName || '-';
+                }
+
+                if (productNameLabel) {
+                    productNameLabel.textContent = productName || '-';
+                }
+
                 modal.classList.remove('hidden');
 
                 // Refresh status on open in case select kept previous state
@@ -552,9 +587,12 @@
                 if (userSel) userSel.selectedIndex = 0;
                 if (equipSel) equipSel.selectedIndex = 0;
                 if (orderInput) orderInput.value = '';
+                if (orderIdLabel) orderIdLabel.textContent = '-';
+                if (customerNameLabel) customerNameLabel.textContent = '-';
+                if (productNameLabel) productNameLabel.textContent = '-';
                 if (statusDiv) {
                     statusDiv.textContent = '';
-                    statusDiv.className = 'mt-2 text-sm font-semibold text-gray-600';
+                    statusDiv.className = 'text-sm font-semibold text-gray-600';
                 }
                 if (pageLink) {
                     pageLink.href = '';

@@ -28,7 +28,7 @@ class ClockInController extends BaseController
 
 
         //  Actual clock-in time
-        $actualClockIn = now();
+        $actualClockIn = Carbon::now();
 
         // Get pay increment setting
      $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 30);

@@ -21,7 +21,7 @@ class ClockOutController extends BaseController
         ], 422);
     }
 
-    $now = now();
+    $now = Carbon::now();
     $clockIn = Carbon::parse($entry->clock_in);
 
     //  If clock-out is before clock-in, force it to clock-in

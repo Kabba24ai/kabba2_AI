@@ -11,8 +11,11 @@ class OrderProductFunnelLog extends Model
 
     protected $fillable = [
         'order_product_id',
-        'sales_funnel_id',
         'product_id',
+        'sales_funnel_id',
+        'sales_funnel_step_id',
+        'step_type',
+        'step_name',
         'message',
         'status',
         'sent_at',

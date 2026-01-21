@@ -15,7 +15,7 @@ class CopyController extends Controller
         $newFunnel->name = $funnel->name . " (Copy)";
         $newFunnel->save();
 
-                 // Store in session to auto-open 
+        // Store in session to auto-open 
         session()->flash('active_sub_tab', 'smsfunnel');
 
         

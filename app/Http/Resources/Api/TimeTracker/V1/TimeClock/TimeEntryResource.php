@@ -13,8 +13,8 @@ class TimeEntryResource extends JsonResource
             'id' => $this->id,
             'employee_id' => $this->employee_id,
 
-            'clock_in' => $this->clock_in?->toDateTimeString(),
-            'clock_out' => $this->clock_out?->toDateTimeString(),
+            'clock_in' => $this->clock_in,
+            'clock_out' => $this->clock_out,
 
             'break_duration' => $this->break_duration,
             'total_hours' => $this->total_hours,
@@ -22,7 +22,7 @@ class TimeEntryResource extends JsonResource
             'notes' => $this->notes,
             'status' => $this->status,
 
-            'created_at' => $this->created_at?->toDateTimeString(),
+            'created_at' => $this->created_at,
 
 
             'breaks' => $this->breaks->map(fn ($b) => [

@@ -19,6 +19,7 @@ class UpdateRequest extends ApiBaseFormRequest
             'sms_funnel_id' => ['required', 'exists:sms_funnels,id'],
             'delay_unit' => ['required', 'in:Days,Hours,Minutes'],
             'delay_value' => ['nullable', 'integer', 'min:0'],
+            'funnel_unique_id' => ['required', 'exists:sales_funnels,unique_id'],
         ];
     }
 }

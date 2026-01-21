@@ -66,13 +66,14 @@
 
                     {!! html()->select('reason', [
                     '' => 'Select charge reason',
-                    'New Rental' => 'New Rental',
-                    'Rental Extension' => 'Rental Extension',
-                    'Damages' => 'Damages',
-                    'Fuel Charge' => 'Fuel Charge',
-                    'Cleaning Charge' => 'Cleaning Charge',
-                    'Missing Items' => 'Missing Items',
-                    'Product Purchase' => 'Product Purchase',
+                'Cleaning Charge' => 'Cleaning Charge',
+                'Damages' => 'Damages',
+                'Fuel Charge' => 'Fuel Charge',
+                'Missing Items' => 'Missing Items',
+                'New Rental' => 'New Rental',
+                'Product Purchase' => 'Product Purchase',
+                'Rental Extension' => 'Rental Extension',
+
                     ], old('reason'))
                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500')
                     ->required() !!}

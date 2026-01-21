@@ -22,7 +22,7 @@ class LunchStartController extends BaseController
 
         $entry->breaks()->create([
             'type' => 'lunch',
-            'start_time' => now(),
+            'start_time' => Carbon::now(),
         ]);
 
         return response()->json(['success' => true]);

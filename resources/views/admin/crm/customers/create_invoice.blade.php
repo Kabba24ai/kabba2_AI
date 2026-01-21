@@ -340,12 +340,21 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 @foreach ($defaultAddresses as $index => $addressItem)
                 @php $addresse = $addressItem['data']; @endphp
 
-                <div class="flex items-center text-sm text-gray-600 gap-2 mt-2">
-                    <x-heroicon-o-map-pin class="w-4 h-4 text-gray-900" />
-                    @if($addresse?->full_name)
-                    {{ $addresse->full_name }}
-                    @endif
+                 {{-- Heading --}}
+                <div class="text-sm font-semibold text-gray-900 mt-3">
+                    {{ $addressItem['label'] }} Address
+                </div>
 
+
+                <div class="flex items-center text-sm text-gray-600 gap-2 mt-2">
+                    <x-heroicon-o-map-pin class="w-4 h-4 text-gray-900 flex-shrink-0 " />
+
+                    @if ($addressItem['label'] === 'Shipping' && $customer->same_as_billing)
+
+                         <div class="text-sm text-gray-500 mt-1">
+            Same as billing
+        </div>
+                     @else
                     @if($addresse?->address || $addresse?->city)
                     {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', ' . $addresse->city : '' }}
                     @endif
@@ -353,7 +362,9 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     @if($addresse?->state?->name || $addresse?->zip_code)
                     {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
                     @endif
-                    - {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
+                    - {{  $addressItem['label'] }} Address
+                    @endif
+
                 </div>
                 @endforeach
 

@@ -12,7 +12,7 @@ class AttendanceRecordResource extends JsonResource
         return [
             'id' => (string) $this->id,
             'employee_id' => (string) $this->employee_id,
-            'attendance_date' => $this->attendance_date->toDateString(),
+            'attendance_date' => $this->attendance_date,
             'status' => $this->status,
             'check_in_time' => optional($this->check_in_time)?->toIso8601String(),
             'minutes_late' => (int) $this->minutes_late,

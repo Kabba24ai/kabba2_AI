@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryListController;
 
 
 /**
@@ -22,6 +23,10 @@ Route::group(['prefix' => 'v1'], function ($router) {
     */
     require base_path('routes/api/time_tracker/v1/auth/routes.php');
  
+
+        Route::get('/time-entries-list/{user}', TimeEntryListController::class);
+
+
     /*
     |--------------------------------------------------------------------------
     | Authenticated Routes

@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\TimeTracker\V1\Users\UpdateUserVacationController;
 
 use App\Http\Controllers\Api\TimeTracker\V1\Users\GetAdminAttendanceSummaryController;
 
+
 Route::group(['prefix' => 'users'], function () {
 
         // LIST employees
@@ -24,5 +25,6 @@ Route::group(['prefix' => 'users'], function () {
         Route::put('/{user}/vacation', UpdateUserVacationController::class);
 
         Route::get('/attendance/summary', GetAdminAttendanceSummaryController::class);
+
 
 });

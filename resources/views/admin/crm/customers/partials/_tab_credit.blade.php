@@ -763,12 +763,12 @@
 
                        {!! html()->select('reason', [
                        '' => 'Select refund reason',
-                       'Damaged Item' => 'Damaged Item',
-                       'Wrong Item Shipped' => 'Wrong Item Shipped',
-                       'Customer Cancellation' => 'Customer Cancellation',
                        'Billing Overcharge' => 'Billing Overcharge',
+                       'Customer Cancellation' => 'Customer Cancellation',
+                       'Damaged Item' => 'Damaged Item',
                        'Duplicate Charge' => 'Duplicate Charge',
                        'Other' => 'Other',
+                       'Wrong Item Shipped' => 'Wrong Item Shipped',
                        ], old('reason'))
                        ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->required() !!}
 
@@ -894,11 +894,11 @@
 
                        {!! html()->select('reason', [
                        '' => 'Select discount reason',
-                       'Volume Discount' => 'Volume Discount',
-                       'Repeat Customer Discount' => 'Repeat Customer Discount',
                        'Damage Waiver Protection' => 'Damage Waiver Protection',
                        'Misc. Management Discount' => 'Misc. Management Discount',
                        'Other' => 'Other',
+                       'Repeat Customer Discount' => 'Repeat Customer Discount',
+                       'Volume Discount' => 'Volume Discount',
                        ], old('reason'))
                        ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->required() !!}
 
@@ -1049,13 +1049,13 @@
 
                        {!! html()->select('reason', [
                        '' => 'Select charge reason',
-                       'New Rental' => 'New Rental',
-                       'Rental Extension' => 'Rental Extension',
+                       'Cleaning Charge' => 'Cleaning Charge',
                        'Damages' => 'Damages',
                        'Fuel Charge' => 'Fuel Charge',
-                       'Cleaning Charge' => 'Cleaning Charge',
                        'Missing Items' => 'Missing Items',
+                       'New Rental' => 'New Rental',
                        'Product Purchase' => 'Product Purchase',
+                       'Rental Extension' => 'Rental Extension',
                        ], old('reason'))
                        ->class('w-full border border-gray-300 rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500')
                        ->required() !!}

@@ -59,7 +59,7 @@ class ViewController extends Controller
             }
         }
 
-        $users = User::where('status', 'Active')->get();
+        $users = User::where('status', 'Active')->orderBy('first_name')->get();
         // biling sumary
 
         $query = Customer::with('orders.payments', 'addresses', 'accounts')->whereIn('status', ['Active', 'Inactive']);

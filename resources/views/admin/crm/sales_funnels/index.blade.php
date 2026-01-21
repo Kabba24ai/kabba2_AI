@@ -155,8 +155,17 @@
                                                      forwarding px-3 py-3 text-sm
                                                         focus:ring-2 focus:ring-blue-500">
                                                 <option value="rental_start_date">Rental Start Date</option>
-                                                <option value="new_lead_added">New Lead Added</option>
+                                                <option value="new_lead_added" disabled>New Lead Added</option>
                                             </select>
+
+                                            <!-- Note for Rental Start Date -->
+                                            <div id="rentalStartDateNote" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                                                <p class="text-sm text-blue-700">
+                                                    <span class="font-semibold">Note:</span> This funnel will trigger on the scheduled delivery date at
+                                                    <span id="triggerTimeDisplay">9:00 AM</span>
+                                                    <span id="triggerTimingDisplay">(Before/After Event)</span>
+                                                </p>
+                                            </div>
                                         </div>
 
                                         <!-- Funnel Start Timing -->
@@ -360,7 +369,10 @@
                                                 </div>
                                                 <div id="delay_value-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
                                                 <div id="delay_unit-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-                                                <p class="mt-2 text-xs text-gray-500">0 = at funnel start</p>
+                                                <p class="mt-2 text-xs text-gray-500">
+                                                    {{-- <span class="font-semibold">Note:</span> --}}
+                                                    Days: 1-30 | Hours: 1-24 | Minutes: 0, 15, 30, 45 | 0 = at funnel start
+                                                </p>
                                             </div>
 
                                             <!-- Message type -->
@@ -386,7 +398,7 @@
 
                                                     <label class="inline-flex items-center gap-2 text-sm text-gray-700">
                                                         <input type="radio" name="step_type" value="Email" required data-parsley-errors-container="#step_type-errors"
-                                                            class="text-blue-600 focus:ring-blue-500">
+                                                            class="text-blue-600 focus:ring-blue-500" disabled>
                                                         <span class="inline-flex items-center gap-2">
                                                             <!-- mail icon -->
                                                             <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24"
@@ -394,7 +406,7 @@
                                                                 <path d="M4 4h16v16H4z" />
                                                                 <path d="m22 6-10 7L2 6" />
                                                             </svg>
-                                                            Email
+                                                            Email - coming soon
                                                         </span>
                                                     </label>
                                                 </div>
@@ -508,6 +520,7 @@
             initFunnelCategorySelect();
 
             fetchCategories(pageParam, perPageParam); // initial fetch after loading saved filters
+
 
             function fetchCategories(page = 1, perPage = 10) {
                 const params = new URLSearchParams();
@@ -803,6 +816,9 @@
             const showBtn = document.getElementById('showCategoryInput');
             const backBtn = document.getElementById('backToSelect');
 
+            // Track current active funnel
+            let activeFunnelId = null;
+
             categoryFilter.forEach(btn => {
                 btn.addEventListener('click', () => {
                     categoryFilter.forEach(b => {
@@ -841,6 +857,25 @@
 
                             // rebind delete buttons
                             initSingleFunnelDeleteButtons();
+
+                            // Open and scroll to active funnel if exists
+                            console.log('Active Funnel ID:', activeFunnelId);
+                            if (activeFunnelId) {
+                                const activeFunnelRow = document.getElementById('funnel-row-' + activeFunnelId);
+                                if (activeFunnelRow) {
+                                    // Open the panel
+                                    const panel = activeFunnelRow.querySelector('[data-funnel-panel]');
+                                    if (panel) {
+                                        panel.setAttribute('aria-hidden', 'false');
+                                        panel.classList.remove('hidden');
+                                    }
+
+                                    // Scroll into view with smooth behavior
+                                    setTimeout(() => {
+                                        activeFunnelRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                    }, 100);
+                                }
+                            }
                         }
                     })
                     .finally(() => {
@@ -859,6 +894,15 @@
 
             // Make globally accessible if needed
             window.reloadFunnelsTable = fetchFunnels;
+
+            // Expose active funnel ID tracker
+            window.setActiveFunnel = (id) => {
+                activeFunnelId = id;
+            };
+
+            window.getActiveFunnel = () => {
+                return activeFunnelId;
+            };
 
 
             function openModal() {
@@ -946,6 +990,12 @@
                     .then(res => {
                         if (res?.success) {
                             notyf.success(res.message);
+                            // Keep active funnel ID when reloading after save
+                            if (editingFunnelId) {
+                                activeFunnelId = editingFunnelId;
+                            }else {
+                                activeFunnelId = res.data.unique_id; // New funnel
+                            }
                             closeFunnelModal();
                             reloadFunnelsTable();
                         } else {
@@ -993,6 +1043,10 @@
                                         const row = document.getElementById(
                                             'funnel-row-' + uniqueId);
                                         if (row) row.remove();
+                                        if (!document.querySelectorAll('.funnel-row').length) {
+                                            // If no funnels left, reload table to show empty state
+                                            reloadFunnelsTable();
+                                        }
                                     } else {
                                         notyf.error(res?.message ||
                                             'Failed to delete funnel');
@@ -1035,6 +1089,7 @@
 
                 const uniqueId = btn.dataset.uniqueId;
                 editingFunnelId = uniqueId;
+                activeFunnelId = uniqueId; // Set active funnel when editing
 
                 apiFetch(`{{ route('admin.crm.sales-funnels.show', ':id') }}`
                         .replace(':id', uniqueId))
@@ -1076,6 +1131,7 @@
                 if (!btn) return;
                 btn.disabled = true;
                 const uniqueId = btn.dataset.uniqueId;
+                activeFunnelId = uniqueId; // Track active funnel
 
                 apiFetch(`{{ route('admin.crm.sales-funnels.status.toggle', ':unique_id') }}`
                         .replace(':unique_id', uniqueId), {
@@ -1102,6 +1158,7 @@
                 if (!btn) return;
                 btn.disabled = true;
                 const uniqueId = btn.dataset.uniqueId;
+                activeFunnelId = uniqueId; // Track active funnel
 
                 apiFetch(`{{ route('admin.crm.sales-funnels.duplicate', ':unique_id') }}`
                         .replace(':unique_id', uniqueId), {
@@ -1123,6 +1180,23 @@
                     });
             });
 
+            const rentalStartDateNote = document.getElementById('rentalStartDateNote');
+            const triggerEventSelect = document.getElementById('trigger_event');
+
+            if (!rentalStartDateNote || !triggerEventSelect) return;
+
+            const toggleNote = () => {
+                rentalStartDateNote.classList.toggle(
+                    'hidden',
+                    triggerEventSelect.value !== 'rental_start_date'
+                );
+            };
+
+            // Run on change
+            triggerEventSelect.addEventListener('change', toggleNote);
+
+            // Run once on page load (important)
+            toggleNote();
         });
     </script>
 
@@ -1134,6 +1208,7 @@
 
             const openModal = (funnelUniqueId) => {
                 modalFunnelIdInput.value = funnelUniqueId;
+                window.setActiveFunnel(funnelUniqueId); // Track the active funnel for step operations
                 modal.classList.remove('hidden');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('overflow-hidden');
@@ -1161,6 +1236,7 @@
                     e.preventDefault();
                     const funnelId = e.target.closest('[data-open-add-step]').getAttribute(
                     'data-funnel-unique-id');
+                    console.log('Opening Add Step Modal for Funnel ID:', funnelId);
                     openModal(funnelId);
                     return;
                 }
@@ -1184,6 +1260,43 @@
                     closeModal();
                 }
             });
+
+            const delayValueInput = document.getElementById('delay_value');
+            const delayUnitSelect = document.getElementById('delay_unit');
+            delayUnitSelect.addEventListener('change', () => {
+                if (delayUnitSelect.value === '') {
+                    delayValueInput.value = 0;
+                    delayValueInput.disabled = true;
+                } else {
+                    delayValueInput.disabled = false;
+
+                    // Set input constraints based on delay unit
+                    switch(delayUnitSelect.value) {
+                        case 'Days':
+                            delayValueInput.type = 'number';
+                            delayValueInput.min = '1';
+                            delayValueInput.max = '30';
+                            delayValueInput.step = '1';
+                            delayValueInput.placeholder = '1-30';
+                            break;
+                        case 'Hours':
+                            delayValueInput.type = 'number';
+                            delayValueInput.min = '1';
+                            delayValueInput.max = '24';
+                            delayValueInput.step = '1';
+                            delayValueInput.placeholder = '1-24';
+                            break;
+                        case 'Minutes':
+                            delayValueInput.type = 'number';
+                            delayValueInput.min = '0';
+                            delayValueInput.max = '45';
+                            delayValueInput.step = '15';
+                            delayValueInput.placeholder = '0, 15, 30, 45';
+                            break;
+                    }
+                }
+            });
+
 
             const form = document.getElementById('stepForm');
 
@@ -1232,6 +1345,7 @@
                         if (res?.success) {
                             form.reset();
                             notyf.success(res.message);
+                            window.setActiveFunnel(modalFunnelIdInput.value); // Keep active funnel
                             reloadFunnelsTable();
                             closeModal();
                         } else {
@@ -1325,7 +1439,8 @@
                 }
 
                 // Populate modal fields
-                modalFunnelIdInput.value = stepData.funnel_unique_id || '';
+                modalFunnelIdInput.value = btn.getAttribute('data-funnel-unique-id');
+                window.setActiveFunnel(modalFunnelIdInput.value); // Track the active funnel for step operations
                 // Set step type radio
                 const radios = document.getElementsByName('step_type');
                 radios.forEach(radio => {
@@ -1333,6 +1448,7 @@
                 });
                 document.getElementById('delay_value').value = stepData.delay_value || 0;
                 document.getElementById('delay_unit').value = stepData.delay_unit || 'Days';
+                document.getElementById('delay_unit').dispatchEvent(new Event('change'));
 
                 // Set SMS Category and fetch messages
                 document.getElementById('smsCategorySelect').value = stepData.sms_category_id || '';
@@ -1366,6 +1482,12 @@
                 btn.disabled = true;
 
                 const uniqueId = btn.getAttribute('data-step-unique-id');
+                // Get the funnel unique ID from the step container
+                const stepContainer = btn.closest('[data-funnel-card]');
+                const funnelUniqueId = stepContainer ? stepContainer.id.replace('funnel-row-', '') : null;
+                if (funnelUniqueId) {
+                    window.setActiveFunnel(funnelUniqueId); // Track the active funnel for step operations
+                }
 
                 showConfirm(
                     'Do you want to delete this step?',

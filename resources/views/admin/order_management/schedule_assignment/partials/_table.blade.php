@@ -159,8 +159,9 @@
                                         <button type="button"
                                             class="text-xs underline px-2 equipment-assign-btn"
                                             data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
-                                            data-order-product-name="{{ $assignment->orderProduct->product_name }}"
-                                            data-order="{{ $assignment->orderProduct?->order?->order_number }}">
+                                            data-product-name="{{ $assignment->orderProduct->product_name }}"
+                                            data-order-id="{{ $assignment->orderProduct?->order?->order_number }}"
+                                            data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}">
                                             {{ $assignment->order->order_number }}
                                         </button>
                                     @endforeach

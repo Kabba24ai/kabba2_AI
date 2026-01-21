@@ -204,31 +204,51 @@
 
     <!-- Equipment Assign Modal -->
     <div id="equipmentAssignModal"
-        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center px-4">
         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
-            <div class="flex justify-between items-center p-4 border-b">
-                <h2 id="addressModalTitle" class="text-lg font-semibold">Assign Equipment : <span
-                        id="equipmentAssignModalTitle"></span></h2>
+            <div class="relative px-6 pt-6 pb-4 border-b">
+                <h2 class="text-xl font-semibold text-gray-900 text-center">Assign Equipment</h2>
                 <button type="button"
-                    class="close-equipment-assign-modal text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+                    class="close-equipment-assign-modal text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none absolute right-6 top-6">&times;</button>
             </div>
-            <!-- Body -->
+
             {{ html()->form()->attributes([
                     'data-parsley-validate' => true,
                     'class' => 'flex-1',
                     'id' => 'equipmentAssignForm',
                 ])->open() }}
 
-            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
-                <div>
-                    <label class="text-sm font-medium text-gray-700 required" for="user_unique_id">User</label>
-                    {!! html()->select('user_unique_id', $employees)->id('user_unique_id')->class([
-                            'w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700',
-                        ])->required() !!}
+            <div class="px-4 pt-3 space-y-2 overflow-y-auto">
+                <!-- Order Information Section -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                    <div>
+                        <span class="text-xs font-semibold text-blue-700">Order ID:</span>
+                        <span id="assign-order-id" class="text-sm text-blue-900 font-semibold">-</span>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-blue-700">Customer:</span>
+                        <span id="assign-customer-name" class="text-sm text-blue-900 font-semibold">-</span>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-blue-700">Product Ordered:</span>
+                        <span id="assign-product-name" class="text-sm text-blue-900 font-semibold">-</span>
+                    </div>
                 </div>
 
-                <div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-gray-700 required" for="user_unique_id">User</label>
+                    <select name="user_unique_id" id="user_unique_id"
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
+                        required>
+                        <option value="">Select Employee</option>
+                        @foreach ($employees as $employeeId => $employeeName)
+                            <option value="{{ $employeeId }}">{{ $employeeName }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="space-y-1">
                     <label class="text-sm font-medium text-gray-700 required">Category</label>
                     <select id="category_select"
                         class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-700">
@@ -237,7 +257,7 @@
                 </div>
 
 
-                <div>
+                <div class="space-y-1">
                     <label class="text-sm font-medium text-gray-700 required" for="equipment_unique_id">Equipment</label>
                     <select name="equipment_unique_id" id="equipment_unique_id"
                         class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
@@ -551,13 +571,15 @@
             });
 
             const modal = document.getElementById('equipmentAssignModal');
-            const equipmentAssignModalTitle = document.getElementById('equipmentAssignModalTitle');
             const equipmentAssignForm = document.getElementById('equipmentAssignForm');
             const categorySelect = document.getElementById('category_select');
             const equipmentSelect = document.getElementById('equipment_unique_id');
             const assignBtn = document.getElementById('equipment-assign-submit');
             const statusDisplayId = 'equipment-status-display';
             const equipmentPageLinkId = 'equipment-page-link';
+            const orderIdLabel = document.getElementById('assign-order-id');
+            const customerNameLabel = document.getElementById('assign-customer-name');
+            const productNameLabel = document.getElementById('assign-product-name');
 
             let fullData = {}; // store categories + equipment
 
@@ -568,12 +590,24 @@
                 if (!btn) return;
 
                 const orderProductUniqueId = btn.getAttribute('data-order-product-unique-id');
-                const orderProductName = btn.getAttribute('data-order-product-name');
-                const orderNumber = btn.getAttribute('data-order');
+                const orderId = btn.dataset.orderId || '';
+                const productName = btn.dataset.productName || '';
+                const customerName = btn.dataset.customerName || '';
 
                 document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
-                equipmentAssignModalTitle.textContent = (orderNumber || '') + ' ' + (orderProductName ||
-                    '');
+
+                if (orderIdLabel) {
+                    orderIdLabel.textContent = orderId ? `#${orderId.replace(/^#/, '')}` : '-';
+                }
+
+                if (customerNameLabel) {
+                    customerNameLabel.textContent = customerName || '-';
+                }
+
+                if (productNameLabel) {
+                    productNameLabel.textContent = productName || '-';
+                }
+
                 modal.classList.remove('hidden');
 
                 // Refresh status on open in case select kept previous state
@@ -598,9 +632,12 @@
                 if (userSel) userSel.selectedIndex = 0;
                 if (equipSel) equipSel.selectedIndex = 0;
                 if (orderInput) orderInput.value = '';
+                if (orderIdLabel) orderIdLabel.textContent = '-';
+                if (customerNameLabel) customerNameLabel.textContent = '-';
+                if (productNameLabel) productNameLabel.textContent = '-';
                 if (statusDiv) {
                     statusDiv.textContent = '';
-                    statusDiv.className = 'mt-2 text-sm font-semibold text-gray-600';
+                    statusDiv.className = 'text-sm font-semibold text-gray-600';
                 }
                 if (pageLink) {
                     pageLink.href = '';
@@ -611,7 +648,10 @@
                 }
 
                 // Disable assign button until a valid available option is chosen
-                if (assignBtn) assignBtn.disabled = true;
+                if (assignBtn) {
+                    assignBtn.disabled = true;
+                    assignBtn.textContent = 'Assign';
+                }
             }
 
             categorySelect.addEventListener('change', function() {
@@ -697,7 +737,7 @@
 
                 if (!status) {
                     statusDiv.textContent = '';
-                    statusDiv.className = 'mt-2 text-sm font-semibold text-gray-600';
+                    statusDiv.className = 'text-sm font-semibold text-gray-600';
                     assignBtn.disabled = true;
                     pageLink.href = '';
                     pageLink.textContent = '';
@@ -757,7 +797,7 @@
                 }
 
                 statusDiv.textContent = `Status: ${statusText}`;
-                statusDiv.className = `mt-2 text-sm font-semibold ${statusColor}`;
+                statusDiv.className = `text-sm font-semibold ${statusColor}`;
                 assignBtn.disabled = !isAvailable;
                 pageLink.href = link;
                 pageLink.textContent = title;

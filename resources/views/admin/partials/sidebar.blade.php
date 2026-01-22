@@ -580,7 +580,7 @@
                                     $timeTrackerUrl = match ($host) {
                                         'admin.kabba.local'        => 'http://localhost:5173/?logout=1',
                                         'admin.kabba.ai'           => 'https://timetrackerpro.kabba.ai/?logout=1',
-                                        'admin.rentnking.com'      => 'https://timetracker.rentnking.com/?logout=1',
+                                        'admin.rentnking.com'      => 'https://timetrackerpro.rentnking.com/?logout=1',
                                         default                    => 'https://timetrackerpro.kabba.ai/?logout=1',
                                     };
                                 @endphp

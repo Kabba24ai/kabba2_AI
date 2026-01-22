@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\TimeTracker\V1\Users\UpdateUserVacationController;
 
 use App\Http\Controllers\Api\TimeTracker\V1\Users\GetAdminAttendanceSummaryController;
 
+use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryListController;
+use App\Http\Controllers\Api\TimeTracker\V1\Users\ExportEmployeeTimeEntriesController;
 
 Route::group(['prefix' => 'users'], function () {
 
@@ -26,5 +28,8 @@ Route::group(['prefix' => 'users'], function () {
 
         Route::get('/attendance/summary', GetAdminAttendanceSummaryController::class);
 
+        Route::get('/time-entries-list/{user}', TimeEntryListController::class);
+
+        Route::get('/{user}/time-entries/export', ExportEmployeeTimeEntriesController::class);
 
 });

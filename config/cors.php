@@ -12,6 +12,7 @@ return [
         'http://kabba.local',
         'http://admin.kabba.local',
         'https://timetrackerpro.kabba.ai',
+        'https://timetrackerpro.rentnking.com',
     ],
 
     'allowed_headers' => ['*'],

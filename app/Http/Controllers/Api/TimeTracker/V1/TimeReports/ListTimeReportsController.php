@@ -5,6 +5,7 @@
     use App\Http\Controllers\Api\BaseController;
     use App\Models\Iam\Personnel\User;
     use Illuminate\Http\JsonResponse;
+    use App\Helpers\PayPeriodHelper;
     use Illuminate\Http\Request;
     use Carbon\Carbon;
 
@@ -17,9 +18,16 @@
 
             $year = Carbon::now()->year;
 
+            $periodNumber = (int) $request->get('pay_period', 1);
+
+
+            [$startDate, $endDate] = PayPeriodHelper::getPeriodDates($periodNumber);
+
+
             $users = User::with([
-                'timeEntries' => function ($q) use ($year) {
-                    $q->whereYear('clock_in', $year)
+                'timeEntries' => function ($q) use ($startDate, $endDate) {
+                    // $q->whereYear('clock_in', $year)
+                    $q->whereBetween('clock_in', [$startDate, $endDate])
                     ->whereNotNull('clock_out')
                     ->with('breaks');
                 },
@@ -30,7 +38,7 @@
             ->orderBy('first_name')
             ->paginate($perPage);
 
-            $data = $users->getCollection()->map(function ($user) use ($year) {
+            $data = $users->getCollection()->map(function ($user) use ($startDate, $endDate) {
 
                 // Paid hours (already net of breaks)
                     $paidHours = round($user->timeEntries->sum('total_hours'), 2);
@@ -63,7 +71,7 @@
                 $vacationHours = round(
                         $user->approvedVacationRequests
                             ->where(fn ($req) => 
-                                Carbon::parse($req->start_date)->year === $year
+                                Carbon::parse($req->start_date)->between($startDate, $endDate)
                             )
                             ->sum(fn ($req) => $req->requestHour?->hours ?? 0),
                         2
@@ -90,6 +98,9 @@
                     'last_page'    => $users->lastPage(),
                     'per_page'     => $users->perPage(),
                     'total'        => $users->total(),
+                    'startDate'    => $startDate->toDateString(),
+                    'endDate'    => $endDate->toDateString(),
+
                 ],
             ]);
         }

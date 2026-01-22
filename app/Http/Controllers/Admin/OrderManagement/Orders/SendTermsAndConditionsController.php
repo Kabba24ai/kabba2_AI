@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Controllers\Admin\OrderManagement\Orders;
+
+use App\Enums\Communication\SmsType;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
+
+use App\Models\Orders\Order;
+use App\Services\TwilioService;
+
+class SendTermsAndConditionsController extends Controller
+{
+	/**
+	 * Send Terms & Conditions link/text to the order's shipping phone number via Twilio.
+	 */
+	public function __invoke($orderUniqueId)
+	{
+		$response = null;
+
+		$order = Order::with(['billingAddress'])->where('unique_id', $orderUniqueId)->where('terms_status', 'Pending')->first();
+		if (!$order) {
+			$response = response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+		}else{
+            $billingAddress = $order->billingAddress->phone ?? null;
+            if (!$billingAddress) {
+                $response = response()->json(['success' => false, 'message' => 'Shipping phone number not available for this order.'], 422);
+            }else{
+                $termsUrl = route('front.terms-and-conditions.index', $order->unique_id);
+                $customerName = $order->billingAddress->full_name;
+                $orderNumber = $order->order_number;
+
+                $message = "Hello {$customerName},\n\nPlease click the link to sign the Terms & Conditions for your rental order: {$orderNumber}: {$termsUrl}";
+
+                try {
+                    $twilio = new TwilioService();
+                    $result = $twilio->sendSms($billingAddress, $message, [], [
+                        'order_id'    => $order->id,
+                        'customer_id' => $order->customer_id,
+                        'sms_type'    => SmsType::TERMS_AND_CONDITIONS,
+                        'phone'       => $billingAddress,
+                        'message'     => $message,
+                    ]);
+
+                    if ($result['success']) {
+                        $order->last_terms_sms_sent_at = now()->format('Y-m-d H:i:s');
+                        $order->save();
+                        $response = response()->json(['success' => true, 'message' => 'Terms & Conditions message sent successfully.'], 200);
+                    } else {
+                        $response = response()->json(['success' => false, 'message' => 'Failed to send Terms & Conditions message: ' . ($result['message'] ?? 'Unknown error')], 500);
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('SendTermsAndConditions error', [
+                        'order_unique_id' => $order->unique_id,
+                        'exception' => $e,
+                    ]);
+                    $response = response()->json(['success' => false, 'message' => 'An internal error occurred while sending message.'], 500);
+                }
+            }
+        }
+
+		return $response;
+	}
+}
+

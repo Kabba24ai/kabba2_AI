@@ -1,0 +1,232 @@
+ <div class="bg-white p-6 rounded-xl shadow-sm space-y-6 mt-6">
+     <!-- Header -->
+     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+         <div>
+             <h2 class="text-2xl font-bold text-gray-900">Customer Invoices Management</h2>
+             <p class="text-sm text-gray-600">Manage customer invoices, payments, and billing administration</p>
+         </div>
+
+         <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
+                 + Create Invoice
+             </a>
+             <div class="text-left sm:text-right">
+                 <p class="text-sm text-gray-600">Current Balance</p>
+                 <p class="text-lg font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}</p>
+             </div>
+         </div>
+     </div>
+
+ </div>
+
+ <!-- Invoice Status Cards -->
+ <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+     <!-- Paid -->
+     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+         <div>
+             <p class="text-sm text-gray-500">Paid Invoices</p>
+             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_paid_invoices) }} </p>
+         </div>
+         <div class="bg-green-100 p-2 rounded-md">
+             <svg xmlns="http://www.w3.org/2000/svg"
+                 width="20" height="20" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="lucide lucide-check-circle w-6 h-6 text-green-500">
+                 <path d="M9 12l2 2l4 -4"></path>
+                 <circle cx="12" cy="12" r="10"></circle>
+             </svg>
+         </div>
+     </div>
+
+     <!-- Pending -->
+     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+         <div>
+             <p class="text-sm text-gray-500">Pending Invoices</p>
+             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_pending_invoices) }} </p>
+         </div>
+         <div class="bg-yellow-100 p-2 rounded-md">
+             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+         </div>
+     </div>
+
+     <!-- Overdue -->
+     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm ">
+         <div>
+             <p class="text-sm text-gray-500">Overdue Invoices</p>
+             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_overdue_invoices) }}</p>
+         </div>
+         <div class="bg-red-100 p-2 rounded-md  text-red-500">
+             <svg xmlns="http://www.w3.org/2000/svg"
+                 width="20" height="20" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="lucide lucide-alert-circle w-6 h-6">
+                 <circle cx="12" cy="12" r="10" />
+                 <line x1="12" y1="8" x2="12" y2="12" />
+                 <line x1="12" y1="16" x2="12.01" y2="16" />
+             </svg>
+         </div>
+     </div>
+ </div>
+
+ <div class="bg-white rounded-2xl shadow-sm mt-6 mb-6">
+     <!-- Header with Filter -->
+     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200 p-4">
+         <h2 class="text-base font-semibold text-gray-800">Invoices</h2>
+         <div>
+             <label for="invoiceFilter" class="text-sm font-medium text-gray-700 mr-2">Filter by Status:</label>
+             <select id="invoiceFilter" class="border border-gray-300 rounded-md px-3 py-3 text-sm">
+                 <option value="all">All Orders</option>
+                 <option value="paid">paid</option>
+                 <option value="overdue">overdue</option>
+                 <option value="pending">pending</option>
+             </select>
+         </div>
+     </div>
+
+     <!-- Table -->
+     <div class="overflow-x-auto relative" id="invoiceTableWrapper">
+
+
+         <!-- Loader (only covers table area) -->
+         <div id="tableLoader"
+             class="hidden absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-black/60 z-50">
+             <div
+                 class="h-16 w-16 animate-spin rounded-full border-4 border-solid border-brand-500 border-t-transparent">
+             </div>
+         </div>
+
+         <!-- Table -->
+         <table id="invoiceMainTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
+             <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
+                 <tr>
+                     <th class="py-4 px-6">Invoice</th>
+                     <th class="py-4 px-6">Customer</th>
+                     <th class="py-4 px-6 w-32">Created</th>
+                     <th class="py-4 px-6 w-32">Due Date</th>
+                     <th class="py-4 px-6 w-32 text-right">Amount</th>
+                     <th class="py-4 px-6 w-32 text-right">Payment Status</th>
+                     <th class="py-4 px-6 w-32 text-right">Mail Status</th>
+
+                     <th class="py-4 px-6 w-24 text-right">Action</th>
+                 </tr>
+             </thead>
+
+             <tbody id="invoiceTable" class="divide-y divide-gray-200">
+                 @forelse($customer->invoices as $invoice)
+                 <tr class="invoice-row" data-status="{{ $invoice->invoice_status }}">
+                     <td class="py-4 px-6 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
+                     <td class="py-4 px-6 whitespace-nowrap  truncate min-w-3xs max-w-3xs">
+                         <div class="text-sm">
+                             <div class="font-medium text-gray-900">{{ $customer->company_name }}</div>
+                             <div class="text-gray-500">{{ $customer->full_name }}</div>
+                         </div>
+                     </td>
+                     <td class="py-4 px-6">
+
+                         {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}
+
+                     </td>
+                     <td class="py-4 px-6">
+                         {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
+                     </td>
+                     <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
+
+                     <td class="py-4 px-6 text-right">
+                         @php
+                         $statusColors = [
+                         'paid' => 'green',
+                         'overdue' => 'red',
+                         'pending' => 'yellow',
+                         ];
+                         $color = $statusColors[$invoice->invoice_status] ?? 'gray';
+                         @endphp
+                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                             {{ $invoice->invoice_status }}
+                         </span>
+                     </td>
+
+                    
+
+
+                     <td class="py-4 px-6 text-right">
+                         @php
+                         $mailstatusColors = [
+                         'send' => ['color' => 'green', 'label' => 'Sent'],
+                         'unsend' => ['color' => 'yellow', 'label' => 'Pending'],
+                         ];
+
+                         $statusKey = strtolower($invoice->is_email_send ?? '');
+                         $statusData = $mailstatusColors[$statusKey] ?? ['color' => 'gray', 'label' => ucfirst($statusKey) ?: 'N/A'];
+                         @endphp
+                         @if($invoice->is_email_send === 'send' && $invoice->mail_send_at)
+                         {{-- Show the date next to "Sent" --}}
+                         <span class="ml-2 text-gray-600 text-[11px]">
+                             {{ App\Helpers\CustomHelper::formatDate($invoice->mail_send_at) ?? '-' }}
+                         </span>
+                         @else
+
+
+                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $statusData['color'] }}-100 text-{{ $statusData['color'] }}-800">
+                             {{ $statusData['label'] }}
+                         </span>
+                         @endif
+                     </td>
+
+
+                     <td class="py-4 px-6 whitespace-nowrap">
+                         <div class="flex gap-2 items-center justify-end">
+                             <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}" target="_blank" class="text-blue-600 inline-flex items-center">
+                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                             </a>
+                             <a href="{{ route('admin.crm.customers.invoice.download',$invoice->unique_id ) }}" class=" text-green-600 inline-flex items-center">
+                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                             </a>
+                             <a href="{{ route('admin.crm.customers.invoice.edit', $invoice->unique_id) }}" target="_blank" class="text-green-600 inline-flex items-center">
+                                 <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
+                             </a>
+                             <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="text-purple-600 inline-flex items-center send-invoice-email">
+                                 <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
+                             </a>
+                         </div>
+                     </td>
+                 </tr>
+                 @empty
+                 <tr>
+                     <td colspan="7" class="text-center py-4 px-6">No invoices found</td>
+                 </tr>
+                 @endforelse
+             </tbody>
+
+
+         </table>
+     </div>
+ </div>
+
+ @push('js')
+ <script>
+     document.addEventListener('DOMContentLoaded', function() {
+         const table = document.getElementById('invoiceMainTable');
+         const loader = document.getElementById('tableLoader');
+         const wrapper = document.getElementById('invoiceTableWrapper');
+
+         if (!table || !loader) {
+
+             return;
+         }
+
+         document.querySelectorAll('a.send-invoice-email').forEach(link => {
+             link.addEventListener('click', function() {
+                 // Dim and disable the table area
+                 wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+                 // Show loader over table
+                 loader.classList.remove('hidden');
+             });
+         });
+     });
+ </script>
+ @endpush

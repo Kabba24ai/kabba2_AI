@@ -1,0 +1,18 @@
+<?php
+
+namespace App\Enums\Communication;
+
+enum SmsType: string
+{
+    case DELIVERY_DAY_BEFORE      = 'delivery_day_before';
+    case DELIVERY_SAME_DAY        = 'delivery_same_day';
+    case DELIVERY_SAME_DAY_COD    = 'delivery_same_day_cod';
+    case RETURN_DAY_BEFORE        = 'return_day_before';
+    case RETURN_SAME_DAY          = 'return_same_day';
+    case SALES_FUNNEL_BEFORE      = 'sales_funnel_before';
+    case SALES_FUNNEL_AFTER      = 'sales_funnel_after';
+    case TERMS_AND_CONDITIONS     = 'terms_and_conditions';
+    case NEW_CUSTOMER_SIGNUP_NOTIFICATION = 'new_customer_signup_notification';
+    case COD_ORDER_NOTIFICATION   = 'cod_order_notification';
+    case CARD_ORDER_NOTIFICATION  = 'card_order_notification';
+}

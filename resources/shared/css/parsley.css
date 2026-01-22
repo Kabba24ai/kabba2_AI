@@ -1,0 +1,48 @@
+input[readonly],
+textarea[readonly] {
+    background-color: #f5f5f5 !important;
+    color: #888 !important;
+    border-color: #e0e0e0 !important;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+.parsley-errors-list {
+    padding-left: 0;
+    margin-bottom: 0 !important;
+    clear: both;
+    margin-top: 6px;
+
+    li {
+        color: #fff !important;
+        background: red;
+        border-radius: 4px;
+        display: inline-block !important;
+        font-size: 12px;
+        font-weight: 600;
+        list-style: none;
+        margin: 0;
+        padding: 2px 10px;
+        position: relative;
+        /* Changed to relative to avoid overflow issues */
+        white-space: nowrap;
+        /* Prevents text from wrapping */
+
+        &::after {
+            border-bottom: 6px solid red;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            content: "";
+            display: inline-block;
+            left: 10px;
+            /* Adjusted for proper positioning */
+            position: absolute;
+            top: -5px;
+        }
+    }
+}
+
+.parsley-error {
+    border-color: rgba(255, 0, 0, 0.15) !important;
+    background-color: rgba(255, 0, 0, 0.05) !important;
+}

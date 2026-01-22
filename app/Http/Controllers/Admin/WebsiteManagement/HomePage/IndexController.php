@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Http\Controllers\Admin\WebsiteManagement\HomePage;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Locations\State;
+
+use App\Models\MaintenanceManagement\Supplier;
+use App\Models\MaintenanceManagement\SupplierTag;
+
+
+
+class IndexController extends Controller
+{
+    public function __invoke(Request $request)
+    {
+        
+
+        return view('admin.maintenance_management.suppliers.index');
+    }
+}

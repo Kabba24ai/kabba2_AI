@@ -21,7 +21,6 @@ class ExportTimeReportsController extends BaseController
         $response = new StreamedResponse(function () use ($startDate, $endDate) {
             $handle = fopen('php://output', 'w');
 
-            //  CSV HEADER
             fputcsv($handle, [
                 'Employee Name',
                 'Total Hours',
@@ -34,8 +33,8 @@ class ExportTimeReportsController extends BaseController
             $users = User::with([
                 'timeEntries' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('clock_in', [$startDate, $endDate])
-                      ->whereNotNull('clock_out')
-                      ->with('breaks');
+                    ->whereNotNull('clock_out')
+                    ->with('breaks');
                 },
                 'approvedVacationRequests.requestHour',
             ])
@@ -83,6 +82,15 @@ class ExportTimeReportsController extends BaseController
 
             fclose($handle);
         });
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set(
+            'Content-Disposition',
+            "attachment; filename={$fileName}"
+        );
+
+        return $response;
+
 
         return $response->headers->set(
             'Content-Type',

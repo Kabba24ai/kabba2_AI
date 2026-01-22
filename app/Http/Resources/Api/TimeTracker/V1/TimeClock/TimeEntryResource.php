@@ -16,6 +16,9 @@ class TimeEntryResource extends JsonResource
             'clock_in' => $this->clock_in,
             'actual_clock_in' => $this->created_at,
             'clock_out' => $this->clock_out,
+            'actual_clock_out' => $this->clock_out
+                ? $this->updated_at
+                : null,
 
             
             'break_duration' => $this->break_duration,

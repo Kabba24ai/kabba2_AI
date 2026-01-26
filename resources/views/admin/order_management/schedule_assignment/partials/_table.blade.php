@@ -145,7 +145,7 @@
                                         @if ($isReturnDay)
                                             <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
                                         @endif
-                                        <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $eq?->order?->unique_id]) ?? '#' }}"
+                                        <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $eq?->lastOrderProduct?->order?->unique_id]) ?? '#' }}"
                                             class="underline"
                                             target="_blank">
                                             {{ $eq->lastOrderProduct?->order?->order_number }}

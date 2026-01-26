@@ -569,7 +569,7 @@
 
                 if (orderIdLabel) {
                     orderIdLabel.textContent = orderId ? `#${orderId.replace(/^#/, '')}` : '-';
-                    //orderIdLabel.href = orderUniqueId ? orderDetailUrl.replace('ORDER_ID_PLACEHOLDER', orderUniqueId) : '';
+                    orderIdLabel.href = orderUniqueId ? orderDetailUrl.replace('ORDER_ID_PLACEHOLDER', orderUniqueId) : '';
                 }
 
                 if (customerNameLabel) {

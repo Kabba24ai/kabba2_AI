@@ -141,29 +141,31 @@
                                 class="w-auto rounded text-xs flex flex-col items-center justify-center group relative overflow-hidden rounded">
 
                                 @if ($isBooked)
-                                <div class="px-2 font-bold cursor-not-allowed group relative {{ $textColor }} bg-{{$color}} rounded w-full text-center"
-                                title="Hard assigned - cannot be changed">
+                                    <div class="px-2 font-bold group relative {{ $textColor }} bg-{{$color}} rounded w-full text-center" title="Hard assigned - cannot be changed">
                                         @if ($isReturnDay)
                                             <span class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
                                         @endif
-                                        {{ $eq?->lastOrderProduct?->order?->order_number ?? '' }}
-                                        <span
-                                            class="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
-                                            Hard assigned - cannot be changed
-                                        </span>
+                                        <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $eq?->order?->unique_id]) ?? '#' }}"
+                                            class="underline"
+                                            target="_blank">
+                                            {{ $eq->lastOrderProduct?->order?->order_number }}
+                                        </a>
                                     </div>
                                 @endif
 
                                 <div class="text-gray-600 bg-blue-100 rounded mt-1 w-full flex flex-col items-center justify-center">
                                     @foreach ($softAssignments as $assignment)
+                                    <div class="group relative" title="{{ $assignment->orderProduct?->order?->customer_name }}">
                                         <button type="button"
                                             class="text-xs underline px-2 equipment-assign-btn"
                                             data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
                                             data-product-name="{{ $assignment->orderProduct->product_name }}"
+                                            data-order-unique-id="{{ $assignment->orderProduct?->order->unique_id }}"
                                             data-order-id="{{ $assignment->orderProduct?->order?->order_number }}"
                                             data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}">
                                             {{ $assignment->order->order_number }}
                                         </button>
+                                    </div>
                                     @endforeach
                                 </div>
                             </div>

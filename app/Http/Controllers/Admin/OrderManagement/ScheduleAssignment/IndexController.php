@@ -40,14 +40,20 @@ class IndexController extends Controller
         }
         if ($request->ajax()) {
 
-            $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'orderProduct', 'lastOrderProduct', 'activeEquipmentRentalReadyTemplate')
+            $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'orderProduct', 'lastOrderProduct', 'activeEquipmentRentalReadyTemplate', 'softAssignments' , 'softAssignments.order')
             ->where('not_for_rent', 0)
                     ->when($request->filled('search'), function ($q) use ($request) {
-                        $q->where(function ($sub) use ($request) {
-                            $sub->where('equipment_name', 'like', '%' . $request->search . '%')
-                                ->orWhere('equipment_id', 'like', '%' . $request->search . '%')
-                                ->orWhereHas('order', function ($orderQ) use ($request) {
-                                    $orderQ->where('customer_name', 'like', '%' . $request->search . '%');
+                        $search = $request->search;
+                        $q->where(function ($sub) use ($search) {
+                            $sub->where('equipment_name', 'like', "%{$search}%")
+                                ->orWhere('equipment_id', 'like', "%{$search}%")
+                                ->orWhereHas('order', function ($orderQ) use ($search) {
+                                    $orderQ->where('customer_name', 'like', "%{$search}%");
+                                })
+                                ->orWhereHas('softAssignments', function ($saQ) use ($search) {
+                                    $saQ->whereHas('order', function ($orderQ2) use ($search) {
+                                        $orderQ2->where('customer_name', 'like', "%{$search}%");
+                                    });
                                 });
                         });
                     })
@@ -67,7 +73,49 @@ class IndexController extends Controller
                         function ($q) {
                             $q->whereIn('current_status', EquipmentCurrentStatus::getValues());
                         },
-                    );
+                    )
+                    ->when($request->filled('assignment_filter'), function ($q) use ($request, $startDate, $endDate) {
+                        $filter = $request->assignment_filter;
+
+                        if ($filter == 'assigned') {
+                            $q->where(function ($subQ) use ($startDate, $endDate) {
+
+                                // HARD assignment: lastOrderProduct (or orderProduct) in current window
+                                $subQ->whereHas('lastOrderProduct', function ($lop) use ($startDate, $endDate) {
+                                    $lop->whereDate('delivery_date', '<=', $endDate)
+                                        ->whereDate('pickup_date',   '>=', $startDate);
+                                })
+                                ->orWhereHas('softAssignments.orderProduct', function ($op) use ($startDate, $endDate) {
+                                    $op->whereDate('delivery_date', '<=', $endDate)
+                                    ->whereDate('pickup_date',   '>=', $startDate);
+                                });
+
+                            });
+                        } elseif ($filter == 'assigned_3_days') {
+
+                            $q->where(function ($subQ) use ($startDate, $endDate) {
+
+                                $subQ->whereHas('lastOrderProduct', function ($lop) use ($startDate, $endDate) {
+                                    $lop->where(function ($d) use ($startDate, $endDate) {
+                                            $d->whereBetween('delivery_date', [$startDate, $endDate])
+                                            ->orWhereBetween('pickup_date',   [$startDate, $endDate]);
+                                        })
+                                        ->whereNotNull('delivery_date')
+                                        ->whereNotNull('pickup_date')
+                                        ->whereRaw("DATEDIFF(pickup_date, delivery_date) = 2");
+                                })
+                                ->orWhereHas('softAssignments.orderProduct', function ($op) use ($startDate, $endDate) {
+                                    $op->where(function ($d) use ($startDate, $endDate) {
+                                            $d->whereBetween('delivery_date', [$startDate, $endDate])
+                                            ->orWhereBetween('pickup_date',   [$startDate, $endDate]);
+                                        })
+                                        ->whereNotNull('delivery_date')
+                                        ->whereNotNull('pickup_date')
+                                        ->whereRaw("DATEDIFF(pickup_date, delivery_date) = 2");
+                                });
+                            });
+                        }
+                    });
 
             $order = ['damaged', 'maintenance', 'rented', 'available'];
             $query

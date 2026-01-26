@@ -224,7 +224,7 @@
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Order ID:</span>
-                        <span id="assign-order-id" class="text-sm text-blue-900 font-semibold">-</span>
+                        <a id="assign-order-id" href="#" target="_blank" class="text-sm text-blue-900 font-semibold">-</a>
                     </div>
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Customer:</span>
@@ -583,7 +583,6 @@
 
             let fullData = {}; // store categories + equipment
 
-
             // --- Event delegation for OPEN buttons (works after table refresh) ---
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.equipment-assign-btn');
@@ -591,13 +590,16 @@
 
                 const orderProductUniqueId = btn.getAttribute('data-order-product-unique-id');
                 const orderId = btn.dataset.orderId || '';
+                const orderUniqueId = btn.dataset.orderUniqueId || '';
                 const productName = btn.dataset.productName || '';
                 const customerName = btn.dataset.customerName || '';
+                let orderDetailUrl = "{{ route('admin.order-management.orders.edit', ['unique_id' => 'ORDER_ID_PLACEHOLDER']) }}";
 
                 document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
 
                 if (orderIdLabel) {
                     orderIdLabel.textContent = orderId ? `#${orderId.replace(/^#/, '')}` : '-';
+                    orderIdLabel.href = orderUniqueId ? orderDetailUrl.replace('ORDER_ID_PLACEHOLDER', orderUniqueId) : '';
                 }
 
                 if (customerNameLabel) {
@@ -633,6 +635,7 @@
                 if (equipSel) equipSel.selectedIndex = 0;
                 if (orderInput) orderInput.value = '';
                 if (orderIdLabel) orderIdLabel.textContent = '-';
+                if (orderIdLabel) orderIdLabel.href = '';
                 if (customerNameLabel) customerNameLabel.textContent = '-';
                 if (productNameLabel) productNameLabel.textContent = '-';
                 if (statusDiv) {

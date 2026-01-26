@@ -88,6 +88,15 @@
                 </select>
             </div>
 
+            <div class="w-full md:w-46">
+                <select name="assignment_filter" id="assignment_filter"
+                    class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm">
+                    <option value="all" @selected((request('assignment_filter') ?? 'all') === 'all')>Show All Equipment</option>
+                    <option value="assigned" @selected(request('assignment_filter') === 'assigned')>Only Show Assigned</option>
+                    <option value="assigned_3_days" @selected(request('assignment_filter') === 'assigned_3_days')>Only Show 3 Days Assigned</option>
+                </select>
+            </div>
+
             @php
                 $pill =
                     'inline-flex items-center h-10 gap-3 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm whitespace-nowrap';
@@ -209,7 +218,7 @@
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Order ID:</span>
-                        <span id="assign-order-id" class="text-sm text-blue-900 font-semibold">-</span>
+                        <a id="assign-order-id" href="#" target="_blank" class="text-sm text-blue-900 font-semibold">-</a>
                     </div>
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Customer:</span>
@@ -383,6 +392,7 @@
             let searchInput = document.querySelector('input[name="search"]');
             let pastSevenDays = document.querySelector('input[name="past_seven_days"]');
             let categorySelect = document.querySelector('select[name="category"]');
+            let assignmentFilter = document.getElementById('assignment_filter');
             // let statusSelect = document.querySelector('select[name="status"]');
             let storeSelect = document.querySelector('select[name="store"]');
             let equipmentTableWrapper = document.querySelector('#equipment-table-wrapper');
@@ -403,6 +413,7 @@
                 'store': storeSelect,
                 'equipment_status': equipmentStatusCheckboxes,
                 'past_seven_days': pastSevenDays,
+                'assignment_filter': assignmentFilter,
             };
 
             // Load saved filters on page load
@@ -417,6 +428,7 @@
                 if (categorySelect.value) params.append('category', categorySelect.value);
                 // if (statusSelect.value) params.append('status', statusSelect.value);
                 if (storeSelect.value) params.append('store', storeSelect.value);
+                if (assignmentFilter && assignmentFilter.value) params.append('assignment_filter', assignmentFilter.value);
                 if (perPage) params.append('per_page', perPage);
                 params.append('page', page);
                 // Add all checked equipment_status checkboxes
@@ -489,6 +501,8 @@
 
             storeSelect.addEventListener('change', fetchEquipments);
 
+            if (assignmentFilter) assignmentFilter.addEventListener('change', fetchEquipments);
+
             // Immediate filter for checkboxes
             equipmentStatusCheckboxes.forEach(cb => cb.addEventListener('change', fetchEquipments));
 
@@ -538,7 +552,7 @@
 
             let fullData = {}; // store categories + equipment
 
-
+            let order
             // --- Event delegation for OPEN buttons (works after table refresh) ---
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.equipment-assign-btn');
@@ -546,13 +560,16 @@
 
                 const orderProductUniqueId = btn.getAttribute('data-order-product-unique-id');
                 const orderId = btn.dataset.orderId || '';
+                const orderUniqueId = btn.dataset.orderUniqueId || '';
                 const productName = btn.dataset.productName || '';
                 const customerName = btn.dataset.customerName || '';
+                let orderDetailUrl = "{{ route('admin.order-management.orders.edit', ['unique_id' => 'ORDER_ID_PLACEHOLDER']) }}";
 
                 document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
 
                 if (orderIdLabel) {
                     orderIdLabel.textContent = orderId ? `#${orderId.replace(/^#/, '')}` : '-';
+                    //orderIdLabel.href = orderUniqueId ? orderDetailUrl.replace('ORDER_ID_PLACEHOLDER', orderUniqueId) : '';
                 }
 
                 if (customerNameLabel) {

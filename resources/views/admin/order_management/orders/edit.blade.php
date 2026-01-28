@@ -425,7 +425,7 @@
                                 <p class="text-sm text-gray-500">
                                     Equipment:
                                     @if ($orderProduct->equipment)
-                                        <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}" target="_blank" class="text-xs text-blue-100 hover:underline ml-2">
+                                        <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}" target="_blank" class="text-xs text-green-600 hover:underline ml-2">
                                             {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
                                             ({{ $orderProduct->equipment->equipment_id ?? '—' }})
                                         </a>
@@ -435,7 +435,7 @@
                                                 $softUnique = $orderProduct?->softAssignment?->equipment->unique_id ??  null;
                                             @endphp
                                             <a href="{{ route('admin.maintenance-management.equipment.edit', $softUnique) }}" target="_blank"
-                                                    class="text-xs text-blue-100 hover:underline ml-2">
+                                                    class="text-xs text-blue-600 hover:underline ml-2">
                                                 {{ $orderProduct?->softAssignment?->equipment->equipment_name ??  '—' }} ||
                                                 ({{ $orderProduct?->softAssignment?->equipment->equipment_id ??  '—' }})
                                             </a>

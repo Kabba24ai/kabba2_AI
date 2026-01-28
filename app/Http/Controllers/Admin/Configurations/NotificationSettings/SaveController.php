@@ -55,7 +55,7 @@ class SaveController extends Controller
                 ],
                 [
                     'type' => $type,
-                    'user_id' => null, // NOT 0
+                    'user_id' => 0,
                     'name' => $row['name'],
                     'phone' => $row['phone'],
                 ],

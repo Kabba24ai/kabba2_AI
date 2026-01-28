@@ -89,6 +89,8 @@ class IndexController extends Controller
             // Filter: SCHEDULE TYPE + TRANSPORT MODE
             $scheduleTypes = [];
             $transportModes = [];
+            $orderByField = 'delivery_date'; // Default order by field
+
 
             // Get filters, clean them
             if ($request->filled('schedule_type')) {
@@ -97,6 +99,10 @@ class IndexController extends Controller
 
             if ($request->filled('transport_mode')) {
                 $transportModes = array_filter((array) $request->input('transport_mode', []), fn($v) => $v !== '' && $v !== 'false');
+            }
+
+            if (in_array('Return', $scheduleTypes) && !in_array('Delivery', $scheduleTypes)) {
+                $orderByField = 'pickup_date';
             }
 
             // If no schedule type, fallback to original logic
@@ -113,7 +119,7 @@ class IndexController extends Controller
                 }
             } else {
                 // If schedule type is filtered
-                $query->where(function ($q) use ($scheduleTypes, $transportModes) {
+                $query->where(function ($q) use ($scheduleTypes, $transportModes, &$orderByField) {
                     if (in_array('Delivery', $scheduleTypes) && !empty($transportModes)) {
                         // Filter delivery transport mode if given
                         $q->whereIn('delivery_transport_mode', $transportModes);
@@ -170,7 +176,7 @@ class IndexController extends Controller
 
             $perPage = $request->input('per_page', 10);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
-            $orderProducts = $query->orderBy('delivery_date', 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
+            $orderProducts = $query->orderBy($orderByField, 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 
             if ($request->filled('unassigned_equipment')) {
                 $html = view('admin.order_management.schedule_assignment.partials._schedule_table', [

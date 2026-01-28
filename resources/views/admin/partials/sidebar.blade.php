@@ -584,6 +584,7 @@
                                         'admin.rentnking.com'      => 'https://timetrackerpro.rentnking.com/?logout=1',
                                         default                    => 'https://timetrackerpro.kabba.ai/?logout=1',
                                     };
+
                                 @endphp
 
                                 <li>
@@ -594,6 +595,16 @@
                                         Time Tracker Pro
                                     </a>
                                 </li>
+
+                                <li>
+                                    <a href="{{ route('admin.hrm.opportunities.login.token') }}"
+                                    target="_blank"
+                                    class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-briefcase class="w-5 h-5" />
+                                        Employment Opportunities
+                                    </a>
+                                </li>
+
 
                             </ul>
                         </div>

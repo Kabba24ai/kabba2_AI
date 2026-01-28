@@ -11,6 +11,8 @@ class SaveController extends Controller
 {
     public function __invoke(SaveRequest $request)
     {
+        $validated = $request->validated();
+
         $type = $request->type;
         $incoming = collect($request->recipients);
 
@@ -53,7 +55,7 @@ class SaveController extends Controller
                 ],
                 [
                     'type' => $type,
-                    'user_id' => 0, // NOT 0
+                    'user_id' => null, // NOT 0
                     'name' => $row['name'],
                     'phone' => $row['phone'],
                 ],

@@ -12,12 +12,13 @@ use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
 use App\Models\Orders\Order;
 use App\Models\Stores\Store;
+use App\Models\ProductManagement\ProductCategory;
 
 class EditController extends Controller
 {
     public function __invoke($uniqueid)
     {
-        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes', 'media.media', 'products.checklistQuestions.answers', 'products.checklistQuestions.deliverySelectedAnswer', 'products.checklistQuestions.returnSelectedAnswer', 'products.checklistQuestions.latestAnswer', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.checklistQuestions.latestValidAnswer', 'products.equipment', 'products.damageChargeLogs', 'latestReceipt', 'extraCharges.responsiblePerson', 'extraCharges.customer', 'extraCharges.orderProduct', 'extraCharges.orderProduct'])
+        $order = Order::with(['products.product', 'billingAddress', 'shippingAddress', 'notes', 'media.media', 'products.checklistQuestions.answers', 'products.checklistQuestions.deliverySelectedAnswer', 'products.checklistQuestions.returnSelectedAnswer', 'products.checklistQuestions.latestAnswer', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.checklistQuestions.latestValidAnswer', 'products.equipment', 'products.softAssignment.equipment', 'products.damageChargeLogs', 'latestReceipt', 'extraCharges.responsiblePerson', 'extraCharges.customer', 'extraCharges.orderProduct', 'extraCharges.orderProduct'])
             ->where('unique_id', $uniqueid)
             ->firstOrFail();
 
@@ -26,11 +27,16 @@ class EditController extends Controller
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
+        // Get categories with equipments for assignment modal
+        $categories = ProductCategory::with(['equipments' => function ($query) {
+            $query->orderBy('equipment_name');
+        }])->orderBy('title')->get();
+
         //  define payments from relationship
         $payments = $order->extraCharges->sortByDesc('type');
 
         // dd($order);
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments'));
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories'));
     }
 }

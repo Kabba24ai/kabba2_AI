@@ -422,10 +422,10 @@
                                 {{ ucwords($orderProduct->product_data['product_variant'] ?? '') }}
                             </a>
                             @if ($orderProduct->product_data['product_type'] === 'Rental')
-                                <p class="text-sm text-blue-100">
+                                <p class="text-sm text-gray-500">
                                     Equipment:
                                     @if ($orderProduct->equipment)
-                                        <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}" target="_blank" class="text-xs text-blue-600 hover:underline ml-2">
+                                        <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}" target="_blank" class="text-xs text-blue-100 hover:underline ml-2">
                                             {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
                                             ({{ $orderProduct->equipment->equipment_id ?? '—' }})
                                         </a>
@@ -3598,11 +3598,21 @@
             let currentOrderProductUniqueId = null;
             let currentScheduleType = null;
             let softAssignedEquipmentData = null;
+            let previousStatusValue = null;
+            let statusFieldElement = null;
 
             // Close modal handlers
             document.querySelectorAll('.close-equipment-assign-modal').forEach(btn => {
                 btn.addEventListener('click', function() {
                     modal.classList.add('hidden');
+
+                    // Revert status back to pending if modal was cancelled
+                    if (previousStatusValue !== null && statusFieldElement) {
+                        statusFieldElement.value = 'Pending';
+                        statusFieldElement.setAttribute('data-previous-value', 'Pending');
+                        updateScheduleField(currentScheduleType.toLowerCase(), currentScheduleType.toLowerCase() + '_status', 'Pending');
+                    }
+
                     clearModalFields();
                 });
             });
@@ -3817,9 +3827,6 @@
                             if (window.notyf) notyf.error(data?.message || 'Something went wrong.');
                         }
                     })
-                    .catch(error => {
-                        if (window.notyf) notyf.error('Failed to assign equipment.');
-                    })
                     .finally(() => {
                         if (submitBtn) {
                             submitBtn.disabled = false;
@@ -3839,12 +3846,21 @@
                 currentOrderProductUniqueId = null;
                 currentScheduleType = null;
                 softAssignedEquipmentData = null;
+                previousStatusValue = null;
+                statusFieldElement = null;
             }
 
             // Function to open equipment assignment modal
             window.openEquipmentAssignModal = function(orderProductUniqueId, scheduleType, softAssignment = null) {
                 currentOrderProductUniqueId = orderProductUniqueId;
                 currentScheduleType = scheduleType;
+
+                // Store the status field element and its current value for potential revert
+                const statusFieldId = scheduleType.toLowerCase() + '_status_' + orderProductUniqueId;
+                statusFieldElement = document.getElementById(statusFieldId);
+                if (statusFieldElement) {
+                    previousStatusValue = statusFieldElement.value;
+                }
 
                 // Set order information
                 document.getElementById('assign-order-id').textContent = '{{ $order->order_number }}';

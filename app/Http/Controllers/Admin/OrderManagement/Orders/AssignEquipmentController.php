@@ -128,10 +128,14 @@ class AssignEquipmentController extends Controller
 
         $orderProduct->delivery_status = 'Completed';
         $orderProduct->is_delivered = true;
-        $orderProduct->delivery_by = $user->id;
+        if (empty($orderProduct->delivery_by)) {
+            $orderProduct->delivery_by = $user->id;
+        }
         $orderProduct->equipment_id = $equipment->id;
         $orderProduct->equipment_details = $equipment->toArray();
-        $orderProduct->assigned_by = $user->id;
+        if (empty($orderProduct->assigned_by)) {
+            $orderProduct->assigned_by = $user->id;
+        }
         $orderProduct->assigned_at = now();
 
         // Update equipment status to Rented when delivery is completed

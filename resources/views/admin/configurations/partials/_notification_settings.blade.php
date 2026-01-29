@@ -318,32 +318,53 @@
                 manualModal.classList.remove('flex');
             };
 
-            document.getElementById('save-manual').onclick = () => {
-                const name = manualName.value.trim();
-                const phone = manualPhone.value.trim();
+           document.getElementById('save-manual').onclick = () => {
+        const name = manualName.value.trim();
+        const phone = manualPhone.value.trim();
 
-                if (!name || !PHONE_REGEX.test(phone)) {
-                    notyf.error('Enter valid name and phone');
-                    return;
-                }
+        if (!name || !PHONE_REGEX.test(phone)) {
+            notyf.error('Enter valid name and phone');
+            return;
+        }
 
-                const updated = [{
-                        source: 'manual',
-                        user_id: 0,
-                        name,
-                        phone
-                    },
-                    // keep HRM users
-                    ...(window.notificationData[state.type] || []).filter(r => r.source === 'hrm')
-                ];
+        fetch("{{ route('admin.configurations.notification-settings.manual.store') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute('content')
+            },
+            body: JSON.stringify({
+                type: state.type,
+                name,
+                phone
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                notyf.error(data.message || 'Failed to save manual');
+                return;
+            }
 
-                window.notificationData[state.type] = updated;
+            //  push returned row into cache
+            window.notificationData[state.type] = [
+                ...(window.notificationData[state.type] || []),
+                data.row
+            ];
 
-                updateView(state.type);
+            //  update UI ONLY
+            updateView(state.type, window.notificationData[state.type]);
 
-                manualModal.classList.add('hidden');
-                manualModal.classList.remove('flex');
-            };
+            notyf.success(data.message);
+
+            manualModal.classList.add('hidden');
+            manualModal.classList.remove('flex');
+        })
+        .catch(() => notyf.error('Something went wrong'));
+    };
+
 
 
             // CLOSE MODAL
@@ -652,7 +673,7 @@
             function updateView(type, recipients = null) {
                 const payload = recipients ?? window.notificationData[type];
 
-                fetch("{{ route('admin.configurations.notification-settings.save') }}", {
+              return  fetch("{{ route('admin.configurations.notification-settings.save') }}", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -711,9 +732,6 @@
                 const nameInput = document.querySelector(`[data-manual-name="${index}"]`);
                 const phoneInput = document.querySelector(`[data-manual-phone="${index}"]`);
 
-                // console.log('Name input:', nameInput);
-                // console.log('Phone input:', phoneInput);
-
                 if (!nameInput || !phoneInput) {
                     notyf.error('Unable to locate manual inputs');
                     // console.groupEnd();
@@ -722,31 +740,42 @@
 
                 nameInput.focus();
 
+               
+
                 const save = () => {
-                    const name = nameInput.value.trim();
-                    const phone = phoneInput.value.trim();
-                    const manualId = btn.dataset.id;
-                    // console.log('Saving values:', { name, phone });
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const manualId = btn.dataset.id;
 
-                    if (!name || !PHONE_REGEX.test(phone)) {
-                        notyf.error('Invalid name or phone number');
-                        return;
-                    }
+    if (!name || !PHONE_REGEX.test(phone)) {
+        notyf.error('Invalid name or phone number');
+        return;
+    }
 
-                    const payload = [{
-                            id: manualId,
-                            source: 'manual',
-                            user_id: 0,
-                            name,
-                            phone
-                        },
-                        ...(window.notificationData[type] || []).filter(r => r.source === 'hrm')
-                    ];
+    //  set text
+    const originalHtml = btn.querySelector('.btn-content').innerHTML;
+    btn.querySelector('.btn-content').innerText = 'Updating...';
+    btn.disabled = true;
 
-                    // console.log('Payload to save:', payload);
+    const payload = [
+        {
+            id: manualId,
+            source: 'manual',
+            user_id: 0,
+            name,
+            phone
+        },
+        ...(window.notificationData[type] || []).filter(r => r.source === 'hrm')
+    ];
 
-                    updateView(type, payload);
-                };
+    updateView(type, payload)
+        .finally(() => {
+            //  restore icon
+            btn.querySelector('.btn-content').innerHTML = originalHtml;
+            btn.disabled = false;
+        });
+};
+
 
                 // save on Enter
                 phoneInput.onkeydown = ev => {
@@ -806,6 +835,8 @@
                             );
 
                             target.innerHTML = data.html;
+                            
+                            initPhoneMask(target);
 
                             // also update cache if you want
                             window.notificationData[type] = window.notificationData[type]

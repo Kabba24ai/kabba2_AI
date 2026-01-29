@@ -33,7 +33,10 @@ class ApplicationStoreController extends BaseController
             // ---- STEP 2: Create Application ----
             $application = Application::create([
                 'status' => 0,
-                'store_id' => $request->store_id,
+                'store_id' => is_numeric($request->store_id)
+                    ? (int) $request->store_id
+                    : null,
+
 
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,

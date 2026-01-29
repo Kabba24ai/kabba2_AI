@@ -12,7 +12,7 @@ class DeleteController extends Controller
         $type = $notification->type;
         $notification->delete();
 
-        $rows = UserNotificationSetting::where('type', $type)->get()->toArray();
+        $rows = UserNotificationSetting::where('type', $type)->orderBy('name')->get()->toArray();
 
         $html = view('admin.configurations.partials._notification_view_table', [
             'rows' => $rows,

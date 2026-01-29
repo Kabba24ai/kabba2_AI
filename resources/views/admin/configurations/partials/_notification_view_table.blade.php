@@ -61,7 +61,7 @@
             </button> -->
         @else
             {{-- MANUAL UPDATE --}}
-           <button
+           <!-- <button
                 type="button"
                 data-update-manual="{{ $index }}"
                  data-id="{{ $row['id'] }}"
@@ -70,9 +70,23 @@
             >
 
                 <x-heroicon-o-pencil-square class="w-5 h-5" />
-            </button>
+            </button> -->
 
-        @endif
+
+            <button
+    type="button"
+    data-update-manual="{{ $index }}"
+    data-id="{{ $row['id'] }}"
+    data-type="{{ $row['type'] }}"
+    class="data-update-manual px-3 py-1.5 text-sm rounded-sm md:mt-5
+           bg-green-600 text-white hover:bg-green-700"
+>
+    <span class="btn-content">
+        <x-heroicon-o-pencil-square class="w-5 h-5" />
+    </span>
+</button>
+
+            @endif
 
        {{-- DELETE --}}
             <button

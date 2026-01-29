@@ -27,7 +27,7 @@ class EditController extends Controller
             ->where('unique_id', $unique_id)
             ->firstOrFail();
         $categoryTree = ProductCategory::with('childCategories')->whereNull('parent_id')->orderByAdmin()->get();
-        $funnels = SalesFunnel::active()->orderBy('funnel_name')->select('funnel_name', 'id')->get();
+        $funnels = SalesFunnel::active()->orderBy('funnel_name')->pluck('funnel_name', 'id');
         $terms = Terms::product()->orderByTitle()->published()->pluck('title', 'id');
         $terms->prepend('Select a term...', '');
         $productOptions = ProductOption::orderBy('name')->get();

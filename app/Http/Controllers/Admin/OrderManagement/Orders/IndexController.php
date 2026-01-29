@@ -25,7 +25,7 @@ class IndexController extends Controller
         if ($request->ajax()) {
             // Fetch orders from the database, most recent first
             $query = Order::query()
-                ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia' , 'products.returnSignatureMedia')
+                ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia' , 'products.returnSignatureMedia')->withCount('notes')
                 ->when($request->filled('customer_name'), function ($q) use ($request) {
                     $name = trim($request->customer_name);
                     $q->whereHas('billingAddress', function ($s) use ($name) {

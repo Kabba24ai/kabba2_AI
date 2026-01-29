@@ -24,7 +24,7 @@ class IndexController extends Controller
         if ($request->ajax()) {
             // Fetch real product-wise order data
             $query = OrderProduct::query()
-                ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment')
+                ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes')
                 ->where('product_data->product_type', 'Rental')
                 ->whereNotNull('delivery_date')
                 ->where(function ($q) {

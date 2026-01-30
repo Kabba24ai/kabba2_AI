@@ -26,17 +26,16 @@ class IndexController extends Controller
             $query = OrderProduct::query()
                 ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes')
                 ->where('product_data->product_type', 'Rental')
-                ->whereNotNull('delivery_date')
-                ->where(function ($q) {
-                    $q->where(function ($subQ) {
-                        $subQ->where('delivery_status', '!=', 'Completed')->orWhere('pickup_status', '!=', 'Completed');
-                    })->whereNot(function ($subQ) {
-                        $subQ->where('delivery_status', 'Completed')->where('pickup_status', 'Completed');
-                    });
-                });
+                ->whereNotNull('delivery_date');
 
-            if ($request->filled('unassigned_equipment')) {
+            if ($request->filled('')) {
                 $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
+            }
+
+            if ($request->filled('order_number')) {
+                $query->whereHas('order', function ($q) use ($request) {
+                    $q->where('order_number', 'like', '%' . $request->order_number . '%');
+                });
             }
 
             if ($request->filled('customer_name')) {
@@ -91,10 +90,16 @@ class IndexController extends Controller
             $transportModes = [];
             $orderByField = 'delivery_date'; // Default order by field
 
-
             // Get filters, clean them
             if ($request->filled('schedule_type')) {
                 $scheduleTypes = array_filter((array) $request->input('schedule_type', []), fn($v) => $v !== '' && $v !== 'false');
+
+                if (in_array('Delivery', $scheduleTypes)) {
+                    $query->where('delivery_status', 'Pending');
+                }
+                if (in_array('Return', $scheduleTypes)) {
+                    $query->where('pickup_status', 'Pending');
+                }
             }
 
             if ($request->filled('transport_mode')) {

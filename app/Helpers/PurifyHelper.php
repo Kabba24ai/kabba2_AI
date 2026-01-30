@@ -34,7 +34,9 @@ class PurifyHelper
                     $clean[$key] = html_entity_decode($value, ENT_QUOTES | ENT_HTML5);
                 } else {
                     $decoded = html_entity_decode($value, ENT_QUOTES | ENT_HTML5);
-                    $clean[$key] = Purify::config($config)->clean($decoded); // or 'default'
+                    $cleaned = Purify::config($config)->clean($decoded); // or 'default'
+                    // Decode &amp; back to & after purification
+                    $clean[$key] = html_entity_decode($cleaned, ENT_QUOTES | ENT_HTML5);
                 }
             }
 

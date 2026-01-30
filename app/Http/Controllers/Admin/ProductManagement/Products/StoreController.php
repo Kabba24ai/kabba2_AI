@@ -37,8 +37,6 @@ class StoreController extends Controller
                 'sku' => $validated['sku'] ?? null,
                 'barcode' => $validated['barcode'] ?? null,
                 'status' => $validated['status'] ?? 'Pending',
-                'is_general_term_type' => $validated['is_general_term_type'] ?? false,
-                'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
                 'truck_fee_size_setting' => $validated['truck_fee_size_setting'] ?? null,
                 'track_insurance_size_setting' => $validated['track_insurance_size_setting'] ?? null,
                 'prepaid_cleaning_rate_setting' => $validated['prepaid_cleaning_rate_setting'] ?? null,
@@ -48,6 +46,9 @@ class StoreController extends Controller
             // Add fields based on product_type
             if ($validated['product_type'] === 'Retail') {
                 $productData = array_merge($productData, [
+                    'is_general_term_type' => false,
+                    'is_custom_term_type' => false,
+
                     'retail_price' => $validated['retail_price'] ?? null,
                     'retail_sale_price' => $validated['retail_sale_price'] ?? null,
                     'retail_product_cost' => $validated['retail_product_cost'] ?? null,
@@ -84,6 +85,9 @@ class StoreController extends Controller
                 ]);
             } elseif ($validated['product_type'] === 'Rental') {
                 $productData = array_merge($productData, [
+                    'is_general_term_type' => $validated['is_general_term_type'] ?? false,
+                    'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
+
                     'rental_daily' => $validated['rental_daily'] ?? null,
                     'rental_weekend' => $validated['rental_weekend'] ?? null,
                     'rental_weekly' => $validated['rental_weekly'] ?? null,

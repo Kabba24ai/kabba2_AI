@@ -94,12 +94,14 @@ class IndexController extends Controller
             if ($request->filled('schedule_type')) {
                 $scheduleTypes = array_filter((array) $request->input('schedule_type', []), fn($v) => $v !== '' && $v !== 'false');
 
-                if (in_array('Delivery', $scheduleTypes)) {
-                    $query->where('delivery_status', 'Pending');
-                }
-                if (in_array('Return', $scheduleTypes)) {
-                    $query->where('pickup_status', 'Pending');
-                }
+                $query->where(function ($q) use ($scheduleTypes) {
+                    if (in_array('Delivery', $scheduleTypes)) {
+                        $q->where('delivery_status', 'Pending');
+                    }
+                    if (in_array('Return', $scheduleTypes)) {
+                        $q->orWhere('pickup_status', 'Pending');
+                    }
+                });
             }
 
             if ($request->filled('transport_mode')) {

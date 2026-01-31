@@ -149,9 +149,9 @@ class IndexController extends Controller
                         if (in_array('Delivery', $scheduleTypes)) {
                             // For deliveries, filter delivery_store_id
                             if (!empty($storeLocations)) {
-                                $q->whereIn('delivery_store_id', $storeLocations);
+                                $q->orWhereIn('delivery_store_id', $storeLocations);
                             } else {
-                                $q->whereNull('delivery_store_id');
+                                $q->orWhereNull('delivery_store_id');
                             }
                         }
                         if (in_array('Return', $scheduleTypes)) {

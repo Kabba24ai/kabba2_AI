@@ -11,213 +11,133 @@
 
     {{-- Order Header Section --}}
     <div class="bg-white px-4 py-4 rounded-xl shadow-sm mb-6">
-        <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
-            {{-- Order Info + Customer --}}
-            <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                <h2 class="text-lg font-semibold text-gray-800">
+            {{-- LEFT: Order + Customer/Company --}}
+            <div class="min-w-[260px]">
+                <div class="text-lg font-semibold text-gray-800">
                     <span class="text-gray-700">Order ID:</span> {{ $order->order_number }}
-                </h2>
-                <div class="flex flex-col leading-tight">
-                    <span class="text-sm font-medium text-gray-800">
-                        Customer: {{ $order->customer_name }}
-                    </span>
-                    <span class="text-xs italic text-gray-600">
-                        Company: {{ $order->company_name }}
-                    </span>
                 </div>
-            </div>
 
-            {{-- Payment Status + Refund Button --}}
-            <div class="flex flex-wrap items-center gap-2">
-                @if ($order->last_payment_status === 'Pending' || $order->last_payment_status === 'Failed')
-                    <button id="pendingPaymentBtn" type="button"
-                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
-                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                        PENDING PAYMENT
-                    </button>
-                @endif
-                @if ($order->last_payment_status === 'Pending' && $order->last_payment_type !== 'Card')
-                    <button id="addToAccountBtn" type="button"
-                        class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
-                        Add to Account
-                    </button>
-                    {{-- <button id="confirmPaymentBtn"
-                        class="px-4 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700">
-                        Confirm payment
-                    </button> --}}
-                @endif
-                @if ($order->last_payment_status === 'Paid')
-                    <span
-                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
-                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                        Paid In Full Via -
-                        {{ $order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card ? 'Credit/Debit Card' : $order->last_payment_type }}
-                    </span>
-                @endif
-                @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount > 0)
-                    {{-- Refund Button --}}
-                    <button id="refundPaymentBtn" type="button"
-                        class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
-                        <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
-                        Refund
-                    </button>
-                @endif
-                @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount == 0)
-                    {{-- Refund Button --}}
-
-                    <button type="button"
-                        class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
-                        <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
-                        Full Refund
-                    </button>
-                @endif
-                @if ($order->last_payment_status === 'Failed')
-                    <span
-                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
-                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                        PAYMENT FAILED
-                    </span>
-                @endif
-            </div>
-
-            {{-- Action Buttons --}}
-            <div class="flex flex-wrap gap-2">
-                <div class="relative group inline-block">
-                    <button id="reorderBtn" type="button"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white rounded hover:bg-orange-600 focus:outline-none">
-                        <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
-                    </button>
-                    <!-- Reorder Modal -->
-                    <div id="reorderModal"
-                        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
-                        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
-                            <!-- Header -->
-                            <div class="flex justify-between items-center p-4 border-b">
-                                <h2 class="text-lg font-semibold">Reorder</h2>
-                                <button type="button"
-                                    class="close-reorder-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
-                            </div>
-                            <!-- Body -->
-                            <form id="reorderForm" class="flex-1 flex flex-col justify-between">
-                                <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 required">Order Type</label>
-                                        <select id="orderTypeSelect" name="order_type"
-                                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
-                                            required>
-                                            <option value="new">New Independent Order</option>
-                                            <option value="duplicate">Related to Existing Order</option>
-                                        </select>
-                                    </div>
-                                    <div id="duplicateOrderSection" class="hidden">
-                                        <label class="text-sm font-medium text-gray-700 mb-2">Products</label>
-                                        <div class="space-y-2">
-                                            @foreach ($order->products as $orderProduct)
-                                                @if (!empty($orderProduct->product))
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="flex-1">{{ $orderProduct->product_name }}</span>
-                                                        <input type="text"
-                                                            name="delivery_dates[{{ $orderProduct->product->unique_id }}]"
-                                                            data-format="{{ config('app.date.js_date_format') }}"
-                                                            placeholder="Select date"
-                                                            data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                            class="reorder-datepicker border rounded px-3 py-3 text-xs" />
-                                                    </div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Footer -->
-                                <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
-                                    <button type="button"
-                                        class="close-reorder-modal-btn px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
-                                        Cancel
-                                    </button>
-                                    <button type="submit"
-                                        class="px-6 py-3 rounded-lg font-medium text-md bg-orange-600 text-white hover:bg-orange-700 shadow-sm transition">
-                                        Continue
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                <div class="mt-1 leading-tight">
+                    <div class="text-sm font-medium text-gray-800">
+                        Customer: {{ $order->customer_name }}
+                    </div>
+                    <div class="text-xs italic text-gray-600">
+                        Company: {{ $order->company_name }}
                     </div>
                 </div>
+            </div>
 
+            {{-- MIDDLE: Payment Status + Links (centered like screenshot) --}}
+            <div class="flex-1 flex flex-col items-start lg:items-center gap-2">
+                <div class="flex flex-wrap items-center justify-start lg:justify-center gap-2">
+                    @if ($order->last_payment_status === 'Pending' || $order->last_payment_status === 'Failed')
+                        <button id="pendingPaymentBtn" type="button"
+                            class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
+                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                            PENDING PAYMENT
+                        </button>
+                    @endif
 
+                    @if ($order->last_payment_status === 'Pending' && $order->last_payment_type !== 'Card')
+                        <button id="addToAccountBtn" type="button"
+                            class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
+                            Add to Account
+                        </button>
+                    @endif
 
+                    @if ($order->last_payment_status === 'Paid')
+                        <span
+                            class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
+                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                            Paid In Full Via -
+                            {{ $order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card ? 'Credit/Debit Card' : $order->last_payment_type }}
+                        </span>
+                    @endif
 
+                    @if ($order->last_payment_status === 'Failed')
+                        <span
+                            class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
+                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                            PAYMENT FAILED
+                        </span>
+                    @endif
 
-                <!-- Blade Links with Tailwind loader -->
+                    @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount > 0)
+                        <button id="refundPaymentBtn" type="button"
+                            class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
+                            <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
+                            Refund
+                        </button>
+                    @endif
+
+                    @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount == 0)
+                        <button type="button"
+                            class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
+                            <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
+                            Full Refund
+                        </button>
+                    @endif
+                </div>
+
+                {{-- links under the pill/buttons (like screenshot) --}}
+                <div class="flex items-center gap-6 text-sm text-blue-600">
+                    <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" target="_blank"
+                        class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
+                        @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
+                        <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
+                    </a>
+
+                    <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}"
+                        method="POST" target="_blank" class="inline-flex items-center">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center hover:underline">
+                            <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {{-- RIGHT: Action Buttons --}}
+            <div class="flex flex-wrap justify-start lg:justify-end gap-2">
+                <button id="reorderBtn" type="button"
+                    class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white hover:bg-orange-600 focus:outline-none">
+                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
+                </button>
+
                 <div class="flex flex-col">
                     <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
+                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-500 text-white hover:bg-blue-600 receipt-action">
                         <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
                         <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                stroke-width="4"></circle>
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                         </svg>
                     </a>
 
                     @if ($order->latestReceipt && !empty($order->latestReceipt->mail_send_at))
                         <div class="text-xs text-gray-600 mt-1 ml-[2px] text-center">
-
                             {{ \App\Helpers\CustomHelper::formatDateTime($order->latestReceipt->mail_send_at) }}
-
                         </div>
                     @endif
                 </div>
 
-                <div class="flex flex-col">
-                    <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white rounded hover:bg-blue-700 receipt-action">
-                        <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
-                        <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg"
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                        </svg>
-                    </a>
-                </div>
-
-
-
-
-                <button class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
-                    <x-heroicon-o-check class="w-4 h-4 mr-1" /> Save
-                </button>
-            </div>
-        </div>
-
-        {{-- Sub-links under customer --}}
-        <div class="mt-2 flex gap-4 text-sm text-blue-600">
-            <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" target="_blank"
-                class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
-                @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
-                <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
-            </a>
-            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}"
-                method="POST" target="_blank" class="inline-flex items-center">
-                @csrf
-                <button type="submit" class="inline-flex items-center hover:underline">
-                    <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
-                </button>
-            </form>
-            @if ($order->reference_order_number)
-                <a href="{{ $order->referenceOrder ? route('admin.order-management.orders.edit', $order->referenceOrder->unique_id) : 'javascript:void(0);' }}"
-                    target="_blank"
-                    class="inline-flex items-center hover:underline {{ !$order->referenceOrder ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
-                    @if (!$order->referenceOrder) tabindex="-1" aria-disabled="true" @endif>
-                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reference Order:
-                    {{ $order->reference_order_number }}
+                <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
+                    class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700 receipt-action">
+                    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
+                    <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
                 </a>
-            @endif
+            </div>
+
         </div>
     </div>
+
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
@@ -545,7 +465,7 @@
                         <div class="flex justify-between font-semibold">
                             <span>Qty - {{ $orderProduct->quantity }}</span>
                             <span>
-                                Sub Total: {{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->sub_total) }}
+                                Subtotal: {{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->sub_total) }}
                             </span>
                         </div>
                     </div>
@@ -1049,7 +969,7 @@
             <div
                 class="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col text-sm text-gray-700 pt-4">
                 <div class="flex justify-between">
-                    <span>Sub-Total:</span>
+                    <span>Subtotal:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}</span>
                 </div>
                 <div class="flex justify-between">

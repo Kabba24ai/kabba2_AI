@@ -142,7 +142,7 @@
 
         <div class="space-y-1 text-sm mt-4 border-t pt-4">
             <div class="flex justify-between">
-                <span class="text-gray-600">Sub Total:</span>
+                <span class="text-gray-600">Subtotal:</span>
                 <span class="font-medium">{{ App\Helpers\CustomHelper::formatCurrency($cart['sub_total'] ?? 0) }}</span>
             </div>
             <div class="flex justify-between">

@@ -1683,6 +1683,14 @@
                                                             <div class="max-w-[200px] whitespace-normal break-words">
                                                                 {{ $question->deliverySelectedAnswer->delivery_answer }}
                                                             </div>
+
+                                                        @else
+
+                                                                 <span
+                                                                    class="inline-block  min-w-10 text-red-600">
+                                                                    Admin Override
+                                                                </span>
+
                                                         @endif
                                                     </td>
 

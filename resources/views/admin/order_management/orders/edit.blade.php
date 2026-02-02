@@ -653,7 +653,7 @@
                                                     for="delivery_store_id_{{ $orderProduct->unique_id }}">Location</label>
                                                 <select id="delivery_store_id_{{ $orderProduct->unique_id }}"
                                                     class="delivery_store_id border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="" disabled>Select Location</option>
+                                                    <option value="" disabled selected>Select Location</option>
                                                     @foreach ($stores as $storeItem)
                                                         <option value="{{ $storeItem->id }}"
                                                             {{ $orderProduct->delivery_store_id == $storeItem->id ? 'selected' : '' }}>
@@ -668,7 +668,7 @@
                                                     for="delivery_by_{{ $orderProduct->unique_id }}">Technician</label>
                                                 <select id="delivery_by_{{ $orderProduct->unique_id }}"
                                                     class="delivery_by border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="" disabled>Select Technician</option>
+                                                    <option value="" disabled selected>Select Technician</option>
                                                     @foreach ($employees as $employee)
                                                         <option value="{{ $employee->id }}"
                                                             {{ $orderProduct->delivery_by == $employee->id ? 'selected' : '' }}>
@@ -782,7 +782,7 @@
                                                     for="pickup_store_id_{{ $orderProduct->unique_id }}">Location</label>
                                                 <select id="pickup_store_id_{{ $orderProduct->unique_id }}"
                                                     class="pickup_store_id border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="" disabled>Select Location</option>
+                                                    <option value="" disabled selected>Select Location</option>
                                                     @foreach ($stores as $storeItem)
                                                         <option value="{{ $storeItem->id }}"
                                                             {{ $orderProduct->pickup_store_id == $storeItem->id ? 'selected' : '' }}>
@@ -797,7 +797,7 @@
                                                     for="pickup_by_{{ $orderProduct->unique_id }}">Technician</label>
                                                 <select id="pickup_by_{{ $orderProduct->unique_id }}"
                                                     class="pickup_by border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="" disabled>Select Technician</option>
+                                                    <option value="" disabled selected>Select Technician</option>
                                                     @foreach ($employees as $employee)
                                                         <option value="{{ $employee->id }}"
                                                             {{ $orderProduct->pickup_by == $employee->id ? 'selected' : '' }}>

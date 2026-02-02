@@ -29,6 +29,7 @@ class ApplicationStoreController extends BaseController
             $trailerExperience = json_decode($request->trailer_experience ?? '[]', true);
             $computerSkills = json_decode($request->computer_skills ?? '[]', true);
             $systemsUsed = json_decode($request->systems_used ?? '[]', true);
+            
 
             // ---- STEP 2: Create Application ----
             $application = Application::create([
@@ -69,6 +70,7 @@ class ApplicationStoreController extends BaseController
                     'equipment_operated' => $equipmentOperated,
                     'computer_skills' => $computerSkills,
                     'systems_used' => $systemsUsed,
+                    'computer_skill_level'=>$request->computer_skill_level
                 ],
 
                 'driving_details' => [
@@ -90,7 +92,7 @@ class ApplicationStoreController extends BaseController
             // ---- STEP 3: Upload resume using MediaHelper ----
             if ($request->hasFile('resume')) {
                 $upload = MediaHelper::uploadStorageFile(
-                    'Secure Asset',
+                    'Public Asset',
                     $request->file('resume'),
                     'applications/resumes',
                     $application

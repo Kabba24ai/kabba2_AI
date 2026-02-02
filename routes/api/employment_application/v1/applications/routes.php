@@ -9,5 +9,6 @@ use App\Http\Controllers\Api\EmploymentApplication\V1\Applications\ApplicationSt
 Route::group(['prefix' => 'applications'], function () {
         
         Route::post('/store', ApplicationStoreController::class);
-     
+        
+        
 });

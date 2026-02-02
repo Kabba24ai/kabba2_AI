@@ -5,6 +5,7 @@ namespace App\Models\Stores;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Helpers\ModelHelper;
+use App\Models\Global\Media;
 
 class Application extends Model
 {
@@ -48,4 +49,9 @@ class Application extends Model
         });
 
     }
+        public function media()
+        {
+            return $this->belongsTo(Media::class, 'resume_media_id', 'id');
+        }
+
 }

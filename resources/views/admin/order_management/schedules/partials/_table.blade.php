@@ -92,6 +92,7 @@
                         @if ($orderProduct?->checklistQuestions->isNotEmpty())
                             <button type="button" class="text-blue-600 underline equipment-assign-btn"
                                 data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
                                 data-order-id="{{ $orderProduct?->order?->order_number }}"
                                 data-customer-name="{{ $orderProduct?->order?->customer_name }}"
                                 data-product-name="{{ $orderProduct->product_name }}">
@@ -100,6 +101,7 @@
                         @else
                             <button type="button" class="text-blue-600 underline equipment-assign-btn"
                                 data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
                                 data-order-id="{{ $orderProduct?->order?->order_number }}"
                                 data-customer-name="{{ $orderProduct?->order?->customer_name }}"
                                 data-product-name="{{ $orderProduct->product_name }}">
@@ -191,7 +193,11 @@
                         <div class="flex gap-2 items-center justify-center">
                             <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
                                 class="text-sky-600 hover:text-sky-800" title="View" target="_blank">
-                                <x-heroicon-o-eye class="w-4 h-4" />
+                                @if ($orderProduct?->order?->notes->isNotEmpty())
+                                    <x-heroicon-o-book-open class="w-4 h-4" />
+                                @else
+                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                @endif
                             </a>
                         </div>
                     </td>

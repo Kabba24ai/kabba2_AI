@@ -474,14 +474,18 @@
 
         <div class="grid grid-cols-3 gap-4 max-h-64 overflow-y-auto pr-2 custom-scroll">
             @if ($funnels->isNotEmpty())
-                @foreach ($funnels as $funnel)
+                @php
+                    $selectedFunnels = old('funnels', isset($objProduct) && $objProduct->funnels ? $objProduct->funnels->pluck('id')->toArray() : []);
+                @endphp
+
+                @foreach ($funnels as $id => $funnel)
                     <div class="flex items-center space-x-2 text-sm">
                         {!! html()
-                            ->checkbox('funnels[]', in_array($funnel->id, old('funnels', $objProduct->funnels->pluck('id')->toArray() ?? [])))
-                            ->value($funnel->id)
-                            ->id("funnel_{$funnel->id}") !!}
-                        <label for="funnel_{{ $funnel->id }}" class="text-gray-700 dark:text-gray-300">
-                            {{ $funnel->funnel_name }}
+                            ->checkbox('funnels[]', in_array($id, $selectedFunnels))
+                            ->value($id)
+                            ->id("funnel_{$id}") !!}
+                        <label for="funnel_{{ $id }}" class="text-gray-700 dark:text-gray-300">
+                            {{ $funnel }}
                         </label>
                     </div>
                 @endforeach

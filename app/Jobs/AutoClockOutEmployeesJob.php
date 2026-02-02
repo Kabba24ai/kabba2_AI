@@ -19,7 +19,7 @@ class AutoClockOutEmployeesJob
 
     public function handle(): void
     {
-        Log::info('[AUTO CLOCK OUT] Job started');
+        //Log::info('[AUTO CLOCK OUT] Job started');
 
         // 1. Fetch settings
         $autoLimitMinutes = (int) TimeTrackerHelper::getTimeTrackerSetting(
@@ -27,12 +27,12 @@ class AutoClockOutEmployeesJob
             0
         );
 
-        Log::info('[AUTO CLOCK OUT] auto_clock_out_limit_minutes', [
-            'minutes' => $autoLimitMinutes,
-        ]);
+        // Log::info('[AUTO CLOCK OUT] auto_clock_out_limit_minutes', [
+        //     'minutes' => $autoLimitMinutes,
+        // ]);
 
         if ($autoLimitMinutes <= 0) {
-            Log::warning('[AUTO CLOCK OUT] Disabled (limit <= 0)');
+            // Log::warning('[AUTO CLOCK OUT] Disabled (limit <= 0)');
             return;
         }
 
@@ -45,9 +45,9 @@ class AutoClockOutEmployeesJob
 
         $twilio = new TwilioService();
         $now = Carbon::now();
-        Log::info('[AUTO CLOCK OUT] Current time', [
-            'now' => $now->toDateTimeString(),
-        ]);
+        // Log::info('[AUTO CLOCK OUT] Current time', [
+        //     'now' => $now->toDateTimeString(),
+        // ]);
 
         // 2. Fetch employees with active time entry
         $employees = User::active()
@@ -56,17 +56,17 @@ class AutoClockOutEmployeesJob
             ->with('activeTimeEntry')
             ->get();
 
-        Log::info('[AUTO CLOCK OUT] Active employees found', [
-            'count' => $employees->count(),
-        ]);
+        // Log::info('[AUTO CLOCK OUT] Active employees found', [
+        //     'count' => $employees->count(),
+        // ]);
 
         foreach ($employees as $employee) {
 
-            Log::info('[AUTO CLOCK OUT] Checking employee', [
-                'employee_id' => $employee->id,
-                'name' => $employee->full_name,
-                'shift_end_time' => $employee->shift_end_time,
-            ]);
+            // Log::info('[AUTO CLOCK OUT] Checking employee', [
+            //     'employee_id' => $employee->id,
+            //     'name' => $employee->full_name,
+            //     'shift_end_time' => $employee->shift_end_time,
+            // ]);
 
             $shiftEnd = Carbon::parse($employee->shift_end_time)
                 ->setDateFrom($now);
@@ -77,34 +77,34 @@ class AutoClockOutEmployeesJob
             if ($clockIn->toDateString() < $shiftEnd->toDateString()) {
                 $shiftEnd->addDay();
 
-                Log::info('[AUTO CLOCK OUT] Overnight shift detected', [
-                    'employee_id' => $employee->id,
-                ]);
+                // Log::info('[AUTO CLOCK OUT] Overnight shift detected', [
+                //     'employee_id' => $employee->id,
+                // ]);
             }
 
 
             $autoClockOutAt = $shiftEnd->copy()->addMinutes($autoLimitMinutes);
 
-            Log::info('[AUTO CLOCK OUT] Timing check', [
-                'employee_id' => $employee->id,
-                'shift_end' => $shiftEnd->toDateTimeString(),
-                'auto_clock_out_at' => $autoClockOutAt->toDateTimeString(),
-            ]);
+            // Log::info('[AUTO CLOCK OUT] Timing check', [
+            //     'employee_id' => $employee->id,
+            //     'shift_end' => $shiftEnd->toDateTimeString(),
+            //     'auto_clock_out_at' => $autoClockOutAt->toDateTimeString(),
+            // ]);
 
             // 3. Check if we passed auto clock-out time
             if ($now->lessThan($autoClockOutAt)) {
-                Log::info('[AUTO CLOCK OUT] Not yet time to auto clock out', [
-                    'employee_id' => $employee->id,
-                ]);
+                // Log::info('[AUTO CLOCK OUT] Not yet time to auto clock out', [
+                //     'employee_id' => $employee->id,
+                // ]);
                 continue;
             }
 
             $entry = $employee->activeTimeEntry;
 
             if (!$entry) {
-                Log::warning('[AUTO CLOCK OUT] Active entry missing', [
-                    'employee_id' => $employee->id,
-                ]);
+                // Log::warning('[AUTO CLOCK OUT] Active entry missing', [
+                //     'employee_id' => $employee->id,
+                // ]);
                 continue;
             }
 
@@ -114,11 +114,11 @@ class AutoClockOutEmployeesJob
                 'status' => 'completed',
             ]);
 
-            Log::info('[AUTO CLOCK OUT] Employee auto clocked out', [
-                'employee_id' => $employee->id,
-                'time_entry_id' => $entry->id,
-                'clock_out' => $shiftEnd->toDateTimeString(),
-            ]);
+            // Log::info('[AUTO CLOCK OUT] Employee auto clocked out', [
+            //     'employee_id' => $employee->id,
+            //     'time_entry_id' => $entry->id,
+            //     'clock_out' => $shiftEnd->toDateTimeString(),
+            // ]);
 
             //  SEND SMS
 
@@ -150,10 +150,10 @@ class AutoClockOutEmployeesJob
             //         'error' => $e->getMessage(),
             //     ]);
             // }
-            
-            
+
+
         }
 
-        Log::info('[AUTO CLOCK OUT] Job finished');
+        // Log::info('[AUTO CLOCK OUT] Job finished');
     }
 }

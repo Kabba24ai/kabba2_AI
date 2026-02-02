@@ -31,7 +31,7 @@ class ListUsersController extends BaseController
             'meta' => [
                 'current_page' => $users->currentPage(),
                 'last_page'    => $users->lastPage(),
-                'per_page'     => $users->perPage(),
+                'per_page'     => $users->perPage(),    
                 'total'        => $users->total(),
             ],
         ]);

@@ -24,19 +24,18 @@ class IndexController extends Controller
         if ($request->ajax()) {
             // Fetch real product-wise order data
             $query = OrderProduct::query()
-                ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment')
+                ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes')
                 ->where('product_data->product_type', 'Rental')
-                ->whereNotNull('delivery_date')
-                ->where(function ($q) {
-                    $q->where(function ($subQ) {
-                        $subQ->where('delivery_status', '!=', 'Completed')->orWhere('pickup_status', '!=', 'Completed');
-                    })->whereNot(function ($subQ) {
-                        $subQ->where('delivery_status', 'Completed')->where('pickup_status', 'Completed');
-                    });
-                });
+                ->whereNotNull('delivery_date');
 
-            if ($request->filled('unassigned_equipment')) {
+            if ($request->filled('')) {
                 $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
+            }
+
+            if ($request->filled('order_number')) {
+                $query->whereHas('order', function ($q) use ($request) {
+                    $q->where('order_number', 'like', '%' . $request->order_number . '%');
+                });
             }
 
             if ($request->filled('customer_name')) {
@@ -89,14 +88,28 @@ class IndexController extends Controller
             // Filter: SCHEDULE TYPE + TRANSPORT MODE
             $scheduleTypes = [];
             $transportModes = [];
+            $orderByField = 'delivery_date'; // Default order by field
 
             // Get filters, clean them
             if ($request->filled('schedule_type')) {
                 $scheduleTypes = array_filter((array) $request->input('schedule_type', []), fn($v) => $v !== '' && $v !== 'false');
+
+                $query->where(function ($q) use ($scheduleTypes) {
+                    if (in_array('Delivery', $scheduleTypes)) {
+                        $q->where('delivery_status', 'Pending');
+                    }
+                    if (in_array('Return', $scheduleTypes)) {
+                        $q->orWhere('pickup_status', 'Pending');
+                    }
+                });
             }
 
             if ($request->filled('transport_mode')) {
                 $transportModes = array_filter((array) $request->input('transport_mode', []), fn($v) => $v !== '' && $v !== 'false');
+            }
+
+            if (in_array('Return', $scheduleTypes) && !in_array('Delivery', $scheduleTypes)) {
+                $orderByField = 'pickup_date';
             }
 
             // If no schedule type, fallback to original logic
@@ -113,7 +126,7 @@ class IndexController extends Controller
                 }
             } else {
                 // If schedule type is filtered
-                $query->where(function ($q) use ($scheduleTypes, $transportModes) {
+                $query->where(function ($q) use ($scheduleTypes, $transportModes, &$orderByField) {
                     if (in_array('Delivery', $scheduleTypes) && !empty($transportModes)) {
                         // Filter delivery transport mode if given
                         $q->whereIn('delivery_transport_mode', $transportModes);
@@ -136,9 +149,9 @@ class IndexController extends Controller
                         if (in_array('Delivery', $scheduleTypes)) {
                             // For deliveries, filter delivery_store_id
                             if (!empty($storeLocations)) {
-                                $q->whereIn('delivery_store_id', $storeLocations);
+                                $q->orWhereIn('delivery_store_id', $storeLocations);
                             } else {
-                                $q->whereNull('delivery_store_id');
+                                $q->orWhereNull('delivery_store_id');
                             }
                         }
                         if (in_array('Return', $scheduleTypes)) {
@@ -170,7 +183,7 @@ class IndexController extends Controller
 
             $perPage = $request->input('per_page', 10);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
-            $orderProducts = $query->orderBy('delivery_date', 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
+            $orderProducts = $query->orderBy($orderByField, 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 
             if ($request->filled('unassigned_equipment')) {
                 $html = view('admin.order_management.schedule_assignment.partials._schedule_table', [

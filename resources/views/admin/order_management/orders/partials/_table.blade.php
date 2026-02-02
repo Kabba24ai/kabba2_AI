@@ -65,7 +65,11 @@
                         <div class="flex gap-2 items-center justify-center">
                             <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"
                                 class="text-sky-600 hover:text-sky-800" title="View" target="_blank">
-                                <x-heroicon-o-eye class="w-4 h-4" />
+                                @if ($order->notes_count > 0)
+                                    <x-heroicon-o-book-open class="w-4 h-4" />
+                                @else
+                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                @endif
                             </a>
                             <button class="delete-button text-red-600 hover:text-red-800" title="Delete"
                                 data-unique-id="{{ $order->unique_id }}">

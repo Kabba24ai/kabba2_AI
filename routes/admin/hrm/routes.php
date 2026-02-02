@@ -22,4 +22,6 @@ Route::prefix('hrm')
 
     require base_path('routes/admin/hrm/users/routes.php');
 
+       require base_path('routes/admin/hrm/opportunities/routes.php');
+
 });

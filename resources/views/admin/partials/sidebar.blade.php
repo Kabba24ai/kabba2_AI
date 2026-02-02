@@ -575,14 +575,33 @@
                                     </a>
                                 </li>
 
+                                @php
+                                    $host = request()->getHost();
 
-                                 <li>
-                                    <a href="https://timetrackerpro.kabba.ai/" target="_blank"
-                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                    $timeTrackerUrl = match ($host) {
+                                        'admin.kabba.local'        => 'http://localhost:5173/?logout=1',
+                                        'admin.kabba.ai'           => 'https://timetrackerpro.kabba.ai/?logout=1',
+                                        'admin.rentnking.com'      => 'https://timetrackerpro.rentnking.com/?logout=1',
+                                        default                    => 'https://timetrackerpro.kabba.ai/?logout=1',
+                                    };
+
+                                @endphp
+
+                                <li>
+                                    <a href="{{ $timeTrackerUrl }}"
+                                    target="_blank"
+                                    class="menu-dropdown-item group menu-dropdown-item-inactive">
                                         <x-heroicon-o-clock class="w-5 h-5" />
-                                        
                                         Time Tracker Pro
+                                    </a>
+                                </li>
 
+                                <li>
+                                    <a href="{{ route('admin.hrm.opportunities.login.token') }}"
+                                    target="_blank"
+                                    class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-briefcase class="w-5 h-5" />
+                                        Employment Opportunities
                                     </a>
                                 </li>
 

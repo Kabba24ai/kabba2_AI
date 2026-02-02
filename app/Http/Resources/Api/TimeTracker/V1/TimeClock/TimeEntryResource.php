@@ -14,8 +14,13 @@ class TimeEntryResource extends JsonResource
             'employee_id' => $this->employee_id,
 
             'clock_in' => $this->clock_in,
+            'actual_clock_in' => $this->created_at,
             'clock_out' => $this->clock_out,
+            'actual_clock_out' => $this->clock_out
+                ? $this->updated_at
+                : null,
 
+            
             'break_duration' => $this->break_duration,
             'total_hours' => $this->total_hours,
 
@@ -30,6 +35,10 @@ class TimeEntryResource extends JsonResource
                 'type' => $b->type,
                 'start_time' => $b->start_time,
                 'end_time' => $b->end_time,
+                'original_end_time' => $b->end_time
+                ? $b->updated_at
+                : '',
+
             ]),
         ];
     }

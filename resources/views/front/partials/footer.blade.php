@@ -14,6 +14,8 @@
                 <a href="{{ route('front.contact-us.index') }}" class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Contact Us</a>
                 <a href="{{ route('front.terms-and-conditions.general') }}" class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Terms & Conditions</a>
                 <a href="{{ route('front.privacy-policy.index') }}" class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Privacy Policy</a>
+                <a href="https://opportunities.kabba.ai/" target="_blank" class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Employment Opportunities</a>
+
             </div>
 
             @php

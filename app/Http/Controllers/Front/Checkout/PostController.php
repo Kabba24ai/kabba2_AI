@@ -246,13 +246,13 @@ class PostController extends Controller
                         'distance_type' => $item['distance_type'] ?? null,
                         'distance_range' => $item['distance_range'] ?? null,
 
-                        'delivery_transport_mode' => $item['delivery_transport_mode'] ?? $primaryStoreId,
-                        'delivery_store_id' => $item['delivery_store_id'] ?? null,
+                        'delivery_transport_mode' => $item['delivery_transport_mode'] ?? null,
+                        'delivery_store_id' => $item['delivery_store_id'] ?? $primaryStoreId,
                         'delivery_date' => !empty($item['delivery_date']) ? Carbon::parse($item['delivery_date'])->format(config('app.date.db_date_format')) : null,
                         'delivery_time' => !empty($item['delivery_time']) ? Carbon::parse($item['delivery_time'])->format(config('app.date.db_time_format')) : null,
 
-                        'pickup_transport_mode' => $item['pickup_transport_mode'] ?? $primaryStoreId,
-                        'pickup_store_id' => $item['pickup_store_id'] ?? null,
+                        'pickup_transport_mode' => $item['pickup_transport_mode'] ?? null,
+                        'pickup_store_id' => $item['pickup_store_id'] ?? $primaryStoreId,
                         'pickup_date' => !empty($item['pickup_date']) ? Carbon::parse($item['pickup_date'])->format(config('app.date.db_date_format')) : null,
                         'pickup_time' => !empty($item['pickup_time']) ? Carbon::parse($item['pickup_time'])->format(config('app.date.db_time_format')) : null,
                     ]);

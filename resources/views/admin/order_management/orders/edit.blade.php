@@ -105,6 +105,61 @@
                     class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white hover:bg-orange-600 focus:outline-none">
                     <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
                 </button>
+                <!-- Reorder Modal -->
+                <div id="reorderModal"
+                    class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+                    <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+                        <!-- Header -->
+                        <div class="flex justify-between items-center p-4 border-b">
+                            <h2 class="text-lg font-semibold">Reorder</h2>
+                            <button type="button"
+                                class="close-reorder-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+                        </div>
+                        <!-- Body -->
+                        <form id="reorderForm" class="flex-1 flex flex-col justify-between">
+                            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 required">Order Type</label>
+                                    <select id="orderTypeSelect" name="order_type"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
+                                        required>
+                                        <option value="new">New Independent Order</option>
+                                        <option value="duplicate">Related to Existing Order</option>
+                                    </select>
+                                </div>
+                                <div id="duplicateOrderSection" class="hidden">
+                                    <label class="text-sm font-medium text-gray-700 mb-2">Products</label>
+                                    <div class="space-y-2">
+                                        @foreach ($order->products as $orderProduct)
+                                            @if (!empty($orderProduct->product))
+                                                <div class="flex items-center gap-2">
+                                                    <span class="flex-1">{{ $orderProduct->product_name }}</span>
+                                                    <input type="text"
+                                                        name="delivery_dates[{{ $orderProduct->product->unique_id }}]"
+                                                        data-format="{{ config('app.date.js_date_format') }}"
+                                                        placeholder="Select date"
+                                                        data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                                        class="reorder-datepicker border rounded px-3 py-3 text-xs" />
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Footer -->
+                            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                                <button type="button"
+                                    class="close-reorder-modal-btn px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                    class="px-6 py-3 rounded-lg font-medium text-md bg-orange-600 text-white hover:bg-orange-700 shadow-sm transition">
+                                    Continue
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
                 <div class="flex flex-col">
                     <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"

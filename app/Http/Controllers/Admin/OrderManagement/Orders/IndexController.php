@@ -66,7 +66,7 @@ class IndexController extends Controller
                     $q->whereRelation('lastPayment', 'status', $request->payment_status);
                 });
 
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $orders = $query->latest('id')->paginate($perPageVal)->withQueryString();
 

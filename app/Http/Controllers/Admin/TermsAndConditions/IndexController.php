@@ -21,7 +21,7 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         if($request->ajax()){
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, Terms::count()) : (int) $perPage;
 
             $terms = Terms::query();

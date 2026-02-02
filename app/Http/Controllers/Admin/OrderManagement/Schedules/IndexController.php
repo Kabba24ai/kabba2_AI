@@ -182,7 +182,7 @@ class IndexController extends Controller
                 });
             }
 
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $orderProducts = $query->orderBy($orderByField, 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 

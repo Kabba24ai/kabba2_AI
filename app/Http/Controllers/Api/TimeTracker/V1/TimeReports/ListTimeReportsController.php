@@ -13,7 +13,7 @@
     {
         public function __invoke(Request $request): JsonResponse
         {
-            $perPage = (int) $request->get('per_page', 10);
+            $perPage = (int) $request->get('per_page', 30);
             $perPage = in_array($perPage, [5, 10, 30, 50, 100, 500]) ? $perPage : 10;
 
             $year = Carbon::now()->year;
@@ -70,7 +70,7 @@
 
                 $vacationHours = round(
                         $user->approvedVacationRequests
-                            ->where(fn ($req) => 
+                            ->where(fn ($req) =>
                                 Carbon::parse($req->start_date)->between($startDate, $endDate)
                             )
                             ->sum(fn ($req) => $req->requestHour?->hours ?? 0),

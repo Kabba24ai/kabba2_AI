@@ -22,7 +22,7 @@ class IndexController extends Controller
 
             $query = SalesFunnelCategory::query();
 
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $categories = $query->latest('id')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 

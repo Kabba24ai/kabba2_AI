@@ -12,7 +12,7 @@ class ListVacationBalancesController extends BaseController
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $perPage = (int) $request->get('per_page', 10);
+        $perPage = (int) $request->get('per_page', 30);
         $perPage = in_array($perPage, [5, 10, 30, 50, 100, 500]) ? $perPage : 10;
 
         $year = Carbon::now()->year;
@@ -26,7 +26,7 @@ class ListVacationBalancesController extends BaseController
             'approvedVacationRequests.requestHour',
         ])
         ->where('vacation_eligible', true)
-        ->active()  
+        ->active()
         ->orderBy('first_name')
         ->paginate($perPage);
 
@@ -46,7 +46,7 @@ class ListVacationBalancesController extends BaseController
             $accruedHours = min($accruedHours, $allottedHours);
 
             //  Used vacation hours (approved)
-            
+
             $usedHours = $user
                         ->approvedVacationRequestsForYear($year)
                         ->with('requestHour')

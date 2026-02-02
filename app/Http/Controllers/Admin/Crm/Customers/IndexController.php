@@ -19,7 +19,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-      
+
         if ($request->ajax()) {
             // $query = Customer::with('orders', 'addresses')
             //     ->whereIn('status', ['Active', 'Archived'])
@@ -78,7 +78,7 @@ class IndexController extends Controller
                 $query->where('tax_status', $request->tax_status);
             }
 
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $customers = $query->latest('id')->paginate($perPageVal)->withQueryString();
 

@@ -26,7 +26,7 @@ if ($category = request('categoryFilter')) {
     $query->where('equipment_category_id', $category);
 }
 
-$perPage = request('per_page', 10);
+$perPage = request('per_page', 30);
 $perPageVal = $perPage === 'all' ? $query->count() : (int) $perPage;
 
 $checklistMasters = $query->paginate($perPageVal)->withQueryString();

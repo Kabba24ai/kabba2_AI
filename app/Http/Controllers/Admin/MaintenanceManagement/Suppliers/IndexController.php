@@ -18,7 +18,7 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        
+
 
         $parts = Part::orderBy('part_name')->get();
 
@@ -41,7 +41,7 @@ class IndexController extends Controller
 
         // Search by company
         if ($request->filled('company_search')) {
-          
+
             $query->where('name', 'like', "%{$request->company_search}%");
         }
 
@@ -49,7 +49,7 @@ class IndexController extends Controller
 
         // Filter by Tag ID
         if ($request->filled('tag') && $request->tag !== '') {
-               
+
 
             $tagId = $request->tag;
             $query->whereRaw('FIND_IN_SET(?, tags)', [$tagId]);
@@ -61,11 +61,11 @@ class IndexController extends Controller
         // Search by part name (primary / alt1 / alt2 supplier parts)
         if ($request->filled('part_search')) {
 
-                   
+
 
 
             $searchTerm = $request->part_search;
-    
+
             $query->where(function ($q) use ($searchTerm) {
                 $q->whereHas('primaryParts', function ($sub) use ($searchTerm) {
                     $sub->where('part_name', 'like', "%{$searchTerm}%");
@@ -83,19 +83,19 @@ class IndexController extends Controller
         // Search by category
         if ($request->category !== null && $request->category !== "") {
 
-                   
+
 
 
             $category = $request->category;
 
             $query->where(function ($q) use ($category) {
-                $q->whereHas('primaryParts.partsLists', fn($sub) => 
+                $q->whereHas('primaryParts.partsLists', fn($sub) =>
                     $sub->where('category_id', $category)
                 )
-                ->orWhereHas('alt1Parts.partsLists', fn($sub) => 
+                ->orWhereHas('alt1Parts.partsLists', fn($sub) =>
                     $sub->where('category_id', $category)
                 )
-                ->orWhereHas('alt2Parts.partsLists', fn($sub) => 
+                ->orWhereHas('alt2Parts.partsLists', fn($sub) =>
                     $sub->where('category_id', $category)
                 );
             });
@@ -103,16 +103,16 @@ class IndexController extends Controller
 
         // Status filter
       if ($request->status !== null && $request->status !== "") {
-                 
+
 
         $query->where('status', ucfirst($request->status));
 }
-  
+
 
         // Always sort alphabetically by supplier name
         $query->orderBy('name', 'ASC');
 
-        $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 30);
         $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
 
         $suppliers = $query->paginate($perPageVal)->withQueryString();
@@ -128,7 +128,7 @@ class IndexController extends Controller
 
         // dd($parts);
                 //  $categories = ProductCategory::with('products', 'equipments')->get();
-                
+
         $categories = ProductCategory::getHierarchy();
 
         if ($request->ajax()) {

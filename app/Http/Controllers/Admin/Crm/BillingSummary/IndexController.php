@@ -51,7 +51,7 @@ class IndexController extends Controller
                         $query->where('status', 'Archived');
                         break;
                 }
-            } 
+            }
 
             if ($request->filled('credit_types')) {
                 $types = $request->input('credit_types');
@@ -112,7 +112,7 @@ class IndexController extends Controller
     ");
             }
             // Handle AJAX request for filtering and sorting
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
 
             // Clone AFTER filters are applied this will send whne ajex request

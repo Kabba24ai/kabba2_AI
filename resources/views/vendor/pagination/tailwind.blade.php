@@ -1,4 +1,4 @@
-@if ($paginator->hasPages())
+@if ($paginator instanceof \Illuminate\Contracts\Pagination\Paginator)
     @php
         // read per_page from query (fallback 10)
         $perPage = request('per_page', 30);

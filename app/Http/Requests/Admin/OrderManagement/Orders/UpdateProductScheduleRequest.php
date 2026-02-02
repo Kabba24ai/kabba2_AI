@@ -67,14 +67,14 @@ class UpdateProductScheduleRequest extends ApiBaseFormRequest
             'delivery_date' => 'nullable|date',
             'delivery_time' => 'nullable|string',
             'delivery_transport_mode' => 'nullable|string|in:Store,Truck',
-            'delivery_status' => 'nullable|string|in:Pending,Completed,Reschedule',
+            'delivery_status' => 'nullable|string|in:Pending,Completed,Reschedule,Close as Completed',
             'delivery_store_id' => 'nullable|integer|exists:stores,id',
             'delivery_by' => 'nullable|integer|exists:users,id',
             // Return fields (pickup in DB)
             'pickup_date' => 'nullable|date',
             'pickup_time' => 'nullable|string',
             'pickup_transport_mode' => 'nullable|string|in:Store,Truck',
-            'pickup_status' => 'nullable|string|in:Pending,Completed,Reschedule',
+            'pickup_status' => 'nullable|string|in:Pending,Completed,Reschedule,Close as Completed',
             'pickup_store_id' => 'nullable|integer|exists:stores,id',
             'pickup_by' => 'nullable|integer|exists:users,id',
         ];

@@ -535,12 +535,12 @@
                                                         class="border rounded px-px-3 py-3 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront class="w-4 h-4"
-                                                                x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' :
+                                                                x-bind:class="(deliveryStatus === 'Completed' || deliveryStatus === 'Close as Completed') ? 'text-green-600' :
                                                                     'text-yellow-600'" />
                                                         </template>
                                                         <template x-if="selected === 'Truck'">
                                                             <x-heroicon-o-truck class="w-4 h-4"
-                                                                x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' :
+                                                                x-bind:class="(deliveryStatus === 'Completed' || deliveryStatus === 'Close as Completed') ? 'text-green-600' :
                                                                     'text-yellow-600'" />
                                                         </template>
                                                     </button>
@@ -552,7 +552,7 @@
                                                                     @click="selected = 'Store'; open = false;  $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-building-storefront class="w-4 h-4"
-                                                                        x-bind:class="deliveryStatus === 'Completed' ?
+                                                                        x-bind:class="(deliveryStatus === 'Completed' || deliveryStatus === 'Close as Completed') ?
                                                                             'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
@@ -561,7 +561,7 @@
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-truck class="w-4 h-4"
-                                                                        x-bind:class="deliveryStatus === 'Completed' ?
+                                                                        x-bind:class="(deliveryStatus === 'Completed' || deliveryStatus === 'Close as Completed') ?
                                                                             'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
@@ -584,6 +584,9 @@
                                                     <option value="Completed"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}>
                                                         Completed</option>
+                                                    <option value="Close as Completed"
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Close as Completed' ? 'selected' : '' }}>
+                                                        Close as Completed</option>
                                                     <option value="Reschedule"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
                                                         Reschedule</option>
@@ -661,12 +664,12 @@
                                                         class="border rounded px-3 py-3 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront class="w-4 h-4"
-                                                                x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' :
+                                                                x-bind:class="(pickupStatus === 'Completed' || pickupStatus === 'Close as Completed') ? 'text-green-600' :
                                                                     'text-yellow-600'" />
                                                         </template>
                                                         <template x-if="selected === 'Truck'">
                                                             <x-heroicon-o-truck class="w-4 h-4"
-                                                                x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' :
+                                                                x-bind:class="(pickupStatus === 'Completed' || pickupStatus === 'Close as Completed') ? 'text-green-600' :
                                                                     'text-yellow-600'" />
                                                         </template>
                                                     </button>
@@ -678,7 +681,7 @@
                                                                     @click="selected = 'Store'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-building-storefront class="w-4 h-4"
-                                                                        x-bind:class="pickupStatus === 'Completed' ?
+                                                                        x-bind:class="(pickupStatus === 'Completed' || pickupStatus === 'Close as Completed') ?
                                                                             'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
@@ -687,7 +690,7 @@
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-truck class="w-4 h-4"
-                                                                        x-bind:class="pickupStatus === 'Completed' ?
+                                                                        x-bind:class="(pickupStatus === 'Completed' || pickupStatus === 'Close as Completed') ?
                                                                             'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
@@ -710,6 +713,9 @@
                                                     <option value="Completed"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}>
                                                         Completed</option>
+                                                    <option value="Close as Completed"
+                                                        {{ ($orderProduct->pickup_status ?? '') === 'Close as Completed' ? 'selected' : '' }}>
+                                                        Close as Completed</option>
                                                     {{-- <option value="Reschedule"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
                                                         Reschedule</option> --}}

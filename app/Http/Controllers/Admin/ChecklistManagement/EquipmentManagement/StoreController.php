@@ -99,12 +99,14 @@ class StoreController extends Controller
                     'updated_by' => auth()->id(),
                 ]);
 
+
+
+
+
                 $template = $existingTemplate;
 
                 // Update/create questions
                 foreach ((array) data_get($qaPayload, 'questions', []) as $index => $q) {
-
-
 
                     $qidRaw = data_get($q, 'id'); // could be numeric id or unique_id from FE
 
@@ -287,7 +289,6 @@ class StoreController extends Controller
 
             // Update equipment status
             if ($equipment = Equipment::find($request->input('equipment_id'))) {
-                
                 $equipment->update([
                     'current_status' => match ($status) {
                         'available' => 'available',
@@ -297,6 +298,7 @@ class StoreController extends Controller
                     'updated_by' => auth()->id(),
                     'current_status_changed_at' => now(),
                     'current_status_updated_by' => $request->input('inspectorSelect'),
+                    'equipment_hours' => $request->input('equipmentHours'),
                 ]);
                 Log::info('Equipment status updated', ['equipment_id' => $equipment->id, 'current_status' => $equipment->current_status]);
             } else {

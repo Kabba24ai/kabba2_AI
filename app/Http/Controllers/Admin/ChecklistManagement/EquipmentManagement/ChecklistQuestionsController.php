@@ -20,13 +20,6 @@ class ChecklistQuestionsController extends Controller
             $equipment_id     = $request->input('equipment_id');
             $order_product_id = $request->input('order_product_id');
 
-
-            // Log::info('Checklist request params', [
-            //     'checklist_id'     => $checklist_id,
-            //     'equipment_id'     => $equipment_id,
-            //     'order_product_id' => $order_product_id,
-            // ]);
-
             // Required params
             if (!$checklist_id || !$equipment_id) {
                 return response()->json([
@@ -50,7 +43,6 @@ class ChecklistQuestionsController extends Controller
                     'message' => 'Equipment not found'
                 ], 404);
             }
-
            
             // CASE 1: Fresh template OR existing with no order_product_id
             if (!$order_product_id || $order_product_id === '-') {
@@ -65,7 +57,6 @@ class ChecklistQuestionsController extends Controller
 
                 return $this->returnFreshTemplate($equipment, $checklist);
             }
-
 
             // CASE 2: Existing template (with order_product_id)
             $orderProduct = OrderProduct::with([

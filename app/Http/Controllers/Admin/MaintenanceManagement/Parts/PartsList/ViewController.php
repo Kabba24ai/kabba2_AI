@@ -21,6 +21,8 @@ class ViewController extends Controller
             return $part->primary_part_cost ?? 0;
         });
 
+        // dd($list->product_details);
+
         return view('admin.maintenance_management.parts.parts_list.view', compact(
             'list',
             'parts',

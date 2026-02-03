@@ -121,8 +121,8 @@
 
                         $employmentOpportunitiesUrl = match ($host) {
                             'kabba.local'   => 'http://localhost:5173',
-                            'front.kabba.ai/'      => 'https://opportunities.kabba.ai/',
-                            'rentnking.com/' => 'https://opportunities.rentnking.com/',
+                            'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
+                            'rentnking.com' => 'https://opportunities.rentnking.com/',
                             default               => 'https://opportunities.rentnking.com/',
                         };
                     @endphp

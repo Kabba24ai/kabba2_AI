@@ -174,6 +174,7 @@ class SaveDeliveryController extends BaseController
             $orderProductData['assigned_by'] = $validated['user_id'];
             $orderProductData['assigned_at'] = now();
 
+            $equipment->equipment_hours = $validated['start_hours'] ?? null;
             $equipment->current_status = EquipmentCurrentStatus::Rented->value;
             $equipment->current_status_updated_by = $validated['user_id'];
             $equipment->current_status_changed_at = now();

@@ -113,6 +113,7 @@ class SaveReturnController extends BaseController
             'is_returned' => true,
             'end_hours' => $validated['end_hours'] ?? null,
             'fuel_final_reading' => $validated['fuel_final_reading'] ?? null,
+            'fuel_total_charge' => $validated['fuel_total_charge'] ?? null,
             'total_charge' => $validated['total_charge'] ?? null,
         ];
 
@@ -126,6 +127,7 @@ class SaveReturnController extends BaseController
         $orderProduct->update($orderProductData);
 
         if ($equipment) {
+            $equipment->equipment_hours = $validated['end_hours'] ?? null;
             $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
             $equipment->current_status_updated_by = $validated['user_id'];
             $equipment->current_status_changed_at = now();

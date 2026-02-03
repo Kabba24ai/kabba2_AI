@@ -71,6 +71,16 @@
                 </div>
             </div>
 
+            <div class="w-full sm:w-35">
+                <div class="relative bg-white">
+                    <input type="text" id="order_number" placeholder="Order ID"
+                        name="order_number" value="{{ request('order_number') }}"
+                        class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                    <x-heroicon-o-magnifying-glass
+                        class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
+                </div>
+            </div>
+
             {{-- Category --}}
             <div class="w-full sm:w-48">
                 {{-- <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label> --}}
@@ -399,6 +409,7 @@
             let customerNameInput = document.querySelector('input[name="customer_name"]');
             let customerCompanyNameInput = document.querySelector('input[name="customer_company_name"]');
             let customerPhoneInput = document.querySelector('input[name="customer_phone"]');
+            let orderNumberInput = document.querySelector('input[name="order_number"]');
             let categoryInput = document.querySelector('select[name="category"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
             let paymentMethodInput = document.querySelector('select[name="payment_method"]');
@@ -420,6 +431,7 @@
                 'customer_name': customerNameInput,
                 'customer_company_name': customerCompanyNameInput,
                 'customer_phone': customerPhoneInput,
+                'order_number': orderNumberInput,
                 'category': categoryInput,
                 'payment_status': paymentStatusInput,
                 'payment_method': paymentMethodInput,
@@ -443,6 +455,7 @@
                         .length === 0)) params.append('customer_company_name', customerCompanyNameInput.value);
                 if (customerPhoneInput && (customerPhoneInput.value.length >= 3 || customerPhoneInput.value
                         .length === 0)) params.append('customer_phone', customerPhoneInput.value);
+                if (orderNumberInput && (orderNumberInput.value.length >= 1 || orderNumberInput.value.length === 0)) params.append('order_number', orderNumberInput.value);
                 if (categoryInput && categoryInput.value) params.append('category', categoryInput.value);
                 if (paymentStatusInput && paymentStatusInput.value) params.append('payment_status',
                     paymentStatusInput.value);
@@ -533,6 +546,10 @@
                 timeout = setTimeout(fetchSchedules, 400);
             });
             if (customerPhoneInput) customerPhoneInput.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(fetchSchedules, 400);
+            });
+            if (orderNumberInput) orderNumberInput.addEventListener('input', function() {
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchSchedules, 400);
             });

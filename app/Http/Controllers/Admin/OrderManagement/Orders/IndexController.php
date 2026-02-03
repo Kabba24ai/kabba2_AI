@@ -44,6 +44,10 @@ class IndexController extends Controller
                     });
                 })
 
+                ->when($request->filled('order_number'), function ($q) use ($request) {
+                    $q->where('order_number', 'like', "%{$request->order_number}%");
+                })
+
                 ->when($request->filled('category'), function ($q) use ($request) {
                     $q->whereHas('products.product.categories', function ($s) use ($request) {
                         $s->where('product_categories.id', $request->category); // fully qualified

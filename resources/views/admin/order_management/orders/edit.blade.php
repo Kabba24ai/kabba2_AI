@@ -1051,10 +1051,11 @@
                 </h2>
                 <!-- Add Note Button -->
                 <button
-                    class="absolute top-4 right-4 flex items-center gap-1 px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700"
+                    class="absolute top-3 right-3 flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
                     id="addNoteBtn">
                     <x-heroicon-o-plus class="w-4 h-4" /> Add Note
                 </button>
+
                 <div class="p-6 max-h-60 overflow-y-auto mt-10" id="noteDiv">
                     <x-admin.order-management.orders.order-notes-list :notes="$order->notes" />
                 </div>

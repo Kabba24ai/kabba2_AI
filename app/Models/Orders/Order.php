@@ -63,6 +63,7 @@ class Order extends Model
         'view_link', // For generating view link in schedules
         'last_payment_type',
         'last_payment_status',
+        'is_paid',
     ];
 
     // Customer relationship (if you want)
@@ -205,6 +206,11 @@ class Order extends Model
     {
         $lastPayment = $this->lastPayment;
         return $lastPayment ? $lastPayment->status->label() : null;
+    }
+
+    public function getIsPaidAttribute()
+    {
+        return $this->payments()->where('status', \App\Enums\Orders\OrderPaymentStatus::Paid)->exists();
     }
 
     public function getTotalRefundedAttribute()

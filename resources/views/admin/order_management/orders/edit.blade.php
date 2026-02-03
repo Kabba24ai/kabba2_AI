@@ -47,7 +47,7 @@
                         </button>
                     @endif
 
-                    @if ($order->last_payment_status === 'Paid')
+                    @if ($order->is_paid)
                         <span
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
@@ -64,15 +64,15 @@
                         </span>
                     @endif
 
-                    @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount > 0)
+                    @if ($order->is_paid === true && $order->remaining_amount > 0)
                         <button id="refundPaymentBtn" type="button"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
                             <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
-                            Refund
+                            {{ $order->last_payment_status === 'Partial Refund' ? 'Partial Refund' : 'Refund' }}
                         </button>
                     @endif
 
-                    @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount == 0)
+                    @if ($order->remaining_amount == 0)
                         <button type="button"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
                             <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
@@ -1500,6 +1500,37 @@
                             <p id="rf_err_reason" class="text-red-500 text-xs mt-1 hidden">
                                 Please enter a reason for the refund.
                             </p>
+                        </div>
+
+                        <!-- Payment Type -->
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 required" for="refund_payment_type">
+                                Payment Type
+                            </label>
+                            @php
+                                $refundOptions = [
+                                    '' => 'Select payment method',
+                                    \App\Enums\Customers\PaymentMethod::Cash->value => 'Cash',
+                                    \App\Enums\Customers\PaymentMethod::Cheque->value => 'Check',
+                                    \App\Enums\Customers\PaymentMethod::BankTransfer->value => 'Bank Transfer',
+                                    \App\Enums\Customers\PaymentMethod::Other->value => 'Other',
+                                ];
+                                if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card->value) {
+                                    $refundOptions[\App\Enums\Customers\PaymentMethod::CreditCard->value] = 'Credit / Debit Card';
+                                }
+                            @endphp
+                            {!! html()->select('payment_type', $refundOptions)->id('refund_payment_type')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
+                            <small class="text-gray-500 mt-1 block">Note: Credit/Debit Card option is only available if the initial payment was made by Credit/Debit Card.</small>
+                        </div>
+
+                        <!-- Cheque Number (hidden by default) -->
+                        <div id="refund_cheque_number_field" class="hidden">
+                            <label class="text-sm font-medium text-gray-700" for="cheque_number">
+                                Check Number
+                            </label>
+                            <input type="text" id="refund_cheque_number" name="cheque_number"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
+                                placeholder="Enter Check number" />
                         </div>
 
                         <!-- Type indicator -->
@@ -3403,6 +3434,18 @@
                 if (!errReason.classList.contains('hidden')) hide(errReason);
             });
 
+            // ===== Show/hide refund cheque field =====
+            const refundPaymentType = document.getElementById('refund_payment_type');
+            const refundChequeNumberField = document.getElementById('refund_cheque_number_field');
+
+            refundPaymentType.addEventListener('change', function() {
+                if (this.value === 'Cheque') {
+                    refundChequeNumberField.classList.remove('hidden');
+                } else {
+                    refundChequeNumberField.classList.add('hidden');
+                }
+            });
+
             document.getElementById('refundForm').addEventListener('submit', function(e) {
                 e.preventDefault();
 
@@ -3441,7 +3484,9 @@
                         },
                         body: JSON.stringify({
                             amount: amt,
-                            reason: reason
+                            reason: reason,
+                            payment_type: document.getElementById('refund_payment_type').value,
+                            cheque_number: document.getElementById('refund_cheque_number').value || null
                         })
                     })
                     .then(res => {

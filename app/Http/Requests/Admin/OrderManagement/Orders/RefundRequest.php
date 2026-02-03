@@ -16,7 +16,12 @@ class RefundRequest extends ApiBaseFormRequest
     {
         return [
             'amount' => ['required', 'numeric', 'min:0.01'],
+
             'reason' => ['required', 'string', 'max:255'],
+
+            'payment_type' => ['required', 'string', 'in:' . implode(',', array_column(\App\Enums\Customers\PaymentMethod::cases(), 'value'))],
+
+            'cheque_number' => ['required_if:payment_type,Cheque', 'nullable', 'string', 'max:255'],
         ];
     }
 }

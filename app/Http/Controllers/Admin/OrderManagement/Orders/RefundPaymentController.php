@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Enums\Customers\PaymentMethod;
 use App\Events\Admin\Orders\RefundInitiateEvent;
 use App\Http\Controllers\Controller;
 
@@ -17,6 +18,20 @@ use App\Services\AuthorizeNetService;
 class RefundPaymentController extends Controller
 {
     /**
+     * Map Customers\PaymentMethod to Orders\OrderPaymentMethod
+     */
+    private function mapPaymentMethod(string $customerPaymentMethod): string
+    {
+        return match ($customerPaymentMethod) {
+            PaymentMethod::CreditCard->value => OrderPaymentMethod::Card->value,
+            PaymentMethod::Cash->value => OrderPaymentMethod::Cash->value,
+            PaymentMethod::Cheque->value => OrderPaymentMethod::Cheque->value,
+            PaymentMethod::BankTransfer->value => OrderPaymentMethod::Online->value,
+            PaymentMethod::Other->value => OrderPaymentMethod::Other->value,
+            default => OrderPaymentMethod::Other->value,
+        };
+    }
+    /**
      * Handle refunding of orders.
      */
     public function __invoke($uniqueId, RefundRequest $request)
@@ -28,40 +43,58 @@ class RefundPaymentController extends Controller
         try {
             $order = Order::has('lastPaidPayment')->with('customer')->where('unique_id', $uniqueId)->firstOrFail();
 
-            $lastPaymentId = $order->lastPaidPayment->transaction_id;
+            $lastPayment = $order->lastPaidPayment;
+            $lastPaymentId = $lastPayment->transaction_id;
             $lastRefundPaymentId = $order?->lastRefundPayment?->transaction_id;
 
-            // Here you would integrate with your payment gateway to process the refund.
-            $authorizeNetService = new AuthorizeNetService();
+            $refundPaymentType = $validated['payment_type'];
+            $isCardRefund = $refundPaymentType === PaymentMethod::CreditCard->value;
+            $isOriginalCard = $lastPayment->payment_method === OrderPaymentMethod::Card->value;
 
-            if($lastRefundPaymentId){
-                $transactionDetails = $authorizeNetService->getTransactionDetails($lastRefundPaymentId);
-                if (!in_array($transactionDetails->status, ['settledSuccessfully','refundSettledSuccessfully'])) {
+            if ($isCardRefund && $isOriginalCard) {
+                // Here you would integrate with your payment gateway to process the refund.
+                $authorizeNetService = new AuthorizeNetService();
+
+                if($lastRefundPaymentId){
+                    $transactionDetails = $authorizeNetService->getTransactionDetails($lastRefundPaymentId);
+                    if (!in_array($transactionDetails->status, ['settledSuccessfully','refundSettledSuccessfully'])) {
+                        return response()->json(
+                            [
+                                'success' => false,
+                                'message' => 'Last Refund transaction not settled, retry after the transaction settles.',
+                            ],
+                            400,
+                        );
+                    }
+
+                }
+
+                $response = $authorizeNetService->refundOrder($lastPaymentId, $validated['amount'], [
+                    'order_number' => $order->order_number,
+                    'refund_note' => $validated['reason'],
+                ]);
+
+                if (($response['status'] ?? null) !== 'success') {
+                    logger()->error('Refund failed for Order ID: ' . $order->unique_id . ' - ' . ($response['message'] ?? 'Unknown error'));
                     return response()->json(
                         [
                             'success' => false,
-                            'message' => 'Last Refund transaction not settled, retry after the transaction settles.',
+                            'message' => 'Refund failed: ' . ($response['message'] ?? 'Unknown error'),
                         ],
-                        400,
+                        500,
                     );
                 }
 
-            }
+                $transactionId = $response['transaction_id'] ?? null;
+                $cardNumber = $response['card_number'] ?? null;
+                $authCode = $response['auth_code'] ?? null;
+            } else {
+                // For non-card refunds or if original was not card, just log the refund without processing through gateway
+                logger()->info('Refund logged for Order ID: ' . $order->unique_id . ' - Refund Payment Method: ' . $refundPaymentType . ' - Amount: ' . $validated['amount'] . ' - Reason: ' . $validated['reason']);
 
-            $response = $authorizeNetService->refundOrder($lastPaymentId, $validated['amount'], [
-                'order_number' => $order->order_number,
-                'refund_note' => $validated['reason'],
-            ]);
-
-            if (($response['status'] ?? null) !== 'success') {
-                logger()->error('Refund failed for Order ID: ' . $order->unique_id . ' - ' . ($response['message'] ?? 'Unknown error'));
-                return response()->json(
-                    [
-                        'success' => false,
-                        'message' => 'Refund failed: ' . ($response['message'] ?? 'Unknown error'),
-                    ],
-                    500,
-                );
+                $transactionId = null;
+                $cardNumber = null;
+                $authCode = null;
             }
 
             // Use accessor instead of manual sum
@@ -95,13 +128,16 @@ class RefundPaymentController extends Controller
             $payment = $order->payments()->create([
                 'payment_datetime' => now(),
                 'parent_order_payment_id' => $order->lastPayment->id,
-                'payment_method' => OrderPaymentMethod::Card->value,
-                'transaction_id' => $response['transaction_id'] ?? null,
-                'card_number' => $response['card_number'] ?? null,
-                'auth_code' => $response['auth_code'] ?? null,
+                'payment_method' => $this->mapPaymentMethod($refundPaymentType),
+                'transaction_id' => $transactionId,
+                'card_number' => $cardNumber,
+                'auth_code' => $authCode,
                 'status' => $refundStatus->value,
                 'refund_amount' => $currentRefundAmount,
                 'refund_note' => $validated['reason'],
+                'cheque_number' => $validated['cheque_number'] ?? null,
+                'created_by_type' => get_class($user),
+                'created_by_id' => $user->id,
             ]);
 
             event(new RefundInitiateEvent($order, $user, $payment));

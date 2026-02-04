@@ -20,7 +20,7 @@ enum OrderPaymentMethod : string
             self::Card => 'Credit/Debit Card',
             self::Cash => 'Pay at Front Desk',
             self::Online => 'Direct Bank Transfer',
-            self::Cheque => 'Pay by Check',
+            self::Cheque => 'Check',
             self::Other => 'Other Payment Method',
         };
     }

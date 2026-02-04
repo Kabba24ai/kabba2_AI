@@ -29,9 +29,8 @@ class IndexController extends Controller
                 ->where('product_data->product_type', 'Rental')
                 ->whereNotNull('delivery_date');
 
-            if ($request->filled('')) {
-                $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
-            }
+
+            $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
 
             if ($request->filled('order_number')) {
                 $query->whereHas('order', function ($q) use ($request) {

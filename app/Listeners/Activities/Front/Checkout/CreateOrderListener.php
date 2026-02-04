@@ -8,9 +8,9 @@ use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-
-class CreateOrderListener
+class CreateOrderListener implements ShouldQueue
 {
     /**
      * Handle the event.

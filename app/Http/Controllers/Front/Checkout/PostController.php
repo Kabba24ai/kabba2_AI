@@ -226,8 +226,13 @@ class PostController extends Controller
 
             $primaryStoreId = Store::primary()->value('id');
 
+            // Fetch all products at once to avoid N+1 queries
+            $productUniqueIds = collect($cartSummary['cart_items'])->pluck('product_unique_id')->unique();
+            $products = Product::whereIn('unique_id', $productUniqueIds)->get()->keyBy('unique_id');
+
             foreach ($cartSummary['cart_items'] as $item) {
-                if ($product = Product::where('unique_id', $item['product_unique_id'])->first()) {
+                $product = $products[$item['product_unique_id']] ?? null;
+                if ($product) {
                     $order->products()->create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
@@ -258,6 +263,9 @@ class PostController extends Controller
                     ]);
                 }
             }
+
+            // Eager load products and their terms for terms generation
+            $order->load(['products.product.terms']);
 
             $termsContentData = TermsContentHelper::generateTermsContent($order);
 
@@ -505,13 +513,21 @@ class PostController extends Controller
             }
 
             // Success: redirect to signed thank you page with order id
-            return redirect($redirectUrl);
+
+            return response()->json([
+                'success' => true,
+                'redirect_url' => $redirectUrl,
+                'order_id' => $order->unique_id ?? ''
+            ]);
         } catch (\Exception $e) {
             // Log the error if needed: logger($e);
             logger($e);
             DB::rollback();
 
-            return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong. Please try again.'
+            ]);
         }
     }
 }

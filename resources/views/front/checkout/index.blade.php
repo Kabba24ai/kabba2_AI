@@ -821,14 +821,48 @@
                 checkoutBtnLoader.classList.add('hidden');
             }
 
+            function getFormDataAsObject(form) {
+                const formData = new FormData(form);
+                const data = {};
+                for (let [key, value] of formData.entries()) {
+                    data[key] = value;
+                }
+                return data;
+            }
+
+            function submitCheckout(data) {
+                const url = window.location.href; // Post to same URL
+                apiFetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-Requested-With': 'XMLHttpRequest' // To indicate AJAX
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (response.success) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        notyf.error(response.message || 'An error occurred during checkout.');
+                    }
+                })
+                .finally(() => {
+                    setTimeout(() => {
+                        enableCheckoutButton();
+                    }, 200); // Small delay to prevent flicker if redirecting immediately
+                });
+            }
+
             form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Always prevent default submission
 
                 const employeeCode = document.getElementById('employee_code').value.trim();
                 const isRequired =
                     '{{ session()->has('impersonated_by_admin') || session()->has('master_passcode') }}';
                 if (isRequired && !employeeCode) {
                     notyf.error('Employee code is required.');
-                    e.preventDefault();
                     return;
                 }
 
@@ -838,27 +872,23 @@
                     force: true
                 });
                 if (!isFormValid) {
-                    // Stop everything: do not show loader
-                    e.preventDefault();
-
                     // Use custom helper method
                     const parsleyErrors = Parsley.getHiddenFieldErrors(parsleyForm);
                     if (parsleyErrors.length > 0) {
                         parsleyErrors.forEach(error => notyf.error(error));
                     }
-
-                    enableCheckoutButton();
                     return;
                 }
 
                 // 1. Cart validation
                 let cart = window.CartStorage.getCart();
                 if (!cart || cart.length === 0) {
-                    e.preventDefault();
                     notyf.error('Your cart is empty. Please add items before checking out.');
                     return;
                 }
                 document.getElementById('cart-input').value = JSON.stringify(cart);
+
+                disableCheckoutButton();
 
                 // 2. Only process credit card fields if "Card" payment is selected
                 const paymentType = document.querySelector('input[name="payment"]:checked');
@@ -870,14 +900,12 @@
 
                     // If impersonated and using a saved card → no need to tokenize new card
                     if (impersonatedByAdmin && customerCard) {
-                        // Just submit directly (no Accept.js needed)
-                        disableCheckoutButton();
-                        form.submit();
+                        // Just submit directly via API
+                        const data = getFormDataAsObject(form);
+                        submitCheckout(data);
                         return;
                     }
 
-                    e.preventDefault(); // Pause form submit until Accept.js finishes
-                    disableCheckoutButton();
                     try {
 
                         // Card fields
@@ -944,34 +972,24 @@
 
                         Accept.dispatchData(secureData, function(response) {
                             if (response.messages.resultCode === "Error") {
-                                let errorMsg = response.messages.message.map(m => m.text).join(
-                                    ', ');
+                                let errorMsg = response.messages.message.map(m => m.text).join(', ');
                                 notyf.error('Card Error: ' + errorMsg);
                                 enableCheckoutButton();
                             } else {
-                                document.getElementById('opaqueDataValue').value = response
-                                    .opaqueData
-                                    .dataValue;
-                                document.getElementById('opaqueDataDescriptor').value = response
-                                    .opaqueData.dataDescriptor;
-                                form.submit(); // Now actually submit the form
+                                document.getElementById('opaqueDataValue').value = response.opaqueData.dataValue;
+                                document.getElementById('opaqueDataDescriptor').value = response.opaqueData.dataDescriptor;
+                                const data = getFormDataAsObject(form);
+                                submitCheckout(data);
                             }
                         });
                     } catch (error) {
                         notyf.error(error.message);
                         enableCheckoutButton();
                     }
-
-                    // Don't submit until Accept.js finishes
-                    return false;
                 } else {
-                    // For non-card payments: disable briefly
-                    disableCheckoutButton();
-
-                    // Restore button after 2 seconds (optional)
-                    setTimeout(() => {
-                        enableCheckoutButton();
-                    }, 2000);
+                    // For non-card payments: submit via API
+                    const data = getFormDataAsObject(form);
+                    submitCheckout(data);
                 }
             });
 

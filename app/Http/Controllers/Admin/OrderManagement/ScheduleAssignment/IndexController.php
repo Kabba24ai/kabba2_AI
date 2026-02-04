@@ -149,7 +149,12 @@ class IndexController extends Controller
                 });
             })
             ->whereDoesntHave('softAssignment')
-            ->whereDoesntHave('equipment');
+            ->whereDoesntHave('equipment')
+            ->when($request->filled('category'), function ($q) use ($request) {
+                $q->whereHas('product.categories', function ($catQ) use ($request) {
+                    $catQ->where('id', $request->category);
+                });
+            });
 
         $orderProducts = $query2
             //->whereBetween('order_id', [100, 130])

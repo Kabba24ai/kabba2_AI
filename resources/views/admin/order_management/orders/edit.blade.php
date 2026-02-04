@@ -52,7 +52,7 @@
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                             Paid In Full Via -
-                            {{ $order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card ? 'Credit/Debit Card' : $order->last_payment_type }}
+                            {{ $order->last_payment_type->label() }}
                         </span>
                     @endif
 
